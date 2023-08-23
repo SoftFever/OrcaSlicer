@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:44+0800\n"
+"POT-Creation-Date: 2023-08-23 17:12+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -193,6 +193,9 @@ msgstr "错误：请先关闭所有工具栏菜单"
 
 msgid "Tool-Lay on Face"
 msgstr "工具-选择底面"
+
+msgid "Bottom:"
+msgstr ""
 
 msgid "in"
 msgstr "在"
@@ -1463,6 +1466,9 @@ msgstr "连接中..."
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "空"
 
@@ -1474,12 +1480,6 @@ msgstr "自动补给"
 
 msgid "AMS not connected"
 msgstr "AMS未连接"
-
-msgid "Cali"
-msgstr "校准"
-
-msgid "Calibration of extrusion"
-msgstr "挤出校准"
 
 msgid "Load Filament"
 msgstr "进料"
@@ -1511,6 +1511,12 @@ msgstr "重新校准"
 msgid "Cancel calibration"
 msgstr "取消校准"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "加热喷嘴"
 
@@ -1526,8 +1532,14 @@ msgstr "送出耗材丝"
 msgid "Purge old filament"
 msgstr "冲刷旧耗材丝"
 
-msgid "Push new filament into the extruder"
-msgstr "将新的耗材丝推入挤出机"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "咬入耗材丝"
@@ -2528,6 +2540,24 @@ msgstr "进料"
 msgid "Motor noise calibration"
 msgstr "电机噪音标定"
 
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr ""
 
@@ -3337,6 +3367,21 @@ msgstr "显示悬空高亮"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "在3D场景中显示悬空高亮"
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide BambuStudio"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Quit BambuStudio"
+msgstr ""
+
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -3387,6 +3432,30 @@ msgstr "校准帮助"
 
 msgid "More calibrations"
 msgstr "更多校准"
+
+msgid "Window"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Zoom"
+msgstr "视角缩放"
+
+msgid "Tile Window to Left of Screen"
+msgstr ""
+
+msgid "Tile Window to Right of Screen"
+msgstr ""
+
+msgid "Replace Tiled Window"
+msgstr ""
+
+msgid "Remove Window from Set"
+msgstr ""
+
+msgid "Bring All to Front"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "打开G-code"
@@ -3714,9 +3783,6 @@ msgstr "死区："
 msgid "Options:"
 msgstr "选项："
 
-msgid "Zoom"
-msgstr "视角缩放"
-
 msgid "Translation/Zoom"
 msgstr "平移/缩放"
 
@@ -3741,11 +3807,11 @@ msgstr ""
 msgid "Layer: N/A"
 msgstr "层： N/A"
 
-msgid "Immediately score"
-msgstr "立即打分"
-
 msgid "Clear"
 msgstr "清除"
+
+msgid "Immediately score"
+msgstr "立即打分"
 
 msgid "Camera"
 msgstr "摄像机"
@@ -3812,12 +3878,6 @@ msgstr "前面还有%s个任务在云端切片队列中"
 msgid "Layer: %s"
 msgstr "层： %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "请为您喜欢的 Bambu 商城模型打分。"
-
-msgid "Score"
-msgstr "打分"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "层： %d/%d"
@@ -3856,6 +3916,79 @@ msgstr "狂暴"
 
 msgid "Can't start this without SD card."
 msgstr "没有SD卡无法开始任务"
+
+msgid "Scoring"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid "upload config prase failed\n"
+msgstr ""
+
+msgid "No corresponding storage bucket\n"
+msgstr ""
+
+msgid "can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "信息"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
 
 msgid "Status"
 msgstr "设备状态"
@@ -4771,9 +4904,6 @@ msgstr "错误"
 msgid "warning"
 msgstr "警告"
 
-msgid "info"
-msgstr "信息"
-
 msgid "debug"
 msgstr "调试"
 
@@ -5566,6 +5696,15 @@ msgstr "当预计的层打印时间比设置值要短时，部件冷却风扇转
 msgid "Auxiliary part cooling fan"
 msgstr "辅助部件冷却风扇"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "耗材丝起始G-code"
 
@@ -5589,6 +5728,9 @@ msgstr "打印机起始G-code"
 
 msgid "Machine end G-code"
 msgstr "打印机结束G-code"
+
+msgid "Printing by object G-code"
+msgstr "逐件打印G-code"
 
 msgid "Before layer change G-code"
 msgstr "换层前G-code"
@@ -6887,6 +7029,14 @@ msgstr "顶面"
 msgid "Topmost surface"
 msgstr "最顶面"
 
+msgid "Top area threshold"
+msgstr ""
+
+msgid ""
+"This factor affects the acreage of top area. The small the number the big "
+"the top area."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "首层仅单层墙"
 
@@ -6988,6 +7138,23 @@ msgstr "默认切片配置"
 msgid "Default process profile when switch to this machine profile"
 msgstr "该机器的默认切片配置"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "风扇速度"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "关闭冷却对前"
 
@@ -7037,6 +7204,14 @@ msgstr "结尾G-code"
 
 msgid "End G-code when finish the whole printing"
 msgstr "所有打印结束时的结尾G-code"
+
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
@@ -7573,6 +7748,19 @@ msgstr "黄铜"
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "G-code风格"
 
@@ -7702,6 +7890,14 @@ msgstr "熨烫速度"
 msgid "Print speed of ironing lines"
 msgstr "熨烫的打印速度"
 
+msgid "ironing direction"
+msgstr ""
+
+msgid ""
+"Angle for ironing, which controls the relative angle between the top surface "
+"and ironing"
+msgstr ""
+
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "在每次换层抬升Z高度之后插入这段G-code。"
 
@@ -7825,9 +8021,6 @@ msgstr "空驶最大加速度"
 
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "空驶最大加速度(M204 T)"
-
-msgid "Fan speed"
-msgstr "风扇速度"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
@@ -8031,6 +8224,24 @@ msgstr ""
 "回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免空驶时喷嘴和"
 "打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝。"
 
+msgid "Z hop lower boundary"
+msgstr "Z抬升范围下限"
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+"只有当Z抬升值在Z抬升下限和Z抬升上限之间时"
+"Z抬升才会生效"
+msgid "Z hop upper boundary"
+msgstr "Z抬升范围上限"
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
+"如果这个值为正，只有当Z抬升值在Z抬升下限和Z抬升上限之间时"
+"Z抬升才会生效"
 msgid "Z Hop Type"
 msgstr "Z抬升方式"
 
@@ -8461,8 +8672,17 @@ msgstr "围绕树状支撑的裙边宽度。0表示自动。"
 msgid "Chamber temperature"
 msgstr "腔体温度"
 
-msgid "Target chamber temperature"
-msgstr "目标腔体温度"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
@@ -8798,6 +9018,12 @@ msgstr "加载默认打印材料"
 
 msgid "Load first filament as default for those not loaded"
 msgstr "加载第一个打印材料为默认材料"
+
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
+msgstr ""
 
 msgid "mtcpp"
 msgstr ""
@@ -9944,6 +10170,24 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Cali"
+#~ msgstr "校准"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "挤出校准"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "将新的耗材丝推入挤出机"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "请为您喜欢的 Bambu 商城模型打分。"
+
+#~ msgid "Score"
+#~ msgstr "打分"
+
+#~ msgid "Target chamber temperature"
+#~ msgstr "目标腔体温度"
 
 #~ msgid "The failed test result has been droped."
 #~ msgstr "测试失败的结果已被删除。"
@@ -12733,9 +12977,6 @@ msgstr ""
 
 #~ msgid "Copy to Clipboard"
 #~ msgstr "拷贝到剪切板"
-
-#~ msgid "Printing by object G-code"
-#~ msgstr "逐件打印G-code"
 
 #~ msgid "This G-code is inserted between objects when print object by object"
 #~ msgstr "在逐件打印时模型之间切换时插入这段G-code"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:44+0800\n"
+"POT-Creation-Date: 2023-08-23 17:12+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -197,6 +197,9 @@ msgstr "Ошибка: пожалуйста, сначала закройте вс
 
 msgid "Tool-Lay on Face"
 msgstr "Инструмент-укладка на лицо"
+
+msgid "Bottom:"
+msgstr ""
 
 msgid "in"
 msgstr "in"
@@ -1501,6 +1504,9 @@ msgstr "Подключение..."
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "Пустой"
 
@@ -1511,12 +1517,6 @@ msgid "Auto Refill"
 msgstr ""
 
 msgid "AMS not connected"
-msgstr "АМС не подключен"
-
-msgid "Cali"
-msgstr "Кали"
-
-msgid "Calibration of extrusion"
 msgstr "АМС не подключен"
 
 msgid "Load Filament"
@@ -1550,6 +1550,12 @@ msgstr "Повторить калибровку"
 msgid "Cancel calibration"
 msgstr "Отменить калибровку"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Нагрейте сопло"
 
@@ -1565,7 +1571,13 @@ msgstr "Вставьте новый филамент в экструдер"
 msgid "Purge old filament"
 msgstr "Очистите старый филамент"
 
-msgid "Push new filament into the extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
 msgstr ""
 
 msgid "Grab new filament"
@@ -2651,6 +2663,24 @@ msgstr ""
 msgid "Motor noise calibration"
 msgstr ""
 
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3462,6 +3492,21 @@ msgstr ""
 msgid "Show object overhang highlight in 3D scene"
 msgstr ""
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide BambuStudio"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Quit BambuStudio"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Настройки"
 
@@ -3512,6 +3557,30 @@ msgstr "Справка по калибровке"
 
 msgid "More calibrations"
 msgstr "Больше калибровок"
+
+msgid "Window"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Zoom"
+msgstr "Увеличить"
+
+msgid "Tile Window to Left of Screen"
+msgstr ""
+
+msgid "Tile Window to Right of Screen"
+msgstr ""
+
+msgid "Replace Tiled Window"
+msgstr ""
+
+msgid "Remove Window from Set"
+msgstr ""
+
+msgid "Bring All to Front"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "&Открыть G-код"
@@ -3860,9 +3929,6 @@ msgstr "Мертвая зона:"
 msgid "Options:"
 msgstr "Параметры:"
 
-msgid "Zoom"
-msgstr "Увеличить"
-
 msgid "Translation/Zoom"
 msgstr "Перевод/Увеличение"
 
@@ -3887,11 +3953,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Слой: нет данных"
 
-msgid "Immediately score"
-msgstr ""
-
 msgid "Clear"
 msgstr "Очистка"
+
+msgid "Immediately score"
+msgstr ""
 
 msgid "Camera"
 msgstr "Камера"
@@ -3958,12 +4024,6 @@ msgstr "В очереди Cloud Slicing Queue впереди %s задач."
 msgid "Layer: %s"
 msgstr "Слой: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr ""
-
-msgid "Score"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Слой: %d/%d"
@@ -4006,6 +4066,79 @@ msgstr "Нелепый"
 
 msgid "Can't start this without SD card."
 msgstr "Не могу запустить это без SD-карты."
+
+msgid "Scoring"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid "upload config prase failed\n"
+msgstr ""
+
+msgid "No corresponding storage bucket\n"
+msgstr ""
+
+msgid "can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "инфо"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
 
 msgid "Status"
 msgstr "Статус"
@@ -4959,9 +5092,6 @@ msgstr "ошибка"
 msgid "warning"
 msgstr "предупреждение"
 
-msgid "info"
-msgstr "инфо"
-
 msgid "debug"
 msgstr "отладка"
 
@@ -5800,6 +5930,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Вентилятор охлаждения вспомогательных деталей"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "G-код начала Филамента"
 
@@ -5823,6 +5962,9 @@ msgstr "Стартовый G-code"
 
 msgid "Machine end G-code"
 msgstr "Конечный G-code"
+
+msgid "Printing by object G-code"
+msgstr ""
 
 msgid "Before layer change G-code"
 msgstr "G-code перед сменой слоя"
@@ -7221,6 +7363,14 @@ msgstr "Верхние поверхности"
 msgid "Topmost surface"
 msgstr "Самая верхняя поверхность"
 
+msgid "Top area threshold"
+msgstr ""
+
+msgid ""
+"This factor affects the acreage of top area. The small the number the big "
+"the top area."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "Только один периметр на первом слое"
 
@@ -7330,6 +7480,23 @@ msgstr "Профиль процесса по умолчанию"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Профиль процесса по умолчанию при переключении на этот профиль машины"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Скорость вентилятора"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Нет охлаждения для первого слоя"
 
@@ -7384,6 +7551,14 @@ msgstr "Завершающий G-code"
 
 msgid "End G-code when finish the whole printing"
 msgstr "Завершающий G-code, когда закончить всю печать"
+
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Завершающий G-code, когда закончите печать этой нити"
@@ -7981,6 +8156,19 @@ msgstr ""
 "Включите эту опцию, если машина оснащена вентилятором охлаждения "
 "вспомогательной части"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "Ароматизатор G-кода"
 
@@ -8104,6 +8292,14 @@ msgstr "Скорость глажки"
 
 msgid "Print speed of ironing lines"
 msgstr "Скорость печати гладильных линий"
+
+msgid "ironing direction"
+msgstr ""
+
+msgid ""
+"Angle for ironing, which controls the relative angle between the top surface "
+"and ironing"
+msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Эта часть gcode вставляется при каждом изменении слоя после подъема z"
@@ -8232,9 +8428,6 @@ msgstr "Максимальное ускорение для движения"
 
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "Максимальное ускорение для движения (M204 T)"
-
-msgid "Fan speed"
-msgstr "Скорость вентилятора"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
@@ -8453,6 +8646,22 @@ msgstr ""
 "создания зазора между насадкой и печатью. Это предотвращает попадание "
 "насадки на печать при движении. Использование спиральной линии для подъема z "
 "может предотвратить стяжку"
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr ""
@@ -8915,8 +9124,17 @@ msgstr ""
 msgid "Chamber temperature"
 msgstr "Температура в камере"
 
-msgid "Target chamber temperature"
-msgstr "Температура целевой камеры"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Температура сопла для слоев после начального"
@@ -9285,6 +9503,12 @@ msgid "Load default filaments"
 msgstr ""
 
 msgid "Load first filament as default for those not loaded"
+msgstr ""
+
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
 msgstr ""
 
 msgid "mtcpp"
@@ -10419,6 +10643,15 @@ msgstr ""
 "Повышение прочности\n"
 "Знаете ли вы, что для повышения прочности модели можно использовать больше "
 "периметров и более высокую плотность заполнения?"
+
+#~ msgid "Cali"
+#~ msgstr "Кали"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "АМС не подключен"
+
+#~ msgid "Target chamber temperature"
+#~ msgstr "Температура целевой камеры"
 
 #~ msgid "The configuration may be generated by a newer version of OrcaSlicer."
 #~ msgstr "Конфигурация может быть создана более новой версией OrcaSlicer."

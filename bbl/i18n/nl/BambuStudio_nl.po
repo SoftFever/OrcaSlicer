@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:44+0800\n"
+"POT-Creation-Date: 2023-08-23 17:12+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -188,6 +188,9 @@ msgstr "Fout: sluit eerst alle openstaande gereedschap menu's"
 
 msgid "Tool-Lay on Face"
 msgstr "Gereedschap op zijde plaatsen"
+
+msgid "Bottom:"
+msgstr ""
 
 msgid "in"
 msgstr "in"
@@ -1508,6 +1511,9 @@ msgstr "Verbinden..."
 msgid "?"
 msgstr " ?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "Leeg"
 
@@ -1519,12 +1525,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS niet aangesloten"
-
-msgid "Cali"
-msgstr "Cali"
-
-msgid "Calibration of extrusion"
-msgstr "Kalibratie van de extrusie"
 
 msgid "Load Filament"
 msgstr "Filament laden"
@@ -1558,6 +1558,12 @@ msgstr "Opnieuw kalibreren"
 msgid "Cancel calibration"
 msgstr "Kalibreren afbreken"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Verwarm de nozzle"
 
@@ -1573,8 +1579,14 @@ msgstr "Nieuw filament in de extruder laden"
 msgid "Purge old filament"
 msgstr "Oud filament verwijderen"
 
-msgid "Push new filament into the extruder"
-msgstr "Push new filament into the extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "Grab new filament"
@@ -2665,6 +2677,24 @@ msgstr ""
 msgid "Motor noise calibration"
 msgstr ""
 
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3478,6 +3508,21 @@ msgstr "Show &Overhang"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Show object overhang highlight in 3D scene"
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide BambuStudio"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Quit BambuStudio"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Voorkeuren"
 
@@ -3527,6 +3572,30 @@ msgid "Calibration help"
 msgstr ""
 
 msgid "More calibrations"
+msgstr ""
+
+msgid "Window"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Zoom"
+msgstr "Inzoomen"
+
+msgid "Tile Window to Left of Screen"
+msgstr ""
+
+msgid "Tile Window to Right of Screen"
+msgstr ""
+
+msgid "Replace Tiled Window"
+msgstr ""
+
+msgid "Remove Window from Set"
+msgstr ""
+
+msgid "Bring All to Front"
 msgstr ""
 
 msgid "&Open G-code"
@@ -3859,9 +3928,6 @@ msgstr "Deadzone:"
 msgid "Options:"
 msgstr "Opties:"
 
-msgid "Zoom"
-msgstr "Inzoomen"
-
 msgid "Translation/Zoom"
 msgstr "Vertaling/Zoom"
 
@@ -3886,11 +3952,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
-msgid "Immediately score"
-msgstr "Immediately score"
-
 msgid "Clear"
 msgstr "Wissen"
+
+msgid "Immediately score"
+msgstr "Immediately score"
 
 msgid "Camera"
 msgstr "Camera"
@@ -3957,12 +4023,6 @@ msgstr "In Cloud Slicing Queue, there are %s tasks ahead of you."
 msgid "Layer: %s"
 msgstr "Layer: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "Please give a score for your favorite Bambu Market model."
-
-msgid "Score"
-msgstr "Score"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Layer: %d/%d"
@@ -4004,6 +4064,79 @@ msgstr "Ludicrous"
 
 msgid "Can't start this without SD card."
 msgstr "Kan niet starten zonder microSD-kaart."
+
+msgid "Scoring"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid "upload config prase failed\n"
+msgstr ""
+
+msgid "No corresponding storage bucket\n"
+msgstr ""
+
+msgid "can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "Informatie"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
 
 msgid "Status"
 msgstr "Status"
@@ -4992,9 +5125,6 @@ msgstr "Fout"
 msgid "warning"
 msgstr "waarschuwing"
 
-msgid "info"
-msgstr "Informatie"
-
 msgid "debug"
 msgstr "Debuggen"
 
@@ -5862,6 +5992,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Extra koel ventilator"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "Filament start G-code"
 
@@ -5885,6 +6024,9 @@ msgstr "Machine start G-code"
 
 msgid "Machine end G-code"
 msgstr "Machine einde G-code"
+
+msgid "Printing by object G-code"
+msgstr ""
 
 msgid "Before layer change G-code"
 msgstr "G-Code voor de laag wijziging"
@@ -7309,6 +7451,14 @@ msgstr "Alle bovenoppervlakken"
 msgid "Topmost surface"
 msgstr "Alleen het bovenste oppervlak"
 
+msgid "Top area threshold"
+msgstr ""
+
+msgid ""
+"This factor affects the acreage of top area. The small the number the big "
+"the top area."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
 
@@ -7421,6 +7571,23 @@ msgstr "Standaard proces profiel"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Standaard procesprofiel bij het overschakelen naar dit machineprofiel"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Ventilator snelheid"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Geen koeling voor de eerste"
 
@@ -7476,6 +7643,14 @@ msgstr "Einde G-code"
 
 msgid "End G-code when finish the whole printing"
 msgstr "Voeg een eind G-code toe bij het afwerken van de hele print."
+
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
 msgstr ""
@@ -8074,6 +8249,19 @@ msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 "Schakel deze optie in als de machine een ventilator voor de enclosure heeft"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "G-code type"
 
@@ -8218,6 +8406,14 @@ msgstr "Snelheid tijdens het strijken"
 msgid "Print speed of ironing lines"
 msgstr "Dit is de print snelheid van de strijk lijnen"
 
+msgid "ironing direction"
+msgstr ""
+
+msgid ""
+"Angle for ironing, which controls the relative angle between the top surface "
+"and ironing"
+msgstr ""
+
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
 "De G-code wordt bij iedere laagwisseling toegevoegd na het optillen van Z"
@@ -8346,9 +8542,6 @@ msgstr "Maximale versnelling voor verplaatsen"
 
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "Maximale versnelling voor verplaatsen (M204 T)"
-
-msgid "Fan speed"
-msgstr "Ventilator snelheid"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
@@ -8582,6 +8775,22 @@ msgstr ""
 "opgetild om ruimte te creëren tussen de nozzle en de print. Dit voorkomt dat "
 "de nozzle de print raakt bij veplaatsen. Het gebruik van spiraallijnen om Z "
 "op te tillen kan stringing voorkomen."
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr "Z Hop Type"
@@ -9057,7 +9266,16 @@ msgstr "The brim width around tree support. 0 means auto."
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9435,6 +9653,12 @@ msgid "Load default filaments"
 msgstr ""
 
 msgid "Load first filament as default for those not loaded"
+msgstr ""
+
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
 msgstr ""
 
 msgid "mtcpp"
@@ -10566,6 +10790,21 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Cali"
+#~ msgstr "Cali"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "Kalibratie van de extrusie"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Push new filament into the extruder"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Please give a score for your favorite Bambu Market model."
+
+#~ msgid "Score"
+#~ msgstr "Score"
 
 #, c-format, boost-format
 #~ msgid ""

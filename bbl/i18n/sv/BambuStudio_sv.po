@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:44+0800\n"
+"POT-Creation-Date: 2023-08-23 17:12+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -188,6 +188,9 @@ msgstr "FEL: Stäng alla verktygsmenyer först"
 
 msgid "Tool-Lay on Face"
 msgstr "Ytplacerings verktyg"
+
+msgid "Bottom:"
+msgstr ""
 
 msgid "in"
 msgstr "i"
@@ -1493,6 +1496,9 @@ msgstr "Sammankopplar..."
 msgid "?"
 msgstr " ?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "Tom"
 
@@ -1504,12 +1510,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS ej ansluten"
-
-msgid "Cali"
-msgstr "Kalib"
-
-msgid "Calibration of extrusion"
-msgstr "Kalibrering av extrudering"
 
 msgid "Load Filament"
 msgstr "Ladda Filament"
@@ -1541,6 +1541,12 @@ msgstr "Kalibrera igen"
 msgid "Cancel calibration"
 msgstr "Avbryt kalibrering"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Värm upp nozzle"
 
@@ -1556,8 +1562,14 @@ msgstr "Mata in nytt filament i extrudern"
 msgid "Purge old filament"
 msgstr "Rensa gammalt filament"
 
-msgid "Push new filament into the extruder"
-msgstr "Mata nytt filament till extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "Ta ett nytt filament"
@@ -2634,6 +2646,24 @@ msgstr ""
 msgid "Motor noise calibration"
 msgstr ""
 
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3446,6 +3476,21 @@ msgstr "Visa & Överhäng"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Visa objektets överhäng i 3D-scen"
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide BambuStudio"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Quit BambuStudio"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Inställningar"
 
@@ -3495,6 +3540,30 @@ msgid "Calibration help"
 msgstr ""
 
 msgid "More calibrations"
+msgstr ""
+
+msgid "Window"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Zoom"
+msgstr "Zooma"
+
+msgid "Tile Window to Left of Screen"
+msgstr ""
+
+msgid "Tile Window to Right of Screen"
+msgstr ""
+
+msgid "Replace Tiled Window"
+msgstr ""
+
+msgid "Remove Window from Set"
+msgstr ""
+
+msgid "Bring All to Front"
 msgstr ""
 
 msgid "&Open G-code"
@@ -3827,9 +3896,6 @@ msgstr "Upphör:"
 msgid "Options:"
 msgstr "Val:"
 
-msgid "Zoom"
-msgstr "Zooma"
-
 msgid "Translation/Zoom"
 msgstr "Översättning/Zoom"
 
@@ -3854,11 +3920,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Lager: N/A"
 
-msgid "Immediately score"
-msgstr "Omedelbar resultat"
-
 msgid "Clear"
 msgstr "Rensa"
+
+msgid "Immediately score"
+msgstr "Omedelbar resultat"
 
 msgid "Camera"
 msgstr "Kamera"
@@ -3925,12 +3991,6 @@ msgstr "I Moln Berednings Kön finns det %s uppgifter framför dig."
 msgid "Layer: %s"
 msgstr "Lager: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "Vänligen ge ett betyg till din favorit modell från Bambu Market."
-
-msgid "Score"
-msgstr "Resultat"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Lager: %d/%d"
@@ -3971,6 +4031,79 @@ msgstr "Galet"
 
 msgid "Can't start this without SD card."
 msgstr "Kan inte starta utan MicroSD-kort."
+
+msgid "Scoring"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid "upload config prase failed\n"
+msgstr ""
+
+msgid "No corresponding storage bucket\n"
+msgstr ""
+
+msgid "can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "info"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
 
 msgid "Status"
 msgstr "Status"
@@ -4924,9 +5057,6 @@ msgstr "fel"
 msgid "warning"
 msgstr "varning"
 
-msgid "info"
-msgstr "info"
-
 msgid "debug"
 msgstr "felsök"
 
@@ -5777,6 +5907,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Extra del kylnings fläkt"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "Filament start G-kod"
 
@@ -5800,6 +5939,9 @@ msgstr "Maskin start G-kod"
 
 msgid "Machine end G-code"
 msgstr "Maskin stop G-kod"
+
+msgid "Printing by object G-code"
+msgstr ""
 
 msgid "Before layer change G-code"
 msgstr "Före lagerskifte G-kod"
@@ -7178,6 +7320,14 @@ msgstr "Top ytor"
 msgid "Topmost surface"
 msgstr "Endast högsta ytan"
 
+msgid "Top area threshold"
+msgstr ""
+
+msgid ""
+"This factor affects the acreage of top area. The small the number the big "
+"the top area."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "Endast en vägg på första lagret"
 
@@ -7286,6 +7436,23 @@ msgstr "Standard process profil"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Standard process profil vid byte till denna maskinens profil"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Fläkt hastighet"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Ingen kylning vid första"
 
@@ -7339,6 +7506,14 @@ msgstr "Slut G-kod"
 
 msgid "End G-code when finish the whole printing"
 msgstr "Lägg till slut G-kod när utskriften har avslutas"
+
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Lägg till slut G-kod när utskriften har avslutas med detta filament"
@@ -7923,6 +8098,19 @@ msgstr "Mässing"
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Aktivera detta val om maskinen har extra kylfläkt"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "G-kod smak"
 
@@ -8067,6 +8255,14 @@ msgstr "Stryknings hastighet"
 msgid "Print speed of ironing lines"
 msgstr "Utskrifts hastighet för strykning"
 
+msgid "ironing direction"
+msgstr ""
+
+msgid ""
+"Angle for ironing, which controls the relative angle between the top surface "
+"and ironing"
+msgstr ""
+
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "Denna G-kod infogas vid varje lagerbyte efter lyft av Z axis"
 
@@ -8194,9 +8390,6 @@ msgstr "Max acceleration för förflyttning"
 
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "Max acceleration för förflyttning (M204 T)"
-
-msgid "Fan speed"
-msgstr "Fläkt hastighet"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
@@ -8420,6 +8613,22 @@ msgstr ""
 "nozzel och utskriften. Detta förhindrar att nozzel träffar utskriften när "
 "den förflyttas. Att använda spirallinjer för att lyfta z kan förhindra "
 "strängning"
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr "Z Hop Typ"
@@ -8881,7 +9090,16 @@ msgstr "Botten bredd runt träd support. 0 betyder automatisk."
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9249,6 +9467,12 @@ msgid "Load default filaments"
 msgstr ""
 
 msgid "Load first filament as default for those not loaded"
+msgstr ""
+
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
 msgstr ""
 
 msgid "mtcpp"
@@ -10379,6 +10603,21 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "Cali"
+#~ msgstr "Kalib"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "Kalibrering av extrudering"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Mata nytt filament till extruder"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Vänligen ge ett betyg till din favorit modell från Bambu Market."
+
+#~ msgid "Score"
+#~ msgstr "Resultat"
 
 #, c-format, boost-format
 #~ msgid ""

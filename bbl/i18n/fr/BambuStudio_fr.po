@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:44+0800\n"
+"POT-Creation-Date: 2023-08-23 17:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -192,6 +192,9 @@ msgstr "Erreur : Veuillez d'abord fermer tous les menus de la barre d'outils"
 
 msgid "Tool-Lay on Face"
 msgstr "Outil-Positionner sur une face"
+
+msgid "Bottom:"
+msgstr ""
 
 msgid "in"
 msgstr "dans"
@@ -1512,6 +1515,9 @@ msgstr "Connexion…"
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "verser"
 
@@ -1523,12 +1529,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS non connecté"
-
-msgid "Cali"
-msgstr "Calib."
-
-msgid "Calibration of extrusion"
-msgstr "Calibration de l'extrusion"
 
 msgid "Load Filament"
 msgstr "Charger"
@@ -1562,6 +1562,12 @@ msgstr "Etalonner de nouveau"
 msgid "Cancel calibration"
 msgstr "Annuler la calibration"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Chauffer la buse"
 
@@ -1577,8 +1583,14 @@ msgstr "Poussez le nouveau filament dans l'extrudeur"
 msgid "Purge old filament"
 msgstr "Purger l'ancien filament"
 
-msgid "Push new filament into the extruder"
-msgstr "Poussez le nouveau filament dans l'extrudeur"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "Saisir un nouveau filament"
@@ -2676,6 +2688,24 @@ msgstr ""
 msgid "Motor noise calibration"
 msgstr ""
 
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3487,6 +3517,21 @@ msgstr "Montrer Surplombs"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Afficher la surbrillance des surplombs d'un objet dans la scène 3D"
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide BambuStudio"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Quit BambuStudio"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Préférences"
 
@@ -3536,6 +3581,30 @@ msgid "Calibration help"
 msgstr ""
 
 msgid "More calibrations"
+msgstr ""
+
+msgid "Window"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Tile Window to Left of Screen"
+msgstr ""
+
+msgid "Tile Window to Right of Screen"
+msgstr ""
+
+msgid "Replace Tiled Window"
+msgstr ""
+
+msgid "Remove Window from Set"
+msgstr ""
+
+msgid "Bring All to Front"
 msgstr ""
 
 msgid "&Open G-code"
@@ -3877,9 +3946,6 @@ msgstr "Zone morte :"
 msgid "Options:"
 msgstr "Options :"
 
-msgid "Zoom"
-msgstr "Zoom"
-
 msgid "Translation/Zoom"
 msgstr "Translation/Zoom"
 
@@ -3904,11 +3970,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Couche : N/A"
 
-msgid "Immediately score"
-msgstr "Noter immédiatement"
-
 msgid "Clear"
 msgstr "Nettoyer"
+
+msgid "Immediately score"
+msgstr "Noter immédiatement"
 
 msgid "Camera"
 msgstr "Caméra"
@@ -3975,12 +4041,6 @@ msgstr "Dans la file d'attente des tranchage cloud %s tâches vous attendent."
 msgid "Layer: %s"
 msgstr "Couche : %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "Veuillez attribuer une note à votre modèle Bambu Market préféré."
-
-msgid "Score"
-msgstr "Note"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Couche : %d/%d"
@@ -4022,6 +4082,79 @@ msgstr "Insensé"
 
 msgid "Can't start this without SD card."
 msgstr "Impossible de démarrer sans carte SD."
+
+msgid "Scoring"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid "upload config prase failed\n"
+msgstr ""
+
+msgid "No corresponding storage bucket\n"
+msgstr ""
+
+msgid "can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "Info"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
 
 msgid "Status"
 msgstr "État"
@@ -5002,9 +5135,6 @@ msgstr "Erreur"
 msgid "warning"
 msgstr "Attention"
 
-msgid "info"
-msgstr "Info"
-
 msgid "debug"
 msgstr "déboguer"
 
@@ -5890,6 +6020,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Ventilateur de refroidissement de la partie auxiliaire"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "Code G de démarrage du filament"
 
@@ -5913,6 +6052,9 @@ msgstr "Code G de démarrage de la machine"
 
 msgid "Machine end G-code"
 msgstr "Code G de fin de machine"
+
+msgid "Printing by object G-code"
+msgstr ""
 
 msgid "Before layer change G-code"
 msgstr "G-Code avant changement de couche"
@@ -7351,6 +7493,14 @@ msgstr "Surfaces supérieures"
 msgid "Topmost surface"
 msgstr "Surface la plus élevée"
 
+msgid "Top area threshold"
+msgstr ""
+
+msgid ""
+"This factor affects the acreage of top area. The small the number the big "
+"the top area."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "Une seule paroi sur la première couche"
 
@@ -7463,6 +7613,23 @@ msgstr "Profil de processus par défaut"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Profil de processus par défaut lors du passage à ce profil de machine"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Vitesse du ventilateur"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Pas de refroidissement pour"
 
@@ -7518,6 +7685,14 @@ msgstr "G-code de fin"
 
 msgid "End G-code when finish the whole printing"
 msgstr "Terminer le code G lorsque vous avez terminé toute l'impression"
+
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Fin du code G lorsque l'impression de ce filament est terminée"
@@ -8119,6 +8294,19 @@ msgstr ""
 "Activez cette option si la machine est équipée d'un ventilateur de "
 "refroidissement de pièce auxiliaire"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "Version du G-code"
 
@@ -8264,6 +8452,14 @@ msgstr "Vitesse de repassage"
 msgid "Print speed of ironing lines"
 msgstr "Vitesse d'impression des lignes de repassage"
 
+msgid "ironing direction"
+msgstr ""
+
+msgid ""
+"Angle for ironing, which controls the relative angle between the top surface "
+"and ironing"
+msgstr ""
+
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
 "Cette partie gcode est insérée à chaque changement de couche après lift z"
@@ -8393,9 +8589,6 @@ msgstr "Accélération maximale pour le déplacement"
 
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "Accélération maximale pour le déplacement (M204 T)"
-
-msgid "Fan speed"
-msgstr "Vitesse du ventilateur"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
@@ -8632,6 +8825,22 @@ msgstr ""
 "pour créer un espace entre la buse et l'impression. Il empêche la buse de "
 "toucher l'impression lors du déplacement. L'utilisation d'une ligne en "
 "spirale pour soulever z peut empêcher l'enfilage"
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr "Type de Z Hop"
@@ -9104,7 +9313,16 @@ msgstr ""
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9482,6 +9700,12 @@ msgid "Load default filaments"
 msgstr ""
 
 msgid "Load first filament as default for those not loaded"
+msgstr ""
+
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
 msgstr ""
 
 msgid "mtcpp"
@@ -10628,6 +10852,21 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez définir un plus grand nombre de périmètre et une "
 "densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid "Cali"
+#~ msgstr "Calib."
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "Calibration de l'extrusion"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Poussez le nouveau filament dans l'extrudeur"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Veuillez attribuer une note à votre modèle Bambu Market préféré."
+
+#~ msgid "Score"
+#~ msgstr "Note"
 
 #, c-format, boost-format
 #~ msgid ""

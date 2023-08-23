@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:44+0800\n"
+"POT-Creation-Date: 2023-08-23 17:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -190,6 +190,9 @@ msgstr "Hiba: Kérjük, először zárd be az összes eszköztár menüt"
 
 msgid "Tool-Lay on Face"
 msgstr "Eszköz-Felületre fektetés"
+
+msgid "Bottom:"
+msgstr ""
 
 msgid "in"
 msgstr "in"
@@ -1505,6 +1508,9 @@ msgstr "Csatlakozás..."
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "Üres"
 
@@ -1516,12 +1522,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "Az AMS nincs csatlakoztatva"
-
-msgid "Cali"
-msgstr "Kali"
-
-msgid "Calibration of extrusion"
-msgstr "Extrudálás kalibrálása"
 
 msgid "Load Filament"
 msgstr "Filament betöltés"
@@ -1555,6 +1555,12 @@ msgstr "Kalibrálja újra"
 msgid "Cancel calibration"
 msgstr "Kalibrálás megszakítása"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Fűtsd fel a fúvókát"
 
@@ -1570,8 +1576,14 @@ msgstr "Új filament betöltése az extruderbe"
 msgid "Purge old filament"
 msgstr "Régi filament kiöblítése"
 
-msgid "Push new filament into the extruder"
-msgstr "Push new filament into the extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "Grab new filament"
@@ -2651,6 +2663,24 @@ msgstr ""
 msgid "Motor noise calibration"
 msgstr ""
 
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3464,6 +3494,21 @@ msgstr "Show &Overhang"
 msgid "Show object overhang highlight in 3D scene"
 msgstr "Show object overhang highlight in 3D scene"
 
+msgid "Services"
+msgstr ""
+
+msgid "Hide BambuStudio"
+msgstr ""
+
+msgid "Hide Others"
+msgstr ""
+
+msgid "Show All"
+msgstr ""
+
+msgid "Quit BambuStudio"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Beállítások"
 
@@ -3513,6 +3558,30 @@ msgid "Calibration help"
 msgstr ""
 
 msgid "More calibrations"
+msgstr ""
+
+msgid "Window"
+msgstr ""
+
+msgid "Minimize"
+msgstr ""
+
+msgid "Zoom"
+msgstr "Nagyítás"
+
+msgid "Tile Window to Left of Screen"
+msgstr ""
+
+msgid "Tile Window to Right of Screen"
+msgstr ""
+
+msgid "Replace Tiled Window"
+msgstr ""
+
+msgid "Remove Window from Set"
+msgstr ""
+
+msgid "Bring All to Front"
 msgstr ""
 
 msgid "&Open G-code"
@@ -3846,9 +3915,6 @@ msgstr "Tiltott zóna:"
 msgid "Options:"
 msgstr "Opciók:"
 
-msgid "Zoom"
-msgstr "Nagyítás"
-
 msgid "Translation/Zoom"
 msgstr "Fordítás/Nagyítás"
 
@@ -3873,11 +3939,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
-msgid "Immediately score"
-msgstr "Immediately score"
-
 msgid "Clear"
 msgstr "Törlés"
+
+msgid "Immediately score"
+msgstr "Immediately score"
 
 msgid "Camera"
 msgstr "Kamera"
@@ -3944,12 +4010,6 @@ msgstr "In Cloud Slicing Queue, there are %s tasks ahead of you."
 msgid "Layer: %s"
 msgstr "Layer: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "Please give a score for your favorite Bambu Market model."
-
-msgid "Score"
-msgstr "Score"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Layer: %d/%d"
@@ -3990,6 +4050,79 @@ msgstr "Őrült"
 
 msgid "Can't start this without SD card."
 msgstr "MicroSD kártya nélkül nem indítható."
+
+msgid "Scoring"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid "upload config prase failed\n"
+msgstr ""
+
+msgid "No corresponding storage bucket\n"
+msgstr ""
+
+msgid "can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "infó"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
 
 msgid "Status"
 msgstr "Állapot"
@@ -4955,9 +5088,6 @@ msgstr "hiba"
 msgid "warning"
 msgstr "figyelmeztetés"
 
-msgid "info"
-msgstr "infó"
-
 msgid "debug"
 msgstr "debug"
 
@@ -5810,6 +5940,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Kiegészítő tárgyhűtő ventilátor"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "Filament kezdő G-kód"
 
@@ -5833,6 +5972,9 @@ msgstr "Gép kezdő G-kód"
 
 msgid "Machine end G-code"
 msgstr "Gép befejező G-kód"
+
+msgid "Printing by object G-code"
+msgstr ""
 
 msgid "Before layer change G-code"
 msgstr "Rétegváltás előtti G-kód"
@@ -7247,6 +7389,14 @@ msgstr "Felső felületek"
 msgid "Topmost surface"
 msgstr "Legfelső felület"
 
+msgid "Top area threshold"
+msgstr ""
+
+msgid ""
+"This factor affects the acreage of top area. The small the number the big "
+"the top area."
+msgstr ""
+
 msgid "Only one wall on first layer"
 msgstr "Only one wall on first layer"
 
@@ -7357,6 +7507,23 @@ msgstr "Alapértelmezett folyamat profil"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Alapértelmezett folyamat profil, ha erre a gép profilra váltasz"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Ventilátor fordulatszám"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Nincs hűtés az első"
 
@@ -7411,6 +7578,14 @@ msgstr "Befejező G-kód"
 
 msgid "End G-code when finish the whole printing"
 msgstr "Befejező G-kód az egész nyomtatás befejezésekor"
+
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Befejező G-kód a filament nyomtatásának befejezésekor"
@@ -8001,6 +8176,19 @@ msgstr ""
 "Engedélyezd ezt az opciót, ha a gép rendelkezik kiegészítő tárgyhűtő "
 "ventilátorral"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "G-kód változat"
 
@@ -8142,6 +8330,14 @@ msgstr "Vasalás sebessége"
 msgid "Print speed of ironing lines"
 msgstr "A vasalási vonalak nyomtatási sebessége"
 
+msgid "ironing direction"
+msgstr ""
+
+msgid ""
+"Angle for ironing, which controls the relative angle between the top surface "
+"and ironing"
+msgstr ""
+
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
 "Ez a G-kód minden rétegváltásnál beillesztésre kerül a Z tengely megemelése "
@@ -8271,9 +8467,6 @@ msgstr "Maximális gyorsulás a mozgáshoz"
 
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "Maximális gyorsulás a mozgáshoz (M204 T)"
-
-msgid "Fan speed"
-msgstr "Ventilátor fordulatszám"
 
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
@@ -8502,6 +8695,22 @@ msgstr ""
 "nyomtatott tárgy között rés keletkezzen. Ez megakadályozza, hogy a fúvóka "
 "nagyobb mozgás közben a tárgynak ütközzön. A Z tengely emelésekor használt "
 "körkörös mozgás megelőzheti a szálazást."
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr "Z-emelés típusa"
@@ -8974,7 +9183,16 @@ msgstr "The brim width around tree support. 0 means auto."
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9344,6 +9562,12 @@ msgid "Load default filaments"
 msgstr ""
 
 msgid "Load first filament as default for those not loaded"
+msgstr ""
+
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
 msgstr ""
 
 msgid "mtcpp"
@@ -10473,6 +10697,21 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Cali"
+#~ msgstr "Kali"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "Extrudálás kalibrálása"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Push new filament into the extruder"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Please give a score for your favorite Bambu Market model."
+
+#~ msgid "Score"
+#~ msgstr "Score"
 
 #, c-format, boost-format
 #~ msgid ""
