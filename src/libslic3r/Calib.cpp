@@ -429,6 +429,17 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
     model.plates_custom_gcodes[model.curr_plate_index] = info;
 }
 
+void CalibPressureAdvancePattern::set_start_offset(const Vec3d &offset)
+{
+    m_starting_point = offset;
+    m_is_start_point_fixed = true;
+}
+
+Vec3d CalibPressureAdvancePattern::get_start_offset()
+{
+    return m_starting_point;
+}
+
 void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const Model &model, const Vec3d &origin)
 {
     m_config = config;
@@ -443,6 +454,9 @@ void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config
 
 void CalibPressureAdvancePattern::_refresh_starting_point(const Model &model)
 {
+    if (m_is_start_point_fixed)
+        return;
+
     ModelObject * obj  = model.objects.front();
     BoundingBoxf3 bbox = obj->instance_bounding_box(*obj->instances.front(), false);
 

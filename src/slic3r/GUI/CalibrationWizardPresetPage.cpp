@@ -5,6 +5,9 @@
 #include "libslic3r/Print.hpp"
 
 namespace Slic3r { namespace GUI {
+static wxString PA_LINE = _L("Line");
+static wxString PA_PATTERN = _L("Pattern");
+
 CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
     wxWindow* parent,
     wxWindowID id,
@@ -122,6 +125,63 @@ void CaliPresetCaliStagePanel::set_flow_ratio_value(float flow_ratio)
 {
     flow_ratio_input->GetTextCtrl()->SetValue(wxString::Format("%.2f", flow_ratio));
     m_flow_ratio_value = flow_ratio;
+}
+
+CaliComboBox::CaliComboBox(wxWindow* parent,
+    wxString                              title,
+    wxArrayString                         values,
+    int                                   default_index, // default delected id
+    std::function<void(wxCommandEvent&)>  on_value_change,
+    wxWindowID                            id,
+    const wxPoint&                        pos,
+    const wxSize&                         size,
+    long                                  style)
+    : wxPanel(parent, id, pos, size, style)
+    , m_title(title)
+    , m_on_value_change_call_back(on_value_change)
+{
+    SetBackgroundColour(*wxWHITE);
+    m_top_sizer = new wxBoxSizer(wxVERTICAL);
+    m_top_sizer->AddSpacer(PRESET_GAP);
+    auto combo_title = new Label(this, title);
+    combo_title->SetFont(Label::Head_14);
+    combo_title->Wrap(-1);
+    m_top_sizer->Add(combo_title, 0, wxALL, 0);
+    m_top_sizer->AddSpacer(FromDIP(10));
+    m_combo_box = new ComboBox(this, wxID_ANY, "", wxDefaultPosition, CALIBRATION_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_top_sizer->Add(m_combo_box, 0, wxALL, 0);
+    m_top_sizer->AddSpacer(PRESET_GAP);
+
+    this->SetSizer(m_top_sizer);
+    m_top_sizer->Fit(this);
+
+    // set values
+    for (int i = 0; i < values.size(); ++i) {
+        m_combo_box->AppendString(values[i]);
+    }
+    m_combo_box->SetSelection(default_index);
+
+    // bind call back function
+    if (m_on_value_change_call_back)
+        m_combo_box->Bind(wxEVT_COMBOBOX, m_on_value_change_call_back);
+}
+
+wxString CaliComboBox::get_value() const
+{
+    if (m_combo_box)
+        return m_combo_box->GetValue();
+
+    return wxString();
+}
+
+void CaliComboBox::set_values(const wxArrayString &values)
+{
+    if (m_combo_box) {
+        for (int i = 0; i < values.size(); ++i) {
+            m_combo_box->AppendString(values[i]);
+        }
+        m_combo_box->SetSelection(0);
+    }
 }
 
 CaliPresetWarningPanel::CaliPresetWarningPanel(
@@ -704,6 +764,13 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_filament_list_panel = new wxPanel(parent);
     m_filament_list_panel->SetBackgroundColour(*wxWHITE);
     create_filament_list_panel(m_filament_list_panel);
+
+    if (m_cali_mode == CalibMode::Calib_PA_Line || m_cali_mode == CalibMode::Calib_PA_Pattern) {
+        wxArrayString pa_cali_modes;
+        pa_cali_modes.push_back(PA_LINE);
+        pa_cali_modes.push_back(PA_PATTERN);
+        m_pa_cali_method_combox = new CaliComboBox(parent, _L("Method"), pa_cali_modes);
+    }
     
     m_ext_spool_panel = new wxPanel(parent);
     create_ext_spool_panel(m_ext_spool_panel);
@@ -719,9 +786,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     m_sending_panel->Hide();
 
-    if (m_show_custom_range) {
-        m_custom_range_panel = new CaliPresetCustomRangePanel(parent);
-    }
+    m_custom_range_panel = new CaliPresetCustomRangePanel(parent);
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_PRESET);
 
@@ -732,11 +797,10 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_selection_panel, 0);
     m_top_sizer->Add(m_filament_list_panel, 0);
     m_top_sizer->Add(m_ext_spool_panel, 0);
+    m_top_sizer->Add(m_pa_cali_method_combox, 0);
+    m_top_sizer->Add(m_custom_range_panel, 0);
+    m_top_sizer->AddSpacer(FromDIP(15));
     m_top_sizer->Add(m_warning_panel, 0);
-    if (m_show_custom_range) {
-        m_top_sizer->Add(m_custom_range_panel, 0);
-        m_top_sizer->AddSpacer(FromDIP(15));
-    }
     m_top_sizer->Add(m_tips_panel, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
     m_top_sizer->Add(m_sending_panel, 0, wxALIGN_CENTER);
@@ -1430,16 +1494,56 @@ void CalibrationPresetPage::set_cali_filament_mode(CalibrationFilamentMode mode)
 void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 {
     CalibrationWizardPage::set_cali_method(method);
-    if (method == CalibrationMethod::CALI_METHOD_MANUAL && m_cali_mode == CalibMode::Calib_Flow_Rate) {
-        wxArrayString steps;
-        steps.Add(_L("Preset"));
-        steps.Add(_L("Calibration1"));
-        steps.Add(_L("Calibration2"));
-        steps.Add(_L("Record Factor"));
-        m_step_panel->set_steps_string(steps);
-        m_step_panel->set_steps(0);
-        if (m_cali_stage_panel)
-            m_cali_stage_panel->Show();
+    if (method == CalibrationMethod::CALI_METHOD_MANUAL) {
+        if (m_cali_mode == CalibMode::Calib_Flow_Rate) {
+            wxArrayString steps;
+            steps.Add(_L("Preset"));
+            steps.Add(_L("Calibration1"));
+            steps.Add(_L("Calibration2"));
+            steps.Add(_L("Record Factor"));
+            m_step_panel->set_steps_string(steps);
+            m_step_panel->set_steps(0);
+            if (m_cali_stage_panel)
+                m_cali_stage_panel->Show();
+
+            if (m_pa_cali_method_combox)
+                m_pa_cali_method_combox->Show(false);
+
+            if (m_custom_range_panel)
+                m_custom_range_panel->Show(false);
+        }
+        else if (m_cali_mode == CalibMode::Calib_PA_Line || m_cali_mode == CalibMode::Calib_PA_Pattern) {
+            if (m_cali_stage_panel)
+                m_cali_stage_panel->Show(false);
+
+            if (m_pa_cali_method_combox)
+                m_pa_cali_method_combox->Show();
+
+            if (m_custom_range_panel) {
+                wxArrayString titles;
+                titles.push_back(_L("From k Value"));
+                titles.push_back(_L("To k Value"));
+                titles.push_back(_L("Step"));
+                m_custom_range_panel->set_titles(titles);
+
+                wxArrayString values;
+                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
+                int extruder_type  = printer_preset->config.opt_enum("extruder_type", 0);
+                if (extruder_type == ExtruderType::etBowden) {
+                    values.push_back(_L("0"));
+                    values.push_back(_L("0.5"));
+                    values.push_back(_L("0.05"));
+                } else {
+                    values.push_back(_L("0"));
+                    values.push_back(_L("0.05"));
+                    values.push_back(_L("0.005"));
+                }
+                m_custom_range_panel->set_values(values);
+
+                m_custom_range_panel->set_unit(_L(""));
+                m_custom_range_panel->Show();
+            }
+        }
     }
     else {
         wxArrayString steps;
@@ -1450,6 +1554,10 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
         m_step_panel->set_steps(0);
         if (m_cali_stage_panel)
             m_cali_stage_panel->Show(false);
+        if (m_custom_range_panel)
+            m_custom_range_panel->Show(false);
+        if (m_pa_cali_method_combox)
+            m_pa_cali_method_combox->Show(false);
     }
 }
 
@@ -1847,10 +1955,24 @@ std::string CalibrationPresetPage::get_print_preset_name()
 
 wxArrayString CalibrationPresetPage::get_custom_range_values()
 {
-    if (m_show_custom_range && m_custom_range_panel) {
+    if (m_custom_range_panel) {
         return m_custom_range_panel->get_values();
     }
     return wxArrayString();
+}
+
+CalibMode CalibrationPresetPage::get_pa_cali_method()
+{
+    if (m_pa_cali_method_combox) {
+        wxString selected_mode = m_pa_cali_method_combox->get_value();
+        if (selected_mode == PA_LINE) {
+            return CalibMode::Calib_PA_Line;
+        }
+        else if (selected_mode == PA_PATTERN) {
+            return CalibMode::Calib_PA_Pattern;
+        }
+    }
+    return CalibMode::Calib_PA_Line;
 }
 
 MaxVolumetricSpeedPresetPage::MaxVolumetricSpeedPresetPage(
