@@ -1536,10 +1536,13 @@ void AmsRMGroup::doRender(wxDC& dc)
         dc.SetFont(::Label::Body_12);
         auto text_size = dc.GetTextExtent(tray_name);
         dc.SetTextForeground(tray_color.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x262E30));
+        if (tray_color.Alpha() == 0) {dc.SetTextForeground(wxColour(0x262E30));}
+
         dc.DrawText(tray_name, x_center - text_size.x / 2, size.y - y_center - text_size.y / 2);
 
         //draw split line
         dc.SetPen(wxPen(*wxWHITE, 2));
+        if (tray_color.Alpha() == 0) {dc.SetPen(wxPen(wxColour(0xCECECE), 2));}
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         auto pos_sp_start = CalculateEndpoint(wxPoint(x, y), (360 - startAngle),  size.x / 2 - FromDIP(3));
         dc.DrawLine(wxPoint(x, y), pos_sp_start);
