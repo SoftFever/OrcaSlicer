@@ -3074,7 +3074,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_unload_filament_time");
 
         optgroup = page->new_optgroup(L("Extruder Clearance"));
-        optgroup->append_single_option_line("extruder_clearance_radius");
+        optgroup->append_single_option_line("extruder_clearance_max_radius");
         optgroup->append_single_option_line("extruder_clearance_height_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
         
@@ -3642,7 +3642,7 @@ void TabPrinter::toggle_options()
         // Disable silent mode for non-marlin firmwares.
         toggle_option("silent_mode", is_marlin_flavor);
         //BBS: extruder clearance of BBL printer can't be edited.
-        for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+        for (auto el : { "extruder_clearance_max_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
             toggle_option(el, !is_BBL_printer);
     }
 
