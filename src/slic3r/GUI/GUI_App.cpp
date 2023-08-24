@@ -4115,32 +4115,29 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
 {
     AppConfig* app_config = wxGetApp().app_config;
     auto version_check_url = app_config->version_check_url();
-    Http::get(version_check_url).on_error([&](std::string body, std::string error, unsigned http_status) {
-        (void)body;
-        BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
-            "check_new_version_sf",
-            http_status,
-            error);
+    Http::get(version_check_url)
+        .on_error([&](std::string body, std::string error, unsigned http_status) {
+          (void)body;
+          BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%", "check_new_version_sf", http_status,
+                                             error);
         })
         .timeout_connect(1)
-        .on_complete([&](std::string body, unsigned  http_status ) {
-          //Http response OK
-            if (http_status != 200)
-              return;
-
+        .on_complete([&](std::string body, unsigned http_status) {
+          // Http response OK
+          if (http_status != 200)
+            return;
+          try {
             boost::trim(body);
             // SoftFever: parse github release, ported from SS
 
             boost::property_tree::ptree root;
-            try {
-                std::stringstream json_stream(body);
-                boost::property_tree::read_json(json_stream, root);
-            } catch (const boost::property_tree::ptree_error &e) {
-                BOOST_LOG_TRIVIAL(error) << format("Error version json: `%1%`", e.what());
-                return;
-            }
+
+            std::stringstream json_stream(body);
+            boost::property_tree::read_json(json_stream, root);
+
             bool i_am_pre = false;
-            //at least two number, use '.' as separator. can be followed by -Az23 for prereleased and +Az42 for metadata
+            // at least two number, use '.' as separator. can be followed by -Az23 for prereleased and +Az42 for
+            // metadata
             std::regex matcher("[0-9]+\\.[0-9]+(\\.[0-9]+)*(-[A-Za-z0-9]+)?(\\+[A-Za-z0-9]+)?");
 
             Semver current_version = get_version(SoftFever_VERSION, matcher);
@@ -4152,55 +4149,56 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             std::string best_pre_content;
             const std::regex reg_num("([0-9]+)");
             for (auto json_version : root) {
-                std::string tag = json_version.second.get<std::string>("tag_name");
-                if (tag[0] == 'v')
-                    tag.erase(0, 1);
-                for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num); it != std::sregex_iterator(); ++it) {
-
+              std::string tag = json_version.second.get<std::string>("tag_name");
+              if (tag[0] == 'v')
+                tag.erase(0, 1);
+              for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num);
+                   it != std::sregex_iterator(); ++it) {
+              }
+              Semver tag_version = get_version(tag, matcher);
+              if (current_version == tag_version)
+                i_am_pre = json_version.second.get<bool>("prerelease");
+              if (json_version.second.get<bool>("prerelease")) {
+                if (best_pre < tag_version) {
+                  best_pre = tag_version;
+                  best_pre_url = json_version.second.get<std::string>("html_url");
+                  best_pre_content = json_version.second.get<std::string>("body");
+                  best_pre.set_prerelease("Preview");
                 }
-                Semver tag_version = get_version(tag, matcher);
-                if (current_version == tag_version)
-                    i_am_pre = json_version.second.get<bool>("prerelease");
-                if (json_version.second.get<bool>("prerelease")) {
-                    if (best_pre < tag_version) {
-                        best_pre = tag_version;
-                        best_pre_url = json_version.second.get<std::string>("html_url");
-                        best_pre_content = json_version.second.get<std::string>("body");
-                        best_pre.set_prerelease("Preview");
-                    }
+              } else {
+                if (best_release < tag_version) {
+                  best_release = tag_version;
+                  best_release_url = json_version.second.get<std::string>("html_url");
+                  best_release_content = json_version.second.get<std::string>("body");
                 }
-                else {
-                    if (best_release < tag_version) {
-                        best_release = tag_version;
-                        best_release_url = json_version.second.get<std::string>("html_url");
-                        best_release_content = json_version.second.get<std::string>("body");
-                    }
-                }
+              }
             }
 
-            //if release is more recent than beta, use release anyway
+            // if release is more recent than beta, use release anyway
             if (best_pre < best_release) {
-                best_pre = best_release;
-                best_pre_url = best_release_url;
-                best_pre_content = best_release_content;
+              best_pre = best_release;
+              best_pre_url = best_release_url;
+              best_pre_content = best_release_content;
             }
-            //if we're the most recent, don't do anything
+            // if we're the most recent, don't do anything
             if ((i_am_pre ? best_pre : best_release) <= current_version)
-                return;
+              return;
 
-            //BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...", SLIC3R_APP_NAME, i_am_pre ? best_pre.to_string(): best_release.to_string());
+            // BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...",
+            // SLIC3R_APP_NAME, i_am_pre ? best_pre.to_string(): best_release.to_string());
 
             version_info.url = i_am_pre ? best_pre_url : best_release_url;
             version_info.version_str = i_am_pre ? best_pre.to_string() : best_release.to_string_sf();
             version_info.description = i_am_pre ? best_pre_content : best_release_content;
             version_info.force_upgrade = false;
 
-            wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
+            wxCommandEvent *evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
             evt->SetString((i_am_pre ? best_pre : best_release).to_string());
             GUI::wxGetApp().QueueEvent(evt);
-            })
-            .perform();
-            
+          } catch (...) {
+          }
+        })
+        .perform();
 }
 
 //BBS pop up a dialog and download files
