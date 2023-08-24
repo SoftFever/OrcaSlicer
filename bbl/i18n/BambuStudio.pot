@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 17:12+0800\n"
+"POT-Creation-Date: 2023-08-24 17:34+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1118,6 +1118,9 @@ msgstr ""
 msgid "Click the icon to shift this object to the bed"
 msgstr ""
 
+msgid " research result"
+msgstr ""
+
 msgid "Loading file"
 msgstr ""
 
@@ -1504,9 +1507,6 @@ msgid "Calibrate again"
 msgstr ""
 
 msgid "Cancel calibration"
-msgstr ""
-
-msgid "AMS-Extra"
 msgstr ""
 
 msgid "Idling..."
@@ -2294,6 +2294,13 @@ msgstr ""
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -4170,6 +4177,9 @@ msgstr ""
 msgid "Set filaments to use"
 msgstr ""
 
+msgid "Search plater, object and part."
+msgstr ""
+
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr ""
@@ -5036,7 +5046,13 @@ msgstr ""
 msgid "Bamabu Engineering Plate"
 msgstr ""
 
-msgid "Bamabu High Temperature Plate"
+msgid "Bamabu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bamabu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -5488,12 +5504,13 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr ""
 
-msgid "High Temp Plate"
+msgid "Smooth PEI Plate / High Temp Plate"
 msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
 
 msgid "Textured PEI Plate"
@@ -6128,7 +6145,7 @@ msgstr ""
 msgid "New version of Bambu Studio"
 msgstr ""
 
-msgid "Don't remind me of this version again"
+msgid "Skip this Version"
 msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
@@ -7514,6 +7531,24 @@ msgstr ""
 msgid "Brass"
 msgstr ""
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 
@@ -8385,7 +8420,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid ""

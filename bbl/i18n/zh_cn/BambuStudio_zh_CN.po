@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 17:12+0800\n"
+"POT-Creation-Date: 2023-08-24 17:34+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1122,6 +1122,9 @@ msgstr "点击此图标可编辑这个对象的颜色绘制"
 msgid "Click the icon to shift this object to the bed"
 msgstr "点击这个图标可将对象移动到热床上"
 
+msgid " research result"
+msgstr ""
+
 msgid "Loading file"
 msgstr "载入文件中"
 
@@ -1510,9 +1513,6 @@ msgstr "重新校准"
 
 msgid "Cancel calibration"
 msgstr "取消校准"
-
-msgid "AMS-Extra"
-msgstr ""
 
 msgid "Idling..."
 msgstr ""
@@ -2346,6 +2346,13 @@ msgid ""
 msgstr ""
 "最大体积流量设置过小\n"
 "重置为0.5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -4267,6 +4274,9 @@ msgstr "从AMS同步材料列表"
 msgid "Set filaments to use"
 msgstr "配置可选择的材料"
 
+msgid "Search plater, object and part."
+msgstr ""
+
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr "没有发现AMS材料。请在“设备”页面选择打印机，将加载 AMS 信息"
@@ -5156,8 +5166,14 @@ msgstr "PLA打印板"
 msgid "Bamabu Engineering Plate"
 msgstr "工程材料打印板"
 
-msgid "Bamabu High Temperature Plate"
+msgid "Bamabu Smooth PEI Plate"
+msgstr "光面PEI打印板"
+
+msgid "High temperature Plate"
 msgstr "高温打印板"
+
+msgid "Bamabu Textured PEI Plate"
+msgstr "纹理PEI打印板"
 
 msgid "Send print job to"
 msgstr "发送打印任务至"
@@ -5635,7 +5651,7 @@ msgstr "低温打印板 / PLA打印板"
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
-msgstr "安装低温打印热床时的热床温度。0值表示这个耗材丝不支持低温打印热床"
+msgstr "安装低温打印板时的热床温度。0值表示这个耗材丝不支持低温打印热板"
 
 msgid "Engineering Plate"
 msgstr "工程材料打印板"
@@ -5643,15 +5659,18 @@ msgstr "工程材料打印板"
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
-msgstr "安装工程材料热床时的热床温度。0值表示这个耗材丝不支持工程材料热床"
+msgstr "安装工程材料打印板时的热床温度。0值表示这个耗材丝不支持工程材料打印板"
 
-msgid "High Temp Plate"
-msgstr "高温打印板"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr "光面PEI打印板 / 高温打印板"
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
-msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
+msgstr ""
+"安装光面PEI打印板/高温打印板时的热床温度。0值表示这个耗材丝不支持光面PEI打印"
+"板/高温打印板"
 
 msgid "Textured PEI Plate"
 msgstr "纹理PEI打印板"
@@ -5659,7 +5678,7 @@ msgstr "纹理PEI打印板"
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
-msgstr "安装纹理PEI热床时的热床温度。0值表示这个耗材丝不支持纹理PEI热床"
+msgstr "安装纹理PEI打印板时的热床温度。0值表示这个耗材丝不支持纹理PEI打印板"
 
 msgid "Volumetric speed limitation"
 msgstr "体积速度限制"
@@ -6294,8 +6313,8 @@ msgstr "新的网络插件(%s) 可用，您是否需要安装它？"
 msgid "New version of Bambu Studio"
 msgstr "新版本的Bambu Studio"
 
-msgid "Don't remind me of this version again"
-msgstr "此版本不再提示"
+msgid "Skip this Version"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN连接失败(发送打印文件)"
@@ -7745,6 +7764,24 @@ msgstr "不锈钢"
 msgid "Brass"
 msgstr "黄铜"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
@@ -8230,18 +8267,16 @@ msgstr "Z抬升范围下限"
 msgid ""
 "Z hop will only come into effect when Z is above this value and is below the "
 "parameter: \"Z hop upper boundary\""
-msgstr ""
-"只有当Z抬升值在Z抬升下限和Z抬升上限之间时"
-"Z抬升才会生效"
+msgstr "只有当Z抬升值在Z抬升下限和Z抬升上限之间时Z抬升才会生效"
+
 msgid "Z hop upper boundary"
 msgstr "Z抬升范围上限"
 
 msgid ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-"如果这个值为正，只有当Z抬升值在Z抬升下限和Z抬升上限之间时"
-"Z抬升才会生效"
+msgstr "如果这个值为正，只有当Z抬升值在Z抬升下限和Z抬升上限之间时Z抬升才会生效"
+
 msgid "Z Hop Type"
 msgstr "Z抬升方式"
 
@@ -8676,7 +8711,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid ""
@@ -10170,6 +10208,20 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "高温打印板"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "高温打印板"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
+
+#~ msgid "Don't remind me of this version again"
+#~ msgstr "此版本不再提示"
 
 #~ msgid "Cali"
 #~ msgstr "校准"

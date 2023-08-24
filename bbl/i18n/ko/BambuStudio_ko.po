@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 17:12+0800\n"
+"POT-Creation-Date: 2023-08-24 17:34+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1128,6 +1128,9 @@ msgstr "객체의 컬러 페인팅을 수정하기 위해 아이콘을 클릭합
 msgid "Click the icon to shift this object to the bed"
 msgstr "이 객체를 베드로 옮기려면 아이콘을 클릭하십시오."
 
+msgid " research result"
+msgstr ""
+
 msgid "Loading file"
 msgstr "파일 로드 중"
 
@@ -1521,9 +1524,6 @@ msgstr "다시 캘리브레이션하기"
 
 msgid "Cancel calibration"
 msgstr "캘리브레이션 취소"
-
-msgid "AMS-Extra"
-msgstr ""
 
 msgid "Idling..."
 msgstr ""
@@ -2397,6 +2397,13 @@ msgid ""
 msgstr ""
 "최대 체적 속도가 너무 작습니다.\n"
 "값이 0.5로 재설정되었습니다."
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -4338,6 +4345,9 @@ msgstr "AMS에서 필라멘트 목록 동기화"
 msgid "Set filaments to use"
 msgstr "사용할 필라멘트 설정"
 
+msgid "Search plater, object and part."
+msgstr ""
+
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr ""
@@ -5254,8 +5264,14 @@ msgstr "PLA 플레이트"
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Bambu High Temperature Plate"
+msgid "Bamabu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bamabu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
@@ -5763,15 +5779,14 @@ msgstr ""
 "엔지니어링 플레이트를 사용할 때의 베드 온도입니다.값이 0이면 필라멘트가 엔지"
 "니어링 플레이트에서의 출력을 지원하지 않는다는 의미입니다."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"High temperature plate 를 사용할 때의 베드 온도입니다. 값이 0이면 필라멘트가 "
-"High temperature Plate에서의 출력을 지원하지 않음을 의미합니다."
 
 msgid "Textured PEI Plate"
 msgstr "Textured PEI 플레이트"
@@ -6430,8 +6445,8 @@ msgstr "새 네트워크 플러그인 (%s) 을 사용할 수 있습니다.설치
 msgid "New version of Bambu Studio"
 msgstr "뱀부 스튜디오의 새 버전"
 
-msgid "Don't remind me of this version again"
-msgstr "이 버전에 대해 다시 상기시키지 않습니다."
+msgid "Skip this Version"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN 연결 실패 (출력 파일 전송 중)"
@@ -7966,6 +7981,24 @@ msgstr "스테인레스 스틸"
 msgid "Brass"
 msgstr "황동"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "프린터에 보조 냉각 팬이 있는 경우 이 옵션을 활성화하십시오."
 
@@ -8932,7 +8965,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid ""
@@ -10420,6 +10456,22 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Bambu High Temperature Plate"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "High Temp Plate"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "High temperature plate 를 사용할 때의 베드 온도입니다. 값이 0이면 필라멘트"
+#~ "가 High temperature Plate에서의 출력을 지원하지 않음을 의미합니다."
+
+#~ msgid "Don't remind me of this version again"
+#~ msgstr "이 버전에 대해 다시 상기시키지 않습니다."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"

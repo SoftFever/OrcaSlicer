@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 17:12+0800\n"
+"POT-Creation-Date: 2023-08-24 17:34+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1120,6 +1120,9 @@ msgstr "オブジェクトに色塗りをします"
 msgid "Click the icon to shift this object to the bed"
 msgstr "Click the icon to shift this object to the bed"
 
+msgid " research result"
+msgstr ""
+
 msgid "Loading file"
 msgstr "ファイルを読み込み中"
 
@@ -1518,9 +1521,6 @@ msgstr "再度キャリブレーションを行う"
 
 msgid "Cancel calibration"
 msgstr "キャリブレーションを取消し"
-
-msgid "AMS-Extra"
-msgstr ""
 
 msgid "Idling..."
 msgstr ""
@@ -2372,6 +2372,13 @@ msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
 msgstr "値が小さすぎます、0.5に戻します"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -4293,6 +4300,9 @@ msgstr "AMSと素材を同期"
 msgid "Set filaments to use"
 msgstr "フィラメントを選択"
 
+msgid "Search plater, object and part."
+msgstr ""
+
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr ""
@@ -5201,8 +5211,14 @@ msgstr "PLA Plate"
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu エンジニアリングプレート"
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Bambu 高温プレート"
+msgid "Bamabu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bamabu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "造形タスクを送信"
@@ -5701,15 +5717,14 @@ msgstr ""
 "エンジニアリングプレートが装着時のベッド温度です。値が0の場合、フィラメントが"
 "エンジニアリングプレートに使用できない意味です。"
 
-msgid "High Temp Plate"
-msgstr "高温プレート"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"高温プレートが装着時のベッド温度です。値が0の場合、フィラメントが高温プレート"
-"に使用できない意味です。"
 
 msgid "Textured PEI Plate"
 msgstr "PEIプレート"
@@ -6358,8 +6373,8 @@ msgstr "新しいプラグイン (%s) が発見しました、インストール
 msgid "New version of Bambu Studio"
 msgstr "新バージョン"
 
-msgid "Don't remind me of this version again"
-msgstr "今後このバージョンの通知をしません"
+msgid "Skip this Version"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN接続失敗 (造形ファイル送信)"
@@ -7855,6 +7870,24 @@ msgstr "ステンレススチール"
 msgid "Brass"
 msgstr "真鍮"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "パーツ補助冷却ファンがある場合有効にしてください"
 
@@ -8805,7 +8838,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid ""
@@ -10257,6 +10293,22 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Bambu 高温プレート"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "高温プレート"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "高温プレートが装着時のベッド温度です。値が0の場合、フィラメントが高温プ"
+#~ "レートに使用できない意味です。"
+
+#~ msgid "Don't remind me of this version again"
+#~ msgstr "今後このバージョンの通知をしません"
 
 #~ msgid "Cali"
 #~ msgstr "標定"

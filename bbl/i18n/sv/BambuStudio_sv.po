@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-23 17:12+0800\n"
+"POT-Creation-Date: 2023-08-24 17:34+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1133,6 +1133,9 @@ msgstr "Klicka på ikonen för att redigera färgläggningen av objektet"
 msgid "Click the icon to shift this object to the bed"
 msgstr "Klicka på ikonen för att flytta detta föremål till byggplattan"
 
+msgid " research result"
+msgstr ""
+
 msgid "Loading file"
 msgstr "Laddar fil"
 
@@ -1540,9 +1543,6 @@ msgstr "Kalibrera igen"
 
 msgid "Cancel calibration"
 msgstr "Avbryt kalibrering"
-
-msgid "AMS-Extra"
-msgstr ""
 
 msgid "Idling..."
 msgstr ""
@@ -2441,6 +2441,13 @@ msgid ""
 msgstr ""
 "För liten max volymhastighet.\n"
 "Värdet återställdes till 0,5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -4390,6 +4397,9 @@ msgstr "Synkronisera filament listan från AMS"
 msgid "Set filaments to use"
 msgstr "Ställ in filament som ska användas"
 
+msgid "Search plater, object and part."
+msgstr ""
+
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
 msgstr ""
@@ -5312,8 +5322,14 @@ msgstr "PLA platta"
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Bambu High Temperature Plate"
+msgid "Bamabu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bamabu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Skicka utskriftsjobb till"
@@ -5848,15 +5864,14 @@ msgstr ""
 "Detta är byggplattans temperatur när Engineering Plate är installerad. Ett "
 "värde på 0 betyder att filamentet inte stöder utskrift på Engineering Plate."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"Detta är byggplattans temperatur när High Temp Plate är installerad. Värdet "
-"0 betyder att filamentet inte stöder utskrift på High Temp Plate."
 
 msgid "Textured PEI Plate"
 msgstr "Texturerad PEI-platta"
@@ -6526,8 +6541,8 @@ msgstr "En ny nätverksplugin (%s) är tillgänglig. Vill du installera den?"
 msgid "New version of Bambu Studio"
 msgstr "Ny version av Bambu Studio"
 
-msgid "Don't remind me of this version again"
-msgstr "Påminn mig inte om den här versionen igen."
+msgid "Skip this Version"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-anslutning misslyckades (skickar utskriftsfil)"
@@ -8095,6 +8110,24 @@ msgstr "Rostfritt stål"
 msgid "Brass"
 msgstr "Mässing"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Aktivera detta val om maskinen har extra kylfläkt"
 
@@ -9094,7 +9127,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid ""
@@ -10603,6 +10639,22 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Bambu High Temperature Plate"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "High Temp Plate"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "Detta är byggplattans temperatur när High Temp Plate är installerad. "
+#~ "Värdet 0 betyder att filamentet inte stöder utskrift på High Temp Plate."
+
+#~ msgid "Don't remind me of this version again"
+#~ msgstr "Påminn mig inte om den här versionen igen."
 
 #~ msgid "Cali"
 #~ msgstr "Kalib"
