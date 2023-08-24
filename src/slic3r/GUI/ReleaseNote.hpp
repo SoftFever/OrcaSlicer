@@ -41,7 +41,7 @@ namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
-wxDECLARE_EVENT(EVT_SECONDARY_CHECK_FUNC, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
@@ -110,9 +110,10 @@ public:
     enum ButtonStyle {
         ONLY_CONFIRM        = 0,
         CONFIRM_AND_CANCEL  = 1,
-        CONFIRM_AND_FUNC    = 2,
+        CONFIRM_AND_DONE    = 2,
         CONFIRM_AND_RETRY   = 3,
-        MAX_STYLE_NUM       = 4
+        DONE_AND_RETRY      = 4,
+        MAX_STYLE_NUM       = 5
     };
     SecondaryCheckDialog(
         wxWindow* parent,
@@ -129,13 +130,15 @@ public:
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
     void update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent = nullptr);
-    void update_func_btn(wxString func_btn_text);
     void post_event(wxCommandEvent&& event);
     void rescale();
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
     void msw_rescale();
 
+
+    StateColor btn_bg_green;
+    StateColor btn_bg_white;
     Label* m_staticText_release_note {nullptr};
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};
