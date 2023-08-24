@@ -1654,7 +1654,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
     Bind(EVT_AMS_RETRY, &StatusPanel::on_ams_retry, this);
     Bind(EVT_FAN_CHANGED, &StatusPanel::on_fan_changed, this);
-    Bind(EVT_SECONDARY_CHECK_FUNC, &StatusPanel::on_print_error_func, this);
+    Bind(EVT_SECONDARY_CHECK_DONE, &StatusPanel::on_print_error_done, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -2024,9 +2024,12 @@ void StatusPanel::show_error_message(MachineObject* obj, wxString msg, std::stri
         if (m_print_error_dlg == nullptr) {
             m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
         }
-        if (it_done != message_containing_done.end()) {
-            m_print_error_dlg->update_func_btn(_L("Done"));
-            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_FUNC, this);
+
+        if (it_done != message_containing_done.end() && it_retry != message_containing_retry.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::DONE_AND_RETRY, this);
+        }
+        else if (it_done != message_containing_done.end()) {
+            m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_DONE, this);
         }
         else if (it_retry != message_containing_retry.end()) {
             m_print_error_dlg->update_title_style(_L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_RETRY, this);
@@ -3513,9 +3516,9 @@ void StatusPanel::on_ams_retry(wxCommandEvent& event)
     }
 }
 
-void StatusPanel::on_print_error_func(wxCommandEvent& event)
+void StatusPanel::on_print_error_done(wxCommandEvent& event)
 {
-    BOOST_LOG_TRIVIAL(info) << "on_print_error_func";
+    BOOST_LOG_TRIVIAL(info) << "on_print_error_done";
     if (obj) {
         obj->command_ams_control("done");
         if (m_print_error_dlg) {
