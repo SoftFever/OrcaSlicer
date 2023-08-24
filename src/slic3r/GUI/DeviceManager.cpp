@@ -945,8 +945,17 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             if (picked_src.find(i) != picked_src.end())
                 continue;
             for (int j = 0; j < distance_map[i].size(); j++) {
-                if (picked_tar.find(j) != picked_tar.end())
+                if (picked_tar.find(j) != picked_tar.end()){
+                    if (distance_map[i][j].is_same_color
+                        && distance_map[i][j].is_type_match
+                        && distance_map[i][j].distance < (float)0.0001) {
+                        min_val = distance_map[i][j].distance;
+                        picked_src_idx = i;
+                        picked_tar_idx = j;
+                    }
                     continue;
+                }
+                    
                 if (distance_map[i][j].is_same_color
                     && distance_map[i][j].is_type_match) {
                     if (min_val > distance_map[i][j].distance) {
