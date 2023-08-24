@@ -177,6 +177,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     wxPanel*    task_name_panel      = new wxPanel(parent);
 
     m_staticText_subtask_value = new wxStaticText(task_name_panel, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
+    m_staticText_subtask_value->SetMaxSize(wxSize(FromDIP(600), -1));
     m_staticText_subtask_value->Wrap(-1);
     #ifdef __WXOSX_MAC__
     m_staticText_subtask_value->SetFont(::Label::Body_13);
@@ -202,10 +203,9 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_consumption_of_weight->Wrap(-1);
 
     bSizer_task_name_hor->Add(m_staticText_subtask_value, 1, wxALL | wxEXPAND, 0);
-    bSizer_task_name_hor->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_task_name_hor->Add(m_bitmap_static_use_time, 0, wxALIGN_CENTER_VERTICAL, 0);
     bSizer_task_name_hor->Add(m_staticText_consumption_of_time, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, FromDIP(3));
-    bSizer_task_name_hor->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    bSizer_task_name_hor->Add(0, 0, 0, wxLEFT, FromDIP(10));
     bSizer_task_name_hor->Add(m_bitmap_static_use_weight, 0, wxALIGN_CENTER_VERTICAL, 0);
     bSizer_task_name_hor->Add(m_staticText_consumption_of_weight, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
     bSizer_task_name_hor->Add(0, 0, 0, wxRIGHT, FromDIP(10));
@@ -225,6 +225,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     m_printing_stage_value = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT | wxST_ELLIPSIZE_END);
     m_printing_stage_value->Wrap(-1);
+    m_printing_stage_value->SetMaxSize(wxSize(FromDIP(800),-1));
     #ifdef __WXOSX_MAC__
     m_printing_stage_value->SetFont(::Label::Body_11);
     #else
