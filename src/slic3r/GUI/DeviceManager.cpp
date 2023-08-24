@@ -1389,7 +1389,7 @@ void MachineObject::parse_version_func()
                 local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
             }
         }
-    } else if (printer_type == "C11") {
+    } else if (printer_type == "C11" || printer_type == "C12") {
         if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER)
             local_use_ssl = false;
         else {
