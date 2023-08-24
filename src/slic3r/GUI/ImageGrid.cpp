@@ -220,6 +220,7 @@ void ImageGrid::UpdateLayout()
 
 void Slic3r::GUI::ImageGrid::UpdateFocusRange()
 {
+    if (!m_file_sys) return;
     wxSize  size = GetClientSize();
     wxPoint off;
     int     index = firstItem(size, off);
