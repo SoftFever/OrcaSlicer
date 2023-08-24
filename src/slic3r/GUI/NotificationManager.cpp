@@ -258,7 +258,6 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 
 	// find if hovered FIXME:  do it only in update state?
 	if (m_state == EState::Hovered) {
-		m_state = EState::Unknown;
 		init();
 	}
 
@@ -545,10 +544,13 @@ void NotificationManager::PopNotification::init()
 	count_spaces();
 	count_lines();
 
-	if (m_lines_count == 3)
-		m_multiline = true;
+	if (m_lines_count <= 6) {
+		if (m_state == EState::Unknown) // if is default state
+			m_multiline = true;
+	}
+
 	m_notification_start = GLCanvas3D::timestamp_now();
-	if (m_state == EState::Unknown)
+	if (m_state == EState::Unknown || m_state == EState::Hovered)
 		m_state = EState::Shown;
 }
 void NotificationManager::PopNotification::set_next_window_size(ImGuiWrapper& imgui)
@@ -972,7 +974,6 @@ bool NotificationManager::PopNotification::update_state(bool paused, const int64
 
 	// reset timers - hovered state is set in render
 	if (m_state == EState::Hovered) {
-		m_state = EState::Unknown;
 		init();
 	// Timers when not fading
 	} else if (m_state != EState::NotFading && m_state != EState::FadingOut && m_state != EState::ClosePending && m_state != EState::Finished && get_duration() != 0 && !paused) {
@@ -1701,6 +1702,7 @@ void NotificationManager::ProgressIndicatorNotification::init()
 	else {
 		m_lines_count = 2;
 		m_endlines.push_back(m_endlines.back());
+		m_multiline = false;
 	}
 	switch (m_progress_state)
 	{
