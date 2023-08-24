@@ -5199,14 +5199,14 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 
 void PartPlateList::init_bed_type_info()
 {
-	BedTextureInfo::TexturePart pc_part1(  5, 130,  10, 110, "bbl_bed_pc_left.svg");
-	BedTextureInfo::TexturePart pc_part2( 74, -12, 150,  12, "bbl_bed_pc_bottom.svg");
-	BedTextureInfo::TexturePart ep_part1(  4,  87,  12, 153, "bbl_bed_ep_left.svg");
-	BedTextureInfo::TexturePart ep_part2( 72, -11, 150,  12, "bbl_bed_ep_bottom.svg");
-	BedTextureInfo::TexturePart pei_part1( 6,  50,  12, 190, "bbl_bed_pei_left.svg");
-	BedTextureInfo::TexturePart pei_part2(72, -11, 150,  12, "bbl_bed_pei_bottom.svg");
-	BedTextureInfo::TexturePart pte_part1( 6,  40,  12, 200, "bbl_bed_pte_left.svg");
-	BedTextureInfo::TexturePart pte_part2(72, -11, 150,  12, "bbl_bed_pte_bottom.svg");
+	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
+	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
+	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
+	BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
+	BedTextureInfo::TexturePart pei_part1(7.5, 50, 12.5, 190, "bbl_bed_pei_left.svg");
+	BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
+	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
 	for (size_t i = 0; i < btCount; i++) {
 		bed_texture_info[i].parts.clear();
 	}

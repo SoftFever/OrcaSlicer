@@ -568,16 +568,16 @@ public:
         class TexturePart {
         public:
             // position
-            int x;
-            int y;
-            int w;
-            int h;
+            float x;
+            float y;
+            float w;
+            float h;
             unsigned int vbo_id;
             std::string filename;
             GLTexture* texture { nullptr };
             Vec2d offset;
             GeometryBuffer* buffer { nullptr };
-            TexturePart(int xx, int yy, int ww, int hh, std::string file) {
+            TexturePart(float xx, float yy, float ww, float hh, std::string file){
                 x = xx; y = yy;
                 w = ww; h = hh;
                 filename = file;
