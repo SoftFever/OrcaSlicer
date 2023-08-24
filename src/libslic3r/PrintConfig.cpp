@@ -4415,7 +4415,7 @@ double min_object_distance(const ConfigBase &cfg)
     else {
         //BBS: duplicate_distance seam to be useless
         constexpr double duplicate_distance = 6.;
-        auto ecr_opt = cfg.option<ConfigOptionFloat>("extruder_clearance_radius");
+        auto ecr_opt = cfg.option<ConfigOptionFloat>("extruder_clearance_max_radius");
         auto co_opt  = cfg.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
 
         if (!ecr_opt || !co_opt)
@@ -4838,8 +4838,8 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     }
 
     // extruder clearance
-    if (cfg.extruder_clearance_radius <= 0) {
-        error_message.emplace("extruder_clearance_radius", L("invalid value ") + std::to_string(cfg.extruder_clearance_radius));
+    if (cfg.extruder_clearance_max_radius <= 0) {
+        error_message.emplace("extruder_clearance_max_radius", L("invalid value ") + std::to_string(cfg.extruder_clearance_max_radius));
     }
     if (cfg.extruder_clearance_height_to_rod <= 0) {
         error_message.emplace("extruder_clearance_height_to_rod", L("invalid value ") + std::to_string(cfg.extruder_clearance_height_to_rod));
