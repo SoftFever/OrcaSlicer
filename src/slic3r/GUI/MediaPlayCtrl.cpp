@@ -41,7 +41,23 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
         wxLaunchDefaultBrowser(url);
     });
 
-    Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
+    Bind(wxEVT_RIGHT_UP, [this](auto & e) {
+        wxClipboard & c = *wxTheClipboard;
+        if (c.Open()) {
+            if (wxGetKeyState(WXK_SHIFT)) {
+                if (c.IsSupported(wxDF_TEXT)) {
+                    wxTextDataObject data;
+                    c.GetData(data);
+                    Stop();
+                    m_url = data.GetText();
+                    load();
+                }
+            } else {
+                c.SetData(new wxTextDataObject(m_url));
+            }
+            c.Close();
+        }
+    });
 
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_button_play, 0, wxEXPAND | wxALL, 0);
@@ -123,6 +139,23 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         SetStatus("", false);
 }
 
+wxString hide_passwd(wxString url, std::vector<std::string> const &passwords)
+{
+    for (auto &p : passwords) {
+        auto i = url.find(p);
+        auto j = i + p.length();
+        if (p[p.length() - 1] == '=') {
+            i = j;
+            j = url.find('&', i);
+            if (j == wxString::npos) j = url.length();
+        }
+        auto l = size_t(j - i);
+        if (j == url.length() || url[j] == '@' || url[j] == '&')
+            url.replace(i, l, l, wxUniChar('*'));
+    }
+    return url;
+}
+
 void MediaPlayCtrl::Play()
 {
     if (!m_next_retry.IsValid() || wxDateTime::Now() < m_next_retry)
@@ -166,22 +199,8 @@ void MediaPlayCtrl::Play()
         m_url += "&device=" + m_machine;
         m_url += "&version=" + agent_version;
         m_url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << m_url.substr(0, 16);
-        m_last_state = MEDIASTATE_LOADING;
-        SetStatus(_L("Loading..."));
-        if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
-            std::string file_h264 = data_dir() + "/video.h264";
-            std::string file_info = data_dir() + "/video.info";
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << file_h264;
-            // closed by BambuSource
-            FILE *dump_h264_file = boost::nowide::fopen(file_h264.c_str(), "wb");
-            FILE *dump_info_file = boost::nowide::fopen(file_info.c_str(), "wb");
-            m_url                = m_url + "&dump_h264=" + boost::lexical_cast<std::string>(dump_h264_file);
-            m_url                = m_url + "&dump_info=" + boost::lexical_cast<std::string>(dump_info_file);
-        }
-        boost::unique_lock lock(m_mutex);
-        m_tasks.push_back(m_url);
-        m_cond.notify_all();
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(m_url, {m_lan_passwd} );
+        load();
         return;
     }
 
@@ -213,7 +232,7 @@ void MediaPlayCtrl::Play()
                 url += "&version=" + v;
                 url += "&dev_ver=" + dv;
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << url.substr(0, 16) << ", machine: " << m_machine;
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url, {"authkey=", "passwd="}) << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
@@ -225,15 +244,7 @@ void MediaPlayCtrl::Play()
                         m_failed_code = 3;
                         Stop(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
                     } else {
-                        m_last_state = MEDIASTATE_LOADING;
-                        SetStatus(_L("Loading..."));
-                        if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
-                            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
-                            m_url = m_url + "&dump=video.h264";
-                        }
-                        boost::unique_lock lock(m_mutex);
-                        m_tasks.push_back(m_url);
-                        m_cond.notify_all();
+                        load();
                     }
                 } else {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for state: " << m_last_state;
@@ -395,7 +406,7 @@ void MediaPlayCtrl::ToggleStream()
             url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
         url += "&device=" + m_machine;
         url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << url.substr(0, 16);
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url, {m_lan_passwd});
         std::string             file_url = data_dir() + "/cameratools/url.txt";
         boost::nowide::ofstream file(file_url);
         auto                    url2 = encode_path(url.c_str());
@@ -411,7 +422,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&version=" + v;
             url += "&dev_ver=" + dv;
         }
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << url.substr(0, 16);
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << hide_passwd(url, {"authkey=", "passwd="});
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
@@ -509,6 +520,25 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 
 bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }
 
+void MediaPlayCtrl::load()
+{
+    m_last_state = MEDIASTATE_LOADING;
+    SetStatus(_L("Loading..."));
+    if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
+        std::string file_h264 = data_dir() + "/video.h264";
+        std::string file_info = data_dir() + "/video.info";
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << file_h264;
+        // closed by BambuSource
+        FILE *dump_h264_file = boost::nowide::fopen(file_h264.c_str(), "wb");
+        FILE *dump_info_file = boost::nowide::fopen(file_info.c_str(), "wb");
+        m_url                = m_url + "&dump_h264=" + boost::lexical_cast<std::string>(dump_h264_file);
+        m_url                = m_url + "&dump_info=" + boost::lexical_cast<std::string>(dump_info_file);
+    }
+    boost::unique_lock lock(m_mutex);
+    m_tasks.push_back(m_url);
+    m_cond.notify_all();
+}
+
 void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
 {
     evt.Skip();
@@ -528,7 +558,7 @@ void MediaPlayCtrl::media_proc()
         }
         wxString url = m_tasks.front();
         if (m_tasks.size() >= 2 && !url.IsEmpty() && url[0] != '<' && m_tasks[1] == "<stop>") {
-            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: busy skip url" << url;
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: busy skip url: " << hide_passwd(url, {"authkey=", "passwd=", m_lan_passwd});
             m_tasks.pop_front();
             m_tasks.pop_front();
             continue;

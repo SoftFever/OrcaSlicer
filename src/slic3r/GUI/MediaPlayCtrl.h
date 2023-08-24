@@ -54,6 +54,8 @@ protected:
     void SetStatus(wxString const &msg, bool hyperlink = true);
 
 private:
+    void load();
+
     void on_show_hide(wxShowEvent & evt);
 
     void media_proc();

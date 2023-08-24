@@ -410,6 +410,8 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
     m_last_mode = mode;
 }
 
+extern wxString hide_passwd(wxString url, std::vector<std::string> const &passwords);
+
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
     boost::shared_ptr fs(wfs.lock());
@@ -446,7 +448,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
     if (agent) {
         agent->get_camera_url(m_machine,
             [this, wfs, m = m_machine, v = m_dev_ver](std::string url) {
-            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
+            BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << hide_passwd(url, {"authkey=", "passwd="});
             CallAfter([=] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
