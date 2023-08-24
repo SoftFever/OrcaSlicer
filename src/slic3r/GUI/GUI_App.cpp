@@ -4118,18 +4118,27 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
     Http::get(version_check_url).on_error([&](std::string body, std::string error, unsigned http_status) {
         (void)body;
         BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
-            version_check_url,
+            "check_new_version_sf",
             http_status,
             error);
         })
         .timeout_connect(1)
-        .on_complete([&](std::string body, unsigned /* http_status */) {
+        .on_complete([&](std::string body, unsigned  http_status ) {
+          //Http response OK
+            if (http_status != 200)
+              return;
+
             boost::trim(body);
             // SoftFever: parse github release, ported from SS
 
             boost::property_tree::ptree root;
-            std::stringstream json_stream(body);
-            boost::property_tree::read_json(json_stream, root);
+            try {
+                std::stringstream json_stream(body);
+                boost::property_tree::read_json(json_stream, root);
+            } catch (const boost::property_tree::ptree_error &e) {
+                BOOST_LOG_TRIVIAL(error) << format("Error version json: `%1%`", e.what());
+                return;
+            }
             bool i_am_pre = false;
             //at least two number, use '.' as separator. can be followed by -Az23 for prereleased and +Az42 for metadata
             std::regex matcher("[0-9]+\\.[0-9]+(\\.[0-9]+)*(-[A-Za-z0-9]+)?(\\+[A-Za-z0-9]+)?");
