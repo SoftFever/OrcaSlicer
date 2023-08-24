@@ -2543,7 +2543,6 @@ int MachineObject::parse_json(std::string payload)
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
-    if (m_active_state == NotActive) m_active_state = Active;
 
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_update_time);
@@ -2562,6 +2561,7 @@ int MachineObject::parse_json(std::string payload)
         }
 
         if (j_pre.contains("print")) {
+            if (m_active_state == NotActive) m_active_state = Active;
             if (j_pre["print"].contains("command")) {
                 if (j_pre["print"]["command"].get<std::string>() == "push_status") {
                     if (j_pre["print"].contains("msg")) {
@@ -2642,7 +2642,7 @@ int MachineObject::parse_json(std::string payload)
                     }
                 }
                 std::string version = parse_version();
-                if (!version.empty() && print_json.load_compatible_settings("", version)) {
+                if (!version.empty() && print_json.load_compatible_settings(printer_type, version)) {
                     // reload because compatible settings changed
                     j.clear();
                     print_json.diff2all(json{}, j);
