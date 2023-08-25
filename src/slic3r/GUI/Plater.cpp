@@ -12766,7 +12766,7 @@ bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
     SuppressBackgroundProcessingUpdate sbpu;
     // When tracking a pop-up menu, postpone error messages from the slicing result.
     m_tracking_popup_menu = true;
-    bool out = this->wxPanel::PopupMenu(menu, pos);
+    bool out = wxGetApp().mainframe->PopupMenu(menu, pos);
     m_tracking_popup_menu = false;
     if (! m_tracking_popup_menu_error_message.empty()) {
         // Don't know whether the CallAfter is necessary, but it should not hurt.

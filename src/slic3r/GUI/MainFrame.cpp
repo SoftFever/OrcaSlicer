@@ -2736,7 +2736,6 @@ void MainFrame::init_menubar_as_editor()
     // Help menu
     auto helpMenu = generate_help_menu();
 
-
 #ifndef __APPLE__
     m_topbar->SetFileMenu(fileMenu);
     if (editMenu)
