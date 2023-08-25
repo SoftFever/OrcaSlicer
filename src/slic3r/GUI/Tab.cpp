@@ -2868,11 +2868,11 @@ void TabFilament::toggle_options()
         for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
             toggle_option(el, has_enable_overhang_bridge_fan);
 
-        bool support_air_filtration = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_air_filtration");
+        bool support_air_filtration = m_preset_bundle->printers.get_edited_preset().config.opt_bool("support_air_filtration");
         toggle_line("activate_air_filtration",is_BBL_printer && support_air_filtration);
 
         for (auto elem : { "during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed" })
-            toggle_line(elem, m_config->opt_bool("activate_air_filtration",0));
+            toggle_line(elem, m_config->opt_bool("activate_air_filtration",0)&&support_air_filtration);
 
     }
     if (m_active_page->title() == "Filament")
@@ -3685,8 +3685,7 @@ void TabPrinter::toggle_options()
         toggle_option("printer_structure", !is_BBL_printer);
         toggle_option("use_relative_e_distances", !is_BBL_printer);
 
-        toggle_option("support_chamber_temp_control",!is_BBL_printer);
-        toggle_option("support_air_filtration",!is_BBL_printer);
+        toggle_option("support_air_filtration",is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
