@@ -81,6 +81,9 @@ private:
 
     float m_connector_size{2.5f};
     float m_connector_size_tolerance{0.f};
+    // Input params for cut with snaps
+    float        m_snap_space_proportion{0.3f};
+    float        m_snap_bulge_proportion{0.15f};
 
     TriangleMesh m_connector_mesh;
     bool         m_has_invalid_connector{false};
@@ -228,7 +231,7 @@ private:
 
     bool render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx);
     bool render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in);
-
+    bool render_slider_double_input_show_percentage(const std::string &label, float &value_in, float value_min, float value_max);
     bool cut_line_processing() const;
     void discard_cut_line_processing();
     bool process_cut_line(SLAGizmoEventType action, const Vec2d &mouse_position);

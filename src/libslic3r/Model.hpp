@@ -237,6 +237,7 @@ private:
 enum class CutConnectorType : int {
     Plug,
     Dowel,
+    Snap,
     Undef
 };
 
@@ -254,6 +255,11 @@ enum class CutConnectorShape : int {
     Circle,
     Undef
     //,D-shape
+};
+struct CutConnectorParas
+{
+    float snap_space_proportion{0.3};
+    float snap_bulge_proportion{0.15};
 };
 
 struct CutConnectorAttributes
@@ -290,7 +296,7 @@ struct CutConnector
     float                  radius_tolerance; // [0.f : 1.f]
     float                  height_tolerance; // [0.f : 1.f]
     CutConnectorAttributes attribs;
-
+    CutConnectorParas paras;
     CutConnector() : pos(Vec3d::Zero()), rotation_m(Transform3d::Identity()), radius(5.f), height(10.f), radius_tolerance(0.f), height_tolerance(0.1f) {}
 
     CutConnector(Vec3d p, Transform3d rot, float r, float h, float rt, float ht, CutConnectorAttributes attributes)
@@ -468,7 +474,7 @@ public:
 
     bool                        is_cut() const { return cut_id.id().valid(); }
     bool                        has_connectors() const;
-    static indexed_triangle_set get_connector_mesh(CutConnectorAttributes connector_attributes);
+    static indexed_triangle_set get_connector_mesh(CutConnectorAttributes connector_attributes, CutConnectorParas para);
     void                        apply_cut_connectors(const std::string &name);
     // invalidate cut state for this object and its connectors/volumes
     void invalidate_cut();

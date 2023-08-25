@@ -1116,6 +1116,124 @@ indexed_triangle_set its_make_sphere(double radius, double fa)
     return mesh;
 }
 
+indexed_triangle_set its_make_snap(double r, double h, float space_proportion, float bulge_proportion)
+{
+    const float  radius      = (float) r;
+    const float  height      = (float) h;
+    const size_t sectors_cnt = 10; //(float)fa;
+    const float  halfPI      = 0.5f * (float) PI;
+
+    const float space_len = space_proportion * radius;
+
+    const float b_len = radius;
+    const float m_len = (1 + bulge_proportion) * radius;
+    const float t_len = 0.5f * radius;
+
+    const float b_height = 0.f;
+    const float m_height = 0.5f * height;
+    const float t_height = height;
+
+    const float b_angle = acos(space_len / b_len);
+    const float t_angle = acos(space_len / t_len);
+
+    const float b_angle_step = b_angle / (float) sectors_cnt;
+    const float t_angle_step = t_angle / (float) sectors_cnt;
+
+    const Vec2f b_vec = Eigen::Vector2f(0, b_len);
+    const Vec2f t_vec = Eigen::Vector2f(0, t_len);
+
+    auto add_side_vertices = [b_vec, t_vec, b_height, m_height, t_height](std::vector<stl_vertex> &vertices, float b_angle, float t_angle, const Vec2f &m_vec) {
+        Vec2f b_pt = Eigen::Rotation2Df(b_angle) * b_vec;
+        Vec2f m_pt = Eigen::Rotation2Df(b_angle) * m_vec;
+        Vec2f t_pt = Eigen::Rotation2Df(t_angle) * t_vec;
+
+        vertices.emplace_back(Vec3f(b_pt(0), b_pt(1), b_height));
+        vertices.emplace_back(Vec3f(m_pt(0), m_pt(1), m_height));
+        vertices.emplace_back(Vec3f(t_pt(0), t_pt(1), t_height));
+    };
+
+    auto add_side_facets = [](std::vector<stl_triangle_vertex_indices> &facets, int vertices_cnt, int frst_id, int scnd_id) {
+        int id = vertices_cnt - 1;
+
+        facets.emplace_back(frst_id, id - 2, id - 5);
+
+        facets.emplace_back(id - 2, id - 1, id - 5);
+        facets.emplace_back(id - 1, id - 4, id - 5);
+        facets.emplace_back(id - 4, id - 1, id);
+        facets.emplace_back(id, id - 3, id - 4);
+
+        facets.emplace_back(id, scnd_id, id - 3);
+    };
+
+    const float f = (b_len - m_len) / m_len; // Flattening
+
+    auto get_m_len = [b_len, f](float angle) {
+        const float rad_sqr = b_len * b_len;
+        const float sin_sqr = sin(angle) * sin(angle);
+        const float f_sqr   = (1 - f) * (1 - f);
+        return sqrtf(rad_sqr / (1 + (1 / f_sqr - 1) * sin_sqr));
+    };
+
+    auto add_sub_mesh = [add_side_vertices, add_side_facets, get_m_len, b_height, t_height, b_angle, t_angle, b_angle_step,
+                         t_angle_step](indexed_triangle_set &mesh, float center_x, float angle_rotation, int frst_vertex_id) {
+        auto &vertices = mesh.vertices;
+        auto &facets   = mesh.indices;
+
+        // 2 special vertices, top and bottom center, rest are relative to this
+        vertices.emplace_back(Vec3f(center_x, 0.f, b_height));
+        vertices.emplace_back(Vec3f(center_x, 0.f, t_height));
+
+        float       b_angle_start = angle_rotation - b_angle;
+        float       t_angle_start = angle_rotation - t_angle;
+        const float b_angle_stop  = angle_rotation + b_angle;
+
+        const int frst_id = frst_vertex_id;
+        const int scnd_id = frst_id + 1;
+
+        // add first side vertices and internal facets
+        {
+            const Vec2f m_vec = Eigen::Vector2f(0, get_m_len(b_angle_start));
+            add_side_vertices(vertices, b_angle_start, t_angle_start, m_vec);
+
+            int id = (int) vertices.size() - 1;
+
+            facets.emplace_back(frst_id, id - 2, id - 1);
+            facets.emplace_back(frst_id, id - 1, id);
+            facets.emplace_back(frst_id, id, scnd_id);
+        }
+
+        // add d side vertices and facets
+        while (!is_approx(b_angle_start, b_angle_stop)) {
+            b_angle_start += b_angle_step;
+            t_angle_start += t_angle_step;
+
+            const Vec2f m_vec = Eigen::Vector2f(0, get_m_len(b_angle_start));
+            add_side_vertices(vertices, b_angle_start, t_angle_start, m_vec);
+
+            add_side_facets(facets, (int) vertices.size(), frst_id, scnd_id);
+        }
+
+        // add last internal facets to close the mesh
+        {
+            int id = (int) vertices.size() - 1;
+
+            facets.emplace_back(frst_id, scnd_id, id);
+            facets.emplace_back(frst_id, id, id - 1);
+            facets.emplace_back(frst_id, id - 1, id - 2);
+        }
+    };
+
+    indexed_triangle_set mesh;
+
+    mesh.vertices.reserve(2 * (3 * (2 * sectors_cnt + 1) + 2));
+    mesh.indices.reserve(2 * (6 * 2 * sectors_cnt + 6));
+
+    add_sub_mesh(mesh, -space_len, halfPI, 0);
+    add_sub_mesh(mesh, space_len, 3 * halfPI, (int) mesh.vertices.size());
+
+    return mesh;
+}
+
 indexed_triangle_set its_convex_hull(const std::vector<Vec3f> &pts)
 {
     std::vector<Vec3f>  dst_vertices;

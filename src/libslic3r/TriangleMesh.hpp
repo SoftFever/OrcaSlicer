@@ -340,6 +340,7 @@ indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
 indexed_triangle_set    its_make_frustum_dowel(double r, double h, int sectorCount);
 indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
+indexed_triangle_set    its_make_snap(double r, double h, float space_proportion = 0.25f, float bulge_proportion = 0.125f);
 
 indexed_triangle_set        its_convex_hull(const std::vector<Vec3f> &pts);
 inline indexed_triangle_set its_convex_hull(const indexed_triangle_set &its) { return its_convex_hull(its.vertices); }

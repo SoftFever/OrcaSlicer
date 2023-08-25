@@ -1065,11 +1065,12 @@ void GLGizmoAdvancedCut::clear_selection()
 
 void GLGizmoAdvancedCut::init_connector_shapes()
 {
-    for (const CutConnectorType &type : {CutConnectorType::Dowel, CutConnectorType::Plug})
+    for (const CutConnectorType &type : {CutConnectorType::Snap, CutConnectorType::Dowel, CutConnectorType::Plug})
         for (const CutConnectorStyle &style : {CutConnectorStyle::Frustum, CutConnectorStyle::Prizm})
             for (const CutConnectorShape &shape : {CutConnectorShape::Circle, CutConnectorShape::Hexagon, CutConnectorShape::Square, CutConnectorShape::Triangle}) {
-                const CutConnectorAttributes attribs = {type, style, shape};
-                const indexed_triangle_set   its     = ModelObject::get_connector_mesh(attribs);
+                CutConnectorAttributes     attribs = {type, style, shape};
+                CutConnectorParas          paras   = {m_snap_space_proportion, m_snap_bulge_proportion};
+                const indexed_triangle_set its     = ModelObject::get_connector_mesh(attribs, paras);
                 m_shapes[attribs].init_from(its);
             }
 }
@@ -1088,13 +1089,15 @@ void GLGizmoAdvancedCut::reset_connectors()
     clear_selection();
 }
 
-void GLGizmoAdvancedCut::update_connector_shape()
+void GLGizmoAdvancedCut::update_connector_shape()//update mesh
 {
-    CutConnectorAttributes attribs = {m_connector_type, CutConnectorStyle(m_connector_style), CutConnectorShape(m_connector_shape_id)};
-
-    const indexed_triangle_set its = ModelObject::get_connector_mesh(attribs);
-    m_connector_mesh.clear();
-    m_connector_mesh = TriangleMesh(its);
+    CutConnectorAttributes attribs = { m_connector_type, CutConnectorStyle(m_connector_style), CutConnectorShape(m_connector_shape_id)};
+    CutConnectorParas       paras  = {m_snap_space_proportion, m_snap_bulge_proportion};
+    if (m_connector_type == CutConnectorType::Snap) {
+        indexed_triangle_set its = ModelObject::get_connector_mesh(attribs, paras);
+        m_shapes[attribs].reset();
+        m_shapes[attribs].init_from(its);
+    }
 }
 
 void GLGizmoAdvancedCut::apply_selected_connectors(std::function<void(size_t idx)> apply_fn)
@@ -1572,6 +1575,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
     bool type_changed = render_connect_type_radio_button(CutConnectorType::Plug);
     type_changed |= render_connect_type_radio_button(CutConnectorType::Dowel);
+    type_changed |= render_connect_type_radio_button(CutConnectorType::Snap);
     if (type_changed)
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.type = CutConnectorType(m_connector_type); });
     ImGui::PopStyleColor(1);
@@ -1579,7 +1583,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     std::vector<std::string> connector_styles = {_u8L("Prizm"), _u8L("Frustum")};
     std::vector<std::string> connector_shapes = { _u8L("Triangle"), _u8L("Square"), _u8L("Hexagon"), _u8L("Circle") };
 
-    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Dowel);
+    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Dowel || m_connector_type == CutConnectorType::Snap);
     if (type_changed && m_connector_type == CutConnectorType::Dowel) {
         m_connector_style = size_t(CutConnectorStyle::Prizm);
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
@@ -1588,14 +1592,19 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
     if (render_combo(_u8L("Style"), connector_styles, m_connector_style))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
-    m_imgui->disabled_end();
     ImGuiWrapper::pop_combo_style();
+    m_imgui->disabled_end();
 
+    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Snap);
+    if (type_changed && m_connector_type == CutConnectorType::Snap) {
+        m_connector_shape_id = int(CutConnectorShape::Circle);
+        apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
+    }
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
     if (render_combo(_u8L("Shape"), connector_shapes, m_connector_shape_id))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     ImGuiWrapper::pop_combo_style();
-
+    m_imgui->disabled_end();
     if (render_slider_double_input(_u8L("Depth ratio"), m_connector_depth_ratio, m_connector_depth_ratio_tolerance))
         apply_selected_connectors([this, &connectors](size_t idx) {
             if (m_connector_depth_ratio > 0)
@@ -1611,7 +1620,21 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
             if (m_connector_size_tolerance >= 0)
                 connectors[idx].radius_tolerance = m_connector_size_tolerance;
         });
-
+    if (m_connector_type == CutConnectorType::Snap) {
+        const std::string format = "%.0f %%";
+        bool is_changed = false;
+        if (render_slider_double_input_show_percentage(_u8L("Bulge"), m_snap_bulge_proportion, 5.f, 100.f * m_snap_space_proportion)) { 
+            is_changed = true;
+            apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].paras.snap_bulge_proportion = m_snap_bulge_proportion; });
+        }
+        if (render_slider_double_input_show_percentage(_u8L("Gap"), m_snap_space_proportion, 10.f, 50.f)) {
+            is_changed = true;
+            apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].paras.snap_space_proportion = m_snap_space_proportion; });
+        }
+        if (is_changed) {
+            update_connector_shape();
+        }
+    }
     ImGui::Separator();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
@@ -1678,7 +1701,7 @@ bool GLGizmoAdvancedCut::render_reset_button(const std::string &label_id, const 
 
 bool GLGizmoAdvancedCut::render_connect_type_radio_button(CutConnectorType type)
 {
-    ImGui::SameLine(type == CutConnectorType::Plug ? m_label_width : 2 * m_label_width);
+    ImGui::SameLine(type == CutConnectorType::Plug ? m_label_width : (type == CutConnectorType::Dowel ? 2 * m_label_width : 3 * m_label_width));
     ImGui::PushItemWidth(m_control_width);
 
     wxString radio_name;
@@ -1689,13 +1712,15 @@ bool GLGizmoAdvancedCut::render_connect_type_radio_button(CutConnectorType type)
     case CutConnectorType::Dowel:
         radio_name = _L("Dowel");
         break;
+    case CutConnectorType::Snap:
+        radio_name = _L("Snap");
+        break;
     default:
         break;
     }
 
     if (m_imgui->radio_button(radio_name, m_connector_type == type)) {
         m_connector_type = type;
-        update_connector_shape();
         return true;
     }
     return false;
@@ -1727,8 +1752,6 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
 
     bool is_changed = selection_idx != selection_out;
     selection_idx   = selection_out;
-
-    if (is_changed) update_connector_shape();
 
     return is_changed;
 }
@@ -1787,16 +1810,50 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     float       min_tolerance = tolerance_in < 0.f ? UndefMinVal : 0.f;
 
     m_imgui->bbl_slider_float_style(("##tolerance_" + label).c_str(), &tolerance, min_tolerance, 2.f, format.c_str(), 1.f, true, _L("Tolerance"));
-    
+
     left_width += (slider_with + item_in_gap);
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(second_input_width);
     ImGui::BBLDragFloat(("##tolerance_input_" + label).c_str(), &tolerance, 0.05f, min_tolerance, 2.f, format.c_str());
-    
+
     tolerance_in = tolerance * float(m_imperial_units ? units_in_to_mm : 1.0);
 
     return !is_approx(old_val, value) || !is_approx(old_tolerance, tolerance);
 }
+
+bool GLGizmoAdvancedCut::render_slider_double_input_show_percentage(const std::string &label, float &value_in, float value_min, float value_max)
+{
+    // -------- [ ]
+    // slider_with + item_in_gap + first_input_width + item_out_gap
+    double slider_with        = 0.24 * m_editing_window_width; // m_control_width * 0.35;
+    double item_in_gap        = 0.01 * m_editing_window_width;
+    double item_out_gap       = 0.01 * m_editing_window_width;
+    double first_input_width  = 0.29 * m_editing_window_width;
+
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(label);
+    ImGui::SameLine(m_label_width);
+    ImGui::PushItemWidth(slider_with);
+
+    double left_width = m_label_width + slider_with + item_in_gap;
+
+    float old_val = value_in;
+    float value   = value_in *100;
+
+    const std::string format = "%.0f %%";
+    if (m_imgui->bbl_slider_float_style(("##" + label).c_str(), &value, value_min, value_max, format.c_str())) {
+        value_in   = value * 0.01f;
+    }
+
+    ImGui::SameLine(left_width);
+    ImGui::PushItemWidth(first_input_width);
+    if (ImGui::BBLDragFloat(("##input_" + label).c_str(), &value, 0.05f, value_min, value_max, format.c_str())){
+        value_in = value * 0.01f;
+    }
+    return !is_approx(old_val, value_in);
+}
+
+
 
 bool GLGizmoAdvancedCut::cut_line_processing() const
 {

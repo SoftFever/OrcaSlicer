@@ -1696,7 +1696,7 @@ bool ModelObject::has_connectors() const
     return false;
 }
 
-indexed_triangle_set ModelObject::get_connector_mesh(CutConnectorAttributes connector_attributes)
+indexed_triangle_set ModelObject::get_connector_mesh(CutConnectorAttributes connector_attributes, CutConnectorParas para)
 {
     indexed_triangle_set connector_mesh;
 
@@ -1718,7 +1718,9 @@ indexed_triangle_set ModelObject::get_connector_mesh(CutConnectorAttributes conn
         break;
     }
 
-    if (connector_attributes.style == CutConnectorStyle::Prizm)
+    if (connector_attributes.type == CutConnectorType::Snap) 
+        connector_mesh = its_make_snap(1.0, 1.0, para.snap_space_proportion, para.snap_bulge_proportion);
+    else if(connector_attributes.style == CutConnectorStyle::Prizm)
         connector_mesh = its_make_cylinder(1.0, 1.0, (2 * PI / sectorCount));
     else if (connector_attributes.type == CutConnectorType::Plug)
         connector_mesh = its_make_cone(1.0, 1.0, (2 * PI / sectorCount));
@@ -1737,7 +1739,7 @@ void ModelObject::apply_cut_connectors(const std::string &name)
 
     size_t connector_id = cut_id.connectors_cnt();
     for (const CutConnector &connector : cut_connectors) {
-        TriangleMesh mesh = TriangleMesh(get_connector_mesh(connector.attribs));
+        TriangleMesh mesh = TriangleMesh(get_connector_mesh(connector.attribs, connector.paras));
         // Mesh will be centered when loading.
         ModelVolume *new_volume = add_volume(std::move(mesh), ModelVolumeType::NEGATIVE_VOLUME);
 
@@ -1865,7 +1867,18 @@ void ModelObject::process_connector_cut(
     // This transformation is already there
     if (volume->cut_info.connector_type != CutConnectorType::Dowel) {
         if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
-            ModelVolume *vol = upper->add_volume(*volume);
+            ModelVolume *vol = nullptr;
+            if (volume->cut_info.connector_type == CutConnectorType::Snap) {
+                TriangleMesh mesh = TriangleMesh(its_make_cylinder(1.0, 1.0, PI / 180.));
+
+                vol = upper->add_volume(std::move(mesh));
+                vol->set_transformation(volume->get_transformation());
+                vol->set_type(ModelVolumeType::NEGATIVE_VOLUME);
+
+                vol->cut_info = volume->cut_info;
+                vol->name     = volume->name;
+            } else
+                vol = upper->add_volume(*volume);
             vol->set_transformation(volume_matrix);
             vol->apply_tolerance();
         }
@@ -2832,6 +2845,16 @@ void ModelVolume::apply_tolerance()
     sf[Z] *= height_scale;
 
     set_scaling_factor(sf);
+
+     // correct offset in respect to the new depth
+    Vec3d rot_norm = Geometry::rotation_transform(get_rotation()) * Vec3d::UnitZ();
+    if (rot_norm.norm() != 0.0) rot_norm.normalize();
+
+    double z_offset = 0.5 * static_cast<double>(cut_info.height_tolerance);
+    if (cut_info.connector_type == CutConnectorType::Plug || cut_info.connector_type == CutConnectorType::Snap)
+        z_offset -= 0.05; // add small Z offset to better preview
+
+    set_offset(get_offset() + rot_norm * z_offset);
 }
 
 // BBS
