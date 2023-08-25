@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-24 17:34+0800\n"
+"POT-Creation-Date: 2023-08-25 15:40+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4210,6 +4210,9 @@ msgstr "Доступен новый сетевой плагин."
 msgid "Details"
 msgstr "Подробности"
 
+msgid "New printer config available."
+msgstr ""
+
 msgid "Undo integration failed."
 msgstr "Отменить интеграцию не удалось."
 
@@ -4958,6 +4961,12 @@ msgstr "Показывать уведомление \"Совет дня\" пос
 
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "Если включено, при запуске отображаются полезные подсказки."
+
+msgid "Flushing volumes: Auto-calculate everytime the color changed."
+msgstr ""
+
+msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
 
 msgid "Presets"
 msgstr "Пресеты"
@@ -6246,11 +6255,17 @@ msgstr "Конфигурация актуальна."
 msgid "Auto-Calc"
 msgstr "Автокалькулятор"
 
+msgid "Re-calculate"
+msgstr ""
+
 msgid "Flushing volumes for filament change"
 msgstr "Объемы промывки для смены Филамента"
 
-msgid "Multiplier"
-msgstr "Множитель"
+msgid ""
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Объем промывки (мм³) для каждой пары Филамента."
@@ -6262,6 +6277,9 @@ msgstr "Предложение: Объем промывки в диапазон�
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Множитель должен находиться в диапазоне [%.2f, %.2f]"
+
+msgid "Multiplier"
+msgstr "Множитель"
 
 msgid "unloaded"
 msgstr "выгружено"
@@ -9851,6 +9869,15 @@ msgstr ""
 msgid "The name cannot exceed 40 characters."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
@@ -9880,6 +9907,9 @@ msgstr ""
 msgid "Please select filament to calibrate."
 msgstr ""
 
+msgid "The input value size must be 3."
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr ""
 
@@ -9896,9 +9926,6 @@ msgid "Please select at least one filament for calibration"
 msgstr ""
 
 msgid "Flow rate calibration result has been saved to preset"
-msgstr ""
-
-msgid "The input value size must be 3."
 msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
@@ -10036,6 +10063,9 @@ msgstr ""
 msgid "Please find the best line on your plate"
 msgstr ""
 
+msgid "Please find the cornor with perfect degree of extrusion"
+msgstr ""
+
 msgid "Input Value"
 msgstr ""
 
@@ -10088,6 +10118,9 @@ msgstr ""
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr ""
 
+msgid "Pattern"
+msgstr ""
+
 msgid "Calibration Type"
 msgstr ""
 
@@ -10138,6 +10171,9 @@ msgstr ""
 msgid "Extra info"
 msgstr ""
 
+msgid "Method"
+msgstr "Метод"
+
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr ""
@@ -10146,6 +10182,21 @@ msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr ""
 
 msgid "Connecting to printer"
+msgstr ""
+
+msgid "From k Value"
+msgstr ""
+
+msgid "To k Value"
+msgstr ""
+
+msgid "0.5"
+msgstr ""
+
+msgid "0.05"
+msgstr ""
+
+msgid "0.005"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
@@ -10186,9 +10237,6 @@ msgstr "РА линия"
 
 msgid "PA Pattern"
 msgstr ""
-
-msgid "Method"
-msgstr "Метод"
 
 msgid "Start PA: "
 msgstr "Стартовый PA: "

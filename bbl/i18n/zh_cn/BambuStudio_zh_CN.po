@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-24 17:34+0800\n"
+"POT-Creation-Date: 2023-08-25 15:40+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4060,6 +4060,9 @@ msgstr "新的网络插件可用。"
 msgid "Details"
 msgstr "详情"
 
+msgid "New printer config available."
+msgstr ""
+
 msgid "Undo integration failed."
 msgstr "集成取消失败。"
 
@@ -4774,6 +4777,12 @@ msgstr "启动后显示“每日小贴士”通知"
 
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "如果启用，将在启动时显示有用的提示。"
+
+msgid "Flushing volumes: Auto-calculate everytime the color changed."
+msgstr ""
+
+msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
 
 msgid "Presets"
 msgstr "预设"
@@ -6000,11 +6009,17 @@ msgstr "当前配置已经是最新版本。"
 msgid "Auto-Calc"
 msgstr "自动计算"
 
+msgid "Re-calculate"
+msgstr ""
+
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
 
-msgid "Multiplier"
-msgstr "乘数"
+msgid ""
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -6016,6 +6031,9 @@ msgstr "建议：冲刷量设置在[%d, %d]范围内"
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "乘数的取值范围是[%.2f, %.2f]"
+
+msgid "Multiplier"
+msgstr "乘数"
 
 msgid "unloaded"
 msgstr "卸载"
@@ -7049,12 +7067,12 @@ msgid "Topmost surface"
 msgstr "最顶面"
 
 msgid "Top area threshold"
-msgstr ""
+msgstr "顶部区域阈值"
 
 msgid ""
 "This factor affects the acreage of top area. The small the number the big "
 "the top area."
-msgstr ""
+msgstr "这个参数影响顶部区域的面积，值越大顶部区域越小"
 
 msgid "Only one wall on first layer"
 msgstr "首层仅单层墙"
@@ -7842,7 +7860,7 @@ msgstr ""
 "将此参数设置为零以禁用连接到单个填充线的锚点轮廓。"
 
 msgid "0 (no open anchors)"
-msgstr "0 (无锚线)"
+msgstr "0 (无铆线)"
 
 msgid "1000 (unlimited)"
 msgstr "1000（无限制）"
@@ -9363,6 +9381,15 @@ msgstr "请输入要保存到打印机的名称。"
 msgid "The name cannot exceed 40 characters."
 msgstr "名称不能超过40个字符。"
 
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr "名称不能为空。"
 
@@ -9392,6 +9419,9 @@ msgstr "打印机尚未连接。"
 msgid "Please select filament to calibrate."
 msgstr "请选择要校准的耗材丝。"
 
+msgid "The input value size must be 3."
+msgstr "输入值大小必须为3。"
+
 msgid "Connecting to printer..."
 msgstr "正在连接打印机..."
 
@@ -9409,9 +9439,6 @@ msgstr "请至少选择一种材料进行校准。"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "流量比例校准结果已保存到预设"
-
-msgid "The input value size must be 3."
-msgstr "输入值大小必须为3。"
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "最大体积速度校准结果已保存到预设值"
@@ -9590,6 +9617,9 @@ msgstr ""
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
 
+msgid "Please find the cornor with perfect degree of extrusion"
+msgstr ""
+
 msgid "Input Value"
 msgstr "输入值"
 
@@ -9641,6 +9671,9 @@ msgstr "请选择顶部表面最光滑的块。"
 
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr "请输入一个有效值（0<=最大容积速度<=60）"
+
+msgid "Pattern"
+msgstr ""
 
 msgid "Calibration Type"
 msgstr "校准类型"
@@ -9695,6 +9728,9 @@ msgstr "错误描述"
 msgid "Extra info"
 msgstr "额外信息"
 
+msgid "Method"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s 与 %s 不兼容"
@@ -9704,6 +9740,21 @@ msgstr "不支持TPU进行动态流量自动校准。"
 
 msgid "Connecting to printer"
 msgstr "正在连接打印机"
+
+msgid "From k Value"
+msgstr ""
+
+msgid "To k Value"
+msgstr ""
+
+msgid "0.5"
+msgstr ""
+
+msgid "0.05"
+msgstr ""
+
+msgid "0.005"
+msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr "喷嘴直径已从打印机设置同步"
@@ -9742,9 +9793,6 @@ msgid "PA Line"
 msgstr ""
 
 msgid "PA Pattern"
-msgstr ""
-
-msgid "Method"
 msgstr ""
 
 msgid "Start PA: "
