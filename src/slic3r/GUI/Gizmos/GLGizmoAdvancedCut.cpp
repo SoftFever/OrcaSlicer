@@ -1710,7 +1710,8 @@ bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vecto
 
     size_t selection_out = selection_idx;
 
-    if (ImGui::BBLBeginCombo(("##" + label).c_str(), lines[selection_idx].c_str(), 0)) {
+    const char* selected_str = (selection_idx >= 0 && selection_idx < int(lines.size())) ? lines[selection_idx].c_str() : "";
+    if (ImGui::BBLBeginCombo(("##" + label).c_str(), selected_str, 0)) {
         for (size_t line_idx = 0; line_idx < lines.size(); ++line_idx) {
             ImGui::PushID(int(line_idx));
             if (ImGui::Selectable("", line_idx == selection_idx))
