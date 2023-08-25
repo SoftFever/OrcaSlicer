@@ -2875,12 +2875,14 @@ int CLI::run(int argc, char **argv)
                 // is supplied); if any object has no instances, it will get a default one
                 // and all instances will be rearranged (unless --dont-arrange is supplied).
                 std::string outfile;
-                Print       fff_print;
+                //Print       fff_print;
 
                 while(!finished)
                 {
                     //BBS: slice every partplate one by one
                     PrintBase  *print=NULL;
+                    Print *print_fff = NULL;
+
                     Slic3r::GUI::GCodeResult *gcode_result = NULL;
                     int print_index;
                     for (int index = 0; index < partplate_list.get_plate_count(); index ++)
@@ -2895,6 +2897,8 @@ int CLI::run(int argc, char **argv)
                         //get the current partplate
                         Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                         part_plate->get_print(&print, &gcode_result, &print_index);
+
+                        print_fff = dynamic_cast<Print *>(print);
                         /*if (outfile_config.empty())
                         {
                             outfile = "plate_" + std::to_string(index + 1) + ".gcode";
@@ -3074,6 +3078,11 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("new_printer_name: %1%, current_printer_system_name %2%, is_bbl_vendor_preset %3%")%new_printer_name %current_printer_system_name %is_bbl_vendor_preset;
                                 }
                                 (dynamic_cast<Print*>(print))->set_BBL_Printer(is_bbl_vendor_preset);
+
+                                //update information for brim
+                                const PrintConfig& print_config = print_fff->config();
+                                Model::setExtruderParams(m_print_config, filament_count);
+                                Model::setPrintSpeedTable(m_print_config, print_config);
                                 if (load_slicedata) {
                                     std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
                                     int ret = print->load_cached_data(plate_dir);
@@ -3098,12 +3107,13 @@ int CLI::run(int argc, char **argv)
                                     print->process();
                                 }
                                 if (printer_technology == ptFFF) {
-                                    std::string conflict_result = dynamic_cast<Print *>(print)->get_conflict_string();
+                                    std::string conflict_result = print_fff->get_conflict_string();
                                     if (!conflict_result.empty()) {
                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": found slicing result conflict!"<< std::endl;
                                        record_exit_reson(outfile_dir, CLI_GCODE_PATH_CONFLICTS, index+1, cli_errors[CLI_GCODE_PATH_CONFLICTS]);
                                        flush_and_exit(CLI_GCODE_PATH_CONFLICTS);
                                     }
+
                                     // The outfile is processed by a PlaceholderParser.
                                     //outfile = part_plate->get_tmp_gcode_path();
                                     if (outfile_dir.empty()) {
@@ -3114,7 +3124,7 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    outfile = (dynamic_cast<Print*>(print))->export_gcode(outfile, gcode_result, nullptr);
+                                    outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
                                 }/* else {

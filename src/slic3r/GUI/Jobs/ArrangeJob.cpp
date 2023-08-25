@@ -270,7 +270,7 @@ void ArrangeJob::prepare_wipe_tower()
             break;
         }
     }
-     
+
     // if multile extruders have same bed temp, we need wipe tower
     // 允许不同材料落在相同盘，且所有选定对象中使用了多种热床温度相同的材料
      if (params.allow_multi_materials_on_same_plate) {
@@ -395,8 +395,13 @@ void ArrangeJob::prepare()
     params = init_arrange_params(m_plater);
 
     //BBS update extruder params and speed table before arranging
-    Plater::setExtruderParams(Model::extruderParamsMap);
-    Plater::setPrintSpeedTable(Model::printSpeedMap);
+    const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    auto print_config = print.config();
+    int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+
+    Model::setExtruderParams(config, numExtruders);
+    Model::setPrintSpeedTable(config, print_config);
 
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
@@ -500,7 +505,7 @@ void ArrangeJob::process()
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
     if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
-        
+
     update_arrange_params(params, *m_plater, m_selected);
     update_selected_items_inflation(m_selected, m_plater->config(), params);
     update_unselected_items_inflation(m_unselected, m_plater->config(), params);
