@@ -431,18 +431,18 @@ public:
 
     struct SlicingStatus {
         SlicingStatus(int percent, const std::string &text, unsigned int flags = 0, int warning_step = -1,
-            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
-            percent(percent), text(text), flags(flags), warning_step(warning_step), message_type(msg_type)
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification, PrintStateBase::WarningLevel warning_level = PrintStateBase::WarningLevel::NON_CRITICAL) :
+            percent(percent), text(text), flags(flags), warning_step(warning_step), message_type(msg_type), warning_level(warning_level)
         {
         }
         SlicingStatus(const PrintBase &print, int warning_step, const std::string& text,
-            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
-            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step), message_type(msg_type)
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification, PrintStateBase::WarningLevel warning_level = PrintStateBase::WarningLevel::NON_CRITICAL) :
+            flags(UPDATE_PRINT_STEP_WARNINGS), warning_object_id(print.id()), text(text), warning_step(warning_step), message_type(msg_type), warning_level(warning_level)
         {
         }
         SlicingStatus(const PrintObjectBase &print_object, int warning_step, const std::string& text,
-            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification) :
-            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step), message_type(msg_type)
+            PrintStateBase::SlicingNotificationType  msg_type = PrintStateBase::SlicingDefaultNotification, PrintStateBase::WarningLevel warning_level = PrintStateBase::WarningLevel::NON_CRITICAL) :
+            flags(UPDATE_PRINT_OBJECT_STEP_WARNINGS), warning_object_id(print_object.id()), text(text), warning_step(warning_step), message_type(msg_type), warning_level(warning_level)
         {
         }
         int             percent { -1 };
@@ -466,6 +466,7 @@ public:
         int             warning_step { -1 };
 
         PrintStateBase::SlicingNotificationType  message_type {PrintStateBase::SlicingDefaultNotification};
+        PrintStateBase::WarningLevel  warning_level {PrintStateBase::WarningLevel::NON_CRITICAL};
     };
     typedef std::function<void(const SlicingStatus&)>  status_callback_type;
     // Default status console print out in the form of percent => message.
@@ -532,7 +533,7 @@ protected:
     void 				   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level,
         const std::string &message, const PrintObjectBase* print_object = nullptr, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
     //BBS: add api to update printobject's warnings
-	void                   status_update_warnings(int step, PrintStateBase::WarningLevel /* warning_level */,
+	void                   status_update_warnings(int step, PrintStateBase::WarningLevel warning_level,
 	    const std::string& message, PrintObjectBase &object, PrintStateBase::SlicingNotificationType message_id = PrintStateBase::SlicingDefaultNotification);
 
     // If the background processing stop was requested, throw CanceledException.
