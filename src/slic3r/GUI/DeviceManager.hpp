@@ -52,6 +52,11 @@ using namespace nlohmann;
 namespace Slic3r {
 
 
+enum PrinterArch {
+    ARCH_CORE_XY,
+    ARCH_I3,
+};
+
 enum PrinterSeries {
     SERIES_X1 = 0,
     SERIES_P1P,
@@ -407,6 +412,7 @@ public:
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
     PrinterSeries get_printer_series() const;
+    PrinterArch get_printer_arch() const;
 
     std::string printer_thumbnail_img;
     std::string monitor_upgrade_printer_img;
@@ -841,6 +847,7 @@ public:
     bool is_in_printing();
     bool is_in_prepare();
     bool is_printing_finished();
+    bool is_core_xy();
     void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);
@@ -933,6 +940,7 @@ public:
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
+    static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
