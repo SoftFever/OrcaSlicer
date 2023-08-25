@@ -2967,6 +2967,21 @@ void PartPlateList::init()
 	m_plate_cols = 1;
 	m_current_plate = 0;
 
+	if (m_plater) {
+        // In GUI mode
+        DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
+        ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+        ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+        wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
+        wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
+
+        // set the default position, the same with print config(left top)
+        ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
+        ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
+        dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, 0, 0);
+        dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, 0, 0);
+    }
+
 	select_plate(0);
 	unprintable_plate.set_index(1);
 
