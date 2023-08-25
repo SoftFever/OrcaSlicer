@@ -439,6 +439,7 @@ public:
     float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
+    std::string dev_connection_name;    /* lan | eth */
     void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !get_access_code().empty(); }
     std::string get_ftp_folder();

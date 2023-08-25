@@ -4704,6 +4704,10 @@ void DeviceManager::on_machine_alive(std::string json_str)
         if (j.contains("sec_link")) {
             sec_link = j["sec_link"].get<std::string>();
         }
+        std::string connection_name = "";
+        if (j.contains("connection_name")) {
+            connection_name = j["connection_name"].get<std::string>();
+        }
 
         MachineObject* obj;
 
@@ -4722,7 +4726,9 @@ void DeviceManager::on_machine_alive(std::string json_str)
             // update properties
             /* ip changed */
             obj = it->second;
-            if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()) {
+            if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()
+                && obj->dev_connection_name.compare(connection_name) != 0
+                ) {
                 BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
                 obj->dev_ip = dev_ip;
                 /* ip changed reconnect mqtt */
@@ -4754,6 +4760,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->dev_connection_type = connect_type;
             obj->bind_state     = bind_state;
             obj->bind_sec_link  = sec_link;
+            obj->dev_connection_name = connection_name;
 
             //load access code
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
