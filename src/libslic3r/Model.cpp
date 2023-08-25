@@ -2117,7 +2117,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     // Displacement (in instance coordinates) to be applied to place the upper parts
     Vec3d local_displace = Vec3d::Zero();
     Vec3d local_dowels_displace = Vec3d::Zero();
-    
+
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
@@ -2142,7 +2142,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     }
 
     ModelObjectPtrs res;
-    
+
     if (attributes.has(ModelObjectCutAttribute::CutToParts) && !upper->volumes.empty()) {
         reset_instance_transformation(upper, instance, cut_matrix);
         res.push_back(upper);
@@ -2376,7 +2376,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
-                
+
                 //BBS: add assemble_view related logic
                 Geometry::Transformation instance_transformation_copy = model_instance->get_transformation();
                 instance_transformation_copy.set_offset(-new_vol->get_offset());
@@ -3255,6 +3255,91 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 //BBS
+// BBS set print speed table and find maximum speed
+void Model::setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConfig& print_config) {
+    //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    printSpeedMap.maxSpeed = 0;
+    if (config.has("inner_wall_speed")) {
+        printSpeedMap.perimeterSpeed = config.opt_float("inner_wall_speed");
+        if (printSpeedMap.perimeterSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
+    }
+    if (config.has("outer_wall_speed")) {
+        printSpeedMap.externalPerimeterSpeed = config.opt_float("outer_wall_speed");
+        printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
+    }
+    if (config.has("sparse_infill_speed")) {
+        printSpeedMap.infillSpeed = config.opt_float("sparse_infill_speed");
+        if (printSpeedMap.infillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
+    }
+    if (config.has("internal_solid_infill_speed")) {
+        printSpeedMap.solidInfillSpeed = config.opt_float("internal_solid_infill_speed");
+        if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
+    }
+    if (config.has("top_surface_speed")) {
+        printSpeedMap.topSolidInfillSpeed = config.opt_float("top_surface_speed");
+        if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
+    }
+    if (config.has("support_speed")) {
+        printSpeedMap.supportSpeed = config.opt_float("support_speed");
+
+        if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
+    }
+
+
+    //auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    //auto print_config = print.config();
+    //printSpeedMap.bed_poly.points = get_bed_shape(*(wxGetApp().plater()->config()));
+    printSpeedMap.bed_poly.points = get_bed_shape(config);
+    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
+}
+
+// find temperature of heatend and bed and matierial of an given extruder
+void Model::setExtruderParams(const DynamicPrintConfig& config, int extruders_count) {
+    extruderParamsMap.clear();
+    //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    // BBS
+    //int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+    for (unsigned int i = 0; i != extruders_count; ++i) {
+        std::string matName = "";
+        // BBS
+        int bedTemp = 35;
+        double endTemp = 0.f;
+        if (config.has("filament_type")) {
+            matName = config.opt_string("filament_type", i);
+        }
+        if (config.has("nozzle_temperature")) {
+            endTemp = config.opt_int("nozzle_temperature", i);
+        }
+
+        // FIXME: curr_bed_type is now a plate config rather than a global config.
+        // Currently bed temp is not used for brim generation, so just comment it for now.
+#if 0
+        if (config.has("curr_bed_type")) {
+            BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
+            bedTemp = config.opt_int(get_bed_temp_key(curr_bed_type), i);
+        }
+#endif
+        if (i == 0) extruderParamsMap.insert({ i,{matName, bedTemp, endTemp} });
+        extruderParamsMap.insert({ i + 1,{matName, bedTemp, endTemp} });
+    }
+}
+
 // update the maxSpeed of an object if it is different from the global configuration
 double Model::findMaxSpeed(const ModelObject* object) {
     auto objectKeys = object->config.keys();

@@ -256,9 +256,7 @@ public:
     void update_all_plate_thumbnails(bool force_update = false);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
-    //BBS static functions that update extruder params and speed table
-    static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
-    static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
+
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
 
@@ -289,7 +287,7 @@ public:
 
     bool is_view3D_overhang_shown() const;
     void show_view3D_overhang(bool show);
-    
+
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool show);
 
