@@ -41,6 +41,8 @@
         "printer_type": "N1",
         "ftp_folder" : "sdcard/",
         "printer_thumbnail_image": "printer_thumbnail_n1",
+        "printer_connect_help_image": "input_access_code_n1",
+        "printer_use_ams_image":"extra_icon",
         "printer_arch" : "i3"
     }
 }

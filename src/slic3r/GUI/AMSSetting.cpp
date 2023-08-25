@@ -192,8 +192,8 @@ void AMSSetting::create()
     wxPanel* m_panel_img = new wxPanel(m_panel_body, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_panel_img->SetBackgroundColour(AMS_SETTING_GREY200);
     wxBoxSizer *m_sizer_img = new wxBoxSizer(wxVERTICAL);
-    auto img = new wxStaticBitmap(m_panel_img, wxID_ANY, create_scaled_bitmap("ams_icon", nullptr, 126), wxDefaultPosition, wxDefaultSize);
-    m_sizer_img->Add(img, 0, wxALIGN_CENTER | wxTOP, 26);
+    m_am_img = new wxStaticBitmap(m_panel_img, wxID_ANY, create_scaled_bitmap("ams_icon", nullptr, 126), wxDefaultPosition, wxDefaultSize);
+    m_sizer_img->Add(m_am_img, 0, wxALIGN_CENTER | wxTOP, 26);
     m_sizer_img->Add(0, 0, 0, wxTOP, 18);
     m_panel_img->SetSizer(m_sizer_img);
     m_panel_img->Layout();
@@ -260,6 +260,11 @@ void AMSSetting::update_insert_material_read_mode(bool selected)
     m_sizer_Insert_material_tip_inline->Layout();
     Layout();
     Fit();
+}
+
+void AMSSetting::update_ams_img(std::string ams_icon_str)
+{
+    m_am_img->SetBitmap(create_scaled_bitmap(ams_icon_str, nullptr, 126));
 }
 
 void AMSSetting::update_starting_read_mode(bool selected)

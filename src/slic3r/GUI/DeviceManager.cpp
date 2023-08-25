@@ -5162,6 +5162,18 @@ std::string DeviceManager::get_printer_thumbnail_img(std::string type_str)
 {
     return get_string_from_config(type_str, "printer_thumbnail_image");
 }
+
+std::string DeviceManager::get_printer_diagram_img(std::string type_str)
+{
+    return get_string_from_config(type_str, "printer_connect_help_image");
+}
+
+std::string DeviceManager::get_printer_ams_img(std::string type_str)
+{
+    return get_string_from_config(type_str, "printer_use_ams_image");
+}
+
+
 bool DeviceManager::is_function_supported(std::string type_str, std::string function_name)
 {
     if (DeviceManager::function_table.contains("printers")) {

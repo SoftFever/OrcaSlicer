@@ -942,6 +942,8 @@ public:
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
+    static std::string get_printer_diagram_img(std::string type_str);
+    static std::string get_printer_ams_img(std::string type_str);
     static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);

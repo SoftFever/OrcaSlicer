@@ -27,7 +27,8 @@ public:
     ~AMSSetting();
     void create();
 
-	void          update_insert_material_read_mode(bool selected);
+    void          update_insert_material_read_mode(bool selected);
+    void          update_ams_img(std::string ams_icon_str);
     void          update_starting_read_mode(bool selected);
     void          update_remain_mode(bool selected);
     void          update_switch_filament(bool selected);
@@ -40,6 +41,7 @@ public:
     wxStaticText *append_text(wxString text);
     MachineObject *obj{nullptr};
     bool           ams_support_remain{false};
+    wxStaticBitmap* m_am_img;
     int            ams_id { 0 };
 
 protected:

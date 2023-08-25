@@ -309,7 +309,7 @@ void MachineInfoPanel::init_bitmaps()
     m_img_printer        = ScalableBitmap(this, "printer_thumbnail", 160);
     m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams", 200);
     m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 200);
-    m_img_extra_ams             = ScalableBitmap(this, "monitor_upgrade_ams", 200);
+    m_img_extra_ams      = ScalableBitmap(this, "extra_icon", 160);
     upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
     upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
     upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);

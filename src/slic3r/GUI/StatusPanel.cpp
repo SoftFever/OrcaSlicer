@@ -3130,6 +3130,7 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
     if (obj) {
         m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
         m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
+        m_ams_setting_dlg->update_ams_img(DeviceManager::get_printer_ams_img(obj->printer_type));
         std::string ams_id = m_ams_control->GetCurentShowAms();
         if (obj->amsList.size() == 0) {
             /* wxString txt = _L("AMS settings are not supported for external spool");

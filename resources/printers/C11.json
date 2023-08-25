@@ -38,7 +38,9 @@
         "compatible_machine":["BL-P001", "BL-P002", "C12", "C13"],
         "printer_type": "C11",
         "ftp_folder" : "sdcard/",
-        "printer_thumbnail_image": "printer_thumbnail_p1p"
+        "printer_thumbnail_image": "printer_thumbnail_p1p",
+        "printer_connect_help_image": "input_access_code_p1p",
+        "printer_use_ams_image":"ams_icon"
     }, 
     "01.02.00.00": {
         "print": {

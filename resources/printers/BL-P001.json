@@ -40,7 +40,9 @@
         "model_id": "BL-P001",
         "compatible_machine":["BL-P002", "C11", "C12", "C13"],
         "printer_type": "3DPrinter-X1-Carbon",
-        "printer_thumbnail_image": "printer_thumbnail"
+        "printer_thumbnail_image": "printer_thumbnail",
+        "printer_connect_help_image": "input_access_code_x1",
+        "printer_use_ams_image":"ams_icon"
     }, 
     "01.01.01.00": {
         "print": {

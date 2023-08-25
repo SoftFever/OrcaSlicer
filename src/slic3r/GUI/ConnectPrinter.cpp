@@ -117,14 +117,28 @@ void ConnectPrinterDialog::init_bitmap()
 {
     AppConfig *config = get_app_config();
     std::string language = config->get("language");
-    if (language == "zh_CN") {
-        m_diagram_bmp = create_scaled_bitmap("input_access_code_cn", nullptr, 190);
+
+    if (m_obj) {
+        std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
+        if(img_str.empty()){img_str = "input_access_code_x1"; }
+
+        if (language == "zh_CN") {
+            m_diagram_bmp = create_scaled_bitmap(img_str+"_cn", nullptr, 190);
+        }
+        else {
+            m_diagram_bmp = create_scaled_bitmap(img_str+"_en", nullptr, 190);
+        }
     }
     else{
-        m_diagram_bmp = create_scaled_bitmap("input_access_code_en", nullptr, 190);
+        if (language == "zh_CN") {
+            m_diagram_bmp = create_scaled_bitmap("input_access_code_x1_cn", nullptr, 190);
+        }
+        else {
+            m_diagram_bmp = create_scaled_bitmap("input_access_code_x1_en", nullptr, 190);
+        }
     }
     m_diagram_img = m_diagram_bmp.ConvertToImage();
-    m_diagram_img.Rescale(FromDIP(340), FromDIP(190));    
+    m_diagram_img.Rescale(FromDIP(340), FromDIP(190));
 }
 
 void ConnectPrinterDialog::set_machine_object(MachineObject* obj)

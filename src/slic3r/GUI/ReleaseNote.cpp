@@ -1080,9 +1080,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
 
-    m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
+    m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("lan_mode_help_x1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
     
-    m_img_help2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help2", this, 118), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(118)), 0);
+    m_img_help2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_p1p_en", this, 118), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(118)), 0);
     
     m_img_help1->Hide();
     m_img_help2->Hide();
