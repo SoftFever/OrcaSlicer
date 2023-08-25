@@ -474,6 +474,7 @@ int CLI::run(int argc, char **argv)
     int current_printable_width, current_printable_depth, current_printable_height;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
+    float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     const std::vector<std::string>              &uptodate_configs          = m_config.option<ConfigOptionStrings>("uptodate_settings", true)->values;
@@ -751,7 +752,15 @@ int CLI::run(int argc, char **argv)
                         old_printable_depth = (int)(old_printable_area[2].y() - old_printable_area[0].y());
                     }
                     old_printable_height = (int)(config.opt_float("printable_height"));
+
+                    if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_rod"))
+                        old_height_to_rod = config.opt_float("extruder_clearance_height_to_rod");
+                    if (config.option<ConfigOptionFloat>("extruder_clearance_height_to_lid"))
+                        old_height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
+                    if (config.option<ConfigOptionFloat>("extruder_clearance_max_radius"))
+                        old_max_radius = config.opt_float("extruder_clearance_max_radius");
                     BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("old extruder_clearance_height_to_rod %1%, extruder_clearance_height_to_lid %2%, extruder_clearance_max_radius %3%}")%old_height_to_rod %old_height_to_lid %old_max_radius;
                 }
                 else
                 {
@@ -2183,6 +2192,42 @@ int CLI::run(int argc, char **argv)
     }
     //BBS: clear the orient objects lists
     orients_requirement.clear();
+
+    if ((plate_to_slice < 0) || (plate_to_slice > partplate_list.get_plate_count()))
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("invalid plate id %1%, total %2%")%plate_to_slice %partplate_list.get_plate_count();
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS]);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
+
+    if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0))
+    {
+        if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
+            || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
+            || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius)))
+        {
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
+            PrintSequence curr_plate_seq = cur_plate->get_print_seq();
+            bool is_seq_print = false;
+            if (curr_plate_seq == PrintSequence::ByDefault) {
+                auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from global")%plate_to_slice;
+                    is_seq_print = true;
+                }
+            }
+            else if (curr_plate_seq == PrintSequence::ByObject) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from plate self")%plate_to_slice;
+                is_seq_print = true;
+            }
+            if (is_seq_print) {
+                need_arrange = true;
+                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, cleareance_radius %6%, need arrange!")
+                    %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %cleareance_radius;
+            }
+        }
+    }
+
     oriented_or_arranged |= need_arrange;
 
     BOOST_LOG_TRIVIAL(info) << boost::format("before arrange, need_arrange=%1%, duplicate_count %2%, filament_color_changed %3%")%need_arrange %duplicate_count %filament_color_changed;
@@ -2256,10 +2301,30 @@ int CLI::run(int argc, char **argv)
                     cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
                     cur_plate->duplicate_all_instance(duplicate_count, need_skip, skip_maps);
                 }
+                else if (plate_to_slice > 0)
+                {
+                    cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
+                }
+
+                if (cur_plate) {
+                    PrintSequence curr_plate_seq = cur_plate->get_print_seq();
+                    if (curr_plate_seq == PrintSequence::ByDefault) {
+                        auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                        if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%plate_to_slice;
+                            arrange_cfg.is_seq_print = true;
+                        }
+                    }
+                    else if (curr_plate_seq == PrintSequence::ByObject) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%plate_to_slice;
+                        arrange_cfg.is_seq_print = true;
+                    }
+                }
 
                 //Step-1: prepare arrange polygons
-                if (duplicate_count == 0)
+                if ((duplicate_count == 0) && (plate_to_slice == 0))
                 {
+                    //global arrange
                     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
                     {
                         ModelObject* mo = model.objects[oidx];
@@ -2299,20 +2364,6 @@ int CLI::run(int argc, char **argv)
                 }
                 else {
                     //only arrange current plate
-                    //cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-                    PrintSequence curr_plate_seq = cur_plate->get_print_seq();
-                    if (curr_plate_seq == PrintSequence::ByDefault) {
-                        auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-                        if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%plate_to_slice;
-                            arrange_cfg.is_seq_print = true;
-                        }
-                    }
-                    else if (curr_plate_seq == PrintSequence::ByObject) {
-                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%plate_to_slice;
-                        arrange_cfg.is_seq_print = true;
-                    }
-
                     partplate_list.lock_plate(plate_to_slice - 1, false);
                     partplate_list.select_plate(plate_to_slice-1);
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected")%plate_to_slice;
@@ -2346,7 +2397,7 @@ int CLI::run(int argc, char **argv)
                             }
                         }
                     }
-                    if (selected.size() == (duplicate_count + 1))
+                    if ((duplicate_count > 0)&&(selected.size() == (duplicate_count + 1)))
                     {
                         duplicate_single_object = true;
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": found single object mode");
@@ -2416,11 +2467,14 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.allow_rotations  = true;
                 arrange_cfg.allow_multi_materials_on_same_plate = true;
                 arrange_cfg.avoid_extrusion_cali_region         = false;
-                arrange_cfg.min_obj_distance = scaled(22.0);
                 arrange_cfg.clearance_height_to_rod             = height_to_rod;
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
                 arrange_cfg.cleareance_radius                   = cleareance_radius;
                 arrange_cfg.printable_height                    = print_height;
+                if (arrange_cfg.is_seq_print)
+                    arrange_cfg.min_obj_distance = std::max(arrange_cfg.min_obj_distance, scaled(arrange_cfg.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
+                else
+                    arrange_cfg.min_obj_distance = scaled(22.0);
 
                 arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
                 arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
@@ -2451,16 +2505,35 @@ int CLI::run(int argc, char **argv)
                 int bed_idx_max = 0;
                 if (duplicate_count == 0)
                 {
-                    //clear all the relations before apply the arrangement results
-                    partplate_list.clear();
+                    if (plate_to_slice > 0)
+                    {
+                        //only for partplate case
+                        partplate_list.clear(false, false, true, plate_to_slice-1);
 
-                    // Apply the arrange result to all selected objects
-                    for (ArrangePolygon &ap : selected) {
-                        //BBS: partplate postprocess
-                        partplate_list.postprocess_bed_index_for_selected(ap);
+                        for (ArrangePolygon& ap : selected) {
+                            partplate_list.postprocess_bed_index_for_current_plate(ap);
+                            if (ap.bed_idx != (plate_to_slice-1))
+                            {
+                                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
+                                record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED]);
+                                flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                            }
+                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                        }
+                    }
+                    else
+                    {
+                        //clear all the relations before apply the arrangement results
+                        partplate_list.clear();
 
-                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                        BOOST_LOG_TRIVIAL(trace)<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
+                        // Apply the arrange result to all selected objects
+                        for (ArrangePolygon &ap : selected) {
+                            //BBS: partplate postprocess
+                            partplate_list.postprocess_bed_index_for_selected(ap);
+
+                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                            BOOST_LOG_TRIVIAL(trace)<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
+                        }
                     }
                     for (ArrangePolygon &ap : locked_aps) {
                         bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
@@ -2478,16 +2551,34 @@ int CLI::run(int argc, char **argv)
                         ap.apply();
                     }
 
-                    // Move the unprintable items to the last virtual bed.
-                    for (ArrangePolygon &ap : unprintable) {
-                        ap.bed_idx += bed_idx_max + 1;
-                        partplate_list.postprocess_arrange_polygon(ap, true);
+                    // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
+                    for (ArrangePolygon& ap : unselected)
+                    {
+                        if (ap.is_virt_object)
+                            continue;
+
+                        //BBS: partplate postprocess
+                        partplate_list.postprocess_arrange_polygon(ap, false);
 
                         ap.apply();
                     }
 
+                    // Move the unprintable items to the last virtual bed.
+                    // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
+                    for (ArrangePolygon& ap : unprintable)
+                    {
+                        ap.bed_idx = bed_idx_max + 1;
+                        partplate_list.postprocess_arrange_polygon(ap, true);
+
+                        ap.apply();
+                        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                    }
+
                     //BBS: reload all objects due to arrange
-                    partplate_list.rebuild_plates_after_arrangement();
+                    if (plate_to_slice > 0)
+                        partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice-1);
+                    else
+                        partplate_list.rebuild_plates_after_arrangement();
                 }
                 else {
                     //only for partplate case
