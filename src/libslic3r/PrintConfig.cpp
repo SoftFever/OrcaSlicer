@@ -1780,7 +1780,7 @@ void PrintConfigDef::init_fff_params()
 
     def =this->add("support_air_filtration",coBool);
     def->label=L("Support air filtration");
-    def->tooltip=L("Enable this if printer physically support air filtration");
+    def->tooltip=L("Enable this if printer support air filtration");
     def->mode=comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
