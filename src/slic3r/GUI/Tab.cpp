@@ -3684,7 +3684,7 @@ void TabPrinter::toggle_options()
         toggle_option("thumbnail_size",!is_BBL_printer);
         toggle_option("printer_structure", !is_BBL_printer);
         toggle_option("use_relative_e_distances", !is_BBL_printer);
-
+        toggle_option("support_chamber_temp_control", 0);
         toggle_option("support_air_filtration",is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
