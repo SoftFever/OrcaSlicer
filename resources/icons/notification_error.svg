@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   id="error"
+   x="0px"
+   y="0px"
+   viewBox="0 0 200 200"
+   enable-background="new 0 0 100 100"
+   xml:space="preserve"
+   sodipodi:docname="notification_error.svg"
+   width="200"
+   height="200"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"><metadata
+   id="metadata19"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs17" /><sodipodi:namedview
+   inkscape:document-rotation="0"
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="2560"
+   inkscape:window-height="1377"
+   id="namedview15"
+   showgrid="false"
+   inkscape:zoom="5.04"
+   inkscape:cx="117.17146"
+   inkscape:cy="98.609664"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="error" />
+<g
+   id="g4"
+   transform="matrix(2.52,0,0,2.52,-26,-26)">
+	<path
+   fill="#ed6b21"
+   d="m 50,54.25 c -2.35,0 -4.25,-1.9 -4.25,-4.25 V 35 c 0,-2.35 1.9,-4.25 4.25,-4.25 2.35,0 4.25,1.9 4.25,4.25 v 15 c 0,2.35 -1.9,4.25 -4.25,4.25 z"
+   id="path2" />
+</g>
+<g
+   id="g8"
+   transform="matrix(2.52,0,0,2.52,-26,-26)">
+	<circle
+   fill="#ed6b21"
+   cx="50"
+   cy="65"
+   r="5"
+   id="circle6" />
+</g>
+<g
+   id="g12"
+   transform="matrix(2.52,0,0,2.52,-26,-26)">
+	<path
+   fill="#ed6b21"
+   d="M 50,89.25 C 28.36,89.25 10.75,71.64 10.75,50 10.75,28.36 28.36,10.75 50,10.75 71.64,10.75 89.25,28.36 89.25,50 89.25,71.64 71.64,89.25 50,89.25 Z m 0,-70 C 33.05,19.25 19.25,33.04 19.25,50 19.25,66.95 33.04,80.75 50,80.75 66.95,80.75 80.75,66.96 80.75,50 80.75,33.05 66.95,19.25 50,19.25 Z"
+   id="path10" />
+</g>
+</svg>

@@ -1,0 +1,13 @@
+$Id$
+
+How to build avrdude from SVN:
+
+1. svn co svn://svn.savannah.nongnu.org/avrdude/trunk
+
+2. cd trunk/avrdude
+
+3. ./bootstrap
+
+4. ./configure
+
+5. make

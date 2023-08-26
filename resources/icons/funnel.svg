@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+<g id="extruder_x2B_funnel">
+	<rect x="1" y="1" display="none" fill="#808080" width="14" height="6"/>
+	<line fill="none" stroke="#ED6B21" stroke-linecap="round" stroke-miterlimit="10" x1="8" y1="9.37" x2="8" y2="15"/>
+	<polygon display="none" fill="#808080" points="5,7 5,8 8,10 11,8 11,7 	"/>
+	<g>
+		<path fill="#808080" d="M14,2l0,4h-3c-0.55,0-1,0.45-1,1v0.47L8,8.8L6,7.46V7c0-0.55-0.45-1-1-1L2,6l0-4H14 M14,1H2
+			C1.45,1,1,1.45,1,2v4c0,0.55,0.45,1,1,1h3v1l2.45,1.63C7.61,9.74,7.81,9.8,8,9.8c0.19,0,0.39-0.06,0.55-0.17L11,8V7h3
+			c0.55,0,1-0.45,1-1V2C15,1.45,14.55,1,14,1L14,1z"/>
+	</g>
+</g>
+</svg>

@@ -1,0 +1,21 @@
+#! /bin/sh
+
+: ${AUTOHEADER="autoheader${AC_VER}"}
+: ${AUTOCONF="autoconf${AC_VER}"}
+: ${ACLOCAL="aclocal${AM_VER}"}
+: ${AUTOMAKE="automake${AM_VER}"}
+
+export ACLOCAL AUTOHEADER AUTOCONF AUTOMAKE
+
+# Bootstrap the build system.
+
+set -x
+
+rm -rf autom4te.cache
+
+libtoolize
+
+${ACLOCAL}
+${AUTOHEADER}
+${AUTOCONF}
+${AUTOMAKE} -a -c

@@ -1,0 +1,423 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta content="IE=edge" http-equiv="X-UA-Compatible" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<title>AVR8GENERIC ID definitions -  - Atmel EDBG-based Tools Protocols</title><meta content="DocBook XSL Stylesheets V1.78.1" name="generator" /><link rel="home" href="index.html" title="Atmel EDBG-based Tools Protocols" /><link rel="up" href="protocoldocs.avr8protocol.html" title="AVR8 generic protocol" /><link rel="prev" href="ch06s05s05.html" title="Flow control" /><link rel="next" href="protocoldocs.avrispprotocol.html" title="AVR ISP protocol" /><meta content="AVR8GENERIC ID definitions" name="Section-title" /><script type="text/javascript">
+			//The id for tree cookie
+			var treeCookieId = "treeview-10619";
+			var language = "en";
+			var w = new Object();
+			//Localization
+			txt_filesfound = 'Results';
+			txt_enter_at_least_1_char = "You must enter at least one character.";
+			txt_browser_not_supported = "JavaScript is disabled on your browser. Please enable JavaScript to enjoy all the features of this site.";
+			txt_please_wait = "Please wait. Search in progress...";
+			txt_results_for = "Results for: ";
+		</script><link type="image/x-icon" href="../favicon.ico" rel="shortcut icon" /><link href="../common/css/positioning.css" type="text/css" rel="stylesheet" /><link href="../common/jquery/theme-redmond/jquery-ui-1.8.2.custom.css" type="text/css" rel="stylesheet" /><link href="../common/jquery/treeview/jquery.treeview.css" type="text/css" rel="stylesheet" /><style type="text/css">
+			#noscript{
+			font-weight:bold;
+			background-color:#55AA55;
+			font-weight:bold;
+			height:25spx;
+			z-index:3000;
+			top:0px;
+			width:100%;
+			position:relative;
+			border-bottom:solid 5px black;
+			text-align:center;
+			color:white;
+			}
+			
+			input{
+			margin-bottom:5px;
+			margin-top:2px;
+			}
+			.folder{
+			display:block;
+			height:22px;
+			padding-left:20px;
+			background:transparent url(../common/jquery/treeview/images/folder.gif) 0 0px no-repeat;
+			}
+			.dochome{
+			display:block;
+			margin:10px 0 0 0;
+			padding-left:20px;
+			background:transparent url(../common/images/Library.png) 0 0px no-repeat;
+			}
+			.root{
+			display:block;
+			margin:10px 0 0 2px;
+			padding-left:20px;
+			background:transparent url(../common/images/Book_Open.png) 0 0px no-repeat;
+			}
+			.dochome a,
+			.root a {
+			text-decoration:none;
+			font-size:12px;
+			color:#517291;
+			}
+			span.contentsTab{
+			padding-left:20px;
+			background:url(../common/images/toc-icon.png) no-repeat 0 center;
+			}
+			span.searchTab{
+			padding-left:20px;
+			background:url(../common/images/search-icon.png) no-repeat 0 center;
+			}
+			
+			/* Overide jquery treeview's defaults for ul. */
+			.treeview ul{
+			background-color:transparent;
+			margin-top:4px;
+			}
+			#webhelp-currentid{
+			background-color:#D8D8D8 !important;
+			}
+			.treeview .hover{
+			color:black;
+			}
+			.filetree li span a{
+			text-decoration:none;
+			font-size:12px;
+			color:#517291;
+			}
+			
+			.filetree span.file {
+			background: url(../common/images/Document_Text.png) 0 0 no-repeat;
+			}
+			
+			/* Override jquery-ui's default css customizations. These are supposed to take precedence over those.*/
+			.ui-widget-content{
+			border:0px;
+			background:none;
+			color:none;
+			}
+			.ui-widget-header{
+			color:#e9e8e9;
+			border-left:1px solid #e5e5e5;
+			border-right:1px solid #e5e5e5;
+			border-bottom:1px solid #bbc4c5;
+			border-top:4px solid #e5e5e5;
+			border:medium none;
+			background:#F4F4F4; /* old browsers */
+			background:-moz-linear-gradient(top, #F4F4F4 0%, #E6E4E5 100%); /* firefox */
+			background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #F4F4F4), color-stop(100%, #E6E4E5)); /* webkit */
+			font-weight:none;
+			}
+			.ui-widget-header a{
+			color:none;
+			}
+			.ui-state-default,
+			.ui-widget-content .ui-state-default,
+			.ui-widget-header .ui-state-default{
+			border:none;
+			background:none;
+			font-weight:none;
+			color:none;
+			}
+			.ui-state-default a,
+			.ui-state-default a:link,
+			.ui-state-default a:visited{
+			color:black;
+			text-decoration:none;
+			}
+			.ui-state-hover,
+			.ui-widget-content .ui-state-hover,
+			.ui-widget-header .ui-state-hover,
+			.ui-state-focus,
+			.ui-widget-content .ui-state-focus,
+			.ui-widget-header .ui-state-focus{
+			border:none;
+			background:none;
+			font-weight:none;
+			color:none;
+			}
+			
+			.ui-state-active,
+			.ui-widget-content .ui-state-active,
+			.ui-widget-header .ui-state-active{
+			border:none;
+			background:none;
+			font-weight:none;
+			color:none;
+			}
+			.ui-state-active a,
+			.ui-state-active a:link,
+			.ui-state-active a:visited{
+			color:black;
+			text-decoration:none;
+			background:#C6C6C6; /* old browsers */
+			background:-moz-linear-gradient(top, #C6C6C6 0%, #D8D8D8 100%); /* firefox */
+			background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #C6C6C6), color-stop(100%, #D8D8D8)); /* webkit */
+			-webkit-border-radius:15px;
+			-moz-border-radius:10px;
+			border:1px solid #f1f1f1;
+			}
+			.ui-corner-all{
+			border-radius:0 0 0 0;
+			}
+			
+			.ui-tabs{
+			padding:.2em;
+			}
+			.ui-tabs .ui-tabs-panel {
+			padding-top: 6px;
+			}
+			.ui-tabs .ui-tabs-nav li{
+			top:0px;
+			margin:-2px 0 1px;
+			text-transform:uppercase;
+			font-size:10.5px;
+			}
+			.ui-tabs .ui-tabs-nav li a{
+			padding:.25em 2em .25em 1em;
+			margin:.5em;
+			text-shadow:0 1px 0 rgba(255, 255, 255, .5);
+			}
+			/**
+			*	Basic Layout Theme
+			* 
+			*	This theme uses the default layout class-names for all classes
+			*	Add any 'custom class-names', from options: paneClass, resizerClass, togglerClass
+			*/
+			
+			.ui-layout-resizer{ /* all 'resizer-bars' */
+			background:#DDD;
+			top:100px
+			}
+			
+			.ui-layout-toggler{ /* all 'toggler-buttons' */
+			background:#AAA;
+			}
+		</style><!--[if IE]>
+	<link rel="stylesheet" type="text/css" href="../common/css/ie.css"/>
+	<![endif]--><script src="../common/browserDetect.js" type="text/javascript"><!----></script><script src="../common/jquery/jquery-1.7.2.min.js" type="text/javascript"><!----></script><script src="../common/jquery/jquery.ui.all.js" type="text/javascript"><!----></script><script src="../common/jquery/jquery.cookie.js" type="text/javascript"><!----></script><script src="../common/jquery/treeview/jquery.treeview.min.js" type="text/javascript"><!----></script><script src="../common/jquery/layout/jquery.layout.js" type="text/javascript"><!----></script><script src="search/l10n.js" type="text/javascript"><!----></script><script src="search/htmlFileInfoList.js" type="text/javascript"><!----></script><script src="search/nwSearchFnt.js" type="text/javascript"><!----></script><script src="search/stemmers/en_stemmer.js" type="text/javascript" /><script src="search/index-1.js" type="text/javascript"><!----></script><script src="search/index-2.js" type="text/javascript"><!----></script><script src="search/index-3.js" type="text/javascript"><!----></script><meta name="date" content="" /><meta name="dc.date.created" content="" /><link rel="stylesheet" type="text/css" href="../common/css/docbook.css" /><link media="print" rel="stylesheet" type="text/css" href="../common/css/print.css" /><script type="text/javascript">
+				  var _gaq = _gaq || [];
+				  _gaq.push(['_setAccount', 'UA-41389295-1']);
+				  _gaq.push(['_trackPageview']);
+
+				  (function() {
+					var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+					ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+					var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+				  })();
+		</script></head><body><noscript><link rel="stylesheet" type="text/css" href="../common/css/print.css" /><div id="noscript">JavaScript is disabled on your browser. Please enable JavaScript to enjoy all the features of this site.</div></noscript><div id="header"><a href="http://www.atmel.com/webdoc"><img id="logo" alt="Atmel Logo" src="../common/images/logo.png" /></a><h1>Atmel EDBG-based Tools Protocols<br />AVR8 generic protocol</h1><div id="navheader"><!----><table class="navLinks"><tr><td><a title="Hide TOC tree" tabindex="5" class="pointLeft" onclick="myLayout.toggle('west')" href="#" id="showHideButton">Sidebar
+                            </a></td><td><a tabindex="5" class="navLinkPrevious" accesskey="p" href="ch06s05s05.html">Prev</a>
+                                        |
+                                        <a tabindex="5" class="navLinkUp" accesskey="u" href="protocoldocs.avr8protocol.html">Up</a>
+                                    |
+                                    <a tabindex="5" class="navLinkNext" accesskey="n" href="protocoldocs.avrispprotocol.html">Next</a></td></tr></table></div></div><div id="content"><!----><div class="section"><div xmlns="" class="titlepage"><div><div><h2 xmlns="http://www.w3.org/1999/xhtml" class="title" style="clear: both"><a id="N126AD" />AVR8GENERIC ID definitions</h2></div></div></div><p xmlns="http://www.w3.org/1999/xhtml">
+                        This section includes the header file defining the different command, 
+                        response and event IDs for the AVR8 protocol. It also defines the different possible failure codes.  
+                    </p><pre class="programlisting"><span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericCommands {
+    CMD_AVR8_QUERY                      = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Capability discovery </em>
+    CMD_AVR8_SET                        = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! Set parameters</em>
+    CMD_AVR8_GET                        = <span class="hl-number">0x02</span>, <em class="hl-comment" style="color: #008000">//! Get parameters</em>
+    CMD_AVR8_ACTIVATE_PHYSICAL          = <span class="hl-number">0x10</span>, <em class="hl-comment" style="color: #008000">//! Connect physically</em>
+    CMD_AVR8_DEACTIVATE_PHYSICAL        = <span class="hl-number">0x11</span>, <em class="hl-comment" style="color: #008000">//! Disconnect physically</em>
+    CMD_AVR8_GET_ID                     = <span class="hl-number">0x12</span>, <em class="hl-comment" style="color: #008000">//! Read the ID</em>
+    CMD_AVR8_ATTACH                     = <span class="hl-number">0x13</span>, <em class="hl-comment" style="color: #008000">//! Attach to OCD module</em>
+    CMD_AVR8_DETACH                     = <span class="hl-number">0x14</span>, <em class="hl-comment" style="color: #008000">//! Detach from OCD module</em>
+    CMD_AVR8_PROG_MODE_ENTER            = <span class="hl-number">0x15</span>, <em class="hl-comment" style="color: #008000">//! Enter programming mode</em>
+    CMD_AVR8_PROG_MODE_LEAVE            = <span class="hl-number">0x16</span>, <em class="hl-comment" style="color: #008000">//! Leave programming mode</em>
+    CMD_AVR8_DISABLE_DEBUGWIRE          = <span class="hl-number">0x17</span>, <em class="hl-comment" style="color: #008000">//! Disable debugWIRE interface</em>
+    CMD_AVR8_ERASE                      = <span class="hl-number">0x20</span>, <em class="hl-comment" style="color: #008000">//! Erase the chip</em>
+    CMD_AVR8_MEMORY_READ                = <span class="hl-number">0x21</span>, <em class="hl-comment" style="color: #008000">//! Read memory</em>
+    CMD_AVR8_MEMORY_READ_MASKED         = <span class="hl-number">0x22</span>, <em class="hl-comment" style="color: #008000">//! Read memory while via a mask</em>
+    CMD_AVR8_MEMORY_WRITE               = <span class="hl-number">0x23</span>, <em class="hl-comment" style="color: #008000">//! Write memory</em>
+    CMD_AVR8_CRC                        = <span class="hl-number">0x24</span>, <em class="hl-comment" style="color: #008000">//! Calculate CRC</em>
+    CMD_AVR8_RESET                      = <span class="hl-number">0x30</span>, <em class="hl-comment" style="color: #008000">//! Reset the MCU</em>
+    CMD_AVR8_STOP                       = <span class="hl-number">0x31</span>, <em class="hl-comment" style="color: #008000">//! Stop the MCU</em>
+    CMD_AVR8_RUN                        = <span class="hl-number">0x32</span>, <em class="hl-comment" style="color: #008000">//! Resume execution</em>
+    CMD_AVR8_RUN_TO_ADDRESS             = <span class="hl-number">0x33</span>, <em class="hl-comment" style="color: #008000">//! Resume with breakpoint </em>
+    CMD_AVR8_STEP                       = <span class="hl-number">0x34</span>, <em class="hl-comment" style="color: #008000">//! Single step</em>
+    CMD_AVR8_PC_READ                    = <span class="hl-number">0x35</span>, <em class="hl-comment" style="color: #008000">//! Read PC</em>
+    CMD_AVR8_PC_WRITE                   = <span class="hl-number">0x36</span>, <em class="hl-comment" style="color: #008000">//! Write PC</em>
+    CMD_AVR8_HW_BREAK_SET               = <span class="hl-number">0x40</span>, <em class="hl-comment" style="color: #008000">//! Set breakpoints</em>
+    CMD_AVR8_HW_BREAK_CLEAR             = <span class="hl-number">0x41</span>, <em class="hl-comment" style="color: #008000">//! Clear breakpoints</em>
+    CMD_AVR8_SW_BREAK_SET               = <span class="hl-number">0x43</span>, <em class="hl-comment" style="color: #008000">//! Set software breakpoints</em>
+    CMD_AVR8_SW_BREAK_CLEAR             = <span class="hl-number">0x44</span>, <em class="hl-comment" style="color: #008000">//! Clear software breakpoints</em>
+    CMD_AVR8_SW_BREAK_CLEAR_ALL         = <span class="hl-number">0x45</span>, <em class="hl-comment" style="color: #008000">//! Clear all software breakpoints</em>
+    CMD_AVR8_PAGE_ERASE                 = <span class="hl-number">0x50</span>  <em class="hl-comment" style="color: #008000">//! Erase page</em>
+};
+
+<em class="hl-comment" style="color: #008000">// Protocol responses</em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericResponses {
+    RSP_AVR8_OK                         = <span class="hl-number">0x80</span>, <em class="hl-comment" style="color: #008000">//! All OK</em>
+    RSP_AVR8_LIST                       = <span class="hl-number">0x81</span>, <em class="hl-comment" style="color: #008000">//! List of items returned</em>
+    RSP_AVR8_DATA                       = <span class="hl-number">0x84</span>, <em class="hl-comment" style="color: #008000">//! Data returned</em>
+    RSP_AVR8_PC                         = <span class="hl-number">0x83</span>, <em class="hl-comment" style="color: #008000">//! PC value returned</em>
+    RSP_AVR8_FAILED                     = <span class="hl-number">0xA0</span>  <em class="hl-comment" style="color: #008000">//! Command failed to execute</em>
+};
+
+<em class="hl-comment" style="color: #008000">// Protocol events</em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericEvents {
+    EVT_AVR8_BREAK                      = <span class="hl-number">0x40</span>, <em class="hl-comment" style="color: #008000">//! Break message</em>
+    EVT_AVR8_IDR                        = <span class="hl-number">0x41</span>  <em class="hl-comment" style="color: #008000">//! IO Data Register message</em>
+};
+
+<em class="hl-comment" style="color: #008000">// Failure response codes (RSP_FAILED)</em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericFailureCodes {
+    AVR8_FAILURE_OK                      = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! All OK</em>
+    AVR8_FAILURE_DW_PHY_ERROR            = <span class="hl-number">0x10</span>, <em class="hl-comment" style="color: #008000">//! debugWIRE physical error</em>
+    AVR8_FAILURE_JTAGM_INIT_ERROR        = <span class="hl-number">0x11</span>, <em class="hl-comment" style="color: #008000">//! JTAGM failed to initialise</em>
+    AVR8_FAILURE_JTAGM_ERROR             = <span class="hl-number">0x12</span>, <em class="hl-comment" style="color: #008000">//! JTAGM did something strange</em>
+    AVR8_FAILURE_JTAG_ERROR              = <span class="hl-number">0x13</span>, <em class="hl-comment" style="color: #008000">//! JTAG low level error</em>
+    AVR8_FAILURE_JTAGM_VERSION           = <span class="hl-number">0x14</span>, <em class="hl-comment" style="color: #008000">//! Unsupported version of JTAGM</em>
+    AVR8_FAILURE_JTAGM_TIMEOUT           = <span class="hl-number">0x15</span>, <em class="hl-comment" style="color: #008000">//! JTAG master timed out</em>
+    AVR8_FAILURE_JTAG_BIT_BANGER_TIMEOUT = <span class="hl-number">0x16</span>, <em class="hl-comment" style="color: #008000">//! JTAG bit banger timed out</em>
+    AVR8_FAILURE_PARITY_ERROR            = <span class="hl-number">0x17</span>, <em class="hl-comment" style="color: #008000">//! Parity error in received data</em>
+    AVR8_FAILURE_EB_ERROR                = <span class="hl-number">0x18</span>, <em class="hl-comment" style="color: #008000">//! Did not receive EMPTY byte</em>
+    AVR8_FAILURE_PDI_TIMEOUT             = <span class="hl-number">0x19</span>, <em class="hl-comment" style="color: #008000">//! PDI physical timed out</em>
+    AVR8_FAILURE_COLLISION               = <span class="hl-number">0x1A</span>, <em class="hl-comment" style="color: #008000">//! Collision on physical level</em>
+    AVR8_FAILURE_PDI_ENABLE              = <span class="hl-number">0x1B</span>, <em class="hl-comment" style="color: #008000">//! PDI enable failed</em>
+    AVR8_FAILURE_NO_DEVICE_FOUND         = <span class="hl-number">0x20</span>, <em class="hl-comment" style="color: #008000">//! devices == 0!</em>
+    AVR8_FAILURE_CLOCK_ERROR             = <span class="hl-number">0x21</span>, <em class="hl-comment" style="color: #008000">//! Failure when increasing baud</em>
+    AVR8_FAILURE_NO_TARGET_POWER         = <span class="hl-number">0x22</span>, <em class="hl-comment" style="color: #008000">//! Target power not detected</em>
+    AVR8_FAILURE_NOT_ATTACHED            = <span class="hl-number">0x23</span>, <em class="hl-comment" style="color: #008000">//! Must run attach command first</em>
+    AVR8_FAILURE_INVALID_PHYSICAL_STATE  = <span class="hl-number">0x31</span>, <em class="hl-comment" style="color: #008000">//! Physical not activated</em>
+    AVR8_FAILURE_ILLEGAL_STATE           = <span class="hl-number">0x32</span>, <em class="hl-comment" style="color: #008000">//! Illegal run / stopped state</em>
+    AVR8_FAILURE_INVALID_CONFIG          = <span class="hl-number">0x33</span>, <em class="hl-comment" style="color: #008000">//! Invalid config for activate phy</em>
+    AVR8_FAILURE_INVALID_MEMTYPE         = <span class="hl-number">0x34</span>, <em class="hl-comment" style="color: #008000">//! Not a valid memtype</em>
+    AVR8_FAILURE_INVALID_SIZE            = <span class="hl-number">0x35</span>, <em class="hl-comment" style="color: #008000">//! Too many or too few bytes</em>
+    AVR8_FAILURE_INVALID_ADDRESS         = <span class="hl-number">0x36</span>, <em class="hl-comment" style="color: #008000">//! Asked for a bad address</em>
+    AVR8_FAILURE_INVALID_ALIGNMENT       = <span class="hl-number">0x37</span>, <em class="hl-comment" style="color: #008000">//! Asked for badly aligned data</em>
+    AVR8_FAILURE_ILLEGAL_MEMORY_RANGE    = <span class="hl-number">0x38</span>, <em class="hl-comment" style="color: #008000">//! Address not within legal range</em>
+    AVR8_FAILURE_ILLEGAL_VALUE           = <span class="hl-number">0x39</span>, <em class="hl-comment" style="color: #008000">//! Illegal value given</em>
+    AVR8_FAILURE_ILLEGAL_ID              = <span class="hl-number">0x3A</span>, <em class="hl-comment" style="color: #008000">//! Illegal target ID</em>
+    AVR8_FAILURE_INVALID_CLOCK_SPEED     = <span class="hl-number">0x3B</span>, <em class="hl-comment" style="color: #008000">//! Clock value out of range</em>
+    AVR8_FAILURE_TIMEOUT                 = <span class="hl-number">0x3C</span>, <em class="hl-comment" style="color: #008000">//! A timeout occurred</em>
+    AVR8_FAILURE_ILLEGAL_OCD_STATUS      = <span class="hl-number">0x3D</span>, <em class="hl-comment" style="color: #008000">//! Read an illegal OCD status </em>
+    AVR8_FAILURE_NVM_ENABLE              = <span class="hl-number">0x40</span>, <em class="hl-comment" style="color: #008000">//! NVM failed to be enabled</em>
+    AVR8_FAILURE_NVM_DISABLE             = <span class="hl-number">0x41</span>, <em class="hl-comment" style="color: #008000">//! NVM failed to be disabled</em>
+    AVR8_FAILURE_CS_ERROR                = <span class="hl-number">0x42</span>, <em class="hl-comment" style="color: #008000">//! Illegal control/status bits </em>
+    AVR8_FAILURE_CRC_FAILURE             = <span class="hl-number">0x43</span>, <em class="hl-comment" style="color: #008000">//! CRC mismatch</em>
+    AVR8_FAILURE_OCD_LOCKED              = <span class="hl-number">0x44</span>, <em class="hl-comment" style="color: #008000">//! Failed to enable OCD</em>
+    AVR8_FAILURE_NO_OCD_CONTROL          = <span class="hl-number">0x50</span>, <em class="hl-comment" style="color: #008000">//! Device is not under control</em>
+    AVR8_FAILURE_PC_READ_FAILED          = <span class="hl-number">0x60</span>, <em class="hl-comment" style="color: #008000">//! Error when reading PC</em>
+    AVR8_FAILURE_REGISTER_READ_FAILED    = <span class="hl-number">0x61</span>, <em class="hl-comment" style="color: #008000">//! Error when reading register</em>
+    AVR8_FAILURE_READ_ERROR              = <span class="hl-number">0x70</span>, <em class="hl-comment" style="color: #008000">//! Error while reading</em>
+    AVR8_FAILURE_WRITE_ERROR             = <span class="hl-number">0x71</span>, <em class="hl-comment" style="color: #008000">//! Error while writing</em>
+    AVR8_FAILURE_WRITE_TIMEOUT           = <span class="hl-number">0x72</span>, <em class="hl-comment" style="color: #008000">//! Timeout while reading</em>
+    AVR8_FAILURE_ILLEGAL_BREAKPOINT      = <span class="hl-number">0x80</span>, <em class="hl-comment" style="color: #008000">//! Invalid breakpoint configuration</em>
+    AVR8_FAILURE_TOO_MANY_BREAKPOINTS    = <span class="hl-number">0x81</span>, <em class="hl-comment" style="color: #008000">//! Not enough available resources</em>
+    AVR8_FAILURE_NOT_SUPPORTED           = <span class="hl-number">0x90</span>, <em class="hl-comment" style="color: #008000">//! This feature is not available</em>
+    AVR8_FAILURE_NOT_IMPLEMENTED         = <span class="hl-number">0x91</span>, <em class="hl-comment" style="color: #008000">//! Command has not been implemented</em>
+    AVR8_FAILURE_UNKNOWN                 = <span class="hl-number">0xFF</span>  <em class="hl-comment" style="color: #008000">//! Disaster.</em>
+};
+
+<em class="hl-comment" style="color: #008000">// QUERY types on this protocol</em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericQueryContexts {
+    AVR8_QUERY_COMMANDS                 = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Supported command list</em>
+    AVR8_QUERY_CONFIGURATION            = <span class="hl-number">0x05</span>, <em class="hl-comment" style="color: #008000">//! Supported configuration list</em>
+    AVR8_QUERY_READ_MEMTYPES            = <span class="hl-number">0x07</span>, <em class="hl-comment" style="color: #008000">//! Supported read memtypes list</em>
+    AVR8_QUERY_WRITE_MEMTYPES           = <span class="hl-number">0x08</span>  <em class="hl-comment" style="color: #008000">//! Supported write memtypes list</em>
+};
+
+<em class="hl-comment" style="color: #008000">// Context definitions </em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericSetGetContexts {
+    AVR8_CTXT_CONFIG                    = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Configuration</em>
+    AVR8_CTXT_PHYSICAL                  = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! Physical interface related</em>
+    AVR8_CTXT_DEVICE                    = <span class="hl-number">0x02</span>, <em class="hl-comment" style="color: #008000">//! Device specific settings</em>
+    AVR8_CTXT_OPTIONS                   = <span class="hl-number">0x03</span>, <em class="hl-comment" style="color: #008000">//! Option-related settings</em>
+    AVR8_CTXT_SESSION                   = <span class="hl-number">0x04</span>, <em class="hl-comment" style="color: #008000">//! Session-related settings</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericConfigContextParameters {
+    AVR8_CONFIG_VARIANT                 = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Device family/variant</em>
+    AVR8_CONFIG_FUNCTION                = <span class="hl-number">0x01</span>  <em class="hl-comment" style="color: #008000">//! Functional intent</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericPhysicalContextParameters {
+    AVR8_PHY_INTERFACE                  = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Physical interface selector</em>
+    AVR8_PHY_JTAG_DAISY                 = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! JTAG daisy chain settings</em>
+    AVR8_PHY_DW_CLK_DIV                 = <span class="hl-number">0x10</span>, <em class="hl-comment" style="color: #008000">//! debugWIRE clock divide ratio</em>
+    AVR8_PHY_MEGA_PRG_CLK               = <span class="hl-number">0x20</span>, <em class="hl-comment" style="color: #008000">//! Clock for programming megaAVR</em>
+    AVR8_PHY_MEGA_DBG_CLK               = <span class="hl-number">0x21</span>, <em class="hl-comment" style="color: #008000">//! Clock for debugging megaAVR</em>
+    AVR8_PHY_XM_JTAG_CLK                = <span class="hl-number">0x30</span>, <em class="hl-comment" style="color: #008000">//! JTAG clock for AVR XMEGA</em>
+    AVR8_PHY_XM_PDI_CLK                 = <span class="hl-number">0x31</span>  <em class="hl-comment" style="color: #008000">//! PDI clock for AVR XMEGA</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericOptionsContextParameters {
+    AVR8_OPT_RUN_TIMERS                 = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Keep timers running when stopped</em>
+    AVR8_OPT_DISABLE_DBP                = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! No data breaks during reset</em>
+    AVR8_OPT_ENABLE_IDR                 = <span class="hl-number">0x03</span>, <em class="hl-comment" style="color: #008000">//! Relay IDR messages</em>
+    AVR8_OPT_POLL_INT                   = <span class="hl-number">0x04</span>  <em class="hl-comment" style="color: #008000">//! Configure polling speed</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericSessionContextParameters {
+    AVR8_SESS_MAIN_PC                   = <span class="hl-number">0x00</span>  <em class="hl-comment" style="color: #008000">//! Address of main() function</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericConfigTestParameters {
+    AVR8_TEST_TGT_RUNNING               = <span class="hl-number">0x00</span>  <em class="hl-comment" style="color: #008000">//! Is target running?</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericVariantValues {
+    AVR8_VARIANT_LOOPBACK               = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Dummy device</em>
+    AVR8_VARIANT_TINYOCD                = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! tinyAVR or megaAVR with debugWIRE</em>
+    AVR8_VARIANT_MEGAOCD                = <span class="hl-number">0x02</span>, <em class="hl-comment" style="color: #008000">//! megaAVR with JTAG</em>
+    AVR8_VARIANT_XMEGA                  = <span class="hl-number">0x03</span>, <em class="hl-comment" style="color: #008000">//! AVR XMEGA</em>
+    AVR8_VARIANT_NONE                   = <span class="hl-number">0xFF</span>  <em class="hl-comment" style="color: #008000">//! No device</em>
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericFunctionValues {
+    AVR8_FUNC_NONE                      = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Not configured</em>
+    AVR8_FUNC_PROGRAMMING               = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! I want to program only</em>
+    AVR8_FUNC_DEBUGGING                 = <span class="hl-number">0x02</span>  <em class="hl-comment" style="color: #008000">//! I want a debug session</em>
+};
+
+<em class="hl-comment" style="color: #008000">// Physical modes</em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericPhysicalInterfaces {
+    AVR8_PHY_INTF_NONE                  = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Not configured</em>
+    AVR8_PHY_INTF_JTAG                  = <span class="hl-number">0x04</span>, <em class="hl-comment" style="color: #008000">//! JTAG</em>
+    AVR8_PHY_INTF_DW                    = <span class="hl-number">0x05</span>, <em class="hl-comment" style="color: #008000">//! debugWIRE</em>
+    AVR8_PHY_INTF_PDI                   = <span class="hl-number">0x06</span>  <em class="hl-comment" style="color: #008000">//! PDI</em>
+};
+
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericMegaBreakpointTypes {        
+    AVR8_HWBP_PROG_BP               = <span class="hl-number">0x01</span>  <em class="hl-comment" style="color: #008000">//! Program breaks</em>
+
+};
+
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericMegaBreakCauses {
+    AVR8_BREAK_CAUSE_UNKNOWN        = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Unspecified</em>
+    AVR8_BREAK_CAUSE_PROGRAM        = <span class="hl-number">0x01</span>  <em class="hl-comment" style="color: #008000">//! Program break</em>
+
+};
+
+    
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericXmegaEraseModes {
+    XMEGA_ERASE_CHIP                = <span class="hl-number">0x00</span>, <em class="hl-comment" style="color: #008000">//! Erase entire chip </em>
+    XMEGA_ERASE_APP                 = <span class="hl-number">0x01</span>, <em class="hl-comment" style="color: #008000">//! Erase application section only</em>
+    XMEGA_ERASE_BOOT                = <span class="hl-number">0x02</span>, <em class="hl-comment" style="color: #008000">//! Erase boot section only</em>
+    XMEGA_ERASE_EEPROM              = <span class="hl-number">0x03</span>, <em class="hl-comment" style="color: #008000">//! Erase EEPROM section only</em>
+    XMEGA_ERASE_APP_PAGE            = <span class="hl-number">0x04</span>, <em class="hl-comment" style="color: #008000">//! Erase a single app section page</em>
+    XMEGA_ERASE_BOOT_PAGE           = <span class="hl-number">0x05</span>, <em class="hl-comment" style="color: #008000">//! Erase a single boot section page</em>
+    XMEGA_ERASE_EEPROM_PAGE         = <span class="hl-number">0x06</span>, <em class="hl-comment" style="color: #008000">//! Erase a single EEPROM page</em>
+    XMEGA_ERASE_USERSIG             = <span class="hl-number">0x07</span>  <em class="hl-comment" style="color: #008000">//! Erase the user signature section</em>
+};
+
+<em class="hl-comment" style="color: #008000">// Memory types</em>
+<span class="hl-keyword" style="color: #0000FF">enum</span> Avr8GenericMemtypes {
+    MEMTYPE_SRAM                    = <span class="hl-number">0x20</span>, <em class="hl-comment" style="color: #008000">//! SRAM</em>
+    MEMTYPE_EEPROM                  = <span class="hl-number">0x22</span>, <em class="hl-comment" style="color: #008000">//! EEPROM memory</em>
+    MEMTYPE_SPM                     = <span class="hl-number">0xA0</span>, <em class="hl-comment" style="color: #008000">//! Flash memory in a debug session</em>
+    MEMTYPE_FLASH_PAGE              = <span class="hl-number">0xB0</span>, <em class="hl-comment" style="color: #008000">//! Flash memory programming</em>
+    MEMTYPE_EEPROM_PAGE             = <span class="hl-number">0xB1</span>, <em class="hl-comment" style="color: #008000">//! EEPROM memory pages</em>
+    MEMTYPE_FUSES                   = <span class="hl-number">0xB2</span>, <em class="hl-comment" style="color: #008000">//! Fuse memory</em>
+    MEMTYPE_LOCKBITS                = <span class="hl-number">0xB3</span>, <em class="hl-comment" style="color: #008000">//! Lock bits</em>
+    MEMTYPE_SIGNATURE               = <span class="hl-number">0xB4</span>, <em class="hl-comment" style="color: #008000">//! Device signature</em>
+    MEMTYPE_OSCCAL                  = <span class="hl-number">0xB5</span>, <em class="hl-comment" style="color: #008000">//! Oscillator calibration values</em>
+    MEMTYPE_REGFILE                 = <span class="hl-number">0xB8</span>, <em class="hl-comment" style="color: #008000">//! Register file</em>
+    MEMTYPE_APPL_FLASH              = <span class="hl-number">0xC0</span>, <em class="hl-comment" style="color: #008000">//! Application section flash</em>
+    MEMTYPE_BOOT_FLASH              = <span class="hl-number">0xC1</span>, <em class="hl-comment" style="color: #008000">//! Boot section flash</em>
+    MEMTYPE_APPL_FLASH_ATOMIC       = <span class="hl-number">0xC2</span>, <em class="hl-comment" style="color: #008000">//! Application page with auto-erase</em>
+    MEMTYPE_BOOT_FLASH_ATOMIC       = <span class="hl-number">0xC3</span>, <em class="hl-comment" style="color: #008000">//! Boot page with auto-erase</em>
+    MEMTYPE_EEPROM_ATOMIC           = <span class="hl-number">0xC4</span>, <em class="hl-comment" style="color: #008000">//! EEPROM page with auto-erase</em>
+    MEMTYPE_USER_SIGNATURE          = <span class="hl-number">0xC5</span>, <em class="hl-comment" style="color: #008000">//! User signature secion</em>
+    MEMTYPE_CALIBRATION_SIGNATURE   = <span class="hl-number">0xC6</span>  <em class="hl-comment" style="color: #008000">//! Calibration section</em>
+    };</pre></div><script src="../common/main.js" type="text/javascript"><!----></script><script src="../common/splitterInit.js" type="text/javascript"><!----></script><div class="navfooter"><table summary="Navigation footer" width="100%"><tr><td align="left" width="40%"><a accesskey="p" href="ch06s05s05.html">Prev</a>&nbsp;</td><td align="center" width="20%"><a accesskey="u" href="protocoldocs.avr8protocol.html">Up</a></td><td align="right" width="40%">&nbsp;<a accesskey="n" href="protocoldocs.avrispprotocol.html">Next</a></td></tr><tr><td valign="top" align="left" width="40%">&nbsp;</td><td align="center" width="20%"><a accesskey="h" href="index.html">Home</a></td><td valign="top" align="right" width="40%">&nbsp;</td></tr></table></div></div><div id="sidebar"><div style="padding-top:3px;" id="leftnavigation"><div id="tabs"><ul><li><a tabindex="1" style="outline:0;" href="#treeDiv"><span class="contentsTab">Contents</span></a></li><li><a onclick="doSearch()" tabindex="1" style="outline:0;" href="#searchDiv"><span class="searchTab">Search</span></a></li></ul><div id="treeDiv"><img style="display:block;" id="tocLoading" alt="loading table of contents..." src="../common/images/loading.gif" /><span class="dochome"><a href="../index.html" tabindex="1">Documentation Home</a></span><span class="root"><a href="index.html" tabindex="1">Atmel EDBG-based Tools Protocols</a></span><div style="display:none" id="ulTreeDiv"><ul class="filetree" id="tree"><li><span class="file"><a tabindex="1" href="pr01.html">Preface</a></span></li><li><span class="file"><a tabindex="1" href="protocoldocs.Introduction.html">Introduction</a></span><ul><li><span class="file"><a tabindex="1" href="ch01s01.html">EDBG interface overview</a></span></li><li><span class="file"><a tabindex="1" href="ch01s02.html">Atmel EDBG-based tool implementations</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.cmsis_dap.html">CMSIS-DAP</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s01.html">CMSIS-DAP protocol</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02.html">CMSIS-DAP vendor commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s02s01.html">AVR-target specific vendor commands</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s02.html">ARM-target specific vendor commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s02s02s01.html">Erase pin</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s02s02.html">Serial trace</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch02s02s03.html">EDBG-specific vendor commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s02s03s01.html">Get configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s03s02.html">Set configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s03s03.html">EDBG GET request</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s03s04.html">EDBG SET request</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="section_serial_trace.html">Serial trace commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s03s01.html">Set transport mode</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s02.html">Set capture mode</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s03.html">Set baud rate</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s04.html">Start</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s05.html">Stop</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s06.html">Get data</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s07.html">Get status</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s08.html">Get buffer size</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s09.html">Signon</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch02s04.html">Enveloped AVR commands, responses &amp; events</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s04s01.html">Wrapping AVR commands</a></span></li><li><span class="file"><a tabindex="1" href="ch02s04s02.html">Unwrapping AVR responses</a></span></li><li><span class="file"><a tabindex="1" href="ch02s04s03.html">Unwrapping AVR events</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.edbg_ctrl_protocol.html">EDBG Control Protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s01.html">Protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s01s01.html">QUERY</a></span><ul><li><span class="file"><a tabindex="1" href="section_edbg_query_contexts.html">EDBG QUERY contexts</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch03s01s02.html">SET</a></span></li><li><span class="file"><a tabindex="1" href="ch03s01s03.html">GET</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s01s03s01.html">SET/GET parameters</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="ch03s02.html">Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s02s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch03s02s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch03s02s03.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch03s02s04.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="section_edbg_ctrl_setget_params.html">EDBGCTRL ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avrprotocol.Overview.html">AVR communication protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s01.html">Overview</a></span></li><li><span class="file"><a tabindex="1" href="ch04s02.html">Framing</a></span></li><li><span class="file"><a tabindex="1" href="ch04s03.html">Protocol sub-set overview</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04.html">Discovery Protocol Definition</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s04s01.html">CMD: QUERY</a></span></li><li><span class="file"><a tabindex="1" href="section_jdx_m11_sl.html">Discovery QUERY contexts</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04s03.html">RSP: LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04s04.html">RSP: FAILED</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04s05.html">Discovery Protocol ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05.html">Housekeeping Protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s05s01.html">CMD: QUERY</a></span></li><li><span class="file"><a tabindex="1" href="section_i5v_3yz_rl.html">Housekeeping QUERY contexts</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s03.html">CMD: SET</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s04.html">CMD: GET</a></span></li><li><span class="file"><a tabindex="1" href="section_t1f_hb1_sl.html">Housekeeping SET/GET parameters</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06.html">Housekeeping Commands</a></span><ul><li><span class="file"><a tabindex="1" href="section_housekeeping_start_session.html">Start session</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s02.html">End Session</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s03.html">Firmware Upgrade</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s04.html">JTAG scan-chain detection</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s05.html">Calibrate Oscillator</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05s07.html">Housekeeping Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s05s07s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s07s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s07s03.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s07s04.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05s08.html">Events</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s05s08s01.html">Event: power</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s08s02.html">Event: sleep</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s08s03.html">Event: external reset</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05s09.html">
+                Hints and tips
+            </a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s10.html">Housekeeping ID definitions</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avr32protocol.html">AVR32 generic protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s01.html">Protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s01s01.html">QUERY</a></span><ul><li><span class="file"><a tabindex="1" href="section_qhb_x1c_sl.html">AVR32 QUERY contexts</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s01s02.html">SET</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s03.html">GET</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr32_setget_params.html">SET/GET parameters</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s01s04.html">Activate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s05.html">Deactivate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s06.html">Get ID</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s07.html">Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s08.html">Halt</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s09.html">Reset</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s10.html">Step</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s11.html">Read</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s12.html">Write</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr32_memtypes.html">Memory Types</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s01s13.html">TAP</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s14.html">Is protected</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s15.html">Erase Section</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s02.html">Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s02s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s03.html">ID</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s04.html">PC</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s05.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s06.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s03.html">Hints and tips</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s03s01.html">Configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch05s03s02.html">Activate and deactivate physical</a></span></li><li><span class="file"><a tabindex="1" href="ch05s03s03.html">Programming and debugging commands</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s04.html">AVR32GENERIC ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avr8protocol.html">AVR8 generic protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s01.html">Protocol Commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s01s01.html">QUERY</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr8_query_contexts.html">AVR8 QUERY contexts</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s01s02.html">SET</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s03.html">GET</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html">SET/GET parameters</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html#N11932">Device context: debugWIRE targets</a></span></li><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html#N119D3">Device context: megaAVR JTAG targets</a></span></li><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html#section_avr8_xmega_device_context">Device context: AVR XMEGA targets</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s01s04.html">Activate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s05.html">Deactivate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s06.html">Get ID</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s07.html">Attach</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s08.html">Detach</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s09.html">Reset</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s10.html">Stop</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s11.html">Run</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s12.html">Run To</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s13.html">Step</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s14.html">PC read</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s15.html">PC write</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s16.html">Prog Mode Enter</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s17.html">Prog Mode Leave</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s18.html">Disable debugWIRE</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s19.html">Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s20.html">CRC</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s21.html">Memory Read</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s22.html">Memory Read masked</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s23.html">Memory Write</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s24.html">Page Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s25.html">Hardware Breakpoint Set</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s26.html">Hardware Breakpoint Clear</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s27.html">Software Breakpoint Set</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s28.html">Software Breakpoint Clear</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s29.html">Software Breakpoint Clear All</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s02.html">Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s02s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s03.html">PC</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s04.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s05.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s03.html">Events</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s03s01.html">Event: Break</a></span></li><li><span class="file"><a tabindex="1" href="ch06s03s02.html">Event: IDR message</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="section_avr8_memtypes.html">Memory Types</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s04s01.html">debugWIRE memtypes</a></span></li><li><span class="file"><a tabindex="1" href="ch06s04s02.html">megaAVR (JTAG) OCD memtypes</a></span></li><li><span class="file"><a tabindex="1" href="ch06s04s03.html">AVR XMEGA memtypes</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s05.html">Hints and tips:</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s05s01.html">Configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s02.html">Activate and deactivate physical</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s03.html">Programming session control</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s04.html">Debug session control</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s05.html">Flow control</a></span></li></ul></li><li id="webhelp-currentid"><span class="file"><a tabindex="1" href="ch06s06.html">AVR8GENERIC ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avrispprotocol.html">AVR ISP protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch07s01.html">SPI programming protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch07s01s01.html">SPI Load Address</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s02.html">SPI Set Baud</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s03.html">SPI Get Baud</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s04.html">SPI Enter Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s05.html">SPI Leave Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s06.html">SPI Chip Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s07.html">SPI Program Flash</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s08.html">SPI Read Flash</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s09.html">SPI Program EEPROM</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s10.html">SPI Read EEPROM</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s11.html">SPI Program Fuse</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s12.html">SPI Read Fuse</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s13.html">SPI Program Lock</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s14.html">SPI Read Lock</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s15.html">SPI Read Signature</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s16.html">SPI Read OSCCAL</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s17.html">SPI Multi</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch07s02.html">SPI programming protocol responses</a></span></li><li><span class="file"><a tabindex="1" href="ch07s03.html">ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.tpiprotocol.html">TPI Protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch08s01.html">TPI protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch08s01s01.html">TPI Enter Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s02.html">TPI Leave Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s03.html">TPI Set Parameter</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s04.html">TPI Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s05.html">TPI Write Memory</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s06.html">TPI Read Memory</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch08s02.html">TPI programming protocol responses</a></span></li><li><span class="file"><a tabindex="1" href="ch08s03.html">ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="document.revisions.html">Document Revisions</a></span></li></ul></div></div><div id="searchDiv"><div id="search"><form class="searchForm" name="searchForm" onsubmit="Verifie(searchForm);return false"><div><input tabindex="1" class="searchText" placeholder="Search" type="search" name="textToSearch" id="textToSearch" /> &nbsp; <input tabindex="1" id="doSearch" value="Go" class="searchButton" type="button" onclick="Verifie(searchForm)" /></div></form></div><div id="searchResults"><center /></div><p class="searchHighlight"><a onclick="toggleHighlight()" href="#">Search Highlighter (On/Off)</a></p></div></div></div></div></body></html>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   height="200"
+   width="200"
+   sodipodi:docname="notification_warning.svg"
+   xml:space="preserve"
+   enable-background="new 0 0 100 100"
+   viewBox="0 0 200 200"
+   y="0px"
+   x="0px"
+   id="warning"
+   version="1.0"><metadata
+   id="metadata19"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs17" /><sodipodi:namedview
+   inkscape:current-layer="warning"
+   inkscape:window-maximized="1"
+   inkscape:window-y="-8"
+   inkscape:window-x="-8"
+   inkscape:cy="71.071558"
+   inkscape:cx="34.775892"
+   inkscape:zoom="3.5638182"
+   showgrid="false"
+   id="namedview15"
+   inkscape:window-height="1377"
+   inkscape:window-width="2560"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
+<g
+   transform="matrix(2.2,0,0,2.2,-9.9977389,-10)"
+   id="g4">
+	<path
+   id="path2"
+   d="M 90,89.25 H 10 C 8.48,89.25 7.08,88.44 6.32,87.13 5.56,85.82 5.55,84.2 6.31,82.89 l 40,-70 c 0.76,-1.33 2.17,-2.14 3.69,-2.14 1.53,0 2.93,0.82 3.69,2.14 l 40,70 c 0.75,1.32 0.75,2.93 -0.01,4.24 -0.76,1.32 -2.16,2.12 -3.68,2.12 z M 17.33,80.75 H 82.68 L 50,23.57 Z"
+   fill="#ed6b21" />
+</g>
+<g
+   transform="matrix(2.2,0,0,2.2,-9.9977389,-10)"
+   id="g8">
+	<path
+   id="path6"
+   d="m 50,59.25 c -2.35,0 -4.25,-1.9 -4.25,-4.25 V 40 c 0,-2.35 1.9,-4.25 4.25,-4.25 2.35,0 4.25,1.9 4.25,4.25 v 15 c 0,2.35 -1.9,4.25 -4.25,4.25 z"
+   fill="#ed6b21" />
+</g>
+<g
+   transform="matrix(2.2,0,0,2.2,-9.9977389,-10)"
+   id="g12">
+	<circle
+   id="circle10"
+   r="5"
+   cy="70"
+   cx="50"
+   fill="#ed6b21" />
+</g>
+</svg>

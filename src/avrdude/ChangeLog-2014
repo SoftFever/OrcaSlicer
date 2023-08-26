@@ -1,0 +1,697 @@
+2014-11-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* ser_win32.c (net_send): Properly declare argument 2 as being a
+	pointer to const data.
+
+2014-11-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8380: adds 500k 1M 2M baud to ser_posix.c
+	* ser_posix.c: Add a hack to allow for arbitrary baud rates on
+	Linux
+
+2014-11-25  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	patch #8437: [PATCH] Serial-over-ethernet for Win32
+	* configure.ac: Check for ws2_32 library
+	* ser_win32.c: Add hooks for forwarding serial data over
+	TCP connections
+	* avrdude.1: Drop previous restriction of -P net:
+	* doc/avrdude.conf: (Dito.)
+
+2014-11-24  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #42908: no external reset at JTAGICE3
+	* jtag3.c (jtag3_initialize): Retry with external reset applied if
+	the first sign-on attempt fails.
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* main.c: Allow the -B option argument to be suffixed with Hz,
+	kHz, or MHz, in order to specify a bitclock frequency rather than
+	period.
+	* avrdude.1: Document the -B option changes.
+	* doc/avrdude.texi: (Dito.)
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
+	* avrdude.conf.in (ATtiny25, ATtiny45, ATtiny85): Fix size of
+	"calibration" memory area
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43137: Writing and reading incorrect pages when using jtagicemkI
+	* jtagmkI.c (jtagmkI_paged_write, jtagmkI_paged_load): correctly
+	calculate the size of a partial (non-pagesize) buffer
+
+2014-11-23  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
+	* jtag3.c (jtag3_edbg_recv_frame): Return correct length as
+	reported in the response packet, rather than full 512 byte which
+	are always reported by the CMSIS-DAP layer.  Miscalculations
+	based on the wrongly reported length caused heap corruption
+	elsewhere, so this is presumably also a fix for bug #43078.
+
+2014-11-20  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of
+	flash page
+	* usbasp.c (usbasp_spi_paged_write): Remove USBASP_BLOCKFLAG_LAST.
+	It is no longer needed, as we always write full pages now in paged
+	write mode.
+
+2014-11-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43626: Inconsistent timeouts in stk500v2
+	* stk500v2.c (stk500v2_recv): Add a reference to the bug report
+	but don't change anything, lest to break it somehow
+
+2014-11-14  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #8529 2 more ftdi_syncbb devices
+	* avrdude.conf.in: added 2 new programmers 
+
+2014-11-14  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #40142 Floating point exception on Ubuntu 10.04
+	* avr.c: avoid division by zero in report_progress(), eg. when 
+	writing an empty eeprom file were total becomes 0
+
+2014-11-13  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #8504 buspirate: Also support "cpufreq" extended parameter
+        in binary mode
+	* buspirate.c: applied patch + switch off at disable (even when
+        a reset follows) + some general whitespace/tab cleanup
+
+2014-10-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #37441: lockbits in ATxmega + avrdude = problem
+	* fileio.c: replace strmcp(..., "lock") by strncmp(..., "lock", 4)
+	where applicable
+	* jtag3.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+
+2014-10-07  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #42267: jtag3isp fails to read lock and fuse bytes directly
+	after changing lock byte
+	* stk500v2.c (stk500isp_write_byte): As a workaround for broken
+	tool firmware, add 10 ms of delay before returning from any
+	single-byte write operation.
+
+2014-10-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* stk500v2.c: Use stk500isp_read_byte/stk500isp_write_byte for
+	every byte-wide access (rather than JTAGICE3 only).  This finally
+	obsoletes the use of the prehistoric SPI_MULTI command where
+	AVRDUDE used to assemble all the low-level ISP stuff by itself.
+
+2014-10-06  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #22248: Read efuse error
+	* avrdude.conf.in (m168, m328, m48, m88, t1634, t26, t261, t461,
+	t861, t88): In efuse (or hfuse for t26) read operation, turn all
+	bits in byte 3 from "x" to "o" (output); this is a first step
+	towards fixing the symptoms mentioned in the bug, by unifying the
+	behaviour between different AVRs.  Not touched are the historic
+	devices where the fuses are not documented to form a full byte
+	each (2333, 4433, 4434, 8535, m103, m161, m163).
+
+2014-09-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #43268: usb_drain() call causes LUFA AVR-ISP MKII Code to Fail
+	* usb_libusb.c (usbdev_drain): Make this a dummy function only.
+
+2014-08-19  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #7694 Add support for the atmega32m1
+	* avrdude.conf.in: added ATmega32M1
+
+2014-08-18  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #8440 Print part id after signature
+	When printing the part signature also print the part id.
+	* avrpart.c (locate_part_by_signature): New function.
+	* libavrdude.h (locate_part_by_signature): New function.
+	* main.c (main): Use the new function to find the part and print its id.
+
+2014-08-18  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #8511 Fix reset on FT245R
+	* ft245r.c: applied patch
+
+2014-08-18  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #43002 usbasp debug output typo
+	* usbasp.c: fixed typos
+
+2014-07-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #42662 clang warnings under FreeBSD 10.x
+	* avrftdi.h: Fix header guard macro name.
+	* pgm_type.c (programmers_types): Remove duplicate "const".
+
+2014-07-16  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42662 clang warnings under FreeBSD 10.x
+	* avrftdi.c: remove warnings
+	* buspirate.c: (Dito.)
+	* dfu.c: (Dito.)
+	* fileio.c: (Dito.)
+	* libavrdude.h: (Dito.)
+	* pickit2.c: (Dito.)
+	* safemode.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* usbasp.c: (Dito.)
+
+	* config_gram.y: fix problem when using parent part with usbpid lists
+                         (existing list was extended not overwritten)
+
+2014-07-11  Axel Wachtler <axel@uracoli.de>
+
+	* avrftdi.c: rollback to vfprintf, fixed error from -r1305, (patch #8463)
+
+2014-06-23  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* linux_ppdev.h: added missing msg level for avrdude_message
+                         in ppi_claim/ppi_release macros
+	* avrftdi.c: added break at end of default
+
+2014-06-21  Rene Liebscher <R.Liebscher@gmx.de>
+
+	patch #8419 fix ftdi_syncbb hang with libftdi 1
+	* ft245r.c: set pthread cancel type to asynchronous, reorder ftdi_usb_close/deinit
+
+2014-06-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	* avrftdi_private.h: added missing msg level for avrdude_message 
+                             in E/E_VOID macros
+
+2014-06-17  Rene Liebscher <R.Liebscher@gmx.de>
+
+	Removing exit calls from config parser
+	* config.h: cleanup, left only internally needed definitions
+	* config.c: removed exit calls, use yyerror and yywarning
+	* config_gram.y: (Dito.)
+	* lexer.l: (Dito.)
+	* libavrdude.h: removed internal definitions of config parser
+	* main.c: removed yyerror, it is now in config.c
+	* jtagmkII.c: added missing free in error case
+	* pgm.c: replaced exits by returns
+	* pickit2.c: add missing return
+
+2014-06-13  Axel Wachtler <axel@uracoli.de>
+	
+        start removing global "verbose" variable, for avrdude library.
+        * arduino.c: added verbose level in avrdude_message()
+	* avr910.c: (Dito.)
+	* avr.c: (Dito.)
+	* avrdude.h: (Dito.)
+	* avrftdi.c: (Dito.)
+	* avrpart.c: (Dito.)
+	* bitbang.c: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* config.c: (Dito.)
+	* config_gram.y: (Dito.)
+	* dfu.c: (Dito.)
+	* fileio.c: (Dito.)
+	* flip1.c: (Dito.)
+	* flip2.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* lexer.l: (Dito.)
+	* libavrdude.h: (Dito.)
+	* linuxgpio.c: (Dito.)
+	* main.c: (Dito.)
+	* par.c: (Dito.)
+	* pgm.c: (Dito.)
+	* pickit2.c: (Dito.)
+	* pindefs.c: (Dito.)
+	* ppi.c: (Dito.)
+	* ppiwin.c: (Dito.)
+	* safemode.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* serbb_posix.c: (Dito.)
+	* serbb_win32.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500generic.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* term.c: (Dito.)
+	* update.c: (Dito.)
+	* usbasp.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* usbtiny.c: (Dito.)
+	* wiring.c: (Dito.)
+
+2014-06-11  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42516 spelling-error-in-binary
+	* stk500v2.c, avrftdi.c, usbasp.c: fixed spelling errors
+
+2014-06-01  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42337 avrdude.conf updates for UM232H/CM232H
+	* avrdude.conf.in: fixed entries as proposed
+
+2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #41854: avrdude 6.1 does not compile on systems without libUSB
+	Submitted by Didrik Madheden:
+	* flip1.c: Provide dummy functions for the #ifndef HAVE_LIBUSB case
+	* flip2.c: (Dito.)
+
+2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* libavrdude.h: Join the former "public" header files (avr.h avrpart.h pindefs.h
+	serial.h fileio.h safemode.h update.h pgm_type.h config.h confwin.h lists.h) into
+	a single header that can be included by anyone wanting to link against the
+	library
+	* avr.h: Remove file.
+	* avrpart.h: (Dito.)
+	* pindefs.h: (Dito.)
+	* serial.h: (Dito.)
+	* fileio.h: (Dito.)
+	* safemode.h: (Dito.)
+	* update.h: (Dito.)
+	* pgm.h: (Dito.)
+	* pgm_type.h: (Dito.)
+	* config.h: (Dito.)
+	* confwin.h: (Dito.)
+	* lists.h: (Dito.)
+	* Makefile.am: Adapt for new include file constellation; install shared lib
+	* configure.ac: Bump version date
+	* arduino.c: #include <libavrdude.h> rather than a bunch of different headers
+	* avr910.c: (Dito.)
+	* avr910.h: (Dito.)
+	* avr.c: (Dito.)
+	* avrftdi.c: (Dito.)
+	* avrftdi_private.h: (Dito.)
+	* avrftdi_tpi.c: (Dito.)
+	* avrftdi_tpi.h: (Dito.)
+	* avr.h: (Dito.)
+	* avrpart.c: (Dito.)
+	* avrpart.h: (Dito.)
+	* bitbang.c: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* config.c: (Dito.)
+	* config_gram.y: (Dito.)
+	* config.h: (Dito.)
+	* confwin.c: (Dito.)
+	* confwin.h: (Dito.)
+	* dfu.c: (Dito.)
+	* fileio.c: (Dito.)
+	* fileio.h: (Dito.)
+	* flip1.c: (Dito.)
+	* flip1.h: (Dito.)
+	* flip2.c: (Dito.)
+	* flip2.h: (Dito.)
+	* ft245r.c: (Dito.)
+	* ft245r.h: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* lexer.l: (Dito.)
+	* libavrdude.h: (Dito.)
+	* linuxgpio.c: (Dito.)
+	* lists.c: (Dito.)
+	* lists.h: (Dito.)
+	* main.c: (Dito.)
+	* par.c: (Dito.)
+	* pgm.c: (Dito.)
+	* pgm_type.c: (Dito.)
+	* pgm_type.h: (Dito.)
+	* pickit2.c: (Dito.)
+	* pickit2.h: (Dito.)
+	* pindefs.c: (Dito.)
+	* pindefs.h: (Dito.)
+	* ppi.c: (Dito.)
+	* ppiwin.c: (Dito.)
+	* safemode.c: (Dito.)
+	* safemode.h: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* serbb_posix.c: (Dito.)
+	* serbb_win32.c: (Dito.)
+	* serial.h: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500generic.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* stk500v2_private.h: (Dito.)
+	* term.c: (Dito.)
+	* term.h: (Dito.)
+	* update.c: (Dito.)
+	* update.h: (Dito.)
+	* usbasp.c: (Dito.)
+	* usbasp.h: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* usbtiny.c: (Dito.)
+	* usbtiny.h: (Dito.)
+	* wiring.c: (Dito.)
+
+2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* main.c: Cleanup unused include files.
+
+2014-05-19  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* linux_ppdev.h: Caught two more instances of exit()
+	* configure.ac: Add AC_CONFIG_MACRO_DIR as suggested by libtoolize
+	* Makefile.am: add -I m4 to ACLOCAL_AMFLAGS as suggested by libtoolize
+
+2014-05-16  Axel Wachtler <axel@uracoli.de>
+
+	* arduino.c: Replacing all occurences of fprintf(stderr,...) with avrdude_message(...)
+	in potential library functions.
+	* avr910.c: (Dito.)
+	* avr.c: (Dito.)
+	* avrdude.h: (Dito.)
+	* avrftdi.c: (Dito.)
+	* avrftdi_private.h: (Dito.)
+	* avrpart.c: (Dito.)
+	* bitbang.c: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* config.c: (Dito.)
+	* config_gram.y: (Dito.)
+	* dfu.c: (Dito.)
+	* fileio.c: (Dito.)
+	* flip1.c: (Dito.)
+	* flip2.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* lexer.l: (Dito.)
+	* linuxgpio.c: (Dito.)
+	* linux_ppdev.h: (Dito.)
+	* main.c: (Dito.)
+	* par.c: (Dito.)
+	* pgm.c: (Dito.)
+	* pickit2.c: (Dito.)
+	* pindefs.c: (Dito.)
+	* ppi.c: (Dito.)
+	* ppiwin.c: (Dito.)
+	* safemode.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* serbb_posix.c: (Dito.)
+	* serbb_win32.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500generic.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* term.c: (Dito.)
+	* update.c: (Dito.)
+	* usbasp.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* usbtiny.c: (Dito.)
+	* wiring.c: (Dito.)
+
+2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac: Bump version, add libtool hooks
+	* Makefile.am: First attempt to define building a shared library
+	(not to be installed by now)
+
+2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* dfu.c (dfu_open, dfu_init): Fix signature of the dummy functions
+	(in the !HAVE_LIBUSB case) to match prototypes.
+
+2014-05-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avr910.c: Replace all occurences of exit() in potential library
+	functions by appropriate return values
+	* avrftdi.c: (Dito.)
+	* bitbang.c: (Dito.)
+	* bitbang.h: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* config.c: (Dito.)
+	* flip2.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* linuxgpio.c: (Dito.)
+	* main.c: (Dito.)
+	* par.c: (Dito.)
+	* pgm.c: (Dito.)
+	* pickit2.c: (Dito.)
+	* pindefs.c: (Dito.)
+	* pindefs.h: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* serbb_posix.c: (Dito.)
+	* serbb_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500v2.c: (Dito.)
+
+2014-05-07  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42310: New part description for AT90PWM216
+	* avrdude.conf.in: added pwm216 entry
+
+2014-05-07  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42158: Linux GPIO - Source Typo
+	* pindefs.h: fixed typo
+
+2014-04-14  Rene Liebscher <R.Liebscher@gmx.de>
+
+	bug #42056: double free or corruption triggered at exit
+	* pgm.c: copy usbpid list in pgm_dup
+
+2014-04-05  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.1: Remove the note that users might edit the system-wide
+	config file.  This file will be overwritten by the next
+	installation, so it's not a good idea to manually modify it.
+	Using the -C +file option is a much better way for user
+	modifications.
+	* doc/avrdude.texi: (Dito.)
+	* avrdude.conf.in: Add a warning to not modify the file manually.
+
+2014-03-13  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version for post-6.1.
+
+2014-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version to 6.1.
+
+2014-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* pgm.c (pgm_free): Cleanup police: destroy the p->usbpid
+	list when freeing the programmer struct.
+
+2014-03-12  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	bug #40782: Verify errors for object size > 16 k on x32e5 due
+	to typo in avrdude.conf
+	* avrdude.conf.in (ATmega8E5, ATmega32E5): fix boot location
+
+2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (atmelice, atmelice_pdi, atmelice_dw, atmelice_isp):
+	New entries.
+	* avrdude.1: Document the Atmel-ICE addition.
+	* doc/avrdude.texi: (Dito.)
+	* usbdevs.c (USB_DEVICE_ATMEL_ICE): New entry.
+
+2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* main.c: Bump copyright year.
+
+2014-02-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c (jtag3_recv): avoid memmov'ing more data than available
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.1: Documentation update for EDBG.
+	* doc/avrdude.texi: (Dito.)
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3.c: For EDBG protocol, always use 512-byte block I/O.  The
+	lower layers will split this according to the EP's maxsize.  This
+	makes it work over USB 1.1 connections (albeit very slowly, due to
+	the interrupt transfers used).
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* config_gram.y: Turn the usbpid parameter of the programmer into
+	a list of PIDs.  Make the JTAGICE3 programmer handle a list of
+	PIDs, by trying each of them in sequence.  Use a single, central
+	jtag3_open_common() function to handle the common code of all
+	jtag3_open_* functions.  Centralize all USB VID/PID definitions in
+	usbdevs.h.
+	* flip1.c: (Dito.)
+	* ft245r.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtag3.h: (Dito.)
+	* flip2.c: (Dito.)
+	* usbdevs.h: (Dito.)
+	* pgm.c: (Dito.)
+	* serial.h: (Dito.)
+	* pgm.h: (Dito.)
+	* usbtiny.c: (Dito.)
+	* usbasp.c: (Dito.)
+	* avrftdi.c: (Dito.)
+	* usbtiny.h: (Dito.)
+	* avrdude.conf.in: (Dito.)
+	* usbasp.h: (Dito.)
+	* usb_libusb.c: (Dito.)
+
+2014-02-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_libusb.c (usbdev_open): Replace all calls to exit(1) by
+	return -1
+
+2014-02-26  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* jtag3_private.h: Add EDBG/CMSIS-DAP specific constants.
+	* jtag3.c: Add EDBG/CMSIS-DAP protocol implementation.
+	* serial.h: (Dito.)
+	* usbdevs.h: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* configure.ac: (Dito.)
+	* avrdude.conf.in: Add JTAGICE3 and XplainedPro entries using
+	EDBG.
+	* configure.ac: Bump version date.
+
+2014-02-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* usb_libusb.c (usbdev_recv_frame): Fix a bug where a new recv
+	request was issued even though all desired data had aldready
+	been received.
+
+2014-02-21  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* serial.h: Change the second parameter of the ser_open method
+	from "baud" into a "union pinfo", so the USB parameters can be
+	passed without hacks.
+	* arduino.c: (Dito.)
+	* avr910.c: (Dito.)
+	* buspirate.c: (Dito.)
+	* butterfly.c: (Dito.)
+	* jtag3.c: (Dito.)
+	* jtagmkI.c: (Dito.)
+	* jtagmkII.c: (Dito.)
+	* ser_avrdoper.c: (Dito.)
+	* ser_posix.c: (Dito.)
+	* ser_win32.c: (Dito.)
+	* stk500.c: (Dito.)
+	* stk500v2.c: (Dito.)
+	* usb_libusb.c: (Dito.)
+	* wiring.c: (Dito.)
+
+2014-01-30  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	[bug #41402] dfu.c missing include <stdint.h>
+	* dfu.c: include <stdint.h> where uint16_t is defined
+
+2014-01-28  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega256RFR2 et al.): Fix EEPROM size.
+
+2014-01-27  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	[bug #41357] OS X: Avrdude messes with the usb stack?
+	* usb_libusb.c (usbdev_close): Only issue the usb_reset() for
+	Linux systems, as these are the only ones that seem to require
+	it under some circumstances.
+
+2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (libelf): check against elf_getshdrstrndx() rather
+	than just elf_begin() only, so it is clear we found a sufficiently
+	recent libelf to work with.
+
+2014-01-22  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Contributed by Alan Horstmann:
+	bug #40897: AT Mega2560 not correctly programmed with stk500(v1) ISP (solution patch)
+	* stk500.c: Implement extended address byte handling.
+	* avrdude.conf.in (ATmega2560): enable stk500_devcode so
+	STK500v1 protocol actually starts at all.
+
+2014-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* flip1.c: Implement the meat of FLIP version 1 protocol.
+	* avrdude.1: Document the new protocol.
+	* doc/avrdude.texi: (Dito.)
+
+2014-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* flip2.c (flip2_page_erase): Remove unimplemented function.
+	* dfu.h: Correctly conditionalize <usb.h> vs. <lusb0_usb.h>;
+	add adjustable timeout (struct dfu_dev); add dfu_abort()
+	* dfu.c (dfu_abort): New function; implement adjustable timeout.
+
+2014-01-17  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* configure.ac (libhid): Turn from AC_TRY_RUN into
+	AC_TRY_COMPILE, so it also works for cross-compilation
+	setups.
+
+2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* dfu.c (dfu_init): Move the descriptor checks up into the
+	FLIP protocol implementation.
+	* flip2.c (flip2_initialize): (Dito.)
+	* flip1.c (flip1_initialize): (Dito.)
+
+2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* flip2.c: Rename from flip.c
+	* flip2.h: Rename from flip.h
+	* Makefile.am: Reflect the renaming.
+	* dfu.c: Update information how to get GPL.
+	* dfu.h: (Dito.)
+
+2014-01-16  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* flip.c (flip2_initialize): Check user is running on an Xmega
+	device.
+
+2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* flip.c: Added some verbose-level messages (-vv)
+	* dfu.c: Added some verbose-level messages (-vvvv)
+
+2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	Submitted by Kirill Levchenko:
+	patch #7896: DFU FLIPv2 programming support
+	* pgm_type.c: Add the flip2 programmer type.
+	* config_gram.y: Allow for the usbid keyword in a device definition.
+	* avrdude.conf.in: Add usbpid values to those Xmega devices where
+	applicable.
+	* avrpart.h: Add usbpid device field.
+	* dfu.c: (New file.)
+	* dfu.h: (New file.)
+	* flip.c: (New file.)
+	* flip.h: (New file.)
+	* Makefile.am: Add new files.
+	* doc/avrdude.texi: Document the changes.
+	* avrdude.1: (Dito.)
+
+2014-01-15  Joerg Wunsch <j.gnu@uriah.heep.sax.de>
+
+	* ChangeLog-2013: Annual changelog rotation.

@@ -1,0 +1,227 @@
+
+/* RESETS */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, tt, var,b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td { /*  */
+	margin: 				0;
+	padding: 				0;
+	border: 				0;
+	outline: 				0;
+	font-size: 				100%;
+	vertical-align: 		baseline;
+	background: 			transparent;
+}
+
+body { font: 12px Verdana, Geneva, sans-serif; }
+
+@font-face {
+    font-family: DroidSansMono;
+    src: url("../fonts/DroidSansMono.eot") /* EOT file for IE */
+}
+@font-face {
+    font-family: DroidSansMono;
+    src: url("../fonts/DroidSansMono.ttf") /* TTF file for CSS3 browsers */
+}
+
+p, ul, ol, li { font: 10pt Verdana, Geneva, sans-serif; }
+h1 { font: bold 15pt IntervalLight, sans-serif; }
+h2 { font: bold 14pt IntervalLight, sans-serif; }
+
+h1, h2, h3 { color: #444;}
+h4, h5, h6 { color: #444;}
+h3, h4, h5, h6 {padding:10px 0px 2px 4px;}
+
+.book h1, .chapter h2, .section h2 {
+    padding-top:        3px;
+    padding-bottom:     18px;
+    margin-bottom:      6px;
+    border-bottom:      1px #CCC solid;
+}
+
+
+p {
+	font-size: 			11px;
+	line-height: 		15px;
+	color: 				#444;
+	/*width: 			100%; Removing width so it's not fixed or floated */
+	padding: 			0px 10px 10px 5px; /* changed padding-right from 5 to 10 and padding-left from 10px to 5px */
+	*padding: 			5px 5px 10px 0px; /* IE7 hack */
+}
+
+/* Page layout */
+div#content
+{
+    padding: 1em 2em 1em 2em; 
+}
+
+.navfooter
+{
+    margin-top: 2em;
+}
+
+.navfooter table td
+{
+    background-color: white;
+}
+
+.mediaobject img
+{
+    margin: 0.5em 0.5em 0.5em 0.5em;
+	vertical-align: middle;
+	max-width: 100%;
+}
+
+.mediaobject img[align="left"]
+{
+	margin-right:		2em;
+}
+
+.informalfigure	{ margin: 6px; }
+
+/* "Layout" tables should not have borders */
+#content table, #content table td { border: none; }
+
+/* Generic tables */
+#content .table table th, #content .informaltable table th { background-color: #585858 }
+#content .table table, #content .informaltable table
+{
+    border-collapse:collapse;
+    border: none;
+}
+
+#content .table tr:nth-child(odd), #content .informaltable tr:nth-child(odd)
+{
+  background-color: #f2f2f2;
+}
+#content .table tr:nth-child(even), #content .informaltable tr:nth-child(even)
+{
+  background-color: #d9d9d9;
+}
+
+#content .table table td, #content .informaltable table td,
+#content .table table th, #content .informaltable table th
+{
+    border: 1px solid #A7A9AB;
+}
+
+#content .footnotes tr td 
+{
+    background-color:white;
+    border: none;
+}
+
+
+/* Admonitions */
+div.note, div.caution, div.important, div.tip, div.warning
+{
+    border: solid 1px #AAA;
+    background: #ededed;
+    padding: 0.5em 1em 0.5em 1em;
+    margin: 1em 0em 1em 0em;
+}
+
+div.note *, div.caution *, div.important *, div.tip *, div.warning * {
+    background: inherit !important;
+    color: inherit !important;
+    border: none;    
+}
+
+
+/* Program listing */
+.programlisting
+{
+    /*width: auto;*/
+    border: solid 1px #AAA;
+    background: #ededed;
+    padding: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    overflow:hidden;
+    font-family: DroidSansMono, Consolas
+}
+
+
+/* Lists */
+ul
+{
+    list-style: square outside;
+    margin: 0 0 0 1em;
+    padding: 0 0 0 0;
+}
+ul.square
+{
+    list-style: square outside;
+    margin: 0 0 0 1em;
+    padding: 0 0 0 0;
+}
+ul.circle, ul[type=disk]
+{
+    list-style: disc outside;    
+    margin: 0 0 0 1em;
+    padding: 0 0 0 0;
+}
+ol
+{
+    list-style-type: decimal;
+    list-style: decimal;
+    margin: 0 0 0 2.8em;
+    padding: 0 0 1em 0;
+}
+li
+{
+    padding-bottom: .3em;
+    /*list-style: square;*/
+}
+li p
+{
+    margin: 0 0 .25em 0;
+    padding: 0 0 0 0;
+}
+ul ul.circle
+{
+    margin-top: .3em;
+}
+ul ul.square
+{
+    margin-top: .3em;
+}
+
+ul, ol { margin-left:	3em; }
+/*
+dl dt { padding: 			0px 10px 0px 5px;}
+*/
+div.orderedlist-collapsed
+{
+    margin: 1em 0 0 1em;
+    padding: 0 0 1em 0;
+    font-size:smaller;
+}
+
+div.orderedlist-collapsed span.listitem
+{
+    margin-right: 1em;
+}
+
+.variablelist dt
+{
+	font-weight: 		bold;
+	color: 				black;
+}
+
+
+dl.toc
+{
+    margin-left: 2em;
+    margin-bottom: 2em;
+}
+
+.guibutton, .guimenu, .guimenuitem, .guisubmenu
+{
+    font-family:        Arial, Verdana, Geneva, sans-serif;
+	color: 				black;
+	font-weight: 		bold;
+}
+
+.disclaimer
+{
+    font-size:          6pt;
+}

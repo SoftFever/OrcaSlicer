@@ -1,0 +1,16 @@
+min_slic3r_version = 2.3.0-beta2
+0.0.3 Removed obsolete host keys.
+min_slic3r_version = 2.2.0-alpha3
+0.0.2 General print quality improvements
+0.0.1 Multiple Print models were unified into a single one.
+0.0.1-beta2 Bed model and textures added. Materials all use the BOBO2 identifier. deretract speed set to 0 to use retract speed.
+0.0.1-beta1 Added new printer profiles for ditto printing. New retraction settings, new materials. Removed some settings which do not apply. More start gcode improvements.
+0.0.1-alpha13 Adjusted Jerk, Acceleration, and maximum feedrates to better match the stock firmware. For Dual extrusion, tool change retractions were increased.
+0.0.1-alpha12 github repo created for version history
+0.0.1-alpha11 Revised version available to community for testing. Removed PVA and HIPS disolvable support materials from single extruder versions. Improved single extruder second nozzle standby temperature
+0.0.1-alpha8 Available to community Early adopters for testing. Corrected filament settings to prevent duplicates, and reworked start and end gcode.
+# The following line (max_slic3r_version) forces the users of PrusaSlicer 2.2.0-alpha3 and newer to update the profiles to 0.0.1-alpha12 and newer,
+# so they will see the print bed.
+max_slic3r_version = 2.2.0-alpha2
+min_slic3r_version = 2.2.0-alpha0
+0.0.1-alpha Initial version

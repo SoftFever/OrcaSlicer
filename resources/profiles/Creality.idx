@@ -1,0 +1,37 @@
+min_slic3r_version = 2.4.0-rc
+0.1.3 Ender-3 S1 improvements.
+0.1.2 Added alpha Ender 3 S1 profiles.
+min_slic3r_version = 2.4.0-beta4
+0.1.1 Added Ender 2 Pro
+min_slic3r_version = 2.3.2-alpha0
+0.1.0 Added Ender-7, Sermoon D1, CR-10 SMART
+min_slic3r_version = 2.3.1-beta
+0.0.17 Updated start g-code. Added specific start g-code for straingauge printers. Improved output filename format. Added filament profile.
+0.0.16 Updated CR6-SE start g-code. Added and updated filament profiles.
+0.0.15 Added new printer models, filament profiles. Various improvements.
+min_slic3r_version = 2.3.0-rc2
+0.0.14 Optimized start g-code. Added filament profile. Various improvements.
+0.0.13 Optimized start and end g-code. General improvements.
+0.0.12 Added Ender-3V2 and filament profiles.
+min_slic3r_version = 2.3.0-beta2
+0.0.11 Updated machine limits for Ender 5 and Ender 5 Plus.
+0.0.10 Parameter consistency improvements. Enabled conservative elephant foot compensation.
+0.0.9 Fixed end g-code for Ender 5.
+0.0.8 Slight end g-code improvements and spool weights.
+min_slic3r_version = 2.3.0-alpha2
+0.0.7 Updated start g-code for Creality printers.
+0.0.6 Added filament profiles, adjusted temperatures, updated start g-code for some models.
+0.0.5 Added 0.08mm SUPERDETAIL and 0.28mm SUPERDRAFT print profiles. Updated OPTIMAL print profile.
+0.0.4 Added initial CR-10 profile, end g-code improvements.
+min_slic3r_version = 2.3.0-alpha0
+0.0.3 Added Ender-2, Ender-3 BLTouch, updated Ender-3 bed texture.
+min_slic3r_version = 2.2.0-alpha3
+0.0.2 Updated for PrusaSlicer 2.2.0-rc
+0.0.2-beta Update for PrusaSlicer 2.2.0-beta
+0.0.2-alpha1 Extended list of default filaments to be installed
+0.0.2-alpha0 Print bed textures are now configurable from the Preset Bundle. Requires PrusaSlicer 2.2.0-alpha3 and newer.
+# The following line (max_slic3r_version) forces the users of PrusaSlicer 2.2.0-alpha3 and newer to update the profiles to 1.1.1-alpha3 and newer,
+# so they will see the print bed.
+max_slic3r_version = 2.2.0-alpha2
+min_slic3r_version = 2.2.0-alpha0
+0.0.1 Initial version

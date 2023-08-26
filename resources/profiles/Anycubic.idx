@@ -1,0 +1,17 @@
+min_slic3r_version = 2.3.2-alpha0
+0.0.12 Updated Anycubic i3 MEGA(S) profiles.
+0.0.11 Added bed model and texture for i3 Mega, i3 Mega S.
+min_slic3r_version = 2.3.1-beta
+0.0.10 Various updates for Anycubic Mega. Added filament profiles.
+0.0.9 Updated bed textures
+min_slic3r_version = 2.3.0-beta2
+0.0.8 Updated start and end g-code for Anycubic Mega.
+0.0.7 Updated start g-code for Anycubic Mega.
+0.0.6 Reduced max print height for Predator. Updated end g-code, before layer change g-code and output filename format for Kossel.
+0.0.5 Updated end g-code.
+min_slic3r_version = 2.3.0-alpha2
+0.0.4 Fixed predator output filename format, infill overlap, start gcode adjustments.
+0.0.3 Fixed infill_overlap, start_gcode, end_gcode for Anycubic Predator
+0.0.2 Added Anycubic Predator
+min_slic3r_version = 2.3.0-alpha0
+0.0.1 Initial Version
