@@ -315,7 +315,7 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     m_link_network_state = new Label(m_side_error_panel, _L("Check cloud service status"), wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END);
     m_link_network_state->SetMinSize(wxSize(FromDIP(220), -1));
     m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
-    m_link_network_state->SetForegroundColour(0x00AE42);
+    m_link_network_state->SetForegroundColour(0x009688);
     m_link_network_state->SetFont(::Label::Body_12);
     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
@@ -507,8 +507,8 @@ void SideTools::show_status(int status)
     else if ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) {
         m_hyperlink->Hide();
         m_connection_info->SetLabel(_L("Connecting..."));
-        m_connection_info->SetBackgroundColor(0x00AE42);
-        m_connection_info->SetBorderColor(0x00AE42);
+        m_connection_info->SetBackgroundColor(0x009688);
+        m_connection_info->SetBorderColor(0x009688);
         m_connection_info->Show();
         m_more_button->Hide();
         m_side_error_panel->Hide();

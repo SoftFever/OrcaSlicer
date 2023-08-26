@@ -12,6 +12,7 @@
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
 #include <wx/debug.h>
+#include <wx/utils.h> 
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
@@ -92,10 +93,10 @@ enum class ERescaleTarget
 };
 
 #ifdef __APPLE__
-class BambuStudioTaskBarIcon : public wxTaskBarIcon
+class OrcaSlicerTaskBarIcon : public wxTaskBarIcon
 {
 public:
-    BambuStudioTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
+    OrcaSlicerTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
     wxMenu *CreatePopupMenu() override {
         wxMenu *menu = new wxMenu;
         //if (wxGetApp().app_config->get("single_instance") == "false") {
@@ -146,7 +147,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
     }
     return wxIcon(path, wxBITMAP_TYPE_ICO);
 #else // _WIN32
-    return wxIcon(Slic3r::var("BambuStudio_128px.png"), wxBITMAP_TYPE_PNG);
+    return wxIcon(Slic3r::var("OrcaSlicer_128px.png"), wxBITMAP_TYPE_PNG);
 #endif // _WIN32
 }
 
@@ -243,8 +244,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     switch (wxGetApp().get_app_mode()) {
     default:
     case GUI_App::EAppMode::Editor:
-        m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
+        m_taskbar_icon = std::make_unique<OrcaSlicerTaskBarIcon>(wxTBI_DOCK);
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("OrcaSlicer-mac_256px.ico"), wxBITMAP_TYPE_ICO), "OrcaSlicer");
         break;
     case GUI_App::EAppMode::GCodeViewer:
         break;
@@ -380,7 +381,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     update_layout();
     sizer->SetSizeHints(this);
 
-    // BBS: fix taskbar overlay on windows
 #ifdef WIN32
     auto setMaxSize = [this]() {
         wxDisplay display(this);
@@ -470,56 +470,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         //}
     #endif
 
-        try {
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) {
-                json j;
-                std::string value;
-                agent->track_get_property("auto_orient", value);
-                j["auto_orient"] = value;
-                value = "";
-                agent->track_get_property("auto_arrange", value);
-                j["auto_arrange"] = value;
-                value = "";
-                agent->track_get_property("split_to_object", value);
-                j["split_to_object"] = value;
-                value = "";
-                agent->track_get_property("split_to_part", value);
-                j["split_to_part"] = value;
-                value = "";
-                agent->track_get_property("custom_height", value);
-                j["custom_height"] = value;
-                value = "";
-
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Move), value);
-                j["move"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Rotate), value);
-                j["rotate"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Scale), value);
-                j["scale"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Flatten), value);
-                j["flatten"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::FdmSupports), value);
-                j["custom_support"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Seam), value);
-                j["custom_seam"] = value;
-                value = "";
-                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Text), value);
-                j["text_shape"] = value;
-                value = "";
-                agent->track_get_property("custom_painting", value);
-                j["custom_painting"] = value;
-                agent->track_event("key_func", j.dump());
-            }
-
-        }
-        catch (...) {}
-
         MarkdownTip::ExitTip();
 
         m_plater->reset();
@@ -606,7 +556,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             m_print_enable = get_enable_print_status();
             m_print_btn->Enable(m_print_enable);
             if (m_print_enable) {
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+                PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+                if (preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle))
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+                else
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
             }
             evt.Skip();
             return;
@@ -891,7 +845,8 @@ void MainFrame::shutdown()
 	//wxGetApp().other_instance_message_handler()->shutdown(this);
     // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
     // but in rare cases it may not have been called yet.
-    wxGetApp().app_config->save();
+    if(wxGetApp().app_config->dirty())
+        wxGetApp().app_config->save();
 //         if (m_plater)
 //             m_plater->print = undef;
 //         Slic3r::GUI::deregister_on_request_update_callback();
@@ -977,13 +932,13 @@ void MainFrame::show_option(bool show)
     }
 }
 
-void MainFrame::init_tabpanel()
-{
-    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on Windows 10
-    // with multiple high resolution displays connected.
-   // BBS
-    wxBoxSizer* side_tools = create_side_tools();
-    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+void MainFrame::init_tabpanel() {
+    // wxNB_NOPAGETHEME: Disable Windows Vista theme for the Notebook background. The theme performance is terrible on
+    // Windows 10 with multiple high resolution displays connected.
+    // BBS
+    wxBoxSizer *side_tools = create_side_tools();
+    m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools,
+                              wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(*wxWHITE);
 
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
@@ -992,40 +947,32 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
-    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
-        int old_sel = e.GetOldSelection();
-        int new_sel = e.GetSelection();
-        if (wxGetApp().preset_bundle &&
-            wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
-            new_sel == tpMonitor) {
-            if (!wxGetApp().getAgent()) {
-                e.Veto();
-                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") %
-                    old_sel % new_sel;
-                if (m_plater) {
-                    wxCommandEvent* evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
-                    wxQueueEvent(m_plater, evt);
-                }
-            }
+    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent &e) {
+      int old_sel = e.GetOldSelection();
+      int new_sel = e.GetSelection();
+      if (wxGetApp().preset_bundle &&
+          wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle) &&
+          new_sel == tpMonitor) {
+        if (!wxGetApp().getAgent()) {
+          e.Veto();
+          BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins") %
+                                         old_sel % new_sel;
+          if (m_plater) {
+            wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+            wxQueueEvent(m_plater, evt);
+          }
         }
-        else {
-            if (new_sel == tpMonitor && wxGetApp().preset_bundle != nullptr) {
-                auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-                wxString url;
-                if (cfg.has("print_host_webui") && !cfg.opt_string("print_host_webui").empty()) {
-                    url = cfg.opt_string("print_host_webui");
-                } else if (cfg.has("print_host") && !cfg.opt_string("print_host").empty()) {
-                    url = cfg.opt_string("print_host");
-                }
-                else {
-                    ;
-                }
-                if (url.empty()) {
-                    wxString url = wxString::Format("file://%s/web/device/missing_connection.html", from_u8(resources_dir()));
-                    m_printer_view->load_url(url);
-                }
-            }
+      } else {
+        if (new_sel == tpMonitor && wxGetApp().preset_bundle != nullptr) {
+          auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+          wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host")
+                                                                    : cfg.opt_string("print_host_webui");
+          if (url.empty()) {
+            wxString url = wxString::Format("file://%s/web/orca/missing_connection.html", from_u8(resources_dir()));
+            m_printer_view->load_url(url);
+          }
         }
+      }
     });
 
 #ifdef __WXMSW__
@@ -1138,35 +1085,31 @@ void MainFrame::init_tabpanel()
     }
 }
 
-
-// OrcaSlicer
+    // SoftFever
 void MainFrame::show_device(bool bBBLPrinter) {
-  if (m_tabpanel->GetPage(tpMonitor) != m_monitor &&
-      m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
+  if (m_tabpanel->GetPage(3) != m_monitor &&
+      m_tabpanel->GetPage(3) != m_printer_view) {
     BOOST_LOG_TRIVIAL(error) << "Failed to find device tab";
     return;
   }
   if (bBBLPrinter) {
-    if (m_tabpanel->GetPage(tpMonitor) != m_monitor) {
-      m_printer_view->Hide();
-      m_monitor->Show(true);
-      m_tabpanel->RemovePage(tpMonitor);
-      m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"),
+    if (m_tabpanel->GetPage(3) != m_monitor) {
+      m_tabpanel->RemovePage(3);
+      m_tabpanel->InsertPage(3, m_monitor, _L("Device"),
                              std::string("tab_monitor_active"),
                              std::string("tab_monitor_active"));
-      m_tabpanel->SetSelection(tp3DEditor);
     }
   } else {
-    if (m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
-      m_printer_view->Show();
-      m_monitor->Show(false);
-      m_tabpanel->RemovePage(tpMonitor);
-      m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"),
+    if (m_tabpanel->GetPage(3) != m_printer_view) {
+      m_tabpanel->RemovePage(3);
+      m_tabpanel->InsertPage(3, m_printer_view, _L("Device"),
                           std::string("tab_monitor_active"),
                           std::string("tab_monitor_active"));
-      m_tabpanel->SetSelection(tp3DEditor);
+        m_printer_view->Show();
     }
   }
+
+
 }
 
 
@@ -1549,8 +1492,6 @@ wxBoxSizer* MainFrame::create_side_tools()
             // record
             json j;
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("enter_model_mall", j.dump());
         });
     });
 
@@ -1634,7 +1575,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             SidePopup* p = new SidePopup(this);
 
             if (wxGetApp().preset_bundle
-                && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
+                && !wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle)) {
                 // ThirdParty Buttons
                 SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
                 export_gcode_btn->SetCornerRadius(0);
@@ -1659,24 +1600,11 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
-                // upload only
-                /*SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
-                upload_gcode_btn->SetCornerRadius(0);
-                upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Send"));
-                    m_print_select = eUploadGcode;
-                    m_print_enable = get_enable_print_status();
-                    m_print_btn->Enable(m_print_enable);
-                    this->Layout();
-                    p->Dismiss();
-                    });*/
-
                 p->append_button(send_gcode_btn);
-                //p->append_button(upload_gcode_btn);
                 p->append_button(export_gcode_btn);
             }
             else {
-                //Bambu Studio Buttons
+                //Orca Slicer Buttons
                 SideButton* print_plate_btn = new SideButton(p, _L("Print plate"), "");
                 print_plate_btn->SetCornerRadius(0);
 
@@ -1747,12 +1675,23 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+                SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
+                export_gcode_btn->SetCornerRadius(0);
+                export_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Export G-code file"));
+                    m_print_select = eExportGcode;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 p->append_button(send_to_printer_btn);
                 p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
+                p->append_button(export_gcode_btn);
             }
 
             p->Popup(m_print_btn);
@@ -1912,9 +1851,9 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
     StateColor m_btn_bg_enable = StateColor(
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), 
         std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
     );
 
     m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
@@ -2117,20 +2056,15 @@ static wxMenu* generate_help_menu()
         wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
         });
 
-    append_menu_item(helpMenu, wxID_ANY, _L("Report issue"), _L("Report issue"), [](wxCommandEvent &) {
-        std::string url = "https://github.com/bambulab/BambuStudio/issues/new/choose";
-        wxLaunchDefaultBrowser(url);
-    });
-
     // Report a bug
-    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of BambuStudio"),
+    //append_menu_item(helpMenu, wxID_ANY, _L("Report Bug(TODO)"), _L("Report a bug of OrcaSlicer"),
     //    [](wxCommandEvent&) {
     //        //TODO
     //    });
     // Check New Version
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Update"), _L("Check for Update"),
         [](wxCommandEvent&) {
-            wxGetApp().check_new_version(true, 1);
+            wxGetApp().check_new_version_sf(true, 1);
         }, "", nullptr, []() {
             return true;
         });
@@ -2163,8 +2097,6 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
 
             json j;
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("enter_model_mall", j.dump());
 
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
             wxGetApp().open_publish_page_dialog();
@@ -2609,7 +2541,7 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
     wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
-    //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
+    //auto preference_item = new wxMenuItem(parent_menu, OrcaSlicerMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
     auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\t" + ctrl + "P", "");
@@ -2684,13 +2616,13 @@ void MainFrame::init_menubar_as_editor()
 
 #ifdef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
-    //auto about_item = new wxMenuItem(parent_menu, BambuStudioMenuAbout + bambu_studio_id_base, about_title, "");
+    //auto about_item = new wxMenuItem(parent_menu, OrcaSlicerMenuAbout + bambu_studio_id_base, about_title, "");
         //parent_menu->Bind(wxEVT_MENU, [this, bambu_studio_id_base](wxEvent& event) {
         //    switch (event.GetId() - bambu_studio_id_base) {
-        //        case BambuStudioMenuAbout:
+        //        case OrcaSlicerMenuAbout:
         //            Slic3r::GUI::about();
         //            break;
-        //        case BambuStudioMenuPreferences:
+        //        case OrcaSlicerMenuPreferences:
         //            CallAfter([this] {
         //                PreferencesDialog dlg(this);
         //                dlg.ShowModal();
@@ -2757,201 +2689,160 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 
-     // OrcaSlicer calibrations
-    {
-        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Temperature"), _L("Temperature Calibration"),
-            [this](wxCommandEvent&) {
-                if (!m_temp_calib_dlg)
-                    m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-                m_temp_calib_dlg->ShowModal();
-            }, "", nullptr,
-            [this]() {return m_plater->is_view3D_shown();; }, this);
-        auto flowrate_menu = new wxMenu();
-        append_menu_item(
-            flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
-            [this]() {return m_plater->is_view3D_shown();; }, this);
-        append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-            [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
-            [this]() {return m_plater->is_view3D_shown();; }, this);
-        m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
-        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
-            [this](wxCommandEvent&) {
-                //if (!m_pa_calib_dlg)
+    // SoftFever calibrations
+
+    // Flowrate
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Temperature"), _L("Temperature Calibration"),
+        [this](wxCommandEvent&) {
+            if (!m_temp_calib_dlg)
+                m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_temp_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    auto flowrate_menu = new wxMenu();
+    append_menu_item(
+        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
+        [this](wxCommandEvent&) {
+            if (!m_pa_calib_dlg)
                 m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-                m_pa_calib_dlg->ShowModal();
-            }, "", nullptr,
-            [this]() {return m_plater->is_view3D_shown();; }, this);
-        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
-            [this](wxCommandEvent&) {
-                if (!m_retraction_calib_dlg)
-                    m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
-                m_retraction_calib_dlg->ShowModal();
-            }, "", nullptr,
-            [this]() {return m_plater->is_view3D_shown();; }, this);
+            m_pa_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+        [this](wxCommandEvent&) {
+            if (!m_retraction_calib_dlg)
+                m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_retraction_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+        
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Orca Tolerance Test"), _L("Orca Tolerance Test"),
+        [this](wxCommandEvent&) {
+            m_plater->new_project();
+        m_plater->add_model(false, Slic3r::resources_dir() + "/calib/tolerance_test/OrcaToleranceTest.stl");
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    // Advance calibrations
+    auto advance_menu = new wxMenu();
 
-        // Advance calibrations
-        auto advance_menu = new wxMenu(); // sub menu
-        {
-            append_menu_item(
-                advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
-                [this](wxCommandEvent &) {
-                    if (!m_vol_test_dlg) m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
-                    m_vol_test_dlg->ShowModal();
-                },
-                "", nullptr,
-                [this]() {
-                    return m_plater->is_view3D_shown();
-                    ;
-                },
-                this);
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
+        [this](wxCommandEvent&) {
+            if (!m_vol_test_dlg)
+                m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vol_test_dlg->ShowModal();
+        },
+        "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
-            append_menu_item(
-                advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
-                [this](wxCommandEvent &) {
-                    if (!m_vfa_test_dlg) m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
-                    m_vfa_test_dlg->ShowModal();
-                },
-                "", nullptr,
-                [this]() {
-                    return m_plater->is_view3D_shown();
-                    ;
-                },
-                this);
-            m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
-        }
+    append_menu_item(
+        advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
+        [this](wxCommandEvent&) {
+            if (!m_vfa_test_dlg)
+                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vfa_test_dlg->ShowModal();
+        },
+        "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    m_topbar->GetCalibMenu()->AppendSubMenu(advance_menu, _L("More..."));
 
-        // help 
-        append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
-            [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://wiki.bambulab.com/e/en/staging/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
-            [this]() {return m_plater->is_view3D_shown();; }, this);
+    // help 
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
+        [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
-    }
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)
         m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
         m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
-    //if (publishMenu)
-    //    m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));
+    /*if (publishMenu)
+        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));*/
 
-        // SoftFever calibrations
-    m_calib_menu = new wxMenu();
-
-    // Temp
-    append_menu_item(
-        m_calib_menu, wxID_ANY, _L("Temperature"), _L("Temperature"),
-        [this](wxCommandEvent &) {
-            if (!m_temp_calib_dlg)
-                m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow *) this, wxID_ANY, m_plater);
-            m_temp_calib_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
-
-    // Flowrate
-    auto flowrate_menu = new wxMenu();
-    append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent &) {
-            if (m_plater) m_plater->calib_flowrate(1);
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
-    append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent &) {
-            if (m_plater) m_plater->calib_flowrate(2);
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
-    append_submenu(m_calib_menu, flowrate_menu, wxID_ANY, _L("Flow rate"), _L("Flow rate"), "", [this]() {
-        return m_plater->is_view3D_shown();
-        ;
-    });
+    // SoftFever calibrations
+    auto calib_menu = new wxMenu();
 
     // PA
-    append_menu_item(
-        m_calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
-        [this](wxCommandEvent &) {
-            m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow *) this, wxID_ANY, m_plater);
+    append_menu_item(calib_menu, wxID_ANY, _L("Temperature"), _L("Temperature"),
+        [this](wxCommandEvent&) {
+            if (!m_temp_calib_dlg)
+                m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_temp_calib_dlg->ShowModal();
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+        
+    // Flowrate
+    auto flowrate_menu = new wxMenu();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_submenu(calib_menu,flowrate_menu,wxID_ANY,_L("Flow rate"),_L("Flow rate"),"",
+                   [this]() {return m_plater->is_view3D_shown();; });
+
+    // PA
+    append_menu_item(calib_menu, wxID_ANY, _L("Pressure advance"), _L("Pressure advance"),
+        [this](wxCommandEvent&) {
+            if (!m_pa_calib_dlg)
+                m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_pa_calib_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // Retraction
-    append_menu_item(
-        m_calib_menu, wxID_ANY, _L("Retraction test"), _L("Retraction test"),
-        [this](wxCommandEvent &) {
-            if (!m_retraction_calib_dlg) m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
+    append_menu_item(calib_menu, wxID_ANY, _L("Retraction test"), _L("Retraction test"),
+        [this](wxCommandEvent&) {
+            if (!m_retraction_calib_dlg)
+                m_retraction_calib_dlg = new Retraction_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_retraction_calib_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Tolerance Test
+    append_menu_item(calib_menu, wxID_ANY, _L("Orca Tolerance Test"), _L("Orca Tolerance Test"),
+        [this](wxCommandEvent&) {
+            m_plater->new_project();
+            m_plater->add_model(false, Slic3r::resources_dir() + "/calib/tolerance_test/OrcaToleranceTest.stl");
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // Advance calibrations
     auto advance_menu = new wxMenu();
     append_menu_item(
         advance_menu, wxID_ANY, _L("Max flowrate"), _L("Max flowrate"),
-        [this](wxCommandEvent &) {
-            if (!m_vol_test_dlg) m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
-            m_vol_test_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
+        [this](wxCommandEvent&) { 
+            if (!m_vol_test_dlg)
+                m_vol_test_dlg = new MaxVolumetricSpeed_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_vol_test_dlg->ShowModal(); 
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(
         advance_menu, wxID_ANY, _L("VFA"), _L("VFA"),
-        [this](wxCommandEvent &) {
-            if (!m_vfa_test_dlg) m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow *) this, wxID_ANY, m_plater);
+        [this](wxCommandEvent&) { 
+            if (!m_vfa_test_dlg)
+                m_vfa_test_dlg = new VFA_Test_Dlg((wxWindow*)this, wxID_ANY, m_plater);
             m_vfa_test_dlg->ShowModal();
-        },
-        "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
-
-    append_submenu(m_calib_menu, advance_menu, wxID_ANY, _L("More..."), _L("More calibrations"), "", [this]() {
-        return m_plater->is_view3D_shown();
-        ;
-    });
+        }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);    
+       
+    append_submenu(calib_menu, advance_menu, wxID_ANY, _L("More..."), _L("More calibrations"), "",
+        [this]() {return m_plater->is_view3D_shown();; });
     // help
-    append_menu_item(
-        m_calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
-        [this](wxCommandEvent &) { wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
-        [this]() {
-            return m_plater->is_view3D_shown();
-            ;
-        },
-        this);
-
+    append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
+        [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/OrcaSlicer/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    
+    m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
@@ -3460,7 +3351,6 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
             recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
-        wxGetApp().app_config->save();
         m_webview->SendRecentList(0);
     }
 }
@@ -3562,7 +3452,6 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
                 recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
             }
             wxGetApp().app_config->set_recent_projects(recent_projects);
-            wxGetApp().app_config->save();
             m_webview->SendRecentList(-1);
         }
     }
@@ -3586,7 +3475,6 @@ void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
         recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
     }
     wxGetApp().app_config->set_recent_projects(recent_projects);
-    wxGetApp().app_config->save();
     m_webview->SendRecentList(-1);
 }
 
@@ -3609,7 +3497,7 @@ void MainFrame::load_printer_url(wxString url)
 void MainFrame::load_printer_url()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    if (preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle))
+    if (preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle))
         return;
     
     auto cfg = preset_bundle.printers.get_edited_preset().config;
@@ -3757,7 +3645,7 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
         SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
     }
 #else
-    SetIcon(wxIcon(var("BambuStudio_128px.png"), wxBITMAP_TYPE_PNG));
+    SetIcon(wxIcon(var("OrcaSlicer_128px.png"), wxBITMAP_TYPE_PNG));
 #endif // _WIN32
 
     //just hide the Frame on closing

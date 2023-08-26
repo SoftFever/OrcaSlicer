@@ -9,6 +9,7 @@
 #include <boost/log/trivial.hpp>
 #include "libslic3r/Utils.hpp"
 #include "NetworkAgent.hpp"
+#include <type_traits>
 
 
 
@@ -1204,7 +1205,7 @@ int NetworkAgent::get_my_profile(std::string token, unsigned int *http_code, std
 
 int NetworkAgent::track_enable(bool enable)
 {
-    enable_track = enable;
+    enable_track = false;
     int ret = 0;
     if (network_agent && track_enable_ptr) {
         ret = track_enable_ptr(network_agent, enable);
@@ -1216,6 +1217,8 @@ int NetworkAgent::track_enable(bool enable)
 
 int NetworkAgent::track_event(std::string evt_key, std::string content)
 {
+    // Orca: disable track
+    return 0;
     if (!this->enable_track)
         return 0;
 

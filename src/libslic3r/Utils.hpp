@@ -9,6 +9,10 @@
 
 #include <boost/system/error_code.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/date_time.hpp>
+#include "boost/date_time/posix_time/ptime.hpp"
+
 #include <openssl/md5.h>
 
 #include "libslic3r.h"
@@ -554,6 +558,21 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     return buffer;
 }
 
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs)
+{
+    if (time_in_secs == 0.0f)
+        return {};
+
+    std::stringstream stream;
+    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+    auto endTime = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
+    auto facet = new boost::posix_time::time_facet("%H:%M");//%Y-%m-%d %H:%M:%S
+    stream.imbue(std::locale(std::locale::classic(), facet));
+    stream << endTime;
+
+    return stream.str();
+}
+
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)
 {
     int days = (int) (time_in_secs / 86400.0f);
@@ -590,6 +609,9 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 
     return filteredStr;
 }
+
+void copy_directory_recursively(const boost::filesystem::path &source, const boost::filesystem::path &target);
+
 
 } // namespace Slic3r
 

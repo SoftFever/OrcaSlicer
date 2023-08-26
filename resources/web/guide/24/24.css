@@ -59,7 +59,7 @@
 
 .PrinterArea
 {
-	padding: 0px;
+	padding: 10px;
 	display: flex;
 	flex-wrap: wrap;
 }
@@ -68,7 +68,7 @@
 {
 	width: 160px;
 	text-align: center;
-	padding: 8px;
+	padding: 10px;
 }
 
 .PrinterBlock img

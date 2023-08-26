@@ -56,6 +56,8 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
+    bool   use_firmware_retraction() const;
+
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
@@ -64,7 +66,7 @@ private:
     GCodeConfig *m_config;
     // Print-wide global ID of this extruder.
     unsigned int m_id;
-    // Current state of the extruder axis, may be resetted if use_relative_e_distance.
+    // Current state of the extruder axis, may be resetted if use_relative_e_distances.
     double       m_E;
     // Current state of the extruder tachometer, used to output the extruded_volume() and used_filament() statistics.
     double       m_absolute_E;

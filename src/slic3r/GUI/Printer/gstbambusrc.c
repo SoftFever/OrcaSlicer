@@ -587,7 +587,7 @@ void gstbambusrc_register()
     return;
   did_register = 1;
 
-  gst_plugin_register_static(GST_VERSION_MAJOR, GST_VERSION_MINOR, "bambusrc", "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "OrcaSlicer", "OrcaSlicer", "https://github.com/bambulab/OrcaSlicer");
+  gst_plugin_register_static(GST_VERSION_MAJOR, GST_VERSION_MINOR, "bambusrc", "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "BambuStudio", "BambuStudio", "https://github.com/bambulab/BambuStudio");
 }
 
 #else
@@ -596,6 +596,6 @@ void gstbambusrc_register()
 #define PACKAGE "bambusrc"
 #endif
 
-GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, bambusrc, "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "OrcaSlicer", "https://github.com/bambulab/OrcaSlicer")
+GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, bambusrc, "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "BambuStudio", "https://github.com/bambulab/BambuStudio")
 
 #endif

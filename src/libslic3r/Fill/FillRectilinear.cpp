@@ -3179,11 +3179,6 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
                 }), polylines.end());
 
             ExtrusionEntityCollection gap_fill;
-            // OrcaSlicer: filter out tiny gap fills
-            polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [&](const ThickPolyline &p) {
-                return p.length() < scale_(params.filter_out_gap_fill);
-            }), polylines.end());
-
             variable_width(polylines, erGapFill, params.flow, gap_fill.entities);
             coll_nosort->append(std::move(gap_fill.entities));
 

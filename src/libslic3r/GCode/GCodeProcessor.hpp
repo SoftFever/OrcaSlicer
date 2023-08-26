@@ -97,11 +97,11 @@ namespace Slic3r {
     {
         std::string        _objName1;
         std::string        _objName2;
-        float             _height;
+        double             _height;
         const void *_obj1; // nullptr means wipe tower
         const void *_obj2;
         int                layer = -1;
-        ConflictResult(const std::string &objName1, const std::string &objName2, float height, const void *obj1, const void *obj2)
+        ConflictResult(const std::string &objName1, const std::string &objName2, double height, const void *obj1, const void *obj2)
             : _objName1(objName1), _objName2(objName2), _height(height), _obj1(obj1), _obj2(obj2)
         {}
         ConflictResult() = default;
@@ -192,6 +192,7 @@ namespace Slic3r {
         std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
+        int nozzle_hrc;
         NozzleType nozzle_type;
         BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -235,6 +236,7 @@ namespace Slic3r {
     class GCodeProcessor
     {
         static const std::vector<std::string> Reserved_Tags;
+        static const std::vector<std::string> Reserved_Tags_compatible;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
         static const std::map<NozzleType, int>Nozzle_Type_To_HRC;
@@ -256,8 +258,8 @@ namespace Slic3r {
             Total_Layer_Number_Placeholder
         };
 
-        static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
-        // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag)
+        static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
+        // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag) 
         static bool contains_reserved_tag(const std::string& gcode, std::string& found_tag);
         // checks the given gcode for reserved tags and returns true when finding any
         // (the first max_count found tags are returned into found_tag)
@@ -268,6 +270,8 @@ namespace Slic3r {
 
         static const float Wipe_Width;
         static const float Wipe_Height;
+
+        static bool s_IsBBLPrinter;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         static const std::string Mm3_Per_Mm_Tag;
@@ -365,7 +369,7 @@ namespace Slic3r {
                 AxisCoords axis_feedrate; // mm/s
                 AxisCoords abs_axis_feedrate; // mm/s
 
-                //BBS: unit vector of enter speed and exit speed in x-y-z space.
+                //BBS: unit vector of enter speed and exit speed in x-y-z space. 
                 //For line move, there are same. For arc move, there are different.
                 Vec3f enter_direction;
                 Vec3f exit_direction;
@@ -669,7 +673,7 @@ namespace Slic3r {
         enum class EProducer
         {
             Unknown,
-            BambuStudio,
+            OrcaSlicer,
             Slic3rPE,
             Slic3r,
             SuperSlicer,

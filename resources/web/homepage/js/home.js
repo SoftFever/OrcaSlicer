@@ -509,3 +509,4 @@ function OpenOneStaffPickModel( ModelID )
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;
+

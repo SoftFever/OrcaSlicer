@@ -5,9 +5,6 @@
 #include <wx/dcgraph.h>
 #include "MainFrame.hpp"
 #include <string>
-#include "libslic3r/Config.hpp"
-#include "libslic3r/PrintConfig.hpp"
-
 namespace Slic3r { namespace GUI {
     
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
@@ -43,14 +40,12 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     SetSizer(v_sizer);
 	wxBoxSizer* choice_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // BBS: get from printer preset
-    //wxString m_rbExtruderTypeChoices[] = { _L("DDE"), _L("Bowden") };
-	//int m_rbExtruderTypeNChoices = sizeof(m_rbExtruderTypeChoices) / sizeof(wxString);
-	//m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
-	//m_rbExtruderType->SetSelection(0);
-	//choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
-	//choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
-
+    wxString m_rbExtruderTypeChoices[] = { _L("DDE"), _L("Bowden") };
+	int m_rbExtruderTypeNChoices = sizeof(m_rbExtruderTypeChoices) / sizeof(wxString);
+	m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
+	m_rbExtruderType->SetSelection(0);
+	choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
+	choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
 	wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line"), _L("PA Pattern") };
 	int m_rbMethodNChoices = sizeof(m_rbMethodChoices) / sizeof(wxString);
 	m_rbMethod = new wxRadioBox(this, wxID_ANY, _L("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 2, wxRA_SPECIFY_COLS);
@@ -106,10 +101,9 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     v_sizer->Add(settings_sizer);
 	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
     m_btnStart = new Button(this, _L("OK"));
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(23, 129, 63), StateColor::Pressed),
-		std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-		std::pair<wxColour, int>(0x00AE42, StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+		std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+		std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
 	m_btnStart->SetBackgroundColor(btn_bg_green);
 	m_btnStart->SetBorderColor(wxColour(0, 150, 136));
@@ -123,22 +117,10 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     PA_Calibration_Dlg::reset_params();
 
     // Connect Events
-    //m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
+    m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
-
-    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-    int extruder_type  = printer_preset.config.opt_enum("extruder_type", 0);
-    if (extruder_type == ExtruderType::etBowden) {
-        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
-        m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.02));
-    } else {
-        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.1));
-        m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
-    }
 
     Layout();
     Fit();
@@ -146,15 +128,13 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
 PA_Calibration_Dlg::~PA_Calibration_Dlg() {
     // Disconnect Events
-    //m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
+    m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PA_Calibration_Dlg::on_start), NULL, this);
 }
 
 void PA_Calibration_Dlg::reset_params() {
-    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-    int     extruder_type  = printer_preset.config.opt_enum("extruder_type", 0);
-    bool isDDE =extruder_type == 0 ? true : false;
+    bool isDDE = m_rbExtruderType->GetSelection() == 0 ? true : false;
     int method = m_rbMethod->GetSelection();
 
     m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
@@ -240,7 +220,7 @@ void PA_Calibration_Dlg::on_show(wxShowEvent& event) {
     PA_Calibration_Dlg::reset_params();
 }
 
-// Temp Calib dlg
+// Temp calib dlg
 //
 enum FILAMENT_TYPE : int
 {
@@ -274,7 +254,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     // Settings
     //
     wxString start_temp_str = _L("Start temp: ");
-    wxString end_temp_str = _L("End temp: ");
+    wxString end_temp_str = _L("End end: ");
     wxString temp_step_str = _L("Temp step: ");
     auto text_size = wxWindow::GetTextExtent(start_temp_str);
     text_size.IncTo(wxWindow::GetTextExtent(end_temp_str));
@@ -316,9 +296,9 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     v_sizer->Add(settings_sizer);
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
     m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(23, 129, 63), StateColor::Pressed),
-		std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-		std::pair<wxColour, int>(0x00AE42, StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
     m_btnStart->SetBorderColor(wxColour(0, 150, 136));
@@ -488,9 +468,9 @@ MaxVolumetricSpeed_Test_Dlg::MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWin
     v_sizer->Add(settings_sizer);
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
     m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(23, 129, 63), StateColor::Pressed),
-		std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-		std::pair<wxColour, int>(0x00AE42, StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
     m_btnStart->SetBorderColor(wxColour(0, 150, 136));
@@ -593,9 +573,9 @@ VFA_Test_Dlg::VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
     v_sizer->Add(settings_sizer);
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
     m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(23, 129, 63), StateColor::Pressed),
-		std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-		std::pair<wxColour, int>(0x00AE42, StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
     m_btnStart->SetBorderColor(wxColour(0, 150, 136));
@@ -699,9 +679,9 @@ Retraction_Test_Dlg::Retraction_Test_Dlg(wxWindow* parent, wxWindowID id, Plater
     v_sizer->Add(settings_sizer);
     v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
     m_btnStart = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(23, 129, 63), StateColor::Pressed),
-		std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
-		std::pair<wxColour, int>(0x00AE42, StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
 
     m_btnStart->SetBackgroundColor(btn_bg_green);
     m_btnStart->SetBorderColor(wxColour(0, 150, 136));

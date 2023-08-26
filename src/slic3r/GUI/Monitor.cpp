@@ -451,15 +451,9 @@ void MonitorPanel::show_status(int status)
         j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
         if (status & (int)MonitorStatus::MONITOR_DISCONNECTED != 0) {
             j["result"] = "failed";
-            if (agent) {
-                agent->track_event("connect_dev", j.dump());
-            }
         }
         else if (status & (int)MonitorStatus::MONITOR_NORMAL != 0) {
             j["result"] = "success";
-            if (agent) {
-                agent->track_event("connect_dev", j.dump());
-            }
         }
     }
     last_status = status;

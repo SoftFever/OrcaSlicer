@@ -67,7 +67,11 @@ function HandleModelList( pVal )
 			let sVV=strVendor;
 			if( sVV=="BBL" )
 				sVV="Bambu Lab";			
-			
+			if( sVV=="Custom")
+				sVV="Custom Printer";
+			if( sVV=="Other")
+				sVV="Orca colosseum";
+
 			let HtmlNewVendor='<div class="OneVendorBlock" Vendor="'+strVendor+'">'+
 '<div class="BlockBanner">'+
 '	<div class="BannerBtns">'+
@@ -80,10 +84,7 @@ function HandleModelList( pVal )
 '</div>'+
 '</div>';
 			
-			if(sVV=='Bambu Lab')
-				$('#Content').html( HtmlNewVendor + $('#Content').html() );
-			else
-				$('#Content').append( HtmlNewVendor );
+			$('#Content').append(HtmlNewVendor);
 		}
 		
 		let ModelName=OneModel['model'];
@@ -100,10 +101,9 @@ function HandleModelList( pVal )
 			HtmlNozzel+='<div class="pNozzel TextS2"><input type="checkbox" model="'+OneModel['model']+'" nozzel="'+nNozzel+'" vendor="'+strVendor+'" /><span>'+nNozzel+'</span><span class="trans" tid="t13">mm nozzle</span></div>';
 		}
 		
-		let CoverImage="../../image/printer/"+OneModel['model']+"_cover.png";
-		let	CoverImage2="../../../profiles/"+strVendor+"/"+OneModel['model']+"_cover.png";
+		let CoverImage=OneModel['cover'];
 		ModelHtml[strVendor]+='<div class="PrinterBlock">'+
-'	<div class="PImg"><img src="'+CoverImage+'" onerror="ShowPrinterThumb(this,\''+CoverImage2+'\')" /></div>'+
+'	<div class="PImg"><img src="'+CoverImage+'"  /></div>'+
 '    <div class="PName">'+OneModel['model']+'</div>'+ HtmlNozzel +'</div>';
 	}
 	
@@ -138,12 +138,12 @@ function HandleModelList( pVal )
 		}
 	}	
 
-	let AlreadySelect=$("input:checked");
-	let nSelect=AlreadySelect.length;
-	if(nSelect==0)
-	{
-		$("input[nozzel='0.4'][vendor='BBL']").prop("checked", true);
-	}
+	// let AlreadySelect=$("input:checked");
+	// let nSelect=AlreadySelect.length;
+	// if(nSelect==0)
+	// {
+	// 	$("input[nozzel='0.4'][vendor='Custom']").prop("checked", true);
+	// }
 	
 	TranslatePage();
 }

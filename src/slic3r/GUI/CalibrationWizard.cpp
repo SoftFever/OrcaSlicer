@@ -3,7 +3,7 @@
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "CalibrationWizardPage.hpp"
-#include "../../libslic3r/Calib.hpp"
+#include "../../libslic3r/calib.hpp"
 #include "Tabbook.hpp"
 #include "CaliHistoryDialog.hpp"
 

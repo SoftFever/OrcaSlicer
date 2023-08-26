@@ -385,7 +385,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                         wxString y_str = thumbnail.GetNextToken();
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
-                                if (0 <= x && x <= 256 && 0 <= y && y <= 256) {
+                                if (0 <= x &&  0 <= y) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }
@@ -511,7 +511,7 @@ void TextCtrl::BUILD() {
     m_combine_side_text = !m_opt.multiline;
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) text_ctrl->GetSize().GetHeight() / m_em_unit;
-    if (m_opt.is_code) // BBS
+    if (m_opt.is_code)
         temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
 
@@ -1383,8 +1383,7 @@ boost::any& Choice::get_value()
 	{
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" ||
-                 m_opt_id == "support_style") {
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}

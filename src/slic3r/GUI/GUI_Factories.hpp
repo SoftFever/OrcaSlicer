@@ -108,7 +108,7 @@ private:
     //BBS: add part plate related logic
     void        create_plate_menu();
     //BBS: add bbl object menu
-    void        create_bbl_object_menu();
+    void        create_extra_object_menu();
     void        create_bbl_part_menu();
     void        create_bbl_assemble_object_menu();
     void        create_bbl_assemble_part_menu();

@@ -294,12 +294,8 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 NetworkAgent* agent = wxGetApp().getAgent();
                 if (status == PrinterFileSystem::Failed && err != 0) {
                     j["result"] = "failed";
-                    if (agent)
-                        agent->track_event("download_video_conn", j.dump());
                 } else if (status == PrinterFileSystem::ListReady) {
                     j["result"] = "success";
-                    if (agent)
-                        agent->track_event("download_video_conn", j.dump());
                 }
                 m_last_errors.insert(fs->GetLastError());
             }
@@ -320,15 +316,9 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
                 if (result > 1) {
                     // download failed
                     j["result"] = "failed";
-                    if (agent) {
-                        agent->track_event("download_video", j.dump());
-                    }
                 } else if (result == 0) {
                     // download success
                     j["result"] = "success";
-                    if (agent) {
-                        agent->track_event("download_video", j.dump());
-                    }
                 }
             }
             return;

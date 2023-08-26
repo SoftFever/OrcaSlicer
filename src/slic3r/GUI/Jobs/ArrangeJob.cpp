@@ -498,7 +498,9 @@ void ArrangeJob::process()
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
-    if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    const bool has_lidar = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+    if (has_lidar && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
         
     update_arrange_params(params, *m_plater, m_selected);
@@ -736,7 +738,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
 
     params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
     params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
-    params.cleareance_radius                   = print.config().extruder_clearance_max_radius.value;
+    params.cleareance_radius                   = print.config().extruder_clearance_radius.value;
     params.printable_height                    = print.config().printable_height.value;
     params.allow_rotations                     = settings.enable_rotation;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;

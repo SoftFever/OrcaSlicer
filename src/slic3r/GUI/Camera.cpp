@@ -86,7 +86,7 @@ void Camera::set_zoom(double zoom)
 void Camera::select_view(const std::string& direction)
 {
     if (direction == "iso")
-        set_iso_orientation();
+        set_default_orientation();
     else if (direction == "left")
         look_at(m_target - m_distance * Vec3d::UnitX(), m_target, Vec3d::UnitZ());
     else if (direction == "right")
@@ -574,19 +574,6 @@ void Camera::set_default_orientation()
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());
 }
 
-void Camera::set_iso_orientation()
-{
-    m_zenit = 45.0f;
-    const double theta_rad = Geometry::deg2rad(-(double)m_zenit);
-    const double phi_rad = Geometry::deg2rad(45.0);
-    const double sin_theta = ::sin(theta_rad);
-    const Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
-    m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
-    m_view_rotation.normalize();
-    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());
-}
-
-
 Vec3d Camera::validate_target(const Vec3d& target) const
 {
     BoundingBoxf3 test_box = m_scene_box;
@@ -604,15 +591,15 @@ Vec3d Camera::validate_target(const Vec3d& target) const
 
 void Camera::update_zenit()
 {
-    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0))); }
+    m_zenit = Geometry::rad2deg(0.5 * M_PI - std::acos(std::clamp(-get_dir_forward().dot(Vec3d::UnitZ()), -1.0, 1.0)));
+}
 
 void Camera::update_target() {
     Vec3d temptarget = get_position() + m_distance * get_dir_forward();
     if (!(temptarget-m_target).isApprox(Vec3d::Zero())){
         m_target = temptarget;
-    }      
+    } 
 }
-
 } // GUI
 } // Slic3r
 

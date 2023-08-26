@@ -75,7 +75,7 @@ void OG_CustomCtrl::init_ctrl_lines()
     for (const Line& line : og_lines)
     {
         if (line.is_separator()) {
-            ctrl_lines.emplace_back(CtrlLine(3, this, line));
+            ctrl_lines.emplace_back(CtrlLine(0, this, line));
             continue;
         }
 

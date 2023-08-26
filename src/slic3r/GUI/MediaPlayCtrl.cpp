@@ -280,8 +280,6 @@ void MediaPlayCtrl::Stop(wxString const &msg)
             j["tutk_state"] = m_tutk_state;
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
-        if (agent)
-            agent->track_event("start_liveview", j.dump());
         m_last_failed_codes.insert(m_failed_code);
     }
 
@@ -440,8 +438,6 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             j["result"] = "success";
             j["code"] = 0;
             NetworkAgent* agent = wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("start_liveview", j.dump());
 
             m_failed_retry = 0;
             m_failed_code  = 0;

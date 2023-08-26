@@ -14,14 +14,14 @@
 #include "GCode/ThumbnailData.hpp"
 #include "GCode/GCodeProcessor.hpp"
 #include "MultiMaterialSegmentation.hpp"
-
 #include "libslic3r.h"
 
 #include <Eigen/Geometry>
 
 #include <functional>
 #include <set>
-#include "Calib.hpp"
+
+#include "calib.hpp"
 
 namespace Slic3r {
 
@@ -87,9 +87,9 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posIroning, posSupportMaterial,
+    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
     // BBS
-    posSimplifyWall, posSimplifyInfill, posSimplifySupportPath,
+    posSimplifyInfill,
     posDetectOverhangsForLift,
     posCount,
 };
@@ -194,11 +194,11 @@ struct PrintInstance
 	const ModelInstance *model_instance;
 	// Shift of this instance's center into the world coordinates.
 	Point 				 shift;
-
+    
     BoundingBoxf3   get_bounding_box();
     Polygon get_convex_hull_2d();
-    // OrcaSlicer
-    //
+    // SoftFever
+    // 
     // instance id
     size_t               id;
 
@@ -305,7 +305,7 @@ public:
     Transform3d                  trafo_centered() const
         { Transform3d t = this->trafo(); t.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0)); return t; }
     const PrintInstances&        instances() const      { return m_instances; }
-    PrintInstances& instances() { return m_instances; }
+    PrintInstances &instances() { return m_instances; }
 
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
     LayerPtrs&                   layers()               { return m_layers; }
@@ -434,11 +434,11 @@ public:
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
 
-    // OrcaSlicer
-    size_t get_klipper_object_id() const { return m_klipper_object_id; }
-    void set_klipper_object_id(size_t id) { m_klipper_object_id = id; }
+    // SoftFever
+    size_t get_id() const { return m_id; }
+    void set_id(size_t id) { m_id = id; }
 
-private:
+  private:
     // to be called from Print only.
     friend class Print;
 
@@ -522,10 +522,12 @@ private:
 
     PrintObject*                            m_shared_object{ nullptr };
 
-    // OrcaSlicer
-    //
-    // object id for klipper firmware only
-    size_t               m_klipper_object_id;
+    
+    // SoftFever
+    // 
+    // object id
+    size_t               m_id;
+    void apply_conical_overhang();
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.
@@ -737,7 +739,7 @@ public:
 
     const PrintConfig&          config() const { return m_config; }
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
-    const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
+    const PrintRegionConfig& default_region_config() const { return m_default_region_config; }
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
     PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
@@ -795,8 +797,6 @@ public:
     int get_modified_count() const {return m_modified_count;}
     //BBS: add status for whether support used
     bool is_support_used() const {return m_support_used;}
-    bool is_BBL_Printer() const { return m_isBBLPrinter;}
-    void set_BBL_Printer(const bool isBBL) { m_isBBLPrinter = isBBL;}
     std::string get_conflict_string() const
     {
         std::string result;
@@ -806,23 +806,28 @@ public:
 
         return result;
     }
+
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
+    ConflictResultOpt            get_conflict_result() const { return m_conflict_result; }
 
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
-    //OrcaSlicer
-    CalibMode &         calib_mode() { return m_calib_params.mode; }
-    const CalibMode&    calib_mode() const { return m_calib_params.mode; }
-    void                set_calib_params(const Calib_Params &params);
+
+    //SoftFever
+    bool &is_BBL_printer() { return m_isBBLPrinter; }
+    const bool is_BBL_printer() const { return m_isBBLPrinter; }
+    CalibMode& calib_mode() { return m_calib_params.mode; }
+    const CalibMode calib_mode() const { return m_calib_params.mode; }
+    void set_calib_params(const Calib_Params& params);
     const Calib_Params& calib_params() const { return m_calib_params; }
-    Vec2d translate_to_print_space(const Vec2d& point) const;
+    Vec2d translate_to_print_space(const Vec2d &point) const;
     // scaled point
-    Vec2d translate_to_print_space(const Point& point) const;
+    Vec2d translate_to_print_space(const Point &point) const;
 
     static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
 
-protected:
+  protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
 
@@ -844,8 +849,10 @@ private:
     PrintRegionConfig                       m_default_region_config;
     PrintObjectPtrs                         m_objects;
     PrintRegionPtrs                         m_print_regions;
-    //BBS.
-    bool m_isBBLPrinter = false;
+    
+    //SoftFever
+    bool m_isBBLPrinter;
+
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
     // BBS: collecting extrusion paths to build brim by objs
@@ -874,8 +881,8 @@ private:
     //BBS
     ConflictResultOpt m_conflict_result;
     FakeWipeTower     m_fake_wipe_tower;
-
-    // OrcaSlicer: calibration
+    
+    //SoftFever: calibration
     Calib_Params m_calib_params;
 
     // To allow GCode to set the Print's GCodeExport step status.

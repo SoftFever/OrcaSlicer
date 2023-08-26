@@ -74,9 +74,10 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 {
     { L("Quality"), {{"layer_height", "",1},
                     //{"initial_layer_print_height", "",2},
-                    {"seam_position", "",2}, {"seam_gap", "",3}, {"wipe_speed", "",4},
-                    {"slice_closing_radius", "",5}, {"resolution", "",6},
-                    {"xy_hole_compensation", "",7}, {"xy_contour_compensation", "",8}, {"elefant_foot_compensation", "",9}
+                    {"seam_position", "",2},
+                    {"slice_closing_radius", "",3}, {"resolution", "",4},
+                    {"xy_hole_compensation", "",5}, {"xy_contour_compensation", "",6}, {"elefant_foot_compensation", "",7},
+                    {"make_overhang_printable_angle","", 8},{"make_overhang_printable_hole_size","",9}
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
@@ -92,16 +93,16 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"bridge_flow", "",11}
+    { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"bridge_flow", "",11},{"make_overhang_printable", "",11},{"bridge_density", "", 1}
                     }},
-    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
-                    {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},
-                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
-                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
+    { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
+                    {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
+                    {"sparse_infill_density", "",1},{"sparse_infill_pattern", "",1},{"infill_anchor", "",1},{"infill_anchor_max", "",1},{"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
+                    {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1}, {"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
-                    {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
-                    {"bridge_speed", "",11}, {"gap_infill_speed", "",12}
+                    {"enable_overhang_speed", "",6}, {"overhang_speed_classic", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10},
+                    {"bridge_speed", "",11}, {"gap_infill_speed", "",12}, {"internal_bridge_speed", "", 13}
                     }}
 };
 
@@ -141,7 +142,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //Quality
         "layer_height", "initial_layer_print_height", "adaptive_layer_height", "seam_position", "xy_hole_compensation", "xy_contour_compensation", "elefant_foot_compensation", "support_line_width",
         //Support
-        "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "support_critical_regions_only", "enforce_support_layers","support_remove_small_overhang",
+        "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "support_critical_regions_only", "enforce_support_layers",
         //tree support
         "tree_support_wall_count",
         //support
@@ -484,18 +485,38 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
         sub_menu->AppendSeparator();
     }
 
-    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone")})
-    {
-        append_menu_item(sub_menu, wxID_ANY, _(item), "",
-            [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
+    for (auto &item : {L("Orca Cube"), L("3DBenchy"), L("Autodesk FDM Test"),
+                       L("Voron Cube")}) {
+        append_menu_item(
+            sub_menu, wxID_ANY, _(item), "",
+            [type, item](wxCommandEvent &) {
+              std::vector<boost::filesystem::path> input_files;
+              std::string file_name = item;
+              if (file_name == L("Orca Cube"))
+                file_name = "OrcaCube_v2.3mf";
+              else if (file_name == L("3DBenchy"))
+                file_name = "3DBenchy.stl";
+              else if (file_name == L("Autodesk FDM Test"))
+                file_name = "ksr_fdmtest_v4.stl";
+              else if (file_name == L("Voron Cube"))
+                file_name = "Voron_Design_Cube_v7.stl";
+              else
+                return;
+              input_files.push_back(
+                  (boost::filesystem::path(Slic3r::resources_dir()) /
+                   "handy_models" / file_name));
+              plater()->load_files(input_files, LoadStrategy::LoadModel);
+            },
+            "", menu);
     }
-
-    if (type == ModelVolumeType::INVALID) {
-        sub_menu->AppendSeparator();
-        for (auto &item : {L("Bambu Cube"), L("Bambu Cube V2"), L("3DBenchy"), L("ksr FDMTest")}) {
-            append_menu_item(
-                sub_menu, wxID_ANY, _(item), "", [type, item](wxCommandEvent &) { obj_list()->load_generic_subobject(item, type); }, "", menu);
-        }
+    sub_menu->AppendSeparator();
+    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone")}) {
+        append_menu_item(
+            sub_menu, wxID_ANY, _(item), "",
+            [type, item](wxCommandEvent &) {
+              obj_list()->load_generic_subobject(item, type);
+            },
+            "", menu);
     }
 
     return sub_menu;
@@ -634,6 +655,13 @@ wxMenuItem* MenuFactory::append_menu_item_instance_to_object(wxMenu* menu)
         }, menu_item->GetId());
 
     return menu_item;
+}
+
+void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
+{
+    append_menu_item(
+        menu, wxID_ANY, _L("Fill bed with copies"), _L("Fill the remaining area of bed with copies of the selected object"),
+        [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
 }
 
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
@@ -1041,7 +1069,7 @@ void MenuFactory::create_object_menu()
     // "Add (volumes)" popupmenu will be added later in append_menu_items_add_volume()
 }
 
-void MenuFactory::create_bbl_object_menu()
+void MenuFactory::create_extra_object_menu()
 {
     append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
@@ -1266,7 +1294,7 @@ void MenuFactory::init(wxWindow* parent)
     create_sla_object_menu();
     //create_part_menu();
 
-    create_bbl_object_menu();
+    create_extra_object_menu();
     create_bbl_part_menu();
     create_bbl_assemble_object_menu();
     create_bbl_assemble_part_menu();
@@ -1383,6 +1411,8 @@ wxMenu* MenuFactory::multi_selection_menu()
             append_submenu(menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
                 []() { return plater()->can_split(true); }, m_parent);
         }
+        menu->AppendSeparator();
+        append_menu_item_change_filament(menu);
     }
     return menu;
 }
@@ -1658,12 +1688,6 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
     }, item->GetId());
 }
 
-void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
-{
-    append_menu_item(
-        menu, wxID_ANY, _L("Fill bed with copies"), _L("Fill the remaining area of bed with copies of the selected object"),
-        [](wxCommandEvent &) { plater()->fill_bed_with_instances(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
-}
 void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
 {
     wxString name= _L("Edit Plate Name");

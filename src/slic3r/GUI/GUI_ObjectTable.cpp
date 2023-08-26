@@ -1874,6 +1874,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col = new ObjectGridCol(coBool, "support_reset", L("Support"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
+    // orca merge todo:
     //Bed Adhesion
     col               = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border

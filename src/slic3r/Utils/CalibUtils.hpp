@@ -1,5 +1,5 @@
 #pragma once
-#include "libslic3r/Calib.hpp"
+#include "libslic3r/calib.hpp"
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/PrintJob.hpp"
 

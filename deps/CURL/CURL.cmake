@@ -65,7 +65,6 @@ orcaslicer_add_cmake_project(CURL
   #                     ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/curl-mods.patch
   CMAKE_ARGS
     -DBUILD_TESTING:BOOL=OFF
-    -DBUILD_CURL_EXE:BOOL=OFF
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON
     -DCURL_STATICLIB=${_curl_static}
     ${_curl_platform_flags}

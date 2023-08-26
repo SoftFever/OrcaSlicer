@@ -119,7 +119,7 @@ RetinaHelper::~RetinaHelper() {}
 float RetinaHelper::get_scale_factor() { return float(m_window->GetContentScaleFactor()); }
 #endif // __WXGTK3__
 
-// Fixed the collision between BuildVolume::Type::Convex and macro Convex defined inside /usr/include/X11/X.h that is included by WxWidgets 3.0.
+// Fixed the collision between BuildVolume_Type::Convex and macro Convex defined inside /usr/include/X11/X.h that is included by WxWidgets 3.0.
 #if defined(__linux__) && defined(Convex)
 #undef Convex
 #endif
@@ -287,7 +287,7 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));
     ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
     if(ImGui::BBLSliderScalar("##radius_slider", ImGuiDataType_S32, &radius, &v_min, &v_max)){
         radius = std::clamp(radius, 1, 10);
         m_smooth_params.radius = (unsigned int)radius;
@@ -298,9 +298,9 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     input_align = std::max(input_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(input_align);
     ImGui::PushItemWidth(input_box_width);
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.59f, 0.53f, 0.00f));
     ImGui::BBLDragScalar("##radius_input", ImGuiDataType_S32, &radius, 1, &v_min, &v_max);
     ImGui::PopStyleColor(3);
 
@@ -1047,22 +1047,30 @@ const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
 void GLCanvas3D::load_arrange_settings()
 {
     std::string dist_fff_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance");
+        wxGetApp().app_config->get("arrange", "min_object_distance_fff");
 
     std::string dist_fff_seq_print_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
+        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print_fff");
 
     std::string dist_sla_str =
         wxGetApp().app_config->get("arrange", "min_object_distance_sla");
 
     std::string en_rot_fff_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation");
+        wxGetApp().app_config->get("arrange", "enable_rotation_fff");
 
     std::string en_rot_fff_seqp_str =
         wxGetApp().app_config->get("arrange", "enable_rotation_seq_print");
 
     std::string en_rot_sla_str =
         wxGetApp().app_config->get("arrange", "enable_rotation_sla");
+    
+    std::string en_allow_multiple_materials_str =
+        wxGetApp().app_config->get("arrange", "allow_multi_materials_on_same_plate");
+    
+    std::string en_avoid_region_str =
+        wxGetApp().app_config->get("arrange", "avoid_extrusion_cali_region");
+    
+    
 
     if (!dist_fff_str.empty())
         m_arrange_settings_fff.distance = std::stof(dist_fff_str);
@@ -1074,13 +1082,20 @@ void GLCanvas3D::load_arrange_settings()
         m_arrange_settings_sla.distance = std::stof(dist_sla_str);
 
     if (!en_rot_fff_str.empty())
-        m_arrange_settings_fff.enable_rotation = (en_rot_fff_str == "1" || en_rot_fff_str == "yes");
+        m_arrange_settings_fff.enable_rotation = (en_rot_fff_str == "1" || en_rot_fff_str == "true");
+    
+    if (!en_allow_multiple_materials_str.empty())
+        m_arrange_settings_fff.allow_multi_materials_on_same_plate = (en_allow_multiple_materials_str == "1" || en_allow_multiple_materials_str == "true");
+    
 
     if (!en_rot_fff_seqp_str.empty())
-        m_arrange_settings_fff_seq_print.enable_rotation = (en_rot_fff_seqp_str == "1" || en_rot_fff_seqp_str == "yes");
+        m_arrange_settings_fff_seq_print.enable_rotation = (en_rot_fff_seqp_str == "1" || en_rot_fff_seqp_str == "true");
+    
+    if(!en_avoid_region_str.empty())
+        m_arrange_settings_fff.avoid_extrusion_cali_region = (en_avoid_region_str == "1" || en_avoid_region_str == "true");
 
     if (!en_rot_sla_str.empty())
-        m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "yes");
+        m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "true");
 
     //BBS: add specific arrange settings
     m_arrange_settings_fff_seq_print.is_seq_print = true;
@@ -3118,12 +3133,15 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
-        //case WXK_F5: {
-        //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
-        //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
-        //        post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
-        //    break;
-        //}
+        case WXK_F5: {
+            if (wxGetApp().mainframe->is_printer_view())
+                wxGetApp().mainframe->load_printer_url();
+            
+            //if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
+            //    (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
+            //    post_event(SimpleEvent(EVT_GLCANVAS_RELOAD_FROM_DISK));
+            break;
+        }
 
         // BBS: use keypad to change extruder
         case '1':
@@ -3175,10 +3193,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             }
         //case 'B':
         //case 'b': { zoom_to_bed(); break; }
-#if !BBL_RELEASE_TO_PUBLIC
         case 'C':
         case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
-#endif
         //case 'G':
         //case 'g': {
         //    if ((evt.GetModifiers() & shiftMask) != 0) {
@@ -3376,7 +3392,11 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
-                    //post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+                    post_event(SimpleEvent(EVT_GLCANVAS_TAB));
+                }
+                else if (keyCode == WXK_TAB && evt.ShiftDown() && !evt.ControlDown() && ! wxGetApp().is_gcode_viewer()) {
+                    // Collapse side-panel with Shift+Tab
+                    post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 }
                 else if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
@@ -5044,7 +5064,7 @@ void GLCanvas3D::update_sequential_clearance()
     // the results are then cached for following displacements
     if (m_sequential_print_clearance_first_displacement) {
         m_sequential_print_clearance.m_hull_2d_cache.clear();
-        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
+        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
         double mitter_limit = scale_(0.1);
         m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
         for (size_t i = 0; i < m_model->objects.size(); ++i) {
@@ -5395,20 +5415,22 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     ImGui::Separator();
     if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
-        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
+        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation);
         settings_changed = true;
     }
 
     if (imgui->bbl_checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
         settings_out.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
-        appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate ? "1" : "0");
+        appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate );
         settings_changed = true;
     }
 
     // only show this option if the printer has micro Lidar and can do first layer scan
     DynamicPrintConfig &current_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    const bool has_lidar = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
     auto                op             = current_config.option("scan_first_layer");
-    if (op && op->getBool()) {
+    if (has_lidar && op && op->getBool()) {
         if (imgui->bbl_checkbox(_L("Avoid extrusion calibration region"), settings.avoid_extrusion_cali_region)) {
             settings_out.avoid_extrusion_cali_region = settings.avoid_extrusion_cali_region;
             appcfg->set("arrange", avoid_extrusion_key.c_str(), settings_out.avoid_extrusion_cali_region ? "1" : "0");
@@ -5567,24 +5589,18 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         //camera.select_view("top");
     }
     else {
-        //camera.zoom_to_box(volumes_box);
-
-        //const Vec3d& target = camera.get_target();
-        //double distance = camera.get_distance();
-        //camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
-
-        //BBS: use original iso view for thumbnail
-        camera.select_view("iso");
         camera.zoom_to_box(volumes_box);
+        const Vec3d& target = camera.get_target();
+        double distance = camera.get_distance();
+        camera.select_view("iso");
+        camera.apply_view_matrix();
+
+        camera.apply_projection(plate_build_volume);
     }
 
     camera.apply_view_matrix();
 
     camera.apply_projection(plate_build_volume);
-
-    //double near_z = -1.0;
-    //double far_z = -1.0;
-    //camera.apply_projection(volumes_box, near_z, far_z);
 
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (!for_picking && (shader == nullptr)) {
@@ -5593,17 +5609,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
 
     //if (thumbnail_params.transparent_background)
-    if (for_picking)
-        glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
-    else {
-        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
-        //glsafe(::glClearColor(0.50f, 0.5f, 0.5f, 1.0f));
-        //glsafe(::glClearColor(0.121568f, 0.121568f, 0.121568f, 1.0f));
-        //glsafe(::glClearColor(0.17647f, 0.17647f, 0.17647f, 1.0f));
-        //glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
-        //glsafe(::glClearColor(0.37647f, 0.37647f, 0.37647f, 0.5f)); too lite
-        glsafe(::glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
-    }
+    glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
+
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -6105,12 +6112,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
     item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [Shift+A]";
     item.sprite_id++;
-    item.left.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) agent->track_update_property("auto_arrange", std::to_string(++auto_arrange_count));
-        }
-    };
+    item.left.action_callback = []() {};
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_arrange(); };
     item.left.toggable = true;
     //BBS: GUI refactor: adjust the main toolbar position
@@ -6135,13 +6137,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
-    item.left.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS));
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) agent->track_update_property("split_to_objects", std::to_string(++split_to_objects_count));
-        }
-    };
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_objects(); };
     if (!m_main_toolbar.add_item(item))
@@ -6151,13 +6147,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id++;
-    item.left.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES));
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) agent->track_update_property("split_to_part", std::to_string(++split_to_part_count));
-        }
-    };
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
     item.visibility_callback = GLToolbarItem::Default_Visibility_Callback;
     item.enabling_callback = []()->bool { return wxGetApp().plater()->can_split_to_volumes(); };
     if (!m_main_toolbar.add_item(item))
@@ -6167,13 +6157,7 @@ bool GLCanvas3D::_init_main_toolbar()
     item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
-    item.left.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING));
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) agent->track_update_property("custom_height", std::to_string(++custom_height_count));
-        }
-    };
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
     item.visibility_callback = [this]()->bool {
         bool res = current_printer_technology() == ptFFF;
         // turns off if changing printer technology
@@ -6197,6 +6181,7 @@ bool GLCanvas3D::_init_select_plate_toolbar()
     bool result = item->image_texture.load_from_svg_file(path + "im_all_plates_stats.svg", false, false, false, 128);
     result = result && item->image_texture_transparent.load_from_svg_file(path + "im_all_plates_stats_transparent.svg", false, false, false, 128);
     m_sel_plate_toolbar.m_all_plates_stats_item = item;
+
     return result;
 }
 
@@ -6276,13 +6261,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     item.tooltip = _utf8(L("Assembly View"));
     item.sprite_id = 1;
     item.left.toggable = false;
-    item.left.action_callback = [this]() {
-        if (m_canvas != nullptr) {
-            wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states();
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) agent->track_update_property("custom_painting", std::to_string(++custom_painting_count));
-        }
-    };
+    item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;
     item.visible = true;
     item.visibility_callback = [this]()->bool { return true; };
@@ -6751,22 +6730,22 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 
     if (const BuildVolume &build_volume = m_bed.build_volume(); build_volume.valid()) {
         switch (build_volume.type()) {
-        case BuildVolume::Type::Rectangle: {
+        case BuildVolume_Type::Rectangle: {
             const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
             m_volumes.set_print_volume({ 0, // Rectangle
                 { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
                 { 0.0f, float(build_volume.printable_height()) } });
             break;
         }
-        case BuildVolume::Type::Circle: {
+        case BuildVolume_Type::Circle: {
             m_volumes.set_print_volume({ 1, // Circle
                 { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
                 { 0.0f, float(build_volume.printable_height() + BuildVolume::SceneEpsilon) } });
             break;
         }
         default:
-        case BuildVolume::Type::Convex:
-        case BuildVolume::Type::Custom: {
+        case BuildVolume_Type::Convex:
+        case BuildVolume_Type::Custom: {
             m_volumes.set_print_volume({ static_cast<int>(type),
                 { -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX },
                 { -FLT_MAX, FLT_MAX } }
@@ -8999,8 +8978,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         std::string objName2 = m_gcode_viewer.m_conflict_result.value()._objName2;
         double      height   = m_gcode_viewer.m_conflict_result.value()._height;
         int         layer    = m_gcode_viewer.m_conflict_result.value().layer;
-        text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s).")) % (layer + 1) %
-                objName1 % objName2)
+        text = (boost::format(_u8L("Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please separate the conflicted objects farther (%s <-> %s).")) % layer %
+                height % objName1 % objName2)
                    .str();
         prevConflictText        = text;
         const PrintObject *obj2 = reinterpret_cast<const PrintObject *>(m_gcode_viewer.m_conflict_result.value()._obj2);

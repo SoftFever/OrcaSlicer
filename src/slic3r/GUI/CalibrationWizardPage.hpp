@@ -11,7 +11,7 @@
 #include "PresetComboBoxes.hpp"
 
 #include "../slic3r/Utils/CalibUtils.hpp"
-#include "../../libslic3r/Calib.hpp"
+#include "../../libslic3r/calib.hpp"
 
 namespace Slic3r { namespace GUI {
 

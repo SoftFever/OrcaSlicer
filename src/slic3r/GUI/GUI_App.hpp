@@ -115,9 +115,9 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
-enum BambuStudioMenuIDs {
-  BambuStudioMenuAbout,
-  BambuStudioMenuPreferences,
+enum OrcaSlicerMenuIDs {
+  OrcaSlicerMenuAbout,
+  OrcaSlicerMenuPreferences,
 };
 
 enum CameraMenuIDs {
@@ -294,10 +294,10 @@ private:
     bool             m_side_popup_status{false};
     wxString         m_info_dialog_content;
     HttpServer       m_http_server;
-
+    bool             m_show_gcode_window{true};
     boost::thread    m_check_network_thread;
-public:
-    //try again when subscription fails
+  public:
+      //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
@@ -311,7 +311,6 @@ public:
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
-    
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
@@ -320,7 +319,12 @@ public:
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
-    std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+    std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "OrcaSlicer-gcodeviewer"; }
+    
+    // SoftFever
+    bool show_gcode_window() const { return m_show_gcode_window; }
+    void set_show_gcode_window(bool val) { m_show_gcode_window = val; } 
+
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
     std::vector<std::string> split_str(std::string src, std::string separator);
@@ -440,6 +444,7 @@ public:
 
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
+    void            check_new_version_sf(bool show_tips = false, int by_user = 0);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);

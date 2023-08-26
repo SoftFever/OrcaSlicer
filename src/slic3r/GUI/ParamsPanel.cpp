@@ -248,6 +248,8 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         });
     }
 
+
+
     //m_export_to_file = new Button( this, wxT("Export To File"), "");
     //m_import_from_file = new Button( this, wxT("Import From File") );
 
@@ -588,15 +590,6 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
     if (auto dialog = dynamic_cast<wxDialog*>(GetParent())) {
         wxString title = cur_tab->type() == Preset::TYPE_FILAMENT ? _L("Filament settings") : _L("Printer settings");
         dialog->SetTitle(title);
-    }
-    auto tab_print = dynamic_cast<Tab*>(m_tab_print);
-    if (cur_tab == m_tab_print) {
-        if (tab_print)
-            tab_print->toggle_line("print_flow_ratio", false);
-    }
-    else {
-        if (tab_print)
-            tab_print->toggle_line("print_flow_ratio", false);
     }
 }
 

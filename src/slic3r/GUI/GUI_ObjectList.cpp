@@ -1272,7 +1272,7 @@ void ObjectList::show_context_menu(const bool evt_context_menu)
         const auto item = GetSelection();
         if (item)
         {
-            const ItemType type      = m_objects_model->GetItemType(item);
+            const ItemType type = m_objects_model->GetItemType(item);
             if (!(type & (itPlate | itObject | itVolume | itInstance)))
                 return;
 
@@ -2020,32 +2020,24 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
 {
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
-    TriangleMesh mesh;
+    indexed_triangle_set mesh;
     if (type_name == "Cube")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = TriangleMesh(its_make_cube(side, side, side));
+        mesh = its_make_cube(side, side, side);
     else if (type_name == "Cylinder")
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
-        mesh = TriangleMesh(its_make_cylinder(0.5 * side, side));
+        mesh = its_make_cylinder(0.5 * side, side);
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
-        mesh = TriangleMesh(its_make_sphere(0.5 * side, PI / 18));
+        mesh = its_make_sphere(0.5 * side, PI / 18);
     else if (type_name == "Slab")
         // Sitting on the print bed, left front front corner at (0, 0).
-        mesh = TriangleMesh(its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5));
+        mesh = its_make_cube(bb.size().x() * 1.5, bb.size().y() * 1.5, bb.size().z() * 0.5);
     else if (type_name == "Cone")
-        mesh = TriangleMesh(its_make_cone(0.5 * side, side));
-    else if (type_name == "Bambu Cube")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Bambu_Cube.stl").c_str(), true, nullptr);
-    else if (type_name == "Bambu Cube V2")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Bambu_Cube_V2.stl").c_str(), true, nullptr);
-    else if (type_name == "3DBenchy")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/3DBenchy.stl").c_str(), true, nullptr);
-    else if (type_name == "ksr FDMTest")
-        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/ksr_FDMTest.stl").c_str(), true, nullptr);
-    return mesh;
+        mesh = its_make_cone(0.5 * side, side);
+    return TriangleMesh(mesh);
 }
 
 void ObjectList::load_generic_subobject(const std::string& type_name, const ModelVolumeType type)
@@ -3611,7 +3603,6 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray* selectio
     }
 }
 
-
 void ObjectList::add_objects_to_list(std::vector<size_t> obj_idxs, bool call_selection_changed, bool notify_partplate, bool do_info_update)
 {
 #ifdef __WXOSX__
@@ -3624,6 +3615,7 @@ void ObjectList::add_objects_to_list(std::vector<size_t> obj_idxs, bool call_sel
     AssociateModel(m_objects_model);
 #endif
 }
+
 
 void ObjectList::add_object_to_list(size_t obj_idx, bool call_selection_changed, bool notify_partplate, bool do_info_update)
 {

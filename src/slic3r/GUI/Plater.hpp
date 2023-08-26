@@ -23,7 +23,8 @@
 #include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintBase.hpp"
-#include "libslic3r/Calib.hpp"
+
+#include "libslic3r/calib.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -37,6 +38,7 @@ class Button;
 namespace Slic3r {
 
 class BuildVolume;
+enum class BuildVolume_Type : unsigned char;
 class Model;
 class ModelObject;
 enum class ModelObjectCutAttribute : int;
@@ -209,7 +211,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-    int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
+    int new_project(bool skip_confirm = false, bool silent = false, const wxString& project_name = wxString());
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
@@ -232,13 +234,15 @@ public:
     void reload_gcode_from_disk();
     void refresh_print();
 
-    // OrcaSlicer calibration
-    void calib_pa(const Calib_Params &params);
+    // SoftFever
+    void calib_pa(const Calib_Params& params);
     void calib_flowrate(int pass);
-    void calib_temp(const Calib_Params &params);
-    void calib_max_vol_speed(const Calib_Params &params);
-    void calib_retraction(const Calib_Params &params);
-    void calib_VFA(const Calib_Params &params);
+    void calib_temp(const Calib_Params& params);
+    void calib_max_vol_speed(const Calib_Params& params);
+    void calib_retraction(const Calib_Params& params);
+    void calib_VFA(const Calib_Params& params);
+
+    BuildVolume_Type get_build_volume_type() const;
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }
@@ -736,8 +740,8 @@ private:
     // BBS: add project slice related functions
     int start_next_slice();
 
-    void _calib_pa_pattern(const Calib_Params &params);
-    void _calib_pa_tower(const Calib_Params &params);
+    void _calib_pa_pattern(const Calib_Params& params);
+    void _calib_pa_tower(const Calib_Params& params);
     void _calib_pa_select_added_objects();
 
     friend class SuppressBackgroundProcessingUpdate;

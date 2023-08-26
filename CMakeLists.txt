@@ -676,6 +676,7 @@ function(orcaslicer_copy_dlls target config postfix output_dlls)
         ${_out_dir}/TKXSBase.dll
 
         ${_out_dir}/freetype.dll
+
         PARENT_SCOPE
     )
     

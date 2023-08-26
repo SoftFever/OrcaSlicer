@@ -414,7 +414,6 @@ class GLCanvas3D
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
-  
     class Tooltip
     {
         std::string m_text;
@@ -597,7 +596,6 @@ private:
     Labels m_labels;
     Tooltip m_tooltip;
     bool m_tooltip_enabled{ true };
-
     Slope m_slope;
 
     OrientSettings m_orient_settings_fff, m_orient_settings_sla;

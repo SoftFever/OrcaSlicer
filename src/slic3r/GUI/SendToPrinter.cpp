@@ -381,7 +381,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
 
     m_link_network_state = new Label(m_sw_print_failed_info, _L("Check the status of current system services"));
-    m_link_network_state->SetForegroundColour(0x00AE42);
+    m_link_network_state->SetForegroundColour(0x009688);
     m_link_network_state->SetFont(::Label::Body_12);
     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
@@ -1171,7 +1171,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Refresh_Button(true);
     }
     else if (status == PrintDialogStatus::PrintStatusNotOnTheSameLAN) {
-        wxString msg_text = _L("The printer is required to be in the same LAN as Orca Slicer.");
+        wxString msg_text = _L("The printer is required to be in the same LAN as Bambu Studio.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1233,7 +1233,7 @@ void SendToPrinterDialog::set_default()
         if (filename.empty()) filename = _L("Untitled");
     }
 
-    fs::path filename_path(filename.ToStdWstring());
+    fs::path filename_path(filename.c_str());
     m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
 
     //unsupported character filter

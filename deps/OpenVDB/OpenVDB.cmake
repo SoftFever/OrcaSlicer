@@ -6,17 +6,10 @@ else()
     set(_build_static ON)
 endif()
 
-set (_openvdb_vdbprint ON)
-#if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
-    # Build fails on raspberry pi due to missing link directive to latomic
-    # Let's hope it will be fixed soon.
-    #set (_openvdb_vdbprint OFF)
-#endif ()
-bambustudio_add_cmake_project(OpenVDB    
-    URL https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip # 8.2 patched
+orcaslicer_add_cmake_project(OpenVDB
+    #  support vs2022, update to 8.2
+    URL https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip 
     URL_HASH SHA256=f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81
-    # URL https://github.com/AcademySoftwareFoundation/openvdb/archive/refs/tags/v10.0.1.zip
-    # URL_HASH SHA256=48C2CFA9853B58FA86282DF1F83F0E99D07858CC03EB2BA8227DC447A830100A
     DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost
     CMAKE_ARGS
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
@@ -26,7 +19,7 @@ bambustudio_add_cmake_project(OpenVDB
         -DOPENVDB_CORE_STATIC=${_build_static}
         -DOPENVDB_ENABLE_RPATH:BOOL=OFF
         -DTBB_STATIC=${_build_static}
-        -DOPENVDB_BUILD_VDB_PRINT=${_openvdb_vdbprint}
+        -DOPENVDB_BUILD_VDB_PRINT=ON
         -DDISABLE_DEPENDENCY_VERSION_CHECKS=ON # Centos6 has old zlib
 )
 

@@ -4,12 +4,11 @@
     "from": "system",
     "instantiation": "false",
     "gcode_flavor": "marlin",
-    "machine_start_gcode": "M4899 T3 ; Enable v3 jerk and S-curve acceleration \nM104 S{first_layer_temperature[0]-30} ; Anti-ooze - Set hotend temp to 30 degrees less than target\nM190 S{first_layer_bed_temperature[0]} ; set and wait for bed temp to stabilize\nM109 S{first_layer_temperature[0]} ; set final nozzle temp to stabilize\nG28 ;Home",
+   	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0.0\n;[layer_z]\n\n",
+    "machine_start_gcode": "M4899 T3 ; Enable v3 jerk and S-curve acceleration \nM104 Sfirst_layer_temperature[0] ; Set hotend temp\nM190 S{first_layer_bed_temperature[0]} ; set and wait for bed temp to stabilize\nM109 S{first_layer_temperature[0]} ; set final nozzle temp to stabilize\nG28 ;Home",
     "machine_end_gcode": "M104 S0\nM140 S0\n;Retract the filament\nG92 E1\nG1 E-1 F300\nG28 X0 Y0\nM84",
-    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
-    "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
-    "change_filament_gcode": ";FILAMENT CHANGE (by Lukagra)\nG91\nG1 Z10 F600\nG90\nM600\nG91\nG1 E-3 F1200\nG1 Z-10 F600\nG90",
-    "machine_pause_gcode": "G91\nG1 Z5 F600\nG90\nM601\nG91\nG1 E-3 F1200\nG1 Z-5 F600\nG90",
+    "change_filament_gcode": "M600",
+    "machine_pause_gcode": "M601",
     "extruder_colour": [
         "#018001"
     ],
@@ -110,7 +109,7 @@
     ],
     "silent_mode": "0",
     "single_extruder_multi_material": "1",
-    "use_relative_e_distances": "0",
+    "use_relative_e_distances": "1",
     "wipe_distance": [
         "0"
     ],

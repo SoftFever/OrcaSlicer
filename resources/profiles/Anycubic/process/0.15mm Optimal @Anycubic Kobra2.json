@@ -1,6 +1,6 @@
 {
 	"type": "process",
-	"setting_id": "GP_Anycubic_017",
+	"setting_id": "GP004",
 	"name": "0.15mm Optimal @Anycubic Kobra2",
 	"from": "system",
 	"inherits": "fdm_process_common",
@@ -29,7 +29,7 @@
 	"line_width": "0.42",
 	"infill_direction": "45",
 	"sparse_infill_density": "10%",
-	"sparse_infill_pattern": "zig-zag",
+	"sparse_infill_pattern": "rectilinear",
 	"initial_layer_acceleration": "2000",
 	"travel_acceleration": "0",
 	"inner_wall_acceleration": "0",

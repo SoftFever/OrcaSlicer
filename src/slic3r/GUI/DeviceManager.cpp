@@ -1620,29 +1620,12 @@ int MachineObject::command_go_home()
 int MachineObject::command_control_fan(FanType fan_type, bool on_off)
 {
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (on_off ? 255 : 0)).str();
-    try {
-        json j;
-        j["fan_control"] =  "fan_control";
-
-        NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
-    }
-    catch (...) {}
-
     return this->publish_gcode(gcode);
 }
 
 int MachineObject::command_control_fan_val(FanType fan_type, int val)
 {
     std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (val)).str();
-    try {
-        json j;
-        j["fan_control"] = "fan_control_val";
-
-        NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
-    }
-    catch (...) {}
     return this->publish_gcode(gcode);
 }
 
@@ -1680,29 +1663,12 @@ int MachineObject::command_task_resume()
 int MachineObject::command_set_bed(int temp)
 {
     std::string gcode_str = (boost::format("M140 S%1%\n") % temp).str();
-    try {
-        json j;
-        j["temp_control"] = "bed_temp";
-
-        NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
-    }
-    catch (...) {}
-
     return this->publish_gcode(gcode_str);
 }
 
 int MachineObject::command_set_nozzle(int temp)
 {
     std::string gcode_str = (boost::format("M104 S%1%\n") % temp).str();
-    try {
-        json j;
-        j["temp_control"] = "nozzle_temp";
-
-        NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
-    }
-    catch (...) {}
     return this->publish_gcode(gcode_str);
 }
 
@@ -1971,7 +1937,6 @@ int MachineObject::command_axis_control(std::string axis, double unit, double va
         j["axis_control"] = axis;
       
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
     }
     catch (...) {}
 
@@ -3759,12 +3724,6 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of gcode_line = " << j.dump(4);
-                    if (m_agent && is_studio_cmd(sequence_id)) {
-                        json t;
-                        t["dev_id"] = this->dev_id;
-                        t["signal"] = this->wifi_signal;
-                        m_agent->track_event("ack_cmd_gcode_line", t.dump());
-                    }
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
@@ -3773,7 +3732,6 @@ int MachineObject::parse_json(std::string payload)
                         json t;
                         t["dev_id"] = this->dev_id;
                         t["signal"] = this->wifi_signal;
-                        m_agent->track_event("ack_cmd_project_file", t.dump());
                     }
 
                     std::string result;
@@ -4262,13 +4220,6 @@ int MachineObject::publish_gcode(std::string gcode_str)
     j["print"]["param"] = gcode_str;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
-    if (m_agent) {
-        j["print"]["user_id"] = m_agent->get_user_id();
-        json t;
-        t["dev_id"] = this->dev_id;
-        t["signal"] = this->wifi_signal;
-        m_agent->track_event("cmd_gcode_line", t.dump());
-    }
     return publish_json(j.dump());
 }
 

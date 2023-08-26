@@ -92,12 +92,6 @@ void ComboBox::SelectAndNotify(int n) {
     sendComboBoxEvent();
 }
 
-void ComboBox::SelectAndNotify(int n) { 
-    SetSelection(n);
-    sendComboBoxEvent();
-}
-
-
 void ComboBox::Rescale()
 {
     TextInput::Rescale();
