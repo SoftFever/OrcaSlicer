@@ -1295,6 +1295,9 @@ GUI_App::GUI_App()
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
     this->init_download_path();
+#if wxUSE_WEBVIEW_EDGE
+    this->init_webview_runtime();
+#endif
 
     reset_to_active();
 }
@@ -2041,6 +2044,18 @@ void GUI_App::init_download_path()
 
             std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
             app_config->set("download_path", user_down_path);
+        }
+    }
+}
+
+void GUI_App::init_webview_runtime()
+{
+    // Check WebView Runtime
+    if (!WebView::CheckWebViewRuntime()) {
+        int nRet = wxMessageBox(_L("Couldn't find Edge WebView2 Runtime.\nDo you want to install it?"),
+            _T("WebView Runtime Installation status"), wxYES_NO);
+        if (nRet == wxYES) {
+            WebView::DownloadAndInstallWebViewRuntime();
         }
     }
 }

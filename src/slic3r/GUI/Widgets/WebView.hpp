@@ -7,6 +7,10 @@ class WebView
 {
 public:
     static wxWebView *CreateWebView(wxWindow *parent, wxString const &url);
+
+    static bool CheckWebViewRuntime();
+
+    static bool DownloadAndInstallWebViewRuntime();
     
     static void LoadUrl(wxWebView * webView, wxString const &url);
 

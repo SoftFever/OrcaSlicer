@@ -16,6 +16,8 @@
 
 #ifdef __WIN32__
 #include <WebView2.h>
+#include <Shellapi.h>
+#include <slic3r/Utils/Http.hpp>
 #elif defined __linux__
 #include <gtk/gtk.h>
 #define WEBKIT_API
@@ -38,6 +40,59 @@ webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
 #endif
 
 #ifdef __WIN32__
+// Run Download and Install in another thread so we don't block the UI thread
+DWORD DownloadAndInstallWV2RT() {
+
+  int returnCode = 2; // Download failed
+  // Use fwlink to download WebView2 Bootstrapper at runtime and invoke installation
+  // Broken/Invalid Https Certificate will fail to download
+  // Use of the download link below is governed by the below terms. You may acquire the link
+  // for your use at https://developer.microsoft.com/microsoft-edge/webview2/. Microsoft owns
+  // all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper
+  // ("Software") and related documentation, including any intellectual property in the
+  // Software. You must acquire all code, including any code obtained from a Microsoft URL,
+  // under a separate license directly from Microsoft, including a Microsoft download site
+  // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
+  // HRESULT hr = URLDownloadToFileW(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703",
+  //                               L".\\plugin\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+  fs::path target_file_path = (fs::temp_directory_path() / "MicrosoftEdgeWebview2Setup.exe");
+  bool downloaded = false;
+  Slic3r::Http::get("https://go.microsoft.com/fwlink/p/?LinkId=2124703")
+      .on_error([](std::string body, std::string error, unsigned http_status) {
+
+      })
+      .on_complete([&downloaded, target_file_path](std::string body, unsigned http_status) {
+        fs::fstream file(target_file_path, std::ios::out | std::ios::binary | std::ios::trunc);
+        file.write(body.c_str(), body.size());
+        file.close();
+
+        downloaded = true;
+      })
+      .perform_sync();
+
+  if (downloaded) {
+    // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
+    // Then invoke install at Runtime.
+    SHELLEXECUTEINFOW shExInfo = {0};
+    shExInfo.cbSize = sizeof(shExInfo);
+    shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+    shExInfo.hwnd = 0;
+    shExInfo.lpVerb = L"runas";
+    shExInfo.lpFile = target_file_path.generic_wstring().c_str();
+    shExInfo.lpParameters = L" /install";
+    shExInfo.lpDirectory = 0;
+    shExInfo.nShow = 0;
+    shExInfo.hInstApp = 0;
+
+    if (ShellExecuteExW(&shExInfo)) {
+      WaitForSingleObject(shExInfo.hProcess, INFINITE);
+      returnCode = 0; // Install successfull
+    } else {
+      returnCode = 1; // Install failed
+    }
+  }
+  return returnCode;
+}
 
 class WebViewEdge : public wxWebViewEdge
 {
@@ -259,6 +314,31 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     webView->SetRefData(new WebViewRef(webView));
     g_webviews.push_back(webView);
     return webView;
+}
+
+bool WebView::CheckWebViewRuntime()
+{
+#if wxUSE_WEBVIEW_EDGE
+#ifdef __WIN32__
+    wxWebViewFactoryEdge factory;
+    auto wxVersion = factory.GetVersionInfo();
+    return wxVersion.GetMajor() != 0;
+#else
+    return true;
+#endif
+
+#else
+    return true;
+#endif
+}
+
+bool WebView::DownloadAndInstallWebViewRuntime()
+{
+#ifdef __WIN32__
+    return DownloadAndInstallWV2RT() == 0;
+#endif
+
+  return false;
 }
 
 void WebView::LoadUrl(wxWebView * webView, wxString const &url)
