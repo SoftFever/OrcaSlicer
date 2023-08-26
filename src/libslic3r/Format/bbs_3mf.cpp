@@ -3838,9 +3838,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 m_curr_plater->plate_index = atoi(value.c_str());
             }
-            else if(key == PLATER_NAME_ATTR)
-            {
-                m_curr_plater->plate_name = value.c_str();
+            else if (key == PLATER_NAME_ATTR) {
+                m_curr_plater->plate_name = xml_unescape(value.c_str());
             }
             else if (key == LOCK_ATTR)
             {
@@ -7029,7 +7028,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "  <" << PLATE_TAG << ">\n";
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATER_NAME_ATTR << "\" " << VALUE_ATTR << "=\"" << xml_escape(plate_data->plate_name) << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATER_NAME_ATTR << "\" " << VALUE_ATTR << "=\"" <<  xml_escape(plate_data->plate_name.c_str()) << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
                 ConfigOption* bed_type_opt = plate_data->config.option("curr_bed_type");
                 t_config_enum_names bed_type_names = ConfigOptionEnum<BedType>::get_enum_names();

@@ -27,6 +27,8 @@ public:
     void SetMinSize(const wxSize& size) override;
     
     void SetPaddingSize(const wxSize& size);
+
+    const wxSize& GetPaddingSize();
     
     void SetTextColor(StateColor const &color);
 

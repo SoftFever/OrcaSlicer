@@ -837,7 +837,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails",
-    "use_firmware_retraction", "use_relative_e_distances", "bbl_calib_mark_logo"};
+    "use_firmware_retraction", "use_relative_e_distances"};
 
 static std::vector<std::string> s_Preset_sla_print_options {
     "layer_height",

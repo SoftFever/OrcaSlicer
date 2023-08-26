@@ -305,6 +305,10 @@ void AppConfig::set_defaults()
         set("max_recent_count", "18");
     }
 
+    if (get("staff_pick_switch").empty()) {
+        set_bool("staff_pick_switch", true);
+    }
+
     if (get("sync_system_preset").empty()) {
         set_bool("sync_system_preset", true);
     }
@@ -515,11 +519,34 @@ std::string AppConfig::load()
                         m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                     }
                 }
+            } else if (it.key() == "calis") {
+                for (auto &calis_j : it.value()) {
+                    PrinterCaliInfo cali_info;
+                    if (calis_j.contains("dev_id"))
+                        cali_info.dev_id = calis_j["dev_id"].get<std::string>();
+                    if (calis_j.contains("cali_finished"))
+                        cali_info.cali_finished = bool(calis_j["cali_finished"].get<int>());
+                    if (calis_j.contains("flow_ratio"))
+                        cali_info.cache_flow_ratio = calis_j["flow_ratio"].get<float>();
+                    if (calis_j.contains("presets")) {
+                        cali_info.selected_presets.clear();
+                        for (auto cali_it = calis_j["presets"].begin(); cali_it != calis_j["presets"].end(); cali_it++) {
+                            CaliPresetInfo preset_info;
+                            preset_info.tray_id     = cali_it.value()["tray_id"].get<int>();
+                            preset_info.nozzle_diameter = cali_it.value()["nozzle_diameter"].get<float>();
+                            preset_info.filament_id = cali_it.value()["filament_id"].get<std::string>();
+                            preset_info.setting_id  = cali_it.value()["setting_id"].get<std::string>();
+                            preset_info.name        = cali_it.value()["name"].get<std::string>();
+                            cali_info.selected_presets.push_back(preset_info);
+                        }
+                    }
+                    m_printer_cali_infos.emplace_back(cali_info);
+                }
             } else if (it.key() == "orca_presets") {
                 for (auto& j_model : it.value()) {
                     m_printer_settings[j_model["machine"].get<std::string>()] = j_model;
                 }
-            }else {
+            } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
                         if (iter.value().is_boolean()) {
@@ -618,6 +645,23 @@ void AppConfig::save()
         j["app"]["filament_colors"].push_back(filament_color);
     }
 
+    for (const auto &cali_info : m_printer_cali_infos) {
+        json cali_json;
+        cali_json["dev_id"]             = cali_info.dev_id;
+        cali_json["flow_ratio"]         = cali_info.cache_flow_ratio;
+        cali_json["cali_finished"]      = cali_info.cali_finished ? 1 : 0;
+        for (auto filament_preset : cali_info.selected_presets) {
+            json preset_json;
+            preset_json["tray_id"] = filament_preset.tray_id;
+            preset_json["nozzle_diameter"]  = filament_preset.nozzle_diameter;
+            preset_json["filament_id"]      = filament_preset.filament_id;
+            preset_json["setting_id"]       = filament_preset.setting_id;
+            preset_json["name"]             = filament_preset.name;
+            cali_json["presets"].push_back(preset_json);
+        }
+        j["calis"].push_back(cali_json);
+    }
+
     // Write the other categories.
     for (const auto& category : m_storage) {
         if (category.first.empty())
@@ -638,8 +682,7 @@ void AppConfig::save()
                     j[category.first][kvp.first] = kvp.second;
                 }
             }
-            if(j_filament_array.size() > 0)
-                j["presets"]["filaments"] = j_filament_array;
+            j["presets"]["filaments"] = j_filament_array;
             continue;
         }
         for (const auto& kvp : category.second) {
@@ -942,6 +985,22 @@ void AppConfig::set_variant(const std::string &vendor, const std::string &model,
 void AppConfig::set_vendors(const AppConfig &from)
 {
     m_vendors = from.m_vendors;
+    m_dirty = true;
+}
+
+void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
+{
+    auto iter = std::find_if(m_printer_cali_infos.begin(), m_printer_cali_infos.end(), [&cali_info](const PrinterCaliInfo &cali_info_item) {
+        return cali_info_item.dev_id == cali_info.dev_id;
+    });
+
+    if (iter == m_printer_cali_infos.end()) {
+        m_printer_cali_infos.emplace_back(cali_info);
+    } else {
+        (*iter).cali_finished = cali_info.cali_finished;
+        (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
+        (*iter).selected_presets = cali_info.selected_presets;
+    }
     m_dirty = true;
 }
 

@@ -44,6 +44,9 @@ class WebViewEdge : public wxWebViewEdge
 public:
     bool SetUserAgent(const wxString &userAgent)
     {
+        bool dark = userAgent.Contains("dark");
+        SetColorScheme(dark ? COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK : COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT);
+
         ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
         if (webView2) {
             ICoreWebView2Settings *settings;
@@ -57,9 +60,32 @@ public:
                     return true;
                 }
             }
+            settings->Release();
             return false;
         }
         pendingUserAgent = userAgent;
+        return true;
+    }
+
+    bool SetColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME colorScheme)
+    {
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (webView2) {
+            ICoreWebView2_13 * webView2_13;
+            HRESULT           hr = webView2->QueryInterface(&webView2_13);
+            if (hr == S_OK) {
+                ICoreWebView2Profile *profile;
+                hr = webView2_13->get_Profile(&profile);
+                if (hr == S_OK) {
+                    profile->put_PreferredColorScheme(colorScheme);
+                    profile->Release();
+                    return true;
+                }
+                webView2_13->Release();
+            }
+            return false;
+        }
+        pendingColorScheme = colorScheme;
         return true;
     }
 
@@ -71,10 +97,17 @@ public:
             thiz->pendingUserAgent.clear();
             thiz->SetUserAgent(userAgent);
         }
+        if (pendingColorScheme) {
+            auto thiz      = const_cast<WebViewEdge *>(this);
+            auto colorScheme = pendingColorScheme;
+            thiz->pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
+            thiz->SetColorScheme(colorScheme);
+        }
         wxWebViewEdge::DoGetClientSize(x, y);
     };
 private:
     wxString pendingUserAgent;
+    COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
 };
 
 #elif defined __WXOSX__
@@ -241,7 +274,8 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 
 bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 {
-    if (Slic3r::GUI::wxGetApp().get_mode() == Slic3r::comDevelop)
+    if (Slic3r::GUI::wxGetApp().app_config->get("internal_developer_mode") == "true"
+            && javascript.find("studio_userlogin") == wxString::npos)
         wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     try {
@@ -275,9 +309,10 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 
 void WebView::RecreateAll()
 {
+    auto dark = Slic3r::GUI::wxGetApp().dark_mode();
     for (auto webView : g_webviews) {
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)", SLIC3R_VERSION,
-                                               Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
+                                               dark ? "dark" : "light"));
         webView->Reload();
     }
 }

@@ -5,7 +5,7 @@
 #include "Flow.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
-
+#include "BoundingBox.hpp"
 namespace Slic3r {
 
 class ExPolygon;

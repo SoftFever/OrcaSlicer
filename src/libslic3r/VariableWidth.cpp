@@ -2,18 +2,29 @@
 
 namespace Slic3r {
 
-ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thick_polyline, ExtrusionRole role, const Flow &flow, const float tolerance, const float merge_tolerance)
+ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyline, ExtrusionRole role, const Flow& flow, const float tolerance, const float merge_tolerance)
 {
-    ExtrusionPaths paths;
-    ExtrusionPath path(role);
-    ThickLines lines = thick_polyline.thicklines();
-    
+    ExtrusionMultiPath multi_path;
+    ExtrusionPath      path(role);
+    ThickLines         lines = thick_polyline.thicklines();
+
     for (int i = 0; i < (int)lines.size(); ++i) {
         const ThickLine& line = lines[i];
         assert(line.a_width >= SCALED_EPSILON && line.b_width >= SCALED_EPSILON);
 
         const coordf_t line_len = line.length();
-        if (line_len < SCALED_EPSILON) continue;
+        if (line_len < SCALED_EPSILON) {
+            // The line is so tiny that we don't care about its width when we connect it to another line.
+            if (!path.empty())
+                path.polyline.points.back() = line.b; // If the variable path is non-empty, connect this tiny line to it.
+            else if (i + 1 < (int)lines.size()) // If there is at least one following line, connect this tiny line to it.
+                lines[i + 1].a = line.a;
+            else if (!multi_path.paths.empty())
+                multi_path.paths.back().polyline.points.back() = line.b; // Connect this tiny line to the last finished path.
+
+            // If any of the above isn't satisfied, then remove this tiny line.
+            continue;
+        }
 
         double thickness_delta = fabs(line.a_width - line.b_width);
         if (thickness_delta > tolerance) {
@@ -73,15 +84,15 @@ ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thick_poly
                 path.polyline.append(line.b);
             } else {
                 // we need to initialize a new line
-                paths.emplace_back(std::move(path));
+                multi_path.paths.emplace_back(std::move(path));
                 path = ExtrusionPath(role);
                 -- i;
             }
         }
     }
     if (path.polyline.is_valid())
-        paths.emplace_back(std::move(path));
-    return paths;
+        multi_path.paths.emplace_back(std::move(path));
+    return multi_path;
 }
 
 //BBS: new function to filter width to avoid too fragmented segments

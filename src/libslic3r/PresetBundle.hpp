@@ -102,7 +102,7 @@ public:
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
     // BBS: ams
-    std::vector<DynamicPrintConfig> filament_ams_list;
+    std::map<int, DynamicPrintConfig> filament_ams_list;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;

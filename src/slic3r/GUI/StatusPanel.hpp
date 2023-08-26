@@ -31,7 +31,7 @@
 #include "Widgets/AMSControl.hpp"
 #include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
-#include "Widgets/ErrorMsgStaticText.hpp"
+
 class StepIndicator;
 
 #define COMMAND_TIMEOUT_U0      15
@@ -39,15 +39,6 @@ class StepIndicator;
 
 namespace Slic3r {
 namespace GUI {
-
-enum MonitorStatus {
-    MONITOR_UNKNOWN             = 0,
-    MONITOR_NORMAL              = 1 << 1,
-    MONITOR_NO_PRINTER          = 1 << 2,
-    MONITOR_DISCONNECTED        = 1 << 3,
-    MONITOR_DISCONNECTED_SERVER = 1 << 4,
-    MONITOR_CONNECTING          = 1 << 5,
-};
 
 enum CameraRecordingStatus {
     RECORDING_NONE,
@@ -63,6 +54,79 @@ enum CameraTimelapseStatus {
     TIMELAPSE_OFF_HOVER,
     TIMELAPSE_ON_NORMAL,
     TIMELAPSE_ON_HOVER,
+};
+
+enum PrintingTaskType {
+    PRINGINT,
+    CALIBRATION,
+};
+
+class PrintingTaskPanel : public wxPanel
+{
+public:
+    PrintingTaskPanel(wxWindow* parent, PrintingTaskType type);
+    ~PrintingTaskPanel();
+    void create_panel(wxWindow* parent);
+
+private:
+    MachineObject*  m_obj;
+    ScalableBitmap  m_thumbnail_placeholder;
+    ScalableBitmap  m_bitmap_use_time;
+    ScalableBitmap  m_bitmap_use_weight;
+
+    wxPanel *       m_panel_printing_title;
+    wxPanel*        m_staticline;
+    wxPanel*        m_panel_error_txt;
+
+    wxBoxSizer*     m_printing_sizer;
+    wxStaticText *  m_staticText_printing;
+    wxStaticText*   m_staticText_subtask_value;
+    wxStaticText*   m_staticText_consumption_of_time;
+    wxStaticText*   m_staticText_consumption_of_weight;
+    wxStaticText*   m_printing_stage_value;
+    wxStaticText*   m_staticText_profile_value;
+    wxStaticText*   m_staticText_progress_percent;
+    wxStaticText*   m_staticText_progress_percent_icon;
+    wxStaticText*   m_staticText_progress_left;
+    wxStaticText*   m_staticText_layers;
+    wxStaticBitmap* m_bitmap_thumbnail;
+    wxStaticBitmap* m_bitmap_static_use_time;
+    wxStaticBitmap* m_bitmap_static_use_weight;
+    ScalableButton* m_button_pause_resume;
+    ScalableButton* m_button_abort;
+    Button*         m_button_market_scoring;
+    Button*         m_button_clean;
+
+    ProgressBar*    m_gauge_progress;
+    Label* m_error_text;
+    PrintingTaskType m_type;
+
+public:
+    void init_bitmaps();
+    void init_scaled_buttons();
+    void error_info_reset();
+    void show_error_msg(wxString msg);
+    void reset_printing_value();
+    void msw_rescale();
+    
+public:
+    void enable_pause_resume_button(bool enable, std::string type);
+    void enable_abort_button(bool enable);
+    void update_subtask_name(wxString name);
+    void update_stage_value(wxString stage, int val);
+    void update_progress_percent(wxString percent, wxString icon);
+    void update_left_time(wxString time);
+    void update_left_time(int mc_left_time);
+    void update_layers_num(bool show, wxString num = wxEmptyString);
+    void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
+    void show_profile_info(bool show, wxString profile = wxEmptyString);
+    
+public:
+    ScalableButton* get_abort_button() {return m_button_abort;};
+    ScalableButton* get_pause_resume_button() {return m_button_pause_resume;};
+    Button* get_market_scoring_button() {return m_button_market_scoring;};
+    Button* get_clean_button() {return m_button_clean;};
+    wxStaticBitmap* get_bitmap_thumbnail() {return m_bitmap_thumbnail;};
 };
 
 class StatusBasePanel : public wxScrolledWindow
@@ -134,16 +198,17 @@ protected:
     wxStaticBitmap *m_bitmap_thumbnail;
     wxStaticText *  m_staticText_subtask_value;
     wxStaticText *  m_printing_stage_value;
+    wxStaticText *  m_staticText_profile_value;
     ProgressBar*    m_gauge_progress;
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
     wxStaticText *  m_staticText_progress_left;
-    wxStaticText *  m_staticText_progress_end;
     wxStaticText *  m_staticText_layers;
     Button *        m_button_report;
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
     Button *        m_button_clean;
+    Button *        m_button_market_scoring;
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -198,7 +263,7 @@ protected:
     wxBoxSizer *    m_tasklist_caption_sizer;
     wxPanel*        m_panel_error_txt;
     wxPanel*        m_staticline;
-    ErrorMsgStaticText *  m_error_text;
+    Label *         m_error_text;
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
@@ -207,7 +272,7 @@ protected:
     StepIndicator*  m_calibration_flow;
 
     wxPanel *       m_machine_ctrl_panel;
-    wxPanel *       m_project_task_panel;
+    PrintingTaskPanel *       m_project_task_panel;
 
     // Virtual event handlers, override them in your derived class
     virtual void on_subtask_pause_resume(wxCommandEvent &event) { event.Skip(); }
@@ -238,7 +303,6 @@ public:
 
     void init_bitmaps();
     wxBoxSizer *create_monitoring_page();
-    wxBoxSizer *create_project_task_page(wxWindow *parent);
     wxBoxSizer *create_machine_control_page(wxWindow *parent);
 
     wxBoxSizer *create_temp_axis_group(wxWindow *parent);
@@ -254,7 +318,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true, bool support_vt_load = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_extrustion_cali = true);
 };
 
 
@@ -267,7 +331,7 @@ protected:
     std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
     std::shared_ptr<ImageTransientPopup> m_image_popup;
     std::shared_ptr<CameraPopup> m_camera_popup;
-    std::vector<SliceInfoPanel *> slice_info_list;
+    std::set<int> rated_model_id;
     AMSSetting *m_ams_setting_dlg{nullptr};
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
@@ -292,6 +356,7 @@ protected:
     int          m_last_extrusion = -1;
     int          m_last_vcamera   = -1;
     bool         m_is_load_with_temp = false;
+    bool         m_print_finish            = false;
 
     wxWebRequest web_request;
     bool bed_temp_input    = false;
@@ -300,24 +365,24 @@ protected:
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
     bool m_showing_speed_popup = false;
-
+    bool m_show_mode_changed = false;
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::map<std::string, std::string> m_print_connect_types;
     std::vector<Button *>       m_buttons;
     int last_status;
     void init_scaled_buttons();
-    void update_error_message();
     void create_tasklist_info();
-    void clean_tasklist_info();
     void show_task_list_info(bool show = true);
     void update_tasklist_info();
 
+    void on_market_scoring(wxCommandEvent &event);
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
     void show_error_message(MachineObject* obj, wxString msg, std::string print_error_str = "");
     void error_info_reset();
     void show_recenter_dialog();
+    void market_model_scoring_page(int design_id);
 
     /* axis control */
     bool check_axis_z_at_home(MachineObject* obj);
@@ -380,7 +445,8 @@ protected:
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
     void update_left_time(int mc_left_time);
     void update_basic_print_data(bool def = false);
-    void update_subtask(MachineObject *obj);
+    void update_model_info();
+    void update_subtask(MachineObject* obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
     void update_temp_ctrl(MachineObject *obj);
@@ -397,6 +463,9 @@ protected:
     /* camera */
     void update_camera_state(MachineObject* obj);
     bool show_vcamera = false;
+
+public:
+    void update_error_message();
 
 public:
     StatusPanel(wxWindow *      parent,
@@ -425,6 +494,7 @@ public:
     long           last_read_done_bits{ -1 };
     long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
+    int            last_cali_version{-1};
 
     enum ThumbnailState task_thumbnail_state {ThumbnailState::PLACE_HOLDER};
     std::vector<int> last_stage_list_info;
@@ -433,7 +503,7 @@ public:
 
     void set_default();
     void show_status(int status);
-
+    void set_print_finish_status(bool is_finish);
     void set_hold_count(int& count);
 
     void rescale_camera_icons();

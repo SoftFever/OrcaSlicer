@@ -169,7 +169,7 @@ void ExtrusionCalibration::create()
     m_error_text->Hide();
 
     m_button_cali = new Button(m_step_1_panel, _L("Start calibration"));
-    m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_cali->SetBackgroundColor(m_btn_bg_green);
     m_button_cali->SetFont(Label::Body_13);
@@ -180,7 +180,7 @@ void ExtrusionCalibration::create()
     m_button_cali->Bind(wxEVT_BUTTON, &ExtrusionCalibration::on_click_cali, this);
 
     m_cali_cancel = new Button(m_step_1_panel, _L("Cancel"));
-    m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_cali_cancel->SetBackgroundColor(m_btn_bg_green);
     m_cali_cancel->SetBorderColor(wxColour(0, 150, 136));
@@ -255,7 +255,7 @@ void ExtrusionCalibration::create()
 
     // save button
     m_button_save_result = new Button(m_step_2_panel, _L("Save"));
-    m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_save_result->SetBackgroundColor(m_btn_bg_green);
     m_button_save_result->SetFont(Label::Body_13);
@@ -675,6 +675,11 @@ void ExtrusionCalibration::update_combobox_filaments()
                         curr_selection = filament_index;
                     }
 
+                    if (filament_it->name == obj->extrusion_cali_filament_name && !obj->extrusion_cali_filament_name.empty())
+                    {
+                        curr_selection = filament_index;
+                    }
+
                     wxString filament_name = wxString::FromUTF8(filament_it->name);
                     filament_items.Add(filament_name);
                     break;
@@ -783,6 +788,11 @@ void ExtrusionCalibration::update_filament_info()
             wxString filament_name = wxString::FromUTF8(filament_it->name);
             if (filament_name.compare(m_comboBox_filament->GetValue()) == 0) {
                 m_filament_type = filament_it->name;
+
+                if (obj) {
+                    obj->extrusion_cali_filament_name = filament_it->name;
+                    BOOST_LOG_TRIVIAL(info) << "set extrusion cali filament name = " << obj->extrusion_cali_filament_name;
+                }
 
                 // update nozzle temperature
                 ConfigOption* opt_nozzle_temp = filament_it->config.option("nozzle_temperature");

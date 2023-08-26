@@ -184,7 +184,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         wxGetApp().app_config->set("user_mode", "advanced");
      }
 
-    wxGetApp().app_config->set_bool("dump_video", false);
+    wxGetApp().app_config->set_bool("internal_developer_mode", false);
 
     wxString max_recent_count_str = wxGetApp().app_config->get("max_recent_count");
     long max_recent_count = 18;
@@ -337,10 +337,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         });
 
     //BBS
-     Bind(EVT_SELECT_TAB, [this](wxCommandEvent&evt) {
-         TabPosition pos = (TabPosition)evt.GetInt();
-         m_tabpanel->SetSelection(pos);
-     });
+    Bind(EVT_SELECT_TAB, [this](wxCommandEvent&evt) {
+        TabPosition pos = (TabPosition)evt.GetInt();
+        m_tabpanel->SetSelection(pos);
+    });
 
     Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
 
@@ -862,9 +862,45 @@ void MainFrame::shutdown()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown exit";
 }
 
+void MainFrame::update_filament_tab_ui()
+{
+    wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)->reload_config();
+    wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::Type::TYPE_FILAMENT)->update_tab_ui();
+}
+
 void MainFrame::update_title()
 {
     return;
+}
+
+void MainFrame::show_publish_button(bool show)
+{
+    m_publish_btn->Show(show);
+    Layout();
+}
+
+void MainFrame::show_calibration_button(bool show)
+{
+#ifdef __APPLE__
+    bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
+    if (shown == show)
+        ;
+    else if (show)
+        m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
+    else
+        m_menubar->Remove(3);
+#else
+    topbar()->ShowCalibrationButton(show);
+#endif
+    show = !show;
+    auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
+    if (shown2 == show)
+        ;
+    else if (show)
+        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
+    else
+        m_tabpanel->RemovePage(tpCalibration);
 }
 
 void MainFrame::update_title_colour_after_set_title()
@@ -964,15 +1000,17 @@ void MainFrame::init_tabpanel() {
         else if (panel == m_monitor) {
             //monitor
         }
-
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
-            m_topbar->Enable3DEditorItems();
+            m_topbar->EnableUndoRedoItems();
         }
         else {
-            m_topbar->Disable3DEditorItems();
+            m_topbar->DisableUndoRedoItems();
         }
 #endif
+
+        if (panel)
+            panel->SetFocus();
 
         /*switch (sel) {
         case TabPosition::tpHome:
@@ -1028,6 +1066,11 @@ void MainFrame::init_tabpanel() {
     m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_project->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
+
+    m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_calibration->SetBackgroundColour(*wxWHITE);
+    m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
+
     if (m_plater) {
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();
@@ -1416,14 +1459,18 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
+    m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
+    m_publish_btn->Hide();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
+    sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
@@ -1432,6 +1479,21 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
+
+    m_publish_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
+        CallAfter([this] {
+            wxGetApp().open_publish_page_dialog();
+
+            if (!wxGetApp().getAgent()) {
+                BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+                return;
+            }
+
+            // record
+            json j;
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+        });
+    });
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1701,7 +1763,7 @@ bool MainFrame::get_enable_print_status()
 
     PartPlateList &part_plate_list = m_plater->get_partplate_list();
     PartPlate *current_plate = part_plate_list.get_curr_plate();
-
+    bool is_all_plates = wxGetApp().plater()->get_preview_canvas3D()->is_all_plates_selected();
     if (m_print_select == ePrintAll)
     {
         if (!part_plate_list.is_all_slice_results_ready_for_print())
@@ -1715,6 +1777,7 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eExportGcode)
     {
@@ -1722,6 +1785,7 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eSendGcode)
     {
@@ -1729,6 +1793,7 @@ bool MainFrame::get_enable_print_status()
             enable = false;
         if (!can_send_gcode())
             enable = false;
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eUploadGcode)
     {
@@ -1736,6 +1801,7 @@ bool MainFrame::get_enable_print_status()
             enable = false;
         if (!can_send_gcode())
             enable = false;
+        enable = enable && !is_all_plates;
     }
     else if (m_print_select == eExportSlicedFile)
     {
@@ -1743,6 +1809,7 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+        enable = enable && !is_all_plates;
 	}
 	else if (m_print_select == eSendToPrinter)
 	{
@@ -1750,6 +1817,7 @@ bool MainFrame::get_enable_print_status()
 		{
 			enable = false;
 		}
+        enable = enable && !is_all_plates;
 	}
     else if (m_print_select == eSendToPrinterAll)
     {
@@ -1782,6 +1850,18 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetCornerRadius(FromDIP(12));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetBottomColour(wxColour(0x3B4446));*/
+    StateColor m_btn_bg_enable = StateColor(
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), 
+        std::pair<wxColour, int>(wxColour(48, 221, 112), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
+    m_publish_btn->SetCornerRadius(FromDIP(12));
+    m_publish_btn->SetBackgroundColor(m_btn_bg_enable);
+    m_publish_btn->SetBorderColor(m_btn_bg_enable);
+    m_publish_btn->SetBackgroundColour(wxColour(59,68,70));
+    m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
 
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
     m_slice_btn->SetCornerRadius(FromDIP(12));
@@ -1873,6 +1953,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_param_panel->msw_rescale();
     m_project->msw_rescale();
     m_monitor->msw_rescale();
+    m_calibration->msw_rescale();
 
     // BBS
 #if 0
@@ -1909,7 +1990,7 @@ void MainFrame::on_sys_color_changed()
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
 
-#ifdef __APPLE__
+#ifndef __WINDOWS__
     wxGetApp().force_colors_update();
     wxGetApp().update_ui_from_settings();
 #endif //__APPLE__
@@ -1931,7 +2012,7 @@ void MainFrame::on_sys_color_changed()
     // update Plater
     wxGetApp().plater()->sys_color_changed();
     m_monitor->on_sys_color_changed();
-
+    m_calibration->on_sys_color_changed();
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
@@ -2014,11 +2095,10 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
                 return;
             }
 
+            json j;
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
-
-            if (!wxGetApp().check_login())
-                return;
-
             wxGetApp().open_publish_page_dialog();
         });
 
@@ -2030,10 +2110,6 @@ static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainF
 }
 
             //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
-
-            if (!wxGetApp().check_login())
-                return;
-
             wxGetApp().open_mall_page_dialog();
         });
 #endif
@@ -2104,7 +2180,7 @@ void MainFrame::init_menubar_as_editor()
             size_t file_id = evt.GetId() - wxID_FILE1;
             wxString filename = m_recent_projects.GetHistoryFile(file_id);
                 open_recent_project(file_id, filename);
-            }, wxID_FILE1, wxID_FILE9);
+            }, wxID_FILE1, wxID_FILE1 + 49); // [5050, 5100)
 
         std::vector<std::string> recent_projects = wxGetApp().app_config->get_recent_projects();
         std::reverse(recent_projects.begin(), recent_projects.end());
@@ -2399,11 +2475,11 @@ void MainFrame::init_menubar_as_editor()
 
     //publish menu
 
-    if (m_plater) {
+    /*if (m_plater) {
         publishMenu = new wxMenu();
         add_common_publish_menu_items(publishMenu, this);
         publishMenu->AppendSeparator();
-    }
+    }*/
 
     // View menu
     wxMenu* viewMenu = nullptr;
@@ -2435,6 +2511,12 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang"), _L("Show object overhang highlight in 3D scene"),
+            [this](wxCommandEvent &) {
+                m_plater->show_view3D_overhang(!m_plater->is_view3D_overhang_shown());
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
         /*viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Wireframe") + "\tCtrl+Shift+Enter", _L("Show wireframes in 3D scene"),
             [this](wxCommandEvent&) { m_plater->toggle_show_wireframe(); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
@@ -2784,18 +2866,6 @@ void MainFrame::init_menubar_as_editor()
 #endif // __APPLE__
 }
 
-void MainFrame::show_publish_button(bool show)
-{
-    if (!m_menubar) return;
-
-    if (show){
-        m_menubar->Insert(4, publishMenu, wxString::Format("&%s", _L("3D Models")));
-    }
-    else {
-        m_menubar->Remove(4);
-    }
-}
-
 void MainFrame::set_max_recent_count(int max)
 {
     max = max < 0 ? 0 : max > 10000 ? 10000 : max;
@@ -2808,7 +2878,8 @@ void MainFrame::set_max_recent_count(int max)
             recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
-        m_webview->SendRecentList("");
+        wxGetApp().app_config->save();
+        m_webview->SendRecentList(-1);
     }
 }
 
@@ -3183,6 +3254,12 @@ void MainFrame::request_select_tab(TabPosition pos)
     wxQueueEvent(this, evt);
 }
 
+int MainFrame::get_calibration_curr_tab() {
+    if (m_calibration)
+        return m_calibration->get_tabpanel()->GetSelection();
+    return -1;
+}
+
 // Set a camera direction, zoom to all objects.
 void MainFrame::select_view(const std::string& direction)
 {
@@ -3274,7 +3351,7 @@ void MainFrame::add_to_recent_projects(const wxString& filename)
             recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
         }
         wxGetApp().app_config->set_recent_projects(recent_projects);
-        m_webview->SendRecentList("");
+        m_webview->SendRecentList(0);
     }
 }
 
@@ -3328,7 +3405,7 @@ inline void MainFrame::FileHistory::SetMaxFiles(int max)
         RemoveFileFromHistory(--numFiles);
 }
 
-void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
+void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int images)
 {
     for (size_t i = 0; i < m_recent_projects.GetCount(); ++i) {
         boost::property_tree::wptree item;
@@ -3340,8 +3417,10 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree)
         if (!ec) {
             std::wstring time = wxDateTime(t).FormatISOCombined(' ').ToStdWstring();
             item.put(L"time", time);
-            auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
-            if (!thumbnail.empty()) item.put(L"image", thumbnail);
+            if (i <= images) {
+                auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
+                if (!thumbnail.empty()) item.put(L"image", thumbnail);
+            }
         } else {
             item.put(L"time", _L("File is missing"));
         }
@@ -3373,7 +3452,7 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
                 recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
             }
             wxGetApp().app_config->set_recent_projects(recent_projects);
-            m_webview->SendRecentList("");
+            m_webview->SendRecentList(-1);
         }
     }
 }
@@ -3396,7 +3475,7 @@ void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
         recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
     }
     wxGetApp().app_config->set_recent_projects(recent_projects);
-    m_webview->SendRecentList("");
+    m_webview->SendRecentList(-1);
 }
 
 void MainFrame::load_url(wxString url)
@@ -3507,7 +3586,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     {
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
-            wxGetApp().start_sync_user_preset(true, true);
+            wxGetApp().start_sync_user_preset(true);
             break;
         }
         case wxID_NO:

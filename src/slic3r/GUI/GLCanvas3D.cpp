@@ -999,6 +999,7 @@ void GLCanvas3D::SequentialPrintClearance::render()
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
@@ -1100,8 +1101,15 @@ void GLCanvas3D::load_arrange_settings()
     m_arrange_settings_fff_seq_print.is_seq_print = true;
 }
 
-PrinterTechnology GLCanvas3D::current_printer_technology() const
+int GLCanvas3D::GetHoverId()
 {
+    if (m_hover_plate_idxs.size() == 0) {
+        return -1; }
+    return m_hover_plate_idxs.front();
+
+}
+
+PrinterTechnology GLCanvas3D::current_printer_technology() const {
     return m_process->current_printer_technology();
 }
 

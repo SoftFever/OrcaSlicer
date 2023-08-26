@@ -35,7 +35,7 @@ ObjectLayers::ObjectLayers(wxWindow* parent) :
 
 void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_edited_range)
 {
-    if (is_last_edited_range && m_selection_type == editor->type()) {
+    //if (is_last_edited_range && m_selection_type == editor->type()) {
     /* Workaround! Under OSX we should use CallAfter() for SetFocus() after LayerEditors "reorganizations", 
      * because of selected control's strange behavior: 
      * cursor is set to the control, but blue border - doesn't.
@@ -44,12 +44,12 @@ void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_ed
 #ifdef __WXOSX__
         wxTheApp->CallAfter([editor]() {
 #endif
-        editor->SetFocus();
-        editor->SetInsertionPointEnd();
+        //editor->SetFocus();
+        //editor->SelectAll();
 #ifdef __WXOSX__
         });
 #endif
-    }    
+    //}    
 }
 
 wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinusButton *delete_button, PlusMinusButton *add_button) 
@@ -131,7 +131,7 @@ wxSizer* ObjectLayers::create_layer(const t_layer_height_range& range, PlusMinus
         return wxGetApp().obj_list()->edit_layer_range(range, new_range, dont_update_ui);
     });
 
-    select_editor(editor, is_last_edited_range);
+    //select_editor(editor, is_last_edited_range);
 
     auto sizer2 = new wxBoxSizer(wxHORIZONTAL);
     sizer2->Add(editor);
@@ -170,11 +170,13 @@ void ObjectLayers::create_layers_list()
 {
     for (const auto &layer : m_object->layer_config_ranges) {
         const t_layer_height_range& range = layer.first;
-        auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range);
+        auto del_btn = new PlusMinusButton(m_parent, m_bmp_delete, range); 
+        del_btn->DisableFocusFromKeyboard();
         del_btn->SetBackgroundColour(m_parent->GetBackgroundColour());
         del_btn->SetToolTip(_L("Remove height range"));
 
-        auto add_btn = new PlusMinusButton(m_parent, m_bmp_add, range);
+        auto add_btn = new PlusMinusButton(m_parent, m_bmp_add, range); 
+        add_btn->DisableFocusFromKeyboard();
         add_btn->SetBackgroundColour(m_parent->GetBackgroundColour());
         wxString tooltip = wxGetApp().obj_list()->can_add_new_range_after_current(range);
         add_btn->SetToolTip(tooltip.IsEmpty() ? _L("Add height range") : tooltip);

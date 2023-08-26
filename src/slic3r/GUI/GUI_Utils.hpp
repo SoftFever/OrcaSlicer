@@ -52,6 +52,15 @@ static std::array<float, 4> decode_color_to_float_array(const std::string color)
             ret[j] = float(digit1 * 16 + digit2) / 255.0f;
         }
     }
+    else if (color.size() == 9 && color.front() == '#') {
+        for (size_t j = 0; j < 4; ++j) {
+            int digit1 = hex_to_int(*c++);
+            int digit2 = hex_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1) break;
+
+            ret[j] = float(digit1 * 16 + digit2) / 255.0f;
+        }
+    }
     return ret;
 }
 
@@ -189,9 +198,12 @@ public:
 
         this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
         {
-            update_dark_config();
-            on_sys_color_changed();
-            event.Skip();
+#ifndef __WINDOWS__
+                update_dark_config();
+                on_sys_color_changed();
+                event.Skip();
+#endif // __WINDOWS__
+                
         });
 
         if (std::is_same<wxDialog, P>::value) {

@@ -1644,14 +1644,18 @@ void Tab::on_presets_changed()
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
-    bool has_lidar = wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle);
-    auto& printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    if (has_lidar)
-        wxGetApp().plater()->get_partplate_list().set_render_option(
-            !printer_cfg.option<ConfigOptionBool>("bbl_calib_mark_logo")->value, true);
-    else
+    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle);
+    if (is_bbl_vendor_preset) {
+        wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
+        if (wxGetApp().preset_bundle->printers.get_edited_preset().has_cali_lines(wxGetApp().preset_bundle)) {
+            wxGetApp().plater()->get_partplate_list().set_render_cali(true);
+        } else {
+            wxGetApp().plater()->get_partplate_list().set_render_cali(false);
+        }
+    } else {
         wxGetApp().plater()->get_partplate_list().set_render_option(false, true);
-
+        wxGetApp().plater()->get_partplate_list().set_render_cali(false);
+    }
 
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
@@ -1864,6 +1868,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
         optgroup->append_single_option_line("ironing_type");
+        optgroup->append_single_option_line("ironing_pattern");
         optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");
@@ -1998,6 +2003,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
         optgroup->append_single_option_line("support_on_build_plate_only");
         optgroup->append_single_option_line("support_critical_regions_only");
+        optgroup->append_single_option_line("support_remove_small_overhang");
         //optgroup->append_single_option_line("enforce_support_layers");
 
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");
@@ -2138,6 +2144,11 @@ void TabPrint::update_description_lines()
 void TabPrint::toggle_options()
 {
     if (!m_active_page) return;
+    // BBS: whether the preset is Bambu Lab printer
+    if (m_preset_bundle) {
+        bool is_BBL_printer = m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle);
+        m_config_manipulation.set_is_BBL_Printer(is_BBL_printer);
+    }
 
     m_config_manipulation.toggle_print_fff_options(m_config, m_type < Preset::TYPE_COUNT);
 
@@ -2657,6 +2668,7 @@ void TabFilament::build()
         Option option = optgroup->get_option("filament_type");
         option.opt.width = Field::def_width();
         optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line("filament_vendor");
         optgroup->append_single_option_line("filament_soluble");
         // BBS
         optgroup->append_single_option_line("filament_is_support");
@@ -3006,7 +3018,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line(option);
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
-        optgroup->append_single_option_line("bbl_calib_mark_logo");
         optgroup->append_single_option_line("nozzle_volume");
         // BBS
 #if 0

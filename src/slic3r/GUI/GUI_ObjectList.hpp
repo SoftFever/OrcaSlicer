@@ -300,6 +300,7 @@ public:
     void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
+    void                boolean();    // BBS: Boolean Operation of parts
     wxDataViewItem      add_layer_root_item(const wxDataViewItem obj_item);
     wxDataViewItem      add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config);
 
@@ -310,6 +311,7 @@ public:
     bool                can_split_instances();
     bool                can_merge_to_multipart_object() const;
     bool                can_merge_to_single_object() const;
+    bool                can_mesh_boolean() const;
 
     bool                has_selected_cut_object() const;
     void                invalidate_cut_info_for_selection();
@@ -477,6 +479,7 @@ private:
     void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix = true);
 
     std::vector<int> m_columns_width;
+    wxSize           m_last_size;
 };
 
 

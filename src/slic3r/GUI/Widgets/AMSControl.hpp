@@ -150,7 +150,7 @@ public:
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
 
-    bool parse_ams_info(Ams *ams, bool remain_flag = false, bool humidity_flag = false);
+    bool parse_ams_info(MachineObject* obj, Ams *ams, bool remain_flag = false, bool humidity_flag = false);
 };
 
 /*************************************************
@@ -175,6 +175,7 @@ public:
     void    paintEvent(wxPaintEvent &evt);
     void    Update(std::string ams_id, Caninfo info);
     void    msw_rescale();
+    void    set_disable_mode(bool disable) { m_disable_mode = disable; }
     Caninfo m_info;
     
 
@@ -202,6 +203,8 @@ protected:
     wxString         m_refresh_id;
     wxBoxSizer *     m_size_body;
     virtual void     DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+
+    bool m_disable_mode{ false };
 };
 
 /*************************************************
@@ -298,6 +301,8 @@ public:
     void         show_kn_value(bool show) { m_show_kn = show; };
     void         support_cali(bool sup) { m_support_cali = sup; Refresh(); };
     virtual bool Enable(bool enable = true);
+    void         set_disable_mode(bool disable) { m_disable_mode = disable; }
+    void         msw_rescale();
 
 
 protected:
@@ -307,6 +312,8 @@ protected:
     ScalableBitmap  m_bitmap_editable_light;
     ScalableBitmap  m_bitmap_readonly;
     ScalableBitmap  m_bitmap_readonly_light;
+    ScalableBitmap  m_bitmap_transparent;
+
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};
@@ -318,6 +325,7 @@ protected:
     wxColour m_border_color;
     wxColour m_road_def_color;
     wxColour m_lib_color;
+    bool m_disable_mode{ false };
 
     void on_enter_window(wxMouseEvent &evt);
     void on_leave_window(wxMouseEvent &evt);
@@ -407,6 +415,7 @@ protected:
     bool     m_selected          = {false};
     bool     m_show_humidity     = {false};
     int      m_humidity          = {0};
+    ScalableBitmap* m_ts_bitmap_cube;
 
     void         paintEvent(wxPaintEvent &evt);
     void         render(wxDC &dc);
@@ -460,7 +469,6 @@ public:
     void     StopRridLoading(wxString canid);
     void     msw_rescale();
     void     show_sn_value(bool show);
-
     std::string GetCurrentCan();
 
 public:
@@ -484,6 +492,17 @@ class AmsCansWindow
 public:
     wxString amsIndex;
     AmsCans *amsCans;
+    bool m_disable_mode{ false };
+
+    void set_disable_mode(bool disable) {
+        m_disable_mode = disable;
+        for (auto can_lib : amsCans->m_can_lib_list) {
+            can_lib->canLib->set_disable_mode(disable);
+        }
+        for (auto can_refresh : amsCans->m_can_refresh_list) {
+            can_refresh->canrefresh->set_disable_mode(disable);
+        }
+    }
 };
 
 class AmsItems
@@ -509,6 +528,7 @@ class AMSControl : public wxSimplebook
 public:
     AMSControl(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
+    void on_retry();
     void init_scaled_buttons();
 
 protected:
@@ -543,6 +563,7 @@ protected:
     wxBoxSizer*   m_vams_sizer               = {nullptr};
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
 
+    Label*          m_ams_backup_tip = {nullptr};
     Caninfo         m_vams_info;
     StaticBox*      m_panel_virtual = {nullptr};
     AMSLib*         m_vams_lib      = {nullptr};
@@ -562,6 +583,7 @@ protected:
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
     wxStaticBitmap* m_button_ams_setting   = {nullptr};
+    wxStaticBitmap* m_img_ams_backup  = {nullptr};
     ScalableBitmap m_button_ams_setting_normal;
     ScalableBitmap m_button_ams_setting_hover;
     ScalableBitmap m_button_ams_setting_press;
@@ -583,7 +605,7 @@ public:
 
     bool m_is_none_ams_mode{false};
 	void SetActionState(bool button_status[]);
-    void EnterNoneAMSMode(bool support_vt_load = false);
+    void EnterNoneAMSMode();
     void ExitNoneAMSMode();
 
     void EnterCalibrationMode(bool read_to_calibration);
@@ -617,11 +639,11 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali, bool support_vt_load = false);
+    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali);
+    void show_auto_refill(bool show);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray, MachineObject* obj);
-    void show_filament_backup(bool show);
 
     void reset_vams();
     void post_event(wxEvent&& event);

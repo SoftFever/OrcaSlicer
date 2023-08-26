@@ -10,7 +10,7 @@ uniform vec4 clipping_plane;
 
 varying vec3 clipping_planes_dots;
 varying vec4 model_pos;
-
+varying vec4 world_pos;
 struct SlopeDetection
 {
     bool actived;
@@ -22,7 +22,7 @@ void main()
 {
     model_pos = gl_Vertex;
     // Point in homogenous coordinates.
-    vec4 world_pos = volume_world_matrix * gl_Vertex;
+    world_pos = volume_world_matrix * gl_Vertex;
 
     gl_Position = ftransform();
     // Fill in the scalars for fragment shader clipping. Fragments with any of these components lower than zero are discarded.
