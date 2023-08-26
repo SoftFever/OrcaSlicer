@@ -993,7 +993,7 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
 }
 
 void AppConfig::set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone,
-                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz)
+                                 float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool invert_x, bool invert_y, bool invert_z, bool invert_yaw, bool invert_pitch, bool invert_roll)
 {
     std::string key = std::string("mouse_device:") + name;
     auto it = m_storage.find(key);
@@ -1007,6 +1007,12 @@ void AppConfig::set_mouse_device(const std::string& name, double translation_spe
     it->second["rotation_deadzone"] = float_to_string_decimal_point(rotation_deadzone);
     it->second["zoom_speed"] = float_to_string_decimal_point(zoom_speed);
     it->second["swap_yz"] = swap_yz ? "1" : "0";
+    it->second["invert_x"] = invert_x ? "1" : "0";
+    it->second["invert_y"] = invert_y ? "1" : "0";
+    it->second["invert_z"] = invert_z ? "1" : "0";
+    it->second["invert_yaw"] = invert_yaw ? "1" : "0";
+    it->second["invert_pitch"] = invert_pitch ? "1" : "0";
+    it->second["invert_roll"] = invert_roll ? "1" : "0";
 }
 
 std::vector<std::string> AppConfig::get_mouse_device_names() const

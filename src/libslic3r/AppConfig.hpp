@@ -251,7 +251,7 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
-	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz);
+	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool invert_x, bool invert_y, bool invert_z, bool invert_yaw, bool invert_pitch, bool invert_roll);
 	std::vector<std::string> get_mouse_device_names() const;
 	bool get_mouse_device_translation_speed(const std::string& name, double& speed) const
 		{ return get_3dmouse_device_numeric_value(name, "translation_speed", speed); }
@@ -265,6 +265,18 @@ public:
 		{ return get_3dmouse_device_numeric_value(name, "zoom_speed", speed); }
 	bool get_mouse_device_swap_yz(const std::string& name, bool& swap) const
 		{ return get_3dmouse_device_numeric_value(name, "swap_yz", swap); }
+	bool get_mouse_device_invert_x(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_x", invert); }
+	bool get_mouse_device_invert_y(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_y", invert); }
+	bool get_mouse_device_invert_z(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_z", invert); }
+	bool get_mouse_device_invert_yaw(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_yaw", invert); }
+	bool get_mouse_device_invert_pitch(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_pitch", invert); }
+	bool get_mouse_device_invert_roll(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_roll", invert); }
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
