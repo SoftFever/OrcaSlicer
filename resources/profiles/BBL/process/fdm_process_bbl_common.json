@@ -25,7 +25,6 @@
     "outer_wall_line_width": "0.42",
     "outer_wall_speed": "120",
     "outer_wall_acceleration": "5000",
-    "inner_wall_acceleration": "5000",
     "wall_infill_order": "inner wall/outer wall/infill",
     "line_width": "0.42",
     "infill_direction": "45",
@@ -107,6 +106,5 @@
     "prime_tower_width": "35",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
-    "wall_generator": "arachne",
-    "gcode_label_objects": "0"
+    "wall_generator": "classic"
 }

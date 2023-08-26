@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99_Anker_00",
+    "name": "Generic ABS @Anker",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_abs",
+    "filament_flow_ratio": [
+        "0.926"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
+    ]
+}

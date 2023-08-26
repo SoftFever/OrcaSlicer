@@ -18,12 +18,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
-
-#if BOOST_VERSION >= 107800
-#include <boost/timer/timer.hpp>
-#else
 #include <boost/timer.hpp>
-#endif
 
 static const float GROUND_Z = -0.04f;
 static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.3255f, 0.337f, 0.337f, 1.0f };
@@ -138,7 +133,7 @@ const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadiu
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
 std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#FF0000");
-std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#52c7b8");
+std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#00FF00");
 std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0000FF");
 
 void Bed3D::update_render_colors()
@@ -343,6 +338,7 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     if (show_axes)
         render_axes();
+
     glsafe(::glEnable(GL_DEPTH_TEST));
 
     m_model.set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
@@ -608,17 +604,17 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
 void Bed3D::update_model_offset() const
 {
     // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
-    Vec3d shift = m_extended_bounding_box.center();
+    Vec3d shift = m_build_volume.bounding_volume().center();
     shift(2) = -0.03;
     Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
     *model_offset_ptr = shift;
     //BBS: TODO: hack for current stl for BBL printer
     if (std::string::npos != m_model_filename.find("bbl-3dp-"))
     {
-        (*model_offset_ptr)(0) -= 128.f;
-        (*model_offset_ptr)(1) -= 128.f;
+        (*model_offset_ptr)(0) -= m_bed_shape[2].x() / 2.0f;
+        (*model_offset_ptr)(1) -= m_bed_shape[2].y() / 2.0f;
+        (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
     }
-    (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
@@ -635,9 +631,9 @@ GeometryBuffer Bed3D::update_bed_triangles() const
     BoundingBoxf3 build_volume;
 
     if (!m_build_volume.valid()) return new_triangles;
-    auto bed_ext = get_extents(m_bed_shape);
-    (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x() - bed_ext.min.x();
-    (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
+
+    (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x();
+    (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y();
     (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     std::vector<Vec2d> new_bed_shape;

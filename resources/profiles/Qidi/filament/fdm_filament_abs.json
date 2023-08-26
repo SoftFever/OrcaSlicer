@@ -5,28 +5,28 @@
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "cool_plate_temp" : [
-        "95"
+        "105"
     ],
     "eng_plate_temp" : [
-        "95"
+        "105"
     ],
     "hot_plate_temp" : [
-        "95"
+        "105"
     ],
     "textured_plate_temp" : [
-        "95"
+        "105"
     ],
     "cool_plate_temp_initial_layer" : [
-        "95"
+        "105"
     ],
     "eng_plate_temp_initial_layer" : [
-        "95"
+        "105"
     ],
     "hot_plate_temp_initial_layer" : [
-        "95"
+        "105"
     ],
     "textured_plate_temp_initial_layer" : [
-        "95"
+        "105"
     ],
     "slow_down_for_layer_cooling": [
         "1"
@@ -38,7 +38,7 @@
         "30"
     ],
     "filament_max_volumetric_speed": [
-        "15"
+        "28.6"
     ],
     "filament_type": [
         "ABS"
@@ -50,7 +50,7 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "250"
+        "260"
     ],
     "reduce_fan_stop_start_freq": [
         "1"

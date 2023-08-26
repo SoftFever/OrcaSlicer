@@ -71,6 +71,11 @@ void TabButton::SetPaddingSize(const wxSize &size)
     messureSize();
 }
 
+const wxSize& TabButton::GetPaddingSize() 
+{
+    return paddingSize;
+}
+
 void TabButton::SetTextColor(StateColor const &color)
 {
     text_color = color;

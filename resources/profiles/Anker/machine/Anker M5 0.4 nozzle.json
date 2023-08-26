@@ -1,6 +1,6 @@
 {
     "type": "machine",
-    "setting_id": "GM003",
+    "setting_id": "GM_Anker_000",
     "name": "Anker M5 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
@@ -8,7 +8,7 @@
     "printer_model": "Anker M5",
     "default_print_profile": "0.20mm Standard @Anker",
     "default_filament_profile": [
-        "Anker Generic PLA"
+        "Generic PLA @Anker.json"
     ],
     "nozzle_diameter": [
         "0.4"

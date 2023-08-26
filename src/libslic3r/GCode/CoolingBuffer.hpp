@@ -59,6 +59,9 @@ private:
     bool                        m_cooling_logic_proportional = false;
     //BBS: current fan speed
     int                         m_current_fan_speed;
+    //BBS:
+    bool                        m_set_fan_changing_layer = false;
+    bool                        m_set_addition_fan_changing_layer = false;
 };
 
 }

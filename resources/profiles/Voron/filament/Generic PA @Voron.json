@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFN99",
+    "setting_id": "GFSN99_VORON_00",
+    "name": "Generic PA @Voron",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Voron 2.4 250 0.4 nozzle",
+        "Voron 2.4 300 0.4 nozzle",
+        "Voron 2.4 350 0.4 nozzle",
+        "Voron Trident 250 0.4 nozzle",
+        "Voron Trident 300 0.4 nozzle",
+        "Voron Trident 350 0.4 nozzle",
+        "Voron 0.1 0.4 nozzle"
+    ]
+}

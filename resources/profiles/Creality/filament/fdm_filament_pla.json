@@ -10,38 +10,11 @@
     "filament_max_volumetric_speed": [
         "12"
     ],
-    "filament_type": [
-        "PLA"
-    ],
     "filament_density": [
         "1.24"
     ],
     "filament_cost": [
         "20"
-    ],
-    "cool_plate_temp" : [
-        "60"
-    ],
-    "eng_plate_temp" : [
-        "60"
-    ],
-    "hot_plate_temp" : [
-        "60"
-    ],
-    "textured_plate_temp" : [
-        "60"
-    ],
-    "cool_plate_temp_initial_layer" : [
-        "60"
-    ],
-    "eng_plate_temp_initial_layer" : [
-        "60"
-    ],
-    "hot_plate_temp_initial_layer" : [
-        "60"
-    ],
-    "textured_plate_temp_initial_layer" : [
-        "60"
     ],
     "nozzle_temperature_initial_layer": [
         "220"
@@ -49,16 +22,7 @@
     "reduce_fan_stop_start_freq": [
         "1"
     ],
-    "slow_down_for_layer_cooling": [
-        "1"
-    ],
-    "fan_max_speed": [
-        "100"
-    ],
     "fan_min_speed": [
-        "100"
-    ],
-    "overhang_fan_speed": [
         "100"
     ],
     "overhang_fan_threshold": [
@@ -78,9 +42,6 @@
     ],
     "nozzle_temperature_range_high": [
         "230"
-    ],
-    "slow_down_min_speed": [
-        "10"
     ],
     "slow_down_layer_time": [
         "4"

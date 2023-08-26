@@ -10,7 +10,6 @@
 #include "PrintConfig.hpp"
 #include "GCode/AvoidCrossingPerimeters.hpp"
 #include "GCode/CoolingBuffer.hpp"
-#include "GCode/FanMover.hpp"
 #include "GCode/RetractWhenCrossingPerimeters.hpp"
 #include "GCode/SpiralVase.hpp"
 #include "GCode/ToolOrdering.hpp"
@@ -20,7 +19,6 @@
 #include "EdgeGrid.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "libslic3r/ObjectID.hpp"
-#include "GCode/ExtrusionProcessor.hpp"
 
 #include <memory>
 #include <map>
@@ -181,7 +179,6 @@ public:
     const Point&    last_pos() const { return m_last_pos; }
     Vec2d           point_to_gcode(const Point &point) const;
     Point           gcode_to_point(const Vec2d &point) const;
-    Vec2d point_to_gcode_quantized(const Point& point) const;
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
@@ -198,18 +195,18 @@ public:
     void            set_layer_count(unsigned int value) { m_layer_count = value; }
     void            apply_print_config(const PrintConfig &print_config);
 
-    std::string     travel_to(const Point& point, ExtrusionRole role, std::string comment);
-    bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
-    std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
-    std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
-    std::string     set_extruder(unsigned int extruder_id, double print_z);
-    bool is_BBL_Printer();
-
-    // SoftFever
+    // OrcaSlicer
     std::string set_object_info(Print* print);
 
     // append full config to the given string
     static void append_full_config(const Print& print, std::string& str);
+
+    // BBS: detect lift type in needs_retraction
+    bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
+    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
+    std::string unretract() { return m_writer.unlift() + m_writer.unretract(); }
+    //BBS
+    bool is_BBL_Printer();
 
     // Object and support extrusions of the same PrintObject at the same print_z.
     // public, so that it could be accessed by free helper functions from GCode.cpp
@@ -335,7 +332,7 @@ private:
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string     preamble();
     // BBS
-    std::string     change_layer(coordf_t print_z, bool lazy_raise = false);
+    std::string     change_layer(coordf_t print_z);
     std::string     extrude_entity(const ExtrusionEntity &entity, std::string description = "", double speed = -1.);
     std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1.);
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
@@ -406,20 +403,19 @@ private:
 		// For sequential print, the instance of the object to be printing has to be defined.
 		const size_t                     				 single_object_instance_idx);
 
-    std::string     extrude_perimeters(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region);
-    std::string     extrude_infill(const Print& print, const std::vector<ObjectByExtruder::Island::Region>& by_region, bool ironing);
-    std::string     extrude_support(const ExtrusionEntityCollection& support_fills);
+    std::string     extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region);
+    std::string     extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, bool ironing);
+    std::string     extrude_support(const ExtrusionEntityCollection &support_fills);
 
+    std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
     // BBS
     LiftType to_lift_type(ZHopType z_hop_types);
 
+    std::string     set_extruder(unsigned int extruder_id, double print_z);
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim
     // Cache for custom seam enforcers/blockers for each layer.
     SeamPlacer                          m_seam_placer;
-
-    ExtrusionQualityEstimator m_extrusion_quality_estimator;
-
 
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
@@ -444,13 +440,6 @@ private:
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
     bool                                m_enable_cooling_markers;
-    
-    bool m_enable_exclude_object;
-    std::vector<size_t> m_label_objects_ids;
-    std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
-    // Orca
-    bool m_is_overhang_fan_on;
-    bool m_is_supp_interface_fan_on;
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool                                m_enable_extrusion_role_markers;
@@ -469,8 +458,6 @@ private:
     //double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
-    // To ignore gapfill role for retract_lift_enforce
-    ExtrusionRole                       m_last_notgapfill_extrusion_role;
     // Support for G-Code Processor
     float                               m_last_height{ 0.0f };
     float                               m_last_layer_z{ 0.0f };
@@ -498,14 +485,15 @@ private:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
+    //BBS
+    bool m_enable_label_object;
+    std::vector<size_t> m_label_objects_ids;
+    std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
 
     bool m_silent_time_estimator_enabled;
 
     // Processor
     GCodeProcessor m_processor;
-
-    //some post-processing on the file, with their data class
-    std::unique_ptr<FanMover> m_fan_mover;
 
     // BBS
     Print* m_curr_print = nullptr;
@@ -523,12 +511,7 @@ private:
     void _print_first_layer_extruder_temperatures(GCodeOutputStream &file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // On the first printing layer. This flag triggers first layer speeds.
     //BBS
-    bool    on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0 && abs(m_layer->bottom_z()) < EPSILON; }
-    int layer_id() const {
-        if (m_layer == nullptr)
-            return -1;
-        return m_layer->id();
-    }
+    bool                                on_first_layer() const { return m_layer != nullptr && m_layer->id() == 0 && abs(m_layer->bottom_z()) < EPSILON; }
     // To control print speed of 1st object layer over raft interface.
     bool                                object_layer_over_raft() const { return m_object_layer_over_raft; }
 

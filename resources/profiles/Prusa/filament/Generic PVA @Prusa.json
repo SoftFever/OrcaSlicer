@@ -1,0 +1,22 @@
+{
+    "type": "filament",
+    "filament_id": "GFS99",
+    "setting_id": "GFSS99_PRUSA_00",
+    "name": "Generic PVA @Prusa",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pva",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "compatible_printers": [
+        "Prusa MK3S 0.4 nozzle",
+        "Prusa MINI 0.4 nozzle"
+    ]
+}

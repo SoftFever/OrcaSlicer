@@ -87,5 +87,8 @@
     ],
     "additional_cooling_fan_speed": [
         "70"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
     ]
 }

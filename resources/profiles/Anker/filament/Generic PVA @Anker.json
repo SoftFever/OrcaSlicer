@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "filament_id": "GFS99",
+    "setting_id": "GFSS99_Anker_00",
+    "name": "Generic PVA @Anker",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pva",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "compatible_printers": [
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
+    ]
+}

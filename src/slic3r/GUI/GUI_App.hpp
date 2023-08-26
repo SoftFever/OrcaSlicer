@@ -115,9 +115,9 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
-enum OrcaSlicerMenuIDs {
-  OrcaSlicerMenuAbout,
-  OrcaSlicerMenuPreferences,
+enum BambuStudioMenuIDs {
+  BambuStudioMenuAbout,
+  BambuStudioMenuPreferences,
 };
 
 enum CameraMenuIDs {
@@ -292,20 +292,26 @@ private:
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
+    wxString         m_info_dialog_content;
     HttpServer       m_http_server;
-    bool             m_show_gcode_window{true};
 
-  public:
+    boost::thread    m_check_network_thread;
+public:
+    //try again when subscription fails
+    void            on_start_subscribe_again(std::string dev_id);
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
+
+    std::map<std::string, bool> test_url_state;
 
     //BBS: remove GCodeViewer as seperate APP logic
     explicit GUI_App();
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
+    
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
@@ -314,12 +320,10 @@ private:
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
-    std::string logo_name() const { return is_editor() ? "OrcaSlicer" : "OrcaSlicer-gcodeviewer"; }
-    
-    // SoftFever
-    bool show_gcode_window() const { return m_show_gcode_window; }
-    void set_show_gcode_window(bool val) { m_show_gcode_window = val; } 
+    std::string logo_name() const { return is_editor() ? "BambuStudio" : "BambuStudio-gcodeviewer"; }
+    wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
+    std::vector<std::string> split_str(std::string src, std::string separator);
     // To be called after the GUI is fully built up.
     // Process command line parameters cached in this->init_params,
     // load configs, STLs etc.
@@ -338,6 +342,8 @@ private:
     const wxColour  get_label_default_clr_modified();
     void            init_label_colours();
     void            update_label_colours_from_appconfig();
+    void            update_publish_status();
+    bool            has_model_mall();
     void            update_label_colours();
     // update color mode for window
     void            UpdateDarkUI(wxWindow *window, bool highlited = false, bool just_font = false);
@@ -357,6 +363,8 @@ private:
     //update side popup status
     bool            get_side_menu_popup_status();
     void            set_side_menu_popup_status(bool status);
+    void            link_to_network_check();
+        
 
     const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
@@ -411,7 +419,7 @@ private:
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
-    void            request_model_download(std::string url);
+    void            request_model_download(wxString url);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);
     void            request_open_project(std::string project_id);
@@ -432,7 +440,6 @@ private:
 
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
-    void            check_new_version_sf(bool show_tips = false, int by_user = 0);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
@@ -442,10 +449,11 @@ private:
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
-    void            start_sync_user_preset(bool load_immediately = false, bool with_progress_dlg = false);
+    void            start_sync_user_preset(bool with_progress_dlg = false);
     void            stop_sync_user_preset();
     void            start_http_server();
     void            stop_http_server();
+    void            switch_staff_pick(bool on);
 
     void            on_show_check_privacy_dlg(int online_login = 0);
     void            show_check_privacy_dlg(wxCommandEvent& evt);
@@ -466,8 +474,10 @@ private:
     Tab*            get_model_tab(bool part = false);
     Tab*            get_layer_tab();
     ConfigOptionMode get_mode();
+    std::string     get_mode_str();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
+    void            update_internal_development();
     void            show_ip_address_enter_dialog(wxString title = wxEmptyString);
     void            show_ip_address_enter_dialog_handler(wxCommandEvent &evt);
     bool            show_modal_ip_address_enter_dialog(wxString title = wxEmptyString);
@@ -492,6 +502,7 @@ private:
     void            delete_preset_from_cloud(std::string setting_id);
     void            preset_deleted_from_cloud(std::string setting_id);
 
+    wxString        filter_string(wxString str);
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".
     wxString 		current_language_code_safe() const;
@@ -602,7 +613,7 @@ private:
     std::string     get_plugin_url(std::string name, std::string country_code);
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
-    std::string     get_http_url(std::string country_code);
+    std::string     get_http_url(std::string country_code, std::string path = {});
     std::string     get_model_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();

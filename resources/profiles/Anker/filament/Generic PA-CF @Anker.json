@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "filament_id": "GFN98",
+    "setting_id": "GFSN98_Anker_00",
+    "name": "Generic PA-CF @Anker",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pa",
+    "filament_type": [
+        "PA-CF"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "compatible_printers": [
+        "Anker M5C 0.4 nozzle"
+    ]
+}

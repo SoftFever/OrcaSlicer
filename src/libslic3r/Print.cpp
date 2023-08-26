@@ -23,7 +23,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/regex.hpp>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"
@@ -80,7 +79,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "before_layer_change_gcode",
         "enable_pressure_advance",
         "pressure_advance",
-        "enable_overhang_bridge_fan",
+        "enable_overhang_bridge_fan"
         "overhang_fan_speed",
         "overhang_fan_threshold",
         "slow_down_for_layer_cooling",
@@ -93,28 +92,23 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
+        "extruder_clearance_max_radius",
         "extruder_colour",
         "extruder_offset",
         "filament_flow_ratio",
         "reduce_fan_stop_start_freq",
         "fan_cooling_layer_time",
         "full_fan_speed_layer",
-        "fan_kickstart",
-        "fan_speedup_overhangs",
-        "fan_speedup_time",
         "filament_colour",
         "default_filament_colour",
         "filament_diameter",
         "filament_density",
         "filament_cost",
-        "outer_wall_acceleration",
-        "inner_wall_acceleration",
         "initial_layer_acceleration",
+        "outer_wall_acceleration",
         "top_surface_acceleration",
-        "bridge_acceleration",
-        "travel_acceleration",
-        "sparse_infill_acceleration",
-        "internal_solid_infill_acceleration"
+        "accel_to_decel_enable",
+        "accel_to_decel_factor",
         // BBS
         "cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
@@ -137,14 +131,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_when_changing_layer",
         "retraction_length",
         "retract_length_toolchange",
-        "z_hop", 
-        "retract_lift_above",
-        "retract_lift_below", 
-        "retract_lift_enforce",
+        "z_hop",
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retraction_speed",
-        "use_firmware_retraction",
         "slow_down_layer_time",
         "standby_temperature_delta",
         "machine_start_gcode",
@@ -155,23 +145,23 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
-        "chamber_temperature",
-        "thumbnails",
-        "nozzle_hrc",
+        "chamber_temperatures",
         "required_nozzle_HRC",
         "upward_compatible_machine",
-        // SoftFever
+        //OrcaSlicer
         "seam_gap",
-        "role_based_wipe_speed",
-        "wipe_speed",
-        "use_relative_e_distances",
-        "accel_to_decel_enable",
-        "accel_to_decel_factor",
-        "wipe_on_loops",
-        "gcode_comments",
-        "gcode_label_objects", 
+        "wipe_speed"
+        "default_jerk",
+        "outer_wall_jerk",
+        "inner_wall_jerk",
+        "infill_jerk",
+        "top_surface_jerk",
+        "initial_layer_jerk",
+        "travel_jerk",
+        "inner_wall_acceleration",
+        "sparse_infill_acceleration",
         "exclude_object",
-        "support_material_interface_fan_speed"
+        "use_relative_e_distances"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -189,7 +179,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // These steps have no influence on the G-code whatsoever. Just ignore them.
         } else if (
                opt_key == "skirt_loops"
-            || opt_key == "skirt_speed"
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
@@ -201,7 +190,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
-            || opt_key == "filament_shrink"
             || opt_key == "resolution"
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
@@ -210,8 +198,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "print_sequence"
+            || opt_key == "chamber_temperatures"
             || opt_key == "filament_type"
-            || opt_key == "chamber_temperature"
             || opt_key == "nozzle_temperature_initial_layer"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_max_volumetric_speed"
@@ -236,9 +224,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
-            || opt_key == "initial_layer_speed"
-            || opt_key == "initial_layer_travel_speed"
-            || opt_key == "slow_down_layers") {
+            || opt_key == "initial_layer_speed") {
             //|| opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
@@ -262,7 +248,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
-			osteps.emplace_back(posSimplifyPath);
+            osteps.emplace_back(posSimplifyWall);
             osteps.emplace_back(posSimplifyInfill);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
@@ -288,9 +274,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     return invalidated;
 }
 
-void Print::set_calib_params(const Calib_Params& params) {
-    m_calib_params = params;
-    m_calib_params.mode = params.mode;
+void Print::set_calib_params(const Calib_Params &params)
+{
+    m_calib_params      = params;
 }
 
 bool Print::invalidate_step(PrintStep step)
@@ -541,7 +527,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 auto tmp = offset(convex_hull_no_offset,
                         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+                        float(scale_(0.5 * print.config().extruder_clearance_max_radius.value - EPSILON)),
                         jtRound, scale_(0.1));
                 if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
                     convex_hull = tmp.front();
@@ -954,10 +940,6 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
     return {std::string()};
 }
 
-// Orca: this g92e0 regex is used copied from PrusaSlicer
-// Matches "G92 E0" with various forms of writing the zero and with an optional comment.
-boost::regex regex_g92e0 { "^[ \\t]*[gG]92[ \\t]*[eE](0(\\.0*)?|\\.0+)[ \\t]*(;.*)?$" };
-
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 //BBS: refine seq-print validation logic
 StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
@@ -1138,15 +1120,19 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return ("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
-        auto validate_extrusion_width = [min_nozzle_diameter, max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
-            double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
-            double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+        auto validate_extrusion_width = [/*min_nozzle_diameter,*/ max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+            // This may change in the future, if we switch to "extrusion width wrt. nozzle diameter"
+            // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
+//        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
+//        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+            double extrusion_width_min = config.get_abs_value(opt_key);
+            double extrusion_width_max = config.get_abs_value(opt_key);
         	if (extrusion_width_min == 0) {
         		// Default "auto-generated" extrusion width is always valid.
         	} else if (extrusion_width_min <= layer_height) {
                 err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max > max_nozzle_diameter * 5) {
+			} else if (extrusion_width_max >= max_nozzle_diameter * 2.5) {
                 err_msg = L("Too large line width");
 				return false;
 			}
@@ -1232,56 +1218,33 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
-    // Orca: G92 E0 is not supported when using absolute extruder addressing
-    // This check is copied from PrusaSlicer, the original author is Vojtech Bubnik
-    {
-        bool before_layer_gcode_resets_extruder =
-            boost::regex_search(m_config.before_layer_change_gcode.value, regex_g92e0);
-        bool layer_gcode_resets_extruder = boost::regex_search(m_config.layer_change_gcode.value, regex_g92e0);
-        if (m_config.use_relative_e_distances) {
-            // See GH issues #6336 #5073
-            if ((m_config.gcode_flavor == gcfMarlinLegacy || m_config.gcode_flavor == gcfMarlinFirmware) &&
-                !before_layer_gcode_resets_extruder && !layer_gcode_resets_extruder)
-                return {L("Relative extruder addressing requires resetting the extruder position at each layer to "
-                          "prevent loss of floating point accuracy. Add \"G92 E0\" to layer_gcode."),
-                        nullptr, "before_layer_change_gcode"};
-        } else if (before_layer_gcode_resets_extruder)
-            return {L("\"G92 E0\" was found in before_layer_gcode, which is incompatible with absolute extruder "
-                      "addressing."),
-                    nullptr, "before_layer_change_gcode"};
-        else if (layer_gcode_resets_extruder)
-            return {L("\"G92 E0\" was found in layer_gcode, which is incompatible with absolute extruder addressing."),
-                    nullptr, "layer_change_gcode"};
-    }
 
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
 
-	    if (is_BBL_printer()) {
-	    const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
-	    for (unsigned int extruder_id : extruders) {
-	        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
-	        for (unsigned int extruder_id : extruders) {
-	            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
-	            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
-	                std::string bed_type_name;
-	                for (auto item : *bed_type_keys_map) {
-	                    if (item.second == m_config.curr_bed_type) {
-	                        bed_type_name = item.first;
-	                        break;
-	                    }
-	                }
+    const t_config_enum_values* bed_type_keys_map = bed_type_def->enum_keys_map;
+    for (unsigned int extruder_id : extruders) {
+        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key(m_config.curr_bed_type));
+        for (unsigned int extruder_id : extruders) {
+            int curr_bed_temp = bed_temp_opt->get_at(extruder_id);
+            if (curr_bed_temp == 0 && bed_type_keys_map != nullptr) {
+                std::string bed_type_name;
+                for (auto item : *bed_type_keys_map) {
+                    if (item.second == m_config.curr_bed_type) {
+                        bed_type_name = item.first;
+                        break;
+                    }
+                }
 
-	                StringObjectException except;
-	                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
-	                except.string += "\n";
-	                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
-	                except.params.push_back(std::to_string(this->get_plate_index() + 1));
-	                except.params.push_back(L(bed_type_name));
-	                except.params.push_back(std::to_string(extruder_id+1));
-	                except.object = nullptr;
-	                return except;
-	           }
+                StringObjectException except;
+                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.string += "\n";
+                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
+                except.params.push_back(std::to_string(this->get_plate_index() + 1));
+                except.params.push_back(L(bed_type_name));
+                except.params.push_back(std::to_string(extruder_id+1));
+                except.object = nullptr;
+                return except;
             }
         }
     }
@@ -1353,10 +1316,10 @@ double Print::skirt_first_layer_height() const
 
 Flow Print::brim_flow() const
 {
-    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
-    if (width.value <= 0)
+    ConfigOptionFloat width = m_config.initial_layer_line_width;
+    if (width.value == 0)
         width = m_print_regions.front()->config().inner_wall_line_width;
-    if (width.value <= 0)
+    if (width.value == 0)
         width = m_objects.front()->config().line_width;
 
     /* We currently use a random region's perimeter extruder.
@@ -1366,7 +1329,6 @@ Flow Print::brim_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
-        // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
         (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().wall_filament-1),
 		(float)this->skirt_first_layer_height());
@@ -1374,8 +1336,8 @@ Flow Print::brim_flow() const
 
 Flow Print::skirt_flow() const
 {
-    ConfigOptionFloatOrPercent width = m_config.initial_layer_line_width;
-    if (width.value <= 0)
+    ConfigOptionFloat width = m_config.initial_layer_line_width;
+    if (width.value == 0)
         width = m_objects.front()->config().line_width;
 
     /* We currently use a random object's support material extruder.
@@ -1385,7 +1347,6 @@ Flow Print::skirt_flow() const
        generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
-        // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
 		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_filament-1),
 		(float)this->skirt_first_layer_height());
@@ -1776,7 +1737,7 @@ void Print::process(bool use_cache)
         // BBS: m_brimMap and m_supportBrimMap are used instead of m_brim to generate brim of objs and supports seperately
         m_brimMap.clear();
         m_supportBrimMap.clear();
-        m_first_layer_convex_hull.points.clear();
+        m_first_layer_convex_hull.points.clear(); // BBS: plate offset is contained in this convexhull
         if (this->has_brim()) {
             Polygons islands_area;
             make_brim(*this, this->make_try_cancel(), islands_area, m_brimMap,
@@ -1805,8 +1766,8 @@ void Print::process(bool use_cache)
             obj->simplify_extrusion_path();
         }
         else {
-            if (obj->set_started(posSimplifyPath))
-                obj->set_done(posSimplifyPath);
+            if (obj->set_started(posSimplifyWall))
+                obj->set_done(posSimplifyWall);
             if (obj->set_started(posSimplifyInfill))
                 obj->set_done(posSimplifyInfill);
             if (obj->set_started(posSimplifySupportPath))
@@ -2109,15 +2070,16 @@ std::vector<Point> Print::first_layer_wipe_tower_corners(bool check_wipe_tower_e
     return corners;
 }
 
-//SoftFever
-Vec2d Print::translate_to_print_space(const Vec2d &point) const {
+//OrcaSlicer
+Vec2d Print::translate_to_print_space(const Vec2d& point) const {
     //const BoundingBoxf bed_bbox(config().printable_area.values);
     return Vec2d(point(0) - m_origin(0), point(1) - m_origin(1));
 }
 
-Vec2d Print::translate_to_print_space(const Point &point) const {
+Vec2d Print::translate_to_print_space(const Point& point) const {
     return Vec2d(unscaled(point.x()) - m_origin(0), unscaled(point.y()) - m_origin(1));
 }
+
 void Print::finalize_first_layer_convex_hull()
 {
     append(m_first_layer_convex_hull.points, m_skirt_convex_hull);

@@ -1,6 +1,7 @@
 Build
 Build.bat
-/build*/
+/build/
+/build2022/
 deps/build
 MYMETA.json
 MYMETA.yml
@@ -18,11 +19,8 @@ local-lib
 /src/TAGS
 /.vscode/
 build-linux/*
-deps/build*/*
+deps/build-linux/*
 **/.DS_Store
 install_*
 build_*/
 SVG
-src/OrcaSlicer-doc/
-.idea/
-/.cache/

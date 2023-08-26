@@ -49,9 +49,9 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
 
 
     m_simplebook_status = new wxSimplebook(this);
-    m_simplebook_status->SetSize(wxSize(FromDIP(400), FromDIP(70)));
-    m_simplebook_status->SetMinSize(wxSize(FromDIP(400), FromDIP(70)));
-    m_simplebook_status->SetMaxSize(wxSize(FromDIP(400), FromDIP(70)));
+    m_simplebook_status->SetSize(wxSize(FromDIP(400), -1));
+    m_simplebook_status->SetMinSize(wxSize(FromDIP(400), -1));
+    m_simplebook_status->SetMaxSize(wxSize(FromDIP(400), -1));
 
     //mode normal
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook_status);
@@ -98,8 +98,8 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     sizer_install_failed->Add(m_install_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
 
 
-    m_panel_download_failed->SetSizer(sizer_install_failed);
-    m_panel_download_failed->Layout();
+    m_panel_install_failed->SetSizer(sizer_install_failed);
+    m_panel_install_failed->Layout();
     sizer_install_failed->Fit(m_panel_install_failed);
 
     m_sizer_main->Add(m_simplebook_status, 0, wxALL, FromDIP(20));

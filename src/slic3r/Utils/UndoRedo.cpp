@@ -479,10 +479,11 @@ public:
 		assert(! m_history.empty());
 		auto it = std::lower_bound(m_history.begin(), m_history.end(), MutableHistoryInterval(timestamp, timestamp));
 		if (it == m_history.end() || it->begin() > timestamp) {
-			assert(it != m_history.begin());
-			-- it;
+			//assert(it != m_history.begin());
+			if (it != m_history.begin())
+				--it;
 		}
-		assert(timestamp >= it->begin() && timestamp < it->end());
+		//assert(timestamp >= it->begin() && timestamp < it->end());
 		return std::string(it->data(), it->data() + it->size());
 	}
 

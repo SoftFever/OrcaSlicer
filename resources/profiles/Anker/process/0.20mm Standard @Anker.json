@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP004",
+    "setting_id": "GP_Anker_000",
     "name": "0.20mm Standard @Anker",
     "from": "system",
     "instantiation": "true",

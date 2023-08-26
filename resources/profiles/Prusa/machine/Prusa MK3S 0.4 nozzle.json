@@ -1,13 +1,13 @@
 {
   "type": "machine",
-  "setting_id": "GM003",
+  "setting_id": "GM_PRUSA_001",
   "name": "Prusa MK3S 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_machine_common",
   "printer_model": "Prusa MK3S",
   "default_filament_profile": [
-      "Prusa Generic PLA"
+      "Generic PLA @Prusa"
   ],
   "default_print_profile": "0.20mm Standard @MK3S",
   "nozzle_diameter": [

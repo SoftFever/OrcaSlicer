@@ -86,8 +86,6 @@ public:
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
-    // Orca: update selected filament and print
-    void           update_selections(AppConfig &config);
     void set_calibrate_printer(std::string name);
 
     PresetCollection            prints;
@@ -102,7 +100,7 @@ public:
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;
     // BBS: ams
-    std::vector<DynamicPrintConfig> filament_ams_list;
+    std::map<int, DynamicPrintConfig> filament_ams_list;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;

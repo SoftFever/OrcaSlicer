@@ -103,7 +103,8 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
-
+    auto language = app_config->get(param);
+    m_current_language_selected = -1;
     std::vector<wxString>::iterator iter;
     for (size_t i = 0; i < vlist.size(); ++i) {
         auto language_name = vlist[i]->Description;
@@ -148,10 +149,19 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("Ukrainian");
         }
 
-        if (app_config->get(param) == vlist[i]->CanonicalName) {
+        if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
+    }
+    if (m_current_language_selected == -1 && language.size() >= 5) {
+        language = language.substr(0, 2);
+        for (size_t i = 0; i < vlist.size(); ++i) {
+            if (vlist[i]->CanonicalName.StartsWith(language)) {
+                m_current_language_selected = i;
+                break;
+            }
+        }
     }
     combobox->SetSelection(m_current_language_selected);
 
@@ -183,7 +193,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
                 MessageDialog msg_wingow(nullptr, _L("Switching the language requires application restart.\n") + "\n" + _L("Do you want to continue?"),
-                                         L("Language selection"), wxICON_QUESTION | wxOK | wxCANCEL);
+                                         _L("Language selection"), wxICON_QUESTION | wxOK | wxCANCEL);
                 if (msg_wingow.ShowModal() == wxID_CANCEL) {
                     combobox->SetSelection(m_current_language_selected);
                     return;
@@ -268,7 +278,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             area = "US";
         else
             area = "Others";*/
-
+        combobox->SetSelection(region_index);
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
         if (agent) {
@@ -290,6 +300,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             config->set("region", region.ToStdString());
         }
 
+        wxGetApp().update_publish_status();
         e.Skip();
     });
 
@@ -401,6 +412,8 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->GetTextCtrl()->SetValidator(validator);
 
     auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
     second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
@@ -610,6 +623,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         app_config->set_bool(param, checkbox->GetValue());
         app_config->save();
 
+        if (param == "staff_pick_switch") {
+            bool pbool = app_config->get("staff_pick_switch") == "true";
+            wxGetApp().switch_staff_pick(pbool);
+        }
+
          // backup
         if (param == "backup_switch") {
             bool pbool = app_config->get("backup_switch") == "true" ? true : false;
@@ -622,7 +640,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         if (param == "sync_user_preset") {
             bool sync = app_config->get("sync_user_preset") == "true" ? true : false;
             if (sync) {
-                wxGetApp().start_sync_user_preset(true);
+                wxGetApp().start_sync_user_preset();
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
@@ -663,12 +681,33 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
         #endif // __WXMSW__
 
+        if (param == "developer_mode") 
+        { 
+            m_developer_mode_def = app_config->get("developer_mode");
+            if (m_developer_mode_def == "true") {
+                Slic3r::GUI::wxGetApp().save_mode(comDevelop);
+            } else {
+                Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
+            }
+        }
+
+        // webview  dump_vedio  
+        if (param == "internal_developer_mode") {
+            m_internal_developer_mode_def = app_config->get("internal_developer_mode");
+            if (m_internal_developer_mode_def == "true") {
+                Slic3r::GUI::wxGetApp().update_internal_development();
+                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
+            } else {
+                Slic3r::GUI::wxGetApp().update_internal_development();
+            }
+        }
+
         e.Skip();
     });
 
     //// for debug mode
     if (param == "developer_mode") { m_developer_mode_ckeckbox = checkbox; }
-    if (param == "dump_video") { m_dump_video_ckeckbox = checkbox; }
+    if (param == "internal_developer_mode") { m_internal_developer_mode_ckeckbox = checkbox; }
 
 
     checkbox->SetToolTip(tooltip);
@@ -954,6 +993,10 @@ wxWindow* PreferencesDialog::create_general_page()
                                                          _L("If enabled, sets OrcaSlicer as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
+    auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
+    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
+    auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
+
     auto title_project = create_item_title(_L("Project"), page, "");
     auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
         long max = 0;
@@ -977,6 +1020,9 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
 
+    auto title_develop_mode = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
+    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
+    auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
@@ -996,6 +1042,18 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
+    auto item_title_modelmall = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
+    auto item_item_modelmall = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall] (wxEvent & e) {
+        bool has_model_mall = wxGetApp().has_model_mall();
+        item_title_modelmall->Show(has_model_mall);
+        item_item_modelmall->Show(has_model_mall);
+        Layout();
+        Fit();
+    };
+    wxCommandEvent eee(wxEVT_COMBOBOX);
+    update_modelmall(eee);
+    item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
@@ -1010,6 +1068,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 #endif
 
+    sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_skip_ams_blacklist_check, 0, wxTOP, FromDIP(3));
 
     page->SetSizer(sizer_page);
     page->Layout();
@@ -1093,16 +1154,16 @@ wxWindow* PreferencesDialog::create_debug_page()
     auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
     page->SetBackgroundColour(*wxWHITE);
 
-    m_developer_mode_def  = app_config->get("developer_mode");
-    m_dump_video_def      = app_config->get("dump_video");
+    m_internal_developer_mode_def = app_config->get("internal_developer_mode");
     m_backup_interval_def = app_config->get("backup_interval");
     m_iot_environment_def = app_config->get("iot_environment");
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto title_develop_mode   = create_item_title(_L("Develop mode"), page, _L("Develop mode"));
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
-    auto item_dump_video      = create_item_checkbox(_L("Dump video"), page, _L("Dump video"), 50, "dump_video");
+
+    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
+    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_ftp");
+    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), 50, "internal_developer_mode");
 
     auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
@@ -1141,14 +1202,14 @@ wxWindow* PreferencesDialog::create_debug_page()
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
-            if (m_developer_mode_def != app_config->get("developer_mode")) {
-                app_config->set_bool("developer_mode", m_developer_mode_def == "true" ? true : false);
-                m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
-            }
-            if (m_dump_video_def != app_config->get("dump_video")) {
-                app_config->set_bool("dump_video", m_dump_video_def == "true" ? true : false);
-                m_dump_video_ckeckbox->SetValue(m_dump_video_def == "true" ? true : false);
-            }
+            //if (m_developer_mode_def != app_config->get("developer_mode")) {
+            //    app_config->set_bool("developer_mode", m_developer_mode_def == "true" ? true : false);
+            //    m_developer_mode_ckeckbox->SetValue(m_developer_mode_def == "true" ? true : false);
+            //}
+            //if (m_internal_developer_mode_def != app_config->get("internal_developer_mode")) {
+            //    app_config->set_bool("internal_developer_mode", m_internal_developer_mode_def == "true" ? true : false);
+            //    m_internal_developer_mode_ckeckbox->SetValue(m_internal_developer_mode_def == "true" ? true : false);
+            //}
 
             if (m_backup_interval_def != m_backup_interval_time) { m_backup_interval_textinput->GetTextCtrl()->SetValue(m_backup_interval_def); }
 
@@ -1209,15 +1270,6 @@ wxWindow* PreferencesDialog::create_debug_page()
             app_config->save();
             Slic3r::set_backup_interval(boost::lexical_cast<long>(app_config->get("backup_interval")));
 
-            // bbs  developer mode
-            auto developer_mode = app_config->get("developer_mode");
-            if (developer_mode == "true") {
-                Slic3r::GUI::wxGetApp().save_mode(comDevelop);
-                Slic3r::GUI::wxGetApp().mainframe->show_log_window();
-            } else {
-                Slic3r::GUI::wxGetApp().save_mode(comAdvanced);
-            }
-
             this->Close();
             break;
         }
@@ -1225,9 +1277,9 @@ wxWindow* PreferencesDialog::create_debug_page()
     });
 
 
-    bSizer->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
-    bSizer->Add(item_develop_mode, 0, wxTOP,FromDIP(3));
-    bSizer->Add(item_dump_video, 0, wxTOP, FromDIP(3));
+    bSizer->Add(enable_ssl_for_mqtt, 0, wxTOP, FromDIP(3));
+    bSizer->Add(enable_ssl_for_ftp, 0, wxTOP, FromDIP(3));
+    bSizer->Add(item_internal_developer, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
     bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
     bSizer->Add(title_host, 0, wxTOP| wxEXPAND, FromDIP(20));

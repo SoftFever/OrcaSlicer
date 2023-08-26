@@ -451,7 +451,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     // Try loading an SVG first, then PNG if SVG is not found:
     wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color, resize ? em_unit(win) * 0.1f : 0.f);
     if (bmp == nullptr) {
-        bmp = cache.load_png(bmp_name, width, height, grayscale, resize ? em_unit(win) * 0.1f : 0.f);
+        bmp = cache.load_png(bmp_name, width, height, grayscale, resize ? win->FromDIP(10) * 0.1f : 0.f);
     }
 
     if (bmp == nullptr) {
@@ -502,8 +502,6 @@ wxBitmap* get_default_extruder_color_icon(bool thin_icon/* = false*/)
 
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
-    static Slic3r::GUI::BitmapCache bmp_cache;
-
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;
     std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
@@ -511,49 +509,19 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
     if (colors.empty())
         return bmps;
 
-    unsigned char rgb[3];
-
     /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
      * So set sizes for solid_colored icons used for filament preset
      * and scale them in respect to em_unit value
      */
     const double em = Slic3r::GUI::wxGetApp().em_unit();
-    const int icon_width = lround((thin_icon ? 2 : 4.5) * em);
+    const int icon_width = lround((thin_icon ? 2 : 4.4) * em);
     const int icon_height = lround(2 * em);
 
-    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
-
     int index = 0;
-    wxClientDC cdc((wxWindow*)Slic3r::GUI::wxGetApp().mainframe);
-    wxMemoryDC dc(&cdc);
-    dc.SetFont(::Label::Body_12);
     for (const std::string &color : colors)
     {
         auto label = std::to_string(++index);
-        std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) 
-                + "-i" + label;
-
-        wxBitmap* bitmap = bmp_cache.find(bitmap_key);
-        if (bitmap == nullptr) {
-            // Paint the color icon.
-            //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
-            // there is no neede to scale created solid bitmap
-            wxColor clr(color);
-            bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-            dc.SelectObject(*bitmap);
-            dc.SetBackground(wxBrush(clr));
-            dc.Clear();
-            if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
-                dc.SetBrush(wxBrush(clr));
-                dc.SetPen(*wxGREY_PEN);
-                dc.DrawRectangle(0, 0, icon_width, icon_height);
-            }
-            auto size = dc.GetTextExtent(wxString(label));
-            dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
-            dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
-            dc.SelectObject(wxNullBitmap);
-        }
-        bmps.emplace_back(bitmap);
+        bmps.push_back(get_extruder_color_icon(color, label, icon_width, icon_height));
     }
 
     return bmps;

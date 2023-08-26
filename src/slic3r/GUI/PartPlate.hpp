@@ -125,6 +125,7 @@ private:
     GeometryBuffer m_height_limit_bottom;
     GeometryBuffer m_height_limit_top;
     GeometryBuffer m_del_icon;
+    GeometryBuffer m_plate_name_edit_icon;
     //GeometryBuffer m_del_and_background_icon;
     mutable unsigned int m_del_vbo_id{ 0 };
     GeometryBuffer m_arrange_icon;
@@ -137,6 +138,7 @@ private:
     mutable unsigned int m_plate_settings_vbo_id{ 0 };
     GeometryBuffer m_plate_idx_icon;
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
+    mutable unsigned int m_plate_name_edit_vbo_id{0};
     GLTexture m_texture;
 
     mutable float m_grabber_color[4];
@@ -148,14 +150,12 @@ private:
     // BBS
     DynamicPrintConfig m_config;
 
-    // SoftFever
     // part plate name
-    std::string m_name;
-    GeometryBuffer m_plate_name_icon;
-    mutable unsigned int m_plate_name_vbo_id{ 0 };
-    GLTexture m_name_texture;
-    wxCoord m_name_texture_width;
-    wxCoord m_name_texture_height;
+    std::string          m_name;        // utf8 string
+    bool                 m_name_change = false;
+    GeometryBuffer       m_plate_name_icon;
+    mutable unsigned int m_plate_name_vbo_id{0};
+    GLTexture            m_name_texture;
 
     void init();
     bool valid_instance(int obj_id, int instance_id);
@@ -168,6 +168,8 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
     void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
+    void calc_vertex_for_plate_name(GLTexture& texture, GeometryBuffer &buffer);
+    void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
@@ -184,9 +186,9 @@ private:
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
-    void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
-    void render_only_numbers(bool bottom) const;
     void render_plate_name_texture(int position_id, int tex_coords_id);
+    void render_icons(bool bottom, bool only_body = false, int hover_id = -1);
+    void render_only_numbers(bool bottom) const;
     void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
     void on_render_for_picking() const;
     std::array<float, 4> picking_color_component(int idx) const;
@@ -194,7 +196,8 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 6;
+    static const unsigned int PLATE_NAME_HOVER_ID = 6;
+    static const unsigned int GRABBER_COUNT = 7;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -251,16 +254,16 @@ public:
 
     //set the plate's index
     void set_index(int index);
-
-    //get the plate's index
+    // get the plate's index
     int get_index() { return m_plate_index; }
 
-    // SoftFever
-    //get the plate's name
+    // get the plate's name
     std::string get_plate_name() const { return m_name; }
-    void generate_plate_name_texture();
-    //set the plate's name
-    void set_plate_name(const std::string& name);
+    bool        generate_plate_name_texture();
+    // set the plate's name
+    void set_plate_name(const std::string &name);
+
+
 
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);
@@ -353,8 +356,8 @@ public:
     const BoundingBox get_bounding_box_crd();
     BoundingBoxf3 get_build_volume()
     {
-        Vec3d up_point = m_bounding_box.max + Vec3d(0, 0, m_origin.z() + m_height);
-        Vec3d low_point = m_bounding_box.min + Vec3d(0, 0, m_origin.z());
+        Vec3d up_point(m_origin.x() + m_width, m_origin.y() + m_depth, m_origin.z() + m_height);
+        Vec3d low_point(m_origin.x(), m_origin.y(), m_origin.z());
         BoundingBoxf3 plate_box(low_point, up_point);
         return plate_box;
     }
@@ -455,7 +458,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -473,7 +476,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_name, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable,m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -528,6 +531,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_plate_settings_changed_texture;
     GLTexture m_plate_settings_hovered_texture;
     GLTexture m_plate_settings_changed_hovered_texture;
+    GLTexture m_plate_name_edit_texture;
+    GLTexture m_plate_name_edit_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
     // set render option
     bool render_bedtype_logo = true;
@@ -651,14 +656,9 @@ public:
         m_height_limit_mode = mode;
     }
 
-    // SoftFever
-    const std::string& get_logo_texture_filename() const { 
-        return m_logo_texture_filename;
-    }
-
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
-    const PartPlate* get_curr_plate() const { return m_plate_list[m_current_plate]; }
+    const PartPlate *get_curr_plate() const { return m_plate_list[m_current_plate]; }
 
     std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 
@@ -676,7 +676,7 @@ public:
     int select_plate(int index);
 
     //get the plate counts, not including the invalid plate
-    int get_plate_count() const;
+    int get_plate_count();
 
     //update the plate cols due to plate count change
     void update_plate_cols();

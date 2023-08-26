@@ -437,7 +437,7 @@ static std::string generate_system_info_json()
     );
 #endif // __WXGTK__
     data_node.put("SystemLanguage", sys_language);
-    data_node.put("TranslationLanguage: ", wxGetApp().app_config->get("language"));
+    data_node.put("TranslationLanguage: ", wxGetApp().current_language_code_safe());
 
 
     pt::ptree hw_node;

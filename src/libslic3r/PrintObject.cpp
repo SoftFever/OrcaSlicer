@@ -423,10 +423,7 @@ static const float g_min_overhang_percent_for_lift = 0.3f;
 void PrintObject::detect_overhangs_for_lift()
 {
     if (this->set_started(posDetectOverhangsForLift)) {
-        const double nozzle_diameter = m_print->config().nozzle_diameter.get_at(0);
-        const coordf_t line_width = this->config().get_abs_value("line_width", nozzle_diameter);
-
-        const float min_overlap = line_width * g_min_overhang_percent_for_lift;
+        const float min_overlap = m_config.line_width * g_min_overhang_percent_for_lift;
         size_t num_layers = this->layer_count();
         size_t num_raft_layers = m_slicing_params.raft_layers();
 
@@ -436,18 +433,17 @@ void PrintObject::detect_overhangs_for_lift()
 
         tbb::spin_mutex layer_storage_mutex;
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
-            [this, min_overlap, line_width](const tbb::blocked_range<size_t>& range)
+            [this, min_overlap](const tbb::blocked_range<size_t>& range)
             {
                 for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
                     Layer& layer = *m_layers[layer_id];
                     Layer& lower_layer = *layer.lower_layer;
 
                     ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
-                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(line_width), 0.1f * scale_(line_width)));
+                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
                     layer.loverhangs_bbox = get_extents(layer.loverhangs);
                 }
             });
-
         this->set_done(posDetectOverhangsForLift);
     }
 }
@@ -499,10 +495,10 @@ void PrintObject::generate_support_material()
 
 void PrintObject::simplify_extrusion_path()
 {
-    if (this->set_started(posSimplifyPath)) {
+    if (this->set_started(posSimplifyWall)) {
         m_print->set_status(75, L("Optimizing toolpath"));
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - start";
-        //BBS: infill and walls
+        BOOST_LOG_TRIVIAL(debug) << "Simplify wall extrusion path of object in parallel - start";
+        //BBS: walls
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
             [this](const tbb::blocked_range<size_t>& range) {
@@ -514,7 +510,7 @@ void PrintObject::simplify_extrusion_path()
         );
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Simplify wall extrusion path of object in parallel - end";
-        this->set_done(posSimplifyPath);
+        this->set_done(posSimplifyWall);
     }
 
     if (this->set_started(posSimplifyInfill)) {
@@ -694,12 +690,8 @@ bool PrintObject::invalidate_state_by_config_options(
         if (   opt_key == "brim_width"
             || opt_key == "brim_object_gap"
             || opt_key == "brim_type"
-            || opt_key == "brim_ears_max_angle"
-            || opt_key == "brim_ears_detection_length"
             // BBS: brim generation depends on printing speed
             || opt_key == "outer_wall_speed"
-            || opt_key == "small_perimeter_speed"
-            || opt_key == "small_perimeter_threshold"
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
             || opt_key == "support_speed"
@@ -717,18 +709,13 @@ bool PrintObject::invalidate_state_by_config_options(
             }
         } else if (
                opt_key == "wall_loops"
-            || opt_key == "only_one_wall_top"
+            || opt_key == "top_one_wall_type"
             || opt_key == "only_one_wall_first_layer"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
-            || opt_key == "infill_wall_overlap"
-            || opt_key == "seam_gap"
-            || opt_key == "role_based_wipe_speed"
-            || opt_key == "wipe_on_loops"
-            || opt_key == "wipe_speed") {
+            || opt_key == "infill_wall_overlap") {
             steps.emplace_back(posPerimeters);
-        } else if (opt_key == "gap_infill_speed"
-            || opt_key == "filter_out_gap_fill" ) {
+        } else if (opt_key == "gap_infill_speed" || opt_key == "filter_out_gap_fill") {
             // Return true if gap-fill speed has changed from zero value to non-zero or from non-zero value to zero.
             auto is_gap_fill_changed_state_due_to_speed = [&opt_key, &old_config, &new_config]() -> bool {
                 if (opt_key == "gap_infill_speed") {
@@ -742,9 +729,9 @@ bool PrintObject::invalidate_state_by_config_options(
             };
 
             // Filtering of unprintable regions in multi-material segmentation depends on if gap-fill is enabled or not.
-            // So step posSlice is invalidated when gap-fill was enabled/disabled by option "filter_out_gap_fill" or by
+            // So step posSlice is invalidated when gap-fill was enabled/disabled by option "gap_fill_enabled" or by
             // changing "gap_infill_speed" to force recomputation of the multi-material segmentation.
-            if (this->is_mm_painted() && (opt_key == "filter_out_gap_fill" && (opt_key == "gap_infill_speed" && is_gap_fill_changed_state_due_to_speed())))
+            if (this->is_mm_painted() && ((opt_key == "gap_infill_speed" || opt_key == "filter_out_gap_fill") && is_gap_fill_changed_state_due_to_speed()))
                 steps.emplace_back(posSlice);
             steps.emplace_back(posPerimeters);
         } else if (
@@ -752,24 +739,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
-            || opt_key == "slicing_mode"
-            || opt_key == "make_overhang_printable"
-            || opt_key == "make_overhang_printable_angle"
-            || opt_key == "make_overhang_printable_hole_size") {
+            || opt_key == "slicing_mode") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
-            || opt_key == "xy_contour_compensation"
-            //BBS: [Arthur] the following params affect bottomBridge surface type detection
-            || opt_key == "support_type"
-            || opt_key == "bridge_no_support"
-            || opt_key == "max_bridge_length"
-            || opt_key == "support_interface_top_layers"
-            || opt_key == "support_critical_regions_only"
-            ) {
+            || opt_key == "xy_contour_compensation") {
             steps.emplace_back(posSlice);
         } else if (opt_key == "enable_support") {
             steps.emplace_back(posSupportMaterial);
@@ -809,12 +786,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bridge_no_support"
             || opt_key == "max_bridge_length"
             || opt_key == "initial_layer_line_width"
-            || opt_key == "tree_support_adaptive_layer_height"
-            || opt_key == "tree_support_auto_brim"
-            || opt_key == "tree_support_brim_width"
             || opt_key == "tree_support_branch_distance"
             || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_angle"
+            || opt_key == "tree_support_brim_width"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (
@@ -847,21 +822,19 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
-            || opt_key == "infill_direction"
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
-            || opt_key == "internal_bridge_support_thickness"
-            || opt_key == "bridge_density") {
+            || opt_key == "internal_bridge_support_thickness") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "bottom_surface_pattern"
             || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
-            || opt_key == "sparse_infill_pattern"
-            || opt_key == "infill_anchor"
-            || opt_key == "infill_anchor_max"
+            || opt_key == "infill_direction"
+            || opt_key == "sparse_infill_anchor"
+            || opt_key == "sparse_infill_anchor_max"
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
@@ -898,9 +871,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "detect_overhang_wall"
             //BBS
             || opt_key == "enable_overhang_speed"
-            || opt_key == "detect_thin_wall"
-            || opt_key == "precise_outer_wall"
-            || opt_key == "overhang_speed_classic") {
+            || opt_key == "detect_thin_wall") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
@@ -922,6 +893,8 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSlice);
         } else if (
                opt_key == "seam_position"
+            || opt_key == "seam_gap"
+            || opt_key == "wipe_speed"
             || opt_key == "support_speed"
             || opt_key == "support_interface_speed"
             || opt_key == "overhang_1_4_speed"
@@ -929,10 +902,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_3_4_speed"
             || opt_key == "overhang_4_4_speed"
             || opt_key == "bridge_speed"
-            || opt_key == "internal_bridge_speed"
             || opt_key == "outer_wall_speed"
-            || opt_key == "small_perimeter_speed"
-            || opt_key == "small_perimeter_threshold"
             || opt_key == "sparse_infill_speed"
             || opt_key == "inner_wall_speed"
             || opt_key == "internal_solid_infill_speed"
@@ -963,15 +933,15 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
 
     // propagate to dependent steps
     if (step == posPerimeters) {
-		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyPath, posSimplifyInfill });
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyWall, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyPath, posSimplifyInfill });
+        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyWall, posSimplifyInfill });
     } else if (step == posInfill) {
         invalidated |= this->invalidate_steps({ posIroning, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posSlice) {
-		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifyInfill });
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyWall, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
@@ -2646,7 +2616,6 @@ SupportNecessaryType PrintObject::is_support_necessary()
 #if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
     int enforce_support_layers = m_config.enforce_support_layers;
-    // not fixing in extrusion width % PR b/c never called 
     const coordf_t extrusion_width = m_config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     float max_bridge_length = scale_(m_config.max_bridge_length.value);

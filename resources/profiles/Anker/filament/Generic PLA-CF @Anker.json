@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "filament_id": "GFL98",
+    "setting_id": "GFSL98_Anker_00",
+    "name": "Generic PLA-CF @Anker",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pla",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_type": [
+        "PLA-CF"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "compatible_printers": [
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
+    ]
+}

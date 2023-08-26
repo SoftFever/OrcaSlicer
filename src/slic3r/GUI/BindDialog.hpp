@@ -46,17 +46,34 @@ struct MemoryStruct
 class BindMachineDialog : public DPIDialog
 {
 private:
+    wxWindow*      m_panel_agreement;
     wxStaticText * m_printer_name;
     wxStaticText * m_user_name;
     StaticBox *   m_panel_left;
     StaticBox *   m_panel_right;
     wxStaticText *m_status_text;
+    wxStaticText* m_link_show_error;
     Button *      m_button_bind;
     Button *      m_button_cancel;
     wxSimplebook *m_simplebook;
     wxStaticBitmap *m_avatar;
     wxStaticBitmap *m_printer_img;
+    wxStaticBitmap *m_static_bitmap_show_error;
+    wxBitmap      m_bitmap_show_error_close;
+    wxBitmap      m_bitmap_show_error_open;
     wxWebRequest  web_request;
+    wxScrolledWindow* m_sw_bind_failed_info;
+    Label*          m_bind_failed_info;
+    Label*          m_st_txt_error_code{ nullptr };
+    Label*          m_st_txt_error_desc{ nullptr };
+    Label*          m_st_txt_extra_info{ nullptr };
+    Label*          m_link_network_state{ nullptr };
+    wxString        m_result_info;
+    wxString        m_result_extra;
+    bool            m_show_error_info_state = true;
+    bool            m_allow_privacy{false};
+    bool            m_allow_notice{false};
+    int             m_result_code;
 
     MachineObject *                   m_machine_info{nullptr};
     std::shared_ptr<BindJob>          m_bind_job;
@@ -65,16 +82,19 @@ private:
 public:
     BindMachineDialog(Plater *plater = nullptr);
     ~BindMachineDialog();
-    void     on_cancel(wxCommandEvent &event);
+
+    void     show_bind_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    void     on_cancel(wxCommandEvent& event);
     void     on_bind_fail(wxCommandEvent &event);
     void     on_update_message(wxCommandEvent &event);
     void     on_bind_success(wxCommandEvent &event);
     void     on_bind_printer(wxCommandEvent &event);
     void     on_dpi_changed(const wxRect &suggested_rect) override;
-    void     update_machine_info(MachineObject *info) { m_machine_info = info; };
+    void     update_machine_info(MachineObject *info);
     void     on_show(wxShowEvent &event);
     void     on_close(wxCloseEvent& event);
     void     on_destroy();
+    wxString get_print_error(wxString str);
 };
 
 class UnBindMachineDialog : public DPIDialog
@@ -88,6 +108,7 @@ protected:
     MachineObject *m_machine_info{nullptr};
     wxStaticBitmap *m_avatar;
     wxStaticBitmap *m_printer_img;
+    wxWebRequest    web_request;
 
 public:
     UnBindMachineDialog(Plater *plater = nullptr);

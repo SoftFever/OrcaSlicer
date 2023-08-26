@@ -2,27 +2,32 @@
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
-#include "bambu_networking.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
+#include "bambu_networking.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-static wxString check_gcode_failed_str      = _L("Abnormal print file data. Please slice again");
-static wxString printjob_cancel_str         = _L("Task canceled");
-static wxString timeout_to_upload_str       = _L("Upload task timed out. Please check the network problem and try again");
+static wxString check_gcode_failed_str      = _L("Abnormal print file data. Please slice again.");
+static wxString printjob_cancel_str         = _L("Task canceled.");
+static wxString timeout_to_upload_str       = _L("Upload task timed out. Please check the network status and try again.");
 static wxString failed_in_cloud_service_str = _L("Cloud service connection failed. Please try again.");
-static wxString file_is_not_exists_str      = _L("Print file not found, please slice again");
-static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again");
-static wxString print_canceled_str          = _L("Task canceled");
-static wxString upload_failed_str           = _L("Failed uploading print file");
-static wxString upload_login_failed_str     = _L("Wrong Access code");
+static wxString file_is_not_exists_str      = _L("Print file not found. please slice again.");
+static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again.");
+static wxString print_canceled_str          = _L("Task canceled.");
+static wxString send_print_failed_str       = _L("Failed to send the print job. Please try again.");
+static wxString upload_ftp_failed_str       = _L("Failed to upload file to ftp. Please try again.");
 
+static wxString desc_network_error          = _L("Check the current status of the bambu server by clicking on the link above.");
+static wxString desc_file_too_large         = _L("The size of the print file is too large. Please adjust the file size and try again.");
+static wxString desc_fail_not_exist         = _L("Print file not found, Please slice it again and send it for printing.");
+static wxString desc_upload_ftp_failed      = _L("Failed to upload print file to FTP. Please check the network status and try again.");
 
-static wxString sending_over_lan_str = _L("Sending print job over LAN");
-static wxString sending_over_cloud_str = _L("Sending print job through cloud service");
+static wxString sending_over_lan_str        = _L("Sending print job over LAN");
+static wxString sending_over_cloud_str      = _L("Sending print job through cloud service");
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
@@ -33,7 +38,8 @@ PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::
 
 void PrintJob::prepare()
 {
-    m_plater->get_print_job_data(&job_data);
+    if (job_data.is_from_plater)
+        m_plater->get_print_job_data(&job_data);
     if (&job_data) {
         std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
         auto check_access_code_path = temp_file.c_str();
@@ -56,6 +62,21 @@ void PrintJob::on_success(std::function<void()> success)
 {
     m_success_fun = success;
 }
+
+std::string PrintJob::truncate_string(const std::string& str, size_t maxLength)
+{
+    if (str.length() <= maxLength)
+    {
+        return str;
+    }
+
+    wxString local_str = wxString::FromUTF8(str);
+    wxString truncatedStr = local_str.Mid(0, maxLength - 3);
+    truncatedStr.append("...");
+
+    return truncatedStr.utf8_string();
+}
+
 
 wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
 {
@@ -126,54 +147,62 @@ void PrintJob::process()
     unsigned int http_code;
     std::string http_body;
 
-    int total_plate_num = m_plater->get_partplate_list().get_plate_count();
+    int total_plate_num = plate_data.plate_count;
+    if (!plate_data.is_valid) {
+        total_plate_num =  m_plater->get_partplate_list().get_plate_count();
+        PartPlate *plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
+        if (plate == nullptr) {
+            plate = m_plater->get_partplate_list().get_curr_plate();
+            if (plate == nullptr) return;
+        }
 
-    PartPlate* plate = m_plater->get_partplate_list().get_plate(job_data.plate_idx);
-    if (plate == nullptr) {
-        plate = m_plater->get_partplate_list().get_curr_plate();
-        if (plate == nullptr)
-        return;
+        /* check gcode is valid */
+        if (!plate->is_valid_gcode_file() && m_print_type == "from_normal") {
+            update_status(curr_percent, check_gcode_failed_str);
+            return;
+        }
+
+        if (was_canceled()) {
+            update_status(curr_percent, printjob_cancel_str);
+            return;
+        }
     }
 
-    /* check gcode is valid */
-    if (!plate->is_valid_gcode_file()) {
-        update_status(curr_percent, check_gcode_failed_str);
-        return;
-    }
-
-    if (was_canceled()) {
-        update_status(curr_percent, printjob_cancel_str);
-        return;
-    }
-
-    // task name
-    std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
+    m_project_name = truncate_string(m_project_name, 100);
     int curr_plate_idx = 0;
-    if (job_data.plate_idx >= 0)
-        curr_plate_idx = job_data.plate_idx + 1;
-    else if (job_data.plate_idx == PLATE_CURRENT_IDX)
-        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
-    else if (job_data.plate_idx == PLATE_ALL_IDX)
-        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
-    else
-        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+
+    if (m_print_type == "from_normal") {
+        if (plate_data.is_valid)
+            curr_plate_idx = plate_data.cur_plate_index;
+        if (job_data.plate_idx >= 0)
+            curr_plate_idx = job_data.plate_idx + 1;
+        else if (job_data.plate_idx == PLATE_CURRENT_IDX)
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+        else if (job_data.plate_idx == PLATE_ALL_IDX)
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+        else
+            curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+    }
+    else if(m_print_type == "from_sdcard_view") {
+        curr_plate_idx = m_print_from_sdc_plate_idx;
+    }
 
     PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
     if (curr_plate) {
-        this->task_bed_type = bed_type_to_gcode_string(curr_plate->get_bed_type(true));
+        this->task_bed_type = bed_type_to_gcode_string(plate_data.is_valid ? plate_data.bed_type : curr_plate->get_bed_type(true));
     }
 
     BBL::PrintParams params;
 
     // local print access
     params.dev_ip = m_dev_ip;
-    params.use_ssl  = m_local_use_ssl;
+    params.use_ssl_for_ftp  = m_local_use_ssl_for_ftp;
+    params.use_ssl_for_mqtt  = m_local_use_ssl_for_mqtt;
     params.username = "bblp";
     params.password = m_access_code;
 
-
     // check access code and ip address
-    if (this->connection_type == "lan") {
+    if (this->connection_type == "lan" && m_print_type == "from_normal") {
         params.dev_id = m_dev_id;
         params.project_name = "verify_job";
         params.filename = job_data._temp_path.string();
@@ -186,16 +215,16 @@ void PrintJob::process()
             m_job_finished = true;
             return;
         }
+
+        params.project_name = "";
+        params.filename = "";
     }
 
-    params.dev_id = m_dev_id;
-    params.ftp_folder = m_ftp_folder;
-    //params.project_name = project_name;
-    params.project_name = m_project_name;
-    params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
-    params.filename = job_data._3mf_path.string();
-    params.config_filename = job_data._3mf_config_path.string();
-    params.plate_index = curr_plate_idx;
+    params.dev_id               = m_dev_id;
+    params.ftp_folder           = m_ftp_folder;
+    params.filename             = job_data._3mf_path.string();
+    params.config_filename      = job_data._3mf_config_path.string();
+    params.plate_index          = curr_plate_idx;
     params.task_bed_leveling    = this->task_bed_leveling;
     params.task_flow_cali       = this->task_flow_cali;
     params.task_vibration_cali  = this->task_vibration_cali;
@@ -206,6 +235,13 @@ void PrintJob::process()
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
+    params.print_type           = this->m_print_type;
+
+    if (m_print_type == "from_sdcard_view") {
+        params.dst_file = m_dst_path;
+    }
+
+
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
@@ -222,7 +258,27 @@ void PrintJob::process()
             }
             catch(...) {}
         }
+
+        auto profile_name = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_TITLE_TAG);
+        if (profile_name != model_info->metadata_items.end()) {
+            try {
+                params.preset_name = profile_name->second;
+            }
+            catch (...) {}
+        } 
+        
+        auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
+        if (model_name != model_info->metadata_items.end()) {
+            try {
+                params.project_name = model_name->second;
+            }
+            catch (...) {}
+        }
     }
+    
+
+    if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
+    if (params.project_name.empty()) {params.project_name = m_project_name;}
 
     wxString error_text;
     wxString msg_text;
@@ -240,7 +296,16 @@ void PrintJob::process()
     bool is_try_lan_mode = false;
     bool is_try_lan_mode_failed = false;
 
-    auto update_fn = [this, &is_try_lan_mode, &is_try_lan_mode_failed, &msg, &error_str, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
+    auto update_fn = [this, 
+        &is_try_lan_mode,
+        &is_try_lan_mode_failed,
+        &msg, 
+        &error_str, 
+        &curr_percent, 
+        &error_text,
+        StagePercentPoint
+    ](int stage, int code, std::string info) {
+
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate && !is_try_lan_mode_failed) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
@@ -277,6 +342,9 @@ void PrintJob::process()
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
                             msg = wxString::Format(_L("Successfully sent. Will automatically jump to the device page in %ss"), info);
+                            if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
+                                msg = wxString::Format(_L("Successfully sent. Will automatically jump to the next page in %ss"), info);
+                            }
                             this->update_percent_finish();
                         } else {
                             if (this->connection_type == "lan") {
@@ -296,13 +364,21 @@ void PrintJob::process()
                             }
                         }
 
-                        if (code > 100 || code < 0) {
-                            error_text = this->get_http_error_msg(code, info);
-                            error_str = wxString::Format("[%s]", error_text);
-                        } else {
-                            error_str = wxEmptyString;
+                        //get errors 
+                        if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
+                            if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE) {
+                                m_plater->update_print_error_info(code, desc_file_too_large.ToStdString(), info);
+                            }else if (code == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || code == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST){
+                                m_plater->update_print_error_info(code, desc_fail_not_exist.ToStdString(), info);
+                            }else if (code == BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED || code == BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED) {
+                                m_plater->update_print_error_info(code, desc_upload_ftp_failed.ToStdString(), info);
+                            }else {
+                                m_plater->update_print_error_info(code, desc_network_error.ToStdString(), info);
+                            }
                         }
-                        this->update_status(curr_percent, msg + error_str);
+                        else {
+                             this->update_status(curr_percent, msg);
+                        }
                     };
 
     auto cancel_fn = [this]() {
@@ -351,10 +427,7 @@ void PrintJob::process()
                 if (result == 0) {
                     params.comments = "";
                 }
-                else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-                    params.comments = "wrong_code";
-                }
-                else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
+                else if (result == BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_FTP_FAILED) {
                     params.comments = "upload_failed";
                 }
                 else {
@@ -385,45 +458,45 @@ void PrintJob::process()
     }
 
     if (result < 0) {
-        if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-            msg_text = _L("Failed to send the print job. Please try again.");
-        } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
+        curr_percent = -1;
+
+        if (result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST || result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
-        } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
+        } else if (result == BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE || result == BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;
-        } else if (result == BAMBU_NETWORK_ERR_CHECK_MD5_FAILED) {
+        } else if (result == BAMBU_NETWORK_ERR_PRINT_WR_CHECK_MD5_FAILED || result == BAMBU_NETWORK_ERR_PRINT_SP_CHECK_MD5_FAILED) {
             msg_text = failed_in_cloud_service_str;
-        } else if (result == BAMBU_NETWORK_ERR_INVALID_PARAMS) {
-            msg_text = _L("Failed to send the print job. Please try again.");
+        } else if (result == BAMBU_NETWORK_ERR_PRINT_WR_GET_NOTIFICATION_TIMEOUT || result == BAMBU_NETWORK_ERR_PRINT_SP_GET_NOTIFICATION_TIMEOUT) {
+            msg_text = timeout_to_upload_str;
+        } else if (result == BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED || result == BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED) {
+            msg_text = upload_ftp_failed_str;
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
-        } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
-            msg_text = timeout_to_upload_str;
-        } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            msg_text = _L("Failed to send the print job. Please try again."); 
-        } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
-            msg_text = _L("Failed to send the print job. Please try again.");
+            this->update_status(0, msg_text);
         } else {
-            update_status(curr_percent, failed_in_cloud_service_str);
-        }
-        if (!error_text.IsEmpty()) {
-            curr_percent = 0;
-            msg_text += wxString::Format("[%d][%s]", result, error_text);
-        }
-        
-        
-        if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            this->show_networking_test(msg_text);
-        }
-        else {
-            update_status(curr_percent, msg_text);
+            msg_text = send_print_failed_str;
         }
 
+        if (result != BAMBU_NETWORK_ERR_CANCELED) {
+            this->show_error_info(msg_text, 0, "", "");
+        }
+        
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
+        wxGetApp().plater()->record_slice_preset("print");
+
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
-        evt->SetString(m_dev_id);
+        if (!m_completed_evt_data.empty())
+            evt->SetString(m_completed_evt_data);
+        else
+            evt->SetString(m_dev_id);
+        if (m_print_job_completed_id == wxGetApp().plater()->get_send_calibration_finished_event()) {
+            int sel = wxGetApp().mainframe->get_calibration_curr_tab();
+            if (sel >= 0) {
+                evt->SetInt(sel);
+            }
+        }
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }
@@ -440,6 +513,12 @@ void PrintJob::set_project_name(std::string name)
     m_project_name = name;
 }
 
+void PrintJob::set_dst_name(std::string path)
+{
+    m_dst_path = path;
+}
+
+
 void PrintJob::on_check_ip_address_fail(std::function<void()> func)
 {
     m_enter_ip_address_fun_fail = func;
@@ -449,5 +528,11 @@ void PrintJob::on_check_ip_address_success(std::function<void()> func)
 {
     m_enter_ip_address_fun_success = func;
 }
+
+void PrintJob::connect_to_local_mqtt()
+{
+    this->update_status(0, wxEmptyString);
+}
+
 
 }} // namespace Slic3r::GUI

@@ -179,6 +179,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MainFrame.hpp
     GUI/BBLTopbar.cpp
     GUI/BBLTopbar.hpp
+    GUI/BedShapeDialog.cpp
+    GUI/BedShapeDialog.hpp
     GUI/Plater.cpp
     GUI/Plater.hpp
     GUI/PartPlate.cpp
@@ -191,10 +193,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/SavePresetDialog.cpp
     GUI/GUI_Colors.hpp
     GUI/GUI_Colors.cpp
-    GUI/PhysicalPrinterDialog.hpp
-    GUI/PhysicalPrinterDialog.cpp
-    GUI/PrintHostDialogs.cpp
-    GUI/PrintHostDialogs.hpp
     GUI/GUI_Factories.cpp
     GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp
@@ -394,14 +392,30 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/SingleChoiceDialog.hpp
+    GUI/SingleChoiceDialog.cpp
+    GUI/CaliHistoryDialog.hpp
+    GUI/CaliHistoryDialog.cpp
+    GUI/CalibrationPanel.hpp
+    GUI/CalibrationPanel.cpp
+    GUI/CalibrationWizard.hpp
+    GUI/CalibrationWizard.cpp
+    GUI/CalibrationWizardPage.cpp
+    GUI/CalibrationWizardPage.hpp
+	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.hpp
+	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.hpp
+	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.hpp
+	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.hpp
+    GUI/calib_dlg.cpp
+    GUI/calib_dlg.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
-    GUI/BonjourDialog.hpp
-    GUI/BonjourDialog.cpp
-    GUI/BedShapeDialog.hpp
-    GUI/BedShapeDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
@@ -433,12 +447,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/PrintHost.cpp
     Utils/NetworkAgent.cpp
     Utils/NetworkAgent.hpp
-    Utils/OctoPrint.cpp
-    Utils/OctoPrint.hpp
-    Utils/PrintHost.cpp
-    Utils/PrintHost.hpp
-    Utils/Serial.cpp
-    Utils/Serial.hpp
     Utils/MKS.hpp
     Utils/MKS.cpp
     Utils/Duet.cpp
@@ -449,8 +457,9 @@ set(SLIC3R_GUI_SOURCES
     Utils/AstroBox.hpp
     Utils/Repetier.cpp
     Utils/Repetier.hpp
-    GUI/calib_dlg.hpp
-    GUI/calib_dlg.cpp
+
+    Utils/CalibUtils.cpp
+    Utils/CalibUtils.hpp
 )
 
 if (WIN32)
@@ -500,7 +509,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
@@ -526,10 +535,6 @@ if (SLIC3R_STATIC)
     # FIXME: This was previously exported by wx-config but the wxWidgets
     # cmake build forgets this and the build fails in debug mode (or on raspberry release)
     target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
-endif()
-
-if (HAVE_SPNAV)
-    target_link_libraries(libslic3r_gui spnav)
 endif()
 
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL AND UNIX AND NOT APPLE)

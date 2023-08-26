@@ -1,12 +1,15 @@
 {
     "type": "machine",
-    "setting_id": "GM003",
+    "setting_id": "GM_Anycubic_000",
     "name": "Anycubic 4Max Pro 0.4 nozzle",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_machine_common",
     "printer_model": "Anycubic 4Max Pro",
     "default_print_profile": "0.20mm Standard @Anycubic 4MaxPro",
+    "extruder_type": [
+      "Bowden"
+    ],
     "nozzle_diameter": [
         "0.4"
     ],
@@ -18,6 +21,9 @@
       "270x0",
       "270x205",
       "0x205"
+    ],
+    "default_filament_profile": [
+      "Generic PLA @Anycubic"
     ],
     "printable_height": "200",
     "machine_start_gcode": "M190 S[bed_temperature_initial_layer_single]\nM109 S[nozzle_temperature_initial_layer]\nPRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]\n; You can use following code instead if your PRINT_START macro support Chamber and print area bedmesh\n; PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single] Chamber=[chamber_temperature] PRINT_MIN={first_layer_print_min[0]},{first_layer_print_min[1]} PRINT_MAX={first_layer_print_max[0]},{first_layer_print_max[1]}",

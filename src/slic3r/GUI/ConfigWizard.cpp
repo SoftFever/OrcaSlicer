@@ -2735,6 +2735,16 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         p->init_dialog_size();
     });
 
+    p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&)
+        {
+            ConfigWizardPage* active_page = this->p->index->active_page();
+            if ((active_page == p->page_filaments || active_page == p->page_sla_materials) &&
+                !p->check_and_install_missing_materials(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
+                // In that case don't leave the page and the function above queried the user whether to install default materials.
+                return;
+            this->p->index->go_prev();
+        });
+
     p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
     {
         ConfigWizardPage* active_page = this->p->index->active_page();

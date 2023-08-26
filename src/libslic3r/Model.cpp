@@ -71,12 +71,9 @@ Model& Model::assign_copy(const Model &rhs)
     // BBS
     this->plates_custom_gcodes = rhs.plates_custom_gcodes;
     this->curr_plate_index = rhs.curr_plate_index;
-    this->calib_pa_pattern.reset();
 
     if (rhs.calib_pa_pattern) {
-        this->calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(
-            CalibPressureAdvancePattern(*rhs.calib_pa_pattern)
-        );
+        this->calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(CalibPressureAdvancePattern(*rhs.calib_pa_pattern));
     }
 
     // BBS: for design info
@@ -107,8 +104,7 @@ Model& Model::assign_copy(Model &&rhs)
     // BBS
     this->plates_custom_gcodes = std::move(rhs.plates_custom_gcodes);
     this->curr_plate_index = rhs.curr_plate_index;
-    this->calib_pa_pattern.reset();
-    this->calib_pa_pattern.swap(rhs.calib_pa_pattern);
+    this->calib_pa_pattern = std::move(rhs.calib_pa_pattern);
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
@@ -814,7 +810,7 @@ std::string Model::get_backup_path()
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
-        buf << "/orcaslicer_model/";
+        buf << "/bamboo_model/";
         buf << std::put_time(now_time, "%a_%b_%d/%H_%M_%S#");
         buf << pid << "#";
         buf << this->id().id;
@@ -1382,11 +1378,19 @@ const BoundingBoxf3& ModelObject::raw_bounding_box() const
 }
 
 // This returns an accurate snug bounding box of the transformed object instance, without the translation applied.
-BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_translate) const {
-    return instance_bounding_box(*this->instances[instance_idx], dont_translate);
+BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_translate) const
+{
+    BoundingBoxf3 bb;
+    const Transform3d& inst_matrix = this->instances[instance_idx]->get_transformation().get_matrix(dont_translate);
+    for (ModelVolume *v : this->volumes)
+    {
+        if (v->is_model_part())
+            bb.merge(v->mesh().transformed_bounding_box(inst_matrix * v->get_matrix()));
+    }
+    return bb;
 }
 
-BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, bool dont_translate) const {
+BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance& instance, bool dont_translate) const {
     BoundingBoxf3 bbox;
     const auto& inst_mat = instance.get_transformation().get_matrix(dont_translate);
     for (auto vol : this->volumes) {
@@ -1395,7 +1399,6 @@ BoundingBoxf3 ModelObject::instance_bounding_box(const ModelInstance &instance, 
     }
     return bbox;
 }
-
 
 //BBS: add convex bounding box
 BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(size_t instance_idx, bool dont_translate) const
@@ -2458,6 +2461,7 @@ void ModelObject::bake_xy_rotation_into_meshes(size_t instance_idx)
     assert(instance_idx < this->instances.size());
 
 	const Geometry::Transformation reference_trafo = this->instances[instance_idx]->get_transformation();
+
     if (Geometry::is_rotation_ninety_degrees(reference_trafo.get_rotation()))
         // nothing to do, scaling in the world coordinate space is possible in the representation of Geometry::Transformation.
         return;
@@ -3246,7 +3250,6 @@ double Model::findMaxSpeed(const ModelObject* object) {
     double solidInfillSpeedObj = Model::printSpeedMap.solidInfillSpeed;
     double topSolidInfillSpeedObj = Model::printSpeedMap.topSolidInfillSpeed;
     double supportSpeedObj = Model::printSpeedMap.supportSpeed;
-    double smallPerimeterSpeedObj = Model::printSpeedMap.smallPerimeterSpeed;
     for (std::string objectKey : objectKeys) {
         if (objectKey == "inner_wall_speed"){
             perimeterSpeedObj = object->config.opt_float(objectKey);
@@ -3262,10 +3265,8 @@ double Model::findMaxSpeed(const ModelObject* object) {
             supportSpeedObj = object->config.opt_float(objectKey);
         if (objectKey == "outer_wall_speed")
             externalPerimeterSpeedObj = object->config.opt_float(objectKey);
-        if (objectKey == "small_perimeter_speed")
-            smallPerimeterSpeedObj = object->config.opt_float(objectKey);
     }
-    objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, std::max(smallPerimeterSpeedObj, objMaxSpeed)))))));
+    objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, objMaxSpeed))))));
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;
     return objMaxSpeed;
 }

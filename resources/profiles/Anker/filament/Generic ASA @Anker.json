@@ -1,0 +1,19 @@
+{
+    "type": "filament",
+    "filament_id": "GFB98",
+    "setting_id": "GFSB98_Anker_00",
+    "name": "Generic ASA @Anker",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_asa",
+    "filament_flow_ratio": [
+        "0.93"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Anker M5 0.4 nozzle",
+        "Anker M5C 0.4 nozzle"
+    ]
+}

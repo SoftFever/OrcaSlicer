@@ -95,7 +95,7 @@ struct SurfaceFillParams
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
 				this->bridge   			== rhs.bridge   		&&
-				this->bridge_angle 		== rhs.bridge_angle		&&
+//				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
 //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
@@ -154,42 +154,26 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				//BBS
 				params.with_loop     = surface.surface_type == stInternalWithLoop;
 
-		        if (surface.is_solid()) {
+				if (surface.is_solid()) {
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
 					if (surface.is_solid_infill())
                         params.pattern = region_config.internal_solid_infill_pattern.value;
-                    else if (surface.is_external() && ! is_bridge) {
-                        if(surface.is_top())
-                            params.pattern = region_config.top_surface_pattern.value;
-                        else
-                            params.pattern = region_config.bottom_surface_pattern.value;
-                    }
-                    else {
-                        if(region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
-                            params.pattern = ipMonotonic;
-                        else
-                            params.pattern = ipRectilinear;
-                    }
+					else if (surface.is_external() && !is_bridge)
+						params.pattern = surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value;
+					else
+						params.pattern = region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+
 		        } else if (params.density <= 0)
 		            continue;
 
-				params.extrusion_role = erInternalInfill;
-                if (is_bridge) {
-                    if (surface.is_internal_bridge())
-                        params.extrusion_role = erInternalBridgeInfill;
-                    else
-                        params.extrusion_role = erBridgeInfill;
-                } else if (surface.is_solid()) {
-                    if (surface.is_top()) {
-                        params.extrusion_role = erTopSolidInfill;
-                    } else if (surface.is_bottom()) {
-                        params.extrusion_role = erBottomSurface;
-                    } else {
-                        params.extrusion_role = erSolidInfill;
-                    }
-                }
-                params.bridge_angle = float(surface.bridge_angle);
+		        params.extrusion_role =
+		            is_bridge ?
+		                erBridgeInfill :
+		                (surface.is_solid() ?
+		                    (surface.is_top() ? erTopSolidInfill : (surface.is_bottom()? erBottomSurface : erSolidInfill)) :
+		                    erInternalInfill);
+		        params.bridge_angle = float(surface.bridge_angle);
 		        params.angle 		= float(Geometry::deg2rad(region_config.infill_direction.value));
 		        
 		        // Calculate the actual flow we'll be using for this infill.
@@ -210,11 +194,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 					// so that internall infill will be aligned over all layers of the current region.
 		            params.spacing = layerm.region().flow(*layer.object(), frInfill, layer.object()->config().layer_height, false).spacing();
 		            // Anchor a sparse infill to inner perimeters with the following anchor length:
-			        params.anchor_length = float(region_config.infill_anchor);
-					if (region_config.infill_anchor.percent)
+					params.anchor_length = float(region_config.sparse_infill_anchor);
+					if (region_config.sparse_infill_anchor.percent)
 						params.anchor_length = float(params.anchor_length * 0.01 * params.spacing);
-					params.anchor_length_max = float(region_config.infill_anchor_max);
-					if (region_config.infill_anchor_max.percent)
+					params.anchor_length_max = float(region_config.sparse_infill_anchor_max);
+					if (region_config.sparse_infill_anchor_max.percent)
 						params.anchor_length_max = float(params.anchor_length_max * 0.01 * params.spacing);
 					params.anchor_length = std::min(params.anchor_length, params.anchor_length_max);
 				}
@@ -331,11 +315,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (internal_solid_fill == nullptr) {
 	        	// Produce another solid fill.
 		        params.extruder 	 = layerm.region().extruder(frSolidInfill);
-                const auto top_pattern = layerm.region().config().top_surface_pattern;
-                if(top_pattern == ipMonotonic || top_pattern == ipMonotonicLine)
-                    params.pattern = top_pattern;
-                else
-                    params.pattern 		 = ipRectilinear;
+	            params.pattern 		 = layerm.region().config().top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erInternalInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_direction.value));
@@ -479,12 +459,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 #endif
         }
 
-        LayerRegion* layerm = this->m_regions[surface_fill.region_id];
-
         // Maximum length of the perimeter segment linking two infill lines.
         f->link_max_length = (coord_t)scale_(link_max_length);
         // Used by the concentric infill pattern to clip the loops to create extrusion paths.
-        f->loop_clipping = coord_t(scale_(layerm->region().config().seam_gap.get_abs_value(surface_fill.params.flow.nozzle_diameter())));
+        f->loop_clipping = coord_t(scale_(surface_fill.params.flow.nozzle_diameter()) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
 
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
@@ -502,19 +480,14 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
 		params.with_loop = surface_fill.params.with_loop;
-		params.config = &layerm->region().config();
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
+		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		for (ExPolygon& expoly : surface_fill.expolygons) {
             f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly}, ApplySafetyOffset::Yes);
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
-
-			if(surface_fill.params.bridge && surface_fill.surface.is_external() && surface_fill.params.density > 99.0){
-				params.density = layerm->region().config().bridge_density.get_abs_value(1.0);
-				params.dont_adjust = true;
-			}
 			// BBS: make fill
 			f->fill_surface_extrusion(&surface_fill.surface,
 				params,
