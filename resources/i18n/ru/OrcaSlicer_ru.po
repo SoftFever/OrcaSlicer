@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: OrcaSlicer V1.6.4 Official Release\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-08-14 20:56+0700\n"
-"PO-Revision-Date: 2023-08-27 13:26+0700\n"
+"PO-Revision-Date: 2023-08-27 13:50+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -4008,7 +4008,7 @@ msgstr "Этот 3mf создан в старой версии Orca Slicer, по
 msgid "The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"
 msgstr ""
 "Версия этого формата 3mf (%s) новее текущей версии %s (%s). \n"
-"Обнаружены следующие нераспознанные ключи:\n"
+"Обнаружены следующие нераспознанные ключи:"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Рекомендуем вам обновить программу.\n"
@@ -4742,7 +4742,7 @@ msgstr "Для \"%1%\" сменить \"%2%\" на \"%3%\" "
 
 #, boost-format
 msgid "For \"%1%\", add \"%2%\" as a new preset"
-msgstr "Для \"%1%\" добавить \"% 2%\" как новый шаблон"
+msgstr "Для \"%1%\" добавить \"%2%\" как новый шаблон"
 
 #, boost-format
 msgid "Simply switch to \"%1%\""
@@ -6816,7 +6816,6 @@ msgstr "Базовый угол для ориентации шаблона за�
 msgid "Sparse infill density"
 msgstr "Плотность заполнения"
 
-#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Плотность внутреннего заполнения, выраженная в процентах. 100% означает сплошное заполнение."
 
@@ -6928,7 +6927,6 @@ msgstr "Значение Klipper-а max_accel_to_decel (ограничение �
 msgid "accel_to_decel"
 msgstr "ограничение ускорение зигзагов"
 
-#, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr "Значение Klipper-а max_accel_to_decel (ограничение ускорения зигзагов) будет скорректировано на данное ускорение: %"
 
