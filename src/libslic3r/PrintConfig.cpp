@@ -74,6 +74,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterTechnology)
 
 static t_config_enum_values s_keys_map_PrintHostType {
     { "prusalink",      htPrusaLink },
+    { "prusaconnect",   htPrusaConnect },
     { "octoprint",      htOctoPrint },
     { "duet",           htDuet },
     { "flashair",       htFlashAir },
@@ -1972,7 +1973,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("repetier");
     //def->enum_values.push_back("teacup");
     //def->enum_values.push_back("makerware");
-    //def->enum_values.push_back("marlin2");
+    def->enum_values.push_back("marlin2");
     //def->enum_values.push_back("sailfish");
     //def->enum_values.push_back("mach3");
     //def->enum_values.push_back("machinekit");
@@ -1985,7 +1986,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Repetier");
     //def->enum_labels.push_back("Teacup");
     //def->enum_labels.push_back("MakerWare (MakerBot)");
-    //def->enum_labels.push_back("Marlin 2");
+    def->enum_labels.push_back("Marlin 2");
     //def->enum_labels.push_back("Sailfish (MakerBot)");
     //def->enum_labels.push_back("Mach3/LinuxCNC");
     //def->enum_labels.push_back("Machinekit");
@@ -2404,6 +2405,7 @@ void PrintConfigDef::init_fff_params()
                    "the kind of the host.");
     def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
     def->enum_values.push_back("prusalink");
+    def->enum_values.push_back("prusaconnect");
     def->enum_values.push_back("octoprint");
     def->enum_values.push_back("duet");
     def->enum_values.push_back("flashair");
@@ -2411,6 +2413,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
     def->enum_labels.push_back("PrusaLink");
+    def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
     def->enum_labels.push_back("Duet");
     def->enum_labels.push_back("FlashAir");

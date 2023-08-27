@@ -80,6 +80,8 @@ public:
 		{ std::string value; this->get(section, key, value); return value; }
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("app", key, value); return value; }
+	bool				get_bool(const std::string &key) const
+		{ return this->get(key) == "true"; }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
 #ifndef NDEBUG

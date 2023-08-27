@@ -1634,7 +1634,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format("; EXECUTABLE_BLOCK_START\n");
 
     // SoftFever
-    file.write(set_object_info(&print));
+    if( m_config.gcode_flavor.value == gcfKlipper && m_enable_exclude_object)
+        file.write(set_object_info(&print));
 
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
@@ -2488,6 +2489,12 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
             file.write_format("M204 P%d T%d ; sets acceleration (P, T), mm/sec^2\n",
                 int(print.config().machine_max_acceleration_extruding.values.front() + 0.5),
                 travel_acc);
+        else if (flavor == gcfMarlinFirmware)
+            // New Marlin uses M204 P[print] R[retract] T[travel]
+            file.write_format("M204 P%d R%d T%d ; sets acceleration (P, T) and retract acceleration (R), mm/sec^2\n",
+                int(print.config().machine_max_acceleration_extruding.values.front() + 0.5),
+                int(print.config().machine_max_acceleration_retracting.values.front() + 0.5),
+                int(print.config().machine_max_acceleration_travel.values.front() + 0.5));
         else
             file.write_format("M204 P%d R%d T%d\n",
                 int(print.config().machine_max_acceleration_extruding.values.front() + 0.5),
