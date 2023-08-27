@@ -11,6 +11,7 @@
     ],
     "compatible_printers": [
       "Prusa MK3S 0.4 nozzle",
+      "Prusa MK4 0.4 nozzle",
       "Prusa MINI 0.4 nozzle"
     ]
 }

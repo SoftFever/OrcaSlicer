@@ -66,7 +66,7 @@ public:
     virtual bool get_printers(wxArrayString & /* printers */) const { return false; }
     // Support for PrusaLink uploading to different storage. Not supported by other print hosts.
     // Returns false if not supported or fail.
-    virtual bool get_storage(wxArrayString& /* storage */) const { return false; }
+    virtual bool get_storage(wxArrayString& /*storage_path*/, wxArrayString& /*storage_name*/) const { return false; }
 
     static PrintHost* get_print_host(DynamicPrintConfig *config);
 

@@ -33,6 +33,38 @@ namespace Slic3r {
 
 namespace {
 #ifdef WIN32
+std::string get_host_from_url(const std::string& url_in)
+{
+    std::string url = url_in;
+    // add http:// if there is no scheme
+    size_t double_slash = url.find("//");
+    if (double_slash == std::string::npos)
+        url = "http://" + url;
+    std::string out = url;
+    CURLU* hurl = curl_url();
+    if (hurl) {
+        // Parse the input URL.
+        CURLUcode rc = curl_url_set(hurl, CURLUPART_URL, url.c_str(), 0);
+        if (rc == CURLUE_OK) {
+            // Replace the address.
+            char* host;
+            rc = curl_url_get(hurl, CURLUPART_HOST, &host, 0);
+            if (rc == CURLUE_OK) {
+                out = host;
+                curl_free(host);
+            }
+            else
+                BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to get host form URL " << url;
+        }
+        else
+            BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to parse URL " << url;
+        curl_url_cleanup(hurl);
+    }
+    else
+        BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to allocate curl_url";
+    return out;
+}
+
     // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
 std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
 {
@@ -96,38 +128,6 @@ std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
     return out;
 #endif
 }
-
-std::string get_host_from_url(const std::string& url_in)
-{
-    std::string url = url_in;
-    // add http:// if there is no scheme
-    size_t double_slash = url.find("//");
-    if (double_slash == std::string::npos)
-        url = "http://" + url;
-    std::string out = url;
-    CURLU* hurl = curl_url();
-    if (hurl) {
-        // Parse the input URL.
-        CURLUcode rc = curl_url_set(hurl, CURLUPART_URL, url.c_str(), 0);
-        if (rc == CURLUE_OK) {
-            // Replace the address.
-            char* host;
-            rc = curl_url_get(hurl, CURLUPART_HOST, &host, 0);
-            if (rc == CURLUE_OK) {
-                out = host;
-                curl_free(host);
-            }
-            else
-                BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to get host form URL " << url;
-        }
-        else
-            BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to parse URL " << url;
-        curl_url_cleanup(hurl);
-    }
-    else
-        BOOST_LOG_TRIVIAL(error) << "OctoPrint get_host_from_url: failed to allocate curl_url";
-    return out;
-}
 #endif // WIN32
 std::string escape_string(const std::string& unescaped)
 {
@@ -170,7 +170,7 @@ const char* OctoPrint::get_name() const { return "OctoPrint"; }
 bool OctoPrint::test_with_resolved_ip(wxString &msg) const
 {
     // Since the request is performed synchronously here,
-   // it is ok to refer to `msg` from within the closure
+    // it is ok to refer to `msg` from within the closure
     const char* name = get_name();
     bool res = true;
     // Msg contains ip string.
@@ -179,7 +179,15 @@ bool OctoPrint::test_with_resolved_ip(wxString &msg) const
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Get version at: %2%") % name % url;
 
+    std::string host = get_host_from_url(m_host);
     auto http = Http::get(url);//std::move(url));
+    // "Host" header is necessary here. We have resolved IP address and subsituted it into "url" variable.
+    // And when creating Http object above, libcurl automatically includes "Host" header from address it got.
+    // Thus "Host" is set to the resolved IP instead of host filled by user. We need to change it back.
+    // Not changing the host would work on the most cases (where there is 1 service on 1 hostname) but would break when f.e. reverse proxy is used (issue #9734).
+    // Also when allow_ip_resolve = 0, this is not needed, but it should not break anything if it stays.
+    // https://www.rfc-editor.org/rfc/rfc7230#section-5.4
+    http.header("Host", host);
     set_auth(http);
     http
         .on_error([&](std::string body, std::string error, unsigned status) {
@@ -203,7 +211,7 @@ bool OctoPrint::test_with_resolved_ip(wxString &msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (!res) {
-                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "OctoPrint")).str());
+                    msg = GUI::format_wxstr(_L("Mismatched type of print host: %s"), (text ? *text : name));
                 }
             }
             catch (const std::exception&) {
@@ -228,7 +236,7 @@ bool OctoPrint::test(wxString& msg) const
     auto url = make_url("api/version");
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Get version at: %2%") % name % url;
-
+    // Here we do not have to add custom "Host" header - the url contains host filled by user and libCurl will set the header by itself.
     auto http = Http::get(std::move(url));
     set_auth(http);
     http.on_error([&](std::string body, std::string error, unsigned status) {
@@ -252,7 +260,7 @@ bool OctoPrint::test(wxString& msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (! res) {
-                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "OctoPrint")).str());
+                    msg = GUI::format_wxstr(_L("Mismatched type of print host: %s"), (text ? *text : name));
                 }
             }
             catch (const std::exception &) {
@@ -273,7 +281,6 @@ bool OctoPrint::test(wxString& msg) const
     return res;
 }
 
-
 wxString OctoPrint::get_test_ok_msg () const
 {
     return _(L("Connection to OctoPrint works correctly."));
@@ -281,10 +288,10 @@ wxString OctoPrint::get_test_ok_msg () const
 
 wxString OctoPrint::get_test_failed_msg (wxString &msg) const
 {
-    return GUI::from_u8((boost::format("%s: %s\n\n%s")
-        % _utf8(L("Could not connect to OctoPrint"))
-        % std::string(msg.ToUTF8())
-        % _utf8(L("Note: OctoPrint version at least 1.1.0 is required."))).str());
+    return GUI::format_wxstr("%s: %s\n\n%s"
+        , _L("Could not connect to OctoPrint")
+        , msg
+        , _L("Note: OctoPrint version at least 1.1.0 is required."));
 }
 
 bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
@@ -300,7 +307,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     boost::asio::ip::address host_ip = boost::asio::ip::make_address(host, ec);
     if (!ec) {
         resolved_addr.push_back(host_ip);
-    } else if ( GUI::get_app_config()->get("allow_ip_resolve") == "1" && boost::algorithm::ends_with(host, ".local")){
+    } else if ( GUI::get_app_config()->get_bool("allow_ip_resolve") && boost::algorithm::ends_with(host, ".local")){
         Bonjour("octoprint")
             .set_hostname(host)
             .set_retries(5) // number of rounds of queries send
@@ -340,7 +347,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         return true;
     } else {
         // There are multiple addresses - user needs to choose which to use.
-        size_t selected_index = resolved_addr.size();
+        size_t selected_index = resolved_addr.size(); 
         IPListDialog dialog(nullptr, boost::nowide::widen(m_host), resolved_addr, selected_index);
         if (dialog.ShowModal() == wxID_OK && selected_index < resolved_addr.size()) {    
             return upload_inner_with_resolved_ip(std::move(upload_data), prorgess_fn, error_fn, info_fn, resolved_addr[selected_index]);
@@ -379,7 +386,14 @@ bool OctoPrint::upload_inner_with_resolved_ip(PrintHostUpload upload_data, Progr
         % upload_parent_path.string()
         % (upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false");
 
+    std::string host = get_host_from_url(m_host);
     auto http = Http::post(url);//std::move(url));
+    // "Host" header is necessary here. We have resolved IP address and subsituted it into "url" variable.
+    // And when creating Http object above, libcurl automatically includes "Host" header from address it got.
+    // Thus "Host" is set to the resolved IP instead of host filled by user. We need to change it back.
+    // Not changing the host would work on the most cases (where there is 1 service on 1 hostname) but would break when f.e. reverse proxy is used (issue #9734).
+    // https://www.rfc-editor.org/rfc/rfc7230#section-5.4
+    http.header("Host", host);
     set_auth(http);
     http.form_add("print", upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false")
         .form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
@@ -397,7 +411,7 @@ bool OctoPrint::upload_inner_with_resolved_ip(PrintHostUpload upload_data, Progr
             prorgess_fn(std::move(progress), cancel);
             if (cancel) {
                 // Upload was canceled
-                BOOST_LOG_TRIVIAL(info) << "Octoprint: Upload canceled";
+                BOOST_LOG_TRIVIAL(info) << name << ": Upload canceled";
                 result = false;
             }
         })
@@ -428,7 +442,7 @@ bool OctoPrint::upload_inner_with_host(PrintHostUpload upload_data, ProgressFn p
 
 #ifdef WIN32
     // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
-    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || GUI::get_app_config()->get("allow_ip_resolve") != "1")
+    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || !GUI::get_app_config()->get_bool("allow_ip_resolve"))
 #endif // _WIN32
     {
         // If https is entered we assume signed ceritificate is being used
@@ -458,6 +472,16 @@ bool OctoPrint::upload_inner_with_host(PrintHostUpload upload_data, ProgressFn p
         % (upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false");
 
     auto http = Http::post(std::move(url));
+#ifdef WIN32
+    // "Host" header is necessary here. In the workaround above (two mDNS..) we have got IP address from test connection and subsituted it into "url" variable.
+    // And when creating Http object above, libcurl automatically includes "Host" header from address it got.
+    // Thus "Host" is set to the resolved IP instead of host filled by user. We need to change it back.
+    // Not changing the host would work on the most cases (where there is 1 service on 1 hostname) but would break when f.e. reverse proxy is used (issue #9734).
+    // Also when allow_ip_resolve = 0, this is not needed, but it should not break anything if it stays.
+    // https://www.rfc-editor.org/rfc/rfc7230#section-5.4
+    std::string host = get_host_from_url(m_host);
+    http.header("Host", host);
+#endif // _WIN32
     set_auth(http);
     http.form_add("print", upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false")
         .form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
@@ -474,7 +498,7 @@ bool OctoPrint::upload_inner_with_host(PrintHostUpload upload_data, ProgressFn p
             prorgess_fn(std::move(progress), cancel);
             if (cancel) {
                 // Upload was canceled
-                BOOST_LOG_TRIVIAL(info) << "Octoprint: Upload canceled";
+                BOOST_LOG_TRIVIAL(info) << name << ": Upload canceled";
                 res = false;
             }
         })
@@ -513,11 +537,8 @@ std::string OctoPrint::make_url(const std::string &path) const
     }
 }
 
-SL1Host::SL1Host(DynamicPrintConfig *config) : 
-    OctoPrint(config),
-    m_authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
-    m_username(config->opt_string("printhost_user")),
-    m_password(config->opt_string("printhost_password"))
+SL1Host::SL1Host(DynamicPrintConfig *config)
+    : PrusaLink(config)
 {
 }
 
@@ -531,9 +552,7 @@ wxString SL1Host::get_test_ok_msg () const
 
 wxString SL1Host::get_test_failed_msg (wxString &msg) const
 {
-    return GUI::from_u8((boost::format("%s: %s")
-                    % _utf8(L("Could not connect to Prusa SLA"))
-                    % std::string(msg.ToUTF8())).str());
+    return GUI::format_wxstr("%s: %s", _L("Could not connect to Prusa SLA"), msg);
 }
 
 bool SL1Host::validate_version_text(const boost::optional<std::string> &version_text) const
@@ -541,26 +560,10 @@ bool SL1Host::validate_version_text(const boost::optional<std::string> &version_
     return version_text ? boost::starts_with(*version_text, "Prusa SLA") : false;
 }
 
-void SL1Host::set_auth(Http &http) const
-{
-    switch (m_authorization_type) {
-    case atKeyPassword:
-        http.header("X-Api-Key", get_apikey());
-        break;
-    case atUserPassword:
-        http.auth_digest(m_username, m_password);
-        break;
-    }
-
-    if (! get_cafile().empty()) {
-        http.ca_file(get_cafile());
-    }
-}
-
 // PrusaLink
 PrusaLink::PrusaLink(DynamicPrintConfig* config, bool show_after_message) :
     OctoPrint(config),
-    m_authorization_type(dynamic_cast<const ConfigOptionEnum<AuthorizationType>*>(config->option("printhost_authorization_type"))->value),
+    m_authorization_type(config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value),
     m_username(config->opt_string("printhost_user")),
     m_password(config->opt_string("printhost_password")),
     m_show_after_message(show_after_message)
@@ -576,9 +579,7 @@ wxString PrusaLink::get_test_ok_msg() const
 
 wxString PrusaLink::get_test_failed_msg(wxString& msg) const
 {
-    return GUI::from_u8((boost::format("%s: %s")
-        % _utf8(L("Could not connect to PrusaLink"))
-        % std::string(msg.ToUTF8())).str());
+    return GUI::format_wxstr("%s: %s", _L("Could not connect to PrusaLink"), msg);
 }
 
 bool PrusaLink::validate_version_text(const boost::optional<std::string>& version_text) const
@@ -664,7 +665,7 @@ bool PrusaLink::test(wxString& msg) const
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (!res) {
-                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "OctoPrint")).str());
+                    msg = GUI::format_wxstr(_L("Mismatched type of print host: %s"), (text ? *text : "OctoPrint"));
                 }
             }
             catch (const std::exception&) {
@@ -685,7 +686,7 @@ bool PrusaLink::test(wxString& msg) const
      return res;
 }
 
-bool PrusaLink::get_storage(wxArrayString& output) const
+bool PrusaLink::get_storage(wxArrayString& storage_path, wxArrayString& storage_name) const
 {
     const char* name = get_name();
 
@@ -693,17 +694,22 @@ bool PrusaLink::get_storage(wxArrayString& output) const
     auto url = make_url("api/v1/storage");
     wxString error_msg;
 
-    struct StorageInfo{
+    struct StorageInfo {
+        wxString path;
         wxString name;
-        bool read_only;
-        long long free_space;
+        bool read_only = false;
+        long long free_space = -1;
     };
     std::vector<StorageInfo> storage;
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Get storage at: %2%") % name % url;
 
+    wxString wlang = GUI::wxGetApp().current_language_code();
+    std::string lang = GUI::format(wlang.SubString(0, 1));
+
     auto http = Http::get(std::move(url));
     set_auth(http);
+    http.header("Accept-Language", lang);
     http.on_error([&](std::string body, std::string error, unsigned status) {
         BOOST_LOG_TRIVIAL(error) << boost::format("%1%: Error getting storage: %2%, HTTP %3%, body: `%4%`") % name % error % status % body;
         error_msg = L"\n\n" + boost::nowide::widen(error);
@@ -716,7 +722,7 @@ bool PrusaLink::get_storage(wxArrayString& output) const
             res = true;
        
     })
-    .on_complete([&, this](std::string body, unsigned) {
+    .on_complete([&](std::string body, unsigned) {
         BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: Got storage: %2%") % name % body;
         try
         {
@@ -731,14 +737,19 @@ bool PrusaLink::get_storage(wxArrayString& output) const
             }
             // each storage has own subtree of storage_list
             for (const auto& section : ptree.front().second) {
+                const auto name = section.second.get_optional<std::string>("name");
                 const auto path = section.second.get_optional<std::string>("path");
                 const auto space = section.second.get_optional<std::string>("free_space");
                 const auto read_only = section.second.get_optional<bool>("read_only");
+                const auto ro = section.second.get_optional<bool>("ro"); // In PrusaLink 0.7.0RC2 "read_only" value is stored under "ro".
                 const auto available = section.second.get_optional<bool>("available");
                 if (path && (!available || *available)) {
                     StorageInfo si;
-                    si.name = boost::nowide::widen(*path);
-                    si.read_only = read_only ? *read_only : false; // If read_only is missing, assume it is NOT read only.
+                    si.path = boost::nowide::widen(*path);
+                    si.name = name ? boost::nowide::widen(*name) : wxString();
+                    // If read_only is missing, assume it is NOT read only.
+                    // si.read_only = read_only ? *read_only : false; // version without "ro"
+                    si.read_only = (read_only ? *read_only : (ro ? *ro : false));
                     si.free_space = space ? std::stoll(*space) : 1;  // If free_space is missing, assume there is free space.
                     storage.emplace_back(std::move(si));
                 }
@@ -756,19 +767,25 @@ bool PrusaLink::get_storage(wxArrayString& output) const
     .perform_sync();
 
     for (const auto& si : storage) {
-        if (!si.read_only && si.free_space > 0)
-            output.push_back(si.name);
+        if (!si.read_only && si.free_space > 0) {
+            storage_path.push_back(si.path);
+            storage_name.push_back(si.name);
+        }
     }
 
-    if (res && output.empty())
-    {
+    if (res && storage_path.empty()) {
         if (!storage.empty()) { // otherwise error_msg is already filled 
-            error_msg = L"\n\n" + _L("Storages found:") + L" \n";
+            error_msg = L"\n\n" + _L("Storages found") + L": \n";
             for (const auto& si : storage) {
-                error_msg += si.name + L" : " + (si.read_only ? _L("read only") : _L("no free space")) + L"\n";
+                error_msg += GUI::format_wxstr(si.read_only ?
+                                                                // TRN %1% = storage path
+                                                                _L("%1% : read only") : 
+                                                                // TRN %1% = storage path
+                                                                _L("%1% : no free space"), si.path) + L"\n";
             }
         }
-        std::string message = GUI::format(_L("Upload has failed. There is no suitable storage found at %1%.%2%"), m_host, error_msg);
+        // TRN %1% = host
+        std::string message = GUI::format(_L("Upload has failed. There is no suitable storage found at %1%."), m_host) + GUI::into_u8(error_msg);
         BOOST_LOG_TRIVIAL(error) << message;
         throw Slic3r::IOError(message);
     }
@@ -787,7 +804,7 @@ bool PrusaLink::test_with_method_check(wxString& msg, bool& use_put) const
     auto url = make_url("api/version");
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Get version at: %2%") % name % url;
-
+    // Here we do not have to add custom "Host" header - the url contains host filled by user and libCurl will set the header by itself.
     auto http = Http::get(std::move(url));
     set_auth(http);
     http.on_error([&](std::string body, std::string error, unsigned status) {
@@ -811,7 +828,7 @@ bool PrusaLink::test_with_method_check(wxString& msg, bool& use_put) const
             const auto text = ptree.get_optional<std::string>("text");
             res = validate_version_text(text);
             if (!res) {
-                msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "OctoPrint")).str());
+                msg = GUI::format_wxstr(_L("Mismatched type of print host: %s"), (text ? *text : "OctoPrint"));
                 use_put = false;
                 return;
             }
@@ -860,7 +877,15 @@ bool PrusaLink::test_with_resolved_ip_and_method_check(wxString& msg, bool& use_
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Get version at: %2%") % name % url;
 
+    std::string host = get_host_from_url(m_host);
     auto http = Http::get(url);//std::move(url));
+    // "Host" header is necessary here. We have resolved IP address and subsituted it into "url" variable.
+    // And when creating Http object above, libcurl automatically includes "Host" header from address it got.
+    // Thus "Host" is set to the resolved IP instead of host filled by user. We need to change it back.
+    // Not changing the host would work on the most cases (where there is 1 service on 1 hostname) but would break when f.e. reverse proxy is used (issue #9734).
+    // Also when allow_ip_resolve = 0, this is not needed, but it should not break anything if it stays.
+    // https://www.rfc-editor.org/rfc/rfc7230#section-5.4
+    http.header("Host", host);
     set_auth(http);
     http
         .on_error([&](std::string body, std::string error, unsigned status) {
@@ -884,7 +909,7 @@ bool PrusaLink::test_with_resolved_ip_and_method_check(wxString& msg, bool& use_
                 const auto text = ptree.get_optional<std::string>("text");
                 res = validate_version_text(text);
                 if (!res) {
-                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "OctoPrint")).str());
+                    msg = GUI::format_wxstr(_L("Mismatched type of print host: %s"), (text ? *text : "OctoPrint"));
                     use_put = false;
                     return;
                 }
@@ -968,12 +993,11 @@ bool PrusaLink::upload_inner_with_host(PrintHostUpload upload_data, ProgressFn p
     }
 
     std::string url;
-    bool res = true;
     std::string storage_path = (use_put ? "api/v1/files" : "api/files");
     storage_path += (upload_data.storage.empty() ? "/local" : upload_data.storage);
 #ifdef WIN32
     // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
-    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || GUI::get_app_config()->get("allow_ip_resolve") != "1")
+    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || !GUI::get_app_config()->get_bool("allow_ip_resolve"))
 #endif // _WIN32
     {
         // If https is entered we assume signed ceritificate is being used
@@ -1015,13 +1039,20 @@ bool PrusaLink::put_inner(PrintHostUpload upload_data, std::string url, const st
     bool res = true;
     // Percent escape all filenames in on path and add it to the url. This is different from POST.
     url += "/" + escape_path_by_element(upload_data.upload_path);
-
     Http http = Http::put(std::move(url));
+#ifdef WIN32
+    // "Host" header is necessary here. We have resolved IP address and subsituted it into "url" variable.
+    // And when creating Http object above, libcurl automatically includes "Host" header from address it got.
+    // Thus "Host" is set to the resolved IP instead of host filled by user. We need to change it back.
+    // Not changing the host would work on the most cases (where there is 1 service on 1 hostname) but would break when f.e. reverse proxy is used (issue #9734).
+    // https://www.rfc-editor.org/rfc/rfc7230#section-5.4
+    std::string host = get_host_from_url(m_host);
+    http.header("Host", host);
+#endif // _WIN32
     set_auth(http);
     // This is ugly, but works. There was an error at PrusaLink side that accepts any string at Print-After-Upload as true, thus False was also triggering print after upload.
     if (upload_data.post_action == PrintHostPostUploadAction::StartPrint)
-        http.header("Print-After-Upload", "True");
-
+        http.header("Print-After-Upload", "?1");
     http.set_put_body(upload_data.source_path)
         .header("Content-Type", "text/x.gcode")
         .header("Overwrite", "?1")
@@ -1057,7 +1088,17 @@ bool PrusaLink::post_inner(PrintHostUpload upload_data, std::string url, const s
     bool res = true;
     const auto upload_filename = upload_data.upload_path.filename();
     const auto upload_parent_path = upload_data.upload_path.parent_path();
+
     Http http = Http::post(std::move(url));
+#ifdef WIN32
+    // "Host" header is necessary here. We have resolved IP address and subsituted it into "url" variable.
+    // And when creating Http object above, libcurl automatically includes "Host" header from address it got.
+    // Thus "Host" is set to the resolved IP instead of host filled by user. We need to change it back.
+    // Not changing the host would work on the most cases (where there is 1 service on 1 hostname) but would break when f.e. reverse proxy is used (issue #9734).
+    // https://www.rfc-editor.org/rfc/rfc7230#section-5.4
+    std::string host = get_host_from_url(m_host);
+    http.header("Host", host);
+#endif // _WIN32
     set_auth(http);
     set_http_post_header_args(http, upload_data.post_action);
     http.form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
@@ -1128,14 +1169,11 @@ void PrusaConnect::set_http_post_header_args(Http& http, PrintHostPostUploadActi
 
 wxString PrusaConnect::get_test_ok_msg() const
 {
-    return _(L("Connection to PrusaConnect works correctly."));
+    return _(L("Connection to Prusa Connect works correctly."));
 }
 
 wxString PrusaConnect::get_test_failed_msg(wxString& msg) const
 {
-    return GUI::from_u8((boost::format("%s: %s")
-        % _utf8(L("Could not connect to PrusaConnect"))
-        % std::string(msg.ToUTF8())).str());
+    return GUI::format_wxstr("%s: %s", _L("Could not connect to Prusa Connect"), msg);
 }
-
 }
