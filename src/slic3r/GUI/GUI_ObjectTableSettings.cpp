@@ -296,10 +296,8 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             if (line) line->toggle_visible = toggle;
         };
         ConfigManipulation config_manipulation(nullptr, toggle_field, toggle_line, nullptr, &m_current_config);
-        // BBS: whether the preset is Bambu Lab printer
-        PresetBundle &preset_bundle  = *wxGetApp().preset_bundle;
-        bool is_BBL_printer = preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle);
-        // orca merge todo:
+
+        bool is_BBL_printer = wxGetApp().preset_bundle->is_bbl_vendor();
         config_manipulation.set_is_BBL_Printer(is_BBL_printer);
 
         printer_technology == ptFFF  ?  config_manipulation.toggle_print_fff_options(&m_current_config) :
@@ -402,10 +400,8 @@ void ObjectTableSettings::update_config_values(bool is_object, ModelObject* obje
     };
 
     ConfigManipulation config_manipulation(nullptr, toggle_field, toggle_line, nullptr, &m_current_config);
-    // BBS: whether the preset is Bambu Lab printer
-    PresetBundle &preset_bundle  = *wxGetApp().preset_bundle;
-    bool is_BBL_printer = preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle);
-    config_manipulation.set_is_BBL_Printer(is_BBL_printer);
+
+    config_manipulation.set_is_BBL_Printer(wxGetApp().preset_bundle->is_bbl_vendor());
 
     printer_technology == ptFFF  ?  config_manipulation.update_print_fff_config(&main_config) :
                                     config_manipulation.update_print_sla_config(&main_config) ;

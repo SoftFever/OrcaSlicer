@@ -371,7 +371,7 @@ void PresetComboBox::update_from_bundle()
 
 void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 {
-    bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle);
+    bool is_bbl_vendor_preset = m_preset_bundle->is_bbl_vendor();
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
         set_label_marker(Append(separator(L("AMS filaments")), wxNullBitmap));
         m_first_ams_filament = GetCount();
@@ -1017,7 +1017,7 @@ void PlaterPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
-    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle))
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor())
         add_ams_filaments(into_u8(selected_user_preset), true);
 
     //BBS: add project embedded preset logic
@@ -1245,7 +1245,7 @@ void TabPresetComboBox::update()
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
 
-    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle))
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->is_bbl_vendor())
         add_ams_filaments(into_u8(selected));
 
     //BBS: add project embedded preset logic

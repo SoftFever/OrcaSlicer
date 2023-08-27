@@ -1644,7 +1644,7 @@ void Tab::on_presets_changed()
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
-    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle);
+    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->is_bbl_vendor();
     if (is_bbl_vendor_preset) {
         wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
         if (wxGetApp().preset_bundle->printers.get_edited_preset().has_cali_lines(wxGetApp().preset_bundle)) {
@@ -2146,7 +2146,7 @@ void TabPrint::toggle_options()
     if (!m_active_page) return;
     // BBS: whether the preset is Bambu Lab printer
     if (m_preset_bundle) {
-        bool is_BBL_printer = m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle);
+        bool is_BBL_printer = wxGetApp().preset_bundle->is_bbl_vendor();
         m_config_manipulation.set_is_BBL_Printer(is_BBL_printer);
     }
 
@@ -2891,8 +2891,7 @@ void TabFilament::toggle_options()
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
       is_BBL_printer =
-          m_preset_bundle->printers.get_edited_preset().has_lidar(
-              m_preset_bundle);
+          wxGetApp().preset_bundle->is_bbl_vendor();
     }
 
     if (m_active_page->title() == "Cooling") {
@@ -3686,7 +3685,7 @@ void TabPrinter::toggle_options()
     //BBS: whether the preset is Bambu Lab printer
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
-       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().has_lidar(m_preset_bundle);
+       is_BBL_printer = wxGetApp().preset_bundle->is_bbl_vendor();
     }
 
     bool have_multiple_extruders = true;

@@ -1028,12 +1028,13 @@ void Sidebar::update_all_preset_comboboxes()
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
-    bool is_bbl_preset = preset_bundle.printers.get_edited_preset().has_lidar(&preset_bundle);
+    bool is_bbl_vendor = preset_bundle.is_bbl_vendor();
 
+    // Orca:: show device tab based on vendor type
     auto p_mainframe = wxGetApp().mainframe;
+    p_mainframe->show_device(is_bbl_vendor);
 
-    p_mainframe->show_device(is_bbl_preset);
-    if (is_bbl_preset) {
+    if (is_bbl_vendor) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
@@ -1087,6 +1088,8 @@ void Sidebar::update_all_preset_comboboxes()
 
     if (p->combo_printer)
         p->combo_printer->update();
+
+    p_mainframe->m_tabpanel->SetSelection(p_mainframe->m_tabpanel->GetSelection());
 }
 
 void Sidebar::update_presets(Preset::Type preset_type)
@@ -1150,7 +1153,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             printer_tab->update();
         }
 
-        bool isBBL = wxGetApp().preset_bundle->printers.get_edited_preset().has_lidar(wxGetApp().preset_bundle);
+        bool isBBL = wxGetApp().preset_bundle->is_bbl_vendor();
         wxGetApp().mainframe->show_calibration_button(!isBBL);
         break;
     }
@@ -3408,7 +3411,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             if (bed_type_opt != nullptr) {
                                 BedType bed_type = (BedType)bed_type_opt->getInt();
                                 // update app config for bed type
-                                bool is_bbl_preset = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+                                bool is_bbl_preset = preset_bundle->is_bbl_vendor();
                                 if (is_bbl_preset) {
                                     AppConfig* app_config = wxGetApp().app_config;
                                     if (app_config)
@@ -8399,7 +8402,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
     const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    const bool is_bbl_machine = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+    const bool is_bbl_machine = preset_bundle->is_bbl_vendor();
     const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
     CalibPressureAdvancePattern pa_pattern(
         params,
@@ -10696,7 +10699,7 @@ void Plater::reslice()
 
         model().calib_pa_pattern->generate_custom_gcodes(
             wxGetApp().preset_bundle->full_config(),
-            preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle),
+            preset_bundle->is_bbl_vendor(),
             model(),
             get_partplate_list().get_current_plate_origin()
         );
