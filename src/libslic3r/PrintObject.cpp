@@ -8,6 +8,7 @@
 #include "Layer.hpp"
 #include "MutablePolygon.hpp"
 #include "SupportMaterial.hpp"
+#include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
@@ -2493,8 +2494,14 @@ void PrintObject::_generate_support_material()
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 
-    TreeSupport tree_support(*this, m_slicing_params);
-    tree_support.generate();
+    if (this->config().enable_support.value && is_tree(this->config().support_type.value)) {
+        if (this->config().support_style.value == smsOrganic) {
+            fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
+        } else {
+            TreeSupport tree_support(*this, m_slicing_params);
+            tree_support.generate();
+        }
+    }
 }
 
 // BBS

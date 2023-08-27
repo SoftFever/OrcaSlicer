@@ -2157,7 +2157,7 @@ void TabPrint::toggle_options()
     if (auto choice = dynamic_cast<Choice*>(field)) {
         auto def = print_config_def.get("support_style");
         std::vector<int> enum_set_normal = {0, 1, 2};
-        std::vector<int> enum_set_tree   = {0, 3, 4, 5};
+        std::vector<int> enum_set_tree   = {0, 3, 4, 5, 6};
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
         auto             cb              = dynamic_cast<ComboBox *>(choice->window);

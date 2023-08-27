@@ -93,8 +93,13 @@ inline typename Derived::Scalar cross2(const Eigen::MatrixBase<Derived> &v1, con
     return v1.x() * v2.y() - v1.y() * v2.x();
 }
 
-template<typename T, int Options>
-inline Eigen::Matrix<T, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> &v) { return Eigen::Matrix<T, 2, 1, Eigen::DontAlign>(- v.y(), v.x()); }
+// 2D vector perpendicular to the argument.
+template<typename Derived>
+inline Eigen::Matrix<typename Derived::Scalar, 2, 1, Eigen::DontAlign> perp(const Eigen::MatrixBase<Derived> &v)
+{ 
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) == 2, "perp(): parameter is not a 2D vector");
+    return { - v.y(), v.x() };
+}
 
 // Angle from v1 to v2, returning double atan2(y, x) normalized to <-PI, PI>.
 template <typename Derived, typename Derived2>
@@ -107,12 +112,17 @@ inline double angle(const Eigen::MatrixBase<Derived>& v1, const Eigen::MatrixBas
     return atan2(cross2(v1d, v2d), v1d.dot(v2d));
 }
 
+template<typename Derived>
+Eigen::Matrix<typename Derived::Scalar, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Derived> &ptN) {
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) >= 3, "to_2d(): first parameter is not a 3D or higher dimensional vector");
+    return ptN.template head<2>();
+}
 
-template<class T, int N, int Options>
-Eigen::Matrix<T, 2, 1, Eigen::DontAlign> to_2d(const Eigen::MatrixBase<Eigen::Matrix<T, N, 1, Options>> &ptN) { return { ptN.x(), ptN.y() }; }
-
-template<class T, int Options>
-Eigen::Matrix<T, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Eigen::Matrix<T, 2, 1, Options>> & pt, const T z) { return { pt.x(), pt.y(), z }; }
+template<typename Derived>
+inline Eigen::Matrix<typename Derived::Scalar, 3, 1, Eigen::DontAlign> to_3d(const Eigen::MatrixBase<Derived> &pt, const typename Derived::Scalar z) {
+    static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) == 2, "to_3d(): first parameter is not a 2D vector");
+    return { pt.x(), pt.y(), z };
+}
 
 inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }
 inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt.x()), unscale<double>(pt.y())); }

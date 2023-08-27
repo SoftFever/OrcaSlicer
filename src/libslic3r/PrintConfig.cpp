@@ -187,7 +187,8 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
     { "snug",           smsSnug },
     { "tree_slim",      smsTreeSlim },
     { "tree_strong",    smsTreeStrong },
-    { "tree_hybrid",    smsTreeHybrid }
+    { "tree_hybrid",    smsTreeHybrid },
+    { "organic",        smsOrganic }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
@@ -3315,12 +3316,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("tree_slim");
     def->enum_values.push_back("tree_strong");
     def->enum_values.push_back("tree_hybrid");
+    def->enum_values.push_back("organic");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Snug"));
     def->enum_labels.push_back(L("Tree Slim"));
     def->enum_labels.push_back(L("Tree Strong"));
     def->enum_labels.push_back(L("Tree Hybrid"));
+    def->enum_labels.push_back(L("Organic"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
 
