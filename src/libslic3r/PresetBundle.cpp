@@ -334,7 +334,10 @@ VendorType PresetBundle::get_current_vendor_type()
             }
     }
     if (!vendor_name.empty())
-        t = vendor_name.compare("BBL") == 0 ? VendorType::Unknown : VendorType::Marlin_BBL;
+    {
+        if(vendor_name.compare("BBL") == 0)
+            t = VendorType::Marlin_BBL;
+    }
     return t;
 }
 

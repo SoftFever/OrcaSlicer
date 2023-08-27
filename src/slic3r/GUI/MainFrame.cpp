@@ -1080,27 +1080,32 @@ void MainFrame::init_tabpanel() {
     }
 }
 
-    // SoftFever
+// SoftFever
 void MainFrame::show_device(bool bBBLPrinter) {
-  if (m_tabpanel->GetPage(3) != m_monitor &&
-      m_tabpanel->GetPage(3) != m_printer_view) {
+  if (m_tabpanel->GetPage(tpMonitor) != m_monitor &&
+      m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
     BOOST_LOG_TRIVIAL(error) << "Failed to find device tab";
     return;
   }
   if (bBBLPrinter) {
-    if (m_tabpanel->GetPage(3) != m_monitor) {
-      m_tabpanel->RemovePage(3);
-      m_tabpanel->InsertPage(3, m_monitor, _L("Device"),
+    if (m_tabpanel->GetPage(tpMonitor) != m_monitor) {
+      m_printer_view->Hide();
+      m_monitor->Show(true);
+      m_tabpanel->RemovePage(tpMonitor);
+      m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"),
                              std::string("tab_monitor_active"),
                              std::string("tab_monitor_active"));
+      m_tabpanel->SetSelection(tp3DEditor);
     }
   } else {
-    if (m_tabpanel->GetPage(3) != m_printer_view) {
-      m_tabpanel->RemovePage(3);
-      m_tabpanel->InsertPage(3, m_printer_view, _L("Device"),
+    if (m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
+      m_printer_view->Show();
+      m_monitor->Show(false);
+      m_tabpanel->RemovePage(tpMonitor);
+      m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"),
                           std::string("tab_monitor_active"),
                           std::string("tab_monitor_active"));
-        m_printer_view->Show();
+      m_tabpanel->SetSelection(tp3DEditor);
     }
   }
 
