@@ -43,7 +43,7 @@ const std::vector<std::string> license_list = {
 ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style) : wxPanel(parent, id, pos, size, style)
 {
     m_project_home_url = wxString::Format("file://%s/web/model/index.html", from_u8(resources_dir()));
-    std::string strlang = wxGetApp().app_config->get("language");
+    wxString strlang = wxGetApp().current_language_code_safe();
     if (strlang != "")
         m_project_home_url = wxString::Format("file://%s/web/model/index.html?lang=%s", from_u8(resources_dir()), strlang);
 
@@ -70,96 +70,98 @@ ProjectPanel::~ProjectPanel() {}
 
 void ProjectPanel::on_reload(wxCommandEvent& evt)
 {
-    std::string update_type;
-    std::string license;
-    std::string model_name;
-    std::string model_author;
-    std::string cover_file;
-    std::string description;
-    std::map<std::string, std::vector<json>> files;
+    boost::thread reload = boost::thread([this] {
+        std::string update_type;
+        std::string license;
+        std::string model_name;
+        std::string model_author;
+        std::string cover_file;
+        std::string description;
+        std::map<std::string, std::vector<json>> files;
 
-    std::string p_name;
-    std::string p_author;
-    std::string p_description;
-    std::string p_cover_file;
+        std::string p_name;
+        std::string p_author;
+        std::string p_description;
+        std::string p_cover_file;
 
-    Model model = wxGetApp().plater()->model();
+        Model model = wxGetApp().plater()->model();
 
-    license = model.model_info->license;
-    model_name = model.model_info->model_name;
-    cover_file = model.model_info->cover_file;
-    description = model.model_info->description;
-    update_type = model.model_info->origin;
+        license = model.model_info->license;
+        model_name = model.model_info->model_name;
+        cover_file = model.model_info->cover_file;
+        description = model.model_info->description;
+        update_type = model.model_info->origin;
 
 
-    try {
-        if (!model.model_info->copyright.empty()) {
-            json copy_right = json::parse(model.model_info->copyright);
+        try {
+            if (!model.model_info->copyright.empty()) {
+                json copy_right = json::parse(model.model_info->copyright);
 
-            if (copy_right.is_array()) {
-                for (auto it = copy_right.begin(); it != copy_right.end(); it++) {
-                    if ((*it).contains("author")) {
-                        model_author = (*it)["author"].get<std::string>();
+                if (copy_right.is_array()) {
+                    for (auto it = copy_right.begin(); it != copy_right.end(); it++) {
+                        if ((*it).contains("author")) {
+                            model_author = (*it)["author"].get<std::string>();
+                        }
                     }
                 }
             }
         }
-    }
-    catch (...) {
-        ;
-    }
+        catch (...) {
+            ;
+        }
 
-    if (model_author.empty() && model.design_info != nullptr)
-        model_author = model.design_info->Designer;
+        if (model_author.empty() && model.design_info != nullptr)
+            model_author = model.design_info->Designer;
 
-    if (model.profile_info != nullptr) {
-        p_name = model.profile_info->ProfileTile;
-        p_description = model.profile_info->ProfileDescription;
-        p_cover_file = model.profile_info->ProfileCover;
-        p_author = model.profile_info->ProfileUserName;
-    }
+        if (model.profile_info != nullptr) {
+            p_name = model.profile_info->ProfileTile;
+            p_description = model.profile_info->ProfileDescription;
+            p_cover_file = model.profile_info->ProfileCover;
+            p_author = model.profile_info->ProfileUserName;
+        }
 
-    //file info
-    std::string file_path = encode_path(wxGetApp().plater()->model().get_auxiliary_file_temp_path().c_str());
-    if (!file_path.empty()) {
-        files = Reload(file_path);
-    }
-    else {
-        clear_model_info();
-        return;
-    }
+        //file info
+        std::string file_path = encode_path(wxGetApp().plater()->model().get_auxiliary_file_temp_path().c_str());
+        if (!file_path.empty()) {
+            files = Reload(file_path);
+        }
+        else {
+            clear_model_info();
+            return;
+        }
 
-    json j;
-    j["model"]["license"] = license;
-    j["model"]["name"] = wxGetApp().url_encode(model_name);
-    j["model"]["author"] = wxGetApp().url_encode(model_author);;
-    j["model"]["cover_img"] = wxGetApp().url_encode(cover_file);
-    j["model"]["description"] = wxGetApp().url_encode(description);
-    j["model"]["preview_img"] = files["Model Pictures"];
-    j["model"]["upload_type"] = update_type;
+        json j;
+        j["model"]["license"] = license;
+        j["model"]["name"] = wxGetApp().url_encode(model_name);
+        j["model"]["author"] = wxGetApp().url_encode(model_author);;
+        j["model"]["cover_img"] = wxGetApp().url_encode(cover_file);
+        j["model"]["description"] = wxGetApp().url_encode(description);
+        j["model"]["preview_img"] = files["Model Pictures"];
+        j["model"]["upload_type"] = update_type;
 
-    j["file"]["BOM"] = files["Bill of Materials"];
-    j["file"]["Assembly"] = files["Assembly Guide"];
-    j["file"]["Other"] = files["Others"];
+        j["file"]["BOM"] = files["Bill of Materials"];
+        j["file"]["Assembly"] = files["Assembly Guide"];
+        j["file"]["Other"] = files["Others"];
 
-    j["profile"]["name"] = wxGetApp().url_encode(p_name);
-    j["profile"]["author"] = wxGetApp().url_encode(p_author);
-    j["profile"]["description"] = wxGetApp().url_encode(p_description);
-    j["profile"]["cover_img"] = wxGetApp().url_encode(p_cover_file);
-    j["profile"]["preview_img"] = files["Profile Pictures"];
+        j["profile"]["name"] = wxGetApp().url_encode(p_name);
+        j["profile"]["author"] = wxGetApp().url_encode(p_author);
+        j["profile"]["description"] = wxGetApp().url_encode(p_description);
+        j["profile"]["cover_img"] = wxGetApp().url_encode(p_cover_file);
+        j["profile"]["preview_img"] = files["Profile Pictures"];
 
-    json m_Res = json::object();
-    m_Res["command"] = "show_3mf_info";
-    m_Res["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
-    m_Res["model"] = j;
+        json m_Res = json::object();
+        m_Res["command"] = "show_3mf_info";
+        m_Res["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+        m_Res["model"] = j;
 
-    wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+        wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
-    if (m_web_init_completed) {
-        wxGetApp().CallAfter([this, strJS] {
-            RunScript(strJS.ToStdString());
-            });
-    }
+        if (m_web_init_completed) {
+            wxGetApp().CallAfter([this, strJS] {
+                RunScript(strJS.ToStdString());
+                });
+        }
+    });
 }
 
 void ProjectPanel::msw_rescale() 

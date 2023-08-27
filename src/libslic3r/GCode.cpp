@@ -2936,6 +2936,22 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
     }
 
+    // BBS: don't use lazy_raise when enable spiral vase
+    gcode += this->change_layer(print_z);  // this will increase m_layer_index
+    m_layer = &layer;
+    m_object_layer_over_raft = false;
+    if (! print.config().layer_change_gcode.value.empty()) {
+        DynamicConfig config;
+        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
+        gcode += this->placeholder_parser_process("layer_change_gcode",
+            print.config().layer_change_gcode.value, m_writer.extruder()->id(), &config)
+            + "\n";
+        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+    }
+    //BBS: set layer time fan speed after layer change gcode
+    gcode += ";_SET_FAN_SPEED_CHANGING_LAYER\n";
+
     if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
         gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
     } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
@@ -2955,20 +2971,6 @@ GCode::LayerResult GCode::process_layer(
         writer().config.apply(_cfg);
         sprintf(buf, "; Calib_Retraction_tower: Z_HEIGHT: %g, length:%g\n", print_z, _length);
         gcode += buf;
-    }
-
-    // BBS: don't use lazy_raise when enable spiral vase
-    gcode += this->change_layer(print_z, !m_spiral_vase);  // this will increase m_layer_index
-    m_layer = &layer;
-    m_object_layer_over_raft = false;
-    if (! print.config().layer_change_gcode.value.empty()) {
-        DynamicConfig config;
-        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        config.set_key_value("layer_z",   new ConfigOptionFloat(print_z));
-        gcode += this->placeholder_parser_process("layer_change_gcode",
-            print.config().layer_change_gcode.value, m_writer.extruder()->id(), &config)
-            + "\n";
-        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     }
 
     //BBS
@@ -3583,7 +3585,7 @@ std::string GCode::preamble()
 }
 
 // called by GCode::process_layer()
-std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
+std::string GCode::change_layer(coordf_t print_z)
 {
     std::string gcode;
     if (m_layer_count > 0)
@@ -3597,14 +3599,16 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
         //BBS: force to use SpiralLift when change layer if lift type is auto
         gcode += this->retract(false, false, ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto ? LiftType::SpiralLift : lift_type);
     }
-    
+
     m_writer.add_object_change_labels(gcode);
 
-    if (!lazy_raise) {
+    if (m_spiral_vase) {
+        //BBS: force to normal lift immediately in spiral vase mode
         std::ostringstream comment;
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
-    } else {
+    }
+    else {
         //BBS: set m_need_change_layer_lift_z to be true so that z lift can be done in travel_to() function
         m_need_change_layer_lift_z = true;
     }
@@ -5096,9 +5100,9 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 
     // First we append the entities, there are eec->entities.size() of them:
     size_t old_size = perimeters_or_infills->size();
-    size_t new_size = old_size + (eec->can_reverse() ? eec->entities.size() : 1);
+    size_t new_size = old_size + (eec->can_sort() ? eec->entities.size() : 1);
     perimeters_or_infills->reserve(new_size);
-    if (eec->can_reverse()) {
+    if (eec->can_sort()) {
         for (auto* ee : eec->entities)
             perimeters_or_infills->emplace_back(ee);
     } else

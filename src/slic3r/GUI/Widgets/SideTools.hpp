@@ -4,6 +4,11 @@
 #include <wx/dcgraph.h>
 #include <wx/gdicmn.h>
 #include <wx/dcclient.h>
+#include <wx/hyperlink.h>
+#include "Button.hpp"
+#include "Label.hpp"
+#include "../GUI/Tabbook.hpp"
+#include "../DeviceManager.hpp"
 #include "../wxExtensions.hpp"
 
 #define SIDE_TOOLS_GREY900 wxColour(38, 46, 48)
@@ -19,11 +24,20 @@ enum WifiSignal {
     STRONG,
 };
 
+enum MonitorStatus {
+    MONITOR_UNKNOWN = 0,
+    MONITOR_NORMAL = 1 << 1,
+    MONITOR_NO_PRINTER = 1 << 2,
+    MONITOR_DISCONNECTED = 1 << 3,
+    MONITOR_DISCONNECTED_SERVER = 1 << 4,
+    MONITOR_CONNECTING = 1 << 5,
+};
+
 #define SIDE_TOOL_CLICK_INTERVAL 20
 
 namespace Slic3r { namespace GUI {
 
-class SideTools : public wxPanel
+class SideToolsPanel : public wxPanel
 {
 private:
     WifiSignal      m_wifi_type{WifiSignal::NONE};
@@ -52,8 +66,8 @@ protected:
     bool            m_is_in_interval {false};
 
 public:
-    SideTools(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-    ~SideTools();
+    SideToolsPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    ~SideToolsPanel();
 
     void set_none_printer_mode();
     void on_timer(wxTimerEvent &event);
@@ -72,6 +86,43 @@ protected:
     void on_mouse_leave(wxMouseEvent &evt);
     void on_mouse_left_down(wxMouseEvent &evt);
     void on_mouse_left_up(wxMouseEvent &evt);
+};
+
+class SideTools : public wxPanel
+{
+public:
+    SideTools(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    ~SideTools();
+
+private:
+    SideToolsPanel* m_side_tools{ nullptr };
+    Tabbook*		m_tabpanel{ nullptr };
+    Label* m_link_network_state{ nullptr };
+    Label* m_st_txt_error_code{ nullptr };
+    Label* m_st_txt_error_desc{ nullptr };
+    Label* m_st_txt_extra_info{ nullptr };
+    wxWindow* m_side_error_panel{ nullptr };
+    Button* m_connection_info{ nullptr };
+    wxHyperlinkCtrl* m_hyperlink{ nullptr };
+    ScalableButton* m_more_button{ nullptr };
+    ScalableBitmap      m_more_err_open;
+    ScalableBitmap      m_more_err_close;
+    bool                m_more_err_state{ false };
+
+public:
+    void set_table_panel(Tabbook* tb) {m_tabpanel = tb;};
+    void msw_rescale();
+    bool is_in_interval();
+    void set_current_printer_name(std::string dev_name);
+    void set_current_printer_signal(WifiSignal sign);
+    void set_none_printer_mode();
+    void start_interval();
+    void update_status(MachineObject* obj);
+    void update_connect_err_info(int code, wxString desc, wxString info);
+    void show_status(int status);
+
+public:
+    SideToolsPanel* get_panel() {return m_side_tools;};
 };
 }} // namespace Slic3r::GUI
 

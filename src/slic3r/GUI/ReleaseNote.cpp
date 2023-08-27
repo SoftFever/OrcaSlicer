@@ -31,6 +31,7 @@ wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -58,11 +59,9 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString);
-    m_text_up_info->SetFont(::Label::Head_14);
+    m_text_up_info = new Label(this, Label::Head_14, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
-    m_text_up_info->Wrap(-1);
-    m_sizer_right->Add(m_text_up_info, 0, 0, 0);
+    m_sizer_right->Add(m_text_up_info, 0, wxEXPAND, 0);
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
@@ -94,10 +93,9 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
 {
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note);
+    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note, LB_AUTO_WRAP);
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(530), -1));
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(530), -1));
-    m_staticText_release_note->Wrap(FromDIP(530));
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     m_vebview_release_note->Layout();
@@ -127,18 +125,14 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString);
-    m_text_up_info->SetFont(::Label::Head_13);
+    m_text_up_info = new Label(this, Label::Head_13, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
-    m_text_up_info->Wrap(FromDIP(260));
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
 
 
-    operation_tips = new ::Label(this, _L("Click OK to update the Network plug-in when Orca Slicer launches next time."));
-    operation_tips->SetFont(::Label::Body_12);
+    operation_tips = new ::Label(this, Label::Body_12, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."), LB_AUTO_WRAP);
     operation_tips->SetMinSize(wxSize(FromDIP(260), -1));
     operation_tips->SetMaxSize(wxSize(FromDIP(260), -1));
-    operation_tips->Wrap(FromDIP(260));
 
     m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_vebview_release_note->SetScrollRate(5, 5);
@@ -148,7 +142,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -183,7 +177,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
-    m_sizer_right->Add(m_text_up_info, 0, 0, 0);
+    m_sizer_right->Add(m_text_up_info, 0, wxEXPAND, 0);
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(5));
     m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(5));
@@ -237,13 +231,10 @@ void UpdatePluginDialog::update_info(std::string json_path)
     m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in(%s) available, Do you want to install it?"), version));
     m_text_up_info->SetMinSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
-    m_text_up_info->Wrap(FromDIP(260));
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_text_label = new ::Label(m_vebview_release_note, description);
-    m_text_label->SetFont(::Label::Body_13);
+    auto        m_text_label            = new ::Label(m_vebview_release_note, Label::Body_13, description, LB_AUTO_WRAP);
     m_text_label->SetMinSize(wxSize(FromDIP(235), -1));
     m_text_label->SetMaxSize(wxSize(FromDIP(235), -1));
-    m_text_label->Wrap(FromDIP(235));
 
     sizer_text_release_note->Add(m_text_label, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
@@ -255,7 +246,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
 }
 
 UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, _L("New version of Orca Slicer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    : DPIDialog(parent, wxID_ANY, _L("New version of Bambu Studio"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -278,12 +269,8 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new Label(this,wxEmptyString);
-    m_text_up_info->SetFont(::Label::Head_14);
+    m_text_up_info = new Label(this, Label::Head_14, wxEmptyString, LB_AUTO_WRAP);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
-    m_text_up_info->Wrap(-1);
-
-    
 
     m_simplebook_release_note = new wxSimplebook(this);
     m_simplebook_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
@@ -362,7 +349,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
-    m_sizer_right->Add(m_text_up_info, 0, wxBOTTOM|wxTOP, FromDIP(15));
+    m_sizer_right->Add(m_text_up_info, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(15));
     m_sizer_right->Add(m_simplebook_release_note, 1, wxEXPAND | wxRIGHT, 0);
     m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT, FromDIP(20));
 
@@ -476,7 +463,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     //bbs check whether the web display is used
     bool use_web_link       = false;
     std::string url_line    = "";
-    /*auto split_array        =  splitWithStl(release_note.ToStdString(), "\r\n");
+    auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
 
     if (split_array.size() >= 3) {
         for (auto i = 0; i < split_array.size(); i++) {
@@ -496,22 +483,21 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_simplebook_release_note->SetSelection(1);
         m_vebview_release_note->LoadURL(from_u8(url_line));
     }
-    else {*/
+    else {
         m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
         m_simplebook_release_note->SetSelection(0);
         m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-        auto        m_staticText_release_note = new ::Label(m_scrollwindows_release_note, release_note);
+        auto        m_staticText_release_note = new ::Label(m_scrollwindows_release_note, release_note, LB_AUTO_WRAP);
         m_staticText_release_note->SetMinSize(wxSize(FromDIP(560), -1));
         m_staticText_release_note->SetMaxSize(wxSize(FromDIP(560), -1));
-        m_staticText_release_note->Wrap(FromDIP(530));
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
         m_scrollwindows_release_note->Layout();
         m_scrollwindows_release_note->Fit();
         SetMinSize(GetSize());
         SetMaxSize(GetSize());
-    //}
+    }
 
     wxGetApp().UpdateDlgDarkUI(this);
     Layout();
@@ -521,6 +507,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
 SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
     :DPIFrame(parent, id, title, pos, size, style)
 {
+    m_button_style = btn_style;
     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
@@ -569,10 +556,28 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_ok->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        this->on_hide();
+    });
+
+    m_button_retry = new Button(this, _L("Retry"));
+    m_button_retry->SetBackgroundColor(btn_bg_green);
+    m_button_retry->SetBorderColor(*wxWHITE);
+    m_button_retry->SetTextColor(wxColour("#FFFFFE"));
+    m_button_retry->SetFont(Label::Body_12);
+    m_button_retry->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_retry->SetMaxSize(wxSize(-1, FromDIP(24)));
+    m_button_retry->SetCornerRadius(FromDIP(12));
+
+    m_button_retry->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        wxCommandEvent evt(EVT_SECONDARY_CHECK_RETRY, GetId());
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
         this->on_hide();
@@ -584,6 +589,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_cancel->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_cancel->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -599,6 +605,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_fn->SetFont(Label::Body_12);
     m_button_fn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_fn->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_fn->SetMaxSize(wxSize(-1, FromDIP(24)));
     m_button_fn->SetCornerRadius(FromDIP(12));
 
     m_button_fn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -609,15 +616,22 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     if (btn_style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
+        m_button_retry->Hide();
     } else if (btn_style == CONFIRM_AND_FUNC) {
         m_button_cancel->Hide();
         m_button_fn->Show();
+        m_button_retry->Hide();
+    } else if (btn_style == CONFIRM_AND_RETRY) {
+        m_button_retry->Show();
+        m_button_cancel->Hide();
     } else {
+        m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
     }
 
     sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_retry, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_fn, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
@@ -655,34 +669,29 @@ void SecondaryCheckDialog::update_text(wxString text)
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
 
     if (!m_staticText_release_note) {
-        m_staticText_release_note = new Label(m_vebview_release_note, text);
+        m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
+        wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+        sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(330));
+    m_vebview_release_note->Layout();
 
-    wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-
-    sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
-    sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    m_vebview_release_note->SetSizer(sizer_text_release_note);
-    auto text_size = m_staticText_release_note->GetSize();
+    auto text_size = m_staticText_release_note->GetBestSize();
     if (text_size.y < FromDIP(360))
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
     else {
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
-        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetLabelText(text);
-        m_staticText_release_note->Wrap(FromDIP(330));
     }
 
-    m_vebview_release_note->Layout();
     Layout();
     Fit();
 }
@@ -714,6 +723,8 @@ void SecondaryCheckDialog::on_hide()
 
 void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDialog::ButtonStyle style, wxWindow* parent)
 {
+    if (m_button_style == style && title == GetTitle() == title) return;
+
     SetTitle(title);
 
     event_parent = parent;
@@ -721,15 +732,24 @@ void SecondaryCheckDialog::update_title_style(wxString title, SecondaryCheckDial
     if (style == CONFIRM_AND_CANCEL) {
         m_button_cancel->Show();
         m_button_fn->Hide();
+        m_button_retry->Hide();
     }
     else if (style == CONFIRM_AND_FUNC) {
         m_button_cancel->Hide();
         m_button_fn->Show();
+        m_button_retry->Hide();
+    }
+    else if (style == CONFIRM_AND_RETRY) {
+        m_button_retry->Show();
+        m_button_cancel->Hide();
     }
     else {
+        m_button_retry->Hide();
         m_button_cancel->Hide();
         m_button_fn->Hide();
     }
+
+
     Layout();
 }
 
@@ -753,7 +773,12 @@ SecondaryCheckDialog::~SecondaryCheckDialog()
 
 void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    rescale();
+    rescale(); 
+}
+
+void SecondaryCheckDialog::msw_rescale() { 
+    wxGetApp().UpdateFrameDarkUI(this); 
+    Refresh();
 }
 
 void SecondaryCheckDialog::rescale()
@@ -868,34 +893,29 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     if (!m_staticText_release_note){
-        m_staticText_release_note = new Label(m_vebview_release_note, text);
+        m_staticText_release_note = new Label(m_vebview_release_note, text, LB_AUTO_WRAP);
+        wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
+        top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+        sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
+        sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        m_vebview_release_note->SetSizer(sizer_text_release_note);
     }
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(330));
+    m_vebview_release_note->Layout();
 
-    wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
-    top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-
-    sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
-    sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    m_vebview_release_note->SetSizer(sizer_text_release_note);
-    auto text_size = m_staticText_release_note->GetSize();
+    auto text_size = m_staticText_release_note->GetBestSize();
     if (text_size.y < FromDIP(360))
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
     else {
         m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
-        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
-        m_staticText_release_note->SetLabelText(text);
-        m_staticText_release_note->Wrap(FromDIP(330));
     }
 
-    m_vebview_release_note->Layout();
     Layout();
     Fit();
 }
@@ -974,12 +994,11 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    comfirm_before_enter_text = _L("Step 1, please confirm Orca Slicer and your printer are in the same LAN.");
+    comfirm_before_enter_text = _L("Step 1, please confirm Bambu Studio and your printer are in the same LAN.");
     comfirm_after_enter_text = _L("Step 2, if the IP and Access Code below are different from the actual values on your printer, please correct them.");
 
 
-    m_tip1 = new Label(this, comfirm_before_enter_text);
-    m_tip1->SetFont(::Label::Body_13);
+    m_tip1 = new Label(this, ::Label::Body_13, comfirm_before_enter_text, LB_AUTO_WRAP);
     m_tip1->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip1->SetMaxSize(wxSize(FromDIP(352), -1));
     m_tip1->Wrap(FromDIP(352));
@@ -987,11 +1006,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     auto        m_line_tips = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_tips->SetBackgroundColour(wxColour(0xEEEEEE));
 
-    m_tip2 = new Label(this, comfirm_after_enter_text);
-    m_tip2->SetFont(::Label::Body_13);
+    m_tip2 = new Label(this, ::Label::Body_13, comfirm_after_enter_text, LB_AUTO_WRAP);
     m_tip2->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip2->SetMaxSize(wxSize(FromDIP(352), -1));
-    m_tip2->Wrap(FromDIP(352));
 
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
     auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
@@ -1022,16 +1039,13 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_input_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
-    m_error_msg = new Label(this, wxEmptyString);
-    m_error_msg->SetFont(::Label::Body_13);
+    m_error_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
     m_error_msg->SetForegroundColour(wxColour(208,27,27));
     m_error_msg->Hide();
 
-    m_tip3 = new Label(this, _L("Where to find your printer's IP and Access Code?"));
-    m_tip3->SetFont(::Label::Body_12);
+    m_tip3 = new Label(this, Label::Body_12, _L("Where to find your printer's IP and Access Code?"), LB_AUTO_WRAP);
     m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
-    m_tip3->Wrap(FromDIP(352));
 
     m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
     
@@ -1043,7 +1057,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -1111,8 +1125,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_sizer_step_icon_panel2->Add(m_img_step2, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
 
-    m_step_icon_panel1->SetMinSize(wxSize(-1, m_tip1->GetSize().y));
-    m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetSize().y));
+    m_step_icon_panel1->SetMinSize(wxSize(-1, m_tip1->GetBestSize().y));
+    m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetBestSize().y));
 
     m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
     m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
@@ -1143,21 +1157,6 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
     m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Layout();
-
-    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
-    auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
-    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
-        m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
-        m_button_ok->SetBackgroundColor(btn_bg_green);
-    }
-    else {
-        m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-    }
    
     m_sizer_main->Add(m_sizer_main_left, 0, wxLEFT, FromDIP(18));
     m_sizer_main->Add(m_sizer_main_right, 0, wxLEFT|wxEXPAND, FromDIP(4));
@@ -1207,7 +1206,7 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     m_input_ip->GetTextCtrl()->SetLabelText(m_obj->dev_ip);
     m_input_access_code->GetTextCtrl()->SetLabelText(m_obj->get_access_code());
 
-    if (m_obj->printer_type == "C11") {
+    if (m_obj->printer_type == "C11" || m_obj->printer_type == "C12") {
         m_img_help1->Hide();
         m_img_help2->Show();
     }
@@ -1215,6 +1214,22 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
          m_img_help1->Show();
          m_img_help2->Hide();
     }
+
+    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
+    auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
+        m_button_ok->Enable(true);
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+        m_button_ok->SetBackgroundColor(btn_bg_green);
+    }
+    else {
+        m_button_ok->Enable(false);
+        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    }
+
     Layout();
     Fit();
 }
@@ -1229,7 +1244,6 @@ void InputIpAddressDialog::update_error_msg(wxString msg)
          m_error_msg->SetLabelText(msg);
          m_error_msg->SetMinSize(wxSize(FromDIP(352), -1));
          m_error_msg->SetMaxSize(wxSize(FromDIP(352), -1));
-         m_error_msg->Wrap(FromDIP(352));
     }
 
     Layout();
@@ -1297,7 +1311,16 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_send_job = std::make_shared<SendJob>(m_status_bar, wxGetApp().plater(), m_obj->dev_id);
     m_send_job->m_dev_ip = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
-    m_send_job->m_local_use_ssl = m_obj->local_use_ssl;
+
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_send_job->m_local_use_ssl_for_mqtt = wxGetApp().app_config->get("enable_ssl_for_mqtt") == "true" ? true : false;
+    m_send_job->m_local_use_ssl_for_ftp = wxGetApp().app_config->get("enable_ssl_for_ftp") == "true" ? true : false;
+#else
+    m_send_job->m_local_use_ssl_for_mqtt = m_obj->local_use_ssl_for_mqtt;
+    m_send_job->m_local_use_ssl_for_ftp = m_obj->local_use_ssl_for_ftp;
+#endif
+
     m_send_job->connection_type = m_obj->connection_type();
     m_send_job->cloud_print_only = true;
     m_send_job->has_sdcard = m_obj->has_sdcard();
@@ -1333,7 +1356,7 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
 {
     update_error_msg(_L("Error: IP or Access Code are not correct"));
     m_button_ok->Enable(true);
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -1346,7 +1369,7 @@ void InputIpAddressDialog::on_text(wxCommandEvent& evt)
 
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
         m_button_ok->Enable(true);
-        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
         m_button_ok->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
         m_button_ok->SetBackgroundColor(btn_bg_green);

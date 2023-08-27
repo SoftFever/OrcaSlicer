@@ -12,13 +12,15 @@
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "CameraPopup.hpp"
+#include "libslic3r/calib.hpp"
 
 #define USE_LOCAL_SOCKET_BIND 0
 
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
 #define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
-#define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
+#define TIMEOUT_FOR_KEEPALIVE   5* 60 * 1000.f     // milliseconds
+#define REQUEST_PUSH_MIN_TIME   3000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
 #define EXTRUSION_OMIT_TIME     20000.f     // milliseconds
 #define HOLD_TIMEOUT            10000.f     // milliseconds
@@ -49,6 +51,13 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+
+enum PrinterSeries {
+    SERIES_X1 = 0,
+    SERIES_P1P,
+    SERIES_UNKNOWN,
+};
+
 enum PRINTING_STAGE {
     PRINTING_STAGE_PRINTING = 0,
     PRINTING_STAGE_BED_LEVELING,
@@ -74,6 +83,7 @@ enum PrinterFunction {
     FUNC_RECORDING,
     FUNC_FIRSTLAYER_INSPECT,
     FUNC_AI_MONITORING,
+    FUNC_LIDAR_CALIBRATION,
     FUNC_BUILDPLATE_MARKER_DETECT,
     FUNC_AUTO_RECOVERY_STEP_LOSS,
     FUNC_FLOW_CALIBRATION,
@@ -173,19 +183,19 @@ public:
 
     static wxColour decode_color(const std::string &color)
     {
-        std::array<int, 3> ret = {0, 0, 0};
+        std::array<int, 4> ret = {0, 0, 0, 0};
         const char *       c   = color.data();
         if (color.size() == 8) {
-            for (size_t j = 0; j < 3; ++j) {
+            for (size_t j = 0; j < 4; ++j) {
                 int digit1 = hex_digit_to_int(*c++);
                 int digit2 = hex_digit_to_int(*c++);
                 if (digit1 == -1 || digit2 == -1) break;
                 ret[j] = float(digit1 * 16 + digit2);
             }
         } else {
-            return wxColour(255, 255, 255);
+            return wxColour(255, 255, 255, 255);
         }
-        return wxColour(ret[0], ret[1], ret[2]);
+        return wxColour(ret[0], ret[1], ret[2], ret[3]);
     }
 
     std::string     id;
@@ -208,6 +218,7 @@ public:
     std::string     uuid;
     float           k = 0.0f;       // k range: 0 ~ 0.5
     float           n = 0.0f;       // k range: 0.6 ~ 2.0
+    int             cali_idx = 0;
 
     wxColour        wx_color;
     bool            is_bbl;
@@ -384,6 +395,12 @@ public:
         SDCARD_STATE_NUM = 3
     };
 
+    enum ActiveState {
+        NotActive, 
+        Active, 
+        UpdateToDate
+    };
+
     class ExtrusionRatioInfo
     {
     public:
@@ -409,23 +426,26 @@ public:
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
-    bool        local_use_ssl { false };
+    bool        local_use_ssl_for_mqtt { true };
+    bool        local_use_ssl_for_ftp { true };
     float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
     void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !get_access_code().empty(); }
     std::string get_ftp_folder();
-    void set_access_code(std::string code);
     std::string get_access_code();
 
-    void set_user_access_code(std::string code);
-
+    void set_access_code(std::string code, bool only_refresh = true);
+    void set_user_access_code(std::string code, bool only_refresh = true);
+    void erase_user_access_code();
     std::string get_user_access_code();
     bool is_lan_mode_printer();
+    bool is_high_printer_type();
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
+    PrinterSeries get_printer_series() const;
 
     std::string printer_thumbnail_img;
     std::string monitor_upgrade_printer_img;
@@ -436,6 +456,7 @@ public:
     std::string product_name;       // set by iot service, get /user/print
 
     std::vector<int> filam_bak;
+    bool m_is_support_show_bak{false};
 
     std::string bind_user_name;
     std::string bind_user_id;
@@ -448,10 +469,16 @@ public:
     void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
     bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
     int  parse_msg_count = 0;
+    int  keep_alive_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
+    std::chrono::system_clock::time_point   last_keep_alive;    /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
+
+    int m_active_state = 0; // 0 - not active, 1 - active, 2 - update-to-date
+    bool is_support_tunnel_mqtt = false;
+    bool is_tunnel_mqtt = false;
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
@@ -484,6 +511,7 @@ public:
     std::chrono::system_clock::time_point last_extrusion_cali_start_time;
     int extrusion_cali_set_tray_id = -1;
     std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
+    std::string  extrusion_cali_filament_name;
 
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();
@@ -548,6 +576,7 @@ public:
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
+    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMEARE_TYPE_UKNOWN };
     std::string upgrade_progress;
     std::string upgrade_message;
     std::string upgrade_status;
@@ -564,6 +593,7 @@ public:
     std::vector<FirmwareInfo> firmware_list;
 
     std::string get_firmware_type_str();
+    std::string get_lifecycle_type_str();
     bool is_in_upgrading();
     bool is_upgrading_avalable();
     int get_upgrade_percent();
@@ -592,6 +622,41 @@ public:
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
+
+    int cali_version = -1;
+    float                      cali_selected_nozzle_dia { 0.0 };
+    // 1: record when start calibration in preset page
+    // 2: reset when start calibration in start page
+    // 3: save tray_id, filament_id, setting_id, and name, nozzle_dia
+    std::vector<CaliPresetInfo> selected_cali_preset;
+    float                      cache_flow_ratio { 0.0 };
+    bool                       cali_finished = true;
+
+    bool                       has_get_pa_calib_tab{ false };
+    std::vector<PACalibResult> pa_calib_tab;
+    float                      pa_calib_tab_nozzle_dia;
+    bool                       get_pa_calib_result { false };
+    std::vector<PACalibResult> pa_calib_results;
+    bool                       get_flow_calib_result { false };
+    std::vector<FlowRatioCalibResult> flow_ratio_results;
+    void reset_pa_cali_history_result()
+    {
+        pa_calib_tab_nozzle_dia = 0.4f;
+        has_get_pa_calib_tab = false;
+        pa_calib_tab.clear();
+    }
+
+    void reset_pa_cali_result() {
+        get_pa_calib_result = false;
+        pa_calib_results.clear();
+    }
+
+    void reset_flow_rate_cali_result() {
+        get_flow_calib_result = false;
+        flow_ratio_results.clear();
+    }
+
+    bool check_pa_result_validation(PACalibResult& result);
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
@@ -632,6 +697,11 @@ public:
     std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
+    int local_camera_proto = -1;
+    int file_proto = 0;
+    std::string local_rtsp_url;
+    std::string tutk_state;
+    bool is_support_remote_tunnel{false};
 
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
@@ -648,8 +718,8 @@ public:
     bool is_support_1080dpi {false};
     bool is_support_ai_monitoring {false};
     bool is_support_ams_humidity {true};
-    bool is_support_filament_edit_virtual_tray {true};
     bool is_cloud_print_only {false};
+    bool is_support_mqtt_alive {false};
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
@@ -660,7 +730,7 @@ public:
     std::vector<HMSItem>    hms_list;
 
     /* machine mqtt apis */
-    int connect(bool is_anonymous = false);
+    int connect(bool is_anonymous = false, bool use_openssl = true);
     int disconnect();
 
     json_diff print_json;
@@ -678,6 +748,7 @@ public:
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
     BBLSubTask* subtask_;
+    BBLModelTask* model_task;
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
@@ -694,7 +765,7 @@ public:
     bool is_studio_cmd(int seq);
     /* command commands */
     int command_get_version(bool with_retry = true);
-    int command_request_push_all();
+    int command_request_push_all(bool request_now = false);
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
 
@@ -745,6 +816,18 @@ public:
     bool is_support_command_calibration();
     int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
 
+    // PA calibration
+    int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode
+    int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);
+    int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
+    int command_get_pa_calibration_tab(float nozzle_diameter, const std::string &filament_id = "");
+    int command_get_pa_calibration_result(float nozzle_diameter);
+    int commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info);
+
+    // flow ratio calibration
+    int command_start_flow_ratio_calibration(const X1CCalibInfos& calib_data);
+    int command_get_flow_ratio_calibration_result(float nozzle_diameter);
+
     int command_unload_filament();
 
     // camera control
@@ -773,6 +856,7 @@ public:
     static bool is_in_printing_status(std::string status);
 
     void set_print_state(std::string status);
+    std::vector<std::string> get_compatible_machine();
 
     bool is_connected();
     bool is_connecting();
@@ -782,7 +866,10 @@ public:
     bool is_function_supported(PrinterFunction func);
     std::vector<std::string> get_resolution_supported();
     bool is_support_print_with_timelapse();
-
+    bool is_camera_busy_off();
+    int get_local_camera_proto();
+    bool has_local_file_proto();
+    bool has_remote_file_proto();
 
     /* Msg for display MsgFn */
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
@@ -793,6 +880,8 @@ public:
     int publish_gcode(std::string gcode_str);
 
     BBLSubTask* get_subtask();
+    BBLModelTask* get_modeltask();
+    void set_modeltask(BBLModelTask* task);
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };
@@ -817,6 +906,7 @@ public:
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
     std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
 
+    void keep_alive();
     void check_pushing();
 
     MachineObject* get_default_machine();
@@ -863,6 +953,7 @@ public:
     static bool load_filaments_blacklist_config(std::string config_file);
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);
+    static std::vector<std::string> get_compatible_machine(std::string type_str);
 };
 
 } // namespace Slic3r

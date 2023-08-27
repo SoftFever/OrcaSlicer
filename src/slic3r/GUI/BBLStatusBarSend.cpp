@@ -16,6 +16,7 @@
 
 namespace Slic3r {
 
+wxDEFINE_EVENT(EVT_SHOW_ERROR_INFO, wxCommandEvent);
 
 BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
  : m_self{new wxPanel(parent, id == -1 ? wxID_ANY : id)} 
@@ -29,20 +30,32 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_status_text = new wxStaticText(m_self, wxID_ANY, wxEmptyString);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
-    m_status_text->SetSize(wxSize(m_self->FromDIP(300), m_self->FromDIP(46)));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(300), m_self->FromDIP(46)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(360), m_self->FromDIP(40)));
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetMinSize(wxSize(m_self->FromDIP(300),m_self->FromDIP(6)));
     m_prog->SetValue(0);
 
-    StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+    //StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    StateColor btn_bt_white(std::pair<wxColour, int>(wxColour(0x90, 0x90, 0x90), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+    StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+
+    StateColor btn_txt_white(std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
 
     m_cancelbutton = new Button(m_self, _L("Cancel"));
+    m_cancelbutton->SetSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
     m_cancelbutton->SetMaxSize(wxSize(m_self->FromDIP(58), m_self->FromDIP(22)));
-    m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
+    m_cancelbutton->SetBackgroundColor(btn_bt_white);
     m_cancelbutton->SetBorderColor(btn_bd_white);
+    m_cancelbutton->SetTextColor(btn_txt_white);
     m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
     m_cancelbutton->Bind(wxEVT_BUTTON, 
         [this](wxCommandEvent &evt) {
@@ -56,33 +69,62 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_stext_percent->SetFont(::Label::Body_13);
     m_stext_percent->Wrap(-1);
 
-    m_hyperlink = new Label(m_self, _L("Check the status of current system services"));
-    m_hyperlink->SetForegroundColour(0x00AE42);
-    m_hyperlink->SetFont(::Label::Body_12);
-    m_hyperlink->Hide();
+    m_sizer_status_text = new wxBoxSizer(wxHORIZONTAL);
+    m_link_show_error = new Label(m_self, _L("Check the reason"));
+    m_link_show_error->SetForegroundColour(wxColour(0x6b6b6b));
+    m_link_show_error->SetFont(::Label::Head_13);
+
+    m_bitmap_show_error_close = create_scaled_bitmap("link_more_error_close", nullptr, 7);
+    m_bitmap_show_error_open = create_scaled_bitmap("link_more_error_open", nullptr, 7);
+    m_static_bitmap_show_error = new wxStaticBitmap(m_self, wxID_ANY, m_bitmap_show_error_open, wxDefaultPosition, wxSize(m_self->FromDIP(7), m_self->FromDIP(7)));
+
+    m_link_show_error->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {this->m_self->SetCursor(wxCURSOR_HAND); });
+    m_link_show_error->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {this->m_self->SetCursor(wxCURSOR_ARROW); });
+    m_link_show_error->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (!m_show_error_info_state) { m_show_error_info_state = true; m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_close); }
+        else { m_show_error_info_state = false; m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_open); }
+        wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_ERROR_INFO);
+        wxQueueEvent(this->m_self->GetParent(), evt); 
+    });
+   
+
+    m_link_show_error->Hide();
+    m_static_bitmap_show_error->Hide();
+
+
+    m_static_bitmap_show_error->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {this->m_self->SetCursor(wxCURSOR_HAND); });
+    m_static_bitmap_show_error->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {this->m_self->SetCursor(wxCURSOR_ARROW); });
+    m_static_bitmap_show_error->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (!m_show_error_info_state) {m_show_error_info_state = true;m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_close);}
+        else {m_show_error_info_state = false;m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_open);}
+        wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_ERROR_INFO);
+        wxQueueEvent(this->m_self->GetParent(), evt);
+    });
+
+
+    m_sizer_status_text->Add(m_link_show_error, 0, wxLEFT | wxALIGN_CENTER, 0);
+    m_sizer_status_text->Add(m_static_bitmap_show_error, 0, wxLEFT | wxTOP| wxALIGN_CENTER, m_self->FromDIP(2));
+
     m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
     m_sizer_bottom->Add(m_stext_percent, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 10);
-    m_sizer_bottom->Add(m_hyperlink, 0, wxALIGN_CENTER, 10);
+    m_sizer_bottom->Add(m_sizer_status_text, 0, wxALIGN_CENTER, 10);
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_bottom->Add(m_cancelbutton, 0, wxALIGN_CENTER, 0);
 
-
-    m_sizer_body->Add(m_status_text, 0, wxALL, 0);
-    m_sizer_body->Add(0, 0, 0, wxTOP, 1);
-    m_sizer_body->Add(m_sizer_bottom, 1, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_body->Add(m_status_text, 0, wxEXPAND, 0);
+    m_sizer_body->Add(m_sizer_bottom, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
 
     m_sizer->Add(m_sizer_body, 1, wxALIGN_CENTER, 0);
 
     m_self->SetSizer(m_sizer);
     m_self->Layout();
     m_sizer->Fit(m_self);
-    //set_prog_block();
 }
 
 void BBLStatusBarSend::set_prog_block()
 {
-    //block_left->SetPosition(wxPoint(0, 0));
-    //block_right->SetPosition(wxPoint(m_prog->GetSize().GetWidth() - 2, 0));
 }
 
 int BBLStatusBarSend::get_progress() const
@@ -92,10 +134,7 @@ int BBLStatusBarSend::get_progress() const
 
 void BBLStatusBarSend::set_progress(int val)
 {
-    //set_prog_block();
-
-    if(val < 0)
-        return;
+    if(val < 0) return;
 
     //add the logic for arrange/orient jobs, which don't call stop_busy
     if (!m_prog->IsShown()) {
@@ -126,48 +165,14 @@ void BBLStatusBarSend::clear_percent()
     m_cancelbutton->Hide();
 }
 
-void BBLStatusBarSend::show_networking_test(wxString msg)
+void BBLStatusBarSend::show_error_info(wxString msg, int code, wxString description, wxString extra)
 {
-    std::string url;
-    std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
-
-
-    if (country_code == "US") {
-        url = "https://status.bambulab.com";
-    }
-    else if (country_code == "CN") {
-        url = "https://status.bambulab.cn";
-    }
-    else if (country_code == "ENV_CN_DEV") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_QA") {
-        url = "https://status.bambu-lab.com";
-    }
-    else if (country_code == "ENV_CN_PRE") {
-        url = "https://status.bambu-lab.com";
-    }
-    else {
-        url = "https://status.bambu-lab.com";
-    }
-
-    
-    m_hyperlink->Bind(wxEVT_LEFT_DOWN, [this, url](auto& e) {
-        wxLaunchDefaultBrowser(url);
-    });
-
-    m_hyperlink->Bind(wxEVT_ENTER_WINDOW, [this, url](auto& e) {
-        m_hyperlink->SetCursor(wxCURSOR_HAND);
-    });
-
-    m_hyperlink->Bind(wxEVT_LEAVE_WINDOW, [this, url](auto& e) {
-        m_hyperlink->SetCursor(wxCURSOR_ARROW);
-    });
-    
     set_status_text(msg);
     m_prog->Hide();
     m_stext_percent->Hide();
-    m_hyperlink->Show();
+    m_link_show_error->Show();
+    m_static_bitmap_show_error->Show();
+
     m_cancelbutton->Show();
     m_self->Layout();
     m_sizer->Layout();
@@ -283,9 +288,15 @@ void BBLStatusBarSend::set_status_text(const wxString& txt)
     //auto txtss = "Sending the printing task has timed out.\nPlease try again!";
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
-    wxString str;
-    format_text(m_status_text, m_self->FromDIP(300), txt, str);
-    m_status_text->SetLabelText(str);
+    //wxString str;
+    //format_text(m_status_text, m_self->FromDIP(300), txt, str);
+
+    if (m_status_text->GetTextExtent(txt).x > m_self->FromDIP(360)) {
+        m_status_text->SetSize(m_self->FromDIP(360), m_self->FromDIP(40));
+    }
+    m_status_text->SetLabelText(txt);
+    m_status_text->Wrap(m_self->FromDIP(360));
+    m_status_text->Layout();
     m_self->Layout();
     //if (is_english_text(str)) m_status_text->Wrap(m_self->FromDIP(280));
 }
@@ -303,6 +314,8 @@ void BBLStatusBarSend::set_status_text(const std::string& txt)
 void BBLStatusBarSend::set_status_text(const char *txt)
 { 
     this->set_status_text(wxString::FromUTF8(txt));
+    get_panel()->GetParent()->Layout();
+    get_panel()->GetParent()->Update();
 }
 
 void BBLStatusBarSend::msw_rescale() { 
@@ -317,9 +330,7 @@ wxString BBLStatusBarSend::get_status_text() const
 
 bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percent, bool yield)
 {
-    //auto test_txt = _L("Unkown Error.") + _L("status=150, body=Timeout was reached: Connection timed out after 10009 milliseconds [Error 28]");
     set_status_text(msg);
-
     if (percent >= 0)
         this->set_progress(percent);
 
@@ -331,9 +342,11 @@ bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percen
 
 void BBLStatusBarSend::reset()
 {
-    m_hyperlink->Hide();
+    m_link_show_error->Hide();
+    m_static_bitmap_show_error->Hide();
     m_prog->Show();
     m_stext_percent->Show();
+    m_cancelbutton->Enable();
     m_cancelbutton->Show();
     m_was_cancelled = false;
 
@@ -362,6 +375,16 @@ void BBLStatusBarSend::hide_cancel_button()
 void BBLStatusBarSend::change_button_label(wxString name) 
 {
     m_cancelbutton->SetLabel(name);
+}
+
+void BBLStatusBarSend::disable_cancel_button()
+{
+    m_cancelbutton->Disable();
+}
+
+void BBLStatusBarSend::enable_cancel_button()
+{
+    m_cancelbutton->Enable();
 }
 
 }

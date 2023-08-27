@@ -40,6 +40,11 @@ function HandleStudio( pVal )
 	}
 }
 
+function ShowPrinterThumb(pItem, strImg)
+{
+	$(pItem).attr('src',strImg);
+	$(pItem).attr('onerror',null);
+}
 
 function HandleModelList( pVal )
 {

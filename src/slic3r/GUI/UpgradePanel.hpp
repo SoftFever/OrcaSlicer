@@ -19,7 +19,7 @@ public:
     wxStaticText* m_staticText_ext_ver;
     wxStaticText* m_staticText_ext_ver_val;
     wxStaticText* m_staticText_ext_sn_val;
-
+    ScalableBitmap upgrade_green_icon;
     wxStaticBitmap* m_ext_new_version_img;
 
     ExtensionPanel(wxWindow* parent,
@@ -29,7 +29,7 @@ public:
         long            style = wxTAB_TRAVERSAL,
         const wxString& name = wxEmptyString);
     ~ExtensionPanel();
-
+    void msw_rescale();
 };
 
 class AmsPanel : public wxPanel
@@ -39,6 +39,7 @@ public:
     wxStaticText *m_staticText_ams_sn_val;
     wxStaticText *m_staticText_ams_ver_val;
     wxStaticBitmap *m_ams_new_version_img;
+    ScalableBitmap upgrade_green_icon;
 
     AmsPanel(wxWindow *      parent,
                      wxWindowID      id    = wxID_ANY,
@@ -47,6 +48,8 @@ public:
                      long            style = wxTAB_TRAVERSAL,
                      const wxString &name  = wxEmptyString);
     ~AmsPanel();
+    
+    void msw_rescale();
 };
 
 
@@ -96,12 +99,12 @@ protected:
     wxPanel* create_caption_panel(wxWindow *parent);
     AmsPanelHash     m_amspanel_list;
 
-    wxBitmap m_img_ext;
-    wxBitmap m_img_monitor_ams;
-    wxBitmap m_img_printer;
-    wxBitmap upgrade_gray_icon;
-    wxBitmap upgrade_green_icon;
-    wxBitmap upgrade_yellow_icon;
+    ScalableBitmap m_img_ext;
+    ScalableBitmap m_img_monitor_ams;
+    ScalableBitmap m_img_printer;
+    ScalableBitmap upgrade_gray_icon;
+    ScalableBitmap upgrade_green_icon;
+    ScalableBitmap upgrade_yellow_icon;
     int last_status = -1;
     std::string last_status_str = "";
 
@@ -118,6 +121,7 @@ public:
     void on_sys_color_changed();
     void Update_printer_img(MachineObject* obj);
     void init_bitmaps();
+    void rescale_bitmaps();
 
     Button* get_btn() {
         return m_button_upgrade_firmware;

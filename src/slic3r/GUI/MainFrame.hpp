@@ -21,14 +21,13 @@
 #include "Monitor.hpp"
 #include "Auxiliary.hpp"
 #include "Project.hpp"
+#include "CalibrationPanel.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
 
 // BBS
 #include "BBLTopbar.hpp"
-
-
 #include "PrinterWebView.hpp"
 #include "calib_dlg.hpp"
 
@@ -95,7 +94,8 @@ class MainFrame : public DPIFrame
     wxString    m_last_config = wxEmptyString;
 
     wxMenuBar*  m_menubar{ nullptr };
-    wxMenu* publishMenu{ nullptr };
+    //wxMenu* publishMenu{ nullptr };
+    wxMenu *    m_calib_menu{nullptr};
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
@@ -217,13 +217,14 @@ public:
     //BBS GUI refactor
     enum TabPosition
     {
-        tpHome = 0,
-        tp3DEditor = 1,
-        //tpSettings = 1,
-        tpPreview = 2,
-        tpMonitor = 3,
-        tpProject = 4,
-        toDebugTool = 5,
+        tpHome          = 0,
+        tp3DEditor      = 1,
+        tpPreview       = 2,
+        tpMonitor       = 3,
+        tpProject       = 4,
+        tpCalibration   = 5,
+        tpAuxiliary     = 6,
+        toDebugTool     = 7,
     };
 
     //BBS: add slice&&print status update logic
@@ -246,9 +247,14 @@ public:
     // BBS
     BBLTopbar* topbar() { return m_topbar; }
 
+    // for cali to update tab when save new preset
+    void update_filament_tab_ui();
+
     void        update_title();
-    void        show_publish_button(bool show);
     void        set_max_recent_count(int max);
+
+    void        show_publish_button(bool show);
+    void        show_calibration_button(bool show);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
@@ -307,6 +313,7 @@ public:
     void        select_tab(wxPanel* panel);
     void        select_tab(size_t tab = size_t(-1));
     void        request_select_tab(TabPosition pos);
+    int         get_calibration_curr_tab();
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
@@ -320,7 +327,7 @@ public:
     bool save_project_as(const wxString& filename = wxString());
 
     void        add_to_recent_projects(const wxString& filename);
-    void        get_recent_projects(boost::property_tree::wptree & tree);
+    void        get_recent_projects(boost::property_tree::wptree &tree, int images);
     void        open_recent_project(size_t file_id, wxString const & filename);
     void        remove_recent_project(size_t file_id, wxString const &filename);
 
@@ -353,6 +360,7 @@ public:
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     ProjectPanel*         m_project{ nullptr };
 
+    CalibrationPanel*     m_calibration{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     PrinterWebView*       m_printer_view{nullptr};
     wxLogWindow*          m_log_window { nullptr };
@@ -371,6 +379,7 @@ public:
     // BBS
     mutable int m_print_select{ ePrintAll };
     mutable int m_slice_select{ eSliceAll };
+    Button* m_publish_btn{ nullptr };
     SideButton* m_slice_btn{ nullptr };
     SideButton* m_slice_option_btn{ nullptr };
     SideButton* m_print_btn{ nullptr };

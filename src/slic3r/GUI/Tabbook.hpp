@@ -26,9 +26,11 @@ public:
     void Rescale();
     bool InsertPage(size_t n, const wxString& text, bool bSelect = false, const std::string& bmp_name = "");
     void RemovePage(size_t n);
-    bool SetPageImage(size_t n, const std::string& bmp_name) const;
+    bool SetPageImage(size_t n, const std::string& bmp_name);
     void SetPageText(size_t n, const wxString& strText);
     wxString GetPageText(size_t n) const;
+    const wxSize& GetPaddingSize(size_t n);
+    void SetPaddingSize(const wxSize& size);
 
 private:
     wxWindow*                       m_parent;
@@ -261,7 +263,8 @@ public:
     {
         if (event.IsWindowChange()) {
             // change pages
-            AdvanceSelection(event.GetDirection());
+            //AdvanceSelection(event.GetDirection());
+            this->GetGrandParent()->HandleWindowEvent(event);
         }
         else {
             // we get this event in 3 cases

@@ -243,8 +243,11 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         ;// post_ticks_changed_event();
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
-        m_ticks.erase_all_ticks_with_code(ToolChange);
-        post_ticks_changed_event();
+        if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
+        {
+            m_ticks.erase_all_ticks_with_code(ToolChange);
+            post_ticks_changed_event();
+        }
     }
 
     if (last_spiral_vase_status != m_is_spiral_vase) {
@@ -550,7 +553,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
 
     auto draw_band = [this](const ImU32& clr, const ImRect& band_rc)
     {
-        if (clr == m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT) {
+        if (clr == (m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT)) {
             ImRect rc = band_rc;
             rc.Min += ImVec2(1, 1) * m_scale;
             rc.Max -= ImVec2(1, 1) * m_scale;
@@ -569,7 +572,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
         }
     };
     auto draw_main_band = [&main_band, this](const ImU32& clr) {
-        if (clr == m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT) {
+        if (clr == (m_is_dark ? BACKGROUND_COLOR_DARK : BACKGROUND_COLOR_LIGHT)) {
             ImRect rc = main_band;
             rc.Min += ImVec2(1, 1) * m_scale;
             rc.Max -= ImVec2(1, 1) * m_scale;
@@ -1205,9 +1208,9 @@ void IMSlider::render_menu() {
         m_ticks.ticks.end();
     std::string custom_code;
     if (tick_it != m_ticks.ticks.end()) {
-        render_edit_menu(*tick_it);
         if (tick_it->type == CustomGCode::Custom)
             custom_code = tick_it->extra;
+        render_edit_menu(*tick_it);
     }
     else {
         render_add_menu();
@@ -1262,6 +1265,8 @@ void IMSlider::render_add_menu()
                 for (int i = 0; i < extruder_num; i++) {
                     std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    if (rgba[3] == 0)
+                        icon_clr = 0;
                     if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
                     if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
                 }

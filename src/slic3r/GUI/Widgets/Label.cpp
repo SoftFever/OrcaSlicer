@@ -127,6 +127,11 @@ public:
             for (bool newLine = false; !line.empty(); newLine = true) {
                 if (newLine) OnNewLine();
 
+                if (1 == line.length()) {
+                    DoOutputLine(line);
+                    break;
+                }
+
                 wxArrayInt widths;
                 dc.GetPartialTextExtents(line, widths);
 
@@ -154,6 +159,10 @@ public:
                 if (lastSpace == 0) {
                     // No spaces, so can't wrap.
                     lastSpace = posEnd;
+                }
+                if (lastSpace == 0) {
+                    // Break at least one char
+                    lastSpace = 1;
                 }
 
                 // Output the part that fits.
@@ -203,12 +212,13 @@ private:
 class wxLabelWrapper2 : public wxTextWrapper2
 {
 public:
-    void WrapLabel(wxWindow *text, int widthMax)
+    void WrapLabel(wxWindow *text, wxString const & label, int widthMax)
     {
         m_text.clear();
-        Wrap(text, text->GetLabel(), widthMax);
-        text->SetLabel(m_text);
+        Wrap(text, label, widthMax);
     }
+
+    wxString GetText() const { return m_text; }
 
 protected:
     virtual void OnOutputLine(const wxString &line) wxOVERRIDE { m_text += line; }
@@ -251,23 +261,32 @@ Label::Label(wxWindow *parent, wxString const &text, long style) : Label(parent,
 Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long style)
     : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, style)
 {
-    this->font = font;
+    this->m_font = font;
+    this->m_text = text;
     SetFont(font);
-    SetForegroundColour(wxColour("#262E30"));
+    SetForegroundColour(*wxBLACK);
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     SetForegroundColour("#262E30");
     if (style & LB_PROPAGATE_MOUSE_EVENT) {
-        for (auto evt : {
-            wxEVT_LEFT_UP, wxEVT_LEFT_DOWN})
+        for (auto evt : { wxEVT_LEFT_UP, wxEVT_LEFT_DOWN })
             Bind(evt, [this] (auto & e) { GetParent()->GetEventHandler()->ProcessEventLocally(e); });
-        };
+    };
+    if (style & LB_AUTO_WRAP) {
+        Bind(wxEVT_SIZE, &Label::OnSize, this);
+        Wrap(GetSize().x);
     }
+}
 
 void Label::SetLabel(const wxString& label)
 {
-    if (GetLabel() == label)
+    if (m_text == label)
         return;
-    wxStaticText::SetLabel(label);
+    m_text = label;
+    if ((GetWindowStyle() & LB_AUTO_WRAP)) {
+        Wrap(GetSize().x);
+    } else {
+        wxStaticText::SetLabel(label);
+    }
 #ifdef __WXOSX__
     if ((GetWindowStyle() & LB_HYPERLINK)) {
         SetLabelMarkup(label);
@@ -282,22 +301,21 @@ void Label::SetWindowStyleFlag(long style)
         return;
     wxStaticText::SetWindowStyleFlag(style);
     if (style & LB_HYPERLINK) {
-        this->color = GetForegroundColour();
+        this->m_color = GetForegroundColour();
         static wxColor clr_url("#009688");
-        SetFont(this->font.Underlined());
+        SetFont(this->m_font.Underlined());
         SetForegroundColour(clr_url);
         SetCursor(wxCURSOR_HAND);
 #ifdef __WXOSX__
-        SetLabelMarkup(GetLabel());
+        SetLabelMarkup(m_text);
 #endif
     } else {
-        SetForegroundColour(this->color);
-        SetFont(this->font);
+        SetForegroundColour(this->m_color);
+        SetFont(this->m_font);
         SetCursor(wxCURSOR_ARROW);
 #ifdef __WXOSX__
-        auto label = GetLabel();
         wxStaticText::SetLabel({});
-        wxStaticText::SetLabel(label);
+        SetLabel(m_text);
 #endif
     }
     Refresh();
@@ -306,5 +324,15 @@ void Label::SetWindowStyleFlag(long style)
 void Label::Wrap(int width)
 {
     wxLabelWrapper2 wrapper;
-    wrapper.WrapLabel(this, width);
+    wrapper.Wrap(this, m_text, width);
+    m_skip_size_evt = true;
+    wxStaticText::SetLabel(wrapper.GetText());
+    m_skip_size_evt = false;
+}
+
+void Label::OnSize(wxSizeEvent &evt)
+{
+    evt.Skip();
+    if (m_skip_size_evt) return;
+    Wrap(evt.GetSize().x);
 }

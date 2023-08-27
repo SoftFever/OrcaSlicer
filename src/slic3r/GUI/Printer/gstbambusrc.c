@@ -365,14 +365,16 @@ gst_bambusrc_start (GstBaseSrc * bsrc)
     return FALSE;
   }
 
+  int rv = 0;
   BAMBULIB(Bambu_SetLogger)(src->tnl, _log, (void *)src);
-  if (BAMBULIB(Bambu_Open)(src->tnl) != Bambu_success) {
+  if ((rv = BAMBULIB(Bambu_Open)(src->tnl)) != Bambu_success) {
     BAMBULIB(Bambu_Destroy)(src->tnl);
     src->tnl = NULL;
+    gst_bambu_last_error = rv;
     return FALSE;
   }
 
-  int rv, n = 0;
+  int n = 0;
   while ((rv = BAMBULIB(Bambu_StartStream)(src->tnl, 1 /* video */)) == Bambu_would_block) {
     usleep(100000);
   }
@@ -585,7 +587,7 @@ void gstbambusrc_register()
     return;
   did_register = 1;
 
-  gst_plugin_register_static(GST_VERSION_MAJOR, GST_VERSION_MINOR, "bambusrc", "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "OrcaSlicer", "OrcaSlicer", "https://github.com/bambulab/OrcaSlicer");
+  gst_plugin_register_static(GST_VERSION_MAJOR, GST_VERSION_MINOR, "bambusrc", "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "BambuStudio", "BambuStudio", "https://github.com/bambulab/BambuStudio");
 }
 
 #else
@@ -594,6 +596,6 @@ void gstbambusrc_register()
 #define PACKAGE "bambusrc"
 #endif
 
-GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, bambusrc, "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "OrcaSlicer", "https://github.com/bambulab/OrcaSlicer")
+GST_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, bambusrc, "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "BambuStudio", "https://github.com/bambulab/BambuStudio")
 
 #endif

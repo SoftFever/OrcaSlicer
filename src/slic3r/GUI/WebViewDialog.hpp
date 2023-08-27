@@ -27,6 +27,9 @@
 
 
 namespace Slic3r {
+
+class NetworkAgent;
+
 namespace GUI {
 
 
@@ -90,9 +93,14 @@ public:
     void OnFreshLoginStatus(wxTimerEvent &event);
 
 public:
-    void SendRecentList(wxString const &sequence_id);
+    void SendRecentList(int images);
+    void SendDesignStaffpick(bool on);
+    void OpenModelDetail(std::string id, NetworkAgent *agent);
     void SendLoginInfo();
     void ShowNetpluginTip();
+
+    void get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
+    int  get_model_mall_detail_url(std::string *url, std::string id);
 
     void update_mode();
 private:

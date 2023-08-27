@@ -28,7 +28,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
 
     enum {
         LIST_INFO       = 0x0001,
-        THUMBNAIL       = 0x0002,
+        SUB_FILE       = 0x0002,
         FILE_DEL        = 0x0003,
         FILE_DOWNLOAD   = 0X0004,
         NOTIFY_FIRST    = 0x0100, 
@@ -37,6 +37,7 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
         TASK_CANCEL     = 0x1000
     };
 
+public:
     enum {
         SUCCESS             = 0,
         CONTINUE            = 1,
@@ -49,6 +50,8 @@ class PrinterFileSystem : public wxEvtHandler, public boost::enable_shared_from_
         FILE_OPEN_ERR       = 13,
         FILE_READ_ERR       = 14,
         FILE_CHECK_ERR      = 15,
+        FILE_TYPE_ERR       = 16,
+        STORAGE_UNAVAILABLE = 17,
     };
 
 
@@ -61,6 +64,8 @@ public:
     enum FileType {
         F_TIMELAPSE,
         F_VIDEO,
+        F_MODEL,
+        F_INVALID_TYPE,
     };
 
     enum GroupMode {
@@ -69,13 +74,13 @@ public:
         G_YEAR,
     };
 
-    void SetFileType(FileType type);
+    void SetFileType(FileType type, std::string const & storage = {});
 
     void SetGroupMode(GroupMode mode);
 
     size_t EnterSubGroup(size_t index);
 
-    GroupMode GetFileType() const { return m_group_mode; }
+    FileType GetFileType() const { return m_file_type; }
 
     GroupMode GetGroupMode() const { return m_group_mode; }
 
@@ -86,20 +91,36 @@ public:
         FF_THUMNAIL = 2,    // Thumbnail ready
         FF_DOWNLOAD = 4,    // Request download
         FF_DELETED = 8,     // Request delete
+        FF_FETCH_MODEL = 16,// Request model
+        FF_THUMNAIL_RETRY    = 0x100,  // Thumbnail need retry
     };
+
+    struct Progress
+    {
+        wxInt64 size  = 0;
+        wxInt64 total = 0;
+        int     progress = 0;
+    };
+
+    struct Download;
 
     struct File
     {
         std::string name;
+        std::string path;
         time_t time = 0;
         boost::uint64_t size = 0;
-        wxBitmap    thumbnail;
         int         flags = 0;
-        int         progress = -1; // -1: waiting
-        std::string path;
+        wxBitmap    thumbnail;
+        std::shared_ptr<Download> download;
+        std::string local_path;
+        std::map<std::string, std::string> metadata;
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
+        int DownloadProgress() const;
+        std::string Title() const;
+        std::string Metadata(std::string const &key, std::string const &dflt) const;
 
         friend bool operator<(File const & l, File const & r) { return l.time > r.time; }
     };
@@ -107,18 +128,6 @@ public:
     struct Void {};
 
     typedef std::vector<File> FileList;
-
-    struct Thumbnail
-    {
-        std::string name;
-        wxBitmap    thumbnail;
-    };
-
-    struct Progress
-    {
-        wxInt64 size;
-        wxInt64 total;
-    };
 
     void ListAllFiles();
 
@@ -131,6 +140,10 @@ public:
     bool DownloadCheckFile(size_t index);
 
     void DownloadCancel(size_t index);
+
+    void FetchModel(size_t index, std::function<void(int, std::string const &)> callback);
+
+    void FetchModelCancel();
 
     size_t GetCount() const;
 
@@ -180,9 +193,15 @@ private:
 
     void UpdateFocusThumbnail();
 
-    void FileRemoved(size_t index, std::string const &name);
+    static bool ParseThumbnail(File &file);
 
-    size_t FindFile(size_t index, std::string const &name);
+    static bool ParseThumbnail(File &file, std::istream &is);
+
+    void UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>> files, int type);
+
+    void FileRemoved(std::pair<FileType, std::string> type, size_t index, std::string const &name, bool by_path);
+
+    std::pair<FileList &, size_t> FindFile(std::pair<FileType, std::string> type, size_t index, std::string const &name, bool by_path);
 
     void SendChangedEvent(wxEventType type, size_t index = (size_t)-1, std::string const &str = {}, long extra = 0);
 
@@ -193,12 +212,12 @@ private:
 
     typedef std::function<void(int, json const & resp)> callback_t;
 
-    typedef std::function<void(int, json const &resp, unsigned char const *data)> callback_t2;
+    typedef std::function<int(int, json const &resp, unsigned char const *data)> callback_t2;
 
     template <typename T>
     boost::uint32_t SendRequest(int type, json const& req, Translator<T> const& translator, Callback<T> const& callback)
     {
-        auto c = [translator, callback, this](int result, json const &resp, unsigned char const *data)
+        auto c = [translator, callback, this](int result, json const &resp, unsigned char const *data) -> int
         {
             T t;
             if (result == 0 || result == CONTINUE) {
@@ -211,6 +230,7 @@ private:
                 }
             }
             PostCallback<T>(callback, result, t);
+            return result;
         };
         return SendRequest(type, req, c);
     }
@@ -220,7 +240,7 @@ private:
     template<typename T>
     void InstallNotify(int type, Translator<T> const& translator, Applier<T> const& applier)
     {
-        auto c = [translator, applier, this](int result, json const &resp, unsigned char const *data)
+        auto c = [translator, applier, this](int result, json const &resp, unsigned char const *data) -> int
         {
             T t;
             if (result == 0 || result == CONTINUE) {
@@ -237,6 +257,7 @@ private:
                     applier(t);
                 }, 0, t);
             }
+            return result;
         };
         InstallNotify(type, c);
     }
@@ -246,6 +267,10 @@ private:
     void InstallNotify(int type, callback_t2 const &callback);
 
     void CancelRequest(boost::uint32_t seq);
+
+    void CancelRequests(std::vector<boost::uint32_t> const &seqs);
+
+    void CancelRequests2(std::vector<boost::uint32_t> const & seqs);
 
     void RecvMessageThread();
 
@@ -264,10 +289,11 @@ private:
     void PostCallback(std::function<void(void)> const & callback);
 
 protected:
-    FileType m_file_type = F_TIMELAPSE;
+    FileType m_file_type = F_INVALID_TYPE;
+    std::string m_file_storage;
     GroupMode m_group_mode = G_NONE;
     FileList m_file_list;
-    FileList m_file_list2;
+    std::map<std::pair<FileType, std::string>, FileList> m_file_list_cache;
     std::vector<size_t> m_group_year;
     std::vector<size_t> m_group_month;
     std::vector<int> m_group_flags;
@@ -287,6 +313,7 @@ private:
     Session m_session;
     boost::uint32_t m_sequence = 0;
     boost::uint32_t m_download_seq = 0;
+    boost::uint32_t m_fetch_model_seq = 0;
     std::deque<std::string> m_messages;
     std::deque<callback_t2> m_callbacks;
     std::deque<callback_t2> m_notifies;

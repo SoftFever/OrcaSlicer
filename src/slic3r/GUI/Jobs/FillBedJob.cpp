@@ -212,8 +212,8 @@ void FillBedJob::process()
     auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     const Slic3r::DynamicPrintConfig& global_config = wxGetApp().preset_bundle->full_config();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    const bool has_lidar = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
-    if (has_lidar && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
+    const bool is_bbl = wxGetApp().preset_bundle->is_bbl_vendor();
+    if (is_bbl && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
     
     update_selected_items_inflation(m_selected, *m_plater, params);
@@ -233,7 +233,7 @@ void FillBedJob::process()
         do_stop = ap.bed_idx > 0 && ap.priority == 0;
     };
     // final align用的是凸包，在有fixed item的情况下可能找到的参考点位置是错的，这里就不做了。见STUDIO-3265
-    params.do_final_align = !has_lidar;
+    params.do_final_align = !is_bbl;
 
     arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 

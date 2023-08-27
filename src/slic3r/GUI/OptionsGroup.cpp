@@ -794,8 +794,14 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode)
     int coef = 0;
     int hidden_row_cnt = 0;
     const int cols = m_grid_sizer->GetCols();
+    Line * line = &m_lines.front();
+    size_t line_opt_end = line->get_options().size();
     for (auto opt_mode : m_options_mode) {
-		const bool show = opt_mode <= mode;
+        const bool show = opt_mode <= mode && line->toggle_visible;
+        if (--line_opt_end == 0) {
+            ++line;
+            line_opt_end = line->get_options().size();
+        }
         if (!show) {
             hidden_row_cnt++;
             for (int i = 0; i < cols; ++i)

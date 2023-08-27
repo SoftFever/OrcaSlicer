@@ -25,13 +25,14 @@ typedef int (*func_set_get_country_code_fn)(void *agent, GetCountryCodeFn fn);
 typedef int (*func_set_on_message_fn)(void *agent, OnMessageFn fn);
 typedef int (*func_set_on_local_connect_fn)(void *agent, OnLocalConnectedFn fn);
 typedef int (*func_set_on_local_message_fn)(void *agent, OnMessageFn fn);
+typedef int (*func_set_queue_on_main_fn)(void *agent, QueueOnMainFn fn);
 typedef int (*func_connect_server)(void *agent);
 typedef bool (*func_is_server_connected)(void *agent);
 typedef int (*func_refresh_connection)(void *agent);
 typedef int (*func_start_subscribe)(void *agent, std::string module);
 typedef int (*func_stop_subscribe)(void *agent, std::string module);
 typedef int (*func_send_message)(void *agent, std::string dev_id, std::string json_str, int qos);
-typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password);
+typedef int (*func_connect_printer)(void *agent, std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
 typedef int (*func_disconnect_printer)(void *agent);
 typedef int (*func_send_message_to_printer)(void *agent, std::string dev_id, std::string json_str, int qos);
 typedef bool (*func_start_discovery)(void *agent, bool start, bool sending);
@@ -45,7 +46,7 @@ typedef std::string (*func_get_user_nickanme)(void *agent);
 typedef std::string (*func_build_login_cmd)(void *agent);
 typedef std::string (*func_build_logout_cmd)(void *agent);
 typedef std::string (*func_build_login_info)(void *agent);
-typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, OnUpdateStatusFn update_fn);
+typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
 typedef std::string (*func_get_user_selected_machine)(void *agent);
@@ -72,15 +73,19 @@ typedef int (*func_get_slice_info)(void *agent, std::string project_id, std::str
 typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
 typedef int (*func_get_camera_url)(void *agent, std::string dev_id, std::function<void(std::string)> callback);
+typedef int (*func_get_design_staffpick)(void *agent, int offset, int limit, std::function<void(std::string)> callback);
 typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
 typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
+typedef int (*func_get_subtask)(void *agent, BBLModelTask* task);
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
+typedef int (*func_get_model_mall_detail_url)(void *agent, std::string* url, std::string id);
 typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
 typedef int (*func_track_enable)(void *agent, bool enable);
 typedef int (*func_track_event)(void *agent, std::string evt_key, std::string content);
 typedef int (*func_track_header)(void *agent, std::string header);
 typedef int (*func_track_update_property)(void *agent, std::string name, std::string value, std::string type);
+typedef int (*func_track_get_property)(void *agent, std::string name, std::string& value, std::string type);
 
 
 //the NetworkAgent class
@@ -114,13 +119,14 @@ public:
     int set_on_message_fn(OnMessageFn fn);
     int set_on_local_connect_fn(OnLocalConnectedFn fn);
     int set_on_local_message_fn(OnMessageFn fn);
+    int set_queue_on_main_fn(QueueOnMainFn fn);
     int connect_server();
     bool is_server_connected();
     int refresh_connection();
     int start_subscribe(std::string module);
     int stop_subscribe(std::string module);
     int send_message(std::string dev_id, std::string json_str, int qos);
-    int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password);
+    int connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl);
     int disconnect_printer();
     int send_message_to_printer(std::string dev_id, std::string json_str, int qos);
     bool start_discovery(bool start, bool sending);
@@ -134,7 +140,7 @@ public:
     std::string build_login_cmd();
     std::string build_logout_cmd();
     std::string build_login_info();
-    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, OnUpdateStatusFn update_fn);
+    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();
@@ -161,15 +167,20 @@ public:
     int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
     int get_camera_url(std::string dev_id, std::function<void(std::string)> callback);
+    int get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
     int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
     int get_profile_3mf(BBLProfile* profile);
     int get_model_publish_url(std::string* url);
+    int get_subtask(BBLModelTask* task);
     int get_model_mall_home_url(std::string* url);   
+    int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
     int track_enable(bool enable);
     int track_event(std::string evt_key, std::string content);
     int track_header(std::string header);
     int track_update_property(std::string name, std::string value, std::string type = "string");
+    int track_get_property(std::string name, std::string& value, std::string type = "string");
+    bool get_track_enable() { return enable_track; }
 private:
     bool enable_track = false;
     void*                   network_agent { nullptr };
@@ -192,6 +203,7 @@ private:
     static func_set_on_message_fn              set_on_message_fn_ptr;
     static func_set_on_local_connect_fn        set_on_local_connect_fn_ptr;
     static func_set_on_local_message_fn        set_on_local_message_fn_ptr;
+    static func_set_queue_on_main_fn           set_queue_on_main_fn_ptr;
     static func_connect_server                 connect_server_ptr;
     static func_is_server_connected            is_server_connected_ptr;
     static func_refresh_connection             refresh_connection_ptr;
@@ -239,15 +251,19 @@ private:
     static func_query_bind_status              query_bind_status_ptr;
     static func_modify_printer_name            modify_printer_name_ptr;
     static func_get_camera_url                 get_camera_url_ptr;
+    static func_get_design_staffpick           get_design_staffpick_ptr;
     static func_start_pubilsh                  start_publish_ptr;
     static func_get_profile_3mf                get_profile_3mf_ptr;
     static func_get_model_publish_url          get_model_publish_url_ptr;
+    static func_get_subtask                    get_subtask_ptr;
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
+    static func_get_model_mall_detail_url      get_model_mall_detail_url_ptr;
     static func_get_my_profile                 get_my_profile_ptr;
     static func_track_enable                   track_enable_ptr;
     static func_track_event                    track_event_ptr;
     static func_track_header                   track_header_ptr;
     static func_track_update_property          track_update_property_ptr;
+    static func_track_get_property             track_get_property_ptr;
 };
 
 }

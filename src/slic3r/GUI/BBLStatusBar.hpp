@@ -45,7 +45,7 @@ public:
     int         get_range() const override;
     void        set_range(int = 100) override;
     void        clear_percent() override;
-    void        show_networking_test(wxString msg) override;
+    void        show_error_info(wxString msg, int code, wxString description, wxString extra) override;
     void        show_progress(bool);
     void        start_busy(int = 100);
     void        stop_busy();

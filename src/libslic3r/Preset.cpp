@@ -685,26 +685,6 @@ bool Preset::is_custom_defined()
     return false;
 }
 
-bool Preset::has_lidar(PresetBundle *preset_bundle)
-{
-    bool has_lidar = false;
-    if (preset_bundle) {
-        auto config = &preset_bundle->printers.get_edited_preset().config;
-        std::string vendor_name;
-        for (auto vendor_profile : preset_bundle->vendors) {
-            for (auto vendor_model : vendor_profile.second.models)
-                if (vendor_model.name == config->opt_string("printer_model"))
-                {
-                    vendor_name = vendor_profile.first;
-                    break;
-                }
-        }
-        if (!vendor_name.empty())
-            has_lidar = vendor_name.compare("BBL") == 0 ? true : false;
-    }
-    return has_lidar;
-}
-
 BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
 {
     if (config.has("default_bed_type") && !config.opt_string("default_bed_type").empty()) {
@@ -837,7 +817,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails",
-    "use_firmware_retraction", "use_relative_e_distances", "bbl_calib_mark_logo"};
+    "use_firmware_retraction", "use_relative_e_distances"};
 
 static std::vector<std::string> s_Preset_sla_print_options {
     "layer_height",

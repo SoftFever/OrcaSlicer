@@ -16,6 +16,7 @@
 #include <boost/thread/condition_variable.hpp>
 
 #include <deque>
+#include <set>
 
 class Button;
 class Label;
@@ -68,13 +69,16 @@ private:
     wxMediaCtrl2 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
     std::string m_machine;
+    int m_lan_proto = 0;
     std::string m_lan_ip;
     std::string m_lan_user;
     std::string m_lan_passwd;
+    std::string m_tutk_state;
     bool m_camera_exists = false;
     bool m_lan_mode = false;
-    bool m_tutk_support = false;
+    bool m_remote_support = false;
     bool m_device_busy = false;
+    bool m_disable_lan = false;
     wxString m_url;
     
     std::deque<wxString> m_tasks;
@@ -86,8 +90,9 @@ private:
     bool m_user_triggered = false;
     int m_failed_retry = 0;
     int m_failed_code = 0;
-    int m_last_failed_code = 0;
-    wxDateTime m_next_retry;
+    std::set<int> m_last_failed_codes;
+    wxDateTime    m_last_user_play;
+    wxDateTime    m_next_retry;
 
     ::Button *m_button_play;
     ::Label * m_label_status;
