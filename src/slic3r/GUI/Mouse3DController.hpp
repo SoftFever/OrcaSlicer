@@ -61,6 +61,13 @@ class Mouse3DController
         size_t 					 input_queue_max_size { 15 };
         // Whether to swap Y/Z axes or not.
         bool 					 swap_yz{ false };
+        // Invert varius axes...
+        bool                                     invert_x{ false };
+        bool                                     invert_y{ false };
+        bool                                     invert_z{ false };
+        bool                                     invert_yaw{ false };
+        bool                                     invert_pitch{ false };
+        bool                                     invert_roll{ false };
     };
 
 	// Queue of the 3DConnexion input events (translations, rotations, button presses).
