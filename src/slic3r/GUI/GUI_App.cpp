@@ -4467,17 +4467,7 @@ std::string GUI_App::format_display_version()
 {
     if (!version_display.empty()) return version_display;
 
-    auto version_text = std::string(SLIC3R_VERSION);
-    int len = version_text.length();
-    for (int i = 0, j = 0; i < len; ++i) {
-        if (!(version_text[i] == '0' && j == 0))
-            version_display += version_text[i];
-
-        if (version_text[i] == '.')
-            j = 0;
-        else
-            ++j;
-    }
+    version_display = SoftFever_VERSION;
     return version_display;
 }
 
@@ -4626,6 +4616,9 @@ void GUI_App::sync_preset(Preset* preset)
 
 void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
+    if (app_config->get("stealth_mode") == "true")
+        return;
+
     if (!m_agent || !m_agent->is_user_login()) return;
 
     // has already start sync

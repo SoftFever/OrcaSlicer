@@ -35,6 +35,24 @@ Repetier::Repetier(DynamicPrintConfig *config) :
 
 const char* Repetier::get_name() const { return "Repetier"; }
 
+
+
+static bool validate_repetier(const boost::optional<std::string>& name,
+                              const boost::optional<std::string>& soft)
+{
+    if (soft) {
+        // See https://github.com/prusa3d/PrusaSlicer/issues/7807:
+        // Repetier allows "rebranding", so the "name" value is not reliable when detecting
+        // server type. Newer Repetier versions send "software", which should be invariant.
+        return ((*soft) == "Repetier-Server");
+    } else {
+        // If there is no "software" value, validate as we did before:
+        return name ? boost::starts_with(*name, "Repetier") : true;
+    }
+}
+
+
+
 bool Repetier::test(wxString &msg) const
 {
     // Since the request is performed synchronously here,
@@ -62,11 +80,12 @@ bool Repetier::test(wxString &msg) const
                 std::stringstream ss(body);
                 pt::ptree ptree;
                 pt::read_json(ss, ptree);
-                
+
                 const auto text = ptree.get_optional<std::string>("name");
-                res = validate_version_text(text);
+                const auto soft = ptree.get_optional<std::string>("software");
+                res = validate_repetier(text, soft);
                 if (! res) {
-                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (text ? *text : "Repetier")).str());
+                    msg = GUI::from_u8((boost::format(_utf8(L("Mismatched type of print host: %s"))) % (soft ? *soft : (text ? *text : "Repetier"))).str());
                 }
             }
             catch (const std::exception &) {
@@ -92,7 +111,7 @@ wxString Repetier::get_test_failed_msg (wxString &msg) const
         % _utf8(L("Note: Repetier version at least 0.90.0 is required."))).str());
 }
 
-bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
+bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
     const char *name = get_name();
 
@@ -129,6 +148,7 @@ bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 
     if(upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
         http.form_add("name", upload_filename.string());
+        http.form_add("autostart", "true"); // See https://github.com/prusa3d/PrusaSlicer/issues/7807#issuecomment-1235519371
     }
 
     http.form_add("a", "upload")
@@ -154,10 +174,7 @@ bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
     return res;
 }
 
-bool Repetier::validate_version_text(const boost::optional<std::string> &version_text) const
-{
-    return version_text ? (!version_text->empty()) : true;
-}
+
 
 void Repetier::set_auth(Http &http) const
 {
