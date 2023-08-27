@@ -55,30 +55,6 @@ private:
 #endif
 };
 
-class SL1Host: public OctoPrint
-{
-public:
-    SL1Host(DynamicPrintConfig *config);
-    ~SL1Host() override = default;
-
-    const char* get_name() const override;
-
-    wxString get_test_ok_msg() const override;
-    wxString get_test_failed_msg(wxString &msg) const override;
-    PrintHostPostUploadActions get_post_upload_actions() const override { return {}; }
-
-protected:
-    bool validate_version_text(const boost::optional<std::string> &version_text) const override;
-
-private:
-    void set_auth(Http &http) const override;
-
-    // Host authorization type.
-    AuthorizationType m_authorization_type;
-    // username and password for HTTP Digest Authentization (RFC RFC2617)
-    std::string m_username;
-    std::string m_password;
-};
 
 class PrusaLink : public OctoPrint
 {
@@ -94,7 +70,7 @@ public:
     virtual PrintHostPostUploadActions get_post_upload_actions() const override { return PrintHostPostUploadAction::StartPrint; }
 
     // gets possible storage to be uploaded to. This allows different printer to have different storage. F.e. local vs sdcard vs usb.
-    bool get_storage(wxArrayString& /* storage */) const override;
+    bool get_storage(wxArrayString& storage_path, wxArrayString& storage_name) const override;
 protected:
     bool test(wxString& curl_msg) const override;
     bool validate_version_text(const boost::optional<std::string>& version_text) const override;
@@ -106,6 +82,12 @@ protected:
     bool upload_inner_with_resolved_ip(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn, const boost::asio::ip::address& resolved_addr) const override;
 #endif
 
+    // Host authorization type.
+    AuthorizationType m_authorization_type;
+    // username and password for HTTP Digest Authentization (RFC RFC2617)
+    std::string m_username;
+    std::string m_password;
+
 private:
     bool test_with_method_check(wxString& curl_msg, bool& use_put) const;
     bool put_inner(PrintHostUpload upload_data, std::string url, const std::string& name, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const;
@@ -113,11 +95,7 @@ private:
 #ifdef WIN32
     bool test_with_resolved_ip_and_method_check(wxString& curl_msg, bool& use_put) const;
 #endif
-    // Host authorization type.
-    AuthorizationType m_authorization_type;
-    // username and password for HTTP Digest Authentization (RFC RFC2617)
-    std::string m_username;
-    std::string m_password;
+
     bool m_show_after_message;
 
 #if 0
@@ -137,6 +115,22 @@ public:
     bool get_storage(wxArrayString& storage_path, wxArrayString& storage_name) const override { return false; }
 protected:
     void set_http_post_header_args(Http& http, PrintHostPostUploadAction post_action) const override;
+};
+
+class SL1Host : public PrusaLink
+{
+public:
+    SL1Host(DynamicPrintConfig* config);
+    ~SL1Host() override = default;
+
+    const char* get_name() const override;
+
+    wxString get_test_ok_msg() const override;
+    wxString get_test_failed_msg(wxString& msg) const override;
+    PrintHostPostUploadActions get_post_upload_actions() const override { return {}; }
+
+protected:
+    bool validate_version_text(const boost::optional<std::string>& version_text) const override;
 };
 
 }

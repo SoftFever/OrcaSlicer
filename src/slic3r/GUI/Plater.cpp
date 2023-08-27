@@ -10966,42 +10966,34 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         upload_job.printhost->get_groups(groups);
     }
 
-    // orca merge todo
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
+    // PrusaLink specific: Query the server for the list of file groups.
+    wxArrayString storage_paths;
+    wxArrayString storage_names;
+    {
+        wxBusyCursor wait;
+        try {
+            upload_job.printhost->get_storage(storage_paths, storage_names);
+        } catch (const Slic3r::IOError& ex) {
+            show_error(this, ex.what(), false);
+            return;
+        }
+    }
+
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, storage_paths, storage_names);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.post_action = dlg.post_action();
         upload_job.upload_data.group       = dlg.group();
+        upload_job.upload_data.storage     = dlg.storage();
+
+        // Show "Is printer clean" dialog for PrusaConnect - Upload and print.
+        if (std::string(upload_job.printhost->get_name()) == "PrusaConnect" && upload_job.upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
+            GUI::MessageDialog dlg(nullptr, _L("Is the printer ready? Is the print sheet in place, empty and clean?"), _L("Upload and Print"), wxOK | wxCANCEL);
+            if (dlg.ShowModal() != wxID_OK)
+                return;
+        }
 
         p->export_gcode(fs::path(), false, std::move(upload_job));
-
-        try {
-            json          j;
-            switch (dlg.post_action()) {
-            case PrintHostPostUploadAction::None: 
-                j["post_action"] = "Upload"; 
-                break;
-            case PrintHostPostUploadAction::StartPrint: 
-                j["post_action"] = "StartPrint"; 
-                break;
-            case PrintHostPostUploadAction::StartSimulation: 
-                j["post_action"] = "StartSimulation"; 
-                break;
-            }
-
-            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-            if (preset_bundle) { 
-                j["gcode_printer_model"] = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle); 
-            }
-
-            if (physical_printer_config) { 
-                j["printer_preset"] = physical_printer_config->opt_string("inherits"); 
-            }
-
-            NetworkAgent *agent = wxGetApp().getAgent();
-        } catch (...) {
-            return;
-        }
     }
 }
 int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
