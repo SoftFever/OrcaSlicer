@@ -2462,6 +2462,7 @@ bool GUI_App::on_init_inner()
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
+#if orca_todo
         Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
@@ -2550,6 +2551,7 @@ bool GUI_App::on_init_inner()
             });
             dlg.ShowModal();
         });
+#endif
     }
     else {
 #ifdef __WXMSW__

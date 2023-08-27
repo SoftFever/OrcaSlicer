@@ -5427,8 +5427,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
 
     // only show this option if the printer has micro Lidar and can do first layer scan
     DynamicPrintConfig &current_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    const bool has_lidar = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+    const bool has_lidar = wxGetApp().preset_bundle->is_bbl_vendor();
     auto                op             = current_config.option("scan_first_layer");
     if (has_lidar && op && op->getBool()) {
         if (imgui->bbl_checkbox(_L("Avoid extrusion calibration region"), settings.avoid_extrusion_cali_region)) {

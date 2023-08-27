@@ -1874,11 +1874,11 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col = new ObjectGridCol(coBool, "support_reset", L("Support"), true, true, false, false, wxALIGN_CENTRE);
     m_col_data.push_back(col);
 
-    // orca merge todo:
     //Bed Adhesion
     col               = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
     col->choices.Add(_L("Auto"));
+    col->choices.Add(_L("Mouse ear"));
     col->choices.Add(_L("Outer brim only"));
     col->choices.Add(_L("Inner brim only"));
     col->choices.Add(_L("Outer and inner brim"));
