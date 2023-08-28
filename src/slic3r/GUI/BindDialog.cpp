@@ -466,6 +466,7 @@ wxString get_fail_reason(int code)
 
  BindMachineDialog::~BindMachineDialog()
  {
+     web_request.Cancel();
      m_button_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_bind_printer), NULL, this);
      m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_cancel), NULL, this);
      this->Disconnect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDialog::on_bind_fail), NULL, this);
@@ -535,10 +536,6 @@ wxString get_fail_reason(int code)
      if (m_bind_job) {
          m_bind_job->cancel();
          m_bind_job->join();
-     }
-
-     if (web_request.IsOk()) {
-         web_request.Cancel();
      }
  }
 
