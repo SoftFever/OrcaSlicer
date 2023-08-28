@@ -842,6 +842,7 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
                     if (!thumbnail.empty()) {
                         arr.push_back(file.path + "#" + thumbnail);
                         file.flags &= ~FF_THUMNAIL;
+                        file.local_path.clear();    
                     }
                 }
             }
