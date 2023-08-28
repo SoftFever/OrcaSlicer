@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-22 19:19+0800\n"
+"POT-Creation-Date: 2023-08-26 19:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -599,6 +599,9 @@ msgstr "OrcaSlicer hat eine unbehandelte Ausnahme erzeugt: %1%"
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Lade Orca Network Plug-in herunter"
 
+msgid "Login information expired. Please login again."
+msgstr "Login abgelaufen. Bitte neu einloggen."
+
 msgid "Incorrect password"
 msgstr "Falsches Passwort"
 
@@ -688,9 +691,6 @@ msgid ""
 msgstr ""
 "Die Version von Orca Slicer ist veraltet und muss auf die neueste Version "
 "aktualisiert werden, bevor sie normal verwendet werden kann"
-
-msgid "Login information expired. Please login again."
-msgstr "Login abgelaufen. Bitte neu einloggen."
 
 msgid "Privacy Policy Update"
 msgstr "Datenschutzrichtlinien-Update"
@@ -963,8 +963,11 @@ msgstr ""
 msgid "Assemble the selected objects to an object with single part"
 msgstr "Zusammenfügen der ausgewählten Objekte zu einem Objekt mit einem Teil"
 
-msgid "Assemble the selected parts to a single part"
-msgstr "Zusammenfügen der ausgewählten Teile zu einem einzigen Teil"
+msgid "Mesh boolean"
+msgstr ""
+
+msgid "Mesh boolean operations including union and subtraction"
+msgstr ""
 
 msgid "Along X axis"
 msgstr "Entlang der X Achse"
@@ -1084,17 +1087,14 @@ msgstr "Filament für ausgewählte Elemente festlegen"
 msgid "current"
 msgstr "Aktuell"
 
-msgid "Set Unprintable"
-msgstr "Undruckbar machen"
-
-msgid "Set Printable"
-msgstr "Druckbar machen"
-
 msgid "Unlock"
 msgstr "Entsperren"
 
 msgid "Lock"
 msgstr "Sperren"
+
+msgid "Edit Plate Name"
+msgstr ""
 
 msgid "Name"
 msgstr "Name"
@@ -1165,6 +1165,9 @@ msgstr "Lade Datei"
 
 msgid "Error!"
 msgstr "Fehler!"
+
+msgid "Failed to get the model data in the current file."
+msgstr ""
 
 msgid "Generic"
 msgstr "Generisch"
@@ -1352,15 +1355,6 @@ msgstr "Das Kopieren mehrerer Zellen wird nicht unterstützt"
 msgid "Outside"
 msgstr "Außenseite"
 
-msgid "Auto"
-msgstr "Automatisch"
-
-msgid "Manual"
-msgstr "Manuell"
-
-msgid "No-brim"
-msgstr "Keine Umrandung"
-
 msgid " "
 msgstr " "
 
@@ -1375,6 +1369,21 @@ msgstr "Füllungsdichte(%)"
 
 msgid "Auto Brim"
 msgstr "Automatische Umrandung"
+
+msgid "Auto"
+msgstr "Automatisch"
+
+msgid "Outer brim only"
+msgstr "Nur Außen"
+
+msgid "Inner brim only"
+msgstr "Nur Innenrand"
+
+msgid "Outer and inner brim"
+msgstr "Äußere und innere Randleiste"
+
+msgid "No-brim"
+msgstr "Keine Umrandung"
 
 msgid "Outer wall speed"
 msgstr "Geschwindigkeit Außenwand"
@@ -1485,6 +1494,35 @@ msgstr "Kein Drucker"
 msgid "..."
 msgstr "..."
 
+msgid "Failed to connect to the server"
+msgstr "Verbindung zum Server fehlgeschlagen"
+
+msgid "Check cloud service status"
+msgstr "Status des Cloud-Dienstes prüfen"
+
+msgid "code"
+msgstr "Code"
+
+msgid "Failed to connect to cloud service"
+msgstr "Verbindung zum Cloud-Dienst fehlgeschlagen"
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr ""
+"Bitte klicken Sie auf den obigen Hyperlink, um den Status des Cloud-Dienstes "
+"einzusehen"
+
+msgid "Failed to connect to the printer"
+msgstr "Verbindung zum Drucker fehlgeschlagen"
+
+msgid "Connection to printer failed"
+msgstr "Verbindung zum Drucker ist fehlgeschlagen"
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr "Bitte überprüfen Sie die Netzwerkverbindung von Drucker und Studio."
+
+msgid "Connecting..."
+msgstr "Verbinden..."
+
 msgid "?"
 msgstr "?"
 
@@ -1494,8 +1532,8 @@ msgstr "Leer"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "Ams filament backup"
-msgstr "Ams Filament Backu"
+msgid "Auto Refill"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS nicht verbunden"
@@ -1553,11 +1591,11 @@ msgstr "Neues Filament in den Extruder schieben"
 msgid "Purge old filament"
 msgstr "Altes Filament entfernen"
 
-msgid "Feed new filament from external spool"
-msgstr "Neues Filament von einer externen Spule zuführen"
+msgid "Push new filament into the extruder"
+msgstr "Neues Filament in den Extruder schieben"
 
-msgid "Confirm whether the filament has been extruded"
-msgstr "Bestätigen Sie, ob das Filament extrudiert wurde"
+msgid "Grab new filament"
+msgstr "Neues Filament holen"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1661,57 +1699,64 @@ msgstr "Einloggen"
 msgid "Login failed"
 msgstr "Anmeldung fehlgeschlagen"
 
-msgid "The region parameter is incorrrect"
-msgstr "Der Regionsparameter ist falsch"
-
-msgid "Failure of printer login"
-msgstr "Druckeranmeldung fehlgeschlagen"
-
-msgid "Failed to get ticket"
-msgstr "Ticket konnte nicht abgerufen werden"
-
-msgid "User authorization timeout"
-msgstr "Zeitüberschreitung der Benutzerautorisierung"
-
-msgid "Failure of bind"
-msgstr "Bindungsfehler"
-
-msgid "Unknown Failure"
-msgstr "Unbekannter Fehler"
-
 msgid "Please check the printer network connection."
 msgstr "Bitte überprüfen Sie die Netzwerkverbindung des Druckers."
 
-msgid "Abnormal print file data. Please slice again"
-msgstr "Fehlerhafte Daten in der Druckdatei. Bitte slicen Sie erneut"
+msgid "Abnormal print file data. Please slice again."
+msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
 
-msgid "Task canceled"
-msgstr "Auftrag abgebrochen"
+msgid "Task canceled."
+msgstr "Aufgabe abgebrochen."
 
-msgid "Upload task timed out. Please check the network problem and try again"
+msgid "Upload task timed out. Please check the network status and try again."
 msgstr ""
-"Zeitüberschreitung beim Upload. Bitte überprüfen Sie das Netzwerk und "
-"versuchen Sie es erneut"
+"Zeitüberschreitung beim Upload. Bitte überprüfen Sie den Netzwerkstatus und "
+"versuchen Sie es erneut."
 
 msgid "Cloud service connection failed. Please try again."
 msgstr ""
 "Die Verbindung zum Cloud-Dienst ist fehlgeschlagen. Bitte versuche es erneut."
 
-msgid "Print file not found, please slice again"
-msgstr "Druckdatei nicht gefunden, bitte noch einmal (erneut Slicen)"
+msgid "Print file not found. please slice again."
+msgstr "Druckdatei nicht gefunden. Bitte erneut slicen"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again"
+"model and slice again."
 msgstr ""
 "Die Druckdatei überschreitet die maximal zulässige Größe (1 GB). Bitte "
-"vereinfachen Sie das Modell und slicen Sie es erneut"
+"vereinfachen Sie das Modell und slicen Sie diese erneut."
 
-msgid "Failed uploading print file"
-msgstr "Fehler beim Hochladen der Druckdatei"
+msgid "Failed to send the print job. Please try again."
+msgstr ""
+"Der Druckauftrag konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
 
-msgid "Wrong Access code"
-msgstr "Falscher Zugangscode"
+msgid "Failed to upload file to ftp. Please try again."
+msgstr ""
+"Datei konnte nicht auf FTP hochgeladen werden. Bitte versuchen Sie es erneut."
+
+msgid ""
+"Check the current status of the bambu server by clicking on the link above."
+msgstr ""
+"Überprüfen Sie den aktuellen Status des Bambu Lab-Servers, indem Sie auf den "
+"obigen Link klicken."
+
+msgid ""
+"The size of the print file is too large. Please adjust the file size and try "
+"again."
+msgstr ""
+"Die Größe der Druckdatei ist zu groß. Bitte passen Sie die Dateigröße an und "
+"versuchen Sie es erneut."
+
+msgid "Print file not found, Please slice it again and send it for printing."
+msgstr "Druckdatei nicht gefunden. Bitte erneut slicen und zum Drucken senden."
+
+msgid ""
+"Failed to upload print file to FTP. Please check the network status and try "
+"again."
+msgstr ""
+"Druckdatei konnte nicht über FTP hochgeladen werden. Bitte überprüfen Sie "
+"den Netzwerkstatus und versuchen Sie es erneut."
 
 msgid "Sending print job over LAN"
 msgstr "Druckauftrag über LAN senden"
@@ -1732,24 +1777,15 @@ msgstr "Druckkonfiguration senden"
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Erfolgreich gesendet. Springt automatisch auf die Geräteseite in %ss"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Vor dem Drucken über LAN muss eine MicroSD-Karte eingelegt werden."
 
-msgid "Failed to send the print job. Please try again."
-msgstr ""
-"Der Druckauftrag konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
-
-msgid "Send to Printer failed. Please try again."
-msgstr "Senden an den Drucker fehlgeschlagen. Bitte versuchen Sie es erneut."
-
-msgid "No space left on Printer SD card"
-msgstr "Kein Speicherplatz mehr auf der SD-Karte des Druckers."
-
 msgid "Sending gcode file over LAN"
 msgstr "Sende Gcode-Datei über LAN"
-
-msgid "Sending gcode file through cloud service"
-msgstr "Sende Gcode-Datei über den Cloud-Service"
 
 msgid "Sending gcode file to sdcard"
 msgstr "Sende Gcode-Datei an SDKarte"
@@ -1760,9 +1796,6 @@ msgstr "Erfolgreich gesendet. Aktuelle Seite wird in %s s geschlossen"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Vor dem Senden an den Drucker muss eine SD-Karte eingelegt werden."
-
-msgid "Please log out and login to the printer again."
-msgstr "Bitte melden Sie sich ab und melden Sie sich erneut beim Drucker an."
 
 msgid "Choose SLA archive:"
 msgstr "SLA-Archiv auswählen:"
@@ -1937,8 +1970,11 @@ msgstr ""
 "Das Einstellen von AMS-Slot-Informationen während des Drucks wird nicht "
 "unterstützt."
 
-msgid "Factors of dynamic flow cali"
-msgstr "Faktoren der dynamischen Flusskalibrierung"
+msgid "Factors of Flow Dynamics Calibration"
+msgstr ""
+
+msgid "PA Profile"
+msgstr ""
 
 msgid "Factor K"
 msgstr "Faktor K"
@@ -1954,6 +1990,9 @@ msgstr ""
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Sind Sie sicher, dass Sie die Filamentinformationen löschen möchten?"
 
+msgid "You need to select the material type and color first."
+msgstr "Sie müssen zuerst den Materialtyp und die Farbe auswählen."
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Bitte geben Sie einen gültigen Wert ein (K im Bereich von 0 bis 0,5)"
 
@@ -1961,9 +2000,6 @@ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr ""
 "Bitte geben Sie einen gültigen Wert ein (K im Bereich von 0 bis 0,5, N im "
 "Bereich von 0,6 bis 2,0)"
-
-msgid "You need to select the material type and color first."
-msgstr "Sie müssen zuerst den Materialtyp und die Farbe auswählen."
 
 msgid "Other Color"
 msgstr "Andere Farbe"
@@ -2133,11 +2169,20 @@ msgstr "Drucken mit Materialien im AMS"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Drucken mit Filamenten, die an der Rückseite des Chassis montiert sind"
 
-msgid "Filaments replace"
-msgstr "Filamente ersetzen"
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
+msgstr ""
 
 msgid "Group"
 msgstr "Gruppe"
+
+msgid ""
+"There are currently no identical spare consumables available, and automatic "
+"replenishment is currently not possible. \n"
+"(Currently supporting automatic supply of consumables with the same brand, "
+"material type, and color)"
+msgstr ""
 
 msgid "AMS Settings"
 msgstr "AMS-Einstellungen"
@@ -2679,6 +2724,28 @@ msgstr "Update fehlgeschlagen."
 msgid "Failed to start printing job"
 msgstr "Druckauftrag konnte nicht gestartet werden"
 
+msgid "Invalid nozzle diameter"
+msgstr ""
+
+msgid "Calibration error"
+msgstr ""
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
+
 msgid "default"
 msgstr "Standard"
 
@@ -3182,6 +3249,10 @@ msgstr ""
 "Bevor ein neues Modell erstellt wird, wird %1% geschlossen. Möchten Sie "
 "fortfahren?"
 
+#, fuzzy
+msgid "Upload"
+msgstr "Entladen"
+
 msgid "Slice plate"
 msgstr "Aktuelle Platte slicen"
 
@@ -3422,6 +3493,12 @@ msgstr "&Bezeichnung anzeigen"
 msgid "Show object labels in 3D scene"
 msgstr "Objektbeschriftungen in 3D-Szene anzeigen"
 
+msgid "Show &Overhang"
+msgstr "Zeige Überhang"
+
+msgid "Show object overhang highlight in 3D scene"
+msgstr "Hervorhebung des Objektüberhangs in einer 3D-Szene anzeigen"
+
 msgid "Preferences"
 msgstr "Einstellungen"
 
@@ -3476,9 +3553,6 @@ msgstr "Kalibrierungshilfe"
 
 msgid "More calibrations"
 msgstr "Weitere Kalibrierungen"
-
-msgid "3D Models"
-msgstr "3D Modelle"
 
 msgid "&Open G-code"
 msgstr "&Öffne G-Code"
@@ -3601,32 +3675,32 @@ msgstr "Synchronisierung"
 msgid "Initialize failed (No Device)!"
 msgstr "Initialisierung fehlgeschlagen (Kein Gerät)!"
 
+msgid "Initialize failed (Device connection not ready)!"
+msgstr ""
+"Die Initialisierung ist fehlgeschlagen (Geräteverbindung nicht bereit)!"
+
 msgid "Initialize failed (No Camera Device)!"
 msgstr "Initialisierung fehlgeschlagen (keine Kamera)!"
-
-msgid "Initializing..."
-msgstr "Initialisieren..."
-
-msgid "Loading..."
-msgstr "Laden..."
-
-msgid "Initialize failed (Not supported with LAN-only mode)!"
-msgstr ""
-"Initialisierung fehlgeschlagen (Nicht unterstützt im reinen LAN-Modus)!"
-
-msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr "Initialisierung fehlgeschlagen (Kein Zugriff im reinen LAN-Modus)!"
 
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr ""
 "Der Drucker ist mit dem Herunterladen beschäftigt; Bitte warten Sie, bis der "
 "Download beendet ist."
 
+msgid "Loading..."
+msgstr "Laden..."
+
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr "Initialisierung fehlgeschlagen (Kein Zugriff im reinen LAN-Modus)!"
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialisierung fehlgeschlagen (Fehlende LAN IP des Druckers)!"
 
-msgid "Initialize failed (Not supported by printer)!"
-msgstr "Initialisierung fehlgeschlagen (wird vom Drucker nicht unterstützt)!"
+msgid "Initializing..."
+msgstr "Initialisieren..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3657,11 +3731,11 @@ msgstr "Herunterladen des virtuellen Kameratools"
 
 msgid ""
 "Another virtual camera is running.\n"
-"Orca Slicer supports only a single virtual camera.\n"
+"Bambu Studio supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
 "Eine weitere virtuelle Kamera wird verwendet.\n"
-"Orca Slicer unterstützt nur eine einzige virtuelle Kamera.\n"
+"Bambu Studio unterstützt nur eine einzige virtuelle Kamera.\n"
 "Möchten Sie diese virtuelle Kamera stoppen?"
 
 #, c-format, boost-format
@@ -3708,6 +3782,9 @@ msgstr "Video"
 msgid "Switch to video files."
 msgstr "Wechseln Sie zu Videodateien."
 
+msgid "Switch to 3mf model files."
+msgstr "Wechsel zu 3mf-Modelldateien."
+
 msgid "Delete selected files from printer."
 msgstr "Ausgewählte Dateien vom Drucker löschen."
 
@@ -3726,12 +3803,6 @@ msgstr "Batch-Verwaltung von Dateien."
 msgid "No printers."
 msgstr "Keine Drucker."
 
-msgid "Not supported by this model of printer!"
-msgstr "Wird von diesem Druckermodell nicht unterstützt!"
-
-msgid "Connecting..."
-msgstr "Verbinden..."
-
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
 msgstr "Verbindung fehlgeschlagen [%d]!"
@@ -3739,22 +3810,44 @@ msgstr "Verbindung fehlgeschlagen [%d]!"
 msgid "Loading file list..."
 msgstr "Dateiliste laden..."
 
-msgid "No files"
-msgstr "Keine Dateien."
-
-msgid "Not accessible in LAN-only mode!"
-msgstr "Im reinen LAN-Modus nicht zugänglich!"
-
-msgid "Missing LAN ip of printer!"
-msgstr "LAN-IP des Druckers fehlt!"
+#, c-format, boost-format
+msgid "No files [%d]"
+msgstr "Keine Dateien [%d]"
 
 #, c-format, boost-format
-msgid "You are going to delete %u files. Are you sure to continue?"
-msgstr ""
-"Sie sind dabei, %u Dateien zu löschen. Möchten Sie wirklich fortfahren?"
+msgid "Load failed [%d]"
+msgstr "Laden fehlgeschlagen [%d]"
+
+#, c-format, boost-format
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
+"You are going to delete %u files from printer. Are you sure to continue?"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Delete files"
 msgstr "Dateien löschen"
+
+#, c-format, boost-format
+msgid "Do you want to delete the file '%s' from printer?"
+msgstr "Möchten Sie die Datei '%s' vom Drucker löschen?"
+
+msgid "Delete file"
+msgstr "Datei löschen"
+
+msgid "Fetching model infomations ..."
+msgstr "Modellinformationen werden abgerufen..."
+
+msgid "Failed to fetching model infomations from printer."
+msgstr "Die Modellinformationen konnten nicht vom Drucker abgerufen werden."
+
+msgid "Failed to parse model infomations."
+msgstr "Modellinformationen konnten nicht analysiert werden"
+
+msgid ""
+"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
+"and export a new .gcode.3mf file."
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3777,6 +3870,12 @@ msgstr "Herunterladen abgeschlossen"
 msgid "Downloading %d%%..."
 msgstr "%d%% wird heruntergeladen..."
 
+msgid "Not supported on the current printer version."
+msgstr ""
+
+msgid "Storage unavailable, insert SD card."
+msgstr ""
+
 msgid "Speed:"
 msgstr "Geschwindigkeit:"
 
@@ -3798,15 +3897,6 @@ msgstr "3Dconnexion Einstellungen"
 msgid "Swap Y/Z axes"
 msgstr "Y/Z-Achsen vertauschen"
 
-msgid "Camera"
-msgstr "Kamera"
-
-msgid "SD Card"
-msgstr "MicroSD-Karte"
-
-msgid "Camera Setting"
-msgstr "Kameraeinstellung"
-
 msgid "Printing Progress"
 msgstr "Druckprozess"
 
@@ -3822,8 +3912,20 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Schicht: N/A"
 
+msgid "Immediately score"
+msgstr "Direktpunktzahl"
+
 msgid "Clear"
 msgstr "Löschen"
+
+msgid "Camera"
+msgstr "Kamera"
+
+msgid "SD Card"
+msgstr "MicroSD-Karte"
+
+msgid "Camera Setting"
+msgstr "Kameraeinstellung"
 
 msgid "Control"
 msgstr "Steuerung"
@@ -3858,33 +3960,14 @@ msgstr "Keine MicroSD-Karte"
 msgid "SD Card Abnormal"
 msgstr "SD-Karte fehlerhaft"
 
-msgid "Printing List"
-msgstr "Druckliste"
-
 msgid "Cancel print"
 msgstr "Druck abbrechen"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Möchten Sie diesen Druck wirklich abbrechen?"
 
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"Die Verbindung zum Drucker [%s] wurde unterbrochen, da der LAN-Modus "
-"deaktiviert ist. Bitte verbinden Sie den Drucker erneut, indem Sie sich mit "
-"Ihrem Benutzerkonto anmelden."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"Die Verbindung zum Drucker [%s] wurde unterbrochen, da der LAN-Modus "
-"aktiviert ist. Bitte stellen Sie die Verbindung zum Drucker wieder her, "
-"indem Sie den Zugriffscode eingeben, den Sie auf dem Druckerbildschirm "
-"abrufen können."
+msgid "Done"
+msgstr "Erledigt"
 
 msgid "Downloading..."
 msgstr "Herunterladen..."
@@ -3900,6 +3983,13 @@ msgstr ""
 #, c-format, boost-format
 msgid "Layer: %s"
 msgstr "Schicht: %s"
+
+msgid "Please give a score for your favorite Bambu Market model."
+msgstr ""
+"Bitte geben Sie eine Punktzahl für Ihr Lieblingsmodell von Bambu Market ab."
+
+msgid "Score"
+msgstr "Punktzahl"
 
 #, c-format, boost-format
 msgid "Layer: %d/%d"
@@ -3944,23 +4034,14 @@ msgstr "Verrückt"
 msgid "Can't start this without SD card."
 msgstr "Kann ohne MicroSD-Karte nicht gestartet werden."
 
-msgid "Failed to connect to the server"
-msgstr "Verbindung zum Server fehlgeschlagen"
-
 msgid "Status"
 msgstr "Status"
-
-msgid "Media"
-msgstr "Medien"
 
 msgid "Update"
 msgstr "Update"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to the printer"
-msgstr "Verbindung zum Drucker fehlgeschlagen"
 
 msgid "Don't show again"
 msgstr "Nicht erneut anzeigen"
@@ -4840,6 +4921,12 @@ msgstr ""
 "Wenn aktiviert, wird OrcaSlicer als Standardanwendung zum Öffnen von .step-"
 "Dateien festgelegt"
 
+msgid "Online Models"
+msgstr "Online-Modelle"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "Von Mitarbeitern ausgewählte Online-Models auf der Startseite anzeigen"
+
 msgid "Maximum recent projects"
 msgstr "Höchstanzahl an letzten Projekten"
 
@@ -4872,6 +4959,12 @@ msgstr "Dunkler Modus"
 
 msgid "Enable Dark mode"
 msgstr "Dunklen Modus aktivieren"
+
+msgid "Develop mode"
+msgstr "Entwicklermodus"
+
+msgid "Skip AMS blacklist check"
+msgstr "Überspringen der AMS Blacklist-Prüfung"
 
 msgid "Home page and daily tips"
 msgstr "Startseite und tägliche Tipps"
@@ -4909,11 +5002,14 @@ msgstr "Sonstiges"
 msgid "Mouse wheel reverses when zooming"
 msgstr "Scrollrichtung beim Zoomen umkehren"
 
-msgid "Develop mode"
-msgstr "Entwicklermodus"
+msgid "Enable SSL(MQTT)"
+msgstr "SSL aktivieren (MQTT)"
 
-msgid "Dump video"
-msgstr "Video löschen"
+msgid "Enable SSL(FTP)"
+msgstr "SSL aktivieren (FTP)"
+
+msgid "Internal developer mode"
+msgstr "Interner Entwicklermodus"
 
 msgid "Log Level"
 msgstr "Protokollstufe"
@@ -4999,35 +5095,32 @@ msgstr "Materialien hinzufügen/entfernen"
 msgid "Add/Remove printers"
 msgstr "Drucker hinzufügen/entfernen"
 
+msgid "Incompatible"
+msgstr "Inkompatibel"
+
+msgid "The selected preset is null!"
+msgstr ""
+
+msgid "Plate name"
+msgstr "Platten-Name"
+
 msgid "Same as Global Print Sequence"
 msgstr "Gleich wie globale Drucksequenz"
 
 msgid "Print sequence"
 msgstr "Druckreihenfolge"
 
-msgid "Plate name"
-msgstr "Platten-Name"
-
 msgid "Customize"
 msgstr ""
 
-msgid "First Layer print sequence"
+msgid "First layer filament sequence"
 msgstr ""
+
+msgid "Same as Global Plate Type"
+msgstr "Entspricht dem globalen Plattentyp"
 
 msgid "Same as Global Bed Type"
 msgstr "Entspricht dem allgemeinen Bettyp"
-
-msgid "Cool Plate"
-msgstr "Kalte Druckplatte"
-
-msgid "Engineering Plate"
-msgstr "Technische Druckplatte"
-
-msgid "High Temp Plate"
-msgstr "Hochtemperaturdruckplatte"
-
-msgid "Textured PEI Plate"
-msgstr "Texturierte PEI-Platte"
 
 msgid "By Layer"
 msgstr "Nach Schicht"
@@ -5151,11 +5244,8 @@ msgstr "Für \"%1%\", fügen Sie \"%2%\" als neues Profil hinzu"
 msgid "Simply switch to \"%1%\""
 msgstr "Wechseln Sie einfach zu \"%1%\""
 
-msgid "Online"
-msgstr "Online"
-
-msgid "Offline"
-msgstr "Offline"
+msgid "Task canceled"
+msgstr "Auftrag abgebrochen"
 
 msgid "(LAN)"
 msgstr "(LAN)"
@@ -5166,6 +5256,9 @@ msgstr "Mein Gerät"
 msgid "Other Device"
 msgstr "Anderes Gerät"
 
+msgid "Online"
+msgstr "Online"
+
 msgid "Input access code"
 msgstr "Zugangscode eingeben"
 
@@ -5175,11 +5268,17 @@ msgstr "Kann das Geräte nicht finden?"
 msgid "Log out successful."
 msgstr "Abmeldung erfolgreich."
 
+msgid "Offline"
+msgstr "Offline"
+
 msgid "Busy"
 msgstr "Beschäftigt"
 
 msgid "Bambu Cool Plate"
 msgstr "Bambu kalte Druckplatte"
+
+msgid "PLA Plate"
+msgstr "PLA-Platte"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu technische Druckplatte"
@@ -5196,11 +5295,25 @@ msgstr "Aktualisieren"
 msgid "Bed Leveling"
 msgstr "Druckbettnivellierung"
 
-msgid "Flow Calibration"
-msgstr "Flusskalibrierung"
+msgid "Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Can't connect to the printer"
+msgstr "Es kann keine Verbindung zum Drucker hergestellt werden"
 
 msgid "send completed"
 msgstr "Senden abgeschlossen"
+
+msgid "Error code"
+msgstr "Fehlercode"
+
+msgid "Check the status of current system services"
+msgstr "Überprüfen Sie den Status der aktuellen Systemdienste"
+
+msgid "Printer local connection failed, please try again."
+msgstr ""
+"Die lokale Verbindung des Druckers ist fehlgeschlagen. Bitte versuchen Sie "
+"es erneut."
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Kein Login-Konto, nur Drucker im LAN-Modus werden angezeigt"
@@ -5284,6 +5397,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "Vor dem Drucken muss eine MicroSD-Karte eingelegt werden."
 
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr ""
+
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 "Für die Aufnahme eines Zeitraffers muss eine MicroSD-Karte eingelegt werden."
@@ -5336,8 +5452,26 @@ msgstr ""
 "Bitte klicken Sie auf die Bestätigungsschaltfläche, wenn Sie den "
 "Druckvorgang trotzdem fortsetzen möchten."
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Druckauftrag vorbereiten"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Fehlerhafte Daten in der Druckdatei. Bitte slicen Sie erneut"
+
+msgid "The name length exceeds the limit."
+msgstr "Die Namenslänge überschreitet das Limit."
+
+msgid ""
+"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
+"scattered surface."
+msgstr ""
+
+msgid "Automatic flow calibration using Micro Lidar"
+msgstr ""
 
 msgid "Modifying the device name"
 msgstr "Den Gerätenamen ändern"
@@ -5355,12 +5489,39 @@ msgstr ""
 "Bevor Sie die Datei an die SD-Karte des Druckers senden können, muss eine SD-"
 "Karte eingelegt werden."
 
-msgid "The printer is required to be in the same LAN as Orca Slicer."
-msgstr "Der Drucker muss sich im selben LAN wie OrcaSlicer befinden."
+msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr "Der Drucker muss sich im selben LAN befinden wie Bambu Studio."
 
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 "Der Drucker unterstützt nicht das Senden an die MicroSD-Karte des Druckers."
+
+msgid "Failed to create socket"
+msgstr "Socket konnte nicht erstellt werden"
+
+msgid "Failed to connect socket"
+msgstr "Verbindung zum Socket fehlgeschlagen"
+
+msgid "Failed to publish login request"
+msgstr "Anmeldeanfrage konnte nicht gesendet werden"
+
+msgid "Get ticket from device timeout"
+msgstr "Zeitüberschreitung beim Abrufen des Tickets vom Gerät"
+
+msgid "Get ticket from server timeout"
+msgstr "Zeitüberschreitung beim Abrufen des Tickets vom Server"
+
+msgid "Failed to post ticket to server"
+msgstr "Ticket konnte nicht auf den Server übertragen werden"
+
+msgid "Failed to parse login report reason"
+msgstr "Der Grund für den Anmeldebericht konnte nicht analysiert werden"
+
+msgid "Receive login report timeout"
+msgstr "Zeitüberschreitung beim Empfang des Anmeldeberichts"
+
+msgid "Unknown Failure"
+msgstr "Unbekannter Fehler"
 
 msgid "Log in printer"
 msgstr "Drucker anmelden"
@@ -5368,6 +5529,73 @@ msgstr "Drucker anmelden"
 msgid "Would you like to log in this printer with current account?"
 msgstr ""
 "Möchten Sie sich bei diesem Drucker mit Ihrem aktuellen Konto anmelden?"
+
+msgid "Check the reason"
+msgstr "Überprüfe den Grund"
+
+msgid "Read and accept"
+msgstr "Gelesen und akzeptieren"
+
+msgid "Terms and Conditions"
+msgstr "Allgemeine Geschäftsbedingungen"
+
+msgid ""
+"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
+"device, please read the termsand conditions.By clicking to agree to use your "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgstr ""
+"Vielen Dank für den Kauf eines Bambu Lab Geräts. Bevor Sie Ihr Bambu Lab "
+"Gerät verwenden, lesen Sie bitte die Allgemeinen Geschäftsbedingungen. Indem "
+"Sie zustimmen klicken, erklären Sie sich mit der Datenschutzrichtlinie und "
+"den Nutzungsbedingungen (zusammen die „Bedingungen“) einverstanden, um so "
+"Ihr Bambu Lab Gerät verwenden zu können. Wenn Sie die Datenschutzrichtlinien "
+"von Bambu Lab nicht einhalten oder diesen zustimmen, verwenden Sie bitte "
+"keine Geräte und Dienstleistungen von Bambu Lab."
+
+msgid "and"
+msgstr "und"
+
+msgid "Privacy Policy"
+msgstr "Datenschutzerklärung"
+
+msgid "We ask for your help to improve everyone's printer"
+msgstr "Wir bitten Sie um Ihre Hilfe, um den Drucker für alle zu verbessern"
+
+msgid "Statement about User Experience Improvement Program"
+msgstr "Erklärung zum Programm zur Verbesserung der Benutzererfahrung"
+
+#, c-format, boost-format
+msgid ""
+"In the 3D Printing community, we learn from each other's successes and "
+"failures to adjust our own slicing parameters and settings. %s follows the "
+"same principle and uses machine learning to improve its performance from the "
+"successes and failures of the vast number of prints by our users. We are "
+"training %s to be smarter by feeding them the real-world data. If you are "
+"willing, this service will access information from your error logs and usage "
+"logs, which may include information described in  Privacy Policy. We will "
+"not collect any Personal Data by which an individual can be identified "
+"directly or indirectly, including without limitation names, addresses, "
+"payment information, or phone numbers. By enabling this service, you agree "
+"to these terms and the statement about Privacy Policy."
+msgstr ""
+"In der 3D-Druck-Community lernen wir von den Erfolgen und Misserfolgen der "
+"anderen, um unsere eigenen Slicing-Parameter und Einstellungen anzupassen. "
+"%s folgt demselben Prinzip und nutzt maschinelles Lernen, um seine Leistung "
+"anhand der Erfolge und Misserfolge der riesigen Anzahl von Drucken unserer "
+"Nutzer zu verbessern. Wir trainieren %s, um schlauer zu werden, indem wir es "
+"mit realen Daten füttern. Wenn Sie einverstanden sind, greift dieser Dienst "
+"auf Informationen aus Ihren Fehlerprotokollen und Nutzungsprotokollen zu, "
+"die die in der Datenschutzrichtlinie beschriebenen Informationen enthalten "
+"können. Wir werden keine persönlichen Daten sammeln, durch die eine Person "
+"direkt oder indirekt identifiziert werden kann, wie Namen, Adressen, "
+"Zahlungsinformationen oder Telefonnummern. Durch die Aktivierung dieses "
+"Dienstes erklären Sie sich mit diesen Bedingungen und der Erklärung zum "
+"Datenschutz einverstanden."
+
+msgid "Statement on User Experience Improvement Plan"
+msgstr "Erklärung zum Plan zur Verbesserung der Benutzererfahrung"
 
 msgid "Log in successful."
 msgstr "Anmeldung erfolgreich."
@@ -5620,6 +5848,9 @@ msgstr ""
 "wird. Ein Wert von 0 bedeutet, dass das Filament auf der technischen "
 "Druckplatte nicht unterstützt wird."
 
+msgid "High Temp Plate"
+msgstr "Hochtemperaturdruckplatte"
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -5627,6 +5858,9 @@ msgstr ""
 "Dies ist die Betttemperatur, wenn die Hochtemperatur-Druckplatte installiert "
 "ist. Ein Wert von 0 bedeutet, dass das Filament auf der Hochtemperatur-"
 "Druckplatte nicht unterstützt wird."
+
+msgid "Textured PEI Plate"
+msgstr "Texturierte PEI-Platte"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -6299,33 +6533,30 @@ msgid "Network plug-in update"
 msgstr "Aktualisierung des Netzwerk-Plugins"
 
 msgid ""
-"Click OK to update the Network plug-in when Orca Slicer launches next time."
+"Click OK to update the Network plug-in when Bambu Studio launches next time."
 msgstr ""
-"Klicken Sie auf OK, um das Netzwerk-Plugin beim nächsten Start vom Orca "
-"Slicer zu aktualisieren."
+"Klicken Sie auf OK, um das Netzwerk-Plugin beim nächsten Start von Bambu "
+"Studio zu aktualisieren."
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr ""
 "Ein neues Netzwerk-Plug-in (%s) verfügbar, möchten Sie es installieren?"
 
-msgid "New version of Orca Slicer"
-msgstr "Neue Version von Orca Slicer"
+msgid "New version of Bambu Studio"
+msgstr "Neue Version von Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "Erinnern Sie mich nicht mehr an diese Version."
-
-msgid "Done"
-msgstr "Erledigt"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-Verbindung fehlgeschlagen (Senden einer Druckdatei)"
 
 msgid ""
-"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
+"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
 msgstr ""
-"Schritt 1, bitte bestätigen Sie, dass Orca Slicer und Ihr Drucker im "
-"gleichen LAN sind."
+"Schritt 1: Vergewissern Sie sich, dass Bambu Studio und Ihr Drucker sich im "
+"selben LAN befinden."
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
@@ -7044,6 +7275,12 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Vom Drucker unterstützte Druckbettypen"
 
+msgid "Cool Plate"
+msgstr "Kalte Druckplatte"
+
+msgid "Engineering Plate"
+msgstr "Technische Druckplatte"
+
 msgid "First layer print sequence"
 msgstr ""
 
@@ -7277,15 +7514,6 @@ msgstr ""
 
 msgid "Mouse ear"
 msgstr "Mausohren"
-
-msgid "Outer brim only"
-msgstr "Nur Außen"
-
-msgid "Inner brim only"
-msgstr "Nur Innenrand"
-
-msgid "Outer and inner brim"
-msgstr "Äußere und innere Randleiste"
 
 msgid "Brim-object gap"
 msgstr "Lücke zwischen Rand und Objekt"
@@ -10126,6 +10354,396 @@ msgstr "Die Datei enthält einen ungültigen Scheitelpunktindex."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Diese OBJ-Datei konnte nicht gelesen werden, da sie leer ist."
 
+msgid "Flow Rate Calibration"
+msgstr ""
+
+msgid "Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Manage Result"
+msgstr ""
+
+msgid "Manual Calibration"
+msgstr ""
+
+msgid "Result can be read by human eyes."
+msgstr ""
+
+msgid "Auto-Calibration"
+msgstr ""
+
+msgid "We would use Lidar to read the calibration result"
+msgstr ""
+
+msgid "Prev"
+msgstr ""
+
+msgid "Recalibration"
+msgstr ""
+
+msgid "Calibrate"
+msgstr ""
+
+msgid "Finish"
+msgstr "Fertig"
+
+msgid "Wiki"
+msgstr ""
+
+msgid "How to use calibration result?"
+msgstr ""
+
+msgid ""
+"You could change the Flow Dynamics Calibration Factor in material editing"
+msgstr ""
+
+msgid ""
+"The current firmware version of the printer does not support calibration.\n"
+"Please upgrade the printer firmware."
+msgstr ""
+
+msgid "Calibration not supported"
+msgstr ""
+
+msgid "Flow Dynamics"
+msgstr ""
+
+msgid "Flow Rate"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr ""
+
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
+msgid "The name cannot be empty."
+msgstr ""
+
+#, boost-format
+msgid "The selected preset: %1% is not found."
+msgstr ""
+
+msgid "The name cannot be the same as the system preset name."
+msgstr ""
+
+msgid "The name is the same as another existing preset name"
+msgstr ""
+
+msgid "create new preset failed."
+msgstr ""
+
+msgid ""
+"Are you sure to cancel the current calibration and return to the home page?"
+msgstr ""
+
+msgid "No Printer Connected!"
+msgstr ""
+
+msgid "Printer is not connected yet."
+msgstr ""
+
+msgid "Please select filament to calibrate."
+msgstr ""
+
+msgid "Connecting to printer..."
+msgstr ""
+
+msgid "The failed test result has been dropped."
+msgstr ""
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr ""
+
+msgid "Internal Error"
+msgstr ""
+
+msgid "Please select at least one filament for calibration"
+msgstr ""
+
+msgid "Flow rate calibration result has been saved to preset"
+msgstr ""
+
+msgid "The input value size must be 3."
+msgstr ""
+
+msgid "Max volumetric speed calibration result has been saved to preset"
+msgstr ""
+
+msgid "When do you need Flow Dynamics Calibration"
+msgstr ""
+
+msgid ""
+"We now have added the auto-calibration for different filaments, which is "
+"fully automated and the result will be saved into the printer for future "
+"use. You only need to do the calibration in the following limited cases:\n"
+"1. If you introduce a new filament of different brands/models or the "
+"filament is damp;\n"
+"2. if the nozzle is worn out or replaced with a new one;\n"
+"3. If the max volumetric speed or print temperature is changed in the "
+"filament setting."
+msgstr ""
+
+msgid "About this calibration"
+msgstr ""
+
+msgid ""
+"Please find the details of Flow Dynamics Calibration from our wiki.\n"
+"\n"
+"Usually the calibration is unnecessary. When you start a single color/"
+"material print, with the \"flow dynamics calibration\" option checked in the "
+"print start menu, the printer will follow the old way, calibrate the "
+"filament before the print; When you start a multi color/material print, the "
+"printer will use the default compensation parameter for the filament during "
+"every filament switch which will have a good result in most cases.\n"
+"\n"
+"Please note there are a few cases that will make the calibration result not "
+"reliable: using a texture plate to do the calibration; the build plate does "
+"not have good adhesion (please wash the build plate or apply gluestick!) ..."
+"You can find more from our wiki.\n"
+"\n"
+"The calibration results have about 10 percent jitter in our test, which may "
+"cause the result not exactly the same in each calibration. We are still "
+"investigating the root cause to do improvements with new updates."
+msgstr ""
+
+msgid "When to use Flow Rate Calibration"
+msgstr ""
+
+msgid ""
+"After using Flow Dynamics Calibration, there might still be some extrusion "
+"issues, such as:\n"
+"1. Over-Extrusion: Excess material on your printed object, forming blobs or "
+"zits, or the layers seem thicker than expected and not uniform.\n"
+"2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the "
+"top layer of the model, even when printing slowly.\n"
+"3. Poor Surface Quality: The surface of your prints seems rough or uneven.\n"
+"4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
+"they should be."
+msgstr ""
+
+msgid ""
+"In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
+"PLA used in RC planes. These materials expand greatly when heated, and "
+"calibration provides a useful reference flow rate."
+msgstr ""
+
+msgid ""
+"Flow Rate Calibration measures the ratio of expected to actual extrusion "
+"volumes. The default setting works well in Bambu Lab printers and official "
+"filaments as they were pre-calibrated and fine-tuned. For a regular "
+"filament, you usually won't need to perform a Flow Rate Calibration unless "
+"you still see the listed defects after you have done other calibrations. For "
+"more details, please check out the wiki article."
+msgstr ""
+
+msgid ""
+"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
+"directly measuring the calibration patterns. However, please be advised that "
+"the efficacy and accuracy of this method may be compromised with specific "
+"types of materials. Particularly, filaments that are transparent or semi-"
+"transparent, sparkling-particled, or have a high-reflective finish may not "
+"be suitable for this calibration and can produce less-than-desirable "
+"results.\n"
+"\n"
+"The calibration results may vary between each calibration or filament. We "
+"are still improving the accuracy and compatibility of this calibration "
+"through firmware updates over time.\n"
+"\n"
+"Caution: Flow Rate Calibration is an advanced process, to be attempted only "
+"by those who fully understand its purpose and implications. Incorrect usage "
+"can lead to sub-par prints or printer damage. Please make sure to carefully "
+"read and understand the process before doing it."
+msgstr ""
+
+msgid "When you need Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Over-extrusion or under extrusion"
+msgstr ""
+
+msgid "Max Volumetric Speed calibration is recommended when you print with:"
+msgstr ""
+
+msgid "material with significant thermal shrinkage/expansion, such as..."
+msgstr ""
+
+msgid "materials with inaccurate filament diameter"
+msgstr ""
+
+msgid "We found the best Flow Dynamics Calibration Factor"
+msgstr ""
+
+msgid ""
+"Part of the calibration failed! You may clean the plate and retry. The "
+"failed test result would be dropped."
+msgstr ""
+
+msgid ""
+"*We recommend you to add brand, materia, type, and even humidity level in "
+"the Name"
+msgstr ""
+
+msgid "Failed"
+msgstr "Fehlgeschlagen"
+
+msgid ""
+"Only one of the results with the same name will be saved. Are you sure you "
+"want to overrides the other results?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to overrides the historical result?"
+msgstr ""
+
+msgid "Please find the best line on your plate"
+msgstr ""
+
+msgid "Input Value"
+msgstr ""
+
+msgid "Save to Filament Preset"
+msgstr ""
+
+msgid "Preset"
+msgstr ""
+
+msgid "Record Factor"
+msgstr ""
+
+msgid "We found the best flow ratio for you"
+msgstr ""
+
+msgid "Flow Ratio"
+msgstr ""
+
+msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
+msgstr ""
+
+msgid "Please enter the name of the preset you want to save."
+msgstr ""
+
+msgid "Calibration1"
+msgstr ""
+
+msgid "Calibration2"
+msgstr ""
+
+msgid "Please find the best object on your plate"
+msgstr ""
+
+msgid "Fill in the value above the block with smoothest top surface"
+msgstr ""
+
+msgid "Skip Calibration2"
+msgstr ""
+
+#, c-format, boost-format
+msgid "flow ratio : %s "
+msgstr ""
+
+msgid "Please choose a block with smoothest top surface"
+msgstr ""
+
+msgid "Please choose a block with smoothest top surface."
+msgstr ""
+
+msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
+msgstr ""
+
+msgid "Calibration Type"
+msgstr ""
+
+msgid "Complete Calibration"
+msgstr ""
+
+msgid "Fine Calibration based on flow ratio"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid ""
+"A test model will be printed. Please clear the build plate and place it back "
+"to the hot bed before calibration."
+msgstr ""
+
+msgid "Printing Parameters"
+msgstr ""
+
+msgid "- ℃"
+msgstr ""
+
+msgid " ℃"
+msgstr ""
+
+msgid "Plate Type"
+msgstr "Druckbetttyp"
+
+msgid "filament position"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+msgid "Filament For Calibration"
+msgstr ""
+
+msgid ""
+"Tips for calibration material: \n"
+"- Materials that can share same hot bed temperature\n"
+"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
+msgstr ""
+
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s"
+msgstr ""
+
+msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
+msgstr ""
+
+msgid "Connecting to printer"
+msgstr ""
+
+msgid "The nozzle diameter has been synchronized from the printer Settings"
+msgstr ""
+
+msgid "From Volumetric Speed"
+msgstr ""
+
+msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "Flow Dynamics Calibration Result"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "Success to get history result"
+msgstr ""
+
+msgid "Refreshing the historical Flow Dynamics Calibration records"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
 msgid "Network lookup"
 msgstr "Netzwerk durchsuchen"
 
@@ -10204,10 +10822,6 @@ msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 "Der Dateiname für den Upload endet nicht mit \"%s\". Möchten Sie den Vorgang "
 "fortsetzen?"
-
-#, fuzzy
-msgid "Upload"
-msgstr "Entladen"
 
 msgid "Upload and Print"
 msgstr "Hochladen und Drucken"
@@ -10721,6 +11335,277 @@ msgstr ""
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
 
+msgid "Bambu Cube"
+msgstr ""
+
+msgid "Bambu Cube V2"
+msgstr ""
+
+msgid "ksr FDMTest"
+msgstr ""
+
+#, boost-format
+msgid " plate %1%: "
+msgstr ""
+
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
+msgstr ""
+
+msgid "Initial layer flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for the initial layer"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern. Could be applyed on topmost surface or all top surface."
+msgstr ""
+
+msgid "Not apply"
+msgstr ""
+
+msgid ""
+"If enabled, Studio will generate support loops under the contours of "
+"internal bridges.These support loops could prevent internal bridges from "
+"extruding over the air and improve the top surface quality, especially when "
+"the sparse infill density is low.This value determines the thickness of the "
+"support loops. 0 means disable this feature"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled. Useless for Bambu Printer"
+msgstr ""
+
+msgid ""
+"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
+"Bambu Printer"
+msgstr ""
+
+msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
+msgstr ""
+
+msgid "Default jerk"
+msgstr ""
+
+msgid "Jerk of infill"
+msgstr ""
+
+msgid "Jerk of top surface"
+msgstr ""
+
+msgid "First layer"
+msgstr ""
+
+msgid "Jerk of first layer"
+msgstr ""
+
+msgid "Jerk of travel"
+msgstr ""
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
+msgstr ""
+
+msgid ""
+"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
+"firmware printer"
+msgstr ""
+
+msgid ""
+"Detect the overhang percentage relative to line width and use different "
+"speed to print. For 100 percent overhang, bridge speed is used."
+msgstr ""
+
+msgid "Direct drive"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"This amount as a percentage of the current extruder diameter. The default "
+"value for this parameter is 15"
+msgstr ""
+
+msgid ""
+"If your firmware requires relative E values, check this, otherwise leave it "
+"unchecked. Must use relative e distance for Bambu printer"
+msgstr ""
+
+msgid "End temp: "
+msgstr ""
+
+#~ msgid "Assemble the selected parts to a single part"
+#~ msgstr "Zusammenfügen der ausgewählten Teile zu einem einzigen Teil"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "Undruckbar machen"
+
+#~ msgid "Set Printable"
+#~ msgstr "Druckbar machen"
+
+#~ msgid "Manual"
+#~ msgstr "Manuell"
+
+#~ msgid "Ams filament backup"
+#~ msgstr "Ams Filament Backu"
+
+#~ msgid "Feed new filament from external spool"
+#~ msgstr "Neues Filament von einer externen Spule zuführen"
+
+#~ msgid "Confirm whether the filament has been extruded"
+#~ msgstr "Bestätigen Sie, ob das Filament extrudiert wurde"
+
+#~ msgid "The region parameter is incorrrect"
+#~ msgstr "Der Regionsparameter ist falsch"
+
+#~ msgid "Failure of printer login"
+#~ msgstr "Druckeranmeldung fehlgeschlagen"
+
+#~ msgid "Failed to get ticket"
+#~ msgstr "Ticket konnte nicht abgerufen werden"
+
+#~ msgid "User authorization timeout"
+#~ msgstr "Zeitüberschreitung der Benutzerautorisierung"
+
+#~ msgid "Failure of bind"
+#~ msgstr "Bindungsfehler"
+
+#~ msgid ""
+#~ "Upload task timed out. Please check the network problem and try again"
+#~ msgstr ""
+#~ "Zeitüberschreitung beim Upload. Bitte überprüfen Sie das Netzwerk und "
+#~ "versuchen Sie es erneut"
+
+#~ msgid "Print file not found, please slice again"
+#~ msgstr "Druckdatei nicht gefunden, bitte noch einmal (erneut Slicen)"
+
+#~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again"
+#~ msgstr ""
+#~ "Die Druckdatei überschreitet die maximal zulässige Größe (1 GB). Bitte "
+#~ "vereinfachen Sie das Modell und slicen Sie es erneut"
+
+#~ msgid "Failed uploading print file"
+#~ msgstr "Fehler beim Hochladen der Druckdatei"
+
+#~ msgid "Wrong Access code"
+#~ msgstr "Falscher Zugangscode"
+
+#~ msgid "Send to Printer failed. Please try again."
+#~ msgstr ""
+#~ "Senden an den Drucker fehlgeschlagen. Bitte versuchen Sie es erneut."
+
+#~ msgid "No space left on Printer SD card"
+#~ msgstr "Kein Speicherplatz mehr auf der SD-Karte des Druckers."
+
+#~ msgid "Sending gcode file through cloud service"
+#~ msgstr "Sende Gcode-Datei über den Cloud-Service"
+
+#~ msgid "Please log out and login to the printer again."
+#~ msgstr ""
+#~ "Bitte melden Sie sich ab und melden Sie sich erneut beim Drucker an."
+
+#~ msgid "Factors of dynamic flow cali"
+#~ msgstr "Faktoren der dynamischen Flusskalibrierung"
+
+#~ msgid "Filaments replace"
+#~ msgstr "Filamente ersetzen"
+
+#~ msgid "3D Models"
+#~ msgstr "3D Modelle"
+
+#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
+#~ msgstr ""
+#~ "Initialisierung fehlgeschlagen (Nicht unterstützt im reinen LAN-Modus)!"
+
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr ""
+#~ "Initialisierung fehlgeschlagen (wird vom Drucker nicht unterstützt)!"
+
+#~ msgid ""
+#~ "Another virtual camera is running.\n"
+#~ "Orca Slicer supports only a single virtual camera.\n"
+#~ "Do you want to stop this virtual camera?"
+#~ msgstr ""
+#~ "Eine weitere virtuelle Kamera wird verwendet.\n"
+#~ "Orca Slicer unterstützt nur eine einzige virtuelle Kamera.\n"
+#~ "Möchten Sie diese virtuelle Kamera stoppen?"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Wird von diesem Druckermodell nicht unterstützt!"
+
+#~ msgid "No files"
+#~ msgstr "Keine Dateien."
+
+#~ msgid "Not accessible in LAN-only mode!"
+#~ msgstr "Im reinen LAN-Modus nicht zugänglich!"
+
+#~ msgid "Missing LAN ip of printer!"
+#~ msgstr "LAN-IP des Druckers fehlt!"
+
+#, c-format, boost-format
+#~ msgid "You are going to delete %u files. Are you sure to continue?"
+#~ msgstr ""
+#~ "Sie sind dabei, %u Dateien zu löschen. Möchten Sie wirklich fortfahren?"
+
+#~ msgid "Printing List"
+#~ msgstr "Druckliste"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "Die Verbindung zum Drucker [%s] wurde unterbrochen, da der LAN-Modus "
+#~ "deaktiviert ist. Bitte verbinden Sie den Drucker erneut, indem Sie sich "
+#~ "mit Ihrem Benutzerkonto anmelden."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "Die Verbindung zum Drucker [%s] wurde unterbrochen, da der LAN-Modus "
+#~ "aktiviert ist. Bitte stellen Sie die Verbindung zum Drucker wieder her, "
+#~ "indem Sie den Zugriffscode eingeben, den Sie auf dem Druckerbildschirm "
+#~ "abrufen können."
+
+#~ msgid "Media"
+#~ msgstr "Medien"
+
+#~ msgid "Dump video"
+#~ msgstr "Video löschen"
+
+#~ msgid "Flow Calibration"
+#~ msgstr "Flusskalibrierung"
+
+#~ msgid "The printer is required to be in the same LAN as Orca Slicer."
+#~ msgstr "Der Drucker muss sich im selben LAN wie OrcaSlicer befinden."
+
+#~ msgid ""
+#~ "Click OK to update the Network plug-in when Orca Slicer launches next "
+#~ "time."
+#~ msgstr ""
+#~ "Klicken Sie auf OK, um das Netzwerk-Plugin beim nächsten Start vom Orca "
+#~ "Slicer zu aktualisieren."
+
+#~ msgid "New version of Orca Slicer"
+#~ msgstr "Neue Version von Orca Slicer"
+
+#~ msgid ""
+#~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
+#~ msgstr ""
+#~ "Schritt 1, bitte bestätigen Sie, dass Orca Slicer und Ihr Drucker im "
+#~ "gleichen LAN sind."
+
 #~ msgid ""
 #~ "The configuration may be generated by a newer version of BambuStudio."
 #~ msgstr ""
@@ -10769,85 +11654,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "Initialisierung der Bambu Studio GUI ist fehlgeschlagen"
-
-#~ msgid "Check cloud service status"
-#~ msgstr "Status des Cloud-Dienstes prüfen"
-
-#~ msgid "code"
-#~ msgstr "Code"
-
-#~ msgid "Failed to connect to cloud service"
-#~ msgstr "Verbindung zum Cloud-Dienst fehlgeschlagen"
-
-#~ msgid "Please click on the hyperlink above to view the cloud service status"
-#~ msgstr ""
-#~ "Bitte klicken Sie auf den obigen Hyperlink, um den Status des Cloud-"
-#~ "Dienstes einzusehen"
-
-#~ msgid "Connection to printer failed"
-#~ msgstr "Verbindung zum Drucker ist fehlgeschlagen"
-
-#~ msgid "Please check the network connection of the printer and Studio."
-#~ msgstr "Bitte überprüfen Sie die Netzwerkverbindung von Drucker und Studio."
-
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "Neues Filament in den Extruder schieben"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Neues Filament holen"
-
-#~ msgid "Abnormal print file data. Please slice again."
-#~ msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
-
-#~ msgid "Task canceled."
-#~ msgstr "Aufgabe abgebrochen."
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network status and try again."
-#~ msgstr ""
-#~ "Zeitüberschreitung beim Upload. Bitte überprüfen Sie den Netzwerkstatus "
-#~ "und versuchen Sie es erneut."
-
-#~ msgid "Print file not found. please slice again."
-#~ msgstr "Druckdatei nicht gefunden. Bitte erneut slicen"
-
-#~ msgid ""
-#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
-#~ "the model and slice again."
-#~ msgstr ""
-#~ "Die Druckdatei überschreitet die maximal zulässige Größe (1 GB). Bitte "
-#~ "vereinfachen Sie das Modell und slicen Sie diese erneut."
-
-#~ msgid "Failed to upload file to ftp. Please try again."
-#~ msgstr ""
-#~ "Datei konnte nicht auf FTP hochgeladen werden. Bitte versuchen Sie es "
-#~ "erneut."
-
-#~ msgid ""
-#~ "Check the current status of the bambu server by clicking on the link "
-#~ "above."
-#~ msgstr ""
-#~ "Überprüfen Sie den aktuellen Status des Bambu Lab-Servers, indem Sie auf "
-#~ "den obigen Link klicken."
-
-#~ msgid ""
-#~ "The size of the print file is too large. Please adjust the file size and "
-#~ "try again."
-#~ msgstr ""
-#~ "Die Größe der Druckdatei ist zu groß. Bitte passen Sie die Dateigröße an "
-#~ "und versuchen Sie es erneut."
-
-#~ msgid ""
-#~ "Print file not found, Please slice it again and send it for printing."
-#~ msgstr ""
-#~ "Druckdatei nicht gefunden. Bitte erneut slicen und zum Drucken senden."
-
-#~ msgid ""
-#~ "Failed to upload print file to FTP. Please check the network status and "
-#~ "try again."
-#~ msgstr ""
-#~ "Druckdatei konnte nicht über FTP hochgeladen werden. Bitte überprüfen Sie "
-#~ "den Netzwerkstatus und versuchen Sie es erneut."
 
 #~ msgid "Bambu Studio is licensed under "
 #~ msgstr "Bambu Studio ist lizenziert unter "
@@ -10900,63 +11706,6 @@ msgstr ""
 #~ msgid "Report issue"
 #~ msgstr "Problem melden"
 
-#~ msgid "Show &Overhang"
-#~ msgstr "Zeige Überhang"
-
-#~ msgid "Show object overhang highlight in 3D scene"
-#~ msgstr "Hervorhebung des Objektüberhangs in einer 3D-Szene anzeigen"
-
-#~ msgid "Initialize failed (Device connection not ready)!"
-#~ msgstr ""
-#~ "Die Initialisierung ist fehlgeschlagen (Geräteverbindung nicht bereit)!"
-
-#~ msgid ""
-#~ "Another virtual camera is running.\n"
-#~ "Bambu Studio supports only a single virtual camera.\n"
-#~ "Do you want to stop this virtual camera?"
-#~ msgstr ""
-#~ "Eine weitere virtuelle Kamera wird verwendet.\n"
-#~ "Bambu Studio unterstützt nur eine einzige virtuelle Kamera.\n"
-#~ "Möchten Sie diese virtuelle Kamera stoppen?"
-
-#~ msgid "Switch to 3mf model files."
-#~ msgstr "Wechsel zu 3mf-Modelldateien."
-
-#, c-format, boost-format
-#~ msgid "No files [%d]"
-#~ msgstr "Keine Dateien [%d]"
-
-#, c-format, boost-format
-#~ msgid "Load failed [%d]"
-#~ msgstr "Laden fehlgeschlagen [%d]"
-
-#, c-format, boost-format
-#~ msgid "Do you want to delete the file '%s' from printer?"
-#~ msgstr "Möchten Sie die Datei '%s' vom Drucker löschen?"
-
-#~ msgid "Delete file"
-#~ msgstr "Datei löschen"
-
-#~ msgid "Fetching model infomations ..."
-#~ msgstr "Modellinformationen werden abgerufen..."
-
-#~ msgid "Failed to fetching model infomations from printer."
-#~ msgstr "Die Modellinformationen konnten nicht vom Drucker abgerufen werden."
-
-#~ msgid "Failed to parse model infomations."
-#~ msgstr "Modellinformationen konnten nicht analysiert werden"
-
-#~ msgid "Immediately score"
-#~ msgstr "Direktpunktzahl"
-
-#~ msgid "Please give a score for your favorite Bambu Market model."
-#~ msgstr ""
-#~ "Bitte geben Sie eine Punktzahl für Ihr Lieblingsmodell von Bambu Market "
-#~ "ab."
-
-#~ msgid "Score"
-#~ msgstr "Punktzahl"
-
 #~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 #~ msgstr ""
 #~ "Die 3mf wurde mit einer alten Version von Bambu Studio erzeugt, nur "
@@ -11000,167 +11749,8 @@ msgstr ""
 #~ "Wenn aktiviert, wird BambuStudio als Standardanwendung zum Öffnen von ."
 #~ "step-Dateien festgelegt"
 
-#~ msgid "Online Models"
-#~ msgstr "Online-Modelle"
-
-#~ msgid "Show online staff-picked models on the home page"
-#~ msgstr ""
-#~ "Von Mitarbeitern ausgewählte Online-Models auf der Startseite anzeigen"
-
-#~ msgid "Skip AMS blacklist check"
-#~ msgstr "Überspringen der AMS Blacklist-Prüfung"
-
-#~ msgid "Enable SSL(MQTT)"
-#~ msgstr "SSL aktivieren (MQTT)"
-
-#~ msgid "Enable SSL(FTP)"
-#~ msgstr "SSL aktivieren (FTP)"
-
-#~ msgid "Internal developer mode"
-#~ msgstr "Interner Entwicklermodus"
-
-#~ msgid "Incompatible"
-#~ msgstr "Inkompatibel"
-
-#~ msgid "Same as Global Plate Type"
-#~ msgstr "Entspricht dem globalen Plattentyp"
-
-#~ msgid "PLA Plate"
-#~ msgstr "PLA-Platte"
-
-#~ msgid "Can't connect to the printer"
-#~ msgstr "Es kann keine Verbindung zum Drucker hergestellt werden"
-
-#~ msgid "Error code"
-#~ msgstr "Fehlercode"
-
-#~ msgid "Check the status of current system services"
-#~ msgstr "Überprüfen Sie den Status der aktuellen Systemdienste"
-
-#~ msgid "Printer local connection failed, please try again."
-#~ msgstr ""
-#~ "Die lokale Verbindung des Druckers ist fehlgeschlagen. Bitte versuchen "
-#~ "Sie es erneut."
-
-#~ msgid "The name length exceeds the limit."
-#~ msgstr "Die Namenslänge überschreitet das Limit."
-
-#~ msgid "The printer is required to be in the same LAN as Bambu Studio."
-#~ msgstr "Der Drucker muss sich im selben LAN befinden wie Bambu Studio."
-
-#~ msgid "Failed to create socket"
-#~ msgstr "Socket konnte nicht erstellt werden"
-
-#~ msgid "Failed to connect socket"
-#~ msgstr "Verbindung zum Socket fehlgeschlagen"
-
-#~ msgid "Failed to publish login request"
-#~ msgstr "Anmeldeanfrage konnte nicht gesendet werden"
-
-#~ msgid "Get ticket from device timeout"
-#~ msgstr "Zeitüberschreitung beim Abrufen des Tickets vom Gerät"
-
-#~ msgid "Get ticket from server timeout"
-#~ msgstr "Zeitüberschreitung beim Abrufen des Tickets vom Server"
-
-#~ msgid "Failed to post ticket to server"
-#~ msgstr "Ticket konnte nicht auf den Server übertragen werden"
-
-#~ msgid "Failed to parse login report reason"
-#~ msgstr "Der Grund für den Anmeldebericht konnte nicht analysiert werden"
-
-#~ msgid "Receive login report timeout"
-#~ msgstr "Zeitüberschreitung beim Empfang des Anmeldeberichts"
-
-#~ msgid "Check the reason"
-#~ msgstr "Überprüfe den Grund"
-
-#~ msgid "Read and accept"
-#~ msgstr "Gelesen und akzeptieren"
-
-#~ msgid "Terms and Conditions"
-#~ msgstr "Allgemeine Geschäftsbedingungen"
-
-#~ msgid ""
-#~ "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
-#~ "device, please read the termsand conditions.By clicking to agree to use "
-#~ "your Bambu Lab device, you agree to abide by the Privacy Policyand Terms "
-#~ "of Use(collectively, the \"Terms\"). If you do not comply with or agree "
-#~ "to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment "
-#~ "and services."
-#~ msgstr ""
-#~ "Vielen Dank für den Kauf eines Bambu Lab Geräts. Bevor Sie Ihr Bambu Lab "
-#~ "Gerät verwenden, lesen Sie bitte die Allgemeinen Geschäftsbedingungen. "
-#~ "Indem Sie zustimmen klicken, erklären Sie sich mit der "
-#~ "Datenschutzrichtlinie und den Nutzungsbedingungen (zusammen die "
-#~ "„Bedingungen“) einverstanden, um so Ihr Bambu Lab Gerät verwenden zu "
-#~ "können. Wenn Sie die Datenschutzrichtlinien von Bambu Lab nicht einhalten "
-#~ "oder diesen zustimmen, verwenden Sie bitte keine Geräte und "
-#~ "Dienstleistungen von Bambu Lab."
-
-#~ msgid "and"
-#~ msgstr "und"
-
-#~ msgid "Privacy Policy"
-#~ msgstr "Datenschutzerklärung"
-
-#~ msgid "We ask for your help to improve everyone's printer"
-#~ msgstr "Wir bitten Sie um Ihre Hilfe, um den Drucker für alle zu verbessern"
-
-#~ msgid "Statement about User Experience Improvement Program"
-#~ msgstr "Erklärung zum Programm zur Verbesserung der Benutzererfahrung"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "In the 3D Printing community, we learn from each other's successes and "
-#~ "failures to adjust our own slicing parameters and settings. %s follows "
-#~ "the same principle and uses machine learning to improve its performance "
-#~ "from the successes and failures of the vast number of prints by our "
-#~ "users. We are training %s to be smarter by feeding them the real-world "
-#~ "data. If you are willing, this service will access information from your "
-#~ "error logs and usage logs, which may include information described in  "
-#~ "Privacy Policy. We will not collect any Personal Data by which an "
-#~ "individual can be identified directly or indirectly, including without "
-#~ "limitation names, addresses, payment information, or phone numbers. By "
-#~ "enabling this service, you agree to these terms and the statement about "
-#~ "Privacy Policy."
-#~ msgstr ""
-#~ "In der 3D-Druck-Community lernen wir von den Erfolgen und Misserfolgen "
-#~ "der anderen, um unsere eigenen Slicing-Parameter und Einstellungen "
-#~ "anzupassen. %s folgt demselben Prinzip und nutzt maschinelles Lernen, um "
-#~ "seine Leistung anhand der Erfolge und Misserfolge der riesigen Anzahl von "
-#~ "Drucken unserer Nutzer zu verbessern. Wir trainieren %s, um schlauer zu "
-#~ "werden, indem wir es mit realen Daten füttern. Wenn Sie einverstanden "
-#~ "sind, greift dieser Dienst auf Informationen aus Ihren Fehlerprotokollen "
-#~ "und Nutzungsprotokollen zu, die die in der Datenschutzrichtlinie "
-#~ "beschriebenen Informationen enthalten können. Wir werden keine "
-#~ "persönlichen Daten sammeln, durch die eine Person direkt oder indirekt "
-#~ "identifiziert werden kann, wie Namen, Adressen, Zahlungsinformationen "
-#~ "oder Telefonnummern. Durch die Aktivierung dieses Dienstes erklären Sie "
-#~ "sich mit diesen Bedingungen und der Erklärung zum Datenschutz "
-#~ "einverstanden."
-
-#~ msgid "Statement on User Experience Improvement Plan"
-#~ msgstr "Erklärung zum Plan zur Verbesserung der Benutzererfahrung"
-
 #~ msgid "Cool Plate / PLA Plate"
 #~ msgstr "Cool Plate / PLA Plate"
-
-#~ msgid ""
-#~ "Click OK to update the Network plug-in when Bambu Studio launches next "
-#~ "time."
-#~ msgstr ""
-#~ "Klicken Sie auf OK, um das Netzwerk-Plugin beim nächsten Start von Bambu "
-#~ "Studio zu aktualisieren."
-
-#~ msgid "New version of Bambu Studio"
-#~ msgstr "Neue Version von Bambu Studio"
-
-#~ msgid ""
-#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-#~ msgstr ""
-#~ "Schritt 1: Vergewissern Sie sich, dass Bambu Studio und Ihr Drucker sich "
-#~ "im selben LAN befinden."
 
 #, boost-format
 #~ msgid "Copying directory %1% to %2% failed: %3%"
@@ -11267,15 +11857,6 @@ msgstr ""
 
 #~ msgid "The brim width around tree support. 0 means auto."
 #~ msgstr "Die Umrandungsbreite der Baumstütze. 0 bedeutet automatisch."
-
-#~ msgid "Finish"
-#~ msgstr "Fertig"
-
-#~ msgid "Failed"
-#~ msgstr "Fehlgeschlagen"
-
-#~ msgid "Plate Type"
-#~ msgstr "Druckbetttyp"
 
 #~ msgid ""
 #~ "Subtract a Part\n"

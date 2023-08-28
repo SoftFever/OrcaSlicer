@@ -28,9 +28,8 @@ wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 const wxColour TEXT_COL = wxColour(43, 52, 54);
 
-CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
-   : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS),
-    m_obj(obj)
+CameraPopup::CameraPopup(wxWindow *parent)
+   : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -52,8 +51,6 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     m_text_recording->SetFont(Label::Head_14);
     m_text_recording->SetForegroundColour(TEXT_COL);
     m_switch_recording = new SwitchButton(m_panel);
-    if (obj)
-        m_switch_recording->SetValue(obj->camera_recording_when_printing);
 
     //vcamera
     m_text_vcamera = new wxStaticText(m_panel, wxID_ANY, _L("Go Live"));
@@ -80,8 +77,6 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
         top_sizer->Add(m_resolution_options[i], 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
         top_sizer->Add(0, 0, wxALL, 0);
     }
-    if (obj)
-        sync_resolution_setting(obj->camera_resolution);
 
     main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
 
@@ -127,7 +122,6 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     m_interval_timer = new wxTimer();
     m_interval_timer->SetOwner(this);
 
-    check_func_supported();
     wxGetApp().UpdateDarkUIWin(this);
 }
 
@@ -260,8 +254,11 @@ void CameraPopup::sync_vcamera_state(bool show_vcamera)
     rescale();
 }
 
-void CameraPopup::check_func_supported()
+void CameraPopup::check_func_supported(MachineObject *obj2)
 {
+    m_obj = obj2;
+    if (m_obj == nullptr)
+        return;
     // function supported
     if (m_obj->is_function_supported(PrinterFunction::FUNC_RECORDING) && m_obj->has_ipcam) {
         m_text_recording->Show();
@@ -300,11 +297,20 @@ void CameraPopup::check_func_supported()
         auto curr_res = to_resolution_msg_string(CameraResolution(i));
         std::vector <std::string> ::iterator it = std::find(resolution_supported.begin(), resolution_supported.end(), curr_res);
         if ((it == resolution_supported.end())||(support_count <= 1) || !obj->is_support_1080dpi)
-            m_resolution_options[i] -> Hide();
+            m_resolution_options[i]->Hide();
+        else {
+            m_resolution_options[i]->Show();
+            if (m_obj->camera_resolution == curr_res) {
+                resolution_rbtns[i]->SetValue(true);
+            }
+        }
     }
     //hide resolution if there is only one choice
     if (support_count <= 1 || !obj->is_support_1080dpi) {
         m_text_resolution->Hide();
+    }
+    else {
+        m_text_resolution->Show();
     }
 }
 

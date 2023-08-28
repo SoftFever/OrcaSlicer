@@ -394,6 +394,24 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/SingleChoiceDialog.hpp
+    GUI/SingleChoiceDialog.cpp
+    GUI/CaliHistoryDialog.hpp
+    GUI/CaliHistoryDialog.cpp
+    GUI/CalibrationPanel.hpp
+    GUI/CalibrationPanel.cpp
+    GUI/CalibrationWizard.hpp
+    GUI/CalibrationWizard.cpp
+    GUI/CalibrationWizardPage.cpp
+    GUI/CalibrationWizardPage.hpp
+	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.hpp
+	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.hpp
+	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.hpp
+	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
@@ -451,6 +469,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Repetier.hpp
     GUI/calib_dlg.hpp
     GUI/calib_dlg.cpp
+    Utils/CalibUtils.cpp
+    Utils/CalibUtils.hpp
 )
 
 if (WIN32)

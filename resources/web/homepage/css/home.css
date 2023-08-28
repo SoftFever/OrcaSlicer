@@ -53,7 +53,6 @@ html, body {
 .LinkBtn:hover
 {
 	text-decoration:underline;
-	color: #009688;
 }
 
 /*------------------*/
@@ -245,6 +244,13 @@ body
 	height: 100%;
 }
 
+.TitleSmallIcon
+{
+	width:30px;
+	height: 30px;
+	margin-right: 10px;
+}
+
 #MenuArea
 {
 	height: 140px;
@@ -303,6 +309,35 @@ body
 	height: 420px;
 }
 
+#HotModelBlock
+{
+	display:flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0px;
+}
+
+#HotModel_LEFT_Title
+{
+	display:flex;
+	align-items: center;
+	padding: 6px 0px;	
+}
+
+#HotModel_RIGHT_Title
+{
+	font-size:16px;
+}
+
+
+.HotModel_PrevImg
+{
+	width: 200px;
+	height: 148px;
+	object-fit: cover;
+}
+
+
 #RecentFileArea
 {
 	margin-top: 10px;
@@ -315,9 +350,7 @@ body
 {
 	display:flex;
 	align-items: center;
-	padding: 6px;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
+	padding: 6px 0px;
 }
 
 #RecentClearAllBtn
@@ -628,28 +661,112 @@ body
 	font-size: 14px;
 }
 
-/*------Christmas cabin---*/
-#ChristmasArea
+/*--Staff Pick--*/
+#HotModelArea
 {
-	margin-top: 10px;
-	display: flex;
-	flex-direction: column;
+	display: none;
 }
 
-#ChristmasTitleBlock
+#HotModel_Swiper
+{
+	padding: 0px;
+}
+
+.HotModel_Designer_Info
 {
 	display:flex;
 	align-items: center;
-	padding: 6px;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
+	height: 28px;
+	padding: 0px 8px;	
 }
 
-#CabinList
+.HotModel_Designer_Info img
 {
-	display: flex;
-	flex-wrap: wrap;
-	align-content: flex-start;
-	overflow-y: auto;
+	width: 16px;
+	height: 16px;
+	border-radius: 8px;
+}
 
+.HotModel_Designer_Info span
+{
+	margin-left: 6px;
+	font-size: 12px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#HotModel_RIGHT_Title:hover
+{
+	cursor: pointer;	
+	color:#00AE42;	
+}
+
+.HotModelPiece
+{
+	width: 200px!important;
+	display:flex;
+	flex-direction: column;
+	cursor: pointer;
+	border: 1px solid #EEEEEE;
+	box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+}
+
+.HotModel_PrevBlock
+{
+	height: 150px;
+}
+
+.HotModel_PrevImg
+{
+	width: 200px;
+	height: 150px;
+}
+
+.HotModel_NameText
+{
+	height: 32px;
+	line-height: 32px;
+	padding: 0px 8px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 14px;
+}
+
+
+.swiper-scrollbar
+{
+	height: 10px!important;
+}
+
+.swiper-button-prev
+{
+	width: 40px!important;
+	height: 40px!important;
+	border-radius: 20px!important;
+	background: rgba(244, 244, 244, 0.88);
+}
+
+.swiper-button-next
+{
+	width: 40px!important;
+	height: 40px!important;
+	border-radius: 20px!important;
+	background: rgba(244, 244, 244, 0.88);
+}
+
+.swiper
+{
+    --swiper-theme-color: #ff6600;/* 设置Swiper风格 */
+    --swiper-navigation-color: #676767;/* 单独设置按钮颜色 */
+    --swiper-navigation-size: 12px;/* 设置按钮大小 */
+}
+
+.swiper-button-disabled
+{
+	opacity: 1!important;
+	cursor: pointer!important;
+	pointer-events: auto!important;
 }

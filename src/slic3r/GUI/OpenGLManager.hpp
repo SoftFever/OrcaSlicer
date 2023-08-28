@@ -54,7 +54,7 @@ public:
         void detect() const;
     };
 
-#ifdef __APPLE__ 
+#ifdef __APPLE__
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
     struct OSInfo
     {
@@ -76,7 +76,7 @@ private:
     wxGLContext* m_context{ nullptr };
     GLShadersManager m_shaders_manager;
     static GLInfo s_gl_info;
-#ifdef __APPLE__ 
+#ifdef __APPLE__
     // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
     static OSInfo s_os_info;
 #endif //__APPLE__
@@ -89,7 +89,7 @@ public:
     OpenGLManager() = default;
     ~OpenGLManager();
 
-    bool init_gl();
+    bool init_gl(bool popup_error = true);
     wxGLContext* init_glcontext(wxGLCanvas& canvas);
 
     GLShaderProgram* get_shader(const std::string& shader_name) { return m_shaders_manager.get_shader(shader_name); }

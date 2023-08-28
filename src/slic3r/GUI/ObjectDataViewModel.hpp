@@ -96,7 +96,7 @@ class ObjectDataViewModelNode
     bool                            m_has_lock{false};  // for cut object icon
 
     std::string                     m_action_icon_name = "";
-    ModelVolumeType                 m_volume_type;
+    ModelVolumeType                 m_volume_type = ModelVolumeType(-1);
     InfoItemType                    m_info_item_type {InfoItemType::Undef};
     bool                            m_action_enable = false; // can undo all settings
     // BBS
@@ -220,7 +220,7 @@ public:
     {
         return m_children.GetCount();
     }
-
+    void            SetName(const wxString &);
     bool            SetValue(const wxVariant &variant, unsigned int col);
     void            SetVolumeType(ModelVolumeType type) { m_volume_type = type; }
     void            SetBitmap(const wxBitmap &icon) { m_bmp = icon; }
@@ -361,6 +361,7 @@ public:
     void DeleteVolumeChildren(wxDataViewItem& parent);
     void DeleteSettings(const wxDataViewItem& parent);
     wxDataViewItem GetItemByPlateId(int plate_idx);
+    void           SetCurSelectedPlateFullName(int plate_idx,const std::string &);
     wxDataViewItem GetItemById(int obj_idx);
     wxDataViewItem GetItemById(const int obj_idx, const int sub_obj_idx, const ItemType parent_type);
     wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
@@ -428,6 +429,7 @@ public:
     bool    HasInfoItem(InfoItemType type) const;
 
     ItemType        GetItemType(const wxDataViewItem &item) const;
+    ItemType        GetItemType(const wxDataViewItem &item,int& plate_idx) const;
     InfoItemType    GetInfoItemType(const wxDataViewItem &item) const;
     wxDataViewItem  GetItemByType(  const wxDataViewItem &parent_item,
                                     ItemType type) const;

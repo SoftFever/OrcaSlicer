@@ -41,6 +41,7 @@ namespace Slic3r { namespace GUI {
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_FUNC, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
 {
@@ -107,7 +108,8 @@ public:
         ONLY_CONFIRM        = 0,
         CONFIRM_AND_CANCEL  = 1,
         CONFIRM_AND_FUNC    = 2,
-        MAX_STYLE_NUM       = 3
+        CONFIRM_AND_RETRY   = 3,
+        MAX_STYLE_NUM       = 4
     };
     SecondaryCheckDialog(
         wxWindow* parent,
@@ -129,14 +131,17 @@ public:
     void rescale();
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
+    void msw_rescale();
 
     Label* m_staticText_release_note {nullptr};
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};
     Button* m_button_ok { nullptr };
+    Button* m_button_retry { nullptr };
     Button* m_button_cancel { nullptr };
     Button* m_button_fn { nullptr };
     wxCheckBox* m_show_again_checkbox;
+    ButtonStyle m_button_style;
     bool not_show_again = false;
     std::string show_again_config_text = "";
 };

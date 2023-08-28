@@ -36,6 +36,8 @@ public:
 
     void SetMachineObject(MachineObject * obj);
 
+    void SwitchStorage(bool external);
+
 public:
     void Rescale();
 
@@ -45,6 +47,8 @@ private:
     void modeChanged(wxCommandEvent & e);
 
     void fetchUrl(boost::weak_ptr<PrinterFileSystem> fs);
+
+    void doAction(size_t index, int action);
 
 private:
     ScalableBitmap m_bmp_loading;
@@ -59,12 +63,17 @@ private:
 
     ::StaticBox *   m_type_panel    = nullptr;
     ::Button *      m_button_video   = nullptr;
-    ::Button *      m_button_timelapse  = nullptr;
+    ::Button *      m_button_timelapse = nullptr;
+    ::Button *      m_button_model = nullptr;
 
     ::StaticBox *m_manage_panel        = nullptr;
     ::Button *   m_button_delete     = nullptr;
     ::Button *m_button_download = nullptr;
     ::Button *m_button_management = nullptr;
+
+    ImageGrid * m_image_grid   = nullptr;
+
+    bool m_external = true;
 
     std::string m_machine;
     std::string m_lan_ip;
@@ -72,12 +81,13 @@ private:
     std::string m_lan_passwd;
     bool        m_supported = false;
     bool        m_lan_mode      = false;
-    bool        m_tutk_support = false;
-
-    ImageGrid * m_image_grid   = nullptr;
+    bool        m_local_support = false;
+    bool        m_remote_support = false;
+    bool        m_waiting_enable = false;
 
     int m_last_mode = 0;
     int m_last_type = 0;
+    std::set<int> m_last_errors;
 };
 
 

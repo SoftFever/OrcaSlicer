@@ -194,7 +194,8 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 6;
+    static const unsigned int PLATE_NAME_HOVER_ID = 6;
+    static const unsigned int GRABBER_COUNT = 7;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -528,6 +529,8 @@ class PartPlateList : public ObjectBase
     GLTexture m_plate_settings_changed_texture;
     GLTexture m_plate_settings_hovered_texture;
     GLTexture m_plate_settings_changed_hovered_texture;
+    GLTexture m_plate_name_edit_texture;
+    GLTexture m_plate_name_edit_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
     // set render option
     bool render_bedtype_logo = true;

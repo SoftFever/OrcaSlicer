@@ -406,24 +406,36 @@ void PhysicalPrinterDialog::update(bool printer_change)
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
     bool supports_multiple_printers = false;
     if (tech == ptFFF) {
-        update_host_type(printer_change);
+update_host_type(printer_change);
         const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
         m_optgroup->show_field("host_type");
-        if (opt->value == htPrusaLink)
-        {
+
+        // hide PrusaConnect address
+        if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+            if (wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow()); temp && temp->GetValue() == L"https://connect.prusa3d.com") {
+                temp->SetValue(wxString());
+            }
+        }
+        if (opt->value == htPrusaLink) { // PrusaConnect does NOT allow http digest
             m_optgroup->show_field("printhost_authorization_type");
             AuthorizationType auth_type = m_config->option<ConfigOptionEnum<AuthorizationType>>("printhost_authorization_type")->value;
             m_optgroup->show_field("printhost_apikey", auth_type == AuthorizationType::atKeyPassword);
             for (const char* opt_key : { "printhost_user", "printhost_password" })
-                m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword);
+                m_optgroup->show_field(opt_key, auth_type == AuthorizationType::atUserPassword); 
         } else {
             m_optgroup->hide_field("printhost_authorization_type");
             m_optgroup->show_field("printhost_apikey", true);
             for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" })
                 m_optgroup->hide_field(opt_key);
             supports_multiple_printers = opt && opt->value == htRepetier;
+            if (opt->value == htPrusaConnect) { // automatically show default prusaconnect address
+                if (Field* printhost_field = m_optgroup->get_field("print_host"); printhost_field) {
+                    if (wxTextCtrl* temp = dynamic_cast<wxTextCtrl*>(printhost_field->getWindow()); temp && temp->GetValue().IsEmpty()) {
+                        temp->SetValue(L"https://connect.prusa3d.com");
+                    }
+                }
+            }
         }
-        
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);
@@ -453,30 +465,23 @@ void PhysicalPrinterDialog::update_host_type(bool printer_change)
 {
     if (m_config == nullptr)
         return;
-    bool all_presets_are_from_mk3_family = false;
     Field* ht = m_optgroup->get_field("host_type");
-
     wxArrayString types;
-    // Append localized enum_labels
-    assert(ht->m_opt.enum_labels.size() == ht->m_opt.enum_values.size());
-    for (size_t i = 0; i < ht->m_opt.enum_labels.size(); i++) {
-        if (ht->m_opt.enum_values[i] == "prusalink" && !all_presets_are_from_mk3_family)
-            continue;
-        types.Add(_(ht->m_opt.enum_labels[i]));
-    }
+    int last_in_conf = m_config->option("host_type")->getInt(); //  this is real position in last choice
 
     Choice* choice = dynamic_cast<Choice*>(ht);
     choice->set_values(types);
-    auto set_to_choice_and_config = [this, choice](PrintHostType type) {
-        choice->set_value(static_cast<int>(type));
+    int index_in_choice = (printer_change ? std::clamp(last_in_conf - ((int)ht->m_opt.enum_values.size() - (int)types.size()), 0, (int)ht->m_opt.enum_values.size() - 1) : last_in_conf);
+    choice->set_value(index_in_choice);
+    if ("prusalink" == ht->m_opt.enum_values.at(index_in_choice))
+        m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htPrusaLink));
+    else if ("prusaconnect" == ht->m_opt.enum_values.at(index_in_choice))
+        m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(htPrusaConnect));
+    else {
+        int host_type = std::clamp(index_in_choice + ((int)ht->m_opt.enum_values.size() - (int)types.size()), 0, (int)ht->m_opt.enum_values.size() - 1);
+        PrintHostType type = static_cast<PrintHostType>(host_type);
         m_config->set_key_value("host_type", new ConfigOptionEnum<PrintHostType>(type));
-    };
-    if ((printer_change && all_presets_are_from_mk3_family) || all_presets_are_from_mk3_family)
-        set_to_choice_and_config(htPrusaLink);  
-    else if ((printer_change && !all_presets_are_from_mk3_family) || (!all_presets_are_from_mk3_family && m_config->option<ConfigOptionEnum<PrintHostType>>("host_type")->value == htPrusaLink))
-        set_to_choice_and_config(htOctoPrint);
-    else
-        choice->set_value(m_config->option("host_type")->getInt());
+    }
 }
 
 void PhysicalPrinterDialog::update_printers()

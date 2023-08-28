@@ -47,7 +47,7 @@ protected:
 
     void update_percent_finish();
 
-    void show_networking_test(wxString msg);
+    void show_error_info(wxString msg, int code, wxString description, wxString extra);
 
     bool was_canceled() const { return m_canceled.load(); }
 

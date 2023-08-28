@@ -16,7 +16,6 @@ public:
     BBLTopbar(wxFrame* parent);
     void Init(wxFrame *parent);
     ~BBLTopbar();
-    void show_publish_button(bool show);
     void UpdateToolbarWidth(int width);
     void Rescale();
     void OnIconize(wxAuiToolBarEvent& event);
@@ -24,7 +23,7 @@ public:
     void OnCloseFrame(wxAuiToolBarEvent& event);
     void OnFileToolItem(wxAuiToolBarEvent& evt);
     void OnDropdownToolItem(wxAuiToolBarEvent& evt);
-    void OnCalibToolItem(wxAuiToolBarEvent& evt);
+    void OnCalibToolItem(wxAuiToolBarEvent &evt);
     void OnMouseLeftDClock(wxMouseEvent& mouse);
     void OnMouseLeftDown(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
@@ -32,6 +31,7 @@ public:
     void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
     void OnMenuClose(wxMenuEvent& event);
     void OnOpenProject(wxAuiToolBarEvent& event);
+    void show_publish_button(bool show);
     void OnSaveProject(wxAuiToolBarEvent& event);
     void OnUndo(wxAuiToolBarEvent& event);
     void OnRedo(wxAuiToolBarEvent& event);
@@ -43,16 +43,18 @@ public:
     void SetFileMenu(wxMenu* file_menu);
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
     void AddDropDownMenuItem(wxMenuItem* menu_item);
-    wxMenu* GetTopMenu();
+    wxMenu *GetTopMenu();
     wxMenu *GetCalibMenu();
     void SetTitle(wxString title);
     void SetMaximizedSize();
     void SetWindowSize();
 
-    void Enable3DEditorItems();
-    void Disable3DEditorItems();
+    void EnableUndoRedoItems();
+    void DisableUndoRedoItems();
 
     void SaveNormalRect();
+
+    void ShowCalibrationButton(bool show = true);
 
 private:
     wxFrame* m_frame;

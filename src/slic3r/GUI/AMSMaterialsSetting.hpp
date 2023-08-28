@@ -13,6 +13,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextInput.hpp"
+#include "../slic3r/Utils/CalibUtils.hpp"
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -32,11 +33,14 @@ class ColorPicker : public wxWindow
 {
 public:
     wxBitmap        m_bitmap_border;
+    wxBitmap        m_bitmap_transparent;
+
     wxColour        m_colour;
     std::vector<wxColour>        m_cols;
     bool            m_selected{false};
     bool            m_show_full{false};
-    
+    bool            m_is_empty{false};
+
     ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~ColorPicker();
 
@@ -45,6 +49,7 @@ public:
     void set_colors(std::vector<wxColour>  cols);
     void set_selected(bool sel) {m_selected = sel;Refresh();};
     void set_show_full(bool full) {m_show_full = full;Refresh();};
+    void is_empty(bool empty) {m_is_empty = empty;};
 
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -54,6 +59,8 @@ public:
 class ColorPickerPopup : public PopupWindow
 {
 public:
+    ScalableBitmap m_ts_bitmap_custom;
+    wxStaticBitmap* m_ts_stbitmap_custom;
     StaticBox* m_custom_cp;
     wxColourData* m_clrData;
     StaticBox* m_def_color_box;
@@ -96,9 +103,10 @@ public:
                wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString,
                wxString k = wxEmptyString, wxString n = wxEmptyString);
 
-    void post_select_event();
+    void post_select_event(int index);
     void msw_rescale();
     void set_color(wxColour color);
+    void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
 
     void on_picker_color(wxCommandEvent& color);
@@ -116,12 +124,15 @@ public:
     wxColour       m_brand_colour;
     std::string    m_filament_type;
     ColorPickerPopup m_color_picker_popup;
+    ColorPicker *       m_clr_picker;
+    std::vector<PACalibResult>  m_pa_profile_items;
 
 protected:
     void create_panel_normal(wxWindow* parent);
     void create_panel_kn(wxWindow* parent);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
+    void on_select_cali_result(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
     void on_select_reset(wxCommandEvent &event);
     void on_select_close(wxCommandEvent &event);
@@ -138,15 +149,18 @@ protected:
     wxStaticText *      warning_text;
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
+    wxStaticText *      m_title_pa_profile;
     wxStaticText *      m_title_colour;
     wxStaticText *      m_title_temperature;
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
+    ScalableBitmap *    degree;
+    wxStaticBitmap *    bitmap_max_degree;
+    wxStaticBitmap *    bitmap_min_degree;
     Button *            m_button_reset;
     Button *            m_button_confirm;
     wxStaticText*       m_tip_readonly;
     Button *            m_button_close;
-    ColorPicker *       m_clr_picker;
     wxColourData *      m_clrData;
 
     wxPanel *           m_panel_kn;
@@ -157,11 +171,14 @@ protected:
     TextInput*          m_input_n_val;
     int                 m_filament_selection;
 
+    int m_pa_cali_select_id = 0;
+
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;
 #else
     ComboBox *m_comboBox_filament;
 #endif
+    ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 };
 

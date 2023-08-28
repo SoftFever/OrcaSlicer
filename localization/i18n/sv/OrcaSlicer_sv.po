@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-22 19:19+0800\n"
+"POT-Creation-Date: 2023-08-26 19:45+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -584,6 +584,9 @@ msgstr ""
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Nedladdning av Bambu Network Plug-in"
 
+msgid "Login information expired. Please login again."
+msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
+
 msgid "Incorrect password"
 msgstr "Felaktigt lösenord"
 
@@ -667,9 +670,6 @@ msgid ""
 msgstr ""
 "Versionen av Orca Slicer är för låg och behöver uppdateras till den senaste "
 "versionen innan den kan användas normalt"
-
-msgid "Login information expired. Please login again."
-msgstr "Inloggningsinformationen har löpt ut. Logga in igen."
 
 msgid "Privacy Policy Update"
 msgstr "Uppdatering av integritetspolicy"
@@ -941,8 +941,11 @@ msgstr "Montera de valda objekten till ett objekt med multipla delar"
 msgid "Assemble the selected objects to an object with single part"
 msgstr "Montera de valda objekten till ett objekt med en enda del"
 
-msgid "Assemble the selected parts to a single part"
-msgstr "Montera den valda delen till en enda del"
+msgid "Mesh boolean"
+msgstr ""
+
+msgid "Mesh boolean operations including union and subtraction"
+msgstr ""
 
 msgid "Along X axis"
 msgstr "Längs med X Axis"
@@ -1061,17 +1064,14 @@ msgstr "Välj Filament för valda delar"
 msgid "current"
 msgstr "nuvarande"
 
-msgid "Set Unprintable"
-msgstr "Ange ej utskrivbar"
-
-msgid "Set Printable"
-msgstr "Ange utskrivbar"
-
 msgid "Unlock"
 msgstr "Lås upp"
 
 msgid "Lock"
 msgstr "Lås"
+
+msgid "Edit Plate Name"
+msgstr ""
 
 msgid "Name"
 msgstr "Namn"
@@ -1129,6 +1129,9 @@ msgstr "Laddar fil"
 
 msgid "Error!"
 msgstr "Fel!"
+
+msgid "Failed to get the model data in the current file."
+msgstr ""
 
 msgid "Generic"
 msgstr "Allmän"
@@ -1319,15 +1322,6 @@ msgstr "Kopiering av flertalet celler stöds ej"
 msgid "Outside"
 msgstr "Utsida"
 
-msgid "Auto"
-msgstr "Auto"
-
-msgid "Manual"
-msgstr "Manuell"
-
-msgid "No-brim"
-msgstr "Ingen Brim"
-
 msgid " "
 msgstr ""
 
@@ -1342,6 +1336,21 @@ msgstr "Ifyllnads densitet(%)"
 
 msgid "Auto Brim"
 msgstr "Auto Brim"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Outer brim only"
+msgstr "Endast yttre brim"
+
+msgid "Inner brim only"
+msgstr "Endast inre kant"
+
+msgid "Outer and inner brim"
+msgstr "Yttre och inre brim"
+
+msgid "No-brim"
+msgstr "Ingen Brim"
 
 msgid "Outer wall speed"
 msgstr "Ytterväggs hastighet"
@@ -1448,6 +1457,33 @@ msgstr "Ingen skrivare"
 msgid "..."
 msgstr ""
 
+msgid "Failed to connect to the server"
+msgstr "Uppkoppling till servern misslyckades"
+
+msgid "Check cloud service status"
+msgstr "Kontrollera molntjänstens status"
+
+msgid "code"
+msgstr "kod"
+
+msgid "Failed to connect to cloud service"
+msgstr "Det gick inte att ansluta till molntjänsten"
+
+msgid "Please click on the hyperlink above to view the cloud service status"
+msgstr "Klicka på hyperlänken ovan för att se molntjänstens status"
+
+msgid "Failed to connect to the printer"
+msgstr "Uppkoppling till printern misslyckades"
+
+msgid "Connection to printer failed"
+msgstr "Anslutning till skrivaren misslyckades"
+
+msgid "Please check the network connection of the printer and Studio."
+msgstr "Kontrollera nätverksanslutningen för skrivaren och Studio."
+
+msgid "Connecting..."
+msgstr "Sammankopplar..."
+
 msgid "?"
 msgstr " ?"
 
@@ -1457,8 +1493,8 @@ msgstr "Tom"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "Ams filament backup"
-msgstr "AMS filament backup"
+msgid "Auto Refill"
+msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS ej ansluten"
@@ -1514,11 +1550,11 @@ msgstr "Mata in nytt filament i extrudern"
 msgid "Purge old filament"
 msgstr "Rensa gammalt filament"
 
-msgid "Feed new filament from external spool"
-msgstr "Mata in nytt filament från extern spole"
+msgid "Push new filament into the extruder"
+msgstr "Mata nytt filament till extruder"
 
-msgid "Confirm whether the filament has been extruded"
-msgstr "Bekräfta om filamentet har extruderats"
+msgid "Grab new filament"
+msgstr "Ta ett nytt filament"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1621,56 +1657,61 @@ msgstr "Loggar in"
 msgid "Login failed"
 msgstr "Inloggning misslyckades"
 
-msgid "The region parameter is incorrrect"
-msgstr "Region parametern är felaktig."
-
-msgid "Failure of printer login"
-msgstr "Fel i inloggningen till skrivaren"
-
-msgid "Failed to get ticket"
-msgstr "Misslyckades med att få en kvittering"
-
-msgid "User authorization timeout"
-msgstr "Timeout för användarauktorisering"
-
-msgid "Failure of bind"
-msgstr "Fel vid sammankoppling"
-
-msgid "Unknown Failure"
-msgstr "Okänt fel"
-
 msgid "Please check the printer network connection."
 msgstr "Kontrollera skrivarens nätverksanslutning."
 
-msgid "Abnormal print file data. Please slice again"
-msgstr "Onormal utskrifts fil data. Vänligen bered igen"
+msgid "Abnormal print file data. Please slice again."
+msgstr "Onormal utskrifts fil data: Vänligen bered igen."
 
-msgid "Task canceled"
-msgstr "Uppgift avbruten"
+msgid "Task canceled."
+msgstr "Uppgiften avbruten."
 
-msgid "Upload task timed out. Please check the network problem and try again"
+msgid "Upload task timed out. Please check the network status and try again."
 msgstr ""
-"Uppladdningsuppgiften tog timeout. Kontrollera nätverksproblemet och försök "
-"igen"
+"Uppladdningsuppgiften tog slut. Kontrollera nätverksstatusen och försök igen."
 
 msgid "Cloud service connection failed. Please try again."
 msgstr "Anslutningen till molntjänsten misslyckades. Försök igen."
 
-msgid "Print file not found, please slice again"
-msgstr "Det gick inte att hitta utskrifts filen, vänligen bered igen"
+msgid "Print file not found. please slice again."
+msgstr "Det gick inte att hitta utskrifts filen; bered den igen"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again"
+"model and slice again."
 msgstr ""
 "Utskrifts filen överskrider den högsta tillåtna storleken (1 GB). Förenkla "
 "modellen och bered igen"
 
-msgid "Failed uploading print file"
-msgstr "Uppladdning av utskrifts filen misslyckades"
+msgid "Failed to send the print job. Please try again."
+msgstr "Det gick inte att skicka utskriftsjobbet. Var god försök igen."
 
-msgid "Wrong Access code"
-msgstr "Fel åtkomstkod"
+msgid "Failed to upload file to ftp. Please try again."
+msgstr "Det gick inte att ladda upp filen till ftp. Vänligen försök igen."
+
+msgid ""
+"Check the current status of the bambu server by clicking on the link above."
+msgstr ""
+"Kontrollera den aktuella statusen för Bambu Lab servern genom att klicka på "
+"länken ovan."
+
+msgid ""
+"The size of the print file is too large. Please adjust the file size and try "
+"again."
+msgstr ""
+"Storleken på utskrifts filen är för stor. Vänligen justera filstorleken och "
+"försök igen."
+
+msgid "Print file not found, Please slice it again and send it for printing."
+msgstr ""
+"Utskrifts filen hittades inte; bered den igen och skicka till utskrift."
+
+msgid ""
+"Failed to upload print file to FTP. Please check the network status and try "
+"again."
+msgstr ""
+"Det gick inte att ladda upp utskriftsfilen via FTP. Kontrollera "
+"nätverksstatusen och försök igen."
 
 msgid "Sending print job over LAN"
 msgstr "Skicka utskriftsjobb via LAN"
@@ -1692,23 +1733,15 @@ msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
 "Framgångsrikt skickat. Kommer automatiskt att hoppa till enhetssidan om %s s"
 
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr ""
+
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Ett Micro SD-kort måste sättas i innan utskrift via LAN."
 
-msgid "Failed to send the print job. Please try again."
-msgstr "Det gick inte att skicka utskriftsjobbet. Var god försök igen."
-
-msgid "Send to Printer failed. Please try again."
-msgstr "Det gick inte att skicka till skrivaren. Var god försök igen."
-
-msgid "No space left on Printer SD card"
-msgstr ""
-
 msgid "Sending gcode file over LAN"
 msgstr "Skickar G-kod fil över LAN"
-
-msgid "Sending gcode file through cloud service"
-msgstr "Skickar G-kod filen via molntjänsten"
 
 msgid "Sending gcode file to sdcard"
 msgstr "Skickar G-kod fil till MicroSD-kort"
@@ -1719,9 +1752,6 @@ msgstr "Framgångsrikt skickat. Stäng den aktuella sidan i %s s"
 
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "Ett Micro SD-kort måste sättas i innan det skickas till skrivaren."
-
-msgid "Please log out and login to the printer again."
-msgstr "Logga ut och logga in på skrivaren igen."
 
 msgid "Choose SLA archive:"
 msgstr "Välj SLA arkiv:"
@@ -1891,8 +1921,11 @@ msgstr "SN"
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "Inställning av AMS-facks information under utskrift stöds inte"
 
-msgid "Factors of dynamic flow cali"
-msgstr "Faktorer för dynamiskt flödeskallibrering"
+msgid "Factors of Flow Dynamics Calibration"
+msgstr ""
+
+msgid "PA Profile"
+msgstr ""
 
 msgid "Factor K"
 msgstr "Faktor K"
@@ -1906,14 +1939,14 @@ msgstr "Inställning av information om virtuell plats under utskrift stöds inte
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Är du säker på att du vill rensa filament informationen?"
 
+msgid "You need to select the material type and color first."
+msgstr "Du måste först välja materialtyp och färg."
+
 msgid "Please input a valid value (K in 0~0.5)"
 msgstr "Ange ett giltigt värde (K i 0 ~ 0,5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 msgstr "Ange ett giltigt värde (K i 0 ~ 0,5, N i 0,6 ~ 2,0)"
-
-msgid "You need to select the material type and color first."
-msgstr "Du måste först välja materialtyp och färg."
 
 msgid "Other Color"
 msgstr "Annan färg"
@@ -2078,11 +2111,20 @@ msgstr "Skriv ut med filament i AMS"
 msgid "Print with filaments mounted on the back of the chassis"
 msgstr "Skriv ut med filament på en extern spole"
 
-msgid "Filaments replace"
-msgstr "Reserv filament"
+msgid ""
+"When the current material run out, the printer will continue to print in the "
+"following order."
+msgstr ""
 
 msgid "Group"
 msgstr "Grupp"
+
+msgid ""
+"There are currently no identical spare consumables available, and automatic "
+"replenishment is currently not possible. \n"
+"(Currently supporting automatic supply of consumables with the same brand, "
+"material type, and color)"
+msgstr ""
 
 msgid "AMS Settings"
 msgstr "AMS Inställningar"
@@ -2598,6 +2640,28 @@ msgstr "Uppdatering misslyckades."
 msgid "Failed to start printing job"
 msgstr "Det gick inte att starta utskriftsjobbet"
 
+msgid "Invalid nozzle diameter"
+msgstr ""
+
+msgid "Calibration error"
+msgstr ""
+
+msgid "TPU is not supported by AMS."
+msgstr ""
+
+msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
+msgstr ""
+
+msgid ""
+"Damp PVA will become flexible and get stuck inside AMS,please take care to "
+"dry it before use."
+msgstr ""
+
+msgid ""
+"CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
+"AMS, please use with caution."
+msgstr ""
+
 msgid "default"
 msgstr "standard"
 
@@ -3095,6 +3159,9 @@ msgstr "Nej"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "avslutas innan en ny modell skapas. Vill du fortsätta?"
 
+msgid "Upload"
+msgstr ""
+
 msgid "Slice plate"
 msgstr "Bered plattan"
 
@@ -3335,6 +3402,12 @@ msgstr "Visa & Etiketter"
 msgid "Show object labels in 3D scene"
 msgstr "Visa objekt etiketter i 3D-scenen"
 
+msgid "Show &Overhang"
+msgstr "Visa & Överhäng"
+
+msgid "Show object overhang highlight in 3D scene"
+msgstr "Visa objektets överhäng i 3D-scen"
+
 msgid "Preferences"
 msgstr "Inställningar"
 
@@ -3388,9 +3461,6 @@ msgstr ""
 
 msgid "More calibrations"
 msgstr ""
-
-msgid "3D Models"
-msgstr "3D-modeller"
 
 msgid "&Open G-code"
 msgstr "&Öppna G-kod"
@@ -3502,30 +3572,30 @@ msgstr "Synkronisering"
 msgid "Initialize failed (No Device)!"
 msgstr "Start misslyckad (Ingen Enhet)!"
 
+msgid "Initialize failed (Device connection not ready)!"
+msgstr "Initieringen misslyckades (Enhets anslutningen är inte klar)!"
+
 msgid "Initialize failed (No Camera Device)!"
 msgstr "Initieringen misslyckades (ingen kamera enhet)!"
-
-msgid "Initializing..."
-msgstr "Startar..."
-
-msgid "Loading..."
-msgstr "Laddar..."
-
-msgid "Initialize failed (Not supported with LAN-only mode)!"
-msgstr "Initieringen misslyckades (stöds inte i LAN-läge)!"
-
-msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr "Initieringen misslyckades (Ej tillgängligt i endast LAN-läge)!"
 
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr ""
 "Skrivaren är upptagen med att ladda ner; vänta tills nedladdningen är klar."
 
+msgid "Loading..."
+msgstr "Laddar..."
+
+msgid "Initialize failed (Not supported on the current printer version)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr "Initieringen misslyckades (Ej tillgängligt i endast LAN-läge)!"
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initieringen misslyckades (skrivarens LAN-IP saknas)!"
 
-msgid "Initialize failed (Not supported by printer)!"
-msgstr "Initieringen misslyckades (stöds inte av skrivaren)!"
+msgid "Initializing..."
+msgstr "Startar..."
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -3556,9 +3626,12 @@ msgstr "Ladda ner Virtuella Kamerans Verktyg"
 
 msgid ""
 "Another virtual camera is running.\n"
-"Orca Slicer supports only a single virtual camera.\n"
+"Bambu Studio supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
+"En annan virtuell kamera körs.\n"
+"Bambu Studio stöder endast en virtuell kamera.\n"
+"Vill du stoppa den här virtuella kameran?"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
@@ -3604,6 +3677,9 @@ msgstr "Video"
 msgid "Switch to video files."
 msgstr "Växla till video filer."
 
+msgid "Switch to 3mf model files."
+msgstr "Byt till 3mf modell filer."
+
 msgid "Delete selected files from printer."
 msgstr "Ta bort valda filer från skrivaren."
 
@@ -3622,12 +3698,6 @@ msgstr "Batch hantera filer."
 msgid "No printers."
 msgstr "Ingen printer."
 
-msgid "Not supported by this model of printer!"
-msgstr "Stöds inte av denna modell av skrivare!"
-
-msgid "Connecting..."
-msgstr "Sammankopplar..."
-
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
 msgstr "Sammankoppling misslyckades [%d]"
@@ -3635,21 +3705,44 @@ msgstr "Sammankoppling misslyckades [%d]"
 msgid "Loading file list..."
 msgstr "Laddar fil lista..."
 
-msgid "No files"
-msgstr "Inga filer"
-
-msgid "Not accessible in LAN-only mode!"
-msgstr "Ej tillgänglig i LAN-läge!"
-
-msgid "Missing LAN ip of printer!"
-msgstr "Saknar skrivarens LAN-IP!"
+#, c-format, boost-format
+msgid "No files [%d]"
+msgstr "Inga filer [%d]"
 
 #, c-format, boost-format
-msgid "You are going to delete %u files. Are you sure to continue?"
-msgstr ""
+msgid "Load failed [%d]"
+msgstr "Inläsning misslyckades [%d]"
+
+#, c-format, boost-format
+msgid "You are going to delete %u file from printer. Are you sure to continue?"
+msgid_plural ""
+"You are going to delete %u files from printer. Are you sure to continue?"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Delete files"
 msgstr "Radera filer"
+
+#, c-format, boost-format
+msgid "Do you want to delete the file '%s' from printer?"
+msgstr "Vill du radera filen '%s' från skrivaren?"
+
+msgid "Delete file"
+msgstr "Radera fil"
+
+msgid "Fetching model infomations ..."
+msgstr "Hämtar information om modellen..."
+
+msgid "Failed to fetching model infomations from printer."
+msgstr "Det gick inte att hämta modell information från skrivaren."
+
+msgid "Failed to parse model infomations."
+msgstr "Det gick inte att analysera modellinformation"
+
+msgid ""
+"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
+"and export a new .gcode.3mf file."
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3670,6 +3763,12 @@ msgstr "Nedladdning slutförd"
 #, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "Laddar ner %d%%..."
+
+msgid "Not supported on the current printer version."
+msgstr ""
+
+msgid "Storage unavailable, insert SD card."
+msgstr ""
 
 msgid "Speed:"
 msgstr "Hastighet:"
@@ -3692,15 +3791,6 @@ msgstr "3Dconnexion inställningar"
 msgid "Swap Y/Z axes"
 msgstr "Byta Y/Z axes"
 
-msgid "Camera"
-msgstr "Kamera"
-
-msgid "SD Card"
-msgstr "MicroSD-kort"
-
-msgid "Camera Setting"
-msgstr "Kamerainställning"
-
 msgid "Printing Progress"
 msgstr "Utskriftsförlopp"
 
@@ -3716,8 +3806,20 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Lager: N/A"
 
+msgid "Immediately score"
+msgstr "Omedelbar resultat"
+
 msgid "Clear"
 msgstr "Rensa"
+
+msgid "Camera"
+msgstr "Kamera"
+
+msgid "SD Card"
+msgstr "MicroSD-kort"
+
+msgid "Camera Setting"
+msgstr "Kamerainställning"
 
 msgid "Control"
 msgstr "Kontroll"
@@ -3752,31 +3854,14 @@ msgstr "Inget MicroSD-kort"
 msgid "SD Card Abnormal"
 msgstr "MicroSD-kortet är onormalt"
 
-msgid "Printing List"
-msgstr "Utskrifts Lista"
-
 msgid "Cancel print"
 msgstr "Avbryt utskrift"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Är du säker på att du vill avbryta utskriften?"
 
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
-"printer by logging in with your user account."
-msgstr ""
-"Frånkopplad från skrivaren [%s] på grund av att LAN-läget är inaktiverat. "
-"Vänligen återanslut skrivaren genom att logga in med ditt användarkonto."
-
-#, c-format, boost-format
-msgid ""
-"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
-"printer by inputting Access Code which can be gotten from printer screen."
-msgstr ""
-"Frånkopplad från skrivaren [%s] på grund av att LAN-läge är aktiverat. "
-"Anslut skrivaren igen genom att ange åtkomstkoden som kan hämtas från "
-"skrivar skärmen."
+msgid "Done"
+msgstr "Klar"
 
 msgid "Downloading..."
 msgstr "Laddar ner..."
@@ -3791,6 +3876,12 @@ msgstr "I Moln Berednings Kön finns det %s uppgifter framför dig."
 #, c-format, boost-format
 msgid "Layer: %s"
 msgstr "Lager: %s"
+
+msgid "Please give a score for your favorite Bambu Market model."
+msgstr "Vänligen ge ett betyg till din favorit modell från Bambu Market."
+
+msgid "Score"
+msgstr "Resultat"
 
 #, c-format, boost-format
 msgid "Layer: %d/%d"
@@ -3833,23 +3924,14 @@ msgstr "Galet"
 msgid "Can't start this without SD card."
 msgstr "Kan inte starta utan MicroSD-kort."
 
-msgid "Failed to connect to the server"
-msgstr "Uppkoppling till servern misslyckades"
-
 msgid "Status"
 msgstr "Status"
-
-msgid "Media"
-msgstr "Media"
 
 msgid "Update"
 msgstr "Uppdatera"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to the printer"
-msgstr "Uppkoppling till printern misslyckades"
 
 msgid "Don't show again"
 msgstr "Visa inte igen"
@@ -4697,6 +4779,12 @@ msgstr "Associera .step/.stp-filer till OrcaSlicer"
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "Om aktiverad, väljs Orca Slicer som standard att öppna .step filer"
 
+msgid "Online Models"
+msgstr "Online modeller"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "Visa personalens utvalda modeller online på startsidan"
+
 msgid "Maximum recent projects"
 msgstr "Maximalt antal nyligen genomförda projekt"
 
@@ -4729,6 +4817,12 @@ msgstr "Mörkt Läge"
 
 msgid "Enable Dark mode"
 msgstr "Aktivera mörkt läge"
+
+msgid "Develop mode"
+msgstr "Utvecklingsläge"
+
+msgid "Skip AMS blacklist check"
+msgstr "Hoppa över kontrollen av AMS svarta lista"
 
 msgid "Home page and daily tips"
 msgstr "Hemsida och dagliga förslag"
@@ -4766,11 +4860,14 @@ msgstr "Andra"
 msgid "Mouse wheel reverses when zooming"
 msgstr "Reversera mushjulet för att zooma"
 
-msgid "Develop mode"
-msgstr "Utvecklingsläge"
+msgid "Enable SSL(MQTT)"
+msgstr "Aktivera SSL(MQTT)"
 
-msgid "Dump video"
-msgstr "Lämna video"
+msgid "Enable SSL(FTP)"
+msgstr "Aktivera SSL(FTP)"
+
+msgid "Internal developer mode"
+msgstr "Internt utvecklarläge"
 
 msgid "Log Level"
 msgstr "Logg Nivå"
@@ -4856,35 +4953,32 @@ msgstr "Lägg till/Ta bort material"
 msgid "Add/Remove printers"
 msgstr "Lägg till/Ta bort skrivare"
 
+msgid "Incompatible"
+msgstr "Inkompatibel"
+
+msgid "The selected preset is null!"
+msgstr ""
+
+msgid "Plate name"
+msgstr "Plattans namn"
+
 msgid "Same as Global Print Sequence"
 msgstr "Samma som Global Utskrifts Sekvens"
 
 msgid "Print sequence"
 msgstr "Utskrifts sekvens"
 
-msgid "Plate name"
-msgstr "Plattans namn"
-
 msgid "Customize"
 msgstr ""
 
-msgid "First Layer print sequence"
+msgid "First layer filament sequence"
 msgstr ""
+
+msgid "Same as Global Plate Type"
+msgstr "Samma som Global Bed Type"
 
 msgid "Same as Global Bed Type"
 msgstr "Samma som Global Bed Type"
-
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
-
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
-
-msgid "Textured PEI Plate"
-msgstr "Texturerad PEI-platta"
 
 msgid "By Layer"
 msgstr "Per lager"
@@ -5006,11 +5100,8 @@ msgstr "För \"%1%\", lägg till \"%2%\" som ny förinställning"
 msgid "Simply switch to \"%1%\""
 msgstr "Byta till \"%1%\""
 
-msgid "Online"
-msgstr "Online"
-
-msgid "Offline"
-msgstr "Offline"
+msgid "Task canceled"
+msgstr "Uppgift avbruten"
 
 msgid "(LAN)"
 msgstr "(LAN)"
@@ -5021,6 +5112,9 @@ msgstr "Min Enhet"
 msgid "Other Device"
 msgstr "Andra Enheter"
 
+msgid "Online"
+msgstr "Online"
+
 msgid "Input access code"
 msgstr "Inmatning av åtkomstkod"
 
@@ -5030,11 +5124,17 @@ msgstr "Hittar du inte enheter?"
 msgid "Log out successful."
 msgstr "Utloggning lyckades."
 
+msgid "Offline"
+msgstr "Offline"
+
 msgid "Busy"
 msgstr "Upptagen"
 
 msgid "Bambu Cool Plate"
 msgstr "Bambu Cool Plate"
+
+msgid "PLA Plate"
+msgstr "PLA platta"
 
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
@@ -5051,11 +5151,23 @@ msgstr "Uppdatera"
 msgid "Bed Leveling"
 msgstr "Justering av Byggplattan"
 
-msgid "Flow Calibration"
-msgstr "Flödes Kalibrering"
+msgid "Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Can't connect to the printer"
+msgstr "Kan inte ansluta till skrivaren"
 
 msgid "send completed"
 msgstr "Skicka komplett"
+
+msgid "Error code"
+msgstr "Felkod"
+
+msgid "Check the status of current system services"
+msgstr "Kontrollera status för aktuella systemtjänster"
+
+msgid "Printer local connection failed, please try again."
+msgstr "Den lokala anslutningen till skrivaren misslyckades; försök igen."
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Inget inloggningskonto, bara skrivare i LAN-läge visas"
@@ -5136,6 +5248,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "Ett Micro SD-kort måste sättas i innan utskrift."
 
+msgid "The selected printer is incompatible with the chosen printer presets."
+msgstr ""
+
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Ett Micro SD-kort måste sättas i för att spela in en timelapse."
 
@@ -5185,8 +5300,26 @@ msgid ""
 msgstr ""
 "Klicka på knappen Bekräfta om du fortfarande vill fortsätta med utskriften."
 
+msgid ""
+"Connecting to the printer. Unable to cancel during the connection process."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Förbereder utskriftsjobb"
+
+msgid "Abnormal print file data. Please slice again"
+msgstr "Onormal utskrifts fil data. Vänligen bered igen"
+
+msgid "The name length exceeds the limit."
+msgstr "Namnlängden överskrider gränsen."
+
+msgid ""
+"Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
+"scattered surface."
+msgstr ""
+
+msgid "Automatic flow calibration using Micro Lidar"
+msgstr ""
 
 msgid "Modifying the device name"
 msgstr "Ändra enhetens namn"
@@ -5200,17 +5333,110 @@ msgstr "Det går inte att skicka utskriftsuppgiften när uppgraderingen pågår"
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "Ett MicroSD-kort måste sättas i innan du skickar till skrivaren."
 
-msgid "The printer is required to be in the same LAN as Orca Slicer."
-msgstr ""
+msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr "Skrivaren måste finnas på samma LAN som Bambu Studio."
 
 msgid "The printer does not support sending to printer SD card."
 msgstr "Skrivaren har inte stöd för att skicka till skrivarens MicroSD kort."
+
+msgid "Failed to create socket"
+msgstr "Det gick inte att skapa uttaget"
+
+msgid "Failed to connect socket"
+msgstr "Det gick inte att ansluta uttaget"
+
+msgid "Failed to publish login request"
+msgstr "Det gick inte att publicera inloggningsbegäran"
+
+msgid "Get ticket from device timeout"
+msgstr "Timeout för att hämta ärende från enhet"
+
+msgid "Get ticket from server timeout"
+msgstr "Timeout för att hämta ärende från server"
+
+msgid "Failed to post ticket to server"
+msgstr "Misslyckades med att skicka biljett till server"
+
+msgid "Failed to parse login report reason"
+msgstr "Det gick inte att analysera orsaken till inloggningsrapporten"
+
+msgid "Receive login report timeout"
+msgstr "Timeout för mottagande av inloggnings rapport"
+
+msgid "Unknown Failure"
+msgstr "Okänt fel"
 
 msgid "Log in printer"
 msgstr "Logga in skrivare"
 
 msgid "Would you like to log in this printer with current account?"
 msgstr "Logga in skrivaren till nuvarande konto?"
+
+msgid "Check the reason"
+msgstr "Kontrollera orsaken"
+
+msgid "Read and accept"
+msgstr "Läs och acceptera"
+
+msgid "Terms and Conditions"
+msgstr "Villkor och bestämmelser"
+
+msgid ""
+"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
+"device, please read the termsand conditions.By clicking to agree to use your "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgstr ""
+"Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab "
+"enhet ska du läsa villkoren. Genom att klicka för att godkänna användningen "
+"av din Bambu Lab enhet godkänner du att följa sekretesspolicyn och "
+"användningsvillkoren (gemensamt kallade \"Villkor\"). Om du inte följer "
+"eller samtycker till Bambu Labs integritetspolicy ska du inte använda Bambu "
+"Labs utrustning och tjänster."
+
+msgid "and"
+msgstr "och"
+
+msgid "Privacy Policy"
+msgstr "Integritetspolicy"
+
+msgid "We ask for your help to improve everyone's printer"
+msgstr "Vi ber om din hjälp för att förbättra allas skrivare."
+
+msgid "Statement about User Experience Improvement Program"
+msgstr "Uttalande om programmet för förbättring av användarupplevelsen"
+
+#, c-format, boost-format
+msgid ""
+"In the 3D Printing community, we learn from each other's successes and "
+"failures to adjust our own slicing parameters and settings. %s follows the "
+"same principle and uses machine learning to improve its performance from the "
+"successes and failures of the vast number of prints by our users. We are "
+"training %s to be smarter by feeding them the real-world data. If you are "
+"willing, this service will access information from your error logs and usage "
+"logs, which may include information described in  Privacy Policy. We will "
+"not collect any Personal Data by which an individual can be identified "
+"directly or indirectly, including without limitation names, addresses, "
+"payment information, or phone numbers. By enabling this service, you agree "
+"to these terms and the statement about Privacy Policy."
+msgstr ""
+"I 3D-utskrifts gemenskapen lär vi oss av varandras framgångar och "
+"misslyckanden för att justera våra egna berednings parametrar och "
+"inställningar. %s följer samma princip och använder maskin inlärning för att "
+"förbättra sin prestanda från framgångar och misslyckanden i det stora "
+"antalet utskrifter av våra användare. Vi tränar %s att bli smartare genom "
+"att ge dem data från den verkliga världen. Om du är villig kommer denna "
+"tjänst att få tillgång till information från dina fel- och "
+"användningsloggar, som kan innehålla information som beskrivs i "
+"sekretesspolicyn. Vi kommer inte att samla in några personuppgifter genom "
+"vilka en person kan identifieras direkt eller indirekt, inklusive men inte "
+"begränsat till namn, adresser, betalningsinformation eller telefonnummer. "
+"Genom att aktivera denna tjänst godkänner du dessa villkor och uttalandet om "
+"integritetspolicy."
+
+msgid "Statement on User Experience Improvement Plan"
+msgstr "Uttalande om plan för förbättring av användarupplevelsen"
 
 msgid "Log in successful."
 msgstr "Inloggningen lyckades."
@@ -5452,12 +5678,18 @@ msgstr ""
 "Detta är byggplattans temperatur när Engineering Plate är installerad. Ett "
 "värde på 0 betyder att filamentet inte stöder utskrift på Engineering Plate."
 
+msgid "High Temp Plate"
+msgstr "High Temp Plate"
+
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
 "Detta är byggplattans temperatur när High Temp Plate är installerad. Värdet "
 "0 betyder att filamentet inte stöder utskrift på High Temp Plate."
+
+msgid "Textured PEI Plate"
+msgstr "Texturerad PEI-platta"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -6118,28 +6350,27 @@ msgid "Network plug-in update"
 msgstr "Uppdatering av nätverks plugin"
 
 msgid ""
-"Click OK to update the Network plug-in when Orca Slicer launches next time."
+"Click OK to update the Network plug-in when Bambu Studio launches next time."
 msgstr ""
+"Klicka på OK för att uppdatera Nätverks plugin programmet nästa gång Bambu "
+"Studio startar."
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "En ny nätverksplugin (%s) är tillgänglig. Vill du installera den?"
 
-msgid "New version of Orca Slicer"
-msgstr "Ny version av Orca Slicer"
+msgid "New version of Bambu Studio"
+msgstr "Ny version av Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "Påminn mig inte om den här versionen igen."
-
-msgid "Done"
-msgstr "Klar"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-anslutning misslyckades (skickar utskriftsfil)"
 
 msgid ""
-"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-msgstr ""
+"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+msgstr "Steg 1: Bekräfta att Bambu Studio och din skrivare finns på samma LAN."
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
@@ -6819,6 +7050,12 @@ msgstr ""
 msgid "Bed types supported by the printer"
 msgstr "Byggplattans typ stöds av skrivaren"
 
+msgid "Cool Plate"
+msgstr "Cool Plate"
+
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
+
 msgid "First layer print sequence"
 msgstr ""
 
@@ -7024,15 +7261,6 @@ msgstr ""
 
 msgid "Mouse ear"
 msgstr ""
-
-msgid "Outer brim only"
-msgstr "Endast yttre brim"
-
-msgid "Inner brim only"
-msgstr "Endast inre kant"
-
-msgid "Outer and inner brim"
-msgstr "Yttre och inre brim"
 
 msgid "Brim-object gap"
 msgstr "Avstånd mellan brim och modell"
@@ -9623,6 +9851,396 @@ msgstr "Filen innehåller ett ogiltigt vertex index."
 msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Denna OBJ fil kunde inte läsas eftersom den är tom."
 
+msgid "Flow Rate Calibration"
+msgstr ""
+
+msgid "Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Manage Result"
+msgstr ""
+
+msgid "Manual Calibration"
+msgstr ""
+
+msgid "Result can be read by human eyes."
+msgstr ""
+
+msgid "Auto-Calibration"
+msgstr ""
+
+msgid "We would use Lidar to read the calibration result"
+msgstr ""
+
+msgid "Prev"
+msgstr ""
+
+msgid "Recalibration"
+msgstr ""
+
+msgid "Calibrate"
+msgstr ""
+
+msgid "Finish"
+msgstr "Slutför"
+
+msgid "Wiki"
+msgstr ""
+
+msgid "How to use calibration result?"
+msgstr ""
+
+msgid ""
+"You could change the Flow Dynamics Calibration Factor in material editing"
+msgstr ""
+
+msgid ""
+"The current firmware version of the printer does not support calibration.\n"
+"Please upgrade the printer firmware."
+msgstr ""
+
+msgid "Calibration not supported"
+msgstr ""
+
+msgid "Flow Dynamics"
+msgstr ""
+
+msgid "Flow Rate"
+msgstr ""
+
+msgid "Max Volumetric Speed"
+msgstr ""
+
+msgid "Please enter the name you want to save to printer."
+msgstr ""
+
+msgid "The name cannot exceed 40 characters."
+msgstr ""
+
+msgid "The name cannot be empty."
+msgstr ""
+
+#, boost-format
+msgid "The selected preset: %1% is not found."
+msgstr ""
+
+msgid "The name cannot be the same as the system preset name."
+msgstr ""
+
+msgid "The name is the same as another existing preset name"
+msgstr ""
+
+msgid "create new preset failed."
+msgstr ""
+
+msgid ""
+"Are you sure to cancel the current calibration and return to the home page?"
+msgstr ""
+
+msgid "No Printer Connected!"
+msgstr ""
+
+msgid "Printer is not connected yet."
+msgstr ""
+
+msgid "Please select filament to calibrate."
+msgstr ""
+
+msgid "Connecting to printer..."
+msgstr ""
+
+msgid "The failed test result has been dropped."
+msgstr ""
+
+msgid "Flow Dynamics Calibration result has been saved to the printer"
+msgstr ""
+
+msgid "Internal Error"
+msgstr ""
+
+msgid "Please select at least one filament for calibration"
+msgstr ""
+
+msgid "Flow rate calibration result has been saved to preset"
+msgstr ""
+
+msgid "The input value size must be 3."
+msgstr ""
+
+msgid "Max volumetric speed calibration result has been saved to preset"
+msgstr ""
+
+msgid "When do you need Flow Dynamics Calibration"
+msgstr ""
+
+msgid ""
+"We now have added the auto-calibration for different filaments, which is "
+"fully automated and the result will be saved into the printer for future "
+"use. You only need to do the calibration in the following limited cases:\n"
+"1. If you introduce a new filament of different brands/models or the "
+"filament is damp;\n"
+"2. if the nozzle is worn out or replaced with a new one;\n"
+"3. If the max volumetric speed or print temperature is changed in the "
+"filament setting."
+msgstr ""
+
+msgid "About this calibration"
+msgstr ""
+
+msgid ""
+"Please find the details of Flow Dynamics Calibration from our wiki.\n"
+"\n"
+"Usually the calibration is unnecessary. When you start a single color/"
+"material print, with the \"flow dynamics calibration\" option checked in the "
+"print start menu, the printer will follow the old way, calibrate the "
+"filament before the print; When you start a multi color/material print, the "
+"printer will use the default compensation parameter for the filament during "
+"every filament switch which will have a good result in most cases.\n"
+"\n"
+"Please note there are a few cases that will make the calibration result not "
+"reliable: using a texture plate to do the calibration; the build plate does "
+"not have good adhesion (please wash the build plate or apply gluestick!) ..."
+"You can find more from our wiki.\n"
+"\n"
+"The calibration results have about 10 percent jitter in our test, which may "
+"cause the result not exactly the same in each calibration. We are still "
+"investigating the root cause to do improvements with new updates."
+msgstr ""
+
+msgid "When to use Flow Rate Calibration"
+msgstr ""
+
+msgid ""
+"After using Flow Dynamics Calibration, there might still be some extrusion "
+"issues, such as:\n"
+"1. Over-Extrusion: Excess material on your printed object, forming blobs or "
+"zits, or the layers seem thicker than expected and not uniform.\n"
+"2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the "
+"top layer of the model, even when printing slowly.\n"
+"3. Poor Surface Quality: The surface of your prints seems rough or uneven.\n"
+"4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
+"they should be."
+msgstr ""
+
+msgid ""
+"In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
+"PLA used in RC planes. These materials expand greatly when heated, and "
+"calibration provides a useful reference flow rate."
+msgstr ""
+
+msgid ""
+"Flow Rate Calibration measures the ratio of expected to actual extrusion "
+"volumes. The default setting works well in Bambu Lab printers and official "
+"filaments as they were pre-calibrated and fine-tuned. For a regular "
+"filament, you usually won't need to perform a Flow Rate Calibration unless "
+"you still see the listed defects after you have done other calibrations. For "
+"more details, please check out the wiki article."
+msgstr ""
+
+msgid ""
+"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
+"directly measuring the calibration patterns. However, please be advised that "
+"the efficacy and accuracy of this method may be compromised with specific "
+"types of materials. Particularly, filaments that are transparent or semi-"
+"transparent, sparkling-particled, or have a high-reflective finish may not "
+"be suitable for this calibration and can produce less-than-desirable "
+"results.\n"
+"\n"
+"The calibration results may vary between each calibration or filament. We "
+"are still improving the accuracy and compatibility of this calibration "
+"through firmware updates over time.\n"
+"\n"
+"Caution: Flow Rate Calibration is an advanced process, to be attempted only "
+"by those who fully understand its purpose and implications. Incorrect usage "
+"can lead to sub-par prints or printer damage. Please make sure to carefully "
+"read and understand the process before doing it."
+msgstr ""
+
+msgid "When you need Max Volumetric Speed Calibration"
+msgstr ""
+
+msgid "Over-extrusion or under extrusion"
+msgstr ""
+
+msgid "Max Volumetric Speed calibration is recommended when you print with:"
+msgstr ""
+
+msgid "material with significant thermal shrinkage/expansion, such as..."
+msgstr ""
+
+msgid "materials with inaccurate filament diameter"
+msgstr ""
+
+msgid "We found the best Flow Dynamics Calibration Factor"
+msgstr ""
+
+msgid ""
+"Part of the calibration failed! You may clean the plate and retry. The "
+"failed test result would be dropped."
+msgstr ""
+
+msgid ""
+"*We recommend you to add brand, materia, type, and even humidity level in "
+"the Name"
+msgstr ""
+
+msgid "Failed"
+msgstr "Misslyckades"
+
+msgid ""
+"Only one of the results with the same name will be saved. Are you sure you "
+"want to overrides the other results?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"There is already a historical calibration result with the same name: %s. "
+"Only one of the results with the same name is saved. Are you sure you want "
+"to overrides the historical result?"
+msgstr ""
+
+msgid "Please find the best line on your plate"
+msgstr ""
+
+msgid "Input Value"
+msgstr ""
+
+msgid "Save to Filament Preset"
+msgstr ""
+
+msgid "Preset"
+msgstr ""
+
+msgid "Record Factor"
+msgstr ""
+
+msgid "We found the best flow ratio for you"
+msgstr ""
+
+msgid "Flow Ratio"
+msgstr ""
+
+msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
+msgstr ""
+
+msgid "Please enter the name of the preset you want to save."
+msgstr ""
+
+msgid "Calibration1"
+msgstr ""
+
+msgid "Calibration2"
+msgstr ""
+
+msgid "Please find the best object on your plate"
+msgstr ""
+
+msgid "Fill in the value above the block with smoothest top surface"
+msgstr ""
+
+msgid "Skip Calibration2"
+msgstr ""
+
+#, c-format, boost-format
+msgid "flow ratio : %s "
+msgstr ""
+
+msgid "Please choose a block with smoothest top surface"
+msgstr ""
+
+msgid "Please choose a block with smoothest top surface."
+msgstr ""
+
+msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
+msgstr ""
+
+msgid "Calibration Type"
+msgstr ""
+
+msgid "Complete Calibration"
+msgstr ""
+
+msgid "Fine Calibration based on flow ratio"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid ""
+"A test model will be printed. Please clear the build plate and place it back "
+"to the hot bed before calibration."
+msgstr ""
+
+msgid "Printing Parameters"
+msgstr ""
+
+msgid "- ℃"
+msgstr ""
+
+msgid " ℃"
+msgstr ""
+
+msgid "Plate Type"
+msgstr "Typ av byggplatta"
+
+msgid "filament position"
+msgstr ""
+
+msgid "External Spool"
+msgstr ""
+
+msgid "Filament For Calibration"
+msgstr ""
+
+msgid ""
+"Tips for calibration material: \n"
+"- Materials that can share same hot bed temperature\n"
+"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
+msgstr ""
+
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s"
+msgstr ""
+
+msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
+msgstr ""
+
+msgid "Connecting to printer"
+msgstr ""
+
+msgid "The nozzle diameter has been synchronized from the printer Settings"
+msgstr ""
+
+msgid "From Volumetric Speed"
+msgstr ""
+
+msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "Flow Dynamics Calibration Result"
+msgstr ""
+
+msgid "No History Result"
+msgstr ""
+
+msgid "Success to get history result"
+msgstr ""
+
+msgid "Refreshing the historical Flow Dynamics Calibration records"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Edit Flow Dynamics Calibration"
+msgstr ""
+
 msgid "Network lookup"
 msgstr ""
 
@@ -9694,9 +10312,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-
-msgid "Upload"
 msgstr ""
 
 msgid "Upload and Print"
@@ -10171,6 +10786,238 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
+msgid "Bambu Cube"
+msgstr ""
+
+msgid "Bambu Cube V2"
+msgstr ""
+
+msgid "ksr FDMTest"
+msgstr ""
+
+#, boost-format
+msgid " plate %1%: "
+msgstr ""
+
+msgid ""
+"There are some unknown or uncompatible filaments mapped to generic preset. "
+"Please update Bambu Studio or restart Bambu Studio to check if there is an "
+"update to system presets."
+msgstr ""
+
+msgid "Initial layer flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for the initial layer"
+msgstr ""
+
+msgid ""
+"Use only one wall on flat top surface, to give more space to the top infill "
+"pattern. Could be applyed on topmost surface or all top surface."
+msgstr ""
+
+msgid "Not apply"
+msgstr ""
+
+msgid ""
+"If enabled, Studio will generate support loops under the contours of "
+"internal bridges.These support loops could prevent internal bridges from "
+"extruding over the air and improve the top surface quality, especially when "
+"the sparse infill density is low.This value determines the thickness of the "
+"support loops. 0 means disable this feature"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled. Useless for Bambu Printer"
+msgstr ""
+
+msgid ""
+"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
+"Bambu Printer"
+msgstr ""
+
+msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
+msgstr ""
+
+msgid "Default jerk"
+msgstr ""
+
+msgid "Jerk of infill"
+msgstr ""
+
+msgid "Jerk of top surface"
+msgstr ""
+
+msgid "First layer"
+msgstr ""
+
+msgid "Jerk of first layer"
+msgstr ""
+
+msgid "Jerk of travel"
+msgstr ""
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
+msgstr ""
+
+msgid ""
+"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
+"firmware printer"
+msgstr ""
+
+msgid ""
+"Detect the overhang percentage relative to line width and use different "
+"speed to print. For 100 percent overhang, bridge speed is used."
+msgstr ""
+
+msgid "Direct drive"
+msgstr ""
+
+msgid ""
+"In order to reduce the visibility of the seam in a closed loop extrusion, "
+"the loop is interrupted and shortened by a specified amount.\n"
+"This amount as a percentage of the current extruder diameter. The default "
+"value for this parameter is 15"
+msgstr ""
+
+msgid ""
+"If your firmware requires relative E values, check this, otherwise leave it "
+"unchecked. Must use relative e distance for Bambu printer"
+msgstr ""
+
+msgid "End temp: "
+msgstr ""
+
+#~ msgid "Assemble the selected parts to a single part"
+#~ msgstr "Montera den valda delen till en enda del"
+
+#~ msgid "Set Unprintable"
+#~ msgstr "Ange ej utskrivbar"
+
+#~ msgid "Set Printable"
+#~ msgstr "Ange utskrivbar"
+
+#~ msgid "Manual"
+#~ msgstr "Manuell"
+
+#~ msgid "Ams filament backup"
+#~ msgstr "AMS filament backup"
+
+#~ msgid "Feed new filament from external spool"
+#~ msgstr "Mata in nytt filament från extern spole"
+
+#~ msgid "Confirm whether the filament has been extruded"
+#~ msgstr "Bekräfta om filamentet har extruderats"
+
+#~ msgid "The region parameter is incorrrect"
+#~ msgstr "Region parametern är felaktig."
+
+#~ msgid "Failure of printer login"
+#~ msgstr "Fel i inloggningen till skrivaren"
+
+#~ msgid "Failed to get ticket"
+#~ msgstr "Misslyckades med att få en kvittering"
+
+#~ msgid "User authorization timeout"
+#~ msgstr "Timeout för användarauktorisering"
+
+#~ msgid "Failure of bind"
+#~ msgstr "Fel vid sammankoppling"
+
+#~ msgid ""
+#~ "Upload task timed out. Please check the network problem and try again"
+#~ msgstr ""
+#~ "Uppladdningsuppgiften tog timeout. Kontrollera nätverksproblemet och "
+#~ "försök igen"
+
+#~ msgid "Print file not found, please slice again"
+#~ msgstr "Det gick inte att hitta utskrifts filen, vänligen bered igen"
+
+#~ msgid ""
+#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
+#~ "the model and slice again"
+#~ msgstr ""
+#~ "Utskrifts filen överskrider den högsta tillåtna storleken (1 GB). "
+#~ "Förenkla modellen och bered igen"
+
+#~ msgid "Failed uploading print file"
+#~ msgstr "Uppladdning av utskrifts filen misslyckades"
+
+#~ msgid "Wrong Access code"
+#~ msgstr "Fel åtkomstkod"
+
+#~ msgid "Send to Printer failed. Please try again."
+#~ msgstr "Det gick inte att skicka till skrivaren. Var god försök igen."
+
+#~ msgid "Sending gcode file through cloud service"
+#~ msgstr "Skickar G-kod filen via molntjänsten"
+
+#~ msgid "Please log out and login to the printer again."
+#~ msgstr "Logga ut och logga in på skrivaren igen."
+
+#~ msgid "Factors of dynamic flow cali"
+#~ msgstr "Faktorer för dynamiskt flödeskallibrering"
+
+#~ msgid "Filaments replace"
+#~ msgstr "Reserv filament"
+
+#~ msgid "3D Models"
+#~ msgstr "3D-modeller"
+
+#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
+#~ msgstr "Initieringen misslyckades (stöds inte i LAN-läge)!"
+
+#~ msgid "Initialize failed (Not supported by printer)!"
+#~ msgstr "Initieringen misslyckades (stöds inte av skrivaren)!"
+
+#~ msgid "Not supported by this model of printer!"
+#~ msgstr "Stöds inte av denna modell av skrivare!"
+
+#~ msgid "No files"
+#~ msgstr "Inga filer"
+
+#~ msgid "Not accessible in LAN-only mode!"
+#~ msgstr "Ej tillgänglig i LAN-läge!"
+
+#~ msgid "Missing LAN ip of printer!"
+#~ msgstr "Saknar skrivarens LAN-IP!"
+
+#~ msgid "Printing List"
+#~ msgstr "Utskrifts Lista"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
+#~ "the printer by logging in with your user account."
+#~ msgstr ""
+#~ "Frånkopplad från skrivaren [%s] på grund av att LAN-läget är inaktiverat. "
+#~ "Vänligen återanslut skrivaren genom att logga in med ditt användarkonto."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
+#~ "the printer by inputting Access Code which can be gotten from printer "
+#~ "screen."
+#~ msgstr ""
+#~ "Frånkopplad från skrivaren [%s] på grund av att LAN-läge är aktiverat. "
+#~ "Anslut skrivaren igen genom att ange åtkomstkoden som kan hämtas från "
+#~ "skrivar skärmen."
+
+#~ msgid "Media"
+#~ msgstr "Media"
+
+#~ msgid "Dump video"
+#~ msgstr "Lämna video"
+
+#~ msgid "Flow Calibration"
+#~ msgstr "Flödes Kalibrering"
+
+#~ msgid "New version of Orca Slicer"
+#~ msgstr "Ny version av Orca Slicer"
+
 #~ msgid ""
 #~ "The configuration may be generated by a newer version of BambuStudio."
 #~ msgstr "Konfigurationen kan skapas av en nyare version av Bambu Studio."
@@ -10218,81 +11065,6 @@ msgstr ""
 
 #~ msgid "Bambu Studio GUI initialization failed"
 #~ msgstr "Bambu Studio GUI-initiering misslyckades"
-
-#~ msgid "Check cloud service status"
-#~ msgstr "Kontrollera molntjänstens status"
-
-#~ msgid "code"
-#~ msgstr "kod"
-
-#~ msgid "Failed to connect to cloud service"
-#~ msgstr "Det gick inte att ansluta till molntjänsten"
-
-#~ msgid "Please click on the hyperlink above to view the cloud service status"
-#~ msgstr "Klicka på hyperlänken ovan för att se molntjänstens status"
-
-#~ msgid "Connection to printer failed"
-#~ msgstr "Anslutning till skrivaren misslyckades"
-
-#~ msgid "Please check the network connection of the printer and Studio."
-#~ msgstr "Kontrollera nätverksanslutningen för skrivaren och Studio."
-
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "Mata nytt filament till extruder"
-
-#~ msgid "Grab new filament"
-#~ msgstr "Ta ett nytt filament"
-
-#~ msgid "Abnormal print file data. Please slice again."
-#~ msgstr "Onormal utskrifts fil data: Vänligen bered igen."
-
-#~ msgid "Task canceled."
-#~ msgstr "Uppgiften avbruten."
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network status and try again."
-#~ msgstr ""
-#~ "Uppladdningsuppgiften tog slut. Kontrollera nätverksstatusen och försök "
-#~ "igen."
-
-#~ msgid "Print file not found. please slice again."
-#~ msgstr "Det gick inte att hitta utskrifts filen; bered den igen"
-
-#~ msgid ""
-#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
-#~ "the model and slice again."
-#~ msgstr ""
-#~ "Utskrifts filen överskrider den högsta tillåtna storleken (1 GB). "
-#~ "Förenkla modellen och bered igen"
-
-#~ msgid "Failed to upload file to ftp. Please try again."
-#~ msgstr "Det gick inte att ladda upp filen till ftp. Vänligen försök igen."
-
-#~ msgid ""
-#~ "Check the current status of the bambu server by clicking on the link "
-#~ "above."
-#~ msgstr ""
-#~ "Kontrollera den aktuella statusen för Bambu Lab servern genom att klicka "
-#~ "på länken ovan."
-
-#~ msgid ""
-#~ "The size of the print file is too large. Please adjust the file size and "
-#~ "try again."
-#~ msgstr ""
-#~ "Storleken på utskrifts filen är för stor. Vänligen justera filstorleken "
-#~ "och försök igen."
-
-#~ msgid ""
-#~ "Print file not found, Please slice it again and send it for printing."
-#~ msgstr ""
-#~ "Utskrifts filen hittades inte; bered den igen och skicka till utskrift."
-
-#~ msgid ""
-#~ "Failed to upload print file to FTP. Please check the network status and "
-#~ "try again."
-#~ msgstr ""
-#~ "Det gick inte att ladda upp utskriftsfilen via FTP. Kontrollera "
-#~ "nätverksstatusen och försök igen."
 
 #~ msgid "Bambu Studio is licensed under "
 #~ msgstr "Bambu Studio är licensierad under "
@@ -10344,60 +11116,6 @@ msgstr ""
 #~ msgid "Report issue"
 #~ msgstr "Rapportera problem"
 
-#~ msgid "Show &Overhang"
-#~ msgstr "Visa & Överhäng"
-
-#~ msgid "Show object overhang highlight in 3D scene"
-#~ msgstr "Visa objektets överhäng i 3D-scen"
-
-#~ msgid "Initialize failed (Device connection not ready)!"
-#~ msgstr "Initieringen misslyckades (Enhets anslutningen är inte klar)!"
-
-#~ msgid ""
-#~ "Another virtual camera is running.\n"
-#~ "Bambu Studio supports only a single virtual camera.\n"
-#~ "Do you want to stop this virtual camera?"
-#~ msgstr ""
-#~ "En annan virtuell kamera körs.\n"
-#~ "Bambu Studio stöder endast en virtuell kamera.\n"
-#~ "Vill du stoppa den här virtuella kameran?"
-
-#~ msgid "Switch to 3mf model files."
-#~ msgstr "Byt till 3mf modell filer."
-
-#, c-format, boost-format
-#~ msgid "No files [%d]"
-#~ msgstr "Inga filer [%d]"
-
-#, c-format, boost-format
-#~ msgid "Load failed [%d]"
-#~ msgstr "Inläsning misslyckades [%d]"
-
-#, c-format, boost-format
-#~ msgid "Do you want to delete the file '%s' from printer?"
-#~ msgstr "Vill du radera filen '%s' från skrivaren?"
-
-#~ msgid "Delete file"
-#~ msgstr "Radera fil"
-
-#~ msgid "Fetching model infomations ..."
-#~ msgstr "Hämtar information om modellen..."
-
-#~ msgid "Failed to fetching model infomations from printer."
-#~ msgstr "Det gick inte att hämta modell information från skrivaren."
-
-#~ msgid "Failed to parse model infomations."
-#~ msgstr "Det gick inte att analysera modellinformation"
-
-#~ msgid "Immediately score"
-#~ msgstr "Omedelbar resultat"
-
-#~ msgid "Please give a score for your favorite Bambu Market model."
-#~ msgstr "Vänligen ge ett betyg till din favorit modell från Bambu Market."
-
-#~ msgid "Score"
-#~ msgstr "Resultat"
-
 #~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 #~ msgstr ""
 #~ "3mf-filen genererades i en gammal version av Bambu Studio laddar endast "
@@ -10434,163 +11152,11 @@ msgstr ""
 #~ "If enabled, sets BambuStudio as default application to open .step files"
 #~ msgstr "Om aktiverad, väljs Bambu Studio som standard att öppna .step filer"
 
-#~ msgid "Online Models"
-#~ msgstr "Online modeller"
-
-#~ msgid "Show online staff-picked models on the home page"
-#~ msgstr "Visa personalens utvalda modeller online på startsidan"
-
-#~ msgid "Skip AMS blacklist check"
-#~ msgstr "Hoppa över kontrollen av AMS svarta lista"
-
-#~ msgid "Enable SSL(MQTT)"
-#~ msgstr "Aktivera SSL(MQTT)"
-
-#~ msgid "Enable SSL(FTP)"
-#~ msgstr "Aktivera SSL(FTP)"
-
-#~ msgid "Internal developer mode"
-#~ msgstr "Internt utvecklarläge"
-
-#~ msgid "Incompatible"
-#~ msgstr "Inkompatibel"
-
-#~ msgid "Same as Global Plate Type"
-#~ msgstr "Samma som Global Bed Type"
-
-#~ msgid "PLA Plate"
-#~ msgstr "PLA platta"
-
-#~ msgid "Can't connect to the printer"
-#~ msgstr "Kan inte ansluta till skrivaren"
-
-#~ msgid "Error code"
-#~ msgstr "Felkod"
-
-#~ msgid "Check the status of current system services"
-#~ msgstr "Kontrollera status för aktuella systemtjänster"
-
-#~ msgid "Printer local connection failed, please try again."
-#~ msgstr "Den lokala anslutningen till skrivaren misslyckades; försök igen."
-
-#~ msgid "The name length exceeds the limit."
-#~ msgstr "Namnlängden överskrider gränsen."
-
-#~ msgid "The printer is required to be in the same LAN as Bambu Studio."
-#~ msgstr "Skrivaren måste finnas på samma LAN som Bambu Studio."
-
-#~ msgid "Failed to create socket"
-#~ msgstr "Det gick inte att skapa uttaget"
-
-#~ msgid "Failed to connect socket"
-#~ msgstr "Det gick inte att ansluta uttaget"
-
-#~ msgid "Failed to publish login request"
-#~ msgstr "Det gick inte att publicera inloggningsbegäran"
-
-#~ msgid "Get ticket from device timeout"
-#~ msgstr "Timeout för att hämta ärende från enhet"
-
-#~ msgid "Get ticket from server timeout"
-#~ msgstr "Timeout för att hämta ärende från server"
-
-#~ msgid "Failed to post ticket to server"
-#~ msgstr "Misslyckades med att skicka biljett till server"
-
-#~ msgid "Failed to parse login report reason"
-#~ msgstr "Det gick inte att analysera orsaken till inloggningsrapporten"
-
-#~ msgid "Receive login report timeout"
-#~ msgstr "Timeout för mottagande av inloggnings rapport"
-
-#~ msgid "Check the reason"
-#~ msgstr "Kontrollera orsaken"
-
-#~ msgid "Read and accept"
-#~ msgstr "Läs och acceptera"
-
-#~ msgid "Terms and Conditions"
-#~ msgstr "Villkor och bestämmelser"
-
-#~ msgid ""
-#~ "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
-#~ "device, please read the termsand conditions.By clicking to agree to use "
-#~ "your Bambu Lab device, you agree to abide by the Privacy Policyand Terms "
-#~ "of Use(collectively, the \"Terms\"). If you do not comply with or agree "
-#~ "to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment "
-#~ "and services."
-#~ msgstr ""
-#~ "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu "
-#~ "Lab enhet ska du läsa villkoren. Genom att klicka för att godkänna "
-#~ "användningen av din Bambu Lab enhet godkänner du att följa "
-#~ "sekretesspolicyn och användningsvillkoren (gemensamt kallade \"Villkor"
-#~ "\"). Om du inte följer eller samtycker till Bambu Labs integritetspolicy "
-#~ "ska du inte använda Bambu Labs utrustning och tjänster."
-
-#~ msgid "and"
-#~ msgstr "och"
-
-#~ msgid "Privacy Policy"
-#~ msgstr "Integritetspolicy"
-
-#~ msgid "We ask for your help to improve everyone's printer"
-#~ msgstr "Vi ber om din hjälp för att förbättra allas skrivare."
-
-#~ msgid "Statement about User Experience Improvement Program"
-#~ msgstr "Uttalande om programmet för förbättring av användarupplevelsen"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "In the 3D Printing community, we learn from each other's successes and "
-#~ "failures to adjust our own slicing parameters and settings. %s follows "
-#~ "the same principle and uses machine learning to improve its performance "
-#~ "from the successes and failures of the vast number of prints by our "
-#~ "users. We are training %s to be smarter by feeding them the real-world "
-#~ "data. If you are willing, this service will access information from your "
-#~ "error logs and usage logs, which may include information described in  "
-#~ "Privacy Policy. We will not collect any Personal Data by which an "
-#~ "individual can be identified directly or indirectly, including without "
-#~ "limitation names, addresses, payment information, or phone numbers. By "
-#~ "enabling this service, you agree to these terms and the statement about "
-#~ "Privacy Policy."
-#~ msgstr ""
-#~ "I 3D-utskrifts gemenskapen lär vi oss av varandras framgångar och "
-#~ "misslyckanden för att justera våra egna berednings parametrar och "
-#~ "inställningar. %s följer samma princip och använder maskin inlärning för "
-#~ "att förbättra sin prestanda från framgångar och misslyckanden i det stora "
-#~ "antalet utskrifter av våra användare. Vi tränar %s att bli smartare genom "
-#~ "att ge dem data från den verkliga världen. Om du är villig kommer denna "
-#~ "tjänst att få tillgång till information från dina fel- och "
-#~ "användningsloggar, som kan innehålla information som beskrivs i "
-#~ "sekretesspolicyn. Vi kommer inte att samla in några personuppgifter genom "
-#~ "vilka en person kan identifieras direkt eller indirekt, inklusive men "
-#~ "inte begränsat till namn, adresser, betalningsinformation eller "
-#~ "telefonnummer. Genom att aktivera denna tjänst godkänner du dessa villkor "
-#~ "och uttalandet om integritetspolicy."
-
-#~ msgid "Statement on User Experience Improvement Plan"
-#~ msgstr "Uttalande om plan för förbättring av användarupplevelsen"
-
 #~ msgid "Post-processing scripts"
 #~ msgstr "Skript för efterbehandling"
 
 #~ msgid "Cool Plate / PLA Plate"
 #~ msgstr "Cool Plate / PLA Platta"
-
-#~ msgid ""
-#~ "Click OK to update the Network plug-in when Bambu Studio launches next "
-#~ "time."
-#~ msgstr ""
-#~ "Klicka på OK för att uppdatera Nätverks plugin programmet nästa gång "
-#~ "Bambu Studio startar."
-
-#~ msgid "New version of Bambu Studio"
-#~ msgstr "Ny version av Bambu Studio"
-
-#~ msgid ""
-#~ "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-#~ msgstr ""
-#~ "Steg 1: Bekräfta att Bambu Studio och din skrivare finns på samma LAN."
 
 #, boost-format
 #~ msgid "Copying directory %1% to %2% failed: %3%"
@@ -10694,9 +11260,6 @@ msgstr ""
 
 #~ msgid "The brim width around tree support. 0 means auto."
 #~ msgstr "Botten bredd runt träd support. 0 betyder automatisk."
-
-#~ msgid "Plate Type"
-#~ msgstr "Typ av byggplatta"
 
 #~ msgid ""
 #~ "Subtract a Part\n"
@@ -10911,9 +11474,6 @@ msgstr ""
 #~ msgid "Extruder position"
 #~ msgstr "Extruder position"
 
-#~ msgid "Failed"
-#~ msgstr "Misslyckades"
-
 #~ msgid "Filament 1"
 #~ msgstr "Filament 1"
 
@@ -10936,9 +11496,6 @@ msgstr ""
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Filament Val"
-
-#~ msgid "Finish"
-#~ msgstr "Slutför"
 
 #~ msgid "Fix model locally"
 #~ msgstr "Åtgärda modellen lokalt"
