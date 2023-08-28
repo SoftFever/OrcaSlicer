@@ -857,6 +857,8 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     //}
 }
 
+// Port "extra perimeters on overhangs" from PrusaSlicer. Original author: PavelMikus pavel.mikus.mail@seznam.cz
+// Based on: https://github.com/prusa3d/PrusaSlicer/blob/c05542590d7c2d73eb69bbf7a82a482a075815c1/src/libslic3r/PerimeterGenerator.cpp#L667-L1071
 // find out if paths touch - at least one point of one path is within limit distance of second path
 bool paths_touch(const ExtrusionPath &path_one, const ExtrusionPath &path_two, double limit_distance)
 {
