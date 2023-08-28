@@ -3205,6 +3205,12 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 {
     // update params
     if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
+
+    int current_position_x = m_ams_control->GetScreenPosition().x;
+    int current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
+    auto drect = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
+    current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
+
     if (obj) {
         m_filament_setting_dlg->obj = obj;
         std::string ams_id          = m_ams_control->GetCurentAms();
@@ -3218,7 +3224,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             wxString n_val;
             k_val = wxString::Format("%.3f", obj->vt_tray.k);
             n_val = wxString::Format("%.3f", obj->vt_tray.n);
-            m_filament_setting_dlg->Move(wxPoint(m_ams_control->GetScreenPosition().x, m_ams_control->GetScreenPosition().y - FromDIP(40)));
+            m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
             m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
         } else {
             std::string tray_id = event.GetString().ToStdString(); // m_ams_control->GetCurrentCan(ams_id);
@@ -3266,7 +3272,8 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                         }
                     }
                 }
-                m_filament_setting_dlg->Move(wxPoint(m_ams_control->GetScreenPosition().x, m_ams_control->GetScreenPosition().y - FromDIP(40)));
+
+                m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
                 m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
             }
             catch (...) {
@@ -3280,6 +3287,12 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 {
     // update params
     if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow*)this, wxID_ANY);
+
+    int current_position_x = m_ams_control->GetScreenPosition().x;
+    int current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
+    auto drect = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
+    current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
+
     if (obj) {
         m_filament_setting_dlg->obj = obj;
         try {
@@ -3311,7 +3324,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
                 temp_min = obj->vt_tray.nozzle_temp_min;
             }
 
-            m_filament_setting_dlg->Move(wxPoint(m_ams_control->GetScreenPosition().x, m_ams_control->GetScreenPosition().y - FromDIP(40)));
+            m_filament_setting_dlg->Move(wxPoint(current_position_x,current_position_y));
             m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
         }
         catch (...) {
