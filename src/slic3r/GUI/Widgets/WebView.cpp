@@ -318,18 +318,9 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 
 bool WebView::CheckWebViewRuntime()
 {
-#if wxUSE_WEBVIEW_EDGE
-#ifdef __WIN32__
     wxWebViewFactoryEdge factory;
     auto wxVersion = factory.GetVersionInfo();
     return wxVersion.GetMajor() != 0;
-#else
-    return true;
-#endif
-
-#else
-    return true;
-#endif
 }
 
 bool WebView::DownloadAndInstallWebViewRuntime()

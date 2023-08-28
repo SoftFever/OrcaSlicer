@@ -2048,17 +2048,19 @@ void GUI_App::init_download_path()
     }
 }
 
+#if wxUSE_WEBVIEW_EDGE
 void GUI_App::init_webview_runtime()
 {
     // Check WebView Runtime
     if (!WebView::CheckWebViewRuntime()) {
         int nRet = wxMessageBox(_L("Couldn't find Edge WebView2 Runtime.\nDo you want to install it?"),
-            _T("WebView Runtime Installation status"), wxYES_NO);
+                                _L("WebView Runtime Installation status"), wxYES_NO);
         if (nRet == wxYES) {
             WebView::DownloadAndInstallWebViewRuntime();
         }
     }
 }
+#endif
 
 void GUI_App::init_app_config()
 {
