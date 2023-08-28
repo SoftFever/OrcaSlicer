@@ -259,6 +259,11 @@ void ArrangeJob::prepare_wipe_tower()
     auto                op             = current_config.option("enable_prime_tower");
     if (op && op->getBool() == false || params.is_seq_print) return;
 
+    bool smooth_timelapse = false;
+    auto sop              = current_config.option("timelapse_type");
+    if (sop) { smooth_timelapse = sop->getInt() == TimelapseType::tlSmooth; }
+    if (smooth_timelapse) { need_wipe_tower = true; }
+
     // estimate if we need wipe tower for all plates:
     // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
     for (const auto &item : m_selected) {
