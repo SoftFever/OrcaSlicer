@@ -2982,16 +2982,14 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
     def->label = L("Bottom interface layers");
     def->category = L("Support");
-    //def->tooltip = L("Number of bottom interface layers. "
-    //                 "-1 means same with use top interface layers");
+    def->tooltip = L("Number of bottom interface layers");
     def->sidetext = L("layers");
     def->min = -1;
     def->enum_values.push_back("-1");
     append(def->enum_values, support_interface_top_layers->enum_values);
-    //TRN To be shown in Print Settings "Bottom interface layers". Have to be as short as possible
-    def->enum_labels.push_back("-1");
+    def->enum_labels.push_back(L("Same as top"));
     append(def->enum_labels, support_interface_top_layers->enum_labels);
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_spacing", coFloat);
