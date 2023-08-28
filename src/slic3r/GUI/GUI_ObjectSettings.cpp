@@ -197,8 +197,7 @@ bool ObjectSettings::update_settings_list()
     auto objects_model  = wxGetApp().obj_list()->GetModel();
 
     wxDataViewItemArray items;
-    if (!objects_ctrl->is_dragging())
-        objects_ctrl->GetSelections(items);
+    objects_ctrl->GetSelections(items);
 
     std::map<ObjectBase *, ModelConfig *> object_configs;
     bool is_object_settings = false;

@@ -28,7 +28,6 @@
 #include <wx/listbook.h>
 #include <wx/numformatter.h>
 #include <wx/headerctrl.h>
-#include <wx/scrolwin.h>
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
@@ -97,8 +96,6 @@ ObjectList::ObjectList(wxWindow* parent) :
     GenericGetHeader()->SetFont(Label::sysFont(13));
     static auto render = new wxRenderer;
     wxRendererNative::Set(render);
-
-    ShowScrollbars(wxSHOW_SB_NEVER, wxSHOW_SB_DEFAULT);
 #endif
 
     // create control
@@ -1553,30 +1550,6 @@ void ObjectList::key_event(wxKeyEvent& event)
 }
 #endif /* __WXOSX__ */
 
-bool ObjectList::dragged_item_data::set_cur_plate(int plate)
-{
-    if (m_last_plate == plate)
-        return m_last_plate_time + wxTimeSpan::Seconds(1) < wxDateTime::Now();
-    m_last_plate      = plate;
-    m_last_plate_time = wxDateTime::Now();
-    return false;
-}
-
-struct ObjectList_TextDataObject : wxTextDataObject
-{
-    ObjectList *list;
-    ObjectList_TextDataObject(ObjectList *list) : list(list) {}
-    virtual ~ObjectList_TextDataObject() { list->cancel_drag(); }
-};
-
-void GUI::ObjectList::cancel_drag()
-{
-    if (is_dragging()) {
-        m_dragged_data.clear();
-        part_selection_changed();
-    }
-}
-
 void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
     const bool mult_sel = multiple_selection();
@@ -1592,18 +1565,28 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
         return;
     }
 
-    int from_plate = -1;
     if (type & itObject) {
         int curr_obj_id = m_objects_model->GetIdByItem(event.GetItem());
         PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-        from_plate = partplate_list.find_instance(curr_obj_id, 0);
+        int from_plate = partplate_list.find_instance(curr_obj_id, 0);
         if (from_plate == -1) {
+            event.Veto();
+            return;
+        }
+        auto curr_plate_seq = partplate_list.get_plate(from_plate)->get_print_seq();
+        if (curr_plate_seq == PrintSequence::ByDefault) {
+            auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            if (curr_preset_config.has("print_sequence"))
+                curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+        }
+
+        if (curr_plate_seq != PrintSequence::ByObject) {
+            //drag forbidden under bylayer mode
             event.Veto();
             return;
         }
 
         m_dragged_data.init(m_objects_model->GetIdByItem(item), type);
-        m_dragged_data.set_cur_plate(from_plate);
     }
     else if (type & itVolume){
         m_dragged_data.init(m_objects_model->GetObjectIdByItem(item), m_objects_model->GetVolumeIdByItem(item), type);
@@ -1648,22 +1631,11 @@ void ObjectList::OnBeginDrag(wxDataViewEvent &event)
     /* Under GTK, DnD requires to the wxTextDataObject been initialized with some valid value,
      * so set some nonempty string
      */
-    wxTextDataObject *obj = new ObjectList_TextDataObject(this);
+    wxTextDataObject* obj = new wxTextDataObject;
     obj->SetText("Some text");//it's needed for GTK
 
     event.SetDataObject(obj);
     event.SetDragFlags(wxDrag_DefaultMove); // allows both copy and move;
-
-    this->part_selection_changed();
-
-    if (from_plate >= 0 && (GetScrollPos(wxVERTICAL) > 0 || GetScrollPos(wxVERTICAL) + 1 < GetScrollRange(wxVERTICAL))) {
-        PartPlateList &partplate_list = wxGetApp().plater()->get_partplate_list();
-        for (int plate_id = 0; plate_id < partplate_list.get_plate_count(); ++plate_id)
-            if (plate_id != from_plate)
-                Collapse(m_objects_model->GetItemByPlateId(plate_id));
-        wxIdleEvent evt;
-        SendIdleEvents(evt);
-    }
 }
 
 bool ObjectList::can_drop(const wxDataViewItem& item, int& src_obj_id, int& src_plate, int& dest_obj_id, int& dest_plate) const
@@ -1682,7 +1654,7 @@ bool ObjectList::can_drop(const wxDataViewItem& item, int& src_obj_id, int& src_
         if (from_plate == -1)
             return false;
         int to_plate = partplate_list.find_instance(to_obj_id, 0);
-        if (to_plate == -1)
+        if ((to_plate == -1) || (from_plate != to_plate))
             return false;
 
         src_obj_id = from_obj_id;
@@ -1740,35 +1712,9 @@ void ObjectList::OnDropPossible(wxDataViewEvent &event)
 
     int src_obj_id, src_plate, dest_obj_id, dest_plate;
     if (!can_drop(item, src_obj_id, src_plate, dest_obj_id, dest_plate)) {
-        if (m_objects_model->GetItemType(item) == itPlate) {
-            ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode *>(item.GetID());
-            if (m_dragged_data.set_cur_plate(node->GetPlateIdx()) && !IsExpanded(item)) {
-                Expand(item);
-                wxIdleEvent evt;
-                SendIdleEvents(evt);
-            }
-        }
         event.Veto();
         m_prevent_list_events = false;
     }
-#ifdef __WXMSW__
-    auto m      = GetMainWindow();
-    wxPoint mouse_pos = wxGetMousePosition();
-    m->ScreenToClient(&mouse_pos.x, &mouse_pos.y);
-    int offset = mouse_pos.y;
-    int height = m->GetSize().y;
-    GetScrollPixelsPerUnit(&mouse_pos.x, &mouse_pos.y);
-    auto u      = mouse_pos.y;
-    if (offset < u) {
-        offset = std::min(4 * (u - offset) / u, GetScrollPos(wxVERTICAL) - 0);
-    } else if (offset + u > height) {
-        offset = std::max(4 * (height - u - offset) / u, GetScrollPos(wxVERTICAL) + 1 - GetScrollRange(wxVERTICAL));
-    } else {
-        offset = 0;
-    }
-    if (offset != 0)
-        Scroll(0, GetScrollPos(wxVERTICAL) - offset);
-#endif
 }
 
 void ObjectList::OnDrop(wxDataViewEvent &event)
@@ -1780,7 +1726,6 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     {
         event.Veto();
         m_dragged_data.clear();
-        part_selection_changed();
         return;
     }
 
@@ -1813,13 +1758,6 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
 
         select_item(m_objects_model->ReorganizeObjects(src_obj_id, dest_obj_id));
 
-        if (dest_plate != src_plate) {
-            // TODO: move object
-            auto start_origin = partplate_list.get_plate(src_plate)->get_origin();
-            auto dest_origin  = partplate_list.get_plate(dest_plate)->get_origin();
-            (*m_objects)[dest_obj_id]->translate(dest_origin - start_origin);
-            partplate_list.reload_all_objects(false, dest_plate);
-        }
         partplate_list.reload_all_objects(false, src_plate);
         changed_object(src_obj_id);
     }
@@ -1839,7 +1777,6 @@ void ObjectList::OnDrop(wxDataViewEvent &event)
     }
 
     m_dragged_data.clear();
-    part_selection_changed();
 
     wxGetApp().plater()->set_current_canvas_as_dirty();
 }

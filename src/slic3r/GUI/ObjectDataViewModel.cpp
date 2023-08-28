@@ -1811,10 +1811,8 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
 
     m_objects.erase(m_objects.begin() + current_id);
     plate_node->GetChildren().Remove(deleted_node);
-    ItemDeleted(wxDataViewItem(plate_node), wxDataViewItem(deleted_node));
+    ItemDeleted(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
 
-    bool change_plate = plate_node != new_node->m_parent;
-    plate_node = deleted_node->m_parent = new_node->m_parent;
     m_objects.emplace(m_objects.begin() + new_id, deleted_node);
     int plate_child_index = plate_node->GetChildIndex(new_node);
     if (current_id < new_id)
@@ -1823,7 +1821,7 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
         //should not happen
         plate_node->Insert(deleted_node, plate_child_index);
     }
-    ItemAdded(wxDataViewItem(plate_node), wxDataViewItem(deleted_node));
+    ItemAdded(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
 
     //ItemChanged(wxDataViewItem(nullptr));
 
