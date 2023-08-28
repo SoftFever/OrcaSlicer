@@ -804,7 +804,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
 
     // Orca
-    ((ConfigOptionBool,               make_overhang_printable))
+    ((ConfigOptionBool,                 make_overhang_printable))
+    ((ConfigOptionBool,                 extra_perimeters_on_overhangs))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

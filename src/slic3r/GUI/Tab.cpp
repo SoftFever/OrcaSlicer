@@ -1899,6 +1899,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("make_overhang_printable_hole_size");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
+        optgroup->append_single_option_line("extra_perimeters_on_overhangs");
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");

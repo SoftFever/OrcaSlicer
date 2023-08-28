@@ -1446,7 +1446,7 @@ namespace SupportMaterialInternal {
         // remove the entire bridges and only support the unsupported edges
         //FIXME the brided regions are already collected as layerm.bridged. Use it?
         for (const Surface &surface : layerm.fill_surfaces.surfaces)
-            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
+            if (surface.surface_type == stBottomBridge && surface.bridge_angle >= 0.0)
                 polygons_append(bridges, surface.expolygon);
         //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
         // Remove the unsupported ends of the bridges from the bridged areas.
