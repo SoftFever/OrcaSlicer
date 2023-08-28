@@ -7377,7 +7377,8 @@ bool Plater::priv::can_increase_instances() const
 
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size())
-        && !sidebar->obj_list()->has_selected_cut_object();
+        && !sidebar->obj_list()->has_selected_cut_object()
+        && std::all_of(model.objects[obj_idx]->instances.begin(), model.objects[obj_idx]->instances.end(), [](auto& inst) {return inst->printable; });
 }
 
 bool Plater::priv::can_decrease_instances() const
