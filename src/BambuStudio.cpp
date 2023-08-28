@@ -2891,6 +2891,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << "Skip plate " << index+1 << std::endl;
                             continue;
                         }
+                        model.curr_plate_index = index;
                         BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: pre_check %2%, start")%(index+1)%pre_check;
                         long long start_time = 0, end_time = 0;
                         start_time = (long long)Slic3r::Utils::get_current_time_utc();
