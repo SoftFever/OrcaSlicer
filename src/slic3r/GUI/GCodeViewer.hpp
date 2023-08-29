@@ -408,7 +408,7 @@ class GCodeViewer
                 min = std::min(min, value);
                 max = std::max(max, value);
             }
-            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = false; log_scale = log; }
+            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = log; }
 
             float step_size() const;
             Color get_color_at(float value) const;
@@ -432,7 +432,7 @@ class GCodeViewer
             Range temperature;
             // Color mapping by layer time.
             Range layer_duration;
-            Range layer_duration_log;
+Range layer_duration_log;
             void reset() {
                 height.reset();
                 width.reset();
@@ -492,7 +492,7 @@ class GCodeViewer
         std::vector<Endpoints>& get_endpoints() { return m_endpoints; }
         double get_z_at(unsigned int id) const { return (id < m_zs.size()) ? m_zs[id] : 0.0; }
         Endpoints get_endpoints_at(unsigned int id) const { return (id < m_endpoints.size()) ? m_endpoints[id] : Endpoints(); }
-        int                           get_l_at(double z) const
+        int                           get_l_at(float z) const
         {
             auto iter = std::upper_bound(m_zs.begin(), m_zs.end(), z);
             return std::distance(m_zs.begin(), iter);
@@ -640,7 +640,6 @@ public:
             bool is_visible() const { return m_visible; }
             void set_visible(bool visible) { m_visible = visible; }
 
-            //BBS: GUI refactor: add canvas size
             void render(int canvas_width, int canvas_height, const EViewType& view_type) const;
             void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
 
@@ -708,8 +707,7 @@ public:
         std::vector<unsigned int> gcode_ids;
         float m_scale = 1.0;
         bool m_show_gcode_window = false;
-        //BBS: GUI refactor: add canvas size
-        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const;
+        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const;
     };
 
     struct ETools
@@ -737,7 +735,6 @@ public:
 
     //BBS
     ConflictResultOpt m_conflict_result;
-
 private:
     std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
@@ -795,7 +792,7 @@ private:
     std::vector<CustomGCode::Item> m_custom_gcode_per_print_z;
 
     bool m_contained_in_bed{ true };
-    mutable bool m_no_render_path { false };
+mutable bool m_no_render_path { false };
     bool m_is_dark = false;
 
 public:
@@ -816,6 +813,7 @@ public:
     void refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_render_paths();
     void update_shells_color_by_extruder(const DynamicPrintConfig* config);
+    void set_shell_transparency(float alpha = 0.15f);
 
     void reset();
     //BBS: always load shell at preview
