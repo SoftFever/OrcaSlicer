@@ -1317,6 +1317,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("PC");
     def->enum_values.push_back("PA");
     def->enum_values.push_back("PA-CF");
+    def->enum_values.push_back("PA6-CF");
     def->enum_values.push_back("PLA-CF");
     def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PETG-CF");
