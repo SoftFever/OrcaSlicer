@@ -5350,7 +5350,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             ~close_lock() {
                 if (filename) {
                     close_zip_writer(&archive);
-                    boost::filesystem::remove(*filename);
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(*filename, ec);
                 }
             }
         } lock{archive, &filepath_tmp};
@@ -5414,8 +5415,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string const * filename;
             ~close_lock() {
                 close_zip_writer(&archive);
-                if (filename)
-                boost::filesystem::remove(*filename);
+                if (filename) {
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(*filename, ec);
+                }
             }
         } lock{ archive, &filename};
 
@@ -5562,7 +5565,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 {
                     if (!_add_calibration_file_to_archive(archive, *calibration_data[index], index)) {
                         close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -5578,7 +5580,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (id_bboxes[index]->is_valid()) {
                     if (!_add_bbox_file_to_archive(archive, *id_bboxes[index], index)) {
                         close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -5605,7 +5606,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_height_profile_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
 
@@ -5622,7 +5622,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
 
@@ -7781,13 +7780,15 @@ private:
                 break;
             }
             case RemoveObject: {
-                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml");
+                boost::system::error_code ec;
+                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml", ec);
                 t.type = None;
                 break;
             }
             case RemoveBackup: {
                 try {
-                    boost::filesystem::remove(t.path + "/.3mf");
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(t.path + "/.3mf", ec);
                     // We Saved with SplitModel now, so we can safe delete these sub models.
                     boost::filesystem::remove_all(t.path + "/3D/Objects");
                     boost::filesystem::create_directory(t.path + "/3D/Objects");
