@@ -268,13 +268,13 @@ void extrusion_paths_append(ExtrusionPaths &dst, const ClipperLib_Z::Paths &extr
 {
     for (const ClipperLib_Z::Path &extrusion_path : extrusion_paths) {
         ThickPolyline thick_polyline = Arachne::to_thick_polyline(extrusion_path);
-        Slic3r::append(dst, thick_polyline_to_extrusion_paths(thick_polyline, role, flow, scaled<float>(0.05), SCALED_EPSILON));
+        Slic3r::append(dst, thick_polyline_to_multi_path(thick_polyline, role, flow, scaled<float>(0.05), float(SCALED_EPSILON)).paths);
     }
 }
 
 void extrusion_paths_append(ExtrusionPaths &dst, const Arachne::ExtrusionLine &extrusion, const ExtrusionRole role, const Flow &flow)
 {
     ThickPolyline thick_polyline = Arachne::to_thick_polyline(extrusion);
-    Slic3r::append(dst, thick_polyline_to_extrusion_paths(thick_polyline, role, flow, scaled<float>(0.05), SCALED_EPSILON));
+    Slic3r::append(dst, thick_polyline_to_multi_path(thick_polyline, role, flow, scaled<float>(0.05), float(SCALED_EPSILON)).paths);
 }
 } // namespace Slic3r

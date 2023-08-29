@@ -151,12 +151,16 @@ void TabButtonsListCtrl::RemovePage(size_t n)
     m_sizer->Layout();
 }
 
-bool TabButtonsListCtrl::SetPageImage(size_t n, const std::string &bmp_name) const
+bool TabButtonsListCtrl::SetPageImage(size_t n, const std::string &bmp_name)
 {
     if (n >= m_pageButtons.size())
         return false;
-     
-    ScalableBitmap bitmap(NULL, bmp_name);
+
+    ScalableBitmap bitmap;
+    if (!bmp_name.empty())
+        bitmap = ScalableBitmap(this, bmp_name, 14);
+    m_pageButtons[n]->SetBitmap(bitmap);
+
     return true;
 }
 
@@ -170,6 +174,16 @@ wxString TabButtonsListCtrl::GetPageText(size_t n) const
 {
     TabButton *btn = m_pageButtons[n];
     return btn->GetLabel();
+}
+
+const wxSize& TabButtonsListCtrl::GetPaddingSize(size_t n) {
+    return m_pageButtons[n]->GetPaddingSize();
+}
+
+void TabButtonsListCtrl::SetPaddingSize(const wxSize& size) {
+    for (auto& btn : m_pageButtons) {
+        btn->SetPaddingSize(size);
+    }
 }
 
 //#endif // _WIN32

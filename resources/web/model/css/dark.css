@@ -4,6 +4,11 @@ body
 	color: #B3B3B5;
 }
 
+a
+{
+	color: #009688;
+}
+
 .ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
     background-color: #939594;
 }

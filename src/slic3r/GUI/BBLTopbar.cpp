@@ -195,7 +195,8 @@ void BBLTopbar::Init(wxFrame* parent)
     m_frame = parent;
     m_skip_popup_file_menu = false;
     m_skip_popup_dropdown_menu = false;
-    m_skip_popup_calib_menu = false;
+    m_skip_popup_calib_menu    = false;
+
     wxInitAllImageHandlers();
 
     this->AddSpacer(5);
@@ -244,9 +245,9 @@ void BBLTopbar::Init(wxFrame* parent)
 
     this->AddSpacer(FromDIP(10));
 
-    wxBitmap calib_bitmap = create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE);
+    wxBitmap calib_bitmap          = create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE);
     wxBitmap calib_bitmap_inactive = create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE);
-    m_calib_item = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
+    m_calib_item                   = this->AddTool(ID_CALIB, _L("Calibration"), calib_bitmap);
     m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
 
     this->AddSpacer(FromDIP(10));
@@ -326,17 +327,17 @@ BBLTopbar::~BBLTopbar()
     m_file_menu = nullptr;
 }
 
-void BBLTopbar::show_publish_button(bool show)
-{
-    this->EnableTool(m_publish_item->GetId(), show);
-    Refresh();
-}
-
 void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)
 {
     MainFrame* main_frame = dynamic_cast<MainFrame*>(m_frame);
     Plater* plater = main_frame->plater();
     plater->load_project();
+}
+
+void BBLTopbar::show_publish_button(bool show)
+{
+    this->EnableTool(m_publish_item->GetId(), show);
+    Refresh();
 }
 
 void BBLTopbar::OnSaveProject(wxAuiToolBarEvent& event)
@@ -360,7 +361,7 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
     plater->redo();
 }
 
-void BBLTopbar::Enable3DEditorItems()
+void BBLTopbar::EnableUndoRedoItems()
 {
     this->EnableTool(m_undo_item->GetId(), true);
     this->EnableTool(m_redo_item->GetId(), true);
@@ -368,7 +369,7 @@ void BBLTopbar::Enable3DEditorItems()
     Refresh();
 }
 
-void BBLTopbar::Disable3DEditorItems()
+void BBLTopbar::DisableUndoRedoItems()
 {
     this->EnableTool(m_undo_item->GetId(), false);
     this->EnableTool(m_redo_item->GetId(), false);
@@ -379,6 +380,15 @@ void BBLTopbar::Disable3DEditorItems()
 void BBLTopbar::SaveNormalRect()
 {
     m_normalRect = m_frame->GetRect();
+}
+
+void BBLTopbar::ShowCalibrationButton(bool show)
+{
+    m_calib_item->GetSizerItem()->Show(show);
+    m_sizer->Layout();
+    if (!show)
+        m_calib_item->GetSizerItem()->SetDimension({-1000, 0}, {0, 0});
+    Refresh();
 }
 
 void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
@@ -395,9 +405,6 @@ void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
 
     //no more check
     //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
-
-    if (!wxGetApp().check_login())
-        return;
 
 #ifdef ENABLE_PUBLISHING
     wxGetApp().plater()->show_publish_dialog();
@@ -597,17 +604,16 @@ void BBLTopbar::OnDropdownToolItem(wxAuiToolBarEvent& evt)
     tb->SetToolSticky(evt.GetId(), false);
 }
 
-void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent& evt)
+void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent &evt)
 {
-    wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+    wxAuiToolBar *tb = static_cast<wxAuiToolBar *>(evt.GetEventObject());
 
     tb->SetToolSticky(evt.GetId(), true);
 
     if (!m_skip_popup_calib_menu) {
         auto rec = this->GetToolRect(ID_CALIB);
         PopupMenu(&m_calib_menu, wxPoint(rec.GetLeft(), this->GetSize().GetHeight() - 2));
-    }
-    else {
+    } else {
         m_skip_popup_calib_menu = false;
     }
 

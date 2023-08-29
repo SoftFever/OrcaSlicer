@@ -3,7 +3,7 @@
 print "This script is currently used for installing Perl dependenices for running\n";
 print "the libslic3r unit / integration tests through Perl prove.\n";
 print "If you don't plan to run the unit / integration tests, you don't need to\n";
-print "install these dependencies to build and run BambuSlicer.\n";
+print "install these dependencies to build and run OrcaSlicer.\n";
 
 use strict;
 use warnings;

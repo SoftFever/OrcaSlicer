@@ -38,7 +38,7 @@ CStackWalker::~CStackWalker(void)
 BOOL CStackWalker::LoadSymbol()
 {
 	//USES_CONVERSION;
-	//Ö»¼ÓÔØÒ»´Î
+	//åªåŠ è½½ä¸€æ¬¡
 	if(m_bSymbolLoaded)
 	{
 		return m_bSymbolLoaded;
@@ -51,11 +51,11 @@ BOOL CStackWalker::LoadSymbol()
 		return m_bSymbolLoaded;
 	}
 	
-	//Ìí¼Óµ±Ç°³ÌÐòÂ·¾¶
+	//æ·»åŠ å½“å‰ç¨‹åºè·¯å¾„
 	TCHAR szSymbolPath[MAX_SYMBOL_PATH] = _T("");
 	StringCchCopy(szSymbolPath, MAX_SYMBOL_PATH, _T(".;"));
 
-	//Ìí¼Ó³ÌÐòËùÔÚÄ¿Â¼
+	//æ·»åŠ ç¨‹åºæ‰€åœ¨ç›®å½•
 	TCHAR szTemp[MAX_PATH] = _T("");
 	if (GetCurrentDirectory(MAX_PATH, szTemp) > 0)
 	{
@@ -63,7 +63,7 @@ BOOL CStackWalker::LoadSymbol()
 		StringCchCat(szSymbolPath, MAX_SYMBOL_PATH, _T(";"));
 	}
 
-	//Ìí¼Ó³ÌÐòÖ÷Ä£¿éËùÔÚÂ·¾¶
+	//æ·»åŠ ç¨‹åºä¸»æ¨¡å—æ‰€åœ¨è·¯å¾„
 	ZeroMemory(szTemp, MAX_PATH * sizeof(TCHAR));
 	if (GetModuleFileName(NULL, szTemp, MAX_PATH) > 0)
 	{
@@ -131,7 +131,7 @@ BOOL CStackWalker::LoadSymbol()
 
 	if (NULL != m_lpszSymbolPath)
 	{
-		m_bSymbolLoaded = SymInitialize(m_hProcess, textconv_helper::T2A_(m_lpszSymbolPath), TRUE); //ÕâÀïÉèÖÃÎªTRUE£¬ÈÃËüÔÚ³õÊ¼»¯·ûºÅ±íµÄÍ¬Ê±¼ÓÔØ·ûºÅ±í
+		m_bSymbolLoaded = SymInitialize(m_hProcess, textconv_helper::T2A_(m_lpszSymbolPath), TRUE); //è¿™é‡Œè®¾ç½®ä¸ºTRUEï¼Œè®©å®ƒåœ¨åˆå§‹åŒ–ç¬¦å·è¡¨çš„åŒæ—¶åŠ è½½ç¬¦å·è¡¨
 	}
 
 	DWORD symOptions = SymGetOptions();
@@ -167,7 +167,7 @@ void CStackWalker::FreeModuleInformations(LPMODULE_INFO pmi)
 
 LPMODULE_INFO CStackWalker::GetModulesTH32()
 {
-	//ÕâÀïÎªÁË·ÀÖ¹¼ÓÔØToolhelp.dll Ó°Ïì×îÖÕ½á¹û£¬ËùÒÔ²ÉÓÃ¶¯Ì¬¼ÓÔØµÄ·½Ê½
+	//è¿™é‡Œä¸ºäº†é˜²æ­¢åŠ è½½Toolhelp.dll å½±å“æœ€ç»ˆç»“æžœï¼Œæ‰€ä»¥é‡‡ç”¨åŠ¨æ€åŠ è½½çš„æ–¹å¼
 	LPMODULE_INFO pHead = NULL;
 	LPMODULE_INFO pTail = pHead;
 
@@ -391,13 +391,13 @@ void CStackWalker::GetModuleInformation(LPMODULE_INFO pmi)
 LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 {
 	//USES_CONVERSION;
-	//¼ÓÔØ·ûºÅ±í
+	//åŠ è½½ç¬¦å·è¡¨
 	LoadSymbol();
 
 	LPSTACKINFO pHead = NULL;
 	LPSTACKINFO pTail = pHead;
 
-	//»ñÈ¡µ±Ç°Ïß³ÌµÄÉÏÏÂÎÄ»·¾³
+	//èŽ·å–å½“å‰çº¿ç¨‹çš„ä¸Šä¸‹æ–‡çŽ¯å¢ƒ
 	CONTEXT c = {0};
 	if (context == NULL)
 	{
@@ -411,7 +411,7 @@ LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 		}
 		else
 		{
-			//Èç¹û²»ÊÇµ±Ç°Ïß³Ì£¬ÐèÒªÍ£Ö¹Ä¿±êÏß³Ì£¬ÒÔ±ãÈ¡³öÕýÈ·µÄ¶ÑÕ»ÐÅÏ¢
+			//å¦‚æžœä¸æ˜¯å½“å‰çº¿ç¨‹ï¼Œéœ€è¦åœæ­¢ç›®æ ‡çº¿ç¨‹ï¼Œä»¥ä¾¿å–å‡ºæ­£ç¡®çš„å †æ ˆä¿¡æ¯
 			SuspendThread(hThread);
 			memset(&c, 0, sizeof(CONTEXT));
 			c.ContextFlags = CONTEXT_FULL;
@@ -446,7 +446,7 @@ LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 	sf.AddrFrame.Mode = AddrModeFlat;
 	sf.AddrStack.Offset = c.Rsp;
 	sf.AddrStack.Mode = AddrModeFlat;
-	////intel Itanium(°²ÌÚ)
+	////intel Itanium(å®‰è…¾)
 #elif _M_IA64
 	imageType = IMAGE_FILE_MACHINE_IA64;
 	sf.AddrPC.Offset = c.StIIP;
@@ -490,7 +490,7 @@ LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 				StringCchCopy(pCallStack->undName, STACKWALK_MAX_NAMELEN, textconv_helper::A2T_(szName));
 			}else
 			{
-				//µ÷ÓÃ´íÎóÒ»°ãÊÇ487(µØÖ·ÎÞÐ§»òÕßÃ»ÓÐ·ÃÎÊµÄÈ¨ÏÞ¡¢ÔÚ·ûºÅ±íÖÐÎ´ÕÒµ½Ö¸¶¨µØÖ·µÄÏà¹ØÐÅÏ¢)
+				//è°ƒç”¨é”™è¯¯ä¸€èˆ¬æ˜¯487(åœ°å€æ— æ•ˆæˆ–è€…æ²¡æœ‰è®¿é—®çš„æƒé™ã€åœ¨ç¬¦å·è¡¨ä¸­æœªæ‰¾åˆ°æŒ‡å®šåœ°å€çš„ç›¸å…³ä¿¡æ¯)
 				this->OutputString(_T("Call SymGetSymFromAddr64 ,Address %08x Error:%08x\r\n"), sf.AddrPC.Offset, GetLastError());
 				continue;
 			}
@@ -505,7 +505,7 @@ LPSTACKINFO CStackWalker::StackWalker(HANDLE hThread, const CONTEXT* context)
 				continue;
 			}
 			
-			//ÕâÀïÎªÁË½«»ñÈ¡º¯ÊýÐÅÏ¢Ê§°ÜµÄÇé¿öÓëÕý³£µÄÇé¿öÒ»ÆðÊä³ö£¬·ÀÖ¹ÓÃ»§ÔÚ²é¿´Ê±³öÏÖÎó½â
+			//è¿™é‡Œä¸ºäº†å°†èŽ·å–å‡½æ•°ä¿¡æ¯å¤±è´¥çš„æƒ…å†µä¸Žæ­£å¸¸çš„æƒ…å†µä¸€èµ·è¾“å‡ºï¼Œé˜²æ­¢ç”¨æˆ·åœ¨æŸ¥çœ‹æ—¶å‡ºçŽ°è¯¯è§£
 			this->OutputString(_T("%08llx:%s [%s][%ld]\r\n"), pCallStack->szFncAddr, pCallStack->undFullName, pCallStack->szFileName, pCallStack->uFileNum);
 			if (NULL == pHead)
 			{

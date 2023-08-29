@@ -4,6 +4,8 @@ const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 //BBS: add grey and orange
 //const vec3 GREY = vec3(0.9, 0.9, 0.9);
 const vec3 ORANGE = vec3(0.8, 0.4, 0.0);
+const vec3 LightRed = vec3(0.78, 0.0, 0.0);
+const vec3 LightBlue = vec3(0.73, 1.0, 1.0);
 const float EPSILON = 0.0001;
 
 struct PrintVolumeDetection
@@ -58,13 +60,19 @@ void main()
     vec3  color = uniform_color.rgb;
     float alpha = uniform_color.a;
 
-    if (slope.actived && world_normal_z < slope.normal_z - EPSILON) {
-        //color = vec3(0.7, 0.7, 1.0);
-        color = ORANGE;
-        alpha = 1.0;
+    if (slope.actived) {
+         if(world_pos.z<0.1&&world_pos.z>-0.1)
+         {
+                color = LightBlue;
+                alpha = 0.8;
+         }
+         else if( world_normal_z < slope.normal_z - EPSILON)
+         {
+                color = color * 0.5 + LightRed * 0.5;
+                alpha = 0.8;
+         }
     }
-	
-    // if the fragment is outside the print volume -> use darker color
+	// if the fragment is outside the print volume -> use darker color
     vec3 pv_check_min = ZERO;
     vec3 pv_check_max = ZERO;
     if (print_volume.type == 0) {
@@ -85,7 +93,7 @@ void main()
 	if (is_outline)
 		gl_FragColor = uniform_color;
 #ifdef ENABLE_ENVIRONMENT_MAP
-  else if (use_environment_tex)
+    else if (use_environment_tex)
         gl_FragColor = vec4(0.45 * texture2D(environment_tex, normalize(eye_normal).xy * 0.5 + 0.5).xyz + 0.8 * color * intensity.x, alpha);
 #endif
 	else

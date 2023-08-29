@@ -32,7 +32,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play->SetCanFocus(false);
 
     m_label_status = new Label(this, "");
-    m_label_status->SetForegroundColour(wxColour("#2C2C2E"));
+    m_label_status->SetForegroundColour(wxColour("#323A3C"));
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
@@ -78,28 +78,35 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_CAMERA_VIDEO)) {
-        m_camera_exists = obj->has_ipcam;
-        m_lan_mode      = obj->is_lan_mode_printer();
-        m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
-        m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
-        m_device_busy   = obj->is_in_prepare() || obj->is_in_upgrading();
+        m_camera_exists  = obj->has_ipcam;
+        m_lan_mode       = obj->is_lan_mode_printer();
+        m_lan_proto      = obj->get_local_camera_proto();
+        m_lan_ip         = obj->dev_ip;
+        m_lan_passwd     = obj->get_access_code();
+        m_remote_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+        m_device_busy    = obj->is_camera_busy_off();
+        m_tutk_state     = obj->tutk_state;
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
+        m_lan_proto = -1;
         m_lan_ip.clear();
         m_lan_passwd.clear();
-        m_tutk_support = true;
+        m_tutk_state.clear();
+        m_remote_support = true;
         m_device_busy = false;
     }
     if (machine == m_machine) {
-        if (m_last_state == MEDIASTATE_IDLE)
+        if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
         return;
     }
     m_machine = machine;
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << m_machine;
+    m_disable_lan = false;
     m_failed_retry = 0;
+    m_last_failed_codes.clear();
+    m_last_user_play = wxDateTime::Now();
     std::string stream_url;
     if (get_stream_url(&stream_url)) {
         m_streaming = boost::algorithm::contains(stream_url, "device=" + m_machine);
@@ -107,9 +114,9 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_streaming = false;
     }
     if (m_last_state != MEDIASTATE_IDLE)
-        Stop();
+        Stop(" ");
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
-        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2 * m_failed_retry);
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
 }
@@ -128,22 +135,36 @@ void MediaPlayCtrl::Play()
         Stop(_L("Initialize failed (No Device)!"));
         return;
     }
+    if (!IsEnabled()) {
+        Stop(_L("Initialize failed (Device connection not ready)!"));
+        return;
+    }
     if (!m_camera_exists) {
         Stop(_L("Initialize failed (No Camera Device)!"));
+        return;
+    }
+    if (m_device_busy) {
+        Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
+        m_failed_retry = 0;
         return;
     }
 
     m_last_state = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
-    SetStatus(_L("Initializing..."));
-
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty()) && !m_device_busy) {
-        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
+    if (m_lan_proto > 0 && (m_lan_mode ||!m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+        m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
+        if (m_lan_proto == 1)
+            m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
+        else if (m_lan_proto == 2)
+            m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+        else if (m_lan_proto == 3)
+            m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << m_url;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
-        if (wxGetApp().app_config->get("dump_video") == "true") {
+        if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
             std::string file_h264 = data_dir() + "/video.h264";
             std::string file_info = data_dir() + "/video.info";
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << file_h264;
@@ -159,26 +180,26 @@ void MediaPlayCtrl::Play()
         return;
     }
 
+    m_disable_lan = false;
+    if (m_lan_ip.empty())
+        m_failed_code = -1;
+
     if (m_lan_mode) {
-        m_failed_code = 1;
-        Stop(m_lan_passwd.empty() 
-            ? _L("Initialize failed (Not supported with LAN-only mode)!") 
-            : _L("Initialize failed (Not accessible in LAN-only mode)!"));
+        Stop(m_lan_proto < 0
+                ? _L("Initialize failed (Not supported on the current printer version)!")
+                : _L("Initialize failed (Not accessible in LAN-only mode)!"));
         return;
     }
     
-    if (!m_tutk_support) { // not support tutk
-        if (m_device_busy) {
-            Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
-            m_failed_retry = 0;
-            return;
-        }
-        m_failed_code = 1;
+    if (!m_remote_support) { // not support tutk
         Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
-            : _L("Initialize failed (Not supported by printer)!"));
+            : _L("Initialize failed (Not supported on the current printer version)!"));
         return;
     }
+
+    m_failed_code = 0;
+    SetStatus(_L("Initializing..."));
 
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
@@ -188,7 +209,10 @@ void MediaPlayCtrl::Play()
             }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
             CallAfter([this, m, url] {
-                if (m != m_machine) return;
+                if (m != m_machine) {
+                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
+                    return;
+                }
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
@@ -197,7 +221,7 @@ void MediaPlayCtrl::Play()
                     } else {
                         m_last_state = MEDIASTATE_LOADING;
                         SetStatus(_L("Loading..."));
-                        if (wxGetApp().app_config->get("dump_video") == "true") {
+                        if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
                             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << boost::filesystem::current_path();
                             m_url = m_url + "&dump=video.h264";
                         }
@@ -215,7 +239,7 @@ void MediaPlayCtrl::Play()
 
 void MediaPlayCtrl::Stop(wxString const &msg)
 {
-    bool init_failed = m_last_state != wxMEDIASTATE_PLAYING;
+    int last_state = m_last_state;
 
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
@@ -238,27 +262,38 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         m_failed_code = 0;
     }
 
-    if (init_failed && m_failed_code != 0 && m_last_failed_code != m_failed_code) {
+
+    if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
+            && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
+            && (m_user_triggered || m_failed_retry > 3)) {
         json j;
-        j["stage"]          = std::to_string(m_last_state);
+        j["stage"]          = last_state;
         j["dev_id"]         = m_machine;
         j["dev_ip"]         = m_lan_ip;
         j["result"]         = "failed";
+        j["user_triggered"] = m_user_triggered;
+        j["failed_retry"]   = m_failed_retry;
+        bool remote         = m_url.find("/local/") == wxString::npos;
+        j["tunnel"]         = remote ? "remote" : "local";
         j["code"]           = m_failed_code;
+        if (remote)
+            j["tutk_state"] = m_tutk_state;
         j["msg"]            = into_u8(msg);
         NetworkAgent *agent = wxGetApp().getAgent();
-        if (agent)
-            agent->track_event("start_liveview", j.dump());
+        m_last_failed_codes.insert(m_failed_code);
     }
-    m_last_failed_code = m_failed_code;
 
+    m_url.clear();
     ++m_failed_retry;
-    if (m_failed_code != 0 && !m_tutk_support && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_user_triggered = true;
-            m_last_failed_code = 0;
+            if (m_last_user_play + wxTimeSpan::Minutes(5) < wxDateTime::Now()) {
+                m_last_failed_codes.clear();
+                m_last_user_play = wxDateTime::Now();
+            }
             m_next_retry   = wxDateTime::Now();
             return;
         }
@@ -270,14 +305,18 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 
 void MediaPlayCtrl::TogglePlay()
 {
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::TogglePlay";
     if (m_last_state != MEDIASTATE_IDLE) {
         m_next_retry = wxDateTime();
         Stop();
     } else {
         m_failed_retry = 0;
         m_user_triggered = true;
-        m_last_failed_code = 0;
-        m_next_retry   = wxDateTime::Now();
+        if (m_last_user_play + wxTimeSpan::Minutes(5) < wxDateTime::Now()) {
+            m_last_failed_codes.clear();
+            m_last_user_play = wxDateTime::Now();
+        }
+        m_next_retry = wxDateTime::Now();
         Play();
     }
 }
@@ -330,7 +369,7 @@ void MediaPlayCtrl::ToggleStream()
         }
     }
     if (!url.empty() && wxGetApp().app_config->get("not_show_vcamera_stop_prev") != "1") {
-        MessageDialog dlg(this->GetParent(), _L("Another virtual camera is running.\nOrca Slicer supports only a single virtual camera.\nDo you want to stop this virtual camera?"), _L("Warning"),
+        MessageDialog dlg(this->GetParent(), _L("Another virtual camera is running.\nBambu Studio supports only a single virtual camera.\nDo you want to stop this virtual camera?"), _L("Warning"),
                                  wxYES | wxCANCEL | wxICON_INFORMATION);
         dlg.show_dsa_button();
         auto          res = dlg.ShowModal();
@@ -387,7 +426,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000) {
+        if (size.GetWidth() >= 320) {
             m_last_state = state;
             SetStatus(_L("Playing..."), false);
 
@@ -399,11 +438,10 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             j["result"] = "success";
             j["code"] = 0;
             NetworkAgent* agent = wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("start_liveview", j.dump());
 
             m_failed_retry = 0;
             m_failed_code  = 0;
+            m_disable_lan = false;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");
             m_cond.notify_all();
@@ -443,6 +481,8 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
     evt.Skip();
     if (m_isBeingDeleted) return;
     m_failed_retry = 0;
+    if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     IsShownOnScreen() ? Play() : Stop();
 }
 
@@ -454,6 +494,12 @@ void MediaPlayCtrl::media_proc()
             m_cond.wait(lock);
         }
         wxString url = m_tasks.front();
+        if (m_tasks.size() >= 2 && !url.IsEmpty() && url[0] != '<' && m_tasks[1] == "<stop>") {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: busy skip url" << url;
+            m_tasks.pop_front();
+            m_tasks.pop_front();
+            continue;
+        }
         lock.unlock();
         if (url.IsEmpty()) {
             break;

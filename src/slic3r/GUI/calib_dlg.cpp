@@ -220,7 +220,7 @@ void PA_Calibration_Dlg::on_show(wxShowEvent& event) {
     PA_Calibration_Dlg::reset_params();
 }
 
-// Temp Calib dlg
+// Temp calib dlg
 //
 enum FILAMENT_TYPE : int
 {

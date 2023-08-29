@@ -138,6 +138,7 @@ private:
 
 
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
 //BBS: declare EVT_GLCANVAS_PLATE_SELECT
 wxDECLARE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 
@@ -497,6 +498,8 @@ public:
         CanvasPreview = 1,
         CanvasAssembleView = 2,
     };
+
+    int GetHoverId();
 
 private:
     bool m_is_dark = false;

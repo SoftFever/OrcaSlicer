@@ -322,6 +322,13 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
     if (! wxGetApp().IsActive())
         return false;
 
+    int xmult = params.invert_x ? -1 : 1;
+    int ymult = params.invert_y ? -1 : 1;
+    int zmult = params.invert_z ? -1 : 1;
+    int yawmult = params.invert_yaw ? -1 : 1;
+    int pitchmult = params.invert_pitch ? -1 : 1;
+    int rollmult = params.invert_roll ? -1 : 1;
+
     std::deque<QueueItem> input_queue;
     {
     	// Atomically move m_input_queue to input_queue.
@@ -332,7 +339,7 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
 
     for (const QueueItem &input_queue_item : input_queue) {
     	if (input_queue_item.is_translation()) {
-            Vec3d translation = params.swap_yz ? Vec3d(input_queue_item.vector.x(), - input_queue_item.vector.z(), input_queue_item.vector.y()) : input_queue_item.vector;
+            Vec3d translation = params.swap_yz ? Vec3d(input_queue_item.vector.x() * xmult, - input_queue_item.vector.z() * zmult, input_queue_item.vector.y() * ymult) : Vec3d(input_queue_item.vector.x() * xmult, input_queue_item.vector.y() * ymult, input_queue_item.vector.z() * zmult);
             double zoom_factor = camera.min_zoom() / camera.get_zoom();
 	        camera.set_target(camera.get_target() + zoom_factor * params.translation.scale * (translation.x() * camera.get_dir_right() + translation.z() * camera.get_dir_up()));
             if (translation.y() != 0.0)
@@ -341,6 +348,7 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
             Vec3d rot = params.rotation.scale * input_queue_item.vector * (PI / 180.);
             if (params.swap_yz)
                 rot = Vec3d(rot.x(), -rot.z(), rot.y());
+            rot = Vec3d(rot.x() * pitchmult, rot.y() * yawmult, rot.z() * rollmult);
             camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
 	    } else {
 	    	assert(input_queue_item.is_buttons());
@@ -369,12 +377,24 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    float  rotation_deadzone 	= Params::DefaultRotationDeadzone;
 	    double zoom_speed 			= 2.0;
         bool   swap_yz              = false;
+        bool   invert_x             = false;
+        bool   invert_y             = false;
+        bool   invert_z             = false;
+        bool   invert_yaw           = false;
+        bool   invert_pitch         = false;
+        bool   invert_roll          = false;
         appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
 	    appconfig.get_mouse_device_translation_deadzone(device_name, translation_deadzone);
 	    appconfig.get_mouse_device_rotation_speed(device_name, rotation_speed);
 	    appconfig.get_mouse_device_rotation_deadzone(device_name, rotation_deadzone);
 	    appconfig.get_mouse_device_zoom_speed(device_name, zoom_speed);
         appconfig.get_mouse_device_swap_yz(device_name, swap_yz);
+        appconfig.get_mouse_device_invert_x(device_name, invert_x);
+        appconfig.get_mouse_device_invert_y(device_name, invert_y);
+        appconfig.get_mouse_device_invert_z(device_name, invert_z);
+        appconfig.get_mouse_device_invert_yaw(device_name, invert_yaw);
+        appconfig.get_mouse_device_invert_pitch(device_name, invert_pitch);
+        appconfig.get_mouse_device_invert_roll(device_name, invert_roll);
         // clamp to valid values
 	    Params params;
 	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, Params::MinTranslationScale, Params::MaxTranslationScale);
@@ -383,6 +403,12 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    params.rotation.deadzone = std::clamp(rotation_deadzone, 0.0f, Params::MaxRotationDeadzone);
 	    params.zoom.scale = Params::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0);
         params.swap_yz = swap_yz;
+        params.invert_x = invert_x;
+        params.invert_y = invert_x;
+        params.invert_z = invert_x;
+        params.invert_yaw = invert_yaw;
+        params.invert_pitch = invert_pitch;
+        params.invert_roll = invert_roll;
         m_params_by_device[device_name] = std::move(params);
 	}
 }
@@ -398,7 +424,8 @@ void Mouse3DController::save_config(AppConfig &appconfig) const
 		const Params      &params      = key_value_pair.second;
 	    // Store current device parameters into the config
         appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
-            params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale, params.swap_yz);
+            params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale,
+            params.swap_yz, params.invert_x, params.invert_y, params.invert_z, params.invert_yaw, params.invert_pitch, params.invert_roll);
     }
 }
 
@@ -583,6 +610,50 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
                 params_copy.swap_yz = swap_yz;
                 params_changed = true;
             }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
+            bool invert_x = params_copy.invert_x;
+            if (imgui.bbl_checkbox(_L("Invert X axis"), invert_x)) {
+                params_copy.invert_x = invert_x;
+                params_changed = true;
+            }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
+            bool invert_y = params_copy.invert_y;
+            if (imgui.bbl_checkbox(_L("Invert Y axis"), invert_y)) {
+                params_copy.invert_y = invert_y;
+                params_changed = true;
+            }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
+            bool invert_z = params_copy.invert_z;
+            if (imgui.bbl_checkbox(_L("Invert Z axis"), invert_z)) {
+                params_copy.invert_z = invert_z;
+                params_changed = true;
+            }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
+            bool invert_yaw = params_copy.invert_yaw;
+            if (imgui.bbl_checkbox(_L("Invert Yaw axis"), invert_yaw)) {
+                params_copy.invert_yaw = invert_yaw;
+                params_changed = true;
+            }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
+            bool invert_pitch = params_copy.invert_pitch;
+            if (imgui.bbl_checkbox(_L("Invert Pitch axis"), invert_pitch)) {
+                params_copy.invert_pitch = invert_pitch;
+                params_changed = true;
+            }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
+            bool invert_roll = params_copy.invert_roll;
+            if (imgui.bbl_checkbox(_L("Invert Roll axis"), invert_roll)) {
+                params_copy.invert_roll = invert_roll;
+                params_changed = true;
+            }
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
             ImGui::Separator();
@@ -782,6 +853,13 @@ void Mouse3DController::run()
         return;
     }
     m_connected = true;
+    m_device_str = "spacenavd";
+    if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end()) {
+        std::scoped_lock<std::mutex> lock(m_params_ui_mutex);
+        m_params = m_params_ui = it_params->second;
+    } else {
+        m_params = m_params_ui = m_params_by_device[m_device_str] = Params();
+    }
 
     for (;;) {
         {
@@ -789,7 +867,7 @@ void Mouse3DController::run()
             if (m_stop)
                 break;
             if (m_params_ui_changed) {
-                m_params = m_params_ui;
+                m_params = m_params_by_device[m_device_str] = m_params_ui;
                 m_params_ui_changed = false;
             }
         }

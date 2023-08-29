@@ -244,6 +244,16 @@ function IsJson( strJson )
 	return tJson;
 }
 
+function DecodeJsonObject( pJson )
+{
+	let tmpJson=JSON.stringify(pJson);
+	tmpJson=decodeURIComponent(tmpJson);
+	
+	pJson=JSON.parse(tmpJson);
+	
+	return pJson;
+}
+
 /*-----------------------Ajax Function--------------------*/
 /*对JQuery的Ajax函数的封装，只支持异步
 参数说明：
@@ -340,6 +350,16 @@ function SendWXDebugInfo( strMsg )
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="debug_info";
 	tSend['msg']=strMsg;
+
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+function OpenUrlInLocalBrowser( strUrl )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="common_openurl";
+	tSend['url']=strUrl;
 
 	SendWXMessage( JSON.stringify(tSend) );		
 }

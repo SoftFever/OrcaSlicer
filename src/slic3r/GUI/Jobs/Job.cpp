@@ -35,9 +35,9 @@ void GUI::Job::update_percent_finish()
     m_progress->clear_percent();
 }
 
-void GUI::Job::show_networking_test(wxString msg)
+void GUI::Job::show_error_info(wxString msg, int code, wxString description, wxString extra)
 {
-    m_progress->show_networking_test(msg);
+    m_progress->show_error_info(msg, code, description, extra);
 }
 
 GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)

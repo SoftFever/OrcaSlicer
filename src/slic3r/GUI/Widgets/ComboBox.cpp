@@ -19,7 +19,19 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-ComboBox::ComboBox(wxWindow *      parent,
+static wxWindow *GetScrollParent(wxWindow *pWindow)
+{
+    wxWindow *pWin = pWindow;
+    while (pWin->GetParent()) {
+        auto pWin2 = pWin->GetParent();
+        if (auto top = dynamic_cast<wxScrollHelper *>(pWin2))
+            return dynamic_cast<wxWindow *>(pWin);
+        pWin = pWin2;
+    }
+    return nullptr;
+}
+
+ComboBox::ComboBox(wxWindow *parent,
                    wxWindowID      id,
                    const wxString &value,
                    const wxPoint & pos,
@@ -47,9 +59,9 @@ ComboBox::ComboBox(wxWindow *      parent,
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
         TextInput::SetLabelColor(StateColor(std::make_pair(0x909090, (int) StateColor::Disabled),
             std::make_pair(0x262E30, (int) StateColor::Normal)));
-    } else {
-        GetTextCtrl()->Bind(wxEVT_KEY_DOWN, &ComboBox::keyDown, this);
     }
+    if (auto scroll = GetScrollParent(this))
+        scroll->Bind(wxEVT_MOVE, &ComboBox::onMove, this);
     drop.Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         SetSelection(e.GetInt());
         e.SetEventObject(this);
@@ -68,17 +80,17 @@ int ComboBox::GetSelection() const { return drop.GetSelection(); }
 
 void ComboBox::SetSelection(int n)
 {
+    if (n == drop.selection)
+        return;
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
-    if (drop.selection >= 0)
+    if (drop.selection >= 0 && drop.iconSize.y > 0)
         SetIcon(icons[drop.selection]);
 }
-
 void ComboBox::SelectAndNotify(int n) { 
     SetSelection(n);
     sendComboBoxEvent();
 }
-
 
 void ComboBox::Rescale()
 {
@@ -95,7 +107,7 @@ void ComboBox::SetValue(const wxString &value)
 {
     drop.SetValue(value);
     SetLabel(value);
-    if (drop.selection >= 0)
+    if (drop.selection >= 0 && drop.iconSize.y > 0)
         SetIcon(icons[drop.selection]);
 }
 
@@ -279,6 +291,12 @@ void ComboBox::keyDown(wxKeyEvent& event)
             event.Skip();
             break;
     }
+}
+
+void ComboBox::onMove(wxMoveEvent &event)
+{
+    event.Skip();
+    drop.Hide();
 }
 
 void ComboBox::OnEdit()

@@ -88,6 +88,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::ExpandBtn                  , "expand_btn"                 },
     {ImGui::CollapseBtn                , "collapse_btn"               },
     {ImGui::RevertBtn                  , "revert_btn"                 },
+
+    {ImGui::CloseBlockNotifButton      , "block_notification_close"           },
+    {ImGui::CloseBlockNotifHoverButton , "block_notification_close_hover"     },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -113,6 +116,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifHoverDarkButton   , "notification_close_hover_dark"        },
     {ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
     {ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
+    {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
@@ -1478,7 +1482,13 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
             float icon_pos_y = selectable_pos_y + (label_size.y + style.ItemSpacing.y - icon_size.y) / 2;
             float icon_pos_x = pos.x + window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f;
             ImVec2 icon_pos = ImVec2(icon_pos_x, icon_pos_y);
-            ImGui::RenderFrame(icon_pos, icon_pos + icon_size, icon_color);
+            if (icon_color != 0)
+                ImGui::RenderFrame(icon_pos, icon_pos + icon_size, icon_color);
+            else {
+                static ImTextureID transparent;
+                IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/transparent.svg", icon_size.x, icon_size.y, transparent);
+                window->DrawList->AddImage(transparent, icon_pos, icon_pos + icon_size, { 0,0 }, { 1,1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+            }
         }
 
         if (shortcut_w > 0.0f) {
@@ -2067,6 +2077,7 @@ void ImGuiWrapper::init_font(bool compress)
     ImVector<ImWchar> basic_ranges;
     ImFontAtlas::GlyphRangesBuilder builder;
     builder.AddRanges(m_glyph_ranges);
+    builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
 #ifdef __APPLE__
     if (m_font_cjk)
         // Apple keyboard shortcuts are only contained in the CJK fonts.

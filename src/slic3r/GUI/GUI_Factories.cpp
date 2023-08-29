@@ -57,6 +57,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
     // BBS
     { L("Support")     , { "enable_support", "support_type", "support_threshold_angle",
                                     "support_base_pattern", "support_on_build_plate_only","support_critical_regions_only",
+                                    "support_remove_small_overhang",
                                     "support_base_pattern_spacing", "support_expansion"}},
     //BBS
     { L("Flush options")         , { "flush_into_infill", "flush_into_objects", "flush_into_support"} }
@@ -81,10 +82,10 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
                     {"support_filament", "",8},{"support_interface_filament", "",9},{"support_expansion", "",24},{"support_style", "",25},
-                     {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},//tree support
+                    {"tree_support_brim_width", "",26}, {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},//tree support
                             {"support_top_z_distance", "",13},{"support_bottom_z_distance", "",12},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
                             {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
-                            {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23}
+                            {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23},{"support_remove_small_overhang","",27}
                             }},
     { L("Speed"), {{"support_speed", "",12}, {"support_interface_speed", "",13}
                     }}
@@ -824,36 +825,57 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
 
-    auto keys = select_object_config.keys();
-    for (auto key : FREQ_SETTINGS_BUNDLE_FFF["Flush options"]) {
-        if (find(keys.begin(), keys.end(), key) == keys.end()) {
-            const ConfigOption* option = global_config.option(key);
-            select_object_config.set_key_value(key, option->clone());
-        }
-    }
-
-
     wxMenu* flush_options_menu = new wxMenu();
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' infill"), "",
-        [&select_object_config](wxCommandEvent&) {
+        [&select_object_config, &global_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]); return option->getBool(); }, m_parent);
+        }, menu, []() {return true; }, 
+            [&select_object_config, &global_config]() {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            }
+            return option->getBool();
+        }, m_parent);
 
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into this object"), "",
-        [&select_object_config](wxCommandEvent&) {
+        [&select_object_config, &global_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]); return option->getBool(); }, m_parent);
+        }, menu, []() {return true; }, 
+            [&select_object_config, &global_config]() {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            }
+            return option->getBool();
+        }, m_parent);
 
     append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' support"), "",
-        [&select_object_config](wxCommandEvent&) {
+        [&select_object_config, &global_config](wxCommandEvent&) {
             const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            }
             select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2], new ConfigOptionBool(!option->getBool()));
             wxGetApp().obj_settings()->UpdateAndShow(true);
-        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]); return option->getBool(); }, m_parent);
+        }, menu, []() {return true; }, 
+            [&select_object_config, &global_config]() {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            if (!option) {
+                option = global_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            }
+            return option->getBool();
+        }, m_parent);
 
     size_t i = 0;
     for (auto node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext())
@@ -940,9 +962,9 @@ void MenuFactory::append_menu_item_merge_to_single_object(wxMenu* menu)
 void MenuFactory::append_menu_item_merge_parts_to_single_part(wxMenu* menu)
 {
     menu->AppendSeparator();
-    append_menu_item(menu, wxID_ANY, _L("Assemble"), _L("Assemble the selected parts to a single part"),
-        [](wxCommandEvent&) { obj_list()->merge_volumes(); }, "", menu,
-        []() { return true; }, m_parent);
+    append_menu_item(menu, wxID_ANY, _L("Mesh boolean"), _L("Mesh boolean operations including union and subtraction"),
+        [](wxCommandEvent&) { obj_list()->boolean/*merge_volumes*/(); }, "", menu,
+        []() { return obj_list()->can_mesh_boolean(); }, m_parent);
 }
 
 void MenuFactory::append_menu_items_mirror(wxMenu* menu)
@@ -1056,6 +1078,8 @@ void MenuFactory::create_extra_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    // merge to single part
+    append_menu_item_merge_parts_to_single_part(&m_object_menu);
     // Object Center
     append_menu_item_center(&m_object_menu);
     // Object Split
@@ -1295,10 +1319,10 @@ wxMenu* MenuFactory::default_menu()
 
 wxMenu* MenuFactory::object_menu()
 {
-    append_menu_item_change_filament(&m_object_menu);
     append_menu_items_convert_unit(&m_object_menu);
     append_menu_items_flush_options(&m_object_menu);
     append_menu_item_invalidate_cut_info(&m_object_menu);
+    append_menu_item_change_filament(&m_object_menu);
     return &m_object_menu;
 }
 
@@ -1358,13 +1382,13 @@ wxMenu* MenuFactory::multi_selection_menu()
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
         menu->AppendSeparator();
-        //BBS
-        append_menu_item_change_filament(menu);
 
         append_menu_item_set_printable(menu);
         append_menu_item_per_object_process(menu);
         menu->AppendSeparator();
         append_menu_items_convert_unit(menu);
+        //BBS
+        append_menu_item_change_filament(menu);
         menu->AppendSeparator();
         append_menu_item_export_stl(menu, true);
     }
@@ -1374,6 +1398,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
         append_menu_items_convert_unit(menu);
+        append_menu_item_change_filament(menu);
         wxMenu* split_menu = new wxMenu();
         if (split_menu) {
             append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
@@ -1417,6 +1442,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
 wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
+    append_menu_item_plate_name(&m_plate_menu);
     return &m_plate_menu;
 }
 
@@ -1621,11 +1647,16 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
         }
     }
 
-    wxString menu_text = all_printable ? _L("Set Unprintable") : _L("Set Printable");
-    append_menu_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
+    wxString menu_text = _L("Printable");
+    wxMenuItem* menu_item_set_printable = append_menu_check_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);
-        }, "", nullptr, []() { return true; }, m_parent);
+        }, menu);
+    m_parent->Bind(wxEVT_UPDATE_UI, [all_printable](wxUpdateUIEvent& evt) {
+        evt.Check(all_printable);
+        plater()->set_current_canvas_as_dirty();
+
+        }, menu_item_set_printable->GetId());
 }
 
 void MenuFactory::append_menu_item_locked(wxMenu* menu)
@@ -1657,6 +1688,41 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
     }, item->GetId());
 }
 
+void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
+{
+    wxString name= _L("Edit Plate Name");
+    // Delete old menu item
+    const int item_id = menu->FindItem(name);
+    if (item_id != wxNOT_FOUND) menu->Destroy(item_id);
+    
+    PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+    assert(plate);
+   
+    auto item = append_menu_item(
+        menu, wxID_ANY, name, "",
+        [plate](wxCommandEvent &e) {
+            int hover_idx =plater()->canvas3D()->GetHoverId();
+            if (hover_idx == -1) {
+                int plate_idx=plater()->GetPlateIndexByRightMenuInLeftUI();
+                plater()->select_plate_by_hover_id(plate_idx * PartPlate::GRABBER_COUNT, false, true);
+            }
+            else
+            {
+                plater()->select_plate_by_hover_id(hover_idx, false, true);
+            } 
+            plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_PLATE_NAME_CHANGE));
+        },
+        "", nullptr, []() { return true; }, m_parent);
+
+    m_parent->Bind(
+        wxEVT_UPDATE_UI,
+        [](wxUpdateUIEvent &evt) {
+            PartPlate *plate = plater()->get_partplate_list().get_selected_plate();
+            assert(plate);
+            plater()->set_current_canvas_as_dirty();
+        },
+        item->GetId());
+}
 
 void MenuFactory::update_object_menu()
 {

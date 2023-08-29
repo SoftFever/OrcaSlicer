@@ -75,6 +75,7 @@ public:
 
     ScalableBitmap m_arraw_bitmap_gray;
     ScalableBitmap m_arraw_bitmap_white;
+    ScalableBitmap m_transparent_mitem;
 
     bool m_selected {false};
     bool m_warning{false};
@@ -82,6 +83,8 @@ public:
     void msw_rescale();
     void set_ams_info(wxColour col, wxString txt);
 
+    void disable();
+    void enable();
     void on_normal();
     void on_selected();
     void on_warning();
@@ -106,6 +109,7 @@ public:
     wxColour m_coloul;
     wxString m_name;
     TrayData m_tray_data;
+    ScalableBitmap m_transparent_mapping_item;
     bool     m_unmatch{false};
 
     void msw_rescale();
@@ -242,6 +246,35 @@ public:
 };
 
 
+class AmsRMGroup : public wxWindow
+{
+public:
+    AmsRMGroup(wxWindow* parent, std::map<std::string, wxColour> group_info, wxString mname, wxString group_index);
+    ~AmsRMGroup() {};
+
+public:
+    void set_index(std::string index) {m_selected_index = index;};
+    void paintEvent(wxPaintEvent& evt);
+    void render(wxDC& dc);
+    void doRender(wxDC& dc);
+    void on_mouse_move(wxMouseEvent& evt);
+    
+    double GetAngle(wxPoint pointA, wxPoint pointB);
+    wxPoint CalculateEndpoint(const wxPoint& startPoint, int angle, int length);
+private:
+    std::map<std::string, wxColour> m_group_info;
+    std::string     m_selected_index;
+    ScalableBitmap  backup_current_use_white;
+    ScalableBitmap  backup_current_use_black;
+    ScalableBitmap  bitmap_backup_tips_0;
+    ScalableBitmap  bitmap_backup_tips_1;
+    ScalableBitmap  bitmap_editable;
+    ScalableBitmap  bitmap_bg;
+    ScalableBitmap  bitmap_editable_light;
+    wxString        m_material_name;
+    wxString        m_group_index;
+};
+
 class AmsReplaceMaterialDialog : public DPIDialog
 {
 public:
@@ -249,67 +282,24 @@ public:
     ~AmsReplaceMaterialDialog() {};
 
 public:
-    wxWindow*   create_split_line(wxString gname, wxColour col, wxString material, std::vector<bool> status_list);
+    AmsRMGroup* create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list);
     void        create();
     void        update_machine_obj(MachineObject* obj);
-    void        on_left_down(wxMouseEvent& evt);
+    void        update_mapping_result(std::vector<FilamentInfo> result);
     void        paintEvent(wxPaintEvent& evt);
-    void        on_dpi_changed(const wxRect &suggested_rect) override;
+    void        on_dpi_changed(const wxRect& suggested_rect) override;
     std::vector<bool>        GetStatus(unsigned int status);
 
 public:
-    wxBoxSizer* m_main_sizer{nullptr};
-    wxBoxSizer* m_groups_sizer{nullptr};
-
-    MachineObject* m_obj{nullptr};
+    wxScrolledWindow* m_scrollview_groups{ nullptr };
+    wxBoxSizer* m_scrollview_sizer{ nullptr };
+    wxBoxSizer* m_main_sizer{ nullptr };
+    wxWrapSizer* m_groups_sizer{ nullptr };
+    MachineObject* m_obj{ nullptr };
+    std::vector<std::string> m_tray_used;
+    Label* label_txt{nullptr};
 };
 
-
-enum RMTYPE {
-    RMTYPE_NORMAL   = 0,
-    RMTYPE_VIRTUAL  = 1,
-};
-
-class AmsRMItem : public wxWindow
-{
-public:
-    AmsRMItem(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-    ~AmsRMItem() {};
-
-public:
-    void set_color(wxColour col) {m_color = col;};
-    void set_type(RMTYPE type) {m_type = type;};
-    void set_index(std::string index) {m_index = index;};
-    void set_focus(bool focus) {m_focus = focus;};
-
-    void paintEvent(wxPaintEvent& evt);
-    void render(wxDC& dc);
-    void doRender(wxDC& dc);
-
-private:
-    RMTYPE      m_type;
-    wxColour    m_color;
-    std::string m_index;
-    bool        m_focus = false;
-    bool        m_selected = false;
-};
-
-class AmsRMArrow : public wxWindow
-{
-public:
-    AmsRMArrow(wxWindow* parent);
-    ~AmsRMArrow() {};
-
-public:
-    void paintEvent(wxPaintEvent& evt);
-    void render(wxDC& dc);
-    void doRender(wxDC& dc);
-
-private:
-    ScalableBitmap m_bitmap_left;
-    ScalableBitmap m_bitmap_right;
-    ScalableBitmap m_bitmap_down;
-};
 
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
