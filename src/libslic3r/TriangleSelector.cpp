@@ -291,7 +291,9 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
         while (facet_idx < int(facets_to_check.size())) {
             int          facet = facets_to_check[facet_idx];
             const Vec3f& facet_normal = m_face_normals[m_triangles[facet].source_triangle];
-            if (!visited[facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
+            Matrix3f     normal_matrix = static_cast<Matrix3f>(trafo_no_translate.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
+            float        world_normal_z = (normal_matrix* facet_normal).normalized().z();
+            if (!visited[facet] && (highlight_by_angle_deg == 0.f || world_normal_z < highlight_angle_limit)) {
                 if (select_triangle(facet, new_state, triangle_splitting)) {
                     // add neighboring facets to list to be processed later
                     for (int neighbor_idx : m_neighbors[facet])
@@ -340,7 +342,9 @@ void TriangleSelector::seed_fill_select_triangles(const Vec3f &hit, int facet_st
         facet_queue.pop();
 
         const Vec3f &facet_normal = m_face_normals[m_triangles[current_facet].source_triangle];
-        if (!visited[current_facet] && (highlight_by_angle_deg == 0.f || vec_down.dot(facet_normal) >= highlight_angle_limit)) {
+        Matrix3f     normal_matrix  = static_cast<Matrix3f>(trafo_no_translate.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
+        float        world_normal_z = (normal_matrix * facet_normal).normalized().z();
+        if (!visited[current_facet] && (highlight_by_angle_deg == 0.f || world_normal_z < highlight_angle_limit)) {
             if (m_triangles[current_facet].is_split()) {
                 for (int split_triangle_idx = 0; split_triangle_idx <= m_triangles[current_facet].number_of_split_sides(); ++split_triangle_idx) {
                     assert(split_triangle_idx < int(m_triangles[current_facet].children.size()));
