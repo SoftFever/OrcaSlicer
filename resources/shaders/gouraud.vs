@@ -14,6 +14,9 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 //#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
 //#define LIGHT_FRONT_SHININESS 5.0
 
+const vec3 LIGHT_BACK_DIR = vec3(0.1397015, 0.6985074,0.6985074);
+#define LIGHT_BACK_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+
 #define INTENSITY_AMBIENT    0.3
 
 const vec3 ZERO = vec3(0.0, 0.0, 0.0);
@@ -32,7 +35,7 @@ uniform SlopeDetection slope;
 uniform vec2 z_range;
 // Clipping plane - general orientation. Used by the SLA gizmo.
 uniform vec4 clipping_plane;
-
+uniform bool is_text_shape;
 // x = diffuse, y = specular;
 varying vec2 intensity;
 
@@ -59,7 +62,11 @@ void main()
 	// Perform the same lighting calculation for the 2nd light source (no specular applied).
 	NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
 	intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
-
+	
+	if(is_text_shape){
+		NdotL = max(dot(eye_normal, LIGHT_BACK_DIR), 0.0);
+		intensity.x += NdotL * LIGHT_BACK_DIFFUSE;
+	}
     model_pos = gl_Vertex;
     // Point in homogenous coordinates.
     world_pos = volume_world_matrix * gl_Vertex;

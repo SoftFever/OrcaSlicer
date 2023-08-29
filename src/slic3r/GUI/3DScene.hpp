@@ -260,7 +260,7 @@ private:
 class GLVolume {
 public:
     std::string name;
-
+    bool        is_text_shape{false};
     static std::array<float, 4> DISABLED_COLOR;
     static std::array<float, 4> SLA_SUPPORT_COLOR;
     static std::array<float, 4> SLA_PAD_COLOR;
