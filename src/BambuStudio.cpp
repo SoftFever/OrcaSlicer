@@ -2012,18 +2012,35 @@ int CLI::run(int argc, char **argv)
             }
         }
         else if (opt_key == "orient") {
-            for (auto& model : m_models)
-                for (ModelObject* o : model.objects)
-                {
-                    // coconut: always orient instance instead of object
-                    for (ModelInstance* mi : o->instances)
+            //BBS: orient 0 means disable, 1 means force orient, others means auto
+            int orient_option = m_config.option<ConfigOptionInt>("orient")->value;
+
+            if (orient_option == 0)
+            {
+                orients_requirement.clear();
+                for (auto& model : m_models)
+                    for (ModelObject* o : model.objects)
                     {
-                        orientation::orient(mi);
+                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
+                        BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :"  << o->id().id << ", no need to orient when setting orient to 0\n";
                     }
-                    BOOST_LOG_TRIVIAL(info) << "orient object, name=" << o->name <<",id="<<o->id().id<<std::endl;
-                    //BBS: clear the orient objects lists
-                    orients_requirement[o->id().id] = false;
-                }
+            }
+            else if (orient_option == 1)
+            {
+                //force orient
+                orients_requirement.clear();
+                for (auto& model : m_models)
+                    for (ModelObject* o : model.objects)
+                    {
+                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, true));
+                        BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :"  << o->id().id << ", need to orient when setting orient to 1\n";
+                    }
+            }
+            else
+            {
+                //auto arrange, keep the original logic
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("orient_option %1%")%orient_option;
         }
         else if (opt_key == "copy") {
             for (auto &model : m_models) {
@@ -2777,10 +2794,13 @@ int CLI::run(int argc, char **argv)
     // All transforms have been dealt with. Now ensure that the objects are on bed.
     // (Unless the user said otherwise.)
     //BBS: current only support models on bed, 0407 sinking supported
-    //if (m_config.opt_bool("ensure_on_bed"))
-    //    for (auto &model : m_models)
-    //        for (auto &o : model.objects)
-    //            o->ensure_on_bed();
+    if (m_config.opt_bool("ensure_on_bed"))
+    {
+        BOOST_LOG_TRIVIAL(info) << "ensure_on_bed: need to ensure each object on beds";
+        for (auto &model : m_models)
+            for (auto &o : model.objects)
+                o->ensure_on_bed();
+    }
 
     // loop through action options
     bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;

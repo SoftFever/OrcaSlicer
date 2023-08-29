@@ -5094,12 +5094,12 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
-    /*def = this->add("ensure_on_bed", coBool);
+    def = this->add("ensure_on_bed", coBool);
     def->label = L("Ensure on bed");
-    def->tooltip = L("Lift the object above the bed when it is partially below. Enabled by default, use --no-ensure-on-bed to disable.");
-    def->set_default_value(new ConfigOptionBool(true));
+    def->tooltip = L("Lift the object above the bed when it is partially below. Disabled by default");
+    def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("copy", coInt);
+    /*def = this->add("copy", coInt);
     def->label = L("Copy");
     def->tooltip =L("Duplicate copies of model");
     def->min = 1;
@@ -5119,18 +5119,18 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->tooltip = L("Convert the units of model");
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("orient", coBool);
-    def->label = L("Orient");
-    def->tooltip = L("Orient the model");
+    def = this->add("orient", coInt);
+    def->label = L("Orient Options");
+    def->tooltip = L("Orient options: 0-disable, 1-enable, others-auto");
     //def->cli = "orient|o";
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionInt(0));
 
     /*def = this->add("repair", coBool);
     def->label = L("Repair");
     def->tooltip = L("Repair the model's meshes if it is non-manifold mesh");
     def->set_default_value(new ConfigOptionBool(false));*/
 
-    /*def = this->add("rotate", coFloat);
+    def = this->add("rotate", coFloat);
     def->label = L("Rotate");
     def->tooltip = L("Rotation angle around the Z axis in degrees.");
     def->set_default_value(new ConfigOptionFloat(0));
@@ -5143,7 +5143,7 @@ CLITransformConfigDef::CLITransformConfigDef()
     def = this->add("rotate_y", coFloat);
     def->label = L("Rotate around Y");
     def->tooltip = L("Rotation angle around the Y axis in degrees.");
-    def->set_default_value(new ConfigOptionFloat(0));*/
+    def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("scale", coFloat);
     def->label = L("Scale");
