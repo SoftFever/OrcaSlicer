@@ -2955,6 +2955,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         || obj_->amsList.empty()
         || obj_->ams_exist_bits == 0
         || !obj_->is_support_filament_backup
+        || !obj_->is_support_show_filament_backup
         || !obj_->ams_auto_switch_filament_flag
         || !m_checkbox_list["use_ams"]->GetValue() ) {
         if (m_ams_backup_tip->IsShown()) {

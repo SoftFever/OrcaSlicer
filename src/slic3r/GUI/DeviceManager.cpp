@@ -3142,7 +3142,7 @@ int MachineObject::parse_json(std::string payload)
                     /*get filam_bak*/
                     try {
                         if (jj.contains("filam_bak")) {
-                            is_support_filament_backup = true;
+                            is_support_show_filament_backup = true;
                             filam_bak.clear();
                             if (jj["filam_bak"].is_array()) {
                                 for (auto it = jj["filam_bak"].begin(); it != jj["filam_bak"].end(); it++) {
@@ -3151,7 +3151,7 @@ int MachineObject::parse_json(std::string payload)
                             }
                         }
                         else {
-                            is_support_filament_backup = false;
+                            is_support_show_filament_backup = false;
                         }
                     }
                     catch (...) {
