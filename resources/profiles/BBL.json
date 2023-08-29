@@ -482,6 +482,10 @@
             "sub_path": "filament/Bambu Support For PA PET @base.json"
         },
         {
+            "name": "Bambu PA6-CF @base",
+            "sub_path": "filament/Bambu PA6-CF @base.json"
+        },
+        {
             "name": "Generic HIPS @base",
             "sub_path": "filament/Generic HIPS @base.json"
         },
@@ -1036,6 +1040,10 @@
         {
             "name": "Bambu Support For PA/PET @BBL X1C",
             "sub_path": "filament/Bambu Support For PA PET @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PA6-CF @BBL X1C",
+            "sub_path": "filament/Bambu PA6-CF @BBL X1C.json"
         },
         {
             "name": "Generic HIPS @BBL X1C",

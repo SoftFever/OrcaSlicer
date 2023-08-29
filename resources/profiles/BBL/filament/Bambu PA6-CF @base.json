@@ -1,15 +1,21 @@
 {
     "type": "filament",
-    "filament_id": "GFN03",
-    "name": "Bambu PA-CF @base",
+    "filament_id": "GFN05",
+    "name": "Bambu PA6-CF @base",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_pa",
-    "filament_cost": [
-        "84.99"
+    "fan_cooling_layer_time": [
+        "5"
+    ],
+    "fan_max_speed": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "10"
     ],
     "filament_density": [
-        "1.09"
+        "1.10"
     ],
     "filament_flow_ratio": [
         "0.96"
@@ -18,13 +24,13 @@
         "PA-CF"
     ],
     "filament_vendor": [
-        "Bambu Lab"
+        "Bambu"
     ],
     "nozzle_temperature": [
-        "280"
+        "275"
     ],
     "nozzle_temperature_initial_layer": [
-        "280"
+        "275"
     ],
     "overhang_fan_speed": [
         "40"
