@@ -892,33 +892,33 @@ int NetworkAgent::set_user_selected_machine(std::string dev_id)
     return ret;
 }
 
-int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
     int ret = 0;
     if (network_agent && start_print_ptr) {
-        ret = start_print_ptr(network_agent, params, update_fn, cancel_fn);
+        ret = start_print_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
     return ret;
 }
 
-int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
     int ret = 0;
     if (network_agent && start_local_print_with_record_ptr) {
-        ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn);
+        ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
     return ret;
 }
 
-int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
 	int ret = 0;
 	if (network_agent && start_send_gcode_to_sdcard_ptr) {
-		ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn);
+		ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
 			% network_agent % ret % params.dev_id % params.task_name % params.project_name;
 	}
