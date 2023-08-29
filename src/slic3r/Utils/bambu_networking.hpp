@@ -68,6 +68,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_SP_UPLOAD_3MF_TO_OSS_FAILED         -3100 //failed to  upload 3mf to oss
 #define BAMBU_NETWORK_ERR_PRINT_SP_PATCH_PROJECT_FAILED             -3110 //failed to patch project
 #define BAMBU_NETWORK_ERR_PRINT_SP_POST_TASK_FAILED                 -3120 //failed to post task
+#define BAMBU_NETWORK_ERR_PRINT_SP_WAIT_PRINTER_FAILED              -3130 //failed to wait the ack from printer
 
 //start_local_print   error
 #define BAMBU_NETWORK_ERR_PRINT_LP_FILE_OVER_SIZE                   -4010 //the size of the uploaded file cannot exceed 1 GB
@@ -84,7 +85,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.07.04.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.07.06.01"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -114,6 +115,7 @@ typedef std::function<std::string()>                GetCountryCodeFn;
 // print callbacks
 typedef std::function<void(int status, int code, std::string msg)> OnUpdateStatusFn;
 typedef std::function<bool()>                       WasCancelledFn;
+typedef std::function<bool(int status, std::string job_info)> OnWaitFn;
 // local callbacks
 typedef std::function<void(std::string dev_info_json_str)> OnMsgArrivedFn;
 // queue call to main thread
@@ -130,8 +132,9 @@ enum SendingPrintJobStage {
     PrintingStageWaiting = 2,
     PrintingStageSending = 3,
     PrintingStageRecord  = 4,
-    PrintingStageFinished = 5,
-    PrintingStageERROR = 6,
+    PrintingStageWaitPrinter = 5,
+    PrintingStageFinished = 6,
+    PrintingStageERROR = 7,
 };
 
 enum PublishingStage {
