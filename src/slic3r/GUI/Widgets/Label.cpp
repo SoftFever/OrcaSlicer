@@ -9,7 +9,7 @@ wxFont Label::sysFont(int size, bool bold)
 //    return wxFont{};
 //#endif
 #ifndef __APPLE__
-    size = size * 4 / 5;
+    size = size * 3 / 4;
 #endif
 
     wxString face = "HarmonyOS Sans SC";
