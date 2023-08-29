@@ -2641,7 +2641,7 @@ msgstr "挤出流量: "
 msgid "Layer Time: "
 msgstr "层时间: "
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "风扇速度: "
 
 msgid "Temperature: "

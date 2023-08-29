@@ -2759,7 +2759,7 @@ msgstr "Průtok: "
 msgid "Layer Time: "
 msgstr "Čas vrstvy: "
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "Rychlost ventilátoru: "
 
 msgid "Temperature: "

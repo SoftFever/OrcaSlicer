@@ -2799,7 +2799,7 @@ msgstr "Flujo: "
 msgid "Layer Time: "
 msgstr "Tiempo de Capa: "
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "Velocidad del Ventilador: "
 
 msgid "Temperature: "

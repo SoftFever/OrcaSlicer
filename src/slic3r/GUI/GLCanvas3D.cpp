@@ -17,6 +17,7 @@
 #include "slic3r/GUI/3DBed.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/Tab.hpp"
@@ -2753,7 +2754,6 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 	vol_old.finalize_geometry(gl_initialized);
 }
 
-//BBS: always load shell at preview
 void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 {
     if (m_initialized)
@@ -2763,6 +2763,10 @@ void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
     }
 }
 
+void GLCanvas3D::set_shell_transparence(float alpha){
+    m_gcode_viewer.set_shell_transparency(alpha);
+
+}
 //BBS: add only gcode mode
 void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors, bool only_gcode)
 {
