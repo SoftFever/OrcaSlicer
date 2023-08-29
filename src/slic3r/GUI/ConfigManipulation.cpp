@@ -595,18 +595,22 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-                    "tree_support_branch_diameter", "tree_support_adaptive_layer_height", "tree_support_auto_brim", "tree_support_brim_width"})
-        toggle_field(el, support_is_tree);
-
-    // hide tree support settings when normal is selected
-    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-                    "tree_support_branch_diameter", "max_bridge_length", "tree_support_adaptive_layer_height",  "tree_support_auto_brim", "tree_support_brim_width"})
+    bool support_is_normal_tree = support_is_tree && support_style != smsOrganic;
+    bool support_is_organic = support_is_tree && !support_is_normal_tree;
+    // settings shared by normal and organic trees
+    for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter" })
         toggle_line(el, support_is_tree);
+    // settings specific to normal trees
+    for (auto el : {"tree_support_wall_count", "tree_support_auto_brim", "tree_support_brim_width", "tree_support_adaptive_layer_height"})
+        toggle_line(el, support_is_normal_tree);
+    // settings specific to organic trees
+    for (auto el : {"support_tree_angle_slow","support_tree_tip_diameter", "support_tree_top_rate", "support_tree_branch_diameter_angle", "support_tree_branch_diameter_double_wall"})
+        toggle_line(el, support_is_organic);
 
     toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));
-    // tree support use max_bridge_length instead of bridge_no_support
-    toggle_line("bridge_no_support", !support_is_tree);
+    // non-organic tree support use max_bridge_length instead of bridge_no_support
+    toggle_line("max_bridge_length", support_is_normal_tree);
+    toggle_line("bridge_no_support", !support_is_normal_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
                      "support_interface_loop_pattern", "support_bottom_interface_spacing" })

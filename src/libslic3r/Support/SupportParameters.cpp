@@ -138,7 +138,7 @@ SupportParameters::SupportParameters(const PrintObject &object)
         assert(slicing_params.raft_layers() == 0);
     }
 
-    this->tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(object_config.tree_support_branch_diameter.value)) * M_PI;
+    this->tree_branch_diameter_double_wall_area_scaled = 0.25 * sqr(scaled<double>(object_config.support_tree_branch_diameter_double_wall.value)) * M_PI;
 }
 
 } // namespace Slic3r

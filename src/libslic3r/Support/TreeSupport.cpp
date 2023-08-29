@@ -209,7 +209,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     // +1 makes the threshold inclusive
     double                   tan_threshold          = support_threshold_auto ? 0. : tan(M_PI * double(support_threshold + 1) / 180.);
     //FIXME this is a fudge constant!
-    auto                     enforcer_overhang_offset = scaled<double>(config.tree_support_branch_diameter.value);
+    auto                     enforcer_overhang_offset = scaled<double>(config.support_tree_tip_diameter.value);
 
     size_t num_overhang_layers = support_auto ? num_object_layers : std::min(num_object_layers, std::max(size_t(support_enforce_layers), enforcers_layers.size()));
     tbb::parallel_for(tbb::blocked_range<LayerIndex>(1, num_overhang_layers),
@@ -247,11 +247,11 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
                 }
                 if (! (enforced_layer || blockers_layers.empty() || blockers_layers[layer_id].empty()))
                     overhangs = diff(overhangs, blockers_layers[layer_id], ApplySafetyOffset::Yes);
-                // if (config.dont_support_bridges) {
-                //     for (const LayerRegion *layerm : current_layer.regions())
-                //         remove_bridges_from_contacts(print_config, lower_layer, *layerm, 
-                //             float(layerm->flow(frExternalPerimeter).scaled_width()), overhangs);
-                // }
+                if (config.bridge_no_support) {
+                    for (const LayerRegion *layerm : current_layer.regions())
+                        remove_bridges_from_contacts(print_config, lower_layer, *layerm, 
+                            float(layerm->flow(frExternalPerimeter).scaled_width()), overhangs);
+                }
             }
             //check_self_intersections(overhangs, "generate_overhangs1");
             if (! enforcers_layers.empty() && ! enforcers_layers[layer_id].empty()) {
