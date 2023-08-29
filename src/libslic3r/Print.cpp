@@ -117,6 +117,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "textured_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
+        "time_lapse_gcode",
         "fan_min_speed",
         "fan_max_speed",
         "printable_height",
