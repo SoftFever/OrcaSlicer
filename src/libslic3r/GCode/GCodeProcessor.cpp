@@ -788,6 +788,7 @@ void GCodeProcessorResult::reset() {
     toolpath_outside = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    timelapse_warning_code = 0;
     printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -815,6 +816,7 @@ void GCodeProcessorResult::reset() {
     toolpath_outside = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    timelapse_warning_code = 0;
     printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -4327,6 +4329,15 @@ void GCodeProcessor::update_slice_warnings()
     if (!warning.params.empty()) {
         warning.msg = NOZZLE_HRC_CHECKER;
         warning.error_code = "1000C002";
+        m_result.warnings.push_back(warning);
+    }
+
+    // bbs:HRC checker
+    warning.params.clear();
+    warning.level = 1;
+    if (m_result.timelapse_warning_code != 0) {
+        warning.msg        = NOT_SUPPORT_TRADITIONAL_TIMELAPSE;
+        warning.error_code = "1000C003";
         m_result.warnings.push_back(warning);
     }
 

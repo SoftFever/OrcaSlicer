@@ -736,6 +736,33 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return gcode;
     }
 
+    bool WipeTowerIntegration::is_empty_wipe_tower_gcode(GCode &gcodegen, int extruder_id, bool finish_layer)
+    {
+        assert(m_layer_idx >= 0);
+        if (m_layer_idx >= (int) m_tool_changes.size())
+            return true;
+
+        bool   ignore_sparse = false;
+        if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
+            ignore_sparse = (m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+        }
+
+        if (m_enable_timelapse_print && m_is_first_print) {
+            return false;
+        }
+
+        if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
+            if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
+                throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+
+            if (!ignore_sparse) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Print is finished. Now it remains to unload the filament safely with ramming over the wipe tower.
     std::string WipeTowerIntegration::finalize(GCode& gcodegen)
     {
@@ -1011,6 +1038,7 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Machine end G-code")), config.machine_end_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Layer change G-code")), config.layer_change_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Time lapse G-code")), config.time_lapse_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change filament G-code")), config.change_filament_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
@@ -1131,6 +1159,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
+
+    m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
@@ -2842,10 +2872,35 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
     }
 
+    PrinterStructure printer_structure           = m_config.printer_structure.value;
+    bool need_insert_timelapse_gcode_for_traditional = false;
+    if (printer_structure == PrinterStructure::psI3 && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
+        need_insert_timelapse_gcode_for_traditional = true;
+    }
+    bool has_insert_timelapse_gcode = false;
+    bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
+
+    auto insert_timelapse_gcode = [this, print_z, &print]() -> std::string {
+        std::string gcode_res;
+        if (!print.config().time_lapse_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            gcode_res = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.extruder()->id(), &config) + "\n";
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        }
+        return gcode_res;
+    };
+
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
+    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional) {
+        gcode += insert_timelapse_gcode();
+        //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+        m_writer.set_current_position_clear(false);
+    }
     if (! print.config().layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
@@ -3152,9 +3207,21 @@ GCode::LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
-        gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
-            m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
-            this->set_extruder(extruder_id, print_z);
+        if (has_wipe_tower) {
+            if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
+                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+                    gcode += this->retract(false, false, LiftType::NormalLift);
+                    m_writer.add_object_change_labels(gcode);
+                    gcode += insert_timelapse_gcode();
+                    //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+                    m_writer.set_current_position_clear(false);
+                    has_insert_timelapse_gcode = true;
+                }
+                gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
+            }
+        } else {
+            gcode += this->set_extruder(extruder_id, print_z);
+        }
 
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
@@ -3249,12 +3316,15 @@ GCode::LayerResult GCode::process_layer(
                 m_object_layer_over_raft = object_layer_over_raft;
                 if (m_config.reduce_crossing_wall)
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
+
+                std::string temp_start_str;
                 if (m_enable_label_object) {
                     std::string start_str = std::string("; start printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
                     if (print.is_BBL_Printer()) {
                         start_str += ("M624 " + _encode_label_ids_to_base64({ instance_to_print.label_object_id }));
                         start_str += "\n";
                     }
+                    temp_start_str = start_str;
                     m_writer.set_object_start_str(start_str);
                 }
                 //Orca's implementation for skipping object, for klipper firmware printer only
@@ -3340,13 +3410,58 @@ GCode::LayerResult GCode::process_layer(
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
                     bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
                                            print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
+
+                    auto has_infill = [](const std::vector<ObjectByExtruder::Island::Region> &by_region) {
+                        for (auto region : by_region) {
+                            if (!region.infills.empty())
+                                return true;
+                        }
+                        return false;
+                    };
+
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
+                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
+                            gcode += this->retract(false, false, LiftType::NormalLift);
+                            if (!temp_start_str.empty() && m_writer.empty_object_start_str()) {
+                                std::string end_str = std::string("; stop printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
+                                if (print.is_BBL_Printer())
+                                    end_str += "M625\n";
+                                gcode += end_str;
+                            }
+
+                            gcode += insert_timelapse_gcode();
+                            //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+                            m_writer.set_current_position_clear(false);
+
+                            if (!temp_start_str.empty() && m_writer.empty_object_start_str())
+                                gcode += temp_start_str;
+                            temp_start_str.clear();
+                            has_insert_timelapse_gcode = true;
+                        }
                         gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific);
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific);
+                        if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
+                            gcode += this->retract(false, false, LiftType::NormalLift);
+                            if (!temp_start_str.empty() && m_writer.empty_object_start_str()) {
+                                std::string end_str = std::string("; stop printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
+                                if (print.is_BBL_Printer())
+                                    end_str += "M625\n";
+                                gcode += end_str;
+                            }
+
+                            gcode += insert_timelapse_gcode();
+                            //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+                            m_writer.set_current_position_clear(false);
+
+                            if (!temp_start_str.empty() && m_writer.empty_object_start_str())
+                                gcode += temp_start_str;
+                            temp_start_str.clear();
+                            has_insert_timelapse_gcode = true;
+                        }
                         gcode += this->extrude_infill(print,by_region_specific, false);
                     }
                     // ironing
@@ -3401,6 +3516,16 @@ GCode::LayerResult GCode::process_layer(
 
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
+
+    if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+        if (m_timelapse_warning_code == 0)
+            m_timelapse_warning_code = 1;
+        gcode += this->retract(false, false, LiftType::NormalLift);
+        m_writer.add_object_change_labels(gcode);
+        gcode += insert_timelapse_gcode();
+        //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+        m_writer.set_current_position_clear(false);
+    }
 
     result.gcode = std::move(gcode);
     result.cooling_buffer_flush = object_layer || raft_layer || last_layer;

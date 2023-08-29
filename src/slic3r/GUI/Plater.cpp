@@ -2964,6 +2964,8 @@ wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& wa
         return _L("The bed temperature exceeds filament's vitrification temperature. Please open the front door of printer before printing to avoid nozzle clog.");
     } else if (warning.msg == NOZZLE_HRC_CHECKER) {
         return _L("The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged.");
+    } else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
+        return _L("Enable traditional timelapse will cause artifacts on this model.");
     } else {
         return wxString(warning.msg);
     }

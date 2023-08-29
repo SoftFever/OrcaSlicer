@@ -2044,6 +2044,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("time_lapse_gcode",coString);
+    def->label = L("Time lapse G-code");
+    def->multiline = true;
+    def->full_width = true;
+    def->height =5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("silent_mode", coBool);
     def->label = L("Supports silent mode");
     def->tooltip = L("Whether the machine supports silent mode in which machine use lower acceleration to print");

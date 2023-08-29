@@ -3171,6 +3171,16 @@ void TabPrinter::build_fff()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
+        
+        optgroup = page->new_optgroup(L("Time lapse G-code"), L"param_gcode", 0);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
+            validate_custom_gcode_cb(this, optgroup, opt_key, value);
+        };
+        option = optgroup->get_option("time_lapse_gcode");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Change filament G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
@@ -3696,6 +3706,9 @@ void TabPrinter::toggle_options()
             toggle_option(el, !is_BBL_printer);
     }
 
+    if (m_active_page->title() == "Machine gcode") {
+        toggle_line("time_lapse_gcode", m_preset_bundle->printers.get_edited_preset().config.opt_enum<PrinterStructure>("printer_structure") == PrinterStructure::psI3);
+    }
     wxString extruder_number;
     long val = 1;
     if ( m_active_page->title().IsSameAs("Extruder") ||
