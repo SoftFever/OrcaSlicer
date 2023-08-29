@@ -140,6 +140,23 @@ std::map<int, std::string> cli_errors = {
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
 };
 
+typedef struct  _sliced_plate_info{
+    int plate_id{0};
+    size_t sliced_time {0};
+    size_t triangle_count{0};
+    std::string warning_message;
+}sliced_plate_info_t;
+
+typedef struct _sliced_info {
+    int                 plate_count {0};
+    int                 plate_to_slice {0};
+
+    std::vector<sliced_plate_info_t> sliced_plates;
+    size_t prepare_time;
+    size_t export_time;
+}sliced_info_t;
+std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
+
 #if defined(__linux__) || defined(__LINUX__)
 #define PIPE_BUFFER_SIZE 512
 
@@ -314,25 +331,7 @@ typedef struct _cli_callback_mgr {
     }
 }cli_callback_mgr_t;
 
-typedef struct  _sliced_plate_info{
-    int plate_id{0};
-    size_t sliced_time {0};
-    size_t triangle_count{0};
-    std::string warning_message;
-}sliced_plate_info_t;
-
-typedef struct _sliced_info {
-    int                 plate_count {0};
-    int                 plate_to_slice {0};
-
-    std::vector<sliced_plate_info_t> sliced_plates;
-    size_t prepare_time;
-    size_t export_time;
-}sliced_info_t;
-
-
 cli_callback_mgr_t g_cli_callback_mgr;
-std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
 void cli_status_callback(const PrintBase::SlicingStatus& slicing_status)
 {
     if (slicing_status.warning_step != -1) {
@@ -343,6 +342,7 @@ void cli_status_callback(const PrintBase::SlicingStatus& slicing_status)
     g_cli_callback_mgr.update(slicing_status.percent, slicing_status.text, slicing_status.warning_step);
     return;
 }
+#endif
 
 void default_status_callback(const PrintBase::SlicingStatus& slicing_status)
 {
@@ -354,7 +354,6 @@ void default_status_callback(const PrintBase::SlicingStatus& slicing_status)
     return;
 }
 
-#endif
 
 static PrinterTechnology get_printer_technology(const DynamicConfig &config)
 {
@@ -3113,6 +3112,9 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << "set print's callback to default_status_callback.";
                                     print->set_status_callback(default_status_callback);
                                 }
+#else
+                                BOOST_LOG_TRIVIAL(info) << "set print's callback to default_status_callback.";
+                                print->set_status_callback(default_status_callback);
 #endif
                                 //check whether it is bbl printer
                                 std::string& printer_model_string = new_print_config.opt_string("printer_model", true);
