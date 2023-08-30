@@ -94,10 +94,10 @@ msgstr "縫隙填充"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
-msgstr "繪製僅對由%1%選中的麵片生效"
+msgstr "繪製僅對由%1%選中的面生效"
 
 msgid "Highlight faces according to overhang angle."
-msgstr "根據當前設置的懸空角度來高亮片面。"
+msgstr "根據當前設置的懸空角度來高亮顯示面。"
 
 msgid "No auto support"
 msgstr "無自動支撐"
