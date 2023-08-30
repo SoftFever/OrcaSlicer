@@ -9685,7 +9685,12 @@ void Plater::add_file()
 
     case LoadFilesType::SingleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
-        if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title(); }
+        if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
+            if (get_project_name() == _L("Untitled") && paths.size() > 0) {
+                p->set_project_filename(wxString::FromUTF8(paths[0].string()));
+            }
+            wxGetApp().mainframe->update_title();
+        }
         break;
     }
     case LoadFilesType::Multiple3MF:
@@ -9701,6 +9706,9 @@ void Plater::add_file()
     case LoadFilesType::MultipleOther: {
         Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
+            if (get_project_name() == _L("Untitled") && paths.size() > 0) {
+                p->set_project_filename(wxString::FromUTF8(paths[0].string()));
+            }
             wxGetApp().mainframe->update_title();
         }
         break;
@@ -9719,7 +9727,7 @@ void Plater::add_file()
 
         open_3mf_file(first_file[0]);
         load_files(tmf_file, LoadStrategy::LoadModel);
-        if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title(); }
+        if (!load_files(other_file, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title();}
         break;
     default:break;
     }

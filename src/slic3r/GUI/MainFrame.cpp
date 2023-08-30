@@ -637,7 +637,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         if (evt.CmdDown() && evt.GetKeyCode() == 'I') {
             if (!can_add_models()) return;
-            if (m_plater) { m_plater->add_model(); }
+            if (m_plater) { m_plater->add_file(); }
             return;
         }
         evt.Skip();
