@@ -2066,7 +2066,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
+            gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0) {
@@ -3120,7 +3120,7 @@ GCode::LayerResult GCode::process_layer(
     //BBS
     if (first_layer) {
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
+            gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
@@ -3147,7 +3147,7 @@ GCode::LayerResult GCode::process_layer(
       }
       // BBS:  reset acceleration at sencond layer
       if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
       }
 
       if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
@@ -4158,7 +4158,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = m_config.default_acceleration.value;
         }
-        gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+        gcode += m_writer.set_print_acceleration((unsigned int)floor(acceleration + 0.5));
     }
 
     // adjust X Y jerk
@@ -4613,14 +4613,14 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     // SoftFever
     if (this->on_first_layer()) {
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
+            gcode += m_writer.set_travel_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
             gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
     } else {
         if (m_config.default_acceleration.value > 0 && m_config.travel_acceleration.value > 0) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
+            gcode += m_writer.set_travel_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0) {
