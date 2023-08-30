@@ -405,7 +405,7 @@ void CalibrationCaliPage::reset_printing_values()
 
 void CalibrationCaliPage::on_device_connected(MachineObject* obj)
 {
-    ;
+    reset_printing_values();
 }
 
 void CalibrationCaliPage::set_cali_method(CalibrationMethod method)
