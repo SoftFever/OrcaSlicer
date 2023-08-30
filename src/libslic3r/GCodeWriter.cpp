@@ -30,6 +30,10 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     bool use_mach_limits = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware ||
                            print_config.gcode_flavor.value == gcfKlipper || print_config.gcode_flavor.value == gcfRepRapFirmware;
     m_max_acceleration = std::lrint(use_mach_limits ? print_config.machine_max_acceleration_extruding.values.front() : 0);
+    m_max_travel_acceleration = static_cast<unsigned int>(
+        std::round((use_mach_limits && supports_separate_travel_acceleration(print_config.gcode_flavor.value)) ?
+                       print_config.machine_max_acceleration_travel.values.front() :
+                       0));
     m_max_jerk         = std::lrint(
         use_mach_limits ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
     m_max_jerk_z = print_config.machine_max_jerk_z.values.front();
@@ -153,44 +157,40 @@ std::string GCodeWriter::set_bed_temperature(int temperature, bool wait)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_acceleration(unsigned int acceleration)
+// copied from PrusaSlicer
+std::string GCodeWriter::set_acceleration_internal(Acceleration type, unsigned int acceleration)
 {
     // Clamp the acceleration to the allowed maximum.
-    if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
+    if (type == Acceleration::Print && m_max_acceleration > 0 && acceleration > m_max_acceleration)
         acceleration = m_max_acceleration;
+    if (type == Acceleration::Travel && m_max_travel_acceleration > 0 && acceleration > m_max_travel_acceleration)
+        acceleration = m_max_travel_acceleration;
 
-    if (acceleration == 0 || acceleration == m_last_acceleration)
+    // Are we setting travel acceleration for a flavour that supports separate travel and print acc?
+    bool separate_travel = (type == Acceleration::Travel && supports_separate_travel_acceleration(this->config.gcode_flavor));
+
+    auto& last_value = separate_travel ? m_last_travel_acceleration : m_last_acceleration ;
+    if (acceleration == 0 || acceleration == last_value)
         return std::string();
     
-    m_last_acceleration = acceleration;
+    last_value = acceleration;
     
     std::ostringstream gcode;
-    if (FLAVOR_IS(gcfRepetier)) {
-        // M201: Set max printing acceleration
-        gcode << "M201 X" << acceleration << " Y" << acceleration;
-        //BBS
-        if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
-        gcode << "\n";
-        // M202: Set max travel acceleration
-        gcode << "M202 X" << acceleration << " Y" << acceleration;
-    } else if (FLAVOR_IS(gcfRepRapFirmware)) {
-        // M204: Set default acceleration
-        gcode << "M204 P" << acceleration;
-    } else if (FLAVOR_IS(gcfMarlinFirmware)) {
-        // This is new MarlinFirmware with separated print/retraction/travel acceleration.
-        // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
-        gcode << "M204 P" << acceleration;
-    } else if (FLAVOR_IS(gcfKlipper)) {
+    if (FLAVOR_IS(gcfRepetier))
+        gcode << (separate_travel ? "M202 X" : "M201 X") << acceleration << " Y" << acceleration;
+    else if (FLAVOR_IS(gcfRepRapFirmware) || FLAVOR_IS(gcfMarlinFirmware))
+        gcode << (separate_travel ? "M204 T" : "M204 P") << acceleration;
+    else if (FLAVOR_IS(gcfKlipper)) {
         gcode << "SET_VELOCITY_LIMIT ACCEL=" << acceleration;
         if (this->config.accel_to_decel_enable) {
             gcode << " ACCEL_TO_DECEL=" << acceleration * this->config.accel_to_decel_factor / 100;
             if (GCodeWriter::full_gcode_comment)
                 gcode << " ; adjust ACCEL_TO_DECEL";
         }
-    } else
+    }
+    else
         gcode << "M204 S" << acceleration;
 
-    //BBS
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
     gcode << "\n";
     
