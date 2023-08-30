@@ -814,14 +814,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_adaptive_layer_height"
             || opt_key == "tree_support_auto_brim"
             || opt_key == "tree_support_brim_width"
-            || opt_key == "support_tree_top_rate"
+            || opt_key == "tree_support_top_rate"
             || opt_key == "tree_support_branch_distance"
-            || opt_key == "support_tree_tip_diameter"
+            || opt_key == "tree_support_tip_diameter"
             || opt_key == "tree_support_branch_diameter"
-            || opt_key == "support_tree_branch_diameter_angle"
-            || opt_key == "support_tree_branch_diameter_double_wall"
+            || opt_key == "tree_support_branch_diameter_angle"
+            || opt_key == "tree_support_branch_diameter_double_wall"
             || opt_key == "tree_support_branch_angle"
-            || opt_key == "support_tree_angle_slow"
+            || opt_key == "tree_support_angle_slow"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (

@@ -69,12 +69,12 @@ TreeSupportMeshGroupSettings::TreeSupportMeshGroupSettings(const PrintObject &pr
 //    this->support_offset            = 
     this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance.value);
     this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
-    this->support_tree_angle_slow     = std::clamp<double>(config.support_tree_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
+    this->support_tree_angle_slow     = std::clamp<double>(config.tree_support_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
     this->support_tree_branch_diameter = scaled<coord_t>(config.tree_support_branch_diameter.value);
-    this->support_tree_branch_diameter_angle = std::clamp<double>(config.support_tree_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
-    this->support_tree_top_rate       = config.support_tree_top_rate.value; // percent
+    this->support_tree_branch_diameter_angle = std::clamp<double>(config.tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
+    this->support_tree_top_rate       = config.tree_support_top_rate.value; // percent
 //    this->support_tree_tip_diameter = this->support_line_width;
-    this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(config.support_tree_tip_diameter.value), 0, this->support_tree_branch_diameter);
+    this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(config.tree_support_tip_diameter.value), 0, this->support_tree_branch_diameter);
 }
 
 TreeSupportSettings::TreeSupportSettings(const TreeSupportMeshGroupSettings &mesh_group_settings, const SlicingParameters &slicing_params)

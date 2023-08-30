@@ -604,7 +604,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : {"tree_support_wall_count", "tree_support_auto_brim", "tree_support_brim_width", "tree_support_adaptive_layer_height"})
         toggle_line(el, support_is_normal_tree);
     // settings specific to organic trees
-    for (auto el : {"support_tree_angle_slow","support_tree_tip_diameter", "support_tree_top_rate", "support_tree_branch_diameter_angle", "support_tree_branch_diameter_double_wall"})
+    for (auto el : {"tree_support_angle_slow","tree_support_tip_diameter", "tree_support_top_rate", "tree_support_branch_diameter_angle", "tree_support_branch_diameter_double_wall"})
         toggle_line(el, support_is_organic);
 
     toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));

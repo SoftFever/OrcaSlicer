@@ -3366,7 +3366,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
 
-    def = this->add("support_tree_angle_slow", coFloat);
+    def = this->add("tree_support_angle_slow", coFloat);
     def->label = L("Preferred Branch Angle");
     def->category = L("Support");
     // TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
@@ -3388,7 +3388,7 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
-    def = this->add("support_tree_top_rate", coPercent);
+    def = this->add("tree_support_top_rate", coPercent);
     def->label = L("Branch Density");
     def->category = L("Support");
     // TRN PrintSettings: "Organic supports" > "Branch Density"
@@ -3421,7 +3421,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Distance from tree branch to the outermost brim line");
     def->set_default_value(new ConfigOptionFloat(3));
 
-    def = this->add("support_tree_tip_diameter", coFloat);
+    def = this->add("tree_support_tip_diameter", coFloat);
     def->label = L("Tip Diameter");
     def->category = L("Support");
     // TRN PrintSettings: "Organic supports" > "Tip Diameter"
@@ -3442,7 +3442,7 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
-    def = this->add("support_tree_branch_diameter_angle", coFloat);
+    def = this->add("tree_support_branch_diameter_angle", coFloat);
     // TRN PrintSettings: #lmFIXME 
     def->label = L("Branch Diameter Angle");
     def->category = L("Support");
@@ -3456,7 +3456,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5));
 
-    def = this->add("support_tree_branch_diameter_double_wall", coFloat);
+    def = this->add("tree_support_branch_diameter_double_wall", coFloat);
     def->label = L("Branch Diameter with double walls");
     def->category = L("Support");
     // TRN PrintSettings: "Organic supports" > "Branch Diameter"
@@ -4677,7 +4677,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
-        "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
+        "tree_support_collision_resolution", "tree_support_with_infill",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
