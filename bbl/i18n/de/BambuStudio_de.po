@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-25 15:40+0800\n"
+"POT-Creation-Date: 2023-08-30 11:03+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3097,6 +3097,9 @@ msgstr "Erlaube mehrere Materialien auf einer Druckplatte"
 msgid "Avoid extrusion calibration region"
 msgstr "Vermeiden Sie den Bereich der Extrusionskalibrierung"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -4048,9 +4051,6 @@ msgstr "Druck abbrechen"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Möchten Sie diesen Druck wirklich abbrechen?"
-
-msgid "Done"
-msgstr "Fertig"
 
 msgid "Downloading..."
 msgstr "Herunterladen..."
@@ -6694,6 +6694,9 @@ msgstr "Neue Version von Bambu Studio"
 msgid "Skip this Version"
 msgstr ""
 
+msgid "Done"
+msgstr "Fertig"
+
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN-Verbindung fehlgeschlagen (Senden einer Druckdatei)"
 
@@ -8347,7 +8350,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -9201,6 +9204,12 @@ msgstr "Anzahl der oberen Schnittstellschichten"
 msgid "Bottom interface layers"
 msgstr "Untere Schnittstellschichten"
 
+msgid "Number of bottom interface layers"
+msgstr ""
+
+msgid "Same as top"
+msgstr ""
+
 msgid "Top interface spacing"
 msgstr "Oberer Schnittstellabstand"
 
@@ -9811,14 +9820,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Einheit umrechnen"
 
 msgid "Convert the units of model"
 msgstr "Einheiten des Modells umrechnen"
 
-msgid "Orient the model"
-msgstr "Das Modell ausrichten"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "Skalierung des Modells um einen Faktor"
@@ -10651,6 +10685,69 @@ msgstr ""
 msgid "Delete input"
 msgstr ""
 
+msgid "Network Test"
+msgstr ""
+
+msgid "Start Test Multi-Thread"
+msgstr ""
+
+msgid "Start Test Single-Thread"
+msgstr ""
+
+msgid "Export Log"
+msgstr ""
+
+msgid "Studio Version:"
+msgstr ""
+
+msgid "System Version:"
+msgstr ""
+
+msgid "DNS Server:"
+msgstr ""
+
+msgid "Test BambuLab"
+msgstr ""
+
+msgid "Test BambuLab:"
+msgstr ""
+
+msgid "Test Bing.com"
+msgstr ""
+
+msgid "Test bing.com:"
+msgstr ""
+
+msgid "Test HTTP"
+msgstr ""
+
+msgid "Test HTTP Service:"
+msgstr ""
+
+msgid "Test storage"
+msgstr ""
+
+msgid "Test Storage Upload:"
+msgstr ""
+
+msgid "Test storage upgrade"
+msgstr ""
+
+msgid "Test Storage Upgrade:"
+msgstr ""
+
+msgid "Test storage download"
+msgstr ""
+
+msgid "Test Storage Download:"
+msgstr ""
+
+msgid "Test Storage Upload"
+msgstr ""
+
+msgid "Log Info"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -10923,6 +11020,9 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandlinien und "
 "eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid "Orient the model"
+#~ msgstr "Das Modell ausrichten"
 
 #~ msgid "Bamabu High Temperature Plate"
 #~ msgstr "Bambu High Temperature Plate"

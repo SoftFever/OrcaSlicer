@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-25 15:40+0800\n"
+"POT-Creation-Date: 2023-08-30 11:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3056,6 +3056,9 @@ msgstr "Többféle anyag használata egy tálcán"
 msgid "Avoid extrusion calibration region"
 msgstr "Extrudáláskalibráció környékének elkerülése"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "Hozzáadás"
 
@@ -3999,9 +4002,6 @@ msgstr "Nyomtatás megszakítása"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Biztosan megszakítod ezt a nyomtatást?"
-
-msgid "Done"
-msgstr "Done"
 
 msgid "Downloading..."
 msgstr "Letöltés..."
@@ -6595,6 +6595,9 @@ msgstr "A Bambu Studio új verziója"
 msgid "Skip this Version"
 msgstr ""
 
+msgid "Done"
+msgstr "Done"
+
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN kapcsolódás sikertelen (nyomtatási fájl küldése)"
 
@@ -8236,7 +8239,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -9083,6 +9086,12 @@ msgstr "A felső érintkező rétegek száma."
 msgid "Bottom interface layers"
 msgstr "Alsó érintkező rétegek"
 
+msgid "Number of bottom interface layers"
+msgstr ""
+
+msgid "Same as top"
+msgstr ""
+
 msgid "Top interface spacing"
 msgstr "Felső érintkező felület térköze"
 
@@ -9677,14 +9686,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Mértékegység átváltása"
 
 msgid "Convert the units of model"
 msgstr "Modell mértékegységének átváltása"
 
-msgid "Orient the model"
-msgstr "Modell orientációja"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "A modell méretezése egy lebegő tényezővel"
@@ -10513,6 +10547,69 @@ msgstr ""
 msgid "Delete input"
 msgstr ""
 
+msgid "Network Test"
+msgstr ""
+
+msgid "Start Test Multi-Thread"
+msgstr ""
+
+msgid "Start Test Single-Thread"
+msgstr ""
+
+msgid "Export Log"
+msgstr ""
+
+msgid "Studio Version:"
+msgstr ""
+
+msgid "System Version:"
+msgstr ""
+
+msgid "DNS Server:"
+msgstr ""
+
+msgid "Test BambuLab"
+msgstr ""
+
+msgid "Test BambuLab:"
+msgstr ""
+
+msgid "Test Bing.com"
+msgstr ""
+
+msgid "Test bing.com:"
+msgstr ""
+
+msgid "Test HTTP"
+msgstr ""
+
+msgid "Test HTTP Service:"
+msgstr ""
+
+msgid "Test storage"
+msgstr ""
+
+msgid "Test Storage Upload:"
+msgstr ""
+
+msgid "Test storage upgrade"
+msgstr ""
+
+msgid "Test Storage Upgrade:"
+msgstr ""
+
+msgid "Test storage download"
+msgstr ""
+
+msgid "Test Storage Download:"
+msgstr ""
+
+msgid "Test Storage Upload"
+msgstr ""
+
+msgid "Log Info"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -10780,6 +10877,9 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Orient the model"
+#~ msgstr "Modell orientációja"
 
 #~ msgid "Bamabu High Temperature Plate"
 #~ msgstr "Bambu High Temperature Plate"

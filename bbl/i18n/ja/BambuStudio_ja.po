@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-25 15:40+0800\n"
+"POT-Creation-Date: 2023-08-30 11:03+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2958,6 +2958,9 @@ msgstr "一つのプレートに複数の材料を使用可能"
 msgid "Avoid extrusion calibration region"
 msgstr "押出しキャリブレーション領域を避ける"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "追加"
 
@@ -3888,9 +3891,6 @@ msgstr "造形を取消し"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "現在の造形をキャンセルしても宜しいでしょうか？"
-
-msgid "Done"
-msgstr "Done"
 
 msgid "Downloading..."
 msgstr "ダウンロード中"
@@ -6394,6 +6394,9 @@ msgstr "新バージョン"
 msgid "Skip this Version"
 msgstr ""
 
+msgid "Done"
+msgstr "Done"
+
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN接続失敗 (造形ファイル送信)"
 
@@ -7919,7 +7922,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8713,6 +8716,12 @@ msgstr "トップ接触面の層数"
 msgid "Bottom interface layers"
 msgstr "底部接触面層数"
 
+msgid "Number of bottom interface layers"
+msgstr ""
+
+msgid "Same as top"
+msgstr ""
+
 msgid "Top interface spacing"
 msgstr "トップ接触面間隔"
 
@@ -9267,14 +9276,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "単位変換"
 
 msgid "Convert the units of model"
 msgstr "モデルの単位を変換"
 
-msgid "Orient the model"
-msgstr "モデルの向きを調整"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "指定した比率で伸縮する"
@@ -10103,6 +10137,69 @@ msgstr ""
 msgid "Delete input"
 msgstr ""
 
+msgid "Network Test"
+msgstr ""
+
+msgid "Start Test Multi-Thread"
+msgstr ""
+
+msgid "Start Test Single-Thread"
+msgstr ""
+
+msgid "Export Log"
+msgstr ""
+
+msgid "Studio Version:"
+msgstr ""
+
+msgid "System Version:"
+msgstr ""
+
+msgid "DNS Server:"
+msgstr ""
+
+msgid "Test BambuLab"
+msgstr ""
+
+msgid "Test BambuLab:"
+msgstr ""
+
+msgid "Test Bing.com"
+msgstr ""
+
+msgid "Test bing.com:"
+msgstr ""
+
+msgid "Test HTTP"
+msgstr ""
+
+msgid "Test HTTP Service:"
+msgstr ""
+
+msgid "Test storage"
+msgstr ""
+
+msgid "Test Storage Upload:"
+msgstr ""
+
+msgid "Test storage upgrade"
+msgstr ""
+
+msgid "Test Storage Upgrade:"
+msgstr ""
+
+msgid "Test storage download"
+msgstr ""
+
+msgid "Test Storage Download:"
+msgstr ""
+
+msgid "Test Storage Upload"
+msgstr ""
+
+msgid "Log Info"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -10341,6 +10438,9 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Orient the model"
+#~ msgstr "モデルの向きを調整"
 
 #~ msgid "Bamabu High Temperature Plate"
 #~ msgstr "Bambu 高温プレート"

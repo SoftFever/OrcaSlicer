@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-25 15:40+0800\n"
+"POT-Creation-Date: 2023-08-30 11:03+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2934,6 +2934,9 @@ msgstr "允许同一盘中包含多种材料"
 msgid "Avoid extrusion calibration region"
 msgstr "避开挤出校准区域"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "添加"
 
@@ -3868,9 +3871,6 @@ msgstr "取消打印"
 msgid "Are you sure you want to cancel this print?"
 msgstr "你确定要取消这次打印吗？"
 
-msgid "Done"
-msgstr "完成"
-
 msgid "Downloading..."
 msgstr "下载中..."
 
@@ -4779,10 +4779,10 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr "如果启用，将在启动时显示有用的提示。"
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
-msgstr ""
+msgstr "冲刷体积：每一次更换颜色时重新计算。"
 
 msgid "If enabled, auto-calculate everytime the color changed."
-msgstr ""
+msgstr "如果启用，会在每一次更换颜色时重新计算。"
 
 msgid "Presets"
 msgstr "预设"
@@ -6010,7 +6010,7 @@ msgid "Auto-Calc"
 msgstr "自动计算"
 
 msgid "Re-calculate"
-msgstr ""
+msgstr "重新计算"
 
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
@@ -6019,7 +6019,8 @@ msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed. You could disable the auto-calculate in Bambu Studio > "
 "Preferences"
-msgstr ""
+msgstr "Studio 将会在每一次更换耗材颜色时重新计算你的冲刷体积， 你可以在 Bambu Studio > "
+"偏好设置 中关闭重新计算"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -6333,6 +6334,9 @@ msgstr "新版本的Bambu Studio"
 
 msgid "Skip this Version"
 msgstr ""
+
+msgid "Done"
+msgstr "完成"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN连接失败(发送打印文件)"
@@ -7813,7 +7817,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8586,6 +8590,12 @@ msgstr "顶部接触面层数"
 msgid "Bottom interface layers"
 msgstr "底部接触面层数"
 
+msgid "Number of bottom interface layers"
+msgstr ""
+
+msgid "Same as top"
+msgstr "和顶部相同"
+
 msgid "Top interface spacing"
 msgstr "顶部接触面线距"
 
@@ -9135,14 +9145,39 @@ msgstr "重复次数"
 msgid "Repetions count of the whole model"
 msgstr "整个模型的重复次数"
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "转换单位"
 
 msgid "Convert the units of model"
 msgstr "转换模型的单位"
 
-msgid "Orient the model"
-msgstr "旋转模型"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "根据因子缩放模型"
@@ -10012,6 +10047,69 @@ msgstr "与之相减"
 msgid "Delete input"
 msgstr "删除输入"
 
+msgid "Network Test"
+msgstr "网络测试"
+
+msgid "Start Test Multi-Thread"
+msgstr "多线程开始测试"
+
+msgid "Start Test Single-Thread"
+msgstr "单线程开始测试"
+
+msgid "Export Log"
+msgstr "输出日志"
+
+msgid "Studio Version:"
+msgstr "Studio 版本："
+
+msgid "System Version:"
+msgstr "系统版本："
+
+msgid "DNS Server:"
+msgstr "DNS服务："
+
+msgid "Test BambuLab"
+msgstr "测试 BambuLab"
+
+msgid "Test BambuLab:"
+msgstr "测试 BambuLab："
+
+msgid "Test Bing.com"
+msgstr "测试 Bing.com"
+
+msgid "Test bing.com:"
+msgstr "测试 Bing.com："
+
+msgid "Test HTTP"
+msgstr "测试 HTTP"
+
+msgid "Test HTTP Service:"
+msgstr "测试 HTTP 服务："
+
+msgid "Test storage"
+msgstr "测试存储"
+
+msgid "Test Storage Upload:"
+msgstr "测试存储上传："
+
+msgid "Test storage upgrade"
+msgstr "测试存储升级"
+
+msgid "Test Storage Upgrade:"
+msgstr "测试存储升级："
+
+msgid "Test storage download"
+msgstr "测试存储下载"
+
+msgid "Test Storage Download:"
+msgstr "测试存储下载："
+
+msgid "Test Storage Upload"
+msgstr "测试存储上传"
+
+msgid "Log Info"
+msgstr "日志信息"
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -10256,6 +10354,9 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Orient the model"
+#~ msgstr "旋转模型"
 
 #~ msgid "Bamabu High Temperature Plate"
 #~ msgstr "高温打印板"
@@ -13513,9 +13614,6 @@ msgstr ""
 #~ "Number of bottom interface layers. -1 means same with use top interface "
 #~ "layers"
 #~ msgstr "底部接触面层数，-1代表和顶部相同"
-
-#~ msgid "Same as top"
-#~ msgstr "和顶部相同"
 
 #~ msgid "Choose one file (3mf/amf):"
 #~ msgstr "选择一个文件（3mf/amf）"
