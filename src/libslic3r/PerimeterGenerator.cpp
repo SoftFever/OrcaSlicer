@@ -1,4 +1,6 @@
 #include "PerimeterGenerator.hpp"
+#include "AABBTreeLines.hpp"
+#include "BridgeDetector.hpp"
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
@@ -7,6 +9,7 @@
 #include "CurveAnalyzer.hpp"
 #include "Clipper2Utils.hpp"
 #include "Arachne/WallToolPaths.hpp"
+#include "Geometry/ConvexHull.hpp"
 
 #include <cmath>
 #include <cassert>
@@ -854,6 +857,447 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     //}
 }
 
+// Port "extra perimeters on overhangs" from PrusaSlicer. Original author: PavelMikus pavel.mikus.mail@seznam.cz
+// Based on: https://github.com/prusa3d/PrusaSlicer/blob/c05542590d7c2d73eb69bbf7a82a482a075815c1/src/libslic3r/PerimeterGenerator.cpp#L667-L1071
+// find out if paths touch - at least one point of one path is within limit distance of second path
+bool paths_touch(const ExtrusionPath &path_one, const ExtrusionPath &path_two, double limit_distance)
+{
+    AABBTreeLines::LinesDistancer<Line> lines_two{path_two.as_polyline().lines()};
+    for (size_t pt_idx = 0; pt_idx < path_one.polyline.size(); pt_idx++) {
+        if (lines_two.distance_from_lines<false>(path_one.polyline.points[pt_idx]) < limit_distance) { return true; }
+    }
+    AABBTreeLines::LinesDistancer<Line> lines_one{path_one.as_polyline().lines()};
+    for (size_t pt_idx = 0; pt_idx < path_two.polyline.size(); pt_idx++) {
+        if (lines_one.distance_from_lines<false>(path_two.polyline.points[pt_idx]) < limit_distance) { return true; }
+    }
+    return false;
+}
+
+Polylines reconnect_polylines(const Polylines &polylines, double limit_distance)
+{
+    if (polylines.empty())
+        return polylines;
+
+    std::unordered_map<size_t, Polyline> connected;
+    connected.reserve(polylines.size());
+    for (size_t i = 0; i < polylines.size(); i++) {
+        if (!polylines[i].empty()) {
+            connected.emplace(i, polylines[i]);
+        }
+    }
+
+    for (size_t a = 0; a < polylines.size(); a++) {
+        if (connected.find(a) == connected.end()) {
+            continue;
+        }
+        Polyline &base = connected.at(a);
+        for (size_t b = a + 1; b < polylines.size(); b++) {
+            if (connected.find(b) == connected.end()) {
+                continue;
+            }
+            Polyline &next = connected.at(b);
+            if ((base.last_point() - next.first_point()).cast<double>().squaredNorm() < limit_distance * limit_distance) {
+                base.append(std::move(next));
+                connected.erase(b);
+            } else if ((base.last_point() - next.last_point()).cast<double>().squaredNorm() < limit_distance * limit_distance) {
+                base.points.insert(base.points.end(), next.points.rbegin(), next.points.rend());
+                connected.erase(b);
+            } else if ((base.first_point() - next.last_point()).cast<double>().squaredNorm() < limit_distance * limit_distance) {
+                next.append(std::move(base));
+                base = std::move(next);
+                base.reverse();
+                connected.erase(b);
+            } else if ((base.first_point() - next.first_point()).cast<double>().squaredNorm() < limit_distance * limit_distance) {
+                base.reverse();
+                base.append(std::move(next));
+                base.reverse();
+                connected.erase(b);
+            }
+        }
+    }
+
+    Polylines result;
+    for (auto &ext : connected) {
+        result.push_back(std::move(ext.second));
+    }
+
+    return result;
+}
+
+ExtrusionPaths sort_extra_perimeters(const ExtrusionPaths& extra_perims, int index_of_first_unanchored, double extrusion_spacing)
+{
+    if (extra_perims.empty()) return {};
+
+    std::vector<std::unordered_set<size_t>> dependencies(extra_perims.size());
+    for (size_t path_idx = 0; path_idx < extra_perims.size(); path_idx++) {
+        for (size_t prev_path_idx = 0; prev_path_idx < path_idx; prev_path_idx++) {
+            if (paths_touch(extra_perims[path_idx], extra_perims[prev_path_idx], extrusion_spacing * 1.5f)) {
+                       dependencies[path_idx].insert(prev_path_idx);        
+            }
+        }
+    }
+
+    std::vector<bool> processed(extra_perims.size(), false);
+    for (int path_idx = 0; path_idx < index_of_first_unanchored; path_idx++) {
+        processed[path_idx] = true;
+    }
+
+    for (size_t i = index_of_first_unanchored; i < extra_perims.size(); i++) {
+        bool change = false;
+        for (size_t path_idx = index_of_first_unanchored; path_idx < extra_perims.size(); path_idx++) {
+            if (processed[path_idx])
+                       continue;
+            auto processed_dep = std::find_if(dependencies[path_idx].begin(), dependencies[path_idx].end(),
+                                              [&](size_t dep) { return processed[dep]; });
+            if (processed_dep != dependencies[path_idx].end()) {
+                for (auto it = dependencies[path_idx].begin(); it != dependencies[path_idx].end();) {
+                    if (!processed[*it]) {
+                        dependencies[*it].insert(path_idx);
+                        dependencies[path_idx].erase(it++);
+                    } else {
+                        ++it;
+                    }
+                }
+                processed[path_idx] = true;
+                change              = true;
+            }
+        }
+        if (!change) {
+            break;
+        }
+    }
+
+    Point current_point = extra_perims.begin()->first_point();
+
+    ExtrusionPaths sorted_paths{};
+    size_t         null_idx = size_t(-1);
+    size_t         next_idx = null_idx;
+    bool           reverse  = false;
+    while (true) {
+        if (next_idx == null_idx) { // find next pidx to print
+            double dist = std::numeric_limits<double>::max();
+            for (size_t path_idx = 0; path_idx < extra_perims.size(); path_idx++) {
+                if (!dependencies[path_idx].empty())
+                    continue;
+                const auto &path   = extra_perims[path_idx];
+                double      dist_a = (path.first_point() - current_point).cast<double>().squaredNorm();
+                if (dist_a < dist) {
+                    dist     = dist_a;
+                    next_idx = path_idx;
+                    reverse  = false;
+                }
+                double dist_b = (path.last_point() - current_point).cast<double>().squaredNorm();
+                if (dist_b < dist) {
+                    dist     = dist_b;
+                    next_idx = path_idx;
+                    reverse  = true;
+                }
+            }
+            if (next_idx == null_idx) {
+                       break;
+            }
+        } else {
+            // we have valid next_idx, add it to the sorted paths, update dependencies, update current point and potentialy set new next_idx
+            ExtrusionPath path = extra_perims[next_idx];
+            if (reverse) {
+                path.reverse();
+            }
+            sorted_paths.push_back(path);
+            assert(dependencies[next_idx].empty());
+            dependencies[next_idx].insert(null_idx);
+            current_point = sorted_paths.back().last_point();
+            for (size_t path_idx = 0; path_idx < extra_perims.size(); path_idx++) {
+                dependencies[path_idx].erase(next_idx);
+            }
+            double dist = std::numeric_limits<double>::max();
+            next_idx    = null_idx;
+
+            for (size_t path_idx = next_idx + 1; path_idx < extra_perims.size(); path_idx++) {
+                if (!dependencies[path_idx].empty()) {
+                    continue;
+                }
+                const ExtrusionPath &next_path = extra_perims[path_idx];
+                double               dist_a    = (next_path.first_point() - current_point).cast<double>().squaredNorm();
+                if (dist_a < dist) {
+                    dist     = dist_a;
+                    next_idx = path_idx;
+                    reverse  = false;
+                }
+                double dist_b = (next_path.last_point() - current_point).cast<double>().squaredNorm();
+                if (dist_b < dist) {
+                    dist     = dist_b;
+                    next_idx = path_idx;
+                    reverse  = true;
+                }
+            }
+            if (dist > scaled(5.0)) {
+                next_idx = null_idx;
+            }
+        }
+    }
+
+    ExtrusionPaths reconnected;
+    reconnected.reserve(sorted_paths.size());
+    for (const ExtrusionPath &path : sorted_paths) {
+        if (!reconnected.empty() && (reconnected.back().last_point() - path.first_point()).cast<double>().squaredNorm() <
+                                        extrusion_spacing * extrusion_spacing * 4.0) {
+            reconnected.back().polyline.points.insert(reconnected.back().polyline.points.end(), path.polyline.points.begin(),
+                                                      path.polyline.points.end());
+        } else {
+            reconnected.push_back(path);
+        }
+    }
+
+    ExtrusionPaths filtered;
+    filtered.reserve(reconnected.size());
+    for (ExtrusionPath &p : reconnected) {
+        if (p.length() > 3 * extrusion_spacing) {
+            filtered.push_back(p);
+        }
+    }
+
+    return filtered;
+}
+
+#define EXTRA_PERIMETER_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
+// #define EXTRA_PERIM_DEBUG_FILES
+// Function will generate extra perimeters clipped over nonbridgeable areas of the provided surface and returns both the new perimeters and
+// Polygons filled by those clipped perimeters
+std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over_overhangs(ExPolygons               infill_area,
+                                                                                           const Polygons          &lower_slices_polygons,
+                                                                                           int                      perimeter_count,
+                                                                                           const Flow              &overhang_flow,
+                                                                                           double                   scaled_resolution,
+                                                                                           const PrintObjectConfig &object_config,
+                                                                                           const PrintConfig       &print_config)
+{
+    coord_t anchors_size = std::min(coord_t(scale_(EXTERNAL_INFILL_MARGIN)), overhang_flow.scaled_spacing() * (perimeter_count + 1));
+
+    BoundingBox infill_area_bb = get_extents(infill_area).inflated(SCALED_EPSILON);
+    Polygons optimized_lower_slices = ClipperUtils::clip_clipper_polygons_with_subject_bbox(lower_slices_polygons, infill_area_bb);
+    Polygons overhangs  = diff(infill_area, optimized_lower_slices);
+
+    if (overhangs.empty()) { return {}; }
+
+    AABBTreeLines::LinesDistancer<Line> lower_layer_aabb_tree{to_lines(optimized_lower_slices)};
+    Polygons                            anchors             = intersection(infill_area, optimized_lower_slices);
+    Polygons                            inset_anchors       = diff(anchors,
+                                                                   expand(overhangs, anchors_size + 0.1 * overhang_flow.scaled_width(), EXTRA_PERIMETER_OFFSET_PARAMETERS));
+    Polygons                            inset_overhang_area = diff(infill_area, inset_anchors);
+
+#ifdef EXTRA_PERIM_DEBUG_FILES
+    {
+        BoundingBox bbox = get_extents(inset_overhang_area);
+        bbox.offset(scale_(1.));
+        ::Slic3r::SVG svg(debug_out_path("inset_overhang_area").c_str(), bbox);
+        for (const Line &line : to_lines(inset_anchors)) svg.draw(line, "purple", scale_(0.25));
+        for (const Line &line : to_lines(inset_overhang_area)) svg.draw(line, "red", scale_(0.15));
+        svg.Close();
+    }
+#endif
+
+    Polygons inset_overhang_area_left_unfilled;
+
+    std::vector<ExtrusionPaths> extra_perims; // overhang region -> extrusion paths
+    for (const ExPolygon &overhang : union_ex(to_expolygons(inset_overhang_area))) {
+        Polygons overhang_to_cover = to_polygons(overhang);
+        Polygons expanded_overhang_to_cover = expand(overhang_to_cover, 1.1 * overhang_flow.scaled_spacing());
+        Polygons shrinked_overhang_to_cover = shrink(overhang_to_cover, 0.1 * overhang_flow.scaled_spacing());
+
+        Polygons real_overhang = intersection(overhang_to_cover, overhangs);
+        if (real_overhang.empty()) {
+            inset_overhang_area_left_unfilled.insert(inset_overhang_area_left_unfilled.end(), overhang_to_cover.begin(),
+                                                     overhang_to_cover.end());
+            continue;
+        }
+        ExtrusionPaths &overhang_region = extra_perims.emplace_back();
+
+        Polygons anchoring         = intersection(expanded_overhang_to_cover, inset_anchors);
+        Polygons perimeter_polygon = offset(union_(expand(overhang_to_cover, 0.1 * overhang_flow.scaled_spacing()), anchoring),
+                                            -overhang_flow.scaled_spacing() * 0.6);
+
+        Polygon anchoring_convex_hull = Geometry::convex_hull(anchoring);
+        double  unbridgeable_area     = area(diff(real_overhang, {anchoring_convex_hull}));
+
+        auto [dir, unsupp_dist] = detect_bridging_direction(real_overhang, anchors);
+
+#ifdef EXTRA_PERIM_DEBUG_FILES
+        {
+            BoundingBox bbox = get_extents(anchoring_convex_hull);
+            bbox.offset(scale_(1.));
+            ::Slic3r::SVG svg(debug_out_path("bridge_check").c_str(), bbox);
+            for (const Line &line : to_lines(perimeter_polygon)) svg.draw(line, "purple", scale_(0.25));
+            for (const Line &line : to_lines(real_overhang)) svg.draw(line, "red", scale_(0.20));
+            for (const Line &line : to_lines(anchoring_convex_hull)) svg.draw(line, "green", scale_(0.15));
+            for (const Line &line : to_lines(anchoring)) svg.draw(line, "yellow", scale_(0.10));
+            for (const Line &line : to_lines(diff_ex(perimeter_polygon, {anchoring_convex_hull}))) svg.draw(line, "black", scale_(0.10));
+            for (const Line &line : to_lines(diff_pl(to_polylines(diff(real_overhang, anchors)), expand(anchors, float(SCALED_EPSILON)))))
+                svg.draw(line, "blue", scale_(0.30));
+            svg.Close();
+        }
+#endif
+
+        if (unbridgeable_area < 0.2 * area(real_overhang) && unsupp_dist < total_length(real_overhang) * 0.2) {
+            inset_overhang_area_left_unfilled.insert(inset_overhang_area_left_unfilled.end(),overhang_to_cover.begin(),overhang_to_cover.end());
+            perimeter_polygon.clear();
+        } else {
+            //  fill the overhang with perimeters
+            int continuation_loops = 2;
+            while (continuation_loops >= 0) {
+                auto prev = perimeter_polygon;
+                // prepare next perimeter lines
+                Polylines perimeter = intersection_pl(to_polylines(perimeter_polygon), shrinked_overhang_to_cover);
+
+                // do not add the perimeter to result yet, first check if perimeter_polygon is not empty after shrinking - this would mean
+                //  that the polygon was possibly too small for full perimeter loop and in that case try gap fill first
+                perimeter_polygon = union_(perimeter_polygon, anchoring);
+                perimeter_polygon = intersection(offset(perimeter_polygon, -overhang_flow.scaled_spacing()), expanded_overhang_to_cover);
+
+                if (perimeter_polygon.empty()) { // fill possible gaps of single extrusion width
+                    Polygons shrinked = intersection(offset(prev, -0.3 * overhang_flow.scaled_spacing()), expanded_overhang_to_cover);
+                    if (!shrinked.empty()) {
+                        extrusion_paths_append(overhang_region, reconnect_polylines(perimeter, overhang_flow.scaled_spacing()),
+                                               ExtrusionRole::erOverhangPerimeter, overhang_flow.mm3_per_mm(), overhang_flow.width(),
+                                               overhang_flow.height());
+                    }
+
+                    Polylines  fills;
+                    ExPolygons gap = shrinked.empty() ? offset_ex(prev, overhang_flow.scaled_spacing() * 0.5) : to_expolygons(shrinked);
+
+                    for (const ExPolygon &ep : gap) {
+                        ep.medial_axis(0.75 * overhang_flow.scaled_width(), 3.0 * overhang_flow.scaled_spacing(), &fills);
+                    }
+                    if (!fills.empty()) {
+                        fills = intersection_pl(fills, shrinked_overhang_to_cover);
+                        extrusion_paths_append(overhang_region, reconnect_polylines(fills, overhang_flow.scaled_spacing()),
+                                               ExtrusionRole::erOverhangPerimeter, overhang_flow.mm3_per_mm(), overhang_flow.width(),
+                                               overhang_flow.height());
+                    }
+                    break;
+                } else {
+                    extrusion_paths_append(overhang_region, reconnect_polylines(perimeter, overhang_flow.scaled_spacing()),
+                                           ExtrusionRole::erOverhangPerimeter, overhang_flow.mm3_per_mm(), overhang_flow.width(),
+                                           overhang_flow.height());
+                }
+
+                if (intersection(perimeter_polygon, real_overhang).empty()) { continuation_loops--; }
+
+                if (prev == perimeter_polygon) {
+#ifdef EXTRA_PERIM_DEBUG_FILES
+                    BoundingBox bbox = get_extents(perimeter_polygon);
+                    bbox.offset(scale_(5.));
+                    ::Slic3r::SVG svg(debug_out_path("perimeter_polygon").c_str(), bbox);
+                    for (const Line &line : to_lines(perimeter_polygon)) svg.draw(line, "blue", scale_(0.25));
+                    for (const Line &line : to_lines(overhang_to_cover)) svg.draw(line, "red", scale_(0.20));
+                    for (const Line &line : to_lines(real_overhang)) svg.draw(line, "green", scale_(0.15));
+                    for (const Line &line : to_lines(anchoring)) svg.draw(line, "yellow", scale_(0.10));
+                    svg.Close();
+#endif
+                    break;
+                }
+            }
+
+            perimeter_polygon = expand(perimeter_polygon, 0.5 * overhang_flow.scaled_spacing());
+            perimeter_polygon = union_(perimeter_polygon, anchoring);
+            inset_overhang_area_left_unfilled.insert(inset_overhang_area_left_unfilled.end(), perimeter_polygon.begin(),perimeter_polygon.end());
+
+#ifdef EXTRA_PERIM_DEBUG_FILES
+            BoundingBox bbox = get_extents(inset_overhang_area);
+            bbox.offset(scale_(2.));
+            ::Slic3r::SVG svg(debug_out_path("pre_final").c_str(), bbox);
+            for (const Line &line : to_lines(perimeter_polygon)) svg.draw(line, "blue", scale_(0.05));
+            for (const Line &line : to_lines(anchoring)) svg.draw(line, "green", scale_(0.05));
+            for (const Line &line : to_lines(overhang_to_cover)) svg.draw(line, "yellow", scale_(0.05));
+            for (const Line &line : to_lines(inset_overhang_area_left_unfilled)) svg.draw(line, "red", scale_(0.05));
+            svg.Close();
+#endif
+            overhang_region.erase(std::remove_if(overhang_region.begin(), overhang_region.end(),
+                                                 [](const ExtrusionPath &p) { return p.empty(); }),
+                                  overhang_region.end());
+
+            if (!overhang_region.empty()) {
+                // there is a special case, where the first (or last) generated overhang perimeter eats all anchor space.
+                // When this happens, the first overhang perimeter is also a closed loop, and needs special check
+                // instead of the following simple is_anchored lambda, which checks only the first and last point (not very useful on closed
+                // polyline)
+                bool first_overhang_is_closed_and_anchored =
+                    (overhang_region.front().first_point() == overhang_region.front().last_point() &&
+                     !intersection_pl(overhang_region.front().polyline, optimized_lower_slices).empty());
+                     
+                auto is_anchored = [&lower_layer_aabb_tree](const ExtrusionPath &path) {
+                    return lower_layer_aabb_tree.distance_from_lines<true>(path.first_point()) <= 0 ||
+                           lower_layer_aabb_tree.distance_from_lines<true>(path.last_point()) <= 0;
+                };
+                if (!first_overhang_is_closed_and_anchored) {
+                    std::reverse(overhang_region.begin(), overhang_region.end());
+                } else {
+                    size_t min_dist_idx = 0;
+                    double min_dist = std::numeric_limits<double>::max();
+                    for (size_t i = 0; i < overhang_region.front().polyline.size(); i++) {
+                        Point p = overhang_region.front().polyline[i];
+                        if (double d = lower_layer_aabb_tree.distance_from_lines<true>(p) < min_dist) {
+                            min_dist = d;
+                            min_dist_idx = i;
+                        }
+                    }
+                    std::rotate(overhang_region.front().polyline.begin(), overhang_region.front().polyline.begin() + min_dist_idx,
+                                overhang_region.front().polyline.end());
+                }
+                auto first_unanchored          = std::stable_partition(overhang_region.begin(), overhang_region.end(), is_anchored);
+                int  index_of_first_unanchored = first_unanchored - overhang_region.begin();
+                overhang_region = sort_extra_perimeters(overhang_region, index_of_first_unanchored, overhang_flow.scaled_spacing());
+            }
+        }
+    }
+
+#ifdef EXTRA_PERIM_DEBUG_FILES
+    BoundingBox bbox = get_extents(inset_overhang_area);
+    bbox.offset(scale_(2.));
+    ::Slic3r::SVG svg(debug_out_path(("final" + std::to_string(rand())).c_str()).c_str(), bbox);
+    for (const Line &line : to_lines(inset_overhang_area_left_unfilled)) svg.draw(line, "blue", scale_(0.05));
+    for (const Line &line : to_lines(inset_overhang_area)) svg.draw(line, "green", scale_(0.05));
+    for (const Line &line : to_lines(diff(inset_overhang_area, inset_overhang_area_left_unfilled))) svg.draw(line, "yellow", scale_(0.05));
+    svg.Close();
+#endif
+
+    inset_overhang_area_left_unfilled = union_(inset_overhang_area_left_unfilled);
+
+    return {extra_perims, diff(inset_overhang_area, inset_overhang_area_left_unfilled)};
+}
+
+void PerimeterGenerator::apply_extra_perimeters()
+{
+    if (this->lower_slices != nullptr && this->config->detect_overhang_wall && this->config->extra_perimeters_on_overhangs &&
+        this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
+        // Generate extra perimeters on overhang areas, and cut them to these parts only, to save print time and material
+        ExPolygons infill_area;
+        for (const auto &internal_surface : this->fill_surfaces->surfaces) {
+            infill_area.push_back(internal_surface.expolygon);
+        }
+        auto [extra_perimeters, filled_area] = generate_extra_perimeters_over_overhangs(infill_area, this->lower_slices_polygons(),
+                                                                                        this->config->wall_loops, this->overhang_flow,
+                                                                                        this->m_scaled_resolution, *this->object_config,
+                                                                                        *this->print_config);
+        if (!extra_perimeters.empty()) {
+            ExtrusionEntityCollection *this_islands_perimeters = static_cast<ExtrusionEntityCollection *>(this->loops->entities.back());
+            ExtrusionEntityCollection  new_perimeters{};
+            new_perimeters.no_sort = this_islands_perimeters->no_sort;
+            for (const ExtrusionPaths &paths : extra_perimeters) {
+                new_perimeters.append(paths);
+            }
+            new_perimeters.append(this_islands_perimeters->entities);
+            this_islands_perimeters->swap(new_perimeters);
+
+            SurfaceCollection orig_surfaces = *this->fill_surfaces;
+            this->fill_surfaces->clear();
+            for (const auto &surface : orig_surfaces.surfaces) {
+                auto new_surfaces = diff_ex({surface.expolygon}, filled_area);
+                this->fill_surfaces->append(new_surfaces, surface);
+            }
+        }
+    }
+}
+
 void PerimeterGenerator::process_classic()
 {
     // other perimeters
@@ -877,6 +1321,15 @@ void PerimeterGenerator::process_classic()
     
     // solid infill
     coord_t solid_infill_spacing    = this->solid_infill_flow.scaled_spacing();
+
+    // prepare grown lower layer slices for overhang detection
+    if (this->lower_slices != nullptr && this->config->detect_overhang_wall) {
+        // We consider overhang any part where the entire nozzle diameter is not supported by the
+        // lower layer, so we take lower slices and offset them by half the nozzle diameter used
+        // in the current layer
+        double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
+        m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
+    }
     
     // Calculate the minimum required spacing between two adjacent traces.
     // This should be equal to the nominal flow spacing but we experiment
@@ -1254,6 +1707,8 @@ void PerimeterGenerator::process_classic()
             infill_exp = union_ex(infill_exp, offset_ex(top_infill_exp, double(infill_peri_overlap)));
         }
         this->fill_surfaces->append(infill_exp, stInternal);
+
+        apply_extra_perimeters();
 
         // BBS: get the no-overlap infill expolygons
         {
@@ -1638,6 +2093,8 @@ void PerimeterGenerator::process_arachne()
             infill_exp = union_ex(infill_exp, offset_ex(top_fills, double(inset)));
         }
         this->fill_surfaces->append(infill_exp, stInternal);
+
+        apply_extra_perimeters();
 
         // BBS: get the no-overlap infill expolygons
         {

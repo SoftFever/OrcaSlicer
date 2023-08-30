@@ -2822,7 +2822,7 @@ msgstr "Durchfluss: "
 msgid "Layer Time: "
 msgstr "Schichtdauer:"
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "Lüftergeschwindigkeit: "
 
 msgid "Temperature: "

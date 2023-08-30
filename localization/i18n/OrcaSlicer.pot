@@ -2561,7 +2561,7 @@ msgstr ""
 msgid "Layer Time: "
 msgstr ""
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr ""
 
 msgid "Temperature: "
