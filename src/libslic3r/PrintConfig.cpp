@@ -3174,10 +3174,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("chamber_temperatures", coInts);
     def->label = L("Chamber temperature");
-    def->tooltip = L("By opening chamber_temperature compensation, the heating components will operate to elevate the chamber temperature."
-                    "This can help suppress or reduce warping for high-temperature materials and potentially lead to higher interlayer bonding strength."
-                    "While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid cloggings,"
-                    "so extra chamber temperature compensation is not needed, and 0 is highly recommended");
+    def->tooltip = L("Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on."
+                    "At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,"
+                    "the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended"
+                    );
     def->sidetext = L("°C");
     def->full_label = L("Chamber temperature");
     def->min = 0;
@@ -3209,15 +3209,6 @@ void PrintConfigDef::init_fff_params()
     def->max = max_temp;
     def->set_default_value(new ConfigOptionInts { 240 });
 
-    def = this->add("bed_temperature_difference", coInts);
-    def->label = L("Bed temperature difference");
-    def->tooltip = L("Do not recommend bed temperature of other layer to be lower than initial layer for more than this threshold. "
-                     "Too low bed temperature of other layer may cause the model broken free from build plate");
-    def->sidetext = L("°C");
-    def->min = 0;
-    def->max = 30;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInts { 10 });
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
@@ -4365,7 +4356,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top"
+        "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

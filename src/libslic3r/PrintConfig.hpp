@@ -976,7 +976,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               chamber_temperatures))
     ((ConfigOptionBools,              wipe))
     // BBS
-    ((ConfigOptionInts,               bed_temperature_difference))
     ((ConfigOptionInts,               nozzle_temperature_range_low))
     ((ConfigOptionInts,               nozzle_temperature_range_high))
     ((ConfigOptionFloats,             wipe_distance))

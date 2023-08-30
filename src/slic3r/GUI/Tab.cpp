@@ -2642,8 +2642,6 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup(L("Recommended temperature range"), L"param_temperature");
-        optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
         optgroup->append_single_option_line("chamber_temperatures");
