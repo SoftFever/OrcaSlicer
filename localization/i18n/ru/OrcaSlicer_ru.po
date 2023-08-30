@@ -2783,7 +2783,7 @@ msgstr "Поток: "
 msgid "Layer Time: "
 msgstr "Время печати слоя: "
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "Скорость вентилятора: "
 
 msgid "Temperature: "

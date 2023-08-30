@@ -900,7 +900,8 @@ public:
     void mirror_selection(Axis axis);
 
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
-    //BBS: always load shell at preview
+    //Orca: shell preview improvement
+    void set_shell_transparence(float alpha = 0.2f);
     void load_shells(const Print& print, bool force_previewing = false);
     void reset_shells() { m_gcode_viewer.reset_shell(); }
     void set_shells_on_previewing(bool is_preview) { m_gcode_viewer.set_shells_on_preview(is_preview); }

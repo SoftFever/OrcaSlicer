@@ -7,6 +7,7 @@
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
 #include "wx/webview.h"
+#include <wx/string.h>
 
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"
@@ -35,12 +36,12 @@ public:
     PrinterWebView(wxWindow *parent);
     virtual ~PrinterWebView();
 
-    void load_url(wxString& url);
+    void load_url(wxString& url, wxString apikey = "");
     void UpdateState();
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
-
 private:
+    void SendAPIKey(wxString apikey);
 
     wxWebView* m_browser;
     long m_zoomFactor;

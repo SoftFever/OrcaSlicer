@@ -2665,7 +2665,7 @@ msgstr "フロー"
 msgid "Layer Time: "
 msgstr "積層時間"
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "ファン回転速度"
 
 msgid "Temperature: "

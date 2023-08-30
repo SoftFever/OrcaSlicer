@@ -107,6 +107,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_diameter",
         "filament_density",
         "filament_cost",
+        "filament_notes",
         "outer_wall_acceleration",
         "inner_wall_acceleration",
         "initial_layer_acceleration",

@@ -2725,8 +2725,8 @@ msgstr "Flow: "
 msgid "Layer Time: "
 msgstr "Layer Time: "
 
-msgid "Fan Speed: "
-msgstr "Fan Speed: "
+msgid "Fan: "
+msgstr "Fan: "
 
 msgid "Temperature: "
 msgstr "Temperature: "

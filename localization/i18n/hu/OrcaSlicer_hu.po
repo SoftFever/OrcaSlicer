@@ -2749,7 +2749,7 @@ msgstr "Anyagáramlás:"
 msgid "Layer Time: "
 msgstr "Rétegidő: "
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "Ventilátor-fordulatszám:"
 
 msgid "Temperature: "

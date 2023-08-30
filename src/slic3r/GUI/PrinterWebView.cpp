@@ -1,12 +1,14 @@
 #include "PrinterWebView.hpp"
 
 #include "I18N.hpp"
+#include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
+#include <wx/string.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
 
@@ -61,13 +63,15 @@ PrinterWebView::~PrinterWebView()
 }
 
 
-void PrinterWebView::load_url(wxString& url)
+void PrinterWebView::load_url(wxString& url, wxString apikey)
 {
 //    this->Show();
 //    this->Raise();
     if (m_browser == nullptr)
         return;
     m_browser->LoadURL(url);
+    if(!apikey.IsEmpty())
+      SendAPIKey(apikey);
     //m_browser->SetFocus();
     UpdateState();
 }
@@ -83,6 +87,23 @@ void PrinterWebView::UpdateState() {
 void PrinterWebView::OnClose(wxCloseEvent& evt)
 {
     this->Hide();
+}
+
+void PrinterWebView::SendAPIKey(wxString apikey)
+{
+    // After the page is fully loaded, run:
+    wxString script = wxString::Format(R"(
+    // Example for overriding the global fetch method
+    const originalFetch = window.fetch;
+    window.fetch = function(input, init = {}) {
+        init.headers = init.headers || {};
+        init.headers['X-API-Key'] = '%s';
+        return originalFetch(input, init);
+    };
+)",
+                                       apikey);
+
+    m_browser->RunScript(script);
 }
 
 void PrinterWebView::OnError(wxWebViewEvent &evt)

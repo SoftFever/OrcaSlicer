@@ -1338,6 +1338,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{ "#F2754E" });
 
+    // PS
+    def = this->add("filament_notes", coStrings);
+    def->label = L("Filament notes");
+    def->tooltip = L("You can put your notes regarding the filament here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings { "" });
+
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);
     def->label   = L("Required nozzle HRC");
@@ -2311,11 +2321,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_acceleration_travel", coFloats);
     def->full_label = L("Maximum acceleration for travel");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration for travel (M204 T)");
+    def->tooltip = L("Maximum acceleration for travel (M204 T), it only applies to Marlin 2");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->readonly = false;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
@@ -2404,6 +2414,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->max = 100;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
+
+    def = this->add("notes", coString);
+    def->label = L("Configuration notes");
+    def->tooltip = L("You can put here your personal notes. This text will be added to the G-code "
+                   "header comments.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
@@ -2569,6 +2589,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("printer_notes", coString);
+    def->label = L("Printer notes");
+    def->tooltip = L("You can put your notes regarding the printer here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
     def = this->add("printer_variant", coString);
     //def->label = L("Printer variant");
     def->label = "Printer variant";
