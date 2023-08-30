@@ -3506,33 +3506,43 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << "glewInit Sucess." << std::endl;
                     GLVolumeCollection glvolume_collection;
                     Model &model = m_models[0];
-                    int extruder_id = 1;
+                    int obj_extruder_id = 1, volume_extruder_id = 1;
                     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model.objects.size(); ++ obj_idx) {
                         const ModelObject &model_object = *model.objects[obj_idx];
                         const ConfigOption* option = model_object.config.option("extruder");
                         if (option)
-                            extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                            obj_extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                        else
+                            obj_extruder_id = 1;
                         for (int volume_idx = 0; volume_idx < (int)model_object.volumes.size(); ++ volume_idx) {
                             const ModelVolume &model_volume = *model_object.volumes[volume_idx];
                             option = model_volume.config.option("extruder");
-                            if (option) extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                            if (option)
+                                volume_extruder_id = (dynamic_cast<const ConfigOptionInt *>(option))->getInt();
+                            else
+                                volume_extruder_id = obj_extruder_id;
+
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("volume %1%'s extruder_id %2%")%volume_idx %volume_extruder_id;
                             //if (!model_volume.is_model_part())
                             //    continue;
                             for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                                 const ModelInstance &model_instance = *model_object.instances[instance_idx];
                                 glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
                                 //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
-                                std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00FF";
+                                std::string color = filament_color?filament_color->get_at(volume_extruder_id - 1):"#00FF00FF";
+
+                                BOOST_LOG_TRIVIAL(debug) << boost::format("volume %1%'s color %2%")%volume_idx %color;
 
                                 unsigned char  rgb_color[4] = {};
                                 Slic3r::GUI::BitmapCache::parse_color4(color, rgb_color);
-                                glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, float(rgb_color[3]) / 255.f);
 
                                 std::array<float, 4> new_color;
                                 new_color[0] = float(rgb_color[0]) / 255.f;
                                 new_color[1] = float(rgb_color[1]) / 255.f;
                                 new_color[2] = float(rgb_color[2]) / 255.f;
                                 new_color[3] = float(rgb_color[3]) / 255.f;
+
+                                glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
                                 glvolume_collection.volumes.back()->set_color(new_color);
                                 glvolume_collection.volumes.back()->printable = model_instance.printable;
                             }
