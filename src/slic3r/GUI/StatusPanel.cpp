@@ -1871,6 +1871,7 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
         last_subtask = obj->subtask_;
         last_profile_id = obj->profile_id_;
         last_task_id = obj->task_id_;
+        request_model_info_flag = false;
         return true;
     }
     return false;
@@ -2709,7 +2710,7 @@ void StatusPanel::update_model_info()
         BBLSubTask* curr_task = obj->get_subtask();
         if (curr_task) {
             BBLModelTask* curr_model_task = obj->get_modeltask();
-            if (!curr_model_task) {
+            if (!curr_model_task && !request_model_info_flag) {
                 curr_model_task = new BBLModelTask();
                 curr_model_task->task_id = curr_task->task_id;
                 request_model_info_flag = true;
