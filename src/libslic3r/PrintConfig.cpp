@@ -2321,11 +2321,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_acceleration_travel", coFloats);
     def->full_label = L("Maximum acceleration for travel");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration for travel (M204 T)");
+    def->tooltip = L("Maximum acceleration for travel (M204 T), it only applies to Marlin 2");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->readonly = false;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
