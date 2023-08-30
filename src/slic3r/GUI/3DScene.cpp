@@ -1,3 +1,4 @@
+#include "slic3r/GUI/3DScene.hpp"
 #include <GL/glew.h>
 
 #if ENABLE_SMOOTH_NORMALS
@@ -1612,6 +1613,16 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *con
                 volume->color[i] = (float) color.rgba[i] * inv_255;
             }
         }
+    }
+}
+
+void GLVolumeCollection::set_transparency(float alpha)
+{
+    for (GLVolume *volume : volumes) {
+        if (volume == nullptr || volume->is_modifier || volume->is_wipe_tower || (volume->volume_idx() < 0))
+            continue;
+
+        volume->color[3] = alpha;
     }
 }
 

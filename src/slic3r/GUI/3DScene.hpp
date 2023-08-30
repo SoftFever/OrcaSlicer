@@ -714,6 +714,8 @@ public:
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
     // Return CPU, GPU and total memory log line.
     std::string         log_memory_info() const;
+    
+    void set_transparency(float alpha);
 
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
