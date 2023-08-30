@@ -223,7 +223,7 @@ public:
     void create_page(wxWindow* parent);
     void set_save_img();
 
-    void set_default_name(const wxString& name);
+    void set_default_options(const wxString &name);
 
     bool is_skip_fine_calibration();
 
@@ -239,6 +239,9 @@ protected:
     ComboBox*          m_optimal_block_coarse;
     TextInput*         m_save_name_input;
 
+    Label* m_coarse_calc_result_text;
+    CheckBox* m_checkBox_skip_calibration;
+
     bool m_skip_fine_calibration = false;
     float m_curr_flow_ratio;
     float m_coarse_flow_ratio;
@@ -252,7 +255,7 @@ public:
     void create_page(wxWindow* parent);
     void set_save_img();
 
-    void set_default_name(const wxString& name);
+    void set_default_options(const wxString &name);
 
     void set_curr_flow_ratio(float value);
 
@@ -265,6 +268,8 @@ protected:
     CaliPagePicture*   m_picture_panel;
     ComboBox*          m_optimal_block_fine;
     TextInput*         m_save_name_input;
+
+    Label* m_fine_calc_result_text;
 
     float m_curr_flow_ratio;
     float m_fine_flow_ratio;
