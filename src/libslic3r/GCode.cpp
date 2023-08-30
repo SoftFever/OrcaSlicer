@@ -770,6 +770,115 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.extruder()->id())
 
+void GCode::PlaceholderParserIntegration::reset()
+{
+    this->failed_templates.clear();
+    this->output_config.clear();
+    this->opt_position = nullptr;
+    this->opt_zhop      = nullptr;
+    this->opt_e_position = nullptr;
+    this->opt_e_retracted = nullptr;
+    this->opt_e_restart_extra = nullptr;
+    this->opt_extruded_volume = nullptr;
+    this->opt_extruded_weight = nullptr;
+    this->opt_extruded_volume_total = nullptr;
+    this->opt_extruded_weight_total = nullptr;
+    this->num_extruders = 0;
+    this->position.clear();
+    this->e_position.clear();
+    this->e_retracted.clear();
+    this->e_restart_extra.clear();
+}
+
+void GCode::PlaceholderParserIntegration::init(const GCodeWriter &writer)
+{
+    this->reset();
+    const std::vector<Extruder> &extruders = writer.extruders();
+    if (! extruders.empty()) {
+        this->num_extruders = extruders.back().id() + 1;
+        this->e_retracted.assign(num_extruders, 0);
+        this->e_restart_extra.assign(num_extruders, 0);
+        this->opt_e_retracted = new ConfigOptionFloats(e_retracted);
+        this->opt_e_restart_extra = new ConfigOptionFloats(e_restart_extra);
+        this->output_config.set_key_value("e_retracted", this->opt_e_retracted);
+        this->output_config.set_key_value("e_restart_extra", this->opt_e_restart_extra);
+        if (! writer.config.use_relative_e_distances) {
+            e_position.assign(num_extruders, 0);
+            opt_e_position = new ConfigOptionFloats(e_position);
+            this->output_config.set_key_value("e_position", opt_e_position);
+        }
+    }
+    this->opt_extruded_volume = new ConfigOptionFloats(this->num_extruders, 0.f);
+    this->opt_extruded_weight = new ConfigOptionFloats(this->num_extruders, 0.f);
+    this->opt_extruded_volume_total = new ConfigOptionFloat(0.f);
+    this->opt_extruded_weight_total = new ConfigOptionFloat(0.f);
+    this->parser.set("extruded_volume", this->opt_extruded_volume);
+    this->parser.set("extruded_weight", this->opt_extruded_weight);
+    this->parser.set("extruded_volume_total", this->opt_extruded_volume_total);
+    this->parser.set("extruded_weight_total", this->opt_extruded_weight_total);
+
+    // Reserve buffer for current position.
+    this->position.assign(3, 0);
+    this->opt_position = new ConfigOptionFloats(this->position);
+    this->output_config.set_key_value("position", this->opt_position);
+    // Store zhop variable into the parser itself, it is a read-only variable to the script.
+    this->opt_zhop = new ConfigOptionFloat(writer.get_zhop());
+    this->parser.set("zhop", this->opt_zhop);
+}
+
+void GCode::PlaceholderParserIntegration::update_from_gcodewriter(const GCodeWriter &writer)
+{
+    memcpy(this->position.data(), writer.get_position().data(), sizeof(double) * 3);
+    this->opt_position->values = this->position;
+    this->opt_zhop->value = writer.get_zhop();
+
+    if (this->num_extruders > 0) {
+        const std::vector<Extruder> &extruders = writer.extruders();
+        assert(! extruders.empty() && num_extruders == extruders.back().id() + 1);
+        this->e_retracted.assign(num_extruders, 0);
+        this->e_restart_extra.assign(num_extruders, 0);
+        this->opt_extruded_volume->values.assign(num_extruders, 0);
+        this->opt_extruded_weight->values.assign(num_extruders, 0);
+        double total_volume = 0.;
+        double total_weight = 0.;
+        for (const Extruder &e : extruders) {
+            this->e_retracted[e.id()]     = e.retracted();
+            this->e_restart_extra[e.id()] = e.restart_extra();
+            double v = e.extruded_volume();
+            double w = v * e.filament_density() * 0.001;
+            this->opt_extruded_volume->values[e.id()] = v;
+            this->opt_extruded_weight->values[e.id()] = w;
+            total_volume += v;
+            total_weight += w;
+        }
+        opt_extruded_volume_total->value = total_volume;
+        opt_extruded_weight_total->value = total_weight;
+        opt_e_retracted->values = this->e_retracted;
+        opt_e_restart_extra->values = this->e_restart_extra;
+        if (! writer.config.use_relative_e_distances) {
+            this->e_position.assign(num_extruders, 0);
+            for (const Extruder &e : extruders)
+                this->e_position[e.id()] = e.position();
+            this->opt_e_position->values = this->e_position;
+        }
+    }
+}
+
+// Throw if any of the output vector variables were resized by the script.
+void GCode::PlaceholderParserIntegration::validate_output_vector_variables()
+{
+    if (this->opt_position->values.size() != 3)
+        throw Slic3r::RuntimeError("\"position\" output variable must not be resized by the script.");
+    if (this->num_extruders > 0) {
+        if (this->opt_e_position && this->opt_e_position->values.size() != this->num_extruders)
+            throw Slic3r::RuntimeError("\"e_position\" output variable must not be resized by the script.");
+        if (this->opt_e_retracted->values.size() != this->num_extruders)
+            throw Slic3r::RuntimeError("\"e_retracted\" output variable must not be resized by the script.");
+        if (this->opt_e_restart_extra->values.size() != this->num_extruders)
+            throw Slic3r::RuntimeError("\"e_restart_extra\" output variable must not be resized by the script.");
+    }
+}
+
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
@@ -1130,7 +1239,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     }
 
     try {
-        m_placeholder_parser_failed_templates.clear();
         this->_do_export(*print, file, thumbnail_cb);
         file.flush();
         if (file.is_error()) {
@@ -1641,10 +1749,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::First_Line_M73_Placeholder).c_str());
 
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
-    m_placeholder_parser = print.placeholder_parser();
-    m_placeholder_parser.update_timestamp();
-    m_placeholder_parser_context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    print.update_object_placeholders(m_placeholder_parser.config_writable(), ".gcode");
+    m_placeholder_parser_integration.parser = print.placeholder_parser();
+    m_placeholder_parser_integration.parser.update_timestamp();
+    m_placeholder_parser_integration.context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    // Enable passing global variables between PlaceholderParser invocations.
+    m_placeholder_parser_integration.context.global_config = std::make_unique<DynamicConfig>();
+    print.update_object_placeholders(m_placeholder_parser_integration.parser.config_writable(), ".gcode");
 
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
@@ -1775,21 +1885,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write(m_writer.set_additional_fan(0));
     }
 
+    // Update output variables after the extruders were initialized.
+    m_placeholder_parser_integration.init(m_writer);
     // Let the start-up script prime the 1st printing tool.
-    m_placeholder_parser.set("initial_tool", initial_extruder_id);
-    m_placeholder_parser.set("initial_extruder", initial_extruder_id);
+    this->placeholder_parser().set("initial_tool", initial_extruder_id);
+    this->placeholder_parser().set("initial_extruder", initial_extruder_id);
     //BBS
-    m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
-    m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
-    m_placeholder_parser.set("current_extruder", initial_extruder_id);
+    this->placeholder_parser().set("initial_no_support_tool", initial_non_support_extruder_id);
+    this->placeholder_parser().set("initial_no_support_extruder", initial_non_support_extruder_id);
+    this->placeholder_parser().set("current_extruder", initial_extruder_id);
     //Set variable for total layer count so it can be used in custom gcode.
-    m_placeholder_parser.set("total_layer_count", m_layer_count);
+    this->placeholder_parser().set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
-    m_placeholder_parser.set("current_object_idx", 0);
+    this->placeholder_parser().set("current_object_idx", 0);
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
-    m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
-    //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
-    m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
+    this->placeholder_parser().set("has_wipe_tower", has_wipe_tower);
+    //this->placeholder_parser().set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
+    this->placeholder_parser().set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
 
     // PlaceholderParser currently substitues non-existent vector values with the zero'th value, which is harmful in the
     // case of "is_extruder_used[]" as Slicer may lie about availability of such non-existent extruder. We rather
@@ -1798,13 +1910,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     std::vector<unsigned char> is_extruder_used(std::max(size_t(255), print.config().filament_diameter.size()), 0);
     for (unsigned int extruder : tool_ordering.all_extruders())
         is_extruder_used[extruder] = true;
-    m_placeholder_parser.set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
+    this->placeholder_parser().set("is_extruder_used", new ConfigOptionBools(is_extruder_used));
 
     {
         BoundingBoxf bbox_bed(print.config().printable_area.values);
-        m_placeholder_parser.set("print_bed_min", new ConfigOptionFloats({ bbox_bed.min.x(), bbox_bed.min.y()}));
-        m_placeholder_parser.set("print_bed_max", new ConfigOptionFloats({ bbox_bed.max.x(), bbox_bed.max.y()}));
-        m_placeholder_parser.set("print_bed_size", new ConfigOptionFloats({ bbox_bed.size().x(), bbox_bed.size().y() }));
+        this->placeholder_parser().set("print_bed_min", new ConfigOptionFloats({ bbox_bed.min.x(), bbox_bed.min.y()}));
+        this->placeholder_parser().set("print_bed_max", new ConfigOptionFloats({ bbox_bed.max.x(), bbox_bed.max.y()}));
+        this->placeholder_parser().set("print_bed_size", new ConfigOptionFloats({ bbox_bed.size().x(), bbox_bed.size().y() }));
 
         BoundingBoxf bbox;
         auto pts = std::make_unique<ConfigOptionPoints>();
@@ -1830,10 +1942,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bbox = BoundingBoxf((pts->values));
         }
 
-        m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
-        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
-        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
-        m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+        this->placeholder_parser().set("first_layer_print_convex_hull", pts.release());
+        this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
+        this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
+        this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
     }
     float outer_wall_volumetric_speed = 0.0f;
     {
@@ -1842,20 +1954,20 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         std::string first_layer_bed_temp_str;
         const ConfigOptionInts* first_bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key((BedType)curr_bed_type));
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(get_bed_temp_key((BedType)curr_bed_type));
-        m_placeholder_parser.set("bbl_bed_temperature_gcode", new ConfigOptionBool(false));
-        m_placeholder_parser.set("bed_temperature_initial_layer", new ConfigOptionInts(*first_bed_temp_opt));
-        m_placeholder_parser.set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
-        m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
-        m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
-        m_placeholder_parser.set("chamber_temperature",new ConfigOptionInts(m_config.chamber_temperature));
+        this->placeholder_parser().set("bbl_bed_temperature_gcode", new ConfigOptionBool(false));
+        this->placeholder_parser().set("bed_temperature_initial_layer", new ConfigOptionInts(*first_bed_temp_opt));
+        this->placeholder_parser().set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
+        this->placeholder_parser().set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
+        this->placeholder_parser().set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
+        this->placeholder_parser().set("chamber_temperature",new ConfigOptionInts(m_config.chamber_temperature));
 
         // SoftFever: support variables `first_layer_temperature` and `first_layer_bed_temperature`
-        m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
-        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
-        m_placeholder_parser.set("max_print_height",new ConfigOptionInt(m_config.printable_height));
-        m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
-        m_placeholder_parser.set("plate_name", new ConfigOptionString(print.get_plate_name()));
-        m_placeholder_parser.set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
+        this->placeholder_parser().set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
+        this->placeholder_parser().set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
+        this->placeholder_parser().set("max_print_height",new ConfigOptionInt(m_config.printable_height));
+        this->placeholder_parser().set("z_offset", new ConfigOptionFloat(0.0f));
+        this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
+        this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
@@ -1872,7 +1984,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
             if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
                 outer_wall_volumetric_speed = filament_max_volumetric_speed;
-            m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
+            this->placeholder_parser().set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
         }
 
     }
@@ -1954,7 +2066,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
+            gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0) {
@@ -2026,7 +2138,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     // Ff we are printing the bottom layer of an object, and we have already finished
                     // another one, set first layer temperatures. This happens before the Z move
                     // is triggered, so machine has more time to reach such temperatures.
-                    m_placeholder_parser.set("current_object_idx", int(finished_objects));
+                    this->placeholder_parser().set("current_object_idx", int(finished_objects));
                     //BBS: remove printing_by_object_gcode
                     //std::string printing_by_object_gcode = this->placeholder_parser_process("printing_by_object_gcode", print.config().printing_by_object_gcode.value, initial_extruder_id);
                     std::string printing_by_object_gcode;
@@ -2234,10 +2346,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 //BBS
 void GCode::check_placeholder_parser_failed()
 {
-    if (! m_placeholder_parser_failed_templates.empty()) {
+    if (! m_placeholder_parser_integration.failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
         std::string msg = Slic3r::format(_(L("Failed to generate gcode for invalid custom G-code.\n\n")));
-        for (const auto &name_and_error : m_placeholder_parser_failed_templates)
+        for (const auto &name_and_error : m_placeholder_parser_integration.failed_templates)
             msg += name_and_error.first + " " + name_and_error.second + "\n";
         msg += Slic3r::format(_(L("Please check the custom G-code or use the default custom G-code.")));
         throw Slic3r::PlaceholderParserError(msg);
@@ -2380,15 +2492,40 @@ void GCode::process_layers(
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
 {
+PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     try {
-        return m_placeholder_parser.process(templ, current_extruder_id, config_override, &m_placeholder_parser_context);
-    } catch (std::runtime_error &err) {
+        ppi.update_from_gcodewriter(m_writer);
+        std::string output = ppi.parser.process(templ, current_extruder_id, config_override, &ppi.output_config, &ppi.context);
+        ppi.validate_output_vector_variables();
+
+        if (const std::vector<double> &pos = ppi.opt_position->values; ppi.position != pos) {
+            // Update G-code writer.
+            m_writer.set_position({ pos[0], pos[1], pos[2] });
+            this->set_last_pos(this->gcode_to_point({ pos[0], pos[1] }));
+        }
+
+        for (const Extruder &e : m_writer.extruders()) {
+            unsigned int eid = e.id();
+            assert(eid < ppi.num_extruders);
+            if ( eid < ppi.num_extruders) {
+                if (! m_writer.config.use_relative_e_distances && ! is_approx(ppi.e_position[eid], ppi.opt_e_position->values[eid]))
+                    const_cast<Extruder&>(e).set_position(ppi.opt_e_position->values[eid]);
+                if (! is_approx(ppi.e_retracted[eid], ppi.opt_e_retracted->values[eid]) || 
+                    ! is_approx(ppi.e_restart_extra[eid], ppi.opt_e_restart_extra->values[eid]))
+                    const_cast<Extruder&>(e).set_retracted(ppi.opt_e_retracted->values[eid], ppi.opt_e_restart_extra->values[eid]);
+            }
+        }
+
+        return output;
+    } 
+    catch (std::runtime_error &err) 
+    {
         // Collect the names of failed template substitutions for error reporting.
-        auto it = m_placeholder_parser_failed_templates.find(name);
-        if (it == m_placeholder_parser_failed_templates.end())
+        auto it = ppi.failed_templates.find(name);
+        if (it == ppi.failed_templates.end())
             // Only if there was no error reported for this template, store the first error message into the map to be reported.
             // We don't want to collect error message for each and every occurence of a single custom G-code section.
-            m_placeholder_parser_failed_templates.insert(it, std::make_pair(name, std::string(err.what())));
+            ppi.failed_templates.insert(it, std::make_pair(name, std::string(err.what())));
         // Insert the macro error message into the G-code.
         return
             std::string("\n!!!!! Failed to process the custom G-code template ") + name + "\n" +
@@ -2983,7 +3120,7 @@ GCode::LayerResult GCode::process_layer(
     //BBS
     if (first_layer) {
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
+            gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
@@ -3010,7 +3147,7 @@ GCode::LayerResult GCode::process_layer(
       }
       // BBS:  reset acceleration at sencond layer
       if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
       }
 
       if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
@@ -4021,7 +4158,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = m_config.default_acceleration.value;
         }
-        gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+        gcode += m_writer.set_print_acceleration((unsigned int)floor(acceleration + 0.5));
     }
 
     // adjust X Y jerk
@@ -4476,14 +4613,14 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     // SoftFever
     if (this->on_first_layer()) {
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
+            gcode += m_writer.set_travel_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
             gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
         }
     } else {
         if (m_config.default_acceleration.value > 0 && m_config.travel_acceleration.value > 0) {
-            gcode += m_writer.set_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
+            gcode += m_writer.set_travel_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
         }
 
         if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0) {
@@ -4750,7 +4887,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
 
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
-        m_placeholder_parser.set("current_extruder", extruder_id);
+        this->placeholder_parser().set("current_extruder", extruder_id);
 
         std::string gcode;
         // Append the filament start G-code.
@@ -4930,7 +5067,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         gcode += m_writer.set_temperature(temp, false);
     }
 
-    m_placeholder_parser.set("current_extruder", extruder_id);
+    this->placeholder_parser().set("current_extruder", extruder_id);
 
     // Append the filament start G-code.
     const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(extruder_id);

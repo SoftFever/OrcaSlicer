@@ -42,6 +42,19 @@ public:
     // Used filament length in mm.
     double used_filament() const;
     
+    // Getters for the PlaceholderParser.
+    // Get current extruder position. Only applicable with absolute extruder addressing.
+    double position() const { return m_E; }
+    // Get current retraction value. Only non-negative values.
+    double retracted() const { return m_retracted; }
+    // Get extra retraction planned after
+    double restart_extra() const { return m_restart_extra; }
+    // Setters for the PlaceholderParser.
+    // Set current extruder position. Only applicable with absolute extruder addressing.
+    void   set_position(double e) { m_E = e; }
+    // Sets current retraction value & restart extra filament amount if retracted > 0.
+    void   set_retracted(double retracted, double restart_extra);
+    
     double filament_diameter() const;
     double filament_crossection() const { return this->filament_diameter() * this->filament_diameter() * 0.25 * PI; }
     double filament_density() const;
