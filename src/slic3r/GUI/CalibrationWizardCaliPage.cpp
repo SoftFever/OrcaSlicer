@@ -450,6 +450,14 @@ void CalibrationCaliPage::set_cali_method(CalibrationMethod method)
     }
 }
 
+bool CalibrationCaliPage::Show(bool show /*= true*/)
+{
+    if (true) {
+        reset_printing_values();
+    }
+    return wxPanel::Show(show);
+}
+
 float CalibrationCaliPage::get_selected_calibration_nozzle_dia(MachineObject* obj)
 {
     // return selected if this is set
