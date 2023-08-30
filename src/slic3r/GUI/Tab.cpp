@@ -2100,6 +2100,12 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"), "note", 0);
+        option = optgroup->get_option("notes");
+        option.opt.full_width = true;
+        option.opt.height = 25;//250;
+        optgroup->append_single_option_line(option);
 
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
@@ -2807,6 +2813,7 @@ void TabFilament::build()
 #endif
 
         const int gcode_field_height = 15; // 150
+        const int notes_field_height = 25; // 250
 
     page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Filament start G-code"), L"param_gcode", 0);
@@ -2828,7 +2835,14 @@ void TabFilament::build()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
-        //BBS
+
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"),"note", 0);
+        optgroup->label_width = 0;
+        option = optgroup->get_option("filament_notes");
+        option.opt.full_width = true;
+        option.opt.height = notes_field_height;// 250;
+        optgroup->append_single_option_line(option);
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -3145,6 +3159,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("auxiliary_fan");
 
     const int gcode_field_height = 15; // 150
+    const int notes_field_height = 25; // 250
     page = add_options_page(L("Machine gcode"), "cog");
         optgroup = page->new_optgroup(L("Machine start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
@@ -3214,6 +3229,12 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"), "note", 0);
+        option = optgroup->get_option("printer_notes");
+        option.opt.full_width = true;
+        option.opt.height = notes_field_height;//250;
+        optgroup->append_single_option_line(option);
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
