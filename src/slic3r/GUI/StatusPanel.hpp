@@ -451,6 +451,7 @@ protected:
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
     bool cham_temp_input   = false;
+    bool request_model_info_flag = false;
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
