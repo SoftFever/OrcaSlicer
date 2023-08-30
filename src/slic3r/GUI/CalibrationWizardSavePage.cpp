@@ -1194,10 +1194,10 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
         coarse_block_items.Add(std::to_string(-20 + (i * 5)));
     }
     m_optimal_block_coarse->Set(coarse_block_items);
-    auto coarse_calc_result_text = new Label(parent, "");
+    m_coarse_calc_result_text = new Label(parent, "");
     coarse_value_sizer->Add(coarse_value_text, 0, 0);
     coarse_value_sizer->Add(m_optimal_block_coarse, 0, 0);
-    coarse_value_sizer->Add(coarse_calc_result_text, 0);
+    coarse_value_sizer->Add(m_coarse_calc_result_text, 0);
     m_top_sizer->Add(coarse_value_sizer, 0, 0, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -1205,16 +1205,16 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
     checkBox_panel->SetBackgroundColour(*wxWHITE);
     auto cb_sizer = new wxBoxSizer(wxHORIZONTAL);
     checkBox_panel->SetSizer(cb_sizer);
-    auto checkBox_skip_calibration = new CheckBox(checkBox_panel);
-    cb_sizer->Add(checkBox_skip_calibration);
+    m_checkBox_skip_calibration = new CheckBox(checkBox_panel);
+    cb_sizer->Add(m_checkBox_skip_calibration);
 
     auto cb_text = new Label(checkBox_panel, _L("Skip Calibration2"));
     cb_sizer->Add(cb_text);
-    cb_text->Bind(wxEVT_LEFT_DOWN, [this, checkBox_skip_calibration](auto&) {
-        checkBox_skip_calibration->SetValue(!checkBox_skip_calibration->GetValue());
+    cb_text->Bind(wxEVT_LEFT_DOWN, [this](auto&) {
+        m_checkBox_skip_calibration->SetValue(!m_checkBox_skip_calibration->GetValue());
         wxCommandEvent event(wxEVT_TOGGLEBUTTON);
-        event.SetEventObject(checkBox_skip_calibration);
-        checkBox_skip_calibration->GetEventHandler()->ProcessEvent(event);
+        event.SetEventObject(m_checkBox_skip_calibration);
+        m_checkBox_skip_calibration->GetEventHandler()->ProcessEvent(event);
         });
 
     m_top_sizer->Add(checkBox_panel, 0, 0, 0);
@@ -1237,8 +1237,8 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    checkBox_skip_calibration->Bind(wxEVT_TOGGLEBUTTON, [this, save_panel, checkBox_skip_calibration](wxCommandEvent& e) {
-        if (checkBox_skip_calibration->GetValue()) {
+    m_checkBox_skip_calibration->Bind(wxEVT_TOGGLEBUTTON, [this, save_panel](wxCommandEvent &e) {
+        if (m_checkBox_skip_calibration->GetValue()) {
             m_skip_fine_calibration = true;
             save_panel->Show();
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_COARSE_SAVE);
@@ -1255,9 +1255,9 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
         e.Skip();
         });
 
-    m_optimal_block_coarse->Bind(wxEVT_COMBOBOX, [this, coarse_calc_result_text](auto& e) {
+    m_optimal_block_coarse->Bind(wxEVT_COMBOBOX, [this](auto& e) {
         m_coarse_flow_ratio = m_curr_flow_ratio * (100.0f + stof(m_optimal_block_coarse->GetValue().ToStdString())) / 100.0f;
-        coarse_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_coarse_flow_ratio)));
+        m_coarse_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_coarse_flow_ratio)));
         });
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_COARSE_SAVE);
@@ -1273,8 +1273,15 @@ void CalibrationFlowCoarseSavePage::set_save_img() {
     }
 }
 
-void CalibrationFlowCoarseSavePage::set_default_name(const wxString& name) {
+void CalibrationFlowCoarseSavePage::set_default_options(const wxString& name) {
+    m_optimal_block_coarse->SetSelection(-1);
+    m_coarse_calc_result_text->SetLabelText("");
+    m_checkBox_skip_calibration->SetValue(false);
     m_save_name_input->GetTextCtrl()->SetValue(name);
+
+    wxCommandEvent event(wxEVT_TOGGLEBUTTON);
+    event.SetEventObject(m_checkBox_skip_calibration);
+    m_checkBox_skip_calibration->GetEventHandler()->ProcessEvent(event);
 }
 
 bool CalibrationFlowCoarseSavePage::is_skip_fine_calibration() {
@@ -1308,7 +1315,7 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
             assert(curr_obj->selected_cali_preset.size() <= 1);
             if (!curr_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(curr_obj->selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
-                set_default_name(default_name);
+                set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->cache_flow_ratio);
             }
         }
@@ -1373,10 +1380,10 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
         fine_block_items.Add(std::to_string(-9 + (i)));
     }
     m_optimal_block_fine->Set(fine_block_items);
-    auto fine_calc_result_text = new Label(parent, "");
+    m_fine_calc_result_text = new Label(parent, "");
     fine_value_sizer->Add(fine_value_text, 0, 0);
     fine_value_sizer->Add(m_optimal_block_fine, 0, 0);
-    fine_value_sizer->Add(fine_calc_result_text, 0);
+    fine_value_sizer->Add(m_fine_calc_result_text, 0);
     m_top_sizer->Add(fine_value_sizer, 0, 0, 0);
     m_top_sizer->AddSpacer(FromDIP(20));
 
@@ -1390,9 +1397,9 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 
     m_top_sizer->AddSpacer(FromDIP(20));
 
-    m_optimal_block_fine->Bind(wxEVT_COMBOBOX, [this, fine_calc_result_text](auto& e) {
+    m_optimal_block_fine->Bind(wxEVT_COMBOBOX, [this](auto& e) {
         m_fine_flow_ratio = m_curr_flow_ratio * (100.0f + stof(m_optimal_block_fine->GetValue().ToStdString())) / 100.0f;
-        fine_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_fine_flow_ratio)));
+        m_fine_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_fine_flow_ratio)));
         });
 
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_FINE_SAVE);
@@ -1407,7 +1414,9 @@ void CalibrationFlowFineSavePage::set_save_img() {
     }
 }
 
-void CalibrationFlowFineSavePage::set_default_name(const wxString& name) {
+void CalibrationFlowFineSavePage::set_default_options(const wxString &name) {
+    m_optimal_block_fine->SetSelection(-1);
+    m_fine_calc_result_text->SetLabelText("");
     m_save_name_input->GetTextCtrl()->SetValue(name);
 }
 
@@ -1438,7 +1447,7 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
             assert(curr_obj->selected_cali_preset.size() <= 1);
             if (!curr_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(curr_obj->selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
-                set_default_name(default_name);
+                set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->cache_flow_ratio);
             }
         }
