@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 20:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Chun <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -566,8 +566,8 @@ msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
-"系統記憶體耗盡，OrcaSlicer 即將終止運行。這可能是個缺陷，希望您可以報告此問題，"
-"我們將非常感激。"
+"系統記憶體耗盡，OrcaSlicer 即將終止運行。這可能是個缺陷，希望您可以報告此問"
+"題，我們將非常感激。"
 
 msgid "Fatal error"
 msgstr "致命錯誤"
@@ -598,6 +598,15 @@ msgstr "訪問碼不正確"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "連接 %s 失敗。[SN:%s, code=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1315,6 +1324,9 @@ msgstr "自動Brim"
 
 msgid "Auto"
 msgstr "自動"
+
+msgid "Mouse ear"
+msgstr "圓盤"
 
 msgid "Outer brim only"
 msgstr "僅外側"
@@ -2641,8 +2653,8 @@ msgstr "擠出流量: "
 msgid "Layer Time: "
 msgstr "層時間: "
 
-msgid "Fan Speed: "
-msgstr "風扇速度: "
+msgid "Fan: "
+msgstr ""
 
 msgid "Temperature: "
 msgstr "溫度: "
@@ -3692,6 +3704,24 @@ msgstr "3Dconnexion設置"
 msgid "Swap Y/Z axes"
 msgstr "交換Y/Z軸"
 
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr "列印進度"
 
@@ -4438,6 +4468,12 @@ msgid ""
 "will be exported."
 msgstr "無法對模型網格執行布爾運算。只有正面部分將被導出。"
 
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr ""
+
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -4503,7 +4539,8 @@ msgid ""
 "\"Fix Model\" feature is currently only on Windows. Please repair the model "
 "on Orca Slicer(windows) or CAD softwares."
 msgstr ""
-"\"修復模型\"功能目前僅適用於Windows。請在 Orcaslicer (windows)或CAD軟體上修復模型。"
+"\"修復模型\"功能目前僅適用於Windows。請在 Orcaslicer (windows)或CAD軟體上修復"
+"模型。"
 
 #, c-format, boost-format
 msgid ""
@@ -5420,6 +5457,9 @@ msgstr "G-code 輸出"
 
 msgid "Post-processing Scripts"
 msgstr "後處理腳本"
+
+msgid "Notes"
+msgstr ""
 
 msgid "Frequent"
 msgstr "常用"
@@ -6635,8 +6675,8 @@ msgid ""
 "password@your-octopi-address/"
 msgstr ""
 "Slic3r可以將G-code文件上傳到印表機主機。此欄位應包含印表機主機實例的主機名、"
-"IP位址或URL。啟用基本身份驗證的Print host可以透過將使用者名稱和密碼放入以下格式的"
-"URL中來訪問：https://username:password@your-octopi-address/"
+"IP位址或URL。啟用基本身份驗證的Print host可以透過將使用者名稱和密碼放入以下格"
+"式的URL中來訪問：https://username:password@your-octopi-address/"
 
 msgid "Device UI"
 msgstr "設備用戶界面"
@@ -6666,8 +6706,8 @@ msgid ""
 "in crt/pem format. If left blank, the default OS CA certificate repository "
 "is used."
 msgstr ""
-"可以為HTTPS OctoPrint連接指定自訂CA證書文件，格式為crt/pem。如果留空，則使"
-"用預設的操作系統CA證書儲存庫。"
+"可以為HTTPS OctoPrint連接指定自訂CA證書文件，格式為crt/pem。如果留空，則使用"
+"預設的操作系統CA證書儲存庫。"
 
 msgid "User"
 msgstr "使用者名稱"
@@ -6922,6 +6962,14 @@ msgid ""
 "pattern"
 msgstr "首層只使用單層牆，從而更多的空間能夠使用底部填充圖案"
 
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+
 msgid "Classic mode"
 msgstr "經典模式"
 
@@ -6968,9 +7016,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 "該參數控制在模型的外側和/或內側生成brim。自動是指自動分析和計算邊框的寬度。"
-
-msgid "Mouse ear"
-msgstr "圓盤"
 
 msgid "Brim-object gap"
 msgstr "Brim與模型的間隙"
@@ -7140,9 +7185,9 @@ msgid ""
 "infill density is low.This value determines the thickness of the support "
 "loops. 0 means disable this feature"
 msgstr ""
-"如果開啟， Orcaslicer 切片會沿著內部橋接的邊沿在其下方生成支撐輪廓。這些支撐輪廓可"
-"以防止懸空地列印內部橋接並提高頂面質量，特別是在填充密度較低的情況下。這個設"
-"置用於調整支撐輪廓的厚度，0表示關閉此特性。"
+"如果開啟， Orcaslicer 切片會沿著內部橋接的邊沿在其下方生成支撐輪廓。這些支撐"
+"輪廓可以防止懸空地列印內部橋接並提高頂面質量，特別是在填充密度較低的情況下。"
+"這個設置用於調整支撐輪廓的厚度，0表示關閉此特性。"
 
 msgid "Top surface pattern"
 msgstr "頂面圖案"
@@ -7330,6 +7375,12 @@ msgstr "預設材料顏色"
 
 msgid "Color"
 msgstr "顏色"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "噴嘴硬度要求"
@@ -8063,8 +8114,8 @@ msgstr "回抽最大加速度(M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "空駛最大加速度"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "空駛最大加速度(M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "風扇速度"
@@ -8113,6 +8164,14 @@ msgstr "噴嘴直徑"
 
 msgid "Diameter of nozzle"
 msgstr "噴嘴直徑"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "主機類型"
@@ -8211,6 +8270,12 @@ msgid ""
 "Scripts will be passed the absolute path to the G-code file as the first "
 "argument, and they can access the Slic3r config settings by reading "
 "environment variables."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
 msgstr ""
 
 msgid "Raft contact Z distance"
@@ -8760,8 +8825,8 @@ msgid ""
 "support customizing z-gap and save print time.This option will be invalid "
 "when the prime tower is enabled."
 msgstr ""
-"支撐層使用與對象層獨立的層高。這是為了支持自訂z-gap並且節省列印時間。當擦料"
-"塔被啟用時，這個選項將無效。"
+"支撐層使用與對象層獨立的層高。這是為了支持自訂z-gap並且節省列印時間。當擦料塔"
+"被啟用時，這個選項將無效。"
 
 msgid "Threshold angle"
 msgstr "閾值角度"
@@ -9881,6 +9946,15 @@ msgstr ""
 msgid "Finished"
 msgstr "完成"
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "無法對所選部件執行布爾運算"
 
@@ -9920,7 +9994,7 @@ msgstr "零件 2"
 msgid "Delete input"
 msgstr "刪除輸入"
 
-msgid "Send to print"
+msgid "Send G-Code to printer host"
 msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
@@ -9929,14 +10003,11 @@ msgstr ""
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
 
+msgid "Upload to storage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
@@ -9958,8 +10029,8 @@ msgstr ""
 msgid "Filename"
 msgstr "檔案名"
 
-msgid "Error Message"
-msgstr "錯誤資訊"
+msgid "Message"
+msgstr ""
 
 msgid "Cancel selected"
 msgstr "取消選中"
@@ -9976,8 +10047,8 @@ msgstr "正在上傳"
 msgid "Cancelling"
 msgstr "取消中"
 
-msgid "Error uploading to print host:"
-msgstr "上傳到列印主機時出錯："
+msgid "Error uploading to print host"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA校準"
@@ -10257,8 +10328,8 @@ msgid ""
 "directly in Orca Slicer. Read more in the documentation."
 msgstr ""
 "減去部分幾何體\n"
-"您知道嗎，您可以使用負零件從另一個幾何體中減去另一個幾何體。例如，可以直接在"
-" Orcaslicer 中創建可輕鬆調整大小的孔。"
+"您知道嗎，您可以使用負零件從另一個幾何體中減去另一個幾何體。例如，可以直接在 "
+"Orcaslicer 中創建可輕鬆調整大小的孔。"
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -10280,8 +10351,8 @@ msgid ""
 "the overall look of your model. Check it out!"
 msgstr ""
 "Z接縫位置\n"
-"您知道嗎，您可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使其位於不太可見"
-"的位置。這樣可以改善模型的整體外觀。試試看！"
+"您知道嗎，您可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使其位於不太可見的"
+"位置。這樣可以改善模型的整體外觀。試試看！"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
@@ -10392,8 +10463,17 @@ msgstr ""
 "提高強度\n"
 "你知道嗎？你可以使用更多的牆層數和更高的疏散填充密度來提高模型的強度。"
 
-msgid "End temp: "
-msgstr ""
+#~ msgid "Fan Speed: "
+#~ msgstr "風扇速度: "
+
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "空駛最大加速度(M204 T)"
+
+#~ msgid "Error Message"
+#~ msgstr "錯誤資訊"
+
+#~ msgid "Error uploading to print host:"
+#~ msgstr "上傳到列印主機時出錯："
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "組合所選零件為單個零件"
@@ -10541,8 +10621,8 @@ msgstr ""
 #~ "BambuStudio will terminate because of running out of memory.It may be a "
 #~ "bug. It will be appreciated if you report the issue to our team."
 #~ msgstr ""
-#~ "系統記憶體耗盡，Bambu Studio即將終止運行。這可能是個缺陷，希望您可以報告此問"
-#~ "題，我們將非常感激。"
+#~ "系統記憶體耗盡，Bambu Studio即將終止運行。這可能是個缺陷，希望您可以報告此"
+#~ "問題，我們將非常感激。"
 
 #~ msgid ""
 #~ "BambuStudio will terminate because of a localization error. It will be "
@@ -10824,9 +10904,9 @@ msgstr ""
 #~ "semicolon. Scripts will be passed the absolute path to the G-code file as "
 #~ "the first argument, and variables of settings also can be read"
 #~ msgstr ""
-#~ "如果你想透過自訂腳本來處理輸出的G代碼，只需在這裡列出它們的絕對路徑。用"
-#~ "分號來分隔多個腳本。腳本將被傳遞給G代碼文件的絕對路徑作為第一個參數，設置"
-#~ "的變數也可以被讀取。"
+#~ "如果你想透過自訂腳本來處理輸出的G代碼，只需在這裡列出它們的絕對路徑。用分"
+#~ "號來分隔多個腳本。腳本將被傳遞給G代碼文件的絕對路徑作為第一個參數，設置的"
+#~ "變數也可以被讀取。"
 
 #~ msgid "Z Hop Type"
 #~ msgstr "Z抬升方式"
@@ -10972,8 +11052,7 @@ msgstr ""
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "
 #~ "support customizing z-gap and save print time."
-#~ msgstr ""
-#~ "支撐使用不同於對象的層高。這樣可以支持自訂Z方向間隙並節省列印時間。"
+#~ msgstr "支撐使用不同於對象的層高。這樣可以支持自訂Z方向間隙並節省列印時間。"
 
 #~ msgid ""
 #~ "Print a tower to prime material in nozzle after switching to a new "
@@ -11114,7 +11193,8 @@ msgstr ""
 #~ "Cannot detect the LAN IP address of %s. Are %s and Orca Slicer in the "
 #~ "same LAN?"
 #~ msgstr ""
-#~ "無法檢測到印表機%s 在區域網路中的的IP位址。%s 和  Orcaslicer 在同一個區域網路內嗎？"
+#~ "無法檢測到印表機%s 在區域網路中的的IP位址。%s 和  Orcaslicer 在同一個區域"
+#~ "網路內嗎？"
 
 #~ msgid "Click the pencil icon to edit the filament."
 #~ msgstr "點擊鉛筆圖示編輯耗材絲。"
@@ -14562,8 +14642,8 @@ msgstr ""
 #~ "\n"
 #~ "The application will now terminate."
 #~ msgstr ""
-#~ " Orcaslicer 遇到一個翻譯錯誤。請報告給BmbuStudio團隊，正在啟用的是什麼語言以及在"
-#~ "什麼場景下發生的這個問題。謝謝。\n"
+#~ " Orcaslicer 遇到一個翻譯錯誤。請報告給BmbuStudio團隊，正在啟用的是什麼語言"
+#~ "以及在什麼場景下發生的這個問題。謝謝。\n"
 #~ "\n"
 #~ "應用程式將會終止。"
 
