@@ -6729,23 +6729,39 @@ msgid ""
 "each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
 "layer_gcode."
 msgstr ""
+<<<<<<< Updated upstream
 "El direccionamiento relativo del extrusor requiere restablecer la posición "
 "de este en cada capa para evitar la pérdida de precisión del punto flotante. "
 "Añada \"G92 E0\" a layer_gcode."
+=======
+"El direccionamiento de extrusión relativa requiere reiniciar la posición del "
+"extrusor en cada capa para evitar perdidas de precisión de punto flotante. "
+"Añade \"G92 E0\" al código de capa."
+>>>>>>> Stashed changes
 
 msgid ""
 "\"G92 E0\" was found in before_layer_gcode, which is incompatible with "
 "absolute extruder addressing."
 msgstr ""
+<<<<<<< Updated upstream
 "Se encontró \"G92 E0\" en before_layer_gcode, que es incompatible con el "
 "direccionamiento absoluto del extrusor."
+=======
+"Se ha encontrado \"G92 E0\" en before_layer_gcode, el cual es incompatible "
+"con el direccionamiento de extrusión absoluta."
+>>>>>>> Stashed changes
 
 msgid ""
 "\"G92 E0\" was found in layer_gcode, which is incompatible with absolute "
 "extruder addressing."
 msgstr ""
+<<<<<<< Updated upstream
 "Se encontró \"G92 E0\" en layer_gcode, que es incompatible con el "
 "direccionamiento absoluto del extrusor."
+=======
+"Se ha encontrado \"G92 E0\" en layer_gcode, el cual es incompatible con el "
+"direccionamiento de extrusión absoluta."
+>>>>>>> Stashed changes
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -7426,7 +7442,7 @@ msgstr ""
 "bucles de soporte. 0 significa deshabilitar esta característica"
 
 msgid "Top surface pattern"
-msgstr "Patrón de la superficie superior"
+msgstr "Patrón de relleno superior"
 
 msgid "Line pattern of top surface infill"
 msgstr "Patrón de líneas del relleno de la superficie superior"
@@ -9410,14 +9426,14 @@ msgstr ""
 "otra capa puede hacer que el modelo se desprenda de la bandeja de impresión"
 
 msgid "Detect thin wall"
-msgstr "Detectar el perímetro delgada"
+msgstr "Detección de perímetros delgados"
 
 msgid ""
 "Detect thin wall which can't contain two line width. And use single line to "
 "print. Maybe printed not very well, because it's not closed loop"
 msgstr ""
-"Detectar el perímetro delgada que no puede contener dos líneas de ancho. Y "
-"utilizar una sola línea para imprimir. Tal vez no se imprime muy bien, "
+"Detectar los perímetros delgados que no puede contener dos líneas de ancho. "
+"Y utilizar una sola línea para imprimir. Tal vez no se imprime muy bien, "
 "porque no es de bucle cerrado"
 
 msgid ""
@@ -9438,7 +9454,7 @@ msgid "Speed of top surface infill which is solid"
 msgstr "Velocidad del relleno de la superficie superior que es sólida"
 
 msgid "Top shell layers"
-msgstr "Capas superiores de la cubierta"
+msgstr "Capas sólidas de la cubierta"
 
 msgid ""
 "This is the number of solid layers of top shell, including the top surface "
@@ -9451,10 +9467,10 @@ msgstr ""
 "incrementarán"
 
 msgid "Top solid layers"
-msgstr "Capas solidas superiores"
+msgstr "Capas solidas arriba"
 
 msgid "Top shell thickness"
-msgstr "Espesor de la cubierta superior"
+msgstr "Espesor mínimo capa superior"
 
 msgid ""
 "The number of top solid layers is increased when slicing if the thickness "
