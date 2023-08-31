@@ -2806,7 +2806,7 @@ msgstr "Débit: "
 msgid "Layer Time: "
 msgstr "Durée de couche:"
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "Vitesse du ventilateur: "
 
 msgid "Temperature: "

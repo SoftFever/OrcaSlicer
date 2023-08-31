@@ -118,15 +118,15 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
     });
     txt_filename->SetFocus();
     
-    if (post_actions.has(PrintHostPostUploadAction::QueuePrint)) {
-        auto* btn_print = add_button(wxID_ADD, false, _L("Upload to Queue"));
-        btn_print->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
-            if (validate_path(txt_filename->GetValue())) {
-                post_upload_action = PrintHostPostUploadAction::QueuePrint;
-                EndDialog(wxID_OK);
-            }
-            });
-    }
+    // if (post_actions.has(PrintHostPostUploadAction::QueuePrint)) {
+    //     auto* btn_print = add_button(wxID_ADD, false, _L("Upload to Queue"));
+    //     btn_print->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
+    //         if (validate_path(txt_filename->GetValue())) {
+    //             post_upload_action = PrintHostPostUploadAction::QueuePrint;
+    //             EndDialog(wxID_OK);
+    //         }
+    //         });
+    // }
 
     if (post_actions.has(PrintHostPostUploadAction::StartPrint)) {
         auto* btn_print = add_button(wxID_YES, false, _L("Upload and Print"));
@@ -138,18 +138,18 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
         });
     }
 
-    if (post_actions.has(PrintHostPostUploadAction::StartSimulation)) {
-        // Using wxID_MORE as a button identifier to be different from the other buttons, wxID_MORE has no other meaning here.
-        auto* btn_simulate = add_button(wxID_MORE, false, _L("Upload and Simulate"));
-        btn_simulate->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
-            if (validate_path(txt_filename->GetValue())) {
-                post_upload_action = PrintHostPostUploadAction::StartSimulation;
-                EndDialog(wxID_OK);
-            }        
-        });
-    }
+    // if (post_actions.has(PrintHostPostUploadAction::StartSimulation)) {
+    //     // Using wxID_MORE as a button identifier to be different from the other buttons, wxID_MORE has no other meaning here.
+    //     auto* btn_simulate = add_button(wxID_MORE, false, _L("Upload and Simulate"));
+    //     btn_simulate->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
+    //         if (validate_path(txt_filename->GetValue())) {
+    //             post_upload_action = PrintHostPostUploadAction::StartSimulation;
+    //             EndDialog(wxID_OK);
+    //         }        
+    //     });
+    // }
 
-    add_button(wxID_CANCEL);
+    add_button(wxID_CANCEL,false, L("Cancel"));
     finalize();
 
 #ifdef __linux__

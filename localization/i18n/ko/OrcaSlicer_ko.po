@@ -2708,7 +2708,7 @@ msgstr "유량: "
 msgid "Layer Time: "
 msgstr "레이어 시간: "
 
-msgid "Fan Speed: "
+msgid "Fan: "
 msgstr "팬 속도: "
 
 msgid "Temperature: "

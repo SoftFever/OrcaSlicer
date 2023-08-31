@@ -1,19 +1,19 @@
 {
     "name": "Prusa",
-    "version": "01.06.06.00",
+    "version": "01.07.01.03",
     "force_update": "0",
     "description": "Prusa configurations",
     "machine_model_list": [
         {
-            "name": "Prusa MK4",
+            "name": "MK4IS",
             "sub_path": "machine/Prusa MK4.json"
         },
         {
-            "name": "Prusa MK3S",
+            "name": "MK3S",
             "sub_path": "machine/Prusa MK3S.json"
         },
         {
-            "name": "Prusa MINI",
+            "name": "MINI",
             "sub_path": "machine/Prusa MINI.json"
         }
     ],
@@ -77,6 +77,10 @@
             "sub_path": "filament/Prusa Generic PLA.json"
         },
         {
+            "name": "Prusa Generic PLA @MK4",
+            "sub_path": "filament/Prusa Generic PLA @MK4.json"
+        },
+        {
             "name": "Prusa Generic PLA-CF",
             "sub_path": "filament/Prusa Generic PLA-CF.json"
         },
@@ -85,16 +89,32 @@
             "sub_path": "filament/Prusa Generic PETG.json"
         },
         {
+            "name": "Prusa Generic PETG @MK4",
+            "sub_path": "filament/Prusa Generic PETG @MK4.json"
+        },
+        {
             "name": "Prusa Generic ABS",
             "sub_path": "filament/Prusa Generic ABS.json"
+        },
+        {
+            "name": "Prusa Generic ABS @MK4",
+            "sub_path": "filament/Prusa Generic ABS @MK4.json"
         },
         {
             "name": "Prusa Generic TPU",
             "sub_path": "filament/Prusa Generic TPU.json"
         },
         {
+            "name": "Prusa Generic TPU @MK4",
+            "sub_path": "filament/Prusa Generic TPU @MK4.json"
+        },
+        {
             "name": "Prusa Generic ASA",
             "sub_path": "filament/Prusa Generic ASA.json"
+        },
+        {
+            "name": "Prusa Generic ASA @MK4",
+            "sub_path": "filament/Prusa Generic ASA @MK4.json"
         },
         {
             "name": "Prusa Generic PC",
