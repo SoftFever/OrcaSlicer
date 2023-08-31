@@ -5215,7 +5215,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _add_content_types_file_to_archive(mz_zip_archive& archive);
 
-        bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, const char* local_path, int index);
+        bool _add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, const char* local_path, int index, bool generate_small_thumbnail = false);
         bool _add_calibration_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, int index);
         bool _add_bbox_file_to_archive(mz_zip_archive& archive, const PlateBBoxData& id_bboxes, int index);
         bool _add_relationships_file_to_archive(mz_zip_archive &                archive,
@@ -5460,9 +5460,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 if (thumbnail_data[index]->is_valid())
                 {
-                    if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], "Metadata/plate", index)) {
+                    if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], "Metadata/plate", index, true)) {
                         return false;
                     }
+
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",add thumbnail %1%'s data into 3mf")%(index+1);
                     thumbnail_status[index] = true;
                 }
@@ -5839,7 +5840,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, const char* local_path, int index)
+    bool _BBS_3MF_Exporter::_add_thumbnail_file_to_archive(mz_zip_archive& archive, const ThumbnailData& thumbnail_data, const char* local_path, int index, bool generate_small_thumbnail)
     {
         bool res = false;
 
@@ -5854,6 +5855,32 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (!res) {
             add_error("Unable to add thumbnail file to archive");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add thumbnail file to archive\n");
+        }
+
+        if (generate_small_thumbnail && thumbnail_data.is_valid()) {
+            //generate small size of thumbnail
+            std::vector<unsigned char> small_pixels;
+            small_pixels.resize(PLATE_THUMBNAIL_SMALL_WIDTH * PLATE_THUMBNAIL_SMALL_HEIGHT * 4);
+            /* step width and step height */
+            int sw = thumbnail_data.width / PLATE_THUMBNAIL_SMALL_WIDTH;
+            int sh = thumbnail_data.height / PLATE_THUMBNAIL_SMALL_HEIGHT;
+            for (int i = 0; i < thumbnail_data.width; i += sw) {
+                for (int j = 0; j < thumbnail_data.height; j += sh) {
+                    memcpy((void*)&small_pixels[4*(i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh)], thumbnail_data.pixels.data() + 4*(i * thumbnail_data.width + j), 4);
+                }
+            }
+            size_t small_png_size = 0;
+            void* small_png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)small_pixels.data(), PLATE_THUMBNAIL_SMALL_WIDTH, PLATE_THUMBNAIL_SMALL_HEIGHT, 4, &small_png_size, MZ_DEFAULT_COMPRESSION, 1);
+            if (png_data != nullptr) {
+                std::string thumbnail_name = (boost::format("%1%_%2%_small.png") % local_path % (index + 1)).str();
+                res = mz_zip_writer_add_mem(&archive, thumbnail_name.c_str(), (const void*)small_png_data, small_png_size, MZ_NO_COMPRESSION);
+                mz_free(small_png_data);
+            }
+
+            if (!res) {
+                add_error("Unable to add small thumbnail file to archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to add small thumbnail file to archive\n");
+            }
         }
 
         return res;
