@@ -16,7 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.2.2\n"
-"X-ZhConverter: 繁化姬 dict-bca21cc1-r1038 @ 2023/08/31 20:48:48 | https://zhconvert.org\n"
 
 msgid "Supports Painting"
 msgstr "支撐繪製"
