@@ -2051,6 +2051,9 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
         const Transform3d &assemble_matrix = obj_instance->get_assemble_transformation().get_matrix();
         const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
         Transform3d new_instance_inverse_matrix = instance_inverse_matrix * obj_instance->get_transformation().get_matrix(true).inverse();
+        if (place_on_cut) { // reset the rotation of cut plane
+            new_instance_inverse_matrix = new_instance_inverse_matrix * Transformation(cut_matrix).get_matrix(true, false, true, true).inverse();
+        }
         Transform3d new_assemble_transform = assemble_matrix * new_instance_inverse_matrix;
         obj_instance->set_assemble_from_transform(new_assemble_transform);
     }
@@ -2368,6 +2371,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
                 Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
                 model_instance->set_assemble_from_transform(new_assemble_transform);
+                model_instance->set_offset_to_assembly(new_vol->get_offset());
             }
 
             new_vol->set_offset(Vec3d::Zero());
