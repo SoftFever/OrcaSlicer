@@ -128,7 +128,7 @@ void BBLStatusBar::clear_percent()
 
 }
 
-void BBLStatusBar::show_networking_test(wxString msg)
+void BBLStatusBar::show_error_info(wxString msg, int code, wxString description, wxString extra)
 {
 
 }

@@ -112,7 +112,7 @@ AddMachinePanel::~AddMachinePanel() {
 
     init_timer();
 
-    m_side_tools->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_side_tools->get_panel()->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
     Bind(wxEVT_TIMER, &MonitorPanel::on_timer, this);
     Bind(wxEVT_SIZE, &MonitorPanel::on_size, this);
@@ -125,7 +125,7 @@ AddMachinePanel::~AddMachinePanel() {
 
 MonitorPanel::~MonitorPanel()
 {
-    m_side_tools->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
+    m_side_tools->get_panel()->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MonitorPanel::on_printer_clicked), NULL, this);
 
     if (m_refresh_timer)
         m_refresh_timer->Stop();
@@ -153,59 +153,33 @@ MonitorPanel::~MonitorPanel()
     if (!dev) return;
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 }
 
  void MonitorPanel::init_tabpanel()
 {
     m_side_tools = new SideTools(this, wxID_ANY);
     wxBoxSizer* sizer_side_tools = new wxBoxSizer(wxVERTICAL);
-
-   /* auto warning_panel = new wxPanel(this, wxID_ANY);
-    warning_panel->SetBackgroundColour(wxColour(255, 111, 0));
-    warning_panel->SetSize(wxSize(FromDIP(220), FromDIP(25)));
-    warning_panel->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
-    warning_panel->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
-    sizer_side_tools->Add(warning_panel, 0, wxEXPAND, 0);
-
-    wxBoxSizer *sizer_boxh = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *sizer_boxv = new wxBoxSizer(wxHORIZONTAL);*/
-
-    m_connection_info = new Button(this, "Failed to connect to the printer");
-    m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
-    m_connection_info->SetBorderColor(wxColour(255, 111, 0));
-    m_connection_info->SetTextColor(*wxWHITE);
-    m_connection_info->SetFont(::Label::Body_13);
-    m_connection_info->SetCornerRadius(0);
-    m_connection_info->SetSize(wxSize(FromDIP(-1), FromDIP(25)));
-    m_connection_info->SetMinSize(wxSize(FromDIP(-1), FromDIP(25)));
-    m_connection_info->SetMaxSize(wxSize(FromDIP(-1), FromDIP(25)));
-
-    wxBoxSizer* connection_sizer = new wxBoxSizer(wxVERTICAL);
-    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
-    connection_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
-    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
-    m_connection_info->SetSizer(connection_sizer);
-    m_connection_info->Layout();
-    connection_sizer->Fit(m_connection_info);
-
-    m_connection_info->Hide();
-
-
-    sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel             = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+    m_side_tools->set_table_panel(m_tabpanel);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
-        ;
-    });
+        auto page = m_tabpanel->GetCurrentPage();
+        if (page == m_media_file_panel) {
+            auto title = m_tabpanel->GetPageText(m_tabpanel->GetSelection());
+            m_media_file_panel->SwitchStorage(title == _L("SD Card"));
+        }
+        page->SetFocus();
+    }, m_tabpanel->GetId());
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
     m_status_info_panel        = new StatusPanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
 
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
+    m_tabpanel->AddPage(m_media_file_panel, _L("SD Card"), "", false);
+    //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
 
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
@@ -249,6 +223,7 @@ void MonitorPanel::on_sys_color_changed()
 {
     m_status_info_panel->on_sys_color_changed();
     m_upgrade_panel->on_sys_color_changed();
+    m_media_file_panel->Rescale();
 }
 
 void MonitorPanel::msw_rescale()
@@ -257,18 +232,12 @@ void MonitorPanel::msw_rescale()
 
     /* side_tool rescale */
     m_side_tools->msw_rescale();
-
     m_tabpanel->Rescale();
     //m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
     m_media_file_panel->Rescale();
     m_upgrade_panel->msw_rescale();
     m_hms_panel->msw_rescale();
-
-    m_connection_info->SetCornerRadius(0);
-    m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
-    m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
-    m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
 
     Layout();
     Refresh();
@@ -305,11 +274,12 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
         return;
 
     set_default();
+    m_status_info_panel->set_print_finish_status(false);
     update_all();
 
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_);
 
     Layout();
     Refresh();
@@ -340,41 +310,6 @@ void MonitorPanel::on_size(wxSizeEvent &event)
 {
     Layout();
     Refresh();
-}
-
- void MonitorPanel::update_status(MachineObject* obj)
-{
-    if (!obj) return;
-
-    /* Update Device Info */
-    m_side_tools->set_current_printer_name(obj->dev_name);
-
-    // update wifi signal image
-    int wifi_signal_val = 0;
-    if (!obj->is_connected() || obj->is_connecting()) {
-        m_side_tools->set_current_printer_signal(WifiSignal::NONE);
-    } else {
-        if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
-            try {
-                wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
-            }
-            catch (...) {
-                ;
-            }
-            if (wifi_signal_val > -45) {
-                m_side_tools->set_current_printer_signal(WifiSignal::STRONG);
-            }
-            else if (wifi_signal_val <= -45 && wifi_signal_val >= -60) {
-                m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
-            }
-            else {
-                m_side_tools->set_current_printer_signal(WifiSignal::WEAK);
-            }
-        }
-        else {
-            m_side_tools->set_current_printer_signal(WifiSignal::MIDDLE);
-        }
-    }
 }
 
 void MonitorPanel::update_all()
@@ -414,13 +349,10 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
-    m_upgrade_panel->update(obj);
-
-    
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
+    m_upgrade_panel->update(obj);
     m_media_file_panel->SetMachineObject(obj);
-
-    update_status(obj);
+    m_side_tools->update_status(obj);
     
     if (!obj) {
         show_status((int)MONITOR_NO_PRINTER);
@@ -452,6 +384,7 @@ void MonitorPanel::update_all()
     if (m_hms_panel->IsShown()) {
         m_hms_panel->update(obj);
     }
+
 #if !BBL_RELEASE_TO_PUBLIC
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
@@ -480,7 +413,7 @@ bool MonitorPanel::Show(bool show)
                 dev->load_last_machine();
                 obj = dev->get_selected_machine();
                 if (obj) 
-                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
+                    GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
             } else {
                 obj->reset_update_time();
             }
@@ -511,89 +444,54 @@ void MonitorPanel::update_side_panel()
 void MonitorPanel::show_status(int status)
 {
     if (!m_initialized) return;
-
-    if (last_status == status)
-        return;
-
+    if (last_status == status)return;
     if (last_status & (int)MonitorStatus::MONITOR_CONNECTING != 0) {
         NetworkAgent* agent = wxGetApp().getAgent();
         json j;
         j["dev_id"] = obj ? obj->dev_id : "obj_nullptr";
         if (status & (int)MonitorStatus::MONITOR_DISCONNECTED != 0) {
             j["result"] = "failed";
-            if (agent) {
-                agent->track_event("connect_dev", j.dump());
-            }
         }
         else if (status & (int)MonitorStatus::MONITOR_NORMAL != 0) {
             j["result"] = "success";
-            if (agent) {
-                agent->track_event("connect_dev", j.dump());
-            }
         }
     }
     last_status = status;
 
     BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
-    if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
-        if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
-            m_hyperlink->SetLabel(_L("Failed to connect to the server"));
-            //m_connection_info->SetLabel(_L("Failed to connect to the server"));
-        else
-            m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
-            //m_connection_info->SetLabel(_L("Failed to connect to the printer"));
-
-        m_hyperlink->Show();
-        m_connection_info->SetLabel(wxEmptyString);
-        m_connection_info->Show();
-        m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
-        m_connection_info->SetBorderColor(wxColour(255, 111, 0));
+   
 #if !BBL_RELEASE_TO_PUBLIC
-        m_upgrade_panel->update(nullptr);
+    m_upgrade_panel->update(nullptr);
 #endif
-    } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
-        m_connection_info->Hide();
-    } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
-        m_hyperlink->Hide();
-        m_connection_info->SetLabel(_L("Connecting..."));
-        m_connection_info->SetBackgroundColor(wxColour(0, 150, 136));
-        m_connection_info->SetBorderColor(wxColour(0, 150, 136));
-        m_connection_info->Show();
-    }
 
-    Freeze();
-
+Freeze();
     // update panels
+    if (m_side_tools) { m_side_tools->show_status(status); };
     m_status_info_panel->show_status(status);
     m_hms_panel->show_status(status);
     m_upgrade_panel->show_status(status);
+    m_media_file_panel->Enable(status == MonitorStatus::MONITOR_NORMAL);
 
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
-        m_side_tools->set_none_printer_mode();
-        m_connection_info->Hide();
-        m_tabpanel->Refresh();
         m_tabpanel->Layout();
-#if !BBL_RELEASE_TO_PUBLIC
-        m_upgrade_panel->update(nullptr);
-#endif
-    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
-        || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
-        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
-        ) {
-        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0)
-            || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
-            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)) {
-            m_side_tools->set_current_printer_signal(WifiSignal::NONE);
+    } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) 
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0) 
+        || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0) 
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0) ) 
+    {
+
+        if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) 
+            || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0) 
+            || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)) 
+        {
             set_default();
         }
-        m_tabpanel->Refresh();
         m_tabpanel->Layout();
     }
     Layout();
-    Thaw();
+Thaw();
 }
 
 } // GUI

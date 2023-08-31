@@ -1799,15 +1799,6 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
     return result_str;
 }
 
-static wxString brim_choices[] =
-{
-    L("Auto"),
-    L("Manual"),
-    L("No-brim"),
-    //L("Inner brim only"),
-    //L("Outer and inner brim")
-};
-
 void ObjectGridTable::init_cols(ObjectGrid *object_grid)
 {
     const float font_size = 1.5f * wxGetApp().em_unit();
@@ -1839,7 +1830,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     col = new ObjectGridCol(coEnum, "extruder", ObjectGridTable::category_all, false, false, true, true, wxALIGN_CENTRE);
     col->size = 128;
     //the spec now guarantees vectors store their elements contiguously
-    col->choices = &m_panel->m_filaments_name[0];
+    col->choices.assign(m_panel->m_filaments_name.begin(), m_panel->m_filaments_name.end());
     col->choice_count = m_panel->m_filaments_count;
     m_col_data.push_back(col);
 
@@ -1886,8 +1877,13 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     //Bed Adhesion
     col               = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
-    col->choices = brim_choices;
-    col->choice_count = WXSIZEOF(brim_choices);
+    col->choices.Add(_L("Auto"));
+    col->choices.Add(_L("Mouse ear"));
+    col->choices.Add(_L("Outer brim only"));
+    col->choices.Add(_L("Inner brim only"));
+    col->choices.Add(_L("Outer and inner brim"));
+    col->choices.Add(_L("No-brim"));
+    col->choice_count = col->choices.size();
     m_col_data.push_back(col);
 
     //reset icon for Bed Adhesion
@@ -2240,11 +2236,11 @@ void ObjectGridTable::update_row_properties()
                             break;
                         case coEnum:
                             if (col == ObjectGridTable::col_filaments) {
-                                GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_panel->m_color_bitmaps);
+                                GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choices, false, &m_panel->m_color_bitmaps);
                                 grid_table->SetCellEditor(row, col, filament_editor);
                                 grid_table->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
                             } else {
-                                GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                                GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choices);
                                 grid_table->SetCellEditor(row, col, combo_editor);
                                 grid_table->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
                                 //new wxGridCellChoiceEditor(grid_col->choice_count, grid_col->choices));
@@ -2704,7 +2700,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
     SetSize(wxSize(-1, FromDIP(450)));
     SetMinSize(wxSize(-1, FromDIP(450)));
-    SetMaxSize(wxSize(-1, FromDIP(450)));
+    //SetMaxSize(wxSize(-1, FromDIP(450)));
     
 
     //m_search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
@@ -2768,13 +2764,13 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     //m_page_sizer->Add(m_page_top_sizer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxALL, 2 );
 
-    auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1,-1), wxTAB_TRAVERSAL);
+    auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(2, -1), wxTAB_TRAVERSAL);
     m_line_left->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
 
 
     m_top_sizer->Add(m_object_grid, 1, wxEXPAND,0);
     m_top_sizer->Add(m_line_left, 0, wxEXPAND, 0);
-    m_top_sizer->Add(m_side_window,0,0,0);
+    m_top_sizer->Add(m_side_window, 0, wxEXPAND, 0);
 
     //wxBoxSizer * page_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -2966,7 +2962,7 @@ void ObjectTablePanel::load_data()
                     case coEnum:
                         if (col == ObjectGridTable::col_filaments) {
                             if (grid_row->model_volume_type != ModelVolumeType::NEGATIVE_VOLUME) {
-                                GridCellFilamentsEditor* filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_color_bitmaps);
+                                GridCellFilamentsEditor* filament_editor = new GridCellFilamentsEditor(grid_col->choices, false, &m_color_bitmaps);
                                 m_object_grid->SetCellEditor(row, col, filament_editor);
                                 m_object_grid->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
                             }
@@ -2979,7 +2975,7 @@ void ObjectTablePanel::load_data()
                             }
                         }
                         else {
-                            GridCellChoiceEditor* combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                            GridCellChoiceEditor* combo_editor = new GridCellChoiceEditor(grid_col->choices);
                             m_object_grid->SetCellEditor(row, col, combo_editor);
                             m_object_grid->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
                         }
@@ -3260,6 +3256,10 @@ void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, Model
     m_object_settings->resetAllValues(row, is_object, object, config, category);
 }
 
+void ObjectTablePanel::msw_rescale() { 
+    m_object_grid->HideRowLabels();
+}
+
 // ----------------------------------------------------------------------------
 // ObjectTableDialog
 // ----------------------------------------------------------------------------
@@ -3299,7 +3299,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     //top line
-    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 2), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
 
@@ -3370,6 +3370,8 @@ void ObjectTableDialog::on_dpi_changed(const wxRect& suggested_rect)
 
     const wxSize& size = wxSize(40 * em, 30 * em);
     SetMinSize(size);
+    m_obj_panel->msw_rescale();
+    
 
     Fit();
     Refresh();
@@ -3423,9 +3425,9 @@ void ObjectTableDialog::OnSize(wxSizeEvent& event)
     SetMinSize(wxSize(GetSize().x, -1));
     SetSize(wxSize(GetSize().x, -1));
 
-    m_obj_panel->SetSize(wxSize(-1, GetSize().y));
-    m_obj_panel->SetMinSize(wxSize(-1, GetSize().y));
-    m_obj_panel->SetMaxSize(wxSize(-1, GetSize().y));
+    //m_obj_panel->SetSize(wxSize(-1, GetSize().y));
+    //m_obj_panel->SetMinSize(wxSize(-1, GetSize().y));
+    //m_obj_panel->SetMaxSize(wxSize(-1, GetSize().y));
 
     event.Skip();
 }

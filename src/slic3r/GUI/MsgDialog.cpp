@@ -91,7 +91,7 @@ void MsgDialog::show_dsa_button(wxString const &title)
     m_text_dsa->SetFont(::Label::Body_13);
     m_text_dsa->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
     btn_sizer->Layout();
-    //Fit();
+    Fit();
 }
 
 bool MsgDialog::get_checkbox_state() 
@@ -316,7 +316,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         // Code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
-    content_sizer->Add(html, 1, wxEXPAND);
+    content_sizer->Add(html, 1, wxEXPAND|wxRIGHT, 8);
     wxGetApp().UpdateDarkUIWin(html);
 }
 

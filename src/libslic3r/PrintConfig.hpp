@@ -32,7 +32,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfMarlinLegacy, gcfKlipper, gcfRepRapFirmware, gcfRepRapSprinter, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfMarlinLegacy, gcfKlipper, gcfRepRapFirmware, gcfMarlinFirmware, gcfRepRapSprinter, gcfRepetier, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion
 };
 
@@ -44,7 +44,7 @@ enum class FuzzySkinType {
 };
 
 enum PrintHostType {
-    htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
+    htPrusaLink, htPrusaConnect, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
 };
 
 enum AuthorizationType {
@@ -804,7 +804,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       infill_anchor_max))
 
     // Orca
-    ((ConfigOptionBool,               make_overhang_printable))
+    ((ConfigOptionBool,                 make_overhang_printable))
+    ((ConfigOptionBool,                 extra_perimeters_on_overhangs))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1038,6 +1039,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,                gcode_comments))
     ((ConfigOptionInt,                 slow_down_layers))
     ((ConfigOptionInts,                support_material_interface_fan_speed))
+    // Orca: notes for profiles from PrusaSlicer
+    ((ConfigOptionStrings,            filament_notes))
+    ((ConfigOptionString,             notes))
+    ((ConfigOptionString,             printer_notes))
+
 
 
 )

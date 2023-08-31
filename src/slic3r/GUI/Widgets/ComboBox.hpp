@@ -88,6 +88,7 @@ private:
     void mouseDown(wxMouseEvent &event);
     void mouseWheelMoved(wxMouseEvent &event);
     void keyDown(wxKeyEvent &event);
+    void onMove(wxMoveEvent &event);
 
     DECLARE_EVENT_TABLE()
 };

@@ -9,6 +9,7 @@
 
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Semver.hpp"
+#include "calib.hpp"
 
 using namespace nlohmann;
 
@@ -79,6 +80,8 @@ public:
 		{ std::string value; this->get(section, key, value); return value; }
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("app", key, value); return value; }
+	bool				get_bool(const std::string &key) const
+		{ return this->get(key) == "true"; }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
 	{
 #ifndef NDEBUG
@@ -193,6 +196,7 @@ public:
         m_dirty                = true;
     }
 
+
     const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
     void set_filament_presets(const std::vector<std::string> &filament_presets){
         m_filament_presets = filament_presets;
@@ -203,6 +207,9 @@ public:
         m_filament_colors = filament_colors;
         m_dirty                = true;
     }
+
+	const std::vector<PrinterCaliInfo> &get_printer_cali_infos() const { return m_printer_cali_infos; }
+    void save_printer_cali_infos(const PrinterCaliInfo& cali_info);
 
 	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
@@ -251,7 +258,7 @@ public:
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
-	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz);
+	void set_mouse_device(const std::string& name, double translation_speed, double translation_deadzone, float rotation_speed, float rotation_deadzone, double zoom_speed, bool swap_yz, bool invert_x, bool invert_y, bool invert_z, bool invert_yaw, bool invert_pitch, bool invert_roll);
 	std::vector<std::string> get_mouse_device_names() const;
 	bool get_mouse_device_translation_speed(const std::string& name, double& speed) const
 		{ return get_3dmouse_device_numeric_value(name, "translation_speed", speed); }
@@ -265,6 +272,18 @@ public:
 		{ return get_3dmouse_device_numeric_value(name, "zoom_speed", speed); }
 	bool get_mouse_device_swap_yz(const std::string& name, bool& swap) const
 		{ return get_3dmouse_device_numeric_value(name, "swap_yz", swap); }
+	bool get_mouse_device_invert_x(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_x", invert); }
+	bool get_mouse_device_invert_y(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_y", invert); }
+	bool get_mouse_device_invert_z(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_z", invert); }
+	bool get_mouse_device_invert_yaw(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_yaw", invert); }
+	bool get_mouse_device_invert_pitch(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_pitch", invert); }
+	bool get_mouse_device_invert_roll(const std::string& name, bool& invert) const
+		{ return get_3dmouse_device_numeric_value(name, "invert_roll", invert); }
 
 	static const std::string SECTION_FILAMENTS;
     static const std::string SECTION_MATERIALS;
@@ -305,6 +324,8 @@ private:
 
 	std::vector<std::string>									m_filament_presets;
     std::vector<std::string>									m_filament_colors;
+
+	std::vector<PrinterCaliInfo>								m_printer_cali_infos;
 };
 
 } // namespace Slic3r

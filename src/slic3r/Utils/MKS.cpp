@@ -62,7 +62,7 @@ wxString MKS::get_test_failed_msg(wxString& msg) const
 		% std::string(msg.ToUTF8())).str());
 }
 
-bool MKS::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const
+bool MKS::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
 	bool res = true;
 

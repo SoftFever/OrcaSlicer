@@ -74,6 +74,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterTechnology)
 
 static t_config_enum_values s_keys_map_PrintHostType {
     { "prusalink",      htPrusaLink },
+    { "prusaconnect",   htPrusaConnect },
     { "octoprint",      htOctoPrint },
     { "duet",           htDuet },
     { "flashair",       htFlashAir },
@@ -778,6 +779,13 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Use only one wall on first layer, to give more space to the bottom infill pattern");
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("extra_perimeters_on_overhangs", coBool);
+    def->label = L("Extra perimeters on overhangs");
+    def->category = L("Quality");
+    def->tooltip = L("Create additional perimeter paths over steep overhangs and areas where bridges cannot be anchored. ");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("overhang_speed_classic", coBool);
     def->label = L("Classic mode");
     def->category = L("Speed");
@@ -1329,6 +1337,16 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{ "#F2754E" });
+
+    // PS
+    def = this->add("filament_notes", coStrings);
+    def->label = L("Filament notes");
+    def->tooltip = L("You can put your notes regarding the filament here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings { "" });
 
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);
@@ -1971,7 +1989,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("repetier");
     //def->enum_values.push_back("teacup");
     //def->enum_values.push_back("makerware");
-    //def->enum_values.push_back("marlin2");
+    def->enum_values.push_back("marlin2");
     //def->enum_values.push_back("sailfish");
     //def->enum_values.push_back("mach3");
     //def->enum_values.push_back("machinekit");
@@ -1984,7 +2002,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Repetier");
     //def->enum_labels.push_back("Teacup");
     //def->enum_labels.push_back("MakerWare (MakerBot)");
-    //def->enum_labels.push_back("Marlin 2");
+    def->enum_labels.push_back("Marlin 2");
     //def->enum_labels.push_back("Sailfish (MakerBot)");
     //def->enum_labels.push_back("Mach3/LinuxCNC");
     //def->enum_labels.push_back("Machinekit");
@@ -2303,11 +2321,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_acceleration_travel", coFloats);
     def->full_label = L("Maximum acceleration for travel");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration for travel (M204 T)");
+    def->tooltip = L("Maximum acceleration for travel (M204 T), it only applies to Marlin 2");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->readonly = false;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
@@ -2397,12 +2415,23 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
+    def = this->add("notes", coString);
+    def->label = L("Configuration notes");
+    def->tooltip = L("You can put here your personal notes. This text will be added to the G-code "
+                   "header comments.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
                    "the kind of the host.");
     def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
     def->enum_values.push_back("prusalink");
+    def->enum_values.push_back("prusaconnect");
     def->enum_values.push_back("octoprint");
     def->enum_values.push_back("duet");
     def->enum_values.push_back("flashair");
@@ -2410,6 +2439,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("repetier");
     def->enum_values.push_back("mks");
     def->enum_labels.push_back("PrusaLink");
+    def->enum_labels.push_back("PrusaConnect");
     def->enum_labels.push_back("Octo/Klipper");
     def->enum_labels.push_back("Duet");
     def->enum_labels.push_back("FlashAir");
@@ -2559,6 +2589,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("printer_notes", coString);
+    def->label = L("Printer notes");
+    def->tooltip = L("You can put your notes regarding the printer here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
     def = this->add("printer_variant", coString);
     //def->label = L("Printer variant");
     def->label = "Printer variant";

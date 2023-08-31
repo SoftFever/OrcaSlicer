@@ -17,6 +17,7 @@
 #include "slic3r/GUI/3DBed.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/BackgroundSlicingProcess.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GLShader.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/Tab.hpp"
@@ -999,6 +1000,7 @@ void GLCanvas3D::SequentialPrintClearance::render()
 
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, RBtnEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_RIGHT_CLICK, RBtnPlateEvent);
@@ -1100,8 +1102,15 @@ void GLCanvas3D::load_arrange_settings()
     m_arrange_settings_fff_seq_print.is_seq_print = true;
 }
 
-PrinterTechnology GLCanvas3D::current_printer_technology() const
+int GLCanvas3D::GetHoverId()
 {
+    if (m_hover_plate_idxs.size() == 0) {
+        return -1; }
+    return m_hover_plate_idxs.front();
+
+}
+
+PrinterTechnology GLCanvas3D::current_printer_technology() const {
     return m_process->current_printer_technology();
 }
 
@@ -2745,7 +2754,6 @@ static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& 
 	vol_old.finalize_geometry(gl_initialized);
 }
 
-//BBS: always load shell at preview
 void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 {
     if (m_initialized)
@@ -2755,6 +2763,10 @@ void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
     }
 }
 
+void GLCanvas3D::set_shell_transparence(float alpha){
+    m_gcode_viewer.set_shell_transparency(alpha);
+
+}
 //BBS: add only gcode mode
 void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors, bool only_gcode)
 {
@@ -5419,8 +5431,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
 
     // only show this option if the printer has micro Lidar and can do first layer scan
     DynamicPrintConfig &current_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    const bool has_lidar = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+    const bool has_lidar = wxGetApp().preset_bundle->is_bbl_vendor();
     auto                op             = current_config.option("scan_first_layer");
     if (has_lidar && op && op->getBool()) {
         if (imgui->bbl_checkbox(_L("Avoid extrusion calibration region"), settings.avoid_extrusion_cali_region)) {

@@ -321,6 +321,26 @@ Semver PresetBundle::get_vendor_profile_version(std::string vendor_name)
     return result_ver;
 }
 
+VendorType PresetBundle::get_current_vendor_type()
+{
+    auto        t      = VendorType::Unknown;
+    auto        config = &printers.get_edited_preset().config;
+    std::string vendor_name;
+    for (auto vendor_profile : vendors) {
+        for (auto vendor_model : vendor_profile.second.models)
+            if (vendor_model.name == config->opt_string("printer_model")) {
+                vendor_name = vendor_profile.first;
+                break;
+            }
+    }
+    if (!vendor_name.empty())
+    {
+        if(vendor_name.compare("BBL") == 0)
+            t = VendorType::Marlin_BBL;
+    }
+    return t;
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
@@ -919,7 +939,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     bool need_reset_print_preset = false;
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
+        if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":prints erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_print_name)
                 need_reset_print_preset = true;
@@ -939,7 +959,7 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     std::string selected_filament_name = filaments.get_selected_preset().name;
     bool need_reset_filament_preset = false;
     for (auto it = filaments.begin(); it != filaments.end();) {
-        if (it->is_user() && !it->user_id.empty() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
+        if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":filaments erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_filament_name)
                 need_reset_filament_preset = true;
@@ -1539,7 +1559,8 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
 {
     std::vector<std::string> filament_presets;
     std::vector<std::string> filament_colors;
-    for (auto &ams : filament_ams_list) {
+    for (auto &entry : filament_ams_list) {
+        auto & ams = entry.second;
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
@@ -1552,10 +1573,14 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
         auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
-            auto filament_type = "Generic " + ams.opt_string("filament_type", 0u);
-            iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system
+            auto filament_type = ams.opt_string("filament_type", 0u);
+            if (!filament_type.empty()) {
+                filament_type = "Generic " + filament_type;
+                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
+                    return f.is_compatible && f.is_system
                         && boost::algorithm::starts_with(f.name, filament_type);
                 });
+            }
             if (iter == filaments.end())
                 iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system; });
             if (iter == filaments.end())

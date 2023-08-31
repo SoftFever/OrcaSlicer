@@ -233,7 +233,7 @@ OpenGLManager::~OpenGLManager()
 #endif //__APPLE__
 }
 
-bool OpenGLManager::init_gl()
+bool OpenGLManager::init_gl(bool popup_error)
 {
     if (!m_gl_initialized) {
         GLenum result = glewInit();
@@ -263,23 +263,28 @@ bool OpenGLManager::init_gl()
 
         bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
         if (!valid_version) {
-            BOOST_LOG_TRIVIAL(warning) << "Found opengl version <= 2.0"<< std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Found opengl version <= 2.0"<< std::endl;
             // Complain about the OpenGL version.
-            wxString message = from_u8((boost::format(
-                _utf8(L("The application cannot run normally because OpenGL version is lower than 2.0.\n")))).str());
-            message += "\n";
-        	message += _L("Please upgrade your graphics card driver.");
-        	wxMessageBox(message, _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
+            if (popup_error) {
+                wxString message = from_u8((boost::format(
+                    _utf8(L("The application cannot run normally because OpenGL version is lower than 2.0.\n")))).str());
+                message += "\n";
+                message += _L("Please upgrade your graphics card driver.");
+                wxMessageBox(message, _L("Unsupported OpenGL version"), wxOK | wxICON_ERROR);
+            }
         }
 
         if (valid_version)
-	{
+        {
             // load shaders
             auto [result, error] = m_shaders_manager.init();
             if (!result) {
-                wxString message = from_u8((boost::format(
-                    _utf8(L("Unable to load shaders:\n%s"))) % error).str());
-                wxMessageBox(message, _L("Error loading shaders"), wxOK | wxICON_ERROR);
+                BOOST_LOG_TRIVIAL(error) << "Unable to load shaders: "<<error<< std::endl;
+                if (popup_error) {
+                    wxString message = from_u8((boost::format(
+                        _utf8(L("Unable to load shaders:\n%s"))) % error).str());
+                    wxMessageBox(message, _L("Error loading shaders"), wxOK | wxICON_ERROR);
+                }
             }
         }
 

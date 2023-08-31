@@ -685,26 +685,6 @@ bool Preset::is_custom_defined()
     return false;
 }
 
-bool Preset::has_lidar(PresetBundle *preset_bundle)
-{
-    bool has_lidar = false;
-    if (preset_bundle) {
-        auto config = &preset_bundle->printers.get_edited_preset().config;
-        std::string vendor_name;
-        for (auto vendor_profile : preset_bundle->vendors) {
-            for (auto vendor_model : vendor_profile.second.models)
-                if (vendor_model.name == config->opt_string("printer_model"))
-                {
-                    vendor_name = vendor_profile.first;
-                    break;
-                }
-        }
-        if (!vendor_name.empty())
-            has_lidar = vendor_name.compare("BBL") == 0 ? true : false;
-    }
-    return has_lidar;
-}
-
 BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
 {
     if (config.has("default_bed_type") && !config.opt_string("default_bed_type").empty()) {
@@ -738,7 +718,7 @@ bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
-    "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
+    "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "staggered_inner_seams", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction",
     "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern",
@@ -785,7 +765,7 @@ static std::vector<std::string> s_Preset_print_options {
      "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
      "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max",
-     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" 
+     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes"
 
 };
 
@@ -810,7 +790,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
-    "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed" /*,"filament_seam_gap"*/
+    "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -837,7 +817,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails",
-    "use_firmware_retraction", "use_relative_e_distances", "bbl_calib_mark_logo"};
+    "use_firmware_retraction", "use_relative_e_distances", "printer_notes"};
 
 static std::vector<std::string> s_Preset_sla_print_options {
     "layer_height",

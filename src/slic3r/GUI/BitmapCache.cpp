@@ -322,7 +322,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     // map of color replaces
     std::map<std::string, std::string> replaces;
-    replaces["\"#00AE42\""] = "\"#009688\"";
+    replaces["\"#0x00AE42\""] = "\"#009688\"";
     replaces["\"#00FF00\""] = "\"#52c7b8\"";
     if (dark_mode) {
         replaces["\"#262E30\""] = "\"#EFEFF0\"";

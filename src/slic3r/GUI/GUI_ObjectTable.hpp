@@ -416,7 +416,7 @@ public:
         bool                 b_icon;
         bool                 b_editable;
         bool                 b_from_config;
-        wxString             *choices;
+        wxArrayString        choices;
         int                  choice_count;
         int                  horizontal_align;
 
@@ -427,13 +427,11 @@ public:
                 size = 32;
             else
                 size = -1;
-            choices = nullptr;
             choice_count = 0;
         }
 
         ~ObjectGridCol()
         {
-            choices = nullptr;
         }
     };
     ObjectGridTable(ObjectTablePanel* panel): m_panel(panel) { }
@@ -573,6 +571,7 @@ public:
     void sort_by_default() { m_object_grid_table->sort_by_default(); }
     wxSize get_init_size();
     void resetAllValuesInSideWindow(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category);
+    void msw_rescale();
 
     //set ObjectGridTable as friend
     friend class     ObjectGridTable;

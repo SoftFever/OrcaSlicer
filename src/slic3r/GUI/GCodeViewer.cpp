@@ -77,7 +77,7 @@ static std::string get_view_type_string(GCodeViewer::EViewType view_type)
         return _u8L("Filament");
     else if (view_type == GCodeViewer::EViewType::LayerTime)
         return _u8L("Layer Time");
-    else if (view_type == GCodeViewer::EViewType::LayerTimeLog)
+else if (view_type == GCodeViewer::EViewType::LayerTimeLog)
         return _u8L("Layer Time (log)");
     return "";
 }
@@ -97,6 +97,16 @@ static std::array<float, 4> decode_color(const std::string& color) {
     const char* c = color.data() + 1;
     if (color.size() == 7 && color.front() == '#') {
         for (size_t j = 0; j < 3; ++j) {
+            int digit1 = hex_digit_to_int(*c++);
+            int digit2 = hex_digit_to_int(*c++);
+            if (digit1 == -1 || digit2 == -1)
+                break;
+
+            ret[j] = float(digit1 * 16 + digit2) * INV_255;
+        }
+    }
+    else if (color.size() == 9 && color.front() == '#') {
+        for (size_t j = 0; j < 4; ++j) {
             int digit1 = hex_digit_to_int(*c++);
             int digit2 = hex_digit_to_int(*c++);
             if (digit1 == -1 || digit2 == -1)
@@ -282,22 +292,22 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
 }
 
 float GCodeViewer::Extrusions::Range::step_size() const {
-    if (log_scale)
+if (log_scale)
     {
         float min_range = min;
         if (min_range == 0)
             min_range = 0.001f;
         return (std::log(max / min_range) / (static_cast<float>(Range_Colors.size()) - 1.0f));
     } else
-        return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f);
+    return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f);
 }
 
 float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
     if (!log_scale)
         return min + static_cast<float>(step) * step_size();
     else
-        return std::exp(std::log(min) + static_cast<float>(step) * step_size());
-
+    return std::exp(std::log(min) + static_cast<float>(step) * step_size());
+    
 }
 GCodeViewer::SequentialRangeCap::~SequentialRangeCap() {
     if (ibo > 0)
@@ -317,7 +327,7 @@ void GCodeViewer::SequentialRangeCap::reset() {
 void GCodeViewer::SequentialView::Marker::init(std::string filename)
 {
     if (filename.empty()) {
-        //m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
+        m_model.init_from(stilized_arrow(16, 1.5f, 3.0f, 0.8f, 3.0f));
     } else {
         m_model.init_from_file(filename);
     }
@@ -389,73 +399,73 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
     std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
-    std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
+    std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
     const float item_size = imgui.calc_text_size("X: 000.000  ").x;
     const float item_spacing = imgui.get_item_spacing().x;
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
     char buf[1024];
-    if (view_type == EViewType::Height ||
-        view_type == EViewType::Width ||
-        view_type == EViewType::Feedrate ||
-        view_type == EViewType::VolumetricRate ||
-        view_type == EViewType::LayerTime ||
-        view_type == EViewType::LayerTimeLog ||
-        view_type == EViewType::FanSpeed ||
-        view_type == EViewType::Temperature)
+     if (true)
     {
+        float startx2 = window_padding + item_size + item_spacing;
+        float startx3 = window_padding + 2*(item_size + item_spacing);
         sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
-        ImGui::SameLine(window_padding + item_size + item_spacing);
+        ImGui::SameLine(startx2);
         sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
+        ImGui::SameLine(startx3);
         sprintf(buf, "%s%.3f", z.c_str(), position.z());
+        ImGui::PushItemWidth(item_size);
+        imgui.text(buf);
+
+        sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
         switch (view_type) {
         case EViewType::Height: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
+            ImGui::SameLine(startx2);
             sprintf(buf, "%s%.2f", height.c_str(), m_curr_move.height);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Width: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
+            ImGui::SameLine(startx2);
             sprintf(buf, "%s%.2f", width.c_str(), m_curr_move.width);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
-        case EViewType::Feedrate: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-            ImGui::PushItemWidth(item_size);
-            imgui.text(buf);
-            break;
-        }
+        // case EViewType::Feedrate: {
+        //     ImGui::SameLine(startx2);
+        //     sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
+        //     ImGui::PushItemWidth(item_size);
+        //     imgui.text(buf);
+        //     break;
+        // }
         case EViewType::VolumetricRate: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
+            ImGui::SameLine(startx2);
             sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::FanSpeed: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
+            ImGui::SameLine(startx2);
             sprintf(buf, "%s%.0f", fanspeed.c_str(), m_curr_move.fan_speed);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Temperature: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
+            ImGui::SameLine(startx2);
             sprintf(buf, "%s%.0f", temperature.c_str(), m_curr_move.temperature);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
@@ -463,7 +473,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         }
         case EViewType::LayerTime:
         case EViewType::LayerTimeLog: {
-            ImGui::SameLine(window_padding + item_size + item_spacing);
+            ImGui::SameLine(startx2);
             sprintf(buf, "%s%.1f", layer_time.c_str(), m_curr_move.layer_duration);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
@@ -474,27 +484,20 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         }
         text_line = 2;
     }
-    else {
-        sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
-        ImGui::PushItemWidth(item_size);
-        imgui.text(buf);
+    // else {
+    //     sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+    //     imgui.text(buf);
 
-        ImGui::SameLine(window_padding + item_size + item_spacing);
-        sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
-        ImGui::PushItemWidth(item_size);
-        imgui.text(buf);
+    //     ImGui::SameLine();
+    //     sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+    //     imgui.text(buf);
 
-        sprintf(buf, "%s%.3f", z.c_str(), position.z());
-        ImGui::PushItemWidth(item_size);
-        imgui.text(buf);
-        
-        ImGui::SameLine(window_padding + item_size + item_spacing);
-        sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-        ImGui::PushItemWidth(item_size);
-        imgui.text(buf);
+    //     ImGui::SameLine();
+    //     sprintf(buf, "%s%.3f", z.c_str(), position.z());
+    //     imgui.text(buf);
 
-        text_line = 1;
-    }
+    //     text_line = 1;
+    // }
 
     // force extra frame to automatically update window size
     float window_width = ImGui::GetWindowWidth();
@@ -543,19 +546,22 @@ void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& fil
 void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, float right, uint64_t curr_line_id) const
 //void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, uint64_t curr_line_id) const
 {
+    // Orca: truncate long lines(>55 characters), add "..." at the end
     auto update_lines = [this](uint64_t start_id, uint64_t end_id) {
         std::vector<Line> ret;
         ret.reserve(end_id - start_id + 1);
         for (uint64_t id = start_id; id <= end_id; ++id) {
             // read line from file
-            const size_t start = id == 1 ? 0 : m_lines_ends[id - 2];
-            const size_t len   = m_lines_ends[id - 1] - start;
-            std::string gline(m_file.data() + start, len);
+            const size_t start        = id == 1 ? 0 : m_lines_ends[id - 2];
+            const size_t original_len = m_lines_ends[id - 1] - start;
+            const size_t len          = std::min(original_len, (size_t) 55);
+            std::string  gline(m_file.data() + start, len);
 
-            std::string command;
-            std::string parameters;
-            std::string comment;
+            // If original line is longer than 55 characters, truncate and append "..."
+            if (original_len > 55)
+                gline = gline.substr(0, 52) + "...";
 
+            std::string command, parameters, comment;
             // extract comment
             std::vector<std::string> tokens;
             boost::split(tokens, gline, boost::is_any_of(";"), boost::token_compress_on);
@@ -573,7 +579,7 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
                     }
                 }
             }
-            ret.push_back({ command, parameters, comment });
+            ret.push_back({command, parameters, comment});
         }
         return ret;
     };
@@ -707,11 +713,11 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
     }
 }
-//BBS: GUI refactor: move to the right
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const
+void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const
 {
-    if (has_render_path)
-        marker.render(canvas_width, canvas_height, view_type);
+if (has_render_path)
+    marker.render(canvas_width, canvas_height, view_type);
+
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
 #if 0
@@ -719,8 +725,7 @@ void GCodeViewer::SequentialView::render(const bool has_render_path, float legen
         bottom -= wxGetApp().plater()->get_view_toolbar().get_height();
 #endif
     if (has_render_path)
-        gcode_window.render(legend_height + 2, std::max(10.f, (float)canvas_height - 40), (float)canvas_width,
-                            static_cast<uint64_t>(gcode_ids[current.last]));
+        gcode_window.render(legend_height + 2, std::max(10.f, (float)canvas_height - 40), (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
 const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
@@ -783,8 +788,9 @@ const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0
 GCodeViewer::GCodeViewer()
 {
     m_moves_slider  = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
+    m_moves_slider->set_scale(0.6f);
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
-
+    m_layers_slider->set_scale(0.6f);
     m_extrusions.reset_role_visibility_flags();
 
 //    m_sequential_view.skip_invisible_moves = true;
@@ -927,7 +933,7 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::Width);
     view_type_items.push_back(EViewType::VolumetricRate);
     view_type_items.push_back(EViewType::LayerTime);
-    view_type_items.push_back(EViewType::LayerTimeLog);
+view_type_items.push_back(EViewType::LayerTimeLog);
     view_type_items.push_back(EViewType::FanSpeed);
     view_type_items.push_back(EViewType::Temperature);
     if (mode == ConfigOptionMode::comDevelop) {
@@ -989,10 +995,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_gcode_result = &gcode_result;
     m_only_gcode_in_preview = only_gcode;
 
-    m_sequential_view.gcode_window.load_gcode(gcode_result.filename,
-                                              // Stealing out lines_ends should be safe because this gcode_result is
-                                              // processed only once (see the 1st if in this function).
-                                              std::move(const_cast<std::vector<size_t> &>(gcode_result.lines_ends)));
+    m_sequential_view.gcode_window.load_gcode(gcode_result.filename, gcode_result.lines_ends);
 
     //BBS: add only gcode mode
     //if (wxGetApp().is_gcode_viewer())
@@ -1012,7 +1015,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_settings_ids = gcode_result.settings_ids;
     m_filament_diameters = gcode_result.filament_diameters;
     m_filament_densities = gcode_result.filament_densities;
-    m_sequential_view.m_show_gcode_window = false;
+m_sequential_view.m_show_gcode_window = false;
 
     //BBS: always load shell at preview
     /*if (wxGetApp().is_editor())
@@ -1150,6 +1153,9 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
         for (auto item : m_tools.m_tool_visibles) item = true;
     }
 
+    for (int i = 0; i < m_tools.m_tool_colors.size(); i++) {
+        m_tools.m_tool_colors[i] = adjust_color_for_rendering(m_tools.m_tool_colors[i]);
+    }
     // ensure there are enough colors defined
     while (m_tools.m_tool_colors.size() < std::max(size_t(1), gcode_result.extruders_count)) {
         m_tools.m_tool_colors.push_back(decode_color("#FF8000"));
@@ -1175,10 +1181,10 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
             m_extrusions.ranges.temperature.update_from(curr.temperature);
             if (curr.extrusion_role != erCustom || is_visible(erCustom))
                 m_extrusions.ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
-            
+
             if (curr.layer_duration > 0.f) {
                 m_extrusions.ranges.layer_duration.update_from(curr.layer_duration);
-                m_extrusions.ranges.layer_duration_log.update_from(curr.layer_duration);
+m_extrusions.ranges.layer_duration_log.update_from(curr.layer_duration);
             }
             [[fallthrough]];
         }
@@ -1210,11 +1216,13 @@ void GCodeViewer::refresh_render_paths()
     refresh_render_paths(false, false);
 }
 
-void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig* config)
+void GCodeViewer::update_shells_color_by_extruder(const DynamicPrintConfig *config)
 {
     if (config != nullptr)
-        m_shells.volumes.update_colors_by_extruder(config);
+        m_shells.volumes.update_colors_by_extruder(config, false);
 }
+
+void GCodeViewer::set_shell_transparency(float alpha) { m_shells.volumes.set_transparency(alpha); }
 
 //BBS: always load shell at preview
 void GCodeViewer::reset_shell()
@@ -1270,15 +1278,15 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     m_statistics.total_instances_gpu_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    //BBS: always render shells in preview window
     render_shells();
+    // Orca: add shell overlay effect
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
     if (m_roles.empty())
         return;
-
     glsafe(::glEnable(GL_DEPTH_TEST));
+
     render_toolpaths();
-    //render_shells();
     float legend_height = 0.0f;
     render_legend(legend_height, canvas_width, canvas_height, right_margin);
 
@@ -1288,7 +1296,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     }
 
     //BBS fixed bottom_margin for space to render horiz slider
-    int bottom_margin = 64;
+    int bottom_margin = 39;
     m_sequential_view.m_show_gcode_window =
         m_sequential_view.m_show_gcode_window ||
         (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path);
@@ -1296,7 +1304,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(!m_no_render_path, legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type);
+        m_sequential_view.render(!m_no_render_path, legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -3088,10 +3096,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     m_extruder_ids.shrink_to_fit();
 
     std::vector<int> plater_extruder;
-    for (auto mid : m_extruder_ids){
+	for (auto mid : m_extruder_ids){
         int eid = mid;
         plater_extruder.push_back(++eid);
-    }
+	}
     m_plater_extruder = plater_extruder;
 
     // replace layers for spiral vase mode
@@ -3415,10 +3423,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     // update current sequential position
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
     if (global_endpoints.last == 0) {
-         m_no_render_path = true;
+m_no_render_path = true;
         sequential_view->current.last = global_endpoints.last;
     } else {
-        m_no_render_path = false;
+m_no_render_path = false;
         sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
     }
 
@@ -3829,7 +3837,7 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
         glsafe(::glEnable(GL_POINT_SPRITE));
 
@@ -3856,7 +3864,7 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
@@ -3874,7 +3882,7 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
@@ -4004,13 +4012,15 @@ void GCodeViewer::render_toolpaths()
                 default: break;
                 }
                 int uniform_color = shader->get_uniform_location("uniform_color");
-                auto it_path = buffer.render_paths.begin();
+                auto it_path = buffer.render_paths.rbegin();
                 //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":buffer indices size %1%, render_path size %2% ")%buffer.indices.size() %buffer.render_paths.size();
-                for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
+                unsigned int indices_count = static_cast<unsigned int>(buffer.indices.size());
+                for (unsigned int index = 0; index < indices_count; ++index) {
+                    unsigned int ibuffer_id = indices_count - index - 1;
                     const IBuffer& i_buffer = buffer.indices[ibuffer_id];
                     // Skip all paths with ibuffer_id < ibuffer_id.
-                    for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++ it_path) ;
-                    if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
+                    for (; it_path != buffer.render_paths.rend() && it_path->ibuffer_id > ibuffer_id; ++ it_path) ;
+                    if (it_path == buffer.render_paths.rend() || it_path->ibuffer_id < ibuffer_id)
                         // Not found. This shall not happen.
                         continue;
 
@@ -4029,16 +4039,16 @@ void GCodeViewer::render_toolpaths()
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Point: {
-                        render_as_points(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_points(it_path, buffer.render_paths.rend(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Line: {
                         glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
-                        render_as_lines(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_lines(it_path, buffer.render_paths.rend(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                        render_as_triangles(it_path, buffer.render_paths.rend(), *shader, uniform_color);
                         break;
                     }
                     default: { break; }
@@ -4160,6 +4170,10 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
     std::vector<float> filament_diameters = gcode_result_list.front()->filament_diameters;
     std::vector<float> filament_densities = gcode_result_list.front()->filament_densities;
     std::vector<Color> filament_colors = decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()));
+
+    for (int i = 0; i < filament_colors.size(); i++) { 
+        filament_colors[i] = adjust_color_for_rendering(filament_colors[i]);
+    }
 
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
     float window_padding = 4.0f * m_scale;
@@ -4304,18 +4318,20 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
                 columns_offsets.push_back({ std::to_string(it->first + 1), offsets[0] });
 
                 char buf[64];
+                double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1.0;
                 if (show_detailed_statistics_page) {
-                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[1] });
 
-                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m_all_plates[i], flushed_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m_all_plates[i], flushed_filaments_g_all_plates[i] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[2] });
 
-                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m_all_plates[i] + flushed_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] + flushed_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (model_used_filaments_m_all_plates[i] + flushed_filaments_m_all_plates[i]),
+                              (model_used_filaments_g_all_plates[i] + flushed_filaments_g_all_plates[i]) / unit_conver);
                     columns_offsets.push_back({ buf, offsets[3] });
                 }
                 else {
-                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i]);
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m_all_plates[i], model_used_filaments_g_all_plates[i] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[2] });
                 }
 
@@ -4409,7 +4425,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         default:
         case EItemType::Rect: {
             draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+                                     ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
             break;
         }
         case EItemType::Circle: {
@@ -4452,7 +4468,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (b_menu_item)
                 callback();
             if (checkbox) {
-                ImGui::SameLine(ImGui::GetWindowWidth() - imgui.calc_text_size(_u8L("Display")).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
+                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
                 ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
                 ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
@@ -4938,7 +4954,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     columns_offsets.push_back({ std::to_string(extruder_idx + 1), offsets[0] });
 
                     char buf[64];
-                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[0] , model_used_filaments_g[0]);
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[0], model_used_filaments_g[0] / unit_conver);
                     columns_offsets.push_back({ buf, offsets[2] });
 
                     append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false);
@@ -4972,19 +4988,20 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
                         char buf[64];
                         if (show_flushed_filaments) {
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
                             columns_offsets.push_back({ buf, offsets[1] });
 
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i] / unit_conver);
                             columns_offsets.push_back({ buf, offsets[2] });
 
-                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (model_used_filaments_m[i] + flushed_filaments_m[i]),
+                                      (model_used_filaments_g[i] + flushed_filaments_g[i]) / unit_conver);
                             columns_offsets.push_back({ buf, offsets[3] });
                         }
                         else {
                             char buf[64];
-                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
-                            columns_offsets.push_back({ buf, offsets[2] });
+                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
+                            columns_offsets.push_back({buf, offsets[2]});
                         }
 
                         append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
@@ -5033,20 +5050,20 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             std::vector<std::pair<std::string, float>> columns_offsets;
             columns_offsets.push_back({ _u8L("Total"), offsets[0] });
             if (!show_flushed_filaments) {
-                ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g);
+                ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[2] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
             }
             else {
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[1] });
 
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_flushed_filament_m, total_flushed_filament_g);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_flushed_filament_m, total_flushed_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[2] });
 
                 bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (total_model_used_filament_m + total_flushed_filament_m) * 1000 / /*1000*/koef, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_flushed_filament_m, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
                 columns_offsets.push_back({ buf, offsets[3] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
@@ -5701,3 +5718,4 @@ GCodeViewer::Color GCodeViewer::option_color(EMoveType move_type) const
 
 } // namespace GUI
 } // namespace Slic3r
+

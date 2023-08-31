@@ -302,7 +302,6 @@ public:
     std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
     bool is_custom_defined();
 
-    bool has_lidar(PresetBundle *preset_bundle);
     BedType get_default_bed_type(PresetBundle *preset_bundle);
     bool has_cali_lines(PresetBundle* preset_bundle);
 

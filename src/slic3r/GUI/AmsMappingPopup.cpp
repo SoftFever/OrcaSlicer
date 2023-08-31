@@ -15,6 +15,7 @@
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
+#include <wx/graphics.h>
 #include <miniz.h>
 #include <algorithm>
 #include "Plater.hpp"
@@ -30,7 +31,7 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
  {
     m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", FromDIP(12));
     m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
-
+    m_transparent_mitem = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
 
     m_material_coloul = mcolour;
     m_material_name = mname;
@@ -51,7 +52,11 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
  MaterialItem::~MaterialItem() {}
 
-void MaterialItem::msw_rescale() {}
+void MaterialItem::msw_rescale() {
+    m_arraw_bitmap_gray  = ScalableBitmap(this, "drop_down", FromDIP(12));
+    m_arraw_bitmap_white = ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
+    m_transparent_mitem  = ScalableBitmap(this, "transparent_material_item", FromDIP(32));
+}
 
 void MaterialItem::set_ams_info(wxColour col, wxString txt)
 {
@@ -59,6 +64,22 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt)
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
     if (m_ams_name != txt) {m_ams_name   = txt;need_refresh = true;}
     if (need_refresh) { Refresh();}
+}
+
+void MaterialItem::disable()
+{
+    if (IsEnabled()) {
+        this->Disable();
+        Refresh();
+    }
+}
+
+void MaterialItem::enable()
+{
+    if (!IsEnabled()) {
+        this->Enable();
+        Refresh();
+    }
 }
 
 void MaterialItem::on_selected()
@@ -117,15 +138,26 @@ void MaterialItem::render(wxDC &dc)
     doRender(dc);
 #endif
 
+    auto mcolor = m_material_coloul;
+    auto acolor = m_ams_coloul;
+    if (!IsEnabled()) {
+        mcolor = wxColour(0x90, 0x90, 0x90);
+        acolor = wxColour(0x90, 0x90, 0x90);
+    }
+    else {
+        mcolor = m_material_coloul;
+        acolor = m_ams_coloul;
+    }
+
     // materials name
     dc.SetFont(::Label::Body_13);
 
-    auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    if (mcolor.Alpha() == 0) {material_name_colour = wxColour(0x26, 0x2E, 0x30);}
     dc.SetTextForeground(material_name_colour);
 
     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
         dc.SetFont(::Label::Body_10);
-
     }
 
     auto material_txt_size = dc.GetTextExtent(m_material_name);
@@ -133,7 +165,10 @@ void MaterialItem::render(wxDC &dc)
 
     // mapping num
     dc.SetFont(::Label::Body_10);
-    dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+    dc.SetTextForeground(acolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+    if (acolor.Alpha() == 0) {
+        dc.SetTextForeground(wxColour(0x26, 0x2E, 0x30));
+    }
 
     wxString mapping_txt = wxEmptyString;
     if (m_ams_name.empty()) {
@@ -148,28 +183,44 @@ void MaterialItem::render(wxDC &dc)
 
 void MaterialItem::doRender(wxDC &dc) 
 {
+    auto mcolor = m_material_coloul;
+    auto acolor = m_ams_coloul;
+
+    if (mcolor.Alpha() == 0) {
+        dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
+    }
+
+    if (!IsEnabled()) {
+        mcolor = wxColour(0x90, 0x90, 0x90);
+        acolor = wxColour(0x90, 0x90, 0x90);
+    }
+    else {
+        mcolor = m_material_coloul;
+        acolor = m_ams_coloul;
+    }
+
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_material_coloul));
+    dc.SetBrush(wxBrush(mcolor));
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(18), 5);
     
     //bottom
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(wxColour(m_ams_coloul)));
+    dc.SetBrush(wxBrush(wxColour(acolor)));
     dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
 
     ////middle
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_material_coloul));
+    dc.SetBrush(wxBrush(mcolor));
     dc.DrawRectangle(FromDIP(1), FromDIP(11), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_ams_coloul));
+    dc.SetBrush(wxBrush(acolor));
     dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
     ////border
 #if __APPLE__
-    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
+    if (mcolor == *wxWHITE || acolor == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
@@ -181,7 +232,7 @@ void MaterialItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
     }
 #else
-    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
+    if (mcolor == *wxWHITE || acolor == *wxWHITE || acolor.Alpha() == 0) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
@@ -194,9 +245,8 @@ void MaterialItem::doRender(wxDC &dc)
     }
 #endif
     //arrow
-
-    if ( (m_ams_coloul.Red() > 160 && m_ams_coloul.Green() > 160 && m_ams_coloul.Blue() > 160) &&
-        (m_ams_coloul.Red() < 180 && m_ams_coloul.Green() < 180 && m_ams_coloul.Blue() < 180)) {
+    if ( (acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
+        (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
         dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
     }
     else {
@@ -535,6 +585,8 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
+
+    m_transparent_mapping_item = ScalableBitmap(this, "transparent_mapping_item", FromDIP(44));
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
@@ -550,7 +602,7 @@ void MappingItem::send_event(int fliament_id)
     wxCommandEvent event(EVT_SET_FINISH_MAPPING);
     event.SetInt(m_tray_data.id);
 
-    wxString param = wxString::Format("%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), number, fliament_id);
+    wxString param = wxString::Format("%d|%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_coloul.Alpha(), number, fliament_id);
     event.SetString(param);
     event.SetEventObject(this->GetParent()->GetParent());
     wxPostEvent(this->GetParent()->GetParent()->GetParent(), event);
@@ -592,15 +644,10 @@ void MappingItem::render(wxDC &dc)
     // materials name
     dc.SetFont(::Label::Head_13);
 
-    auto txt_colour = m_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    auto txt_colour = m_coloul.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
     txt_colour      = m_unmatch ? wxColour(0xCE, 0xCE, 0xCE) : txt_colour;
-
+    if (m_coloul.Alpha() == 0) txt_colour = wxColour(0x26, 0x2E, 0x30);
     dc.SetTextForeground(txt_colour);
-
-    /*if (dc.GetTextExtent(m_name).x > GetSize().x - 10) {
-        dc.SetFont(::Label::Body_10);
-        m_name = m_name.substr(0, 3) + "." + m_name.substr(m_name.length() - 1);
-    }*/
 
     auto txt_size = dc.GetTextExtent(m_tray_index);
     auto top = (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2 + FromDIP(8);
@@ -628,16 +675,14 @@ void MappingItem::doRender(wxDC &dc)
 {
     dc.SetPen(m_coloul);
     dc.SetBrush(wxBrush(m_coloul));
-    dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
 
-//    if (m_coloul == *wxWHITE) {
-//        dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC), 1));
-//#ifdef __APPLE__
-//        dc.DrawRectangle(1, 1, GetSize().x - 1, GetSize().y - 1);
-//#else
-//        dc.DrawRectangle(0, 0, tray_size.x, tray_size.y);
-//#endif // __APPLE__
-//    }
+    if (m_coloul.Alpha() == 0) {
+       dc.DrawBitmap( m_transparent_mapping_item.bmp(), 0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2);
+    }
+    else {
+        dc.DrawRectangle(0, (GetSize().y - MAPPING_ITEM_REAL_SIZE.y) / 2, MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
+    }
+
 
     wxColour side_colour = wxColour(0xE4E4E4);
 
@@ -824,7 +869,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 22);
 
     m_button_confirm = new Button(this, _L("OK"));
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(btn_bg_green);
     m_button_confirm->SetBorderColor(wxColour(0, 150, 136));
     m_button_confirm->SetTextColor(wxColour(0xFFFFFE));
@@ -1116,8 +1161,11 @@ void MappingContainer::doRender(wxDC& dc)
 }
 
 AmsReplaceMaterialDialog::AmsReplaceMaterialDialog(wxWindow* parent)
-    : DPIDialog(parent, wxID_ANY, _L("Filaments replace"), wxDefaultPosition, wxDefaultSize, wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent, wxID_ANY, _L("Auto Refill"), wxDefaultPosition, wxDefaultSize, wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
     SetBackgroundColour(*wxWHITE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -1125,14 +1173,13 @@ AmsReplaceMaterialDialog::AmsReplaceMaterialDialog(wxWindow* parent)
 
 void AmsReplaceMaterialDialog::create()
 {
-    SetSize(wxSize(FromDIP(376), -1));
-    SetMinSize(wxSize(FromDIP(376), -1));
-    SetMaxSize(wxSize(FromDIP(376), -1));
+    SetSize(wxSize(FromDIP(445), -1));
+    SetMinSize(wxSize(FromDIP(445), -1));
+    SetMaxSize(wxSize(FromDIP(445), -1));
 
     // set icon for dialog
     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-    SetSizeHints(wxDefaultSize, wxDefaultSize);
 
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     auto m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
@@ -1140,8 +1187,31 @@ void AmsReplaceMaterialDialog::create()
     m_main_sizer->Add(m_top_line, 0, wxEXPAND, 0);
 
 
-    auto m_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto label_title = new Label(this, _L("Auto Refill"));
+    label_title->SetFont(Label::Head_14);
+    label_title->SetForegroundColour(0x009688);
+    label_txt = new Label(this, _L("When the current material run out, the printer will continue to print in the following order."));
+    label_txt->SetFont(Label::Body_13);
+    label_txt->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
+    label_txt->SetMinSize(wxSize(FromDIP(380), -1));
+    label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
+    label_txt->Wrap(FromDIP(380));
+
+    m_scrollview_groups = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
+    m_scrollview_groups->SetScrollRate(5, 5);
+    //m_scrollview_groups->SetMinSize(wxSize(400, 400));
+    //m_scrollview_groups->SetMaxSize(wxSize(400, 400));
+    m_scrollview_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_groups_sizer = new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
+
+    m_scrollview_sizer->Add( m_groups_sizer, 0, wxALIGN_CENTER, 0 );
+    m_scrollview_groups->SetSizer(m_scrollview_sizer);
+    m_scrollview_groups->Layout();
     
+
+
+    auto m_button_sizer = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
         std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
         std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
@@ -1153,26 +1223,18 @@ void AmsReplaceMaterialDialog::create()
     StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    auto m_button_close = new Button(this, _L("Close"));
-    m_button_close->SetCornerRadius(FromDIP(11));
-    m_button_close->SetBackgroundColor(btn_bg_white);
-    m_button_close->SetBorderColor(btn_bd_white);
-    m_button_close->SetTextColor(btn_text_white);
-    m_button_close->SetFont(Label::Body_13);
-    m_button_close->SetMinSize(wxSize(FromDIP(42), FromDIP(24)));
-    m_button_close->Bind(wxEVT_BUTTON, [this](auto& e) {
-        EndModal(wxCLOSE);
-    });
 
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
     m_button_sizer->Add( 0, 0, 1, wxEXPAND, 0 );
-    m_button_sizer->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
-
-    m_groups_sizer = new wxBoxSizer(wxVERTICAL);
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(12));
-    m_main_sizer->Add(m_groups_sizer,0,wxEXPAND|wxLEFT|wxRIGHT, FromDIP(16));
+    m_main_sizer->Add(label_title,0, wxLEFT, FromDIP(30));
+    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(4));
+    m_main_sizer->Add(label_txt,0, wxLEFT, FromDIP(30));
+    m_main_sizer->Add(0,0,0, wxTOP, FromDIP(16));
+    m_main_sizer->Add(m_scrollview_groups, 1, wxALIGN_CENTER, 0);
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
-    m_main_sizer->Add(m_button_sizer,0,wxEXPAND|wxLEFT|wxRIGHT, FromDIP(16));
+    m_main_sizer->Add(m_button_sizer,0,wxALIGN_CENTER, FromDIP(16));
     m_main_sizer->Add(0,0,0, wxTOP, FromDIP(20));
     
 
@@ -1196,6 +1258,14 @@ std::vector<bool> AmsReplaceMaterialDialog::GetStatus(unsigned int status)
         listStatus.push_back(current);
     }
     return listStatus;
+}
+
+void AmsReplaceMaterialDialog::update_mapping_result( std::vector<FilamentInfo> result)
+{
+    m_tray_used.clear();
+    for (int i = 0; i < result.size(); i++) {
+        m_tray_used.push_back(wxGetApp().transition_tridid(result[i].tray_id).ToStdString());
+    }
 }
 
 void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
@@ -1222,116 +1292,58 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     catch (...) {}
 
     //creat group
-    int group_index = 1;
+    int group_index = 0;
     for (int filam : m_obj->filam_bak) {
          auto status_list = GetStatus(filam);
 
-         wxColour       group_color;
+         std::map<std::string, wxColour> group_info;
          std::string    group_material;
+         bool   is_in_tray = false;
 
          //get color & material
          for (auto i = 0; i < status_list.size(); i++) {
              if (status_list[i] && tray_list[i] != nullptr) {
-                 group_color = AmsTray::decode_color(tray_list[i]->color);
+                 auto tray_name = wxGetApp().transition_tridid(i).ToStdString();
+                 auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
+                 if (it != m_tray_used.end()) {
+                     is_in_tray = true;
+                 }
+
+                 group_info[tray_name] = AmsTray::decode_color(tray_list[i]->color);
                  group_material = tray_list[i]->get_display_filament_type();
              }
          }
 
-         m_groups_sizer->Add(create_split_line(wxString::Format("%s%d", _L("Group"), group_index), group_color, group_material, status_list), 0, wxEXPAND, 0);
-         m_groups_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
-         group_index++;
+         if (is_in_tray || m_tray_used.size() <= 0) {
+             m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material, status_list), 0, wxALL, FromDIP(10));
+             group_index++;
+         } 
     }
 
+    if (group_index > 0) {
+        auto height = 0;
+        if (group_index > 6) {
+            height = FromDIP(550);
+        }
+        else {
+            height = FromDIP(200) * (std::ceil(group_index / 2.0));
+        }
+        m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
+        m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));
+    } else {
+        if (label_txt)
+            label_txt->SetLabelText(_L("There are currently no identical spare consumables available, and automatic replenishment is currently not possible. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+    }
+   
+    m_scrollview_groups->Layout();
     Layout();
     Fit();
 }
 
-wxWindow* AmsReplaceMaterialDialog::create_split_line(wxString gname, wxColour col, wxString material, std::vector<bool> status_list)
+AmsRMGroup* AmsReplaceMaterialDialog::create_backup_group(wxString gname, std::map<std::string, wxColour> group_info, wxString material, std::vector<bool> status_list)
 {
-    wxColour background_color = wxColour(0xF4F4F4);
-
-    if (abs(col.Red() - background_color.Red()) <= 5 && 
-        abs(col.Green() - background_color.Green()) <= 5 && 
-        abs(col.Blue() - background_color.Blue()) <= 5) {
-        background_color = wxColour(0xE6E6E6);
-    }
-
-    auto m_panel_group = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_panel_group->SetCornerRadius(FromDIP(4));
-    m_panel_group->SetBackgroundColor(StateColor(std::pair<wxColour, int>(background_color, StateColor::Normal)));
-
-    m_panel_group->SetSize(wxSize(FromDIP(344), -1));
-    m_panel_group->SetMinSize(wxSize(FromDIP(344), -1));
-    m_panel_group->SetMaxSize(wxSize(FromDIP(344), -1));
-
-    wxBoxSizer* group_sizer = new wxBoxSizer(wxVERTICAL);
-
-    //group title
-    wxBoxSizer* title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto group_name = new Label(m_panel_group, gname);
-    group_name->SetFont(::Label::Head_12);
-
-    Button* material_info = new Button(m_panel_group, material);
-    material_info->SetFont(Label::Head_12);
-    material_info->SetCornerRadius(FromDIP(2));
-    material_info->SetBorderColor(background_color);
-
-    if (col.GetLuminance() < 0.5)
-        material_info->SetTextColor(*wxWHITE);
-    else
-        material_info->SetTextColor(0x6B6B6B);
-    
-    material_info->SetMinSize(wxSize(-1, FromDIP(24)));
-    material_info->SetBackgroundColor(col);
-
-
-    title_sizer->Add(group_name, 0, wxALIGN_CENTER, 0);
-    title_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-    title_sizer->Add(material_info, 0, wxALIGN_CENTER, 0);
-
-
-    //group item
-    wxGridSizer* grid_Sizer = new wxGridSizer(0, 8, 0, 0);
-
-    for (int i = 0; i < status_list.size(); i++) {
-        if (status_list[i]) {
-            AmsRMItem* amsitem = new AmsRMItem(m_panel_group, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-            amsitem->set_color(col);
-
-            //set current tray
-            if (!m_obj->m_tray_now.empty() && m_obj->m_tray_now == std::to_string(i)) {
-                amsitem->set_focus(true);
-            }
-
-            amsitem->set_type(RMTYPE_NORMAL);
-            amsitem->set_index(wxGetApp().transition_tridid(i).ToStdString());
-            amsitem->SetBackgroundColour(background_color);
-            grid_Sizer->Add(amsitem, 0, wxALIGN_CENTER | wxTOP | wxBottom, FromDIP(10));
-        }
-    }
-
-    //add the first tray
-    for (int i = 0; i < status_list.size(); i++) {
-        if (status_list[i]) {
-            AmsRMItem* amsitem = new AmsRMItem(m_panel_group, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-            amsitem->set_color(col);
-            amsitem->set_type(RMTYPE_VIRTUAL);
-            amsitem->set_index(wxGetApp().transition_tridid(i).ToStdString());
-            amsitem->SetBackgroundColour(background_color);
-            grid_Sizer->Add(amsitem, 0, wxALIGN_CENTER | wxTOP | wxBottom, FromDIP(10));
-            break;
-        }
-    }
-
-    group_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    group_sizer->Add(title_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
-    group_sizer->Add(grid_Sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(12));
-    group_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-
-    m_panel_group->SetSizer(group_sizer);
-    m_panel_group->Layout();
-    group_sizer->Fit(m_panel_group);
-    return m_panel_group;
+    auto grp = new AmsRMGroup(m_scrollview_groups, group_info, material, gname);
+    return grp;
 }
 
 void AmsReplaceMaterialDialog::paintEvent(wxPaintEvent& evt)
@@ -1347,119 +1359,90 @@ void AmsReplaceMaterialDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 }
 
-AmsRMItem::AmsRMItem(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+AmsRMGroup::AmsRMGroup(wxWindow* parent, std::map<std::string, wxColour> group_info, wxString mname, wxString group_index)
 {
-    wxWindow::Create(parent, id, pos, size);
-
-    SetSize(wxSize(FromDIP(42), FromDIP(32)));
-    SetMinSize(wxSize(FromDIP(42), FromDIP(32)));
-    SetMaxSize(wxSize(FromDIP(42), FromDIP(32)));
-
-    SetBackgroundColour(*wxWHITE);
-
-    Bind(wxEVT_PAINT, &AmsRMItem::paintEvent, this);
-}
-
-void AmsRMItem::paintEvent(wxPaintEvent& evt)
-{
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void AmsRMItem::render(wxDC& dc)
-{
-#ifdef __WXMSW__
-    wxSize     size = GetSize();
-    wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
-    memdc.SelectObject(bmp);
-    memdc.Blit({ 0, 0 }, size, &dc, { 0, 0 });
-
-    {
-        wxGCDC dc2(memdc);
-        doRender(dc2);
-    }
-
-    memdc.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmp, 0, 0);
-#else
-    doRender(dc);
-#endif
-}
-
-void AmsRMItem::doRender(wxDC& dc)
-{
-    wxSize size = GetSize();
-
-    if (m_type == RMTYPE_NORMAL) {
-        dc.SetPen(wxPen(m_color, 2));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    }
-    else {
-        dc.SetPen(wxPen(m_color, 2, wxSHORT_DASH));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    }
-
-    //top bottom line
-    dc.DrawLine(FromDIP(0), FromDIP(4), size.x - FromDIP(5), FromDIP(4));
-    dc.DrawLine(FromDIP(0), size.y - FromDIP(4), size.x - FromDIP(5), size.y - FromDIP(4));
-
-    //left right line
-    dc.DrawLine(FromDIP(1), FromDIP(4), FromDIP(1), FromDIP(11));
-    dc.DrawLine(FromDIP(1), FromDIP(22), FromDIP(1), size.y - FromDIP(4));
-
-    dc.DrawLine(size.x - FromDIP(5), FromDIP(4), size.x - FromDIP(5), FromDIP(11));
-    dc.DrawLine(size.x - FromDIP(5), FromDIP(22), size.x - FromDIP(5), size.y - FromDIP(4));
-
-    //delta
-    dc.DrawLine(FromDIP(0), FromDIP(11), FromDIP(5), size.y / 2);
-    dc.DrawLine(FromDIP(0), FromDIP(22), FromDIP(5), size.y / 2);
-
-    dc.DrawLine(size.x - FromDIP(5), FromDIP(11), size.x - FromDIP(1), size.y / 2);
-    dc.DrawLine(size.x - FromDIP(5), FromDIP(22), size.x - FromDIP(1), size.y / 2);
-
-
-    if (m_focus) {
-        dc.SetPen(wxPen(wxColour(0x00AE42), 2));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawLine(FromDIP(0), FromDIP(1), size.x - FromDIP(5), FromDIP(1));
-        dc.DrawLine(FromDIP(0), size.y - FromDIP(1), size.x - FromDIP(5), size.y - FromDIP(1));
-    }
-
-    if (m_selected) {
-    }
-
-    auto tsize = dc.GetMultiLineTextExtent(m_index);
-    auto tpot = wxPoint((size.x - tsize.x) / 2 - FromDIP(2), (size.y - tsize.y) / 2 + FromDIP(2));
-    dc.SetTextForeground(wxColour(0x6B6B6B));
-    dc.SetFont(::Label::Head_12);
-    dc.DrawText(m_index, tpot);
-}
-
-AmsRMArrow::AmsRMArrow(wxWindow* parent)
-{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+    m_group_info.clear();
+    m_group_info = group_info;
+    m_material_name = mname;
+    m_group_index   = group_index;
 
     wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    SetSize(wxSize(FromDIP(166), FromDIP(166)));
+    SetMinSize(wxSize(FromDIP(166), FromDIP(166)));
+    SetMaxSize(wxSize(FromDIP(166), FromDIP(166)));
     SetBackgroundColour(*wxWHITE);
-    Bind(wxEVT_PAINT, &AmsRMArrow::paintEvent, this);
 
-    m_bitmap_left = ScalableBitmap(this, "replace_arrow_left", 7);
-    m_bitmap_right = ScalableBitmap(this, "replace_arrow_right", 7);
-    m_bitmap_down = ScalableBitmap(this, "replace_arrow_down", 7);
+    backup_current_use_white    =  ScalableBitmap(this, "backup_current_use1",8);
+    backup_current_use_black    =  ScalableBitmap(this, "backup_current_use2", 8);
+    bitmap_backup_tips_0        =  ScalableBitmap(this, "backup_tips_img", 90);
+    bitmap_editable             = ScalableBitmap(this, "ams_editable", 14);
+    bitmap_bg                   = ScalableBitmap(this, "back_up_ts_bk", 162);
+    bitmap_editable_light       = ScalableBitmap(this, "ams_editable_light", 14);
 
-
-        SetSize(wxSize(FromDIP(16), FromDIP(32)));
-        SetMinSize(wxSize(FromDIP(16), FromDIP(32)));
-        SetMaxSize(wxSize(FromDIP(16), FromDIP(32)));
+    Bind(wxEVT_PAINT, &AmsRMGroup::paintEvent, this);
+    Bind(wxEVT_LEFT_DOWN, &AmsRMGroup::on_mouse_move, this);
+    wxGetApp().UpdateDarkUI(this);
 }
 
-void AmsRMArrow::paintEvent(wxPaintEvent& evt)
+double AmsRMGroup::GetAngle(wxPoint pointA, wxPoint pointB)
+{
+    double deltaX = pointA.x - pointB.x;
+    double deltaY = pointA.y - pointB.y;
+    double angle = atan2(deltaY, deltaX);
+
+    angle = angle * 180.0 / M_PI;
+
+    if (angle < 0)
+        angle += 360.0;
+
+    return angle;
+}
+
+void AmsRMGroup::on_mouse_move(wxMouseEvent& evt)
+{
+    wxSize     size = GetSize();
+    auto mouseX = evt.GetPosition().x;
+    auto mouseY = evt.GetPosition().y;
+
+    auto click_angle = 360.0 - GetAngle(wxPoint(mouseX,mouseY), wxPoint(size.x / 2, size.x / 2));
+
+
+    float ev_angle = 360.0 / m_group_info.size();
+    float startAngle = 0.0;
+    float endAngle = 0.0;
+
+    for (auto iter = m_group_info.rbegin(); iter != m_group_info.rend(); ++iter) {
+        std::string tray_name = iter->first;
+        wxColour tray_color = iter->second;
+
+        int x = size.x / 2;
+        int y = size.y / 2;
+        int radius = size.x / 2;
+        endAngle += ev_angle;
+
+        if (click_angle >= startAngle && click_angle < endAngle) {
+            //to do
+            set_index(tray_name);
+            Refresh();
+            return;
+        }
+      
+        startAngle += ev_angle;
+    }
+
+    evt.Skip();
+}
+
+void AmsRMGroup::paintEvent(wxPaintEvent& evt)
 {
     wxPaintDC dc(this);
     render(dc);
 }
 
-void AmsRMArrow::render(wxDC& dc)
+void AmsRMGroup::render(wxDC& dc)
 {
 #ifdef __WXMSW__
     wxSize     size = GetSize();
@@ -1480,17 +1463,114 @@ void AmsRMArrow::render(wxDC& dc)
 #endif
 }
 
-void AmsRMArrow::doRender(wxDC& dc)
+wxPoint AmsRMGroup::CalculateEndpoint(const wxPoint& startPoint, int angle, int length)
+{
+    int endX = startPoint.x + length * cos(angle * M_PI / 180);
+    int endY = startPoint.y + length * sin(angle * M_PI / 180);
+    return wxPoint(endX, endY);
+}
+
+void AmsRMGroup::doRender(wxDC& dc)
 {
     wxSize size = GetSize();
+    
+    float center_mask_radius = FromDIP(52);
+    float selected_radius = FromDIP(53);
 
-    dc.SetPen(wxPen(wxColour(0, 174, 66)));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    float ev_angle = 360.0 / m_group_info.size();
+    float startAngle = 0.0;
+    float endAngle = 0.0;
 
+    dc.DrawBitmap(bitmap_bg.bmp(), wxPoint((size.x - bitmap_bg.GetBmpSize().x) / 2, (size.y - bitmap_bg.GetBmpSize().y) / 2));
 
-    dc.SetPen(wxPen(wxColour(0xACACAC)));
-    dc.SetBrush(wxBrush(wxColour(0xACACAC)));
-    dc.DrawCircle(size.x / 2, size.y / 2, FromDIP(7));
+    for (auto iter = m_group_info.rbegin(); iter != m_group_info.rend(); ++iter) {
+        std::string tray_name = iter->first;
+        wxColour tray_color = iter->second;
+
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        if (tray_color == *wxWHITE) dc.SetPen(wxPen(wxColour(0xEEEEEE), 2));
+        dc.SetBrush(wxBrush(tray_color));
+
+        int x = size.x / 2;
+        int y = size.y / 2;
+        int radius = size.x / 2 - FromDIP(2);
+        endAngle += ev_angle;
+
+ 
+        //draw body
+        if (tray_color.Alpha() != 0) {
+            dc.DrawEllipticArc(x - radius, y - radius, radius * 2, radius * 2, startAngle, endAngle);
+            if (tray_color == *wxWHITE) dc.DrawEllipticArc(x - center_mask_radius, y - center_mask_radius, center_mask_radius * 2, center_mask_radius * 2, startAngle, endAngle);
+        }
+
+        //draw selected
+        if (!m_selected_index.empty() && m_selected_index == tray_name) {
+            dc.SetPen(wxPen(0xCECECE, 2));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawEllipticArc(x - radius, y - radius, radius * 2, radius * 2, startAngle, endAngle);
+            dc.DrawEllipticArc(x - selected_radius, y - selected_radius,selected_radius * 2, selected_radius * 2,  startAngle, endAngle);
+        }
+
+        //...
+        startAngle += ev_angle;
+    }
+
+    //draw text
+    startAngle = 0.0;
+    endAngle = 0.0;
+    for (auto iter = m_group_info.rbegin(); iter != m_group_info.rend(); ++iter) {
+        std::string tray_name = iter->first;
+        wxColour tray_color = iter->second;
+
+        int x = size.x / 2;
+        int y = size.y / 2;
+        float radius = size.x / 2 - 15.0;
+        endAngle += ev_angle;
+
+        float midAngle = (startAngle + endAngle) / 2;
+        float x_center = size.x / 2 + radius * cos(midAngle * M_PI / 180.0);
+        float y_center = size.y / 2 + radius * sin(midAngle * M_PI / 180.0);
+
+        //draw tray
+        dc.SetFont(::Label::Body_12);
+        auto text_size = dc.GetTextExtent(tray_name);
+        dc.SetTextForeground(tray_color.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x262E30));
+        dc.DrawText(tray_name, x_center - text_size.x / 2, size.y - y_center - text_size.y / 2);
+
+        //draw split line
+        dc.SetPen(wxPen(*wxWHITE, 2));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        auto pos_sp_start = CalculateEndpoint(wxPoint(x, y), (360 - startAngle),  size.x / 2 - FromDIP(3));
+        dc.DrawLine(wxPoint(x, y), pos_sp_start);
+
+        //draw current
+        //dc.DrawBitmap(backup_current_use_white.bmp(), x_center - text_size.x / 2 + FromDIP(3), size.y - y_center - text_size.y / 2 + FromDIP(11));
+        //...
+        startAngle += ev_angle;
+    }
+
+    //draw center mask
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(*wxWHITE));
+
+    int x = size.x / 2;
+    int y = size.y / 2;
+    dc.DrawEllipticArc(x - center_mask_radius, y - center_mask_radius, center_mask_radius * 2, center_mask_radius * 2, 0, 360);
+
+    //draw center icon
+    dc.DrawBitmap(bitmap_backup_tips_0.bmp(), wxPoint((size.x - bitmap_backup_tips_0.GetBmpSize().x) / 2, (size.y - bitmap_backup_tips_0.GetBmpSize().y) / 2));
+    //dc.DrawBitmap(bitmap_backup_tips_1.bmp(), wxPoint((size.x - bitmap_backup_tips_1.GetBmpSize().x) / 2, (size.y - bitmap_backup_tips_1.GetBmpSize().y) / 2));
+
+    //draw material
+    dc.SetTextForeground(wxColour(0x323A3D));
+    dc.SetFont(Label::Head_15);
+    auto text_size = dc.GetTextExtent(m_material_name);
+    dc.DrawText(m_material_name, (size.x - text_size.x) / 2,(size.y - text_size.y) / 2 - FromDIP(12));
+
+    dc.SetFont(Label::Body_13);
+    text_size = dc.GetTextExtent(m_group_index);
+    dc.DrawText(m_group_index, (size.x - text_size.x) / 2, (size.y - text_size.y) / 2 + FromDIP(10));
 }
 
 }} // namespace Slic3r::GUI

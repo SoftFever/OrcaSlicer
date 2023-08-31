@@ -30,7 +30,6 @@ public:
     wxString GetPageText(size_t n) const;
 
 private:
-    wxWindow*                       m_parent;
     wxFlexGridSizer*                m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
     // BBS: use Button
@@ -398,9 +397,6 @@ private:
 
     unsigned m_showTimeout,
              m_hideTimeout;
-
-    ButtonsListCtrl* m_ctrl{ nullptr };
-
 };
 //#endif // _WIN32
 #endif // slic3r_Notebook_hpp_

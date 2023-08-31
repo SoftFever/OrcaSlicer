@@ -5,19 +5,60 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include "wx/evtloop.h"
-
+#include <wx/tokenzr.h>
+#include <wx/richmsgdlg.h>
+#include <wx/richtext/richtextctrl.h>
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "MainFrame.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "Widgets/WebView.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
+wxString get_fail_reason(int code)
+{
+    if (code == BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED)
+        return _L("Failed to create socket");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_SOCKET_CONNECT_FAILED)
+        return _L("Failed to connect socket");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_PUBLISH_LOGIN_REQUEST)
+        return _L("Failed to publish login request");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_GET_PRINTER_TICKET_TIMEOUT)
+        return _L("Get ticket from device timeout");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_GET_CLOUD_TICKET_TIMEOUT)
+        return _L("Get ticket from server timeout");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_POST_TICKET_TO_CLOUD_FAILED)
+        return _L("Failed to post ticket to server");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_PARSE_LOGIN_REPORT_FAILED)
+        return _L("Failed to parse login report reason"); 
+    
+    else if (code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED)
+        return _L("Failed to parse login report reason");
+
+    else if (code == BAMBU_NETWORK_ERR_BIND_RECEIVE_LOGIN_REPORT_TIMEOUT)
+        return _L("Receive login report timeout");
+
+    else
+        return _L("Unknown Failure");
+}
+
  BindMachineDialog::BindMachineDialog(Plater *plater /*= nullptr*/)
      : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
+
+#ifdef __WINDOWS__
+     SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
      std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
@@ -67,42 +108,7 @@ namespace GUI {
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
-
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
-         switch (evt.GetState()) {
-             // Request completed
-         case wxWebRequest::State_Completed: {
-             wxImage avatar_stream = *evt.GetResponse().GetStream();
-             if (avatar_stream.IsOk()) {
-                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
-                 auto bitmap = new wxBitmap(avatar_stream);
-                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
-                 m_avatar->SetBitmap(*bitmap);
-                 Layout();
-             }
-             break;
-         }
-                                           // Request failed
-         case wxWebRequest::State_Failed: {
-             break;
-         }
-         }
-    });
-
-     if (wxGetApp().is_user_login()) {
-        wxString username_text = from_u8(wxGetApp().getAgent()->get_user_nickanme());
-        m_user_name->SetLabelText(username_text);
-
-         m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
-
-         web_request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
-         if (!web_request.IsOk()) {
-             // todo request fail
-         }
-         // Start the request
-         web_request.Start();
-     }
-
+     m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
      m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
      m_sizer_right_v->Add(m_user_name, 0, wxALIGN_CENTER, 0);
@@ -116,11 +122,251 @@ namespace GUI {
 
      m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in this printer with current account?"), wxDefaultPosition,
-                                           wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
+
+     auto m_sizer_status_text = new wxBoxSizer(wxHORIZONTAL);
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log in this printer with current account?"));
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
      m_status_text->Wrap(-1);
+
+
+     m_link_show_error = new wxStaticText(this, wxID_ANY, _L("Check the reason"));
+     m_link_show_error->SetForegroundColour(wxColour(0x6b6b6b));
+     m_link_show_error->SetFont(::Label::Head_13);
+
+     m_bitmap_show_error_close = create_scaled_bitmap("link_more_error_close",nullptr, 7);
+     m_bitmap_show_error_open = create_scaled_bitmap("link_more_error_open",nullptr, 7);
+     m_static_bitmap_show_error = new wxStaticBitmap(this, wxID_ANY, m_bitmap_show_error_open, wxDefaultPosition, wxSize(FromDIP(7), FromDIP(7)));
+
+     m_link_show_error->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+     m_link_show_error->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+     m_link_show_error->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         if (!m_show_error_info_state) { m_show_error_info_state = true; m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_open); }
+         else { m_show_error_info_state = false; m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_close); }
+         show_bind_failed_info(true);}
+     );
+     m_static_bitmap_show_error->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+     m_static_bitmap_show_error->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+     m_static_bitmap_show_error->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         if (!m_show_error_info_state) { m_show_error_info_state = true; m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_open); }
+         else { m_show_error_info_state = false; m_static_bitmap_show_error->SetBitmap(m_bitmap_show_error_close); }
+         show_bind_failed_info(true);
+     });
+
+     m_link_show_error->Hide();
+     m_static_bitmap_show_error->Hide();
+
+     m_sizer_status_text->SetMinSize(wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1));
+     m_sizer_status_text->Add(m_status_text, 0, wxALIGN_CENTER, 0);
+     m_sizer_status_text->Add(m_link_show_error, 0, wxLEFT|wxALIGN_CENTER, FromDIP(8));
+     m_sizer_status_text->Add(m_static_bitmap_show_error, 0, wxLEFT|wxALIGN_CENTER, FromDIP(2));
+
+
+     //agreement
+     m_panel_agreement = new wxWindow(this,wxID_ANY);
+     m_panel_agreement->SetBackgroundColour(*wxWHITE);
+     m_panel_agreement->SetMinSize(wxSize(FromDIP(450), -1));
+     m_panel_agreement->SetMaxSize(wxSize(FromDIP(450), -1));
+ 
+    
+     wxWrapSizer* sizer_privacy_agreement =  new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
+     wxWrapSizer* sizere_notice_agreement=  new wxWrapSizer( wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS );
+     wxBoxSizer* sizer_privacy_body = new wxBoxSizer(wxHORIZONTAL);
+     wxBoxSizer* sizere_notice_body = new wxBoxSizer(wxHORIZONTAL);
+
+     auto m_checkbox_privacy = new CheckBox(m_panel_agreement, wxID_ANY);
+     auto m_st_privacy_title = new Label(m_panel_agreement, _L("Read and accept"));
+     m_st_privacy_title->SetFont(Label::Body_13);
+     m_st_privacy_title->SetForegroundColour(wxColour(38, 46, 48));
+
+     auto m_link_Terms_title = new Label(m_panel_agreement, _L("Terms and Conditions"));
+     m_link_Terms_title->SetFont(Label::Head_13);
+     m_link_Terms_title->SetMaxSize(wxSize(FromDIP(450), -1));
+     m_link_Terms_title->Wrap(FromDIP(450));
+     m_link_Terms_title->SetForegroundColour(wxColour(0x009688));
+     m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+         confirm_dlg.update_text(txt);
+         confirm_dlg.CenterOnParent();
+         confirm_dlg.on_show();
+     });
+     m_link_Terms_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+     m_link_Terms_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+
+     auto m_st_and_title = new Label(m_panel_agreement, _L("and"));
+     m_st_and_title->SetFont(Label::Body_13);
+     m_st_and_title->SetForegroundColour(wxColour(38, 46, 48));
+
+     auto m_link_privacy_title = new Label(m_panel_agreement, _L("Privacy Policy"));
+     m_link_privacy_title->SetFont(Label::Head_13);
+     m_link_privacy_title->SetMaxSize(wxSize(FromDIP(450), -1));
+     m_link_privacy_title->Wrap(FromDIP(450));
+     m_link_privacy_title->SetForegroundColour(wxColour(0x009688));
+     m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         std::string url;
+         std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
+
+         if (country_code == "CN") {
+             url = "https://www.bambulab.cn/policies/privacy";
+         }
+         else{
+             url = "https://www.bambulab.com/policies/privacy";
+         }
+         wxLaunchDefaultBrowser(url);
+     });
+     m_link_privacy_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND);});
+     m_link_privacy_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW);});
+
+     sizere_notice_agreement->Add(0, 0, 0, wxTOP, FromDIP(4));
+     sizer_privacy_agreement->Add(m_st_privacy_title, 0, wxALIGN_CENTER, 0);
+     sizer_privacy_agreement->Add(0, 0, 0, wxLEFT, FromDIP(5));
+     sizer_privacy_agreement->Add(m_link_Terms_title, 0, wxALIGN_CENTER, 0);
+     sizer_privacy_agreement->Add(m_st_and_title, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, FromDIP(5));
+     sizer_privacy_agreement->Add(m_link_privacy_title, 0, wxALIGN_CENTER, 0);
+
+     sizer_privacy_body->Add(m_checkbox_privacy, 0, wxALL, 0);
+     sizer_privacy_body->Add(0, 0, 0, wxLEFT, FromDIP(8));
+     sizer_privacy_body->Add(sizer_privacy_agreement, 1, wxEXPAND, 0);
+
+
+     wxString notice_title = _L("We ask for your help to improve everyone's printer");
+     wxString notice_link_title = _L("Statement about User Experience Improvement Program");
+
+     auto m_checkbox_notice = new CheckBox(m_panel_agreement, wxID_ANY);
+     auto m_st_notice_title = new Label(m_panel_agreement, notice_title);
+     m_st_notice_title->SetFont(Label::Body_13);
+     m_st_notice_title->SetForegroundColour(wxColour(38, 46, 48));
+
+     auto m_link_notice_title = new Label(m_panel_agreement, notice_link_title);
+     m_link_notice_title->SetFont(Label::Head_13);
+     m_link_notice_title->SetMaxSize(wxSize(FromDIP(450), -1));
+     m_link_notice_title->Wrap(FromDIP(450));
+     m_link_notice_title->SetForegroundColour(wxColour(0x009688));
+     m_link_notice_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+     m_link_notice_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
+     m_link_notice_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         wxString txt = _L("In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. %s follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training %s to be smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in  Privacy Policy. We will not collect any Personal Data by which an individual can be identified directly or indirectly, including without limitation names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy.");
+         ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Statement on User Experience Improvement Plan"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+
+         wxString model_id_text;
+
+         if (m_machine_info) {
+             model_id_text = m_machine_info->get_printer_type_display_str();
+         }
+         confirm_dlg.update_text(wxString::Format(txt, model_id_text, model_id_text));
+         confirm_dlg.CenterOnParent();
+         confirm_dlg.on_show();
+     });
+
+     sizere_notice_agreement->Add(0, 0, 0, wxTOP, FromDIP(4));
+     sizere_notice_agreement->Add(m_st_notice_title, 0, 0, wxALIGN_CENTER, 0);
+     sizere_notice_agreement->Add(0, 0, 0, wxLEFT, FromDIP(2));
+     sizere_notice_agreement->Add(m_link_notice_title, 0, 0, wxALIGN_CENTER, 0);
+
+     sizere_notice_body->Add(m_checkbox_notice, 0, wxALL, 0);
+     sizere_notice_body->Add(0, 0, 0, wxLEFT, FromDIP(8));
+     sizere_notice_body->Add(sizere_notice_agreement, 1, wxEXPAND, 0);
+
+     wxBoxSizer* sizer_agreement = new wxBoxSizer(wxVERTICAL);
+     sizer_agreement->Add(sizer_privacy_body, 1, wxEXPAND, 0);
+     sizer_agreement->Add(sizere_notice_body, 1, wxEXPAND, 0);
+     
+
+     m_checkbox_privacy->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_privacy](auto& e) {
+         m_allow_privacy = m_checkbox_privacy->GetValue();
+         m_button_bind->Enable(m_allow_privacy);
+         e.Skip();
+     });
+     m_checkbox_notice->Bind(wxEVT_TOGGLEBUTTON, [this, m_checkbox_notice](auto& e) {
+         m_allow_notice = m_checkbox_notice->GetValue();
+         e.Skip();
+     });
+
+     m_panel_agreement->SetSizer(sizer_agreement);
+     m_panel_agreement->Layout();
+
+     //show bind failed info
+     m_sw_bind_failed_info = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(300)), wxVSCROLL);
+     m_sw_bind_failed_info->SetBackgroundColour(*wxWHITE);
+     m_sw_bind_failed_info->SetScrollRate(5, 5);
+     m_sw_bind_failed_info->SetMinSize(wxSize(FromDIP(450), FromDIP(90)));
+     m_sw_bind_failed_info->SetMaxSize(wxSize(FromDIP(450), FromDIP(90)));
+
+     wxBoxSizer* m_sizer_bind_failed_info = new wxBoxSizer(wxVERTICAL);
+     m_sw_bind_failed_info->SetSizer( m_sizer_bind_failed_info );
+
+     m_link_network_state = new Label(m_sw_bind_failed_info, _L("Check the status of current system services"));
+     m_link_network_state->SetForegroundColour(0x009688);
+     m_link_network_state->SetFont(::Label::Body_12);
+     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
+     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
+     m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
+
+    
+
+     wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
+     wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
+     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
+
+     auto st_title_error_code = new wxStaticText(m_sw_bind_failed_info, wxID_ANY, _L("Error code"));
+     auto st_title_error_code_doc = new wxStaticText(m_sw_bind_failed_info, wxID_ANY, ": ");
+     m_st_txt_error_code = new Label(m_sw_bind_failed_info, wxEmptyString);
+     st_title_error_code->SetForegroundColour(0x909090);
+     st_title_error_code_doc->SetForegroundColour(0x909090);
+     m_st_txt_error_code->SetForegroundColour(0x909090);
+     st_title_error_code->SetFont(::Label::Body_13);
+     st_title_error_code_doc->SetFont(::Label::Body_13);
+     m_st_txt_error_code->SetFont(::Label::Body_13);
+     st_title_error_code->SetMinSize(wxSize(FromDIP(80), -1));
+     st_title_error_code->SetMaxSize(wxSize(FromDIP(80), -1));
+     m_st_txt_error_code->SetMinSize(wxSize(FromDIP(340), -1));
+     m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(340), -1));
+     sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
+     sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
+     sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
+
+
+     auto st_title_error_desc = new wxStaticText(m_sw_bind_failed_info, wxID_ANY, wxT("Error desc"));
+     auto st_title_error_desc_doc = new wxStaticText(m_sw_bind_failed_info, wxID_ANY, ": ");
+     m_st_txt_error_desc = new Label(m_sw_bind_failed_info, wxEmptyString);
+     st_title_error_desc->SetForegroundColour(0x909090);
+     st_title_error_desc_doc->SetForegroundColour(0x909090);
+     m_st_txt_error_desc->SetForegroundColour(0x909090);
+     st_title_error_desc->SetFont(::Label::Body_13);
+     st_title_error_desc_doc->SetFont(::Label::Body_13);
+     m_st_txt_error_desc->SetFont(::Label::Body_13);
+     st_title_error_desc->SetMinSize(wxSize(FromDIP(80), -1));
+     st_title_error_desc->SetMaxSize(wxSize(FromDIP(80), -1));
+     m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(340), -1));
+     m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(340), -1));
+     sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
+     sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
+     sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
+
+     auto st_title_extra_info = new wxStaticText(m_sw_bind_failed_info, wxID_ANY, wxT("Extra info"));
+     auto st_title_extra_info_doc = new wxStaticText(m_sw_bind_failed_info, wxID_ANY, ": ");
+     m_st_txt_extra_info = new Label(m_sw_bind_failed_info, wxEmptyString);
+     st_title_extra_info->SetForegroundColour(0x909090);
+     st_title_extra_info_doc->SetForegroundColour(0x909090);
+     m_st_txt_extra_info->SetForegroundColour(0x909090);
+     st_title_extra_info->SetFont(::Label::Body_13);
+     st_title_extra_info_doc->SetFont(::Label::Body_13);
+     m_st_txt_extra_info->SetFont(::Label::Body_13);
+     st_title_extra_info->SetMinSize(wxSize(FromDIP(80), -1));
+     st_title_extra_info->SetMaxSize(wxSize(FromDIP(80), -1));
+     m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(340), -1));
+     m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(340), -1));
+     sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
+     sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
+     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
+
+     m_sizer_bind_failed_info->Add(m_link_network_state, 0, wxLEFT, 0);
+     m_sizer_bind_failed_info->Add(sizer_error_code, 0, wxLEFT, 0);
+     m_sizer_bind_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+     m_sizer_bind_failed_info->Add(sizer_error_desc, 0, wxLEFT, 0);
+     m_sizer_bind_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+     m_sizer_bind_failed_info->Add(sizer_extra_info, 0, wxLEFT, 0);
 
      m_simplebook = new wxSimplebook(this, wxID_ANY, wxDefaultPosition,BIND_DIALOG_BUTTON_PANEL_SIZE, 0);
      m_simplebook->SetBackgroundColour(*wxWHITE);
@@ -132,14 +378,18 @@ namespace GUI {
      wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
      m_button_bind = new Button(button_panel, _L("Confirm"));
-     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+
+     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
+         std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+         std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
      m_button_bind->SetBackgroundColor(btn_bg_green);
-     m_button_bind->SetBorderColor(wxColour(0, 150, 136));
+     m_button_bind->SetBorderColor(*wxWHITE);
      m_button_bind->SetTextColor(wxColour("#FFFFFE"));
      m_button_bind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetCornerRadius(FromDIP(12));
+     m_button_bind->Enable(false);
 
 
      StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
@@ -165,8 +415,14 @@ namespace GUI {
 
      //m_sizer_main->Add(m_sizer_button, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
-     m_sizer_main->Add(m_status_text, 0, wxALIGN_CENTER, 0);
+     show_bind_failed_info(false);
+
+
+     m_sizer_main->Add(m_sizer_status_text, 0, wxALIGN_CENTER, FromDIP(40));
      m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
+     m_sizer_main->Add(m_panel_agreement, 0, wxALIGN_CENTER, 0);
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
+     m_sizer_main->Add(m_sw_bind_failed_info, 0, wxALIGN_CENTER, 0);
      m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER, 0);
      m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(20));
 
@@ -176,8 +432,27 @@ namespace GUI {
      Centre(wxBOTH);
 
      Bind(wxEVT_SHOW, &BindMachineDialog::on_show, this);
-
      Bind(wxEVT_CLOSE_WINDOW, &BindMachineDialog::on_close, this);
+     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
+         switch (evt.GetState()) {
+             // Request completed
+         case wxWebRequest::State_Completed: {
+             wxImage avatar_stream = *evt.GetResponse().GetStream();
+             if (avatar_stream.IsOk()) {
+                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
+                 auto bitmap = new wxBitmap(avatar_stream);
+                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
+                 m_avatar->SetBitmap(*bitmap);
+                 Layout();
+             }
+             break;
+         }
+                                           // Request failed
+         case wxWebRequest::State_Failed: {
+             break;
+         }
+         }
+         });
 
      m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_bind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_cancel), NULL, this);
@@ -198,19 +473,56 @@ namespace GUI {
      this->Disconnect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDialog::on_update_message), NULL, this);
  }
 
- //static  size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
- //{
- //    register int         realsize = size * nmemb;
- //    struct MemoryStruct *mem      = (struct MemoryStruct *) userp;
- //    mem->memory                   = (char *) realloc(mem->memory, mem->size + realsize + 1);
- //    if (mem->memory) {
- //        memcpy(&(mem->memory[mem->size]), contents, realsize);
- //        mem->size += realsize;
- //        mem->memory[mem->size] = 0;
- //    }
- //    return realsize;
- //}
+ wxString BindMachineDialog::get_print_error(wxString str)
+ {
+     wxString extra;
+     try {
+         json j = json::parse(str.utf8_string());
+         if (j.contains("err_code")) {
+             int error_code = j["err_code"].get<int>();
+             extra = wxGetApp().get_hms_query()->query_print_error_msg(error_code);
+         }
+     }
+     catch (...) {
+         ;
+     }
 
+     if (extra.empty())
+         extra = str;
+
+     return extra;
+ }
+
+ void BindMachineDialog::show_bind_failed_info(bool show, int code, wxString description, wxString extra)
+ {
+     if (show) {
+         if (!m_sw_bind_failed_info->IsShown()) {
+             m_sw_bind_failed_info->Show(true);
+             m_result_extra = get_print_error(m_result_extra);
+             m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_result_code));
+             m_st_txt_error_desc->SetLabelText( wxGetApp().filter_string(m_result_info));
+             m_st_txt_extra_info->SetLabelText( wxGetApp().filter_string(m_result_extra));
+
+             m_st_txt_error_code->Wrap(FromDIP(330));
+             m_st_txt_error_desc->Wrap(FromDIP(330));
+             m_st_txt_extra_info->Wrap(FromDIP(330));
+         }
+         else {
+             m_sw_bind_failed_info->Show(false);
+         }
+         Layout();
+         Fit();
+     }
+     else {
+         if (!m_sw_bind_failed_info->IsShown()) { return; }
+         m_sw_bind_failed_info->Show(false);
+         m_st_txt_error_code->SetLabelText(wxEmptyString);
+         m_st_txt_error_desc->SetLabelText(wxEmptyString);
+         m_st_txt_extra_info->SetLabelText(wxEmptyString);
+         Layout();
+         Fit();
+     }
+ }
 
  void BindMachineDialog::on_cancel(wxCommandEvent &event)
  {
@@ -238,8 +550,15 @@ namespace GUI {
 
  void BindMachineDialog::on_bind_fail(wxCommandEvent &event)
  {
-    //m_status_text->SetLabel(_L("Would you like to log in this printer with current account?"));
     m_simplebook->SetSelection(1);
+    m_link_show_error->Show(true);
+    m_static_bitmap_show_error->Show(true);
+
+    m_result_code = event.GetInt();
+    m_result_info = get_fail_reason(event.GetInt());
+    m_result_extra = event.GetString();
+
+    show_bind_failed_info(true, event.GetInt(), get_fail_reason(event.GetInt()), event.GetString());
  }
 
  void BindMachineDialog::on_update_message(wxCommandEvent &event)
@@ -251,11 +570,19 @@ namespace GUI {
  {
      EndModal(wxID_OK);
      MessageDialog msg_wingow(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
-     if (msg_wingow.ShowModal() == wxOK) { return; }
+     msg_wingow.ShowModal();
+     if(m_machine_info) wxGetApp().on_start_subscribe_again(m_machine_info->dev_id);
  }
 
  void BindMachineDialog::on_bind_printer(wxCommandEvent &event)
  {
+     m_result_code = 0;
+     m_result_extra = wxEmptyString;
+     m_result_info = wxEmptyString;
+     m_link_show_error->Hide();
+     m_static_bitmap_show_error->Hide();
+     show_bind_failed_info(false);
+
      //check isset info
      if (m_machine_info == nullptr || m_machine_info == NULL) return;
 
@@ -269,6 +596,14 @@ namespace GUI {
 
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
+
+     if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+         m_bind_job->set_improved(false);
+     }
+     else {
+         m_bind_job->set_improved(m_allow_notice);
+     }
+
      m_bind_job->set_event_handle(this);
      m_bind_job->start();
  }
@@ -279,8 +614,29 @@ void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
 }
 
+void BindMachineDialog::update_machine_info(MachineObject* info)
+{
+    m_machine_info = info;
+    if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+        m_button_bind->Enable(true);
+        m_panel_agreement->Hide();
+    }
+    else {
+        m_button_bind->Enable(false);
+        m_panel_agreement->Show();
+    }
+    Layout();
+    Fit();
+}
+
 void BindMachineDialog::on_show(wxShowEvent &event)
 {
+    m_allow_privacy = false;
+    m_allow_notice  = false;
+    m_result_code   = 0;
+    m_result_extra  = wxEmptyString;
+    m_result_info   = wxEmptyString;
+
     if (event.IsShown()) {
         auto img = m_machine_info->get_printer_thumbnail_img_str();
         if (wxGetApp().dark_mode()) { img += "_dark"; }
@@ -290,6 +646,18 @@ void BindMachineDialog::on_show(wxShowEvent &event)
         m_printer_img->Show();
 
         m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+
+        if (wxGetApp().is_user_login()) {
+            wxString username_text = from_u8(wxGetApp().getAgent()->get_user_nickanme());
+            m_user_name->SetLabelText(username_text);
+            web_request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
+            if (!web_request.IsOk()) {
+                // todo request fail
+            }
+            // Start the request
+            web_request.Start();
+        }
+
         Layout();
         event.Skip();
     }
@@ -349,42 +717,6 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizer_right_v = new wxBoxSizer(wxVERTICAL);
 
      m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
-
-     if (wxGetApp().is_user_login()) {
-         wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
-         m_user_name->SetLabelText(username_text);
-         wxString avatar_url = wxGetApp().getAgent()->get_user_avatar();
-         wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
-         if (!request.IsOk()) {
-             // todo request fail
-         }
-         request.Start();
-     }
-
-
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent &evt) {
-         switch (evt.GetState()) {
-         // Request completed
-         case wxWebRequest::State_Completed: {
-             wxImage avatar_stream = *evt.GetResponse().GetStream();
-             if (avatar_stream.IsOk()) {
-                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
-                 auto bitmap = new wxBitmap(avatar_stream);
-                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
-                 m_avatar->SetBitmap(*bitmap);
-                 Layout();
-             }
-             break;
-         }
-         // Request failed
-         case wxWebRequest::State_Failed: {
-             break;
-         }
-         }
-     });
-
-
-
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
      m_sizer_right_v->Add(0, 0, 0, wxTOP, 7);
      m_sizer_right_v->Add(m_user_name, 0, wxALIGN_CENTER, 0);
@@ -398,11 +730,9 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
 
      m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log out the printer?"), wxDefaultPosition,
-                                           wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
+     m_status_text = new wxStaticText(this, wxID_ANY, _L("Would you like to log out the printer?"), wxDefaultPosition, wxSize(BIND_DIALOG_BUTTON_PANEL_SIZE.x, -1), wxST_ELLIPSIZE_END);
      m_status_text->SetForegroundColour(wxColour(107, 107, 107));
      m_status_text->SetFont(::Label::Body_13);
-     m_status_text->Wrap(-1);
 
 
 
@@ -448,11 +778,34 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      Bind(wxEVT_SHOW, &UnBindMachineDialog::on_show, this);
      m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
+
+     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
+         switch (evt.GetState()) {
+             // Request completed
+         case wxWebRequest::State_Completed: {
+             wxImage avatar_stream = *evt.GetResponse().GetStream();
+             if (avatar_stream.IsOk()) {
+                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
+                 auto bitmap = new wxBitmap(avatar_stream);
+                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
+                 m_avatar->SetBitmap(*bitmap);
+                 Layout();
+             }
+             break;
+         }
+                                           // Request failed
+         case wxWebRequest::State_Failed: {
+             break;
+         }
+         }
+     });
+
      wxGetApp().UpdateDlgDarkUI(this);
  }
 
  UnBindMachineDialog::~UnBindMachineDialog()
  {
+     web_request.Cancel();
      m_button_unbind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
  }
@@ -516,6 +869,19 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
         m_printer_img->Show();
 
         m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+
+
+        if (wxGetApp().is_user_login()) {
+            wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
+            m_user_name->SetLabelText(username_text);
+            wxString avatar_url = wxGetApp().getAgent()->get_user_avatar();
+            web_request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
+            if (!web_request.IsOk()) {
+                // todo request fail
+            }
+            web_request.Start();
+        }
+
         Layout();
         event.Skip();
     } 
