@@ -33,8 +33,6 @@
   "z_hop_types": "Normal Lift",
   "machine_pause_gcode": "M601",
   "wipe": ["1"],
-  "default_filament_profile": ["Kingroon Generic PLA"],
-  "default_print_profile": "0.20mm Standard @Kingroon KP3S PRO V2",
   "bed_exclude_area": ["0x0"],
   "machine_start_gcode": "START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
   "machine_end_gcode": "END_PRINT",
