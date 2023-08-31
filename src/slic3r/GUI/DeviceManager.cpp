@@ -1673,16 +1673,12 @@ int MachineObject::command_set_nozzle(int temp)
 
 int MachineObject::command_set_chamber(int temp)
 {
-    std::string gcode_str = (boost::format("M141 S%1%\n") % temp).str();
-    try {
-        json j;
-        j["temp_control"] = "chamber_temp";
+    json j;
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++); 
+    j["print"]["command"] = "set_ctt";
+    j["print"]["ctt_val"] = temp;
 
-        NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        if (agent) agent->track_event("printer_control", j.dump());
-    }
-    catch (...) {}
-    return this->publish_gcode(gcode_str);
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp)
@@ -2884,6 +2880,30 @@ int MachineObject::parse_json(std::string payload)
 
 
             if (jj.contains("command")) {
+
+                if (jj["command"].get<std::string>() == "ams_change_filament") {
+                    if (jj.contains("errno")) {
+                        if (jj["errno"].is_number()) {
+                            if (jj["errno"].get<int>() == -2) {
+                                wxString text = _L("The current chamber temperature or the target chamber temperature exceeds 45\u2103.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded.");
+                                GUI::wxGetApp().show_dialog(text);
+                            }
+                        }
+                    }
+                }
+
+                if (jj["command"].get<std::string>() == "set_ctt") {
+                    if (m_agent && is_studio_cmd(sequence_id)) {
+                        if (jj["errno"].is_number()) {
+                            if (jj["errno"].get<int>() == -2) {
+                                wxString text = _L("Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\u2103.");
+                                GUI::wxGetApp().show_dialog(text);
+                            }
+                        }
+                    }
+                }
+
+
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
                     last_push_time = std::chrono::system_clock::now();
