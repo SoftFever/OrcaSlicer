@@ -64,12 +64,14 @@ DWORD DownloadAndInstallWV2RT() {
       .on_complete([&downloaded, target_file_path](std::string body, unsigned http_status) {
         fs::fstream file(target_file_path, std::ios::out | std::ios::binary | std::ios::trunc);
         file.write(body.c_str(), body.size());
+        file.flush();
         file.close();
 
         downloaded = true;
       })
       .perform_sync();
-
+  // Sleep for 1 second to wait for the buffer writen into disk
+  std::this_thread::sleep_for(1000ms);
   if (downloaded) {
     // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
     // Then invoke install at Runtime.
@@ -315,7 +317,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     g_webviews.push_back(webView);
     return webView;
 }
-
+#if wxUSE_WEBVIEW_EDGE
 bool WebView::CheckWebViewRuntime()
 {
     wxWebViewFactoryEdge factory;
@@ -325,13 +327,9 @@ bool WebView::CheckWebViewRuntime()
 
 bool WebView::DownloadAndInstallWebViewRuntime()
 {
-#ifdef __WIN32__
     return DownloadAndInstallWV2RT() == 0;
-#endif
-
-  return false;
 }
-
+#endif
 void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 {
     auto url2  = url;
