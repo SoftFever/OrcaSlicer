@@ -84,8 +84,8 @@ public:
     };
 
     // BBS
-    static constexpr std::array<float, 4> enforcers_color{ 0.5f, 1.f, 0.5f, 1.f };
-    static constexpr std::array<float, 4> blockers_color{ 1.f, 0.5f, 0.5f, 1.f };
+    static constexpr std::array<float, 4> enforcers_color{0.627f, 0.627f, 0.827f, 1.0f};//=GLVolume::SUPPORT_ENFORCER_COL
+    static constexpr std::array<float, 4> blockers_color{0.823f, 0.627f, 0.627f, 1.0f};//=GLVolume::SUPPORT_BLOCKER_COL
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
