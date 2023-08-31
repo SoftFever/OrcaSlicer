@@ -19,7 +19,7 @@ public:
     GCodeWriter() : 
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
-        m_last_acceleration(0), m_max_acceleration(0),
+        m_last_acceleration(0), m_max_acceleration(0),m_last_travel_acceleration(0), m_max_travel_acceleration(0),
         m_last_jerk(0), m_max_jerk(0),
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
@@ -45,7 +45,8 @@ public:
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
-    std::string set_acceleration(unsigned int acceleration);
+    std::string set_print_acceleration(unsigned int acceleration)   { return set_acceleration_internal(Acceleration::Print, acceleration); }
+    std::string set_travel_acceleration(unsigned int acceleration)  { return set_acceleration_internal(Acceleration::Travel, acceleration); }
     std::string set_jerk_xy(double jerk);
     std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
@@ -76,7 +77,8 @@ public:
     std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
-    void       set_position(Vec3d& in) { m_pos = in; }
+    void       set_position(const Vec3d& in) { m_pos = in; }
+    double      get_zhop() const { return m_lifted; }
 
     //BBS: set offset for gcode writer
     void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
@@ -115,6 +117,9 @@ public:
     bool            m_single_extruder_multi_material;
     Extruder*       m_extruder;
     unsigned int    m_last_acceleration;
+    unsigned int    m_last_travel_acceleration;
+    unsigned int    m_max_travel_acceleration;
+
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
@@ -153,9 +158,16 @@ public:
     double          m_current_speed;
     bool            m_is_first_layer = true;
 
+    enum class Acceleration {
+        Travel,
+        Print
+    };
+
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
+    std::string set_acceleration_internal(Acceleration type, unsigned int acceleration);
+
 };
 
 class GCodeFormatter {
