@@ -48,6 +48,7 @@ class ImGuiWrapper
     const ImWchar* m_glyph_basic_ranges { nullptr };
     // Chinese, Japanese, Korean
     bool m_font_cjk{ false };
+    bool m_is_korean{ false };
     float m_font_size{ 18.0 };
     unsigned m_font_texture{ 0 };
     unsigned m_font_another_texture{ 0 };
