@@ -2003,6 +2003,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_type", "support#support-types");
         optgroup->append_single_option_line("support_style", "support#support-styles");
         optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
+        optgroup->append_single_option_line("raft_first_layer_density");
+        optgroup->append_single_option_line("raft_first_layer_expansion");
         optgroup->append_single_option_line("support_on_build_plate_only");
         optgroup->append_single_option_line("support_critical_regions_only");
         optgroup->append_single_option_line("support_remove_small_overhang");
@@ -2011,8 +2013,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");
         optgroup->append_single_option_line("raft_layers");
         optgroup->append_single_option_line("raft_contact_distance");
-        optgroup->append_single_option_line("raft_first_layer_density");
-        optgroup->append_single_option_line("raft_first_layer_expansion");
 
         optgroup = page->new_optgroup(L("Support filament"), L"param_support_filament");
         optgroup->append_single_option_line("support_filament", "support#support-filament");
