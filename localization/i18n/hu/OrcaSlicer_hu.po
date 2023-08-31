@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -597,6 +597,15 @@ msgstr "Helytelen jelszó"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "A következőhöz való csatlakozás sikertelen: %s! [SN:%s, code=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1346,6 +1355,9 @@ msgstr "Automatikus perem"
 
 msgid "Auto"
 msgstr "Auto"
+
+msgid "Mouse ear"
+msgstr ""
 
 msgid "Outer brim only"
 msgstr "Outer brim only"
@@ -3804,6 +3816,24 @@ msgstr "3Dconnexion beállítások"
 msgid "Swap Y/Z axes"
 msgstr "Y/Z tengelyek felcserélése"
 
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr "Nyomtatás folyamata"
 
@@ -4593,6 +4623,12 @@ msgid ""
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -5628,6 +5664,9 @@ msgstr "G-kód kimenet"
 
 msgid "Post-processing Scripts"
 msgstr "Post-processing Scripts"
+
+msgid "Notes"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Gyakori"
@@ -7268,6 +7307,14 @@ msgid ""
 "pattern"
 msgstr ""
 
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+
 msgid "Classic mode"
 msgstr ""
 
@@ -7317,9 +7364,6 @@ msgid ""
 msgstr ""
 "This controls the generation of the brim at outer and/or inner side of "
 "models. Auto means the brim width is analyzed and calculated automatically."
-
-msgid "Mouse ear"
-msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Perem-tárgy közötti rés"
@@ -7695,6 +7739,12 @@ msgstr "Alapértelmezett filament szín"
 
 msgid "Color"
 msgstr "Szín"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "Szükséges fúvóka HRC-érték"
@@ -8463,8 +8513,8 @@ msgstr "Maximális gyorsulás a visszahúzáshoz (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "Maximális gyorsulás a mozgáshoz"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "Maximális gyorsulás a mozgáshoz (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "Ventilátor fordulatszám"
@@ -8521,6 +8571,14 @@ msgstr "Fúvóka átmérője"
 
 msgid "Diameter of nozzle"
 msgstr "Fúvóka átmérője"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "Host típusa"
@@ -8622,6 +8680,12 @@ msgid ""
 "Scripts will be passed the absolute path to the G-code file as the first "
 "argument, and they can access the Slic3r config settings by reading "
 "environment variables."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
 msgstr ""
 
 msgid "Raft contact Z distance"
@@ -10343,6 +10407,15 @@ msgstr ""
 msgid "Finished"
 msgstr "Kész"
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 
@@ -10382,7 +10455,7 @@ msgstr ""
 msgid "Delete input"
 msgstr ""
 
-msgid "Send to print"
+msgid "Send G-Code to printer host"
 msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
@@ -10391,14 +10464,11 @@ msgstr ""
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
 
+msgid "Upload to storage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
@@ -10420,7 +10490,7 @@ msgstr ""
 msgid "Filename"
 msgstr ""
 
-msgid "Error Message"
+msgid "Message"
 msgstr ""
 
 msgid "Cancel selected"
@@ -10438,7 +10508,7 @@ msgstr "Feltöltés"
 msgid "Cancelling"
 msgstr ""
 
-msgid "Error uploading to print host:"
+msgid "Error uploading to print host"
 msgstr ""
 
 msgid "PA Calibration"
@@ -10867,110 +10937,8 @@ msgstr ""
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
 
-msgid "Bambu Cube"
-msgstr ""
-
-msgid "Bambu Cube V2"
-msgstr ""
-
-msgid "ksr FDMTest"
-msgstr ""
-
-#, boost-format
-msgid " plate %1%: "
-msgstr ""
-
-msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset. "
-"Please update Bambu Studio or restart Bambu Studio to check if there is an "
-"update to system presets."
-msgstr ""
-
-msgid "Initial layer flow ratio"
-msgstr ""
-
-msgid "This factor affects the amount of material for the initial layer"
-msgstr ""
-
-msgid ""
-"Use only one wall on flat top surface, to give more space to the top infill "
-"pattern. Could be applyed on topmost surface or all top surface."
-msgstr ""
-
-msgid "Not apply"
-msgstr ""
-
-msgid ""
-"If enabled, Studio will generate support loops under the contours of "
-"internal bridges.These support loops could prevent internal bridges from "
-"extruding over the air and improve the top surface quality, especially when "
-"the sparse infill density is low.This value determines the thickness of the "
-"support loops. 0 means disable this feature"
-msgstr ""
-
-msgid ""
-"Enable pressure advance, auto calibration result will be overwriten once "
-"enabled. Useless for Bambu Printer"
-msgstr ""
-
-msgid ""
-"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
-"Bambu Printer"
-msgstr ""
-
-msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
-msgstr ""
-
-msgid "Default jerk"
-msgstr ""
-
-msgid "Jerk of infill"
-msgstr ""
-
-msgid "Jerk of top surface"
-msgstr ""
-
-msgid "First layer"
-msgstr ""
-
-msgid "Jerk of first layer"
-msgstr ""
-
-msgid "Jerk of travel"
-msgstr ""
-
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affact top/bottom layers"
-msgstr ""
-
-msgid ""
-"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
-"firmware printer"
-msgstr ""
-
-msgid ""
-"Detect the overhang percentage relative to line width and use different "
-"speed to print. For 100 percent overhang, bridge speed is used."
-msgstr ""
-
-msgid "Direct drive"
-msgstr ""
-
-msgid ""
-"In order to reduce the visibility of the seam in a closed loop extrusion, "
-"the loop is interrupted and shortened by a specified amount.\n"
-"This amount as a percentage of the current extruder diameter. The default "
-"value for this parameter is 15"
-msgstr ""
-
-msgid ""
-"If your firmware requires relative E values, check this, otherwise leave it "
-"unchecked. Must use relative e distance for Bambu printer"
-msgstr ""
-
-msgid "End temp: "
-msgstr ""
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "Maximális gyorsulás a mozgáshoz (M204 T)"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "Összeállítja a kijelölt tárgyakat egyetlen tárggyá"

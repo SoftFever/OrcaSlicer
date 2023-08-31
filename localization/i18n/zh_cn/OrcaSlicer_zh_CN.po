@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -598,6 +598,15 @@ msgstr "访问码不正确"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "连接 %s 失败。[SN:%s, code=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1315,6 +1324,9 @@ msgstr "自动Brim"
 
 msgid "Auto"
 msgstr "自动"
+
+msgid "Mouse ear"
+msgstr "圆盘"
 
 msgid "Outer brim only"
 msgstr "仅外侧"
@@ -3692,6 +3704,24 @@ msgstr "3Dconnexion设置"
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
 
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr "打印进度"
 
@@ -4437,6 +4467,12 @@ msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 msgstr "无法对模型网格执行布尔运算。只有正面部分将被导出。"
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -5420,6 +5456,9 @@ msgstr "G-code 输出"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
+
+msgid "Notes"
+msgstr ""
 
 msgid "Frequent"
 msgstr "常用"
@@ -6922,6 +6961,14 @@ msgid ""
 "pattern"
 msgstr "首层只使用单层墙，从而更多的空间能够使用底部填充图案"
 
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+
 msgid "Classic mode"
 msgstr "经典模式"
 
@@ -6968,9 +7015,6 @@ msgid ""
 "models. Auto means the brim width is analysed and calculated automatically."
 msgstr ""
 "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
-
-msgid "Mouse ear"
-msgstr "圆盘"
 
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
@@ -7330,6 +7374,12 @@ msgstr "缺省材料颜色"
 
 msgid "Color"
 msgstr "颜色"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "喷嘴硬度要求"
@@ -8063,8 +8113,8 @@ msgstr "回抽最大加速度(M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "空驶最大加速度"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "空驶最大加速度(M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "风扇速度"
@@ -8113,6 +8163,14 @@ msgstr "喷嘴直径"
 
 msgid "Diameter of nozzle"
 msgstr "喷嘴直径"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "主机类型"
@@ -8211,6 +8269,12 @@ msgid ""
 "Scripts will be passed the absolute path to the G-code file as the first "
 "argument, and they can access the Slic3r config settings by reading "
 "environment variables."
+msgstr ""
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
 msgstr ""
 
 msgid "Raft contact Z distance"
@@ -9881,6 +9945,15 @@ msgstr ""
 msgid "Finished"
 msgstr "完成"
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "无法对所选部件执行布尔运算"
 
@@ -9920,7 +9993,7 @@ msgstr "零件 2"
 msgid "Delete input"
 msgstr "删除输入"
 
-msgid "Send to print"
+msgid "Send G-Code to printer host"
 msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
@@ -9929,14 +10002,11 @@ msgstr ""
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
 
+msgid "Upload to storage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
@@ -9958,8 +10028,8 @@ msgstr ""
 msgid "Filename"
 msgstr "文件名"
 
-msgid "Error Message"
-msgstr "错误信息"
+msgid "Message"
+msgstr ""
 
 msgid "Cancel selected"
 msgstr "取消选中"
@@ -9976,8 +10046,8 @@ msgstr "正在上传"
 msgid "Cancelling"
 msgstr "取消中"
 
-msgid "Error uploading to print host:"
-msgstr "上传到打印主机时出错："
+msgid "Error uploading to print host"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA校准"
@@ -10392,8 +10462,14 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
-msgid "End temp: "
-msgstr ""
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "空驶最大加速度(M204 T)"
+
+#~ msgid "Error Message"
+#~ msgstr "错误信息"
+
+#~ msgid "Error uploading to print host:"
+#~ msgstr "上传到打印主机时出错："
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "组合所选零件为单个零件"

@@ -1316,7 +1316,7 @@ void PresetBundle::update_selections(AppConfig &config)
     if (!f_colors.empty()) {
         boost::algorithm::split(filament_colors, f_colors, boost::algorithm::is_any_of(","));
     }
-    filament_colors.resize(filament_presets.size(), "#FF8040");
+    filament_colors.resize(filament_presets.size(), "#26A69A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     std::vector<std::string> matrix;
     if (config.has_printer_setting(initial_printer_profile_name, "flush_volumes_matrix")) {
@@ -1422,7 +1422,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     if (!f_colors.empty()) {
         boost::algorithm::split(filament_colors, f_colors, boost::algorithm::is_any_of(","));
     }
-    filament_colors.resize(filament_presets.size(), "#FF8040");
+    filament_colors.resize(filament_presets.size(), "#26A69A");
     project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
     std::vector<std::string> matrix;
     if (config.has_printer_setting(initial_printer_profile_name, "flush_volumes_matrix")) {
