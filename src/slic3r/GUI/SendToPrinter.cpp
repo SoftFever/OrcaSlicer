@@ -579,25 +579,27 @@ void SendToPrinterDialog::show_print_failed_info(bool show, int code, wxString d
 
 void SendToPrinterDialog::prepare_mode()
 {
-	m_is_in_sending_mode = false;
-	if (m_send_job) {
-		m_send_job->join();
-	}
+    m_is_in_sending_mode = false;
+    m_comboBox_printer->Enable();
+    if (m_send_job) {
+        m_send_job->join();
+    }
 
-	if (wxIsBusy())
-		wxEndBusyCursor();
-	Enable_Send_Button(true);
+    if (wxIsBusy())
+        wxEndBusyCursor();
+    Enable_Send_Button(true);
     show_print_failed_info(false);
 
     m_status_bar->reset();
-	if (m_simplebook->GetSelection() != 0) {
-		m_simplebook->SetSelection(0);
-	}
+    if (m_simplebook->GetSelection() != 0) {
+        m_simplebook->SetSelection(0);
+    }
 }
 
 void SendToPrinterDialog::sending_mode()
 {
     m_is_in_sending_mode = true;
+    m_comboBox_printer->Disable();
     if (m_simplebook->GetSelection() != 1){
         m_simplebook->SetSelection(1);
         Layout();
@@ -1081,7 +1083,10 @@ void SendToPrinterDialog::update_show_status()
         return;
     }
 
-    show_status(PrintDialogStatus::PrintStatusReadingFinished);
+    if (!m_is_in_sending_mode) {
+        show_status(PrintDialogStatus::PrintStatusReadingFinished);
+        return;
+    }
 }
 
 void SendToPrinterDialog::Enable_Refresh_Button(bool en)
