@@ -32,7 +32,7 @@
     "support_base_pattern_spacing": "0.2",
     "support_interface_bottom_layers": "-1",
     "support_interface_spacing": "0.2",
-    "support_interface_speed": "100%",
+    "support_interface_speed": "100",
     "support_interface_top_layers": "3",
     "support_line_width": "0.38",
     "support_object_xy_distance": "60%",
