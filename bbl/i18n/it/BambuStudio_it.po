@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2441,28 +2441,6 @@ msgstr ""
 "La temperatura del nozzle consigliata per questo filamento è [%d, %d] gradi "
 "centigradi"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"La temperatura del piano degli altri layer è inferiore alla temperatura del "
-"piano del primo layer di oltre %d gradi centigradi.\n"
-"Ciò può far sì che i modelli si stacchino dal piatto durante la stampa."
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"La temperatura del piano è superiore alla temperatura di vetrificazione di "
-"questo filamento.\n"
-"Ciò può causare il blocco del nozzle e il fallimento della stampa.\n"
-"Si prega di tenere la stampante aperta durante il processo di stampa per "
-"garantire la circolazione dell'aria o ridurre la temperatura del piano."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -3170,8 +3148,11 @@ msgstr "Calibrazione micro lidar"
 msgid "Bed leveling"
 msgstr "Livellamento del piano"
 
-msgid "Resonance frequency identification"
-msgstr "Identificazione frequenza di risonanza"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Programma calibrazione"
@@ -3190,6 +3171,9 @@ msgstr "Calibrazione flusso"
 
 msgid "Start Calibration"
 msgstr "Inizia calibrazione"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Completato"
@@ -4364,6 +4348,9 @@ msgstr "Ispezione del primo layer"
 msgid "Auto-recovery from step loss"
 msgstr "Recupero automatico perdita passi"
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr "Globale"
 
@@ -4518,6 +4505,9 @@ msgstr ""
 "La durezza del nozzle richiesta dal filamento è superiore alla durezza del "
 "nozzle predefinito della stampante. Si prega di sostituire il nozzle o il "
 "filamento indurito, altrimenti il nozzle sarà usurato o danneggiato."
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5899,9 +5889,6 @@ msgstr ""
 "Intervallo di temperatura del nozzle consigliato per questo filamento. 0 "
 "significa non impostato"
 
-msgid "Recommended temperature range"
-msgstr "Intervallo di temperatura consigliato"
-
 msgid "Print temperature"
 msgstr "Temperatura stampa"
 
@@ -6031,6 +6018,9 @@ msgstr "G-code prima del cambio layer"
 
 msgid "Layer change G-code"
 msgstr "G-code cambio layer"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code cambio filamento"
@@ -8238,6 +8228,12 @@ msgstr ""
 "Attivare questa opzione per consentire alla fotocamera della stampante di "
 "verificare la qualità del primo layer."
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "Tipo di nozzle"
 
@@ -8276,6 +8272,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -9298,35 +9300,17 @@ msgid "Chamber temperature"
 msgstr ""
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Temperatura del nozzle dopo il primo layer"
-
-msgid "Bed temperature difference"
-msgstr "Differenza di temperatura del piano"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"Non è consigliabile che la temperatura del piano degli altri layer sia "
-"inferiore a quella del primo layer di oltre questa soglia. Una temperatura "
-"del piano troppo bassa degli altri layer può causare il distacco "
-"dell'oggetto dal piatto."
 
 msgid "Detect thin wall"
 msgstr "Rileva pareti sottili"
@@ -9832,6 +9816,12 @@ msgid ""
 msgstr ""
 "Imposta livello di debug. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Errore nell'archivio zip"
@@ -10950,6 +10940,48 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "La temperatura del piano degli altri layer è inferiore alla temperatura "
+#~ "del piano del primo layer di oltre %d gradi centigradi.\n"
+#~ "Ciò può far sì che i modelli si stacchino dal piatto durante la stampa."
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "La temperatura del piano è superiore alla temperatura di vetrificazione "
+#~ "di questo filamento.\n"
+#~ "Ciò può causare il blocco del nozzle e il fallimento della stampa.\n"
+#~ "Si prega di tenere la stampante aperta durante il processo di stampa per "
+#~ "garantire la circolazione dell'aria o ridurre la temperatura del piano."
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Identificazione frequenza di risonanza"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Intervallo di temperatura consigliato"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Differenza di temperatura del piano"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Non è consigliabile che la temperatura del piano degli altri layer sia "
+#~ "inferiore a quella del primo layer di oltre questa soglia. Una "
+#~ "temperatura del piano troppo bassa degli altri layer può causare il "
+#~ "distacco dell'oggetto dal piatto."
 
 #~ msgid "Orient the model"
 #~ msgstr "Orienta il modello"

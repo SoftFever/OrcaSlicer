@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2439,30 +2439,6 @@ msgstr ""
 "La temperatura recomendada de la boquilla de este tipo de filamento es de "
 "[%d, %d] grados centígrados"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"La temperatura del lecho de la otra capa es inferior a la temperatura del "
-"lecho de la capa inicial durante más de %d grados centígrados.\n"
-"Esto puede hacer que el modelo se desprenda de la placa de impresión durante "
-"la impresión."
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"La temperatura de la plataforma es superior a la temperatura de "
-"vitrificación de este filamento.\n"
-"Esto puede provocar la obstrucción de la boquilla y un fallo de impresión.\n"
-"Mantenga la impresora abierta durante el proceso de impresión para "
-"garantizar la circulación del aire o reducir la temperatura de la plataforma "
-"de impresión."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -3176,8 +3152,11 @@ msgstr "Calibración del Micro Lidar"
 msgid "Bed leveling"
 msgstr "Nivelación de la plataforma de impresión"
 
-msgid "Resonance frequency identification"
-msgstr "Identificación de la frecuencia de resonancia"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Programa de calibración"
@@ -3196,6 +3175,9 @@ msgstr "Calibración del flujo"
 
 msgid "Start Calibration"
 msgstr "Iniciar Calibración"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Terminado"
@@ -4371,6 +4353,9 @@ msgstr "Inspección de la primera capa"
 msgid "Auto-recovery from step loss"
 msgstr "Recuperación automática de la pérdida de pasos"
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr "Global"
 
@@ -4525,6 +4510,9 @@ msgstr ""
 "La dureza de la boquilla requerida por el filamento es superior a la dureza "
 "de la boquilla predeterminada de la impresora. Sustituya la boquilla o el "
 "filamento, de lo contrario, la boquilla se desgastará o dañará."
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5913,9 +5901,6 @@ msgstr ""
 "Rango de temperatura de boquilla recomendado para este filamento. 0 "
 "significa que no se ajusta"
 
-msgid "Recommended temperature range"
-msgstr "Rango de temperatura recomendado"
-
 msgid "Print temperature"
 msgstr "Temperatura de impresión"
 
@@ -6048,6 +6033,9 @@ msgstr "Código G para antes del cambio de capa"
 
 msgid "Layer change G-code"
 msgstr "Cambiar el código G de la capa"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Cambiar el código G del filamento"
@@ -8244,6 +8232,12 @@ msgstr ""
 "Active esta opción para que la cámara de la impresora pueda comprobar la "
 "calidad de la primera capa"
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "Tipo de boquilla"
 
@@ -8282,6 +8276,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -9306,35 +9306,17 @@ msgid "Chamber temperature"
 msgstr ""
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Temperatura de la boquilla después de la primera capa"
-
-msgid "Bed temperature difference"
-msgstr "Diferencia de temperatura de la cama"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"No se recomienda que la temperatura del la plataforma de impresión de otras "
-"capas sea inferior a la primera capa en más de este umbral. Una temperatura "
-"demasiado baja de las otras capas puede hacer que el modelo se desprenda de "
-"la placa."
 
 msgid "Detect thin wall"
 msgstr "Detectar la pared delgada"
@@ -9834,6 +9816,12 @@ msgid ""
 msgstr ""
 "Ajusta el nivel de registro de depuración. 0:fatal, 1:error, 2:advertencia, "
 "3:información, 4:depuración, 5:rastreo\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Error en el archivo zip"
@@ -10948,6 +10936,51 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "La temperatura del lecho de la otra capa es inferior a la temperatura del "
+#~ "lecho de la capa inicial durante más de %d grados centígrados.\n"
+#~ "Esto puede hacer que el modelo se desprenda de la placa de impresión "
+#~ "durante la impresión."
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "La temperatura de la plataforma es superior a la temperatura de "
+#~ "vitrificación de este filamento.\n"
+#~ "Esto puede provocar la obstrucción de la boquilla y un fallo de "
+#~ "impresión.\n"
+#~ "Mantenga la impresora abierta durante el proceso de impresión para "
+#~ "garantizar la circulación del aire o reducir la temperatura de la "
+#~ "plataforma de impresión."
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Identificación de la frecuencia de resonancia"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Rango de temperatura recomendado"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Diferencia de temperatura de la cama"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "No se recomienda que la temperatura del la plataforma de impresión de "
+#~ "otras capas sea inferior a la primera capa en más de este umbral. Una "
+#~ "temperatura demasiado baja de las otras capas puede hacer que el modelo "
+#~ "se desprenda de la placa."
 
 #~ msgid "Orient the model"
 #~ msgstr "Orientar el modelo"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2398,27 +2398,6 @@ msgstr ""
 "The recommended nozzle temperature for this filament type is [%d, %d] "
 "degrees centigrade"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"The bed temperature of other layers is lower than the bed temperature of the "
-"first layer by more than %d degrees centigrade.\n"
-"This may cause models to break free from the build plate during printing."
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blockage and print failure.\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -3121,8 +3100,11 @@ msgstr "Micro lidar calibration"
 msgid "Bed leveling"
 msgstr "Bed leveling"
 
-msgid "Resonance frequency identification"
-msgstr "Resonance frequency identification"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Calibration program"
@@ -3141,6 +3123,9 @@ msgstr "Calibration Flow"
 
 msgid "Start Calibration"
 msgstr "Start Calibration"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Completed"
@@ -4311,6 +4296,9 @@ msgstr "First Layer Inspection"
 msgid "Auto-recovery from step loss"
 msgstr "Auto-recover from step loss"
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr "Global"
 
@@ -4462,6 +4450,9 @@ msgstr ""
 "The nozzle hardness required by the filament is higher than the default "
 "nozzle hardness of the printer. Please replace the hardened nozzle or "
 "filament, otherwise, the nozzle will be worn down or damaged."
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5814,9 +5805,6 @@ msgstr "Recommended nozzle temperature"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "Recommended nozzle temperature range of this filament. 0 means not set"
 
-msgid "Recommended temperature range"
-msgstr "Recommended temperature range"
-
 msgid "Print temperature"
 msgstr "Print temperature"
 
@@ -5945,6 +5933,9 @@ msgstr "Before layer change G-code"
 
 msgid "Layer change G-code"
 msgstr "Layer change G-code"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Change filament G-code"
@@ -8092,6 +8083,12 @@ msgstr ""
 "Enable this to allow the camera on the printer to check the quality of the "
 "first layer."
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "Nozzle type"
 
@@ -8130,6 +8127,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -9130,34 +9133,17 @@ msgid "Chamber temperature"
 msgstr ""
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Nozzle temperature after the first layer"
-
-msgid "Bed temperature difference"
-msgstr "Bed temperature difference"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"It is not recommend for bed temperature of other layers to be lower than the "
-"first layer by more than this threshold. Too low bed temperature of other "
-"layer may cause the model to break free from the build plate."
 
 msgid "Detect thin wall"
 msgstr "Detect thin walls"
@@ -9647,6 +9633,12 @@ msgid ""
 msgstr ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Error in zip archive"
@@ -10759,6 +10751,47 @@ msgstr ""
 "Improve strength\n"
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "The bed temperature of other layers is lower than the bed temperature of "
+#~ "the first layer by more than %d degrees centigrade.\n"
+#~ "This may cause models to break free from the build plate during printing."
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blockage and print failure.\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed."
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Resonance frequency identification"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Recommended temperature range"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Bed temperature difference"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "It is not recommend for bed temperature of other layers to be lower than "
+#~ "the first layer by more than this threshold. Too low bed temperature of "
+#~ "other layer may cause the model to break free from the build plate."
 
 #~ msgid "Orient the model"
 #~ msgstr "Orient the model"

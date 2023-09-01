@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2429,27 +2429,6 @@ msgid ""
 msgstr ""
 "Az ajánlott fúvóka hőmérséklet ehhez a filament típushoz [%d, %d] Celsius-fok"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"A többi réteg asztalhőmérséklete több mint %d Celsius-fokkal alacsonyabb, "
-"mint a kezdőréteg hőmérséklete.\n"
-"Ez azt okozhatja, hogy a modell a nyomtatás során leválik a tárgyasztalról"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"Az asztalhőmérséklet magasabb, mint a filament üvegesedési hőmérséklete.\n"
-"Ez a fúvóka eltömődését és nyomtatási hibákat okozhat.\n"
-"Kérjük, hogy a nyomtatás során tartsd nyitva a nyomtatót, vagy csökkentsd az "
-"asztalhőmérsékletet."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -3155,8 +3134,11 @@ msgstr "Micro Lidar kalibrálás"
 msgid "Bed leveling"
 msgstr "Asztalszintezés"
 
-msgid "Resonance frequency identification"
-msgstr "Rezonanciafrekvencia meghatározása"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibrációs program"
@@ -3175,6 +3157,9 @@ msgstr "Kalibrációs anyagáramlás"
 
 msgid "Start Calibration"
 msgstr "Kalibrálás"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Befejezve"
@@ -4348,6 +4333,9 @@ msgstr "Kezdőréteg ellenőrzése"
 msgid "Auto-recovery from step loss"
 msgstr "Automatikus helyreállítás lépésvesztésből"
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr "Globális"
 
@@ -4500,6 +4488,9 @@ msgstr ""
 "Ez a filament nagyobb keménységű fúvókát igényel. Kérjük, cseréld ki a "
 "fúvókát vagy válassz másik filamentet, különben előfordulhat, hogy a fúvóka "
 "idő előtt elhasználódik vagy megsérül."
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5871,9 +5862,6 @@ msgstr ""
 "Az ajánlott fúvóka hőmérséklet-tartomány ehhez a filamenthez. A 0 azt "
 "jelenti, hogy nincs beállítva"
 
-msgid "Recommended temperature range"
-msgstr "Ajánlott hőmérséklet-tartomány"
-
 msgid "Print temperature"
 msgstr "Nyomtatási hőmérséklet"
 
@@ -6004,6 +5992,9 @@ msgstr "Rétegváltás előtti G-kód"
 
 msgid "Layer change G-code"
 msgstr "Rétegváltás G-kód"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filament csere G-kód"
@@ -8184,6 +8175,12 @@ msgstr ""
 "Engedélyezd ezt az opciót, hogy a nyomtató kamerája ellenőrizze az első "
 "réteg minőségét"
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "Fúvóka típus"
 
@@ -8222,6 +8219,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -9243,35 +9246,17 @@ msgid "Chamber temperature"
 msgstr ""
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Fúvóka hőmérséklete az első réteg után"
-
-msgid "Bed temperature difference"
-msgstr "Asztalhőmérséklet különbség"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"Nem ajánlott, hogy a kezdőréteget követő többi réteg asztalhőmérséklete "
-"alacsonyabb legyen ennél a küszöbértéknél. Ha a többi rétegnél túl alacsony "
-"asztalhőmérsékletet használsz, előfordulhat, hogy a tárgy leválik az "
-"asztalról nyomtatás közben"
 
 msgid "Detect thin wall"
 msgstr "Vékony fal felismerése"
@@ -9764,6 +9749,12 @@ msgid ""
 msgstr ""
 "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
 "info, 4:debug, 5:trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Hiba a zip fájlban"
@@ -10877,6 +10868,47 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "A többi réteg asztalhőmérséklete több mint %d Celsius-fokkal alacsonyabb, "
+#~ "mint a kezdőréteg hőmérséklete.\n"
+#~ "Ez azt okozhatja, hogy a modell a nyomtatás során leválik a tárgyasztalról"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "Az asztalhőmérséklet magasabb, mint a filament üvegesedési hőmérséklete.\n"
+#~ "Ez a fúvóka eltömődését és nyomtatási hibákat okozhat.\n"
+#~ "Kérjük, hogy a nyomtatás során tartsd nyitva a nyomtatót, vagy csökkentsd "
+#~ "az asztalhőmérsékletet."
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Rezonanciafrekvencia meghatározása"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Ajánlott hőmérséklet-tartomány"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Asztalhőmérséklet különbség"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Nem ajánlott, hogy a kezdőréteget követő többi réteg asztalhőmérséklete "
+#~ "alacsonyabb legyen ennél a küszöbértéknél. Ha a többi rétegnél túl "
+#~ "alacsony asztalhőmérsékletet használsz, előfordulhat, hogy a tárgy "
+#~ "leválik az asztalról nyomtatás közben"
 
 #~ msgid "Orient the model"
 #~ msgstr "Modell orientációja"

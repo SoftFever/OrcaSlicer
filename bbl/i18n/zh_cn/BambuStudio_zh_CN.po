@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1539,7 +1539,7 @@ msgid "Confirm extruded"
 msgstr ""
 
 msgid "Check filament location"
-msgstr ""
+msgstr "检查耗材位置"
 
 msgid "Grab new filament"
 msgstr "咬入耗材丝"
@@ -2322,24 +2322,6 @@ msgid ""
 "centigrade"
 msgstr "该耗材的推荐喷嘴温度是[%d, %d]摄氏度"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
-"这可能导致打印中模型从热床脱落"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"热床温度超过了耗材丝的软化温度，材料软化可能造成喷头堵塞。\n"
-"请保持打印机在打印过程中敞开，保证空气流通或降低热床温度"
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -2563,7 +2545,7 @@ msgid "Paused by the Gcode inserted by user"
 msgstr ""
 
 msgid "Motor noise showoff"
-msgstr ""
+msgstr "电机噪音标定结果展示"
 
 msgid "MC"
 msgstr ""
@@ -3029,8 +3011,11 @@ msgstr "微激光雷达校准"
 msgid "Bed leveling"
 msgstr "热床调平"
 
-msgid "Resonance frequency identification"
-msgstr "共振频率辨识"
+msgid "Vibration compensation"
+msgstr "振动补偿"
+
+msgid "Motor noise cancellation"
+msgstr "电机降噪"
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -3048,6 +3033,9 @@ msgstr "校准流程"
 
 msgid "Start Calibration"
 msgstr "开始校准"
+
+msgid "No step selected"
+msgstr "请选择一项校准"
 
 msgid "Completed"
 msgstr "已完成"
@@ -4204,6 +4192,9 @@ msgstr "首层扫描"
 msgid "Auto-recovery from step loss"
 msgstr "自动从丢步中恢复"
 
+msgid "Allow Prompt Sound"
+msgstr "支持提示音"
+
 msgid "Global"
 msgstr "全局"
 
@@ -4346,6 +4337,9 @@ msgid ""
 msgstr ""
 "打印丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或打印丝，否"
 "则喷嘴可能被磨损或损坏。"
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5642,9 +5636,6 @@ msgstr "建议喷嘴温度"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "该材料的建议喷嘴温度范围。0表示未设置"
 
-msgid "Recommended temperature range"
-msgstr "建议温度范围"
-
 msgid "Print temperature"
 msgstr "打印温度"
 
@@ -5765,6 +5756,9 @@ msgstr "换层前G-code"
 
 msgid "Layer change G-code"
 msgstr "换层G-code"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
@@ -6019,8 +6013,9 @@ msgid ""
 "Studio would re-calculate your flushing volumes everytime the filaments "
 "color changed. You could disable the auto-calculate in Bambu Studio > "
 "Preferences"
-msgstr "Studio 将会在每一次更换耗材颜色时重新计算你的冲刷体积， 你可以在 Bambu Studio > "
-"偏好设置 中关闭重新计算"
+msgstr ""
+"Studio 将会在每一次更换耗材颜色时重新计算你的冲刷体积， 你可以在 Bambu "
+"Studio > 偏好设置 中关闭重新计算"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -7766,6 +7761,12 @@ msgid ""
 "layer"
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "喷嘴类型"
 
@@ -7802,6 +7803,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -8736,33 +8743,17 @@ msgid "Chamber temperature"
 msgstr "腔体温度"
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
-
-msgid "Bed temperature difference"
-msgstr "热床温差"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"不建议其它层热床温度比首层的热床温度低于这个值。太低的其它层热床温度可能导致"
-"打印过程中模型从打印板脱落。"
 
 msgid "Detect thin wall"
 msgstr "检查薄壁"
@@ -9223,6 +9214,12 @@ msgid ""
 msgstr ""
 "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
 "trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "zip文件中存在错误"
@@ -10354,6 +10351,45 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Motor noise"
+#~ msgstr "电机降噪"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
+#~ "这可能导致打印中模型从热床脱落"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "热床温度超过了耗材丝的软化温度，材料软化可能造成喷头堵塞。\n"
+#~ "请保持打印机在打印过程中敞开，保证空气流通或降低热床温度"
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "共振频率辨识"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "建议温度范围"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "热床温差"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "不建议其它层热床温度比首层的热床温度低于这个值。太低的其它层热床温度可能导"
+#~ "致打印过程中模型从打印板脱落。"
 
 #~ msgid "Orient the model"
 #~ msgstr "旋转模型"

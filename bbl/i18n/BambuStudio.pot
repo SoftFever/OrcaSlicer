@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2277,20 +2277,6 @@ msgid ""
 "centigrade"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -2940,7 +2926,10 @@ msgstr ""
 msgid "Bed leveling"
 msgstr ""
 
-msgid "Resonance frequency identification"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
 msgstr ""
 
 msgid "Calibration program"
@@ -2956,6 +2945,9 @@ msgid "Calibration Flow"
 msgstr ""
 
 msgid "Start Calibration"
+msgstr ""
+
+msgid "No step selected"
 msgstr ""
 
 msgid "Completed"
@@ -4107,6 +4099,9 @@ msgstr ""
 msgid "Auto-recovery from step loss"
 msgstr ""
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr ""
 
@@ -4244,6 +4239,9 @@ msgid ""
 "The nozzle hardness required by the filament is higher than the default "
 "nozzle hardness of the printer. Please replace the hardened nozzle or "
 "filament, otherwise, the nozzle will be attrited or damaged."
+msgstr ""
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5485,9 +5483,6 @@ msgstr ""
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 
-msgid "Recommended temperature range"
-msgstr ""
-
 msgid "Print temperature"
 msgstr ""
 
@@ -5603,6 +5598,9 @@ msgid "Before layer change G-code"
 msgstr ""
 
 msgid "Layer change G-code"
+msgstr ""
+
+msgid "Time lapse G-code"
 msgstr ""
 
 msgid "Change filament G-code"
@@ -7532,6 +7530,12 @@ msgid ""
 "layer"
 msgstr ""
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr ""
 
@@ -7568,6 +7572,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -8444,30 +8454,16 @@ msgid "Chamber temperature"
 msgstr ""
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
-msgstr ""
-
-msgid "Bed temperature difference"
-msgstr ""
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
 msgstr ""
 
 msgid "Detect thin wall"
@@ -8883,6 +8879,12 @@ msgstr ""
 msgid ""
 "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
 "trace\n"
+msgstr ""
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
 msgstr ""
 
 msgid "Error in zip archive"

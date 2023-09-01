@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2427,27 +2427,6 @@ msgstr ""
 "Рекомендуемая температура сопла для этого типа нити составляет [%d, %d] "
 "градусов Цельсия"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"Температура слоя другого слоя ниже температуры слоя исходного слоя более чем "
-"на %d градусов по Цельсию.\n"
-"Это может привести к отрыву модели от рабочей пластины во время печати"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"Температура слоя выше температуры стеклования этой нити.\n"
-"Это может привести к блокировке сопла и сбою печати\n"
-"Пожалуйста, держите принтер открытым во время процесса печати, чтобы "
-"обеспечить доступ воздуха циркуляция или снизить температуру кровати"
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -3152,8 +3131,11 @@ msgstr "Калибровка микролидара"
 msgid "Bed leveling"
 msgstr "Выравнивание кровати"
 
-msgid "Resonance frequency identification"
-msgstr "Идентификация резонансной частоты"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Программа калибровки"
@@ -3173,6 +3155,9 @@ msgstr "Калибровочный поток"
 
 msgid "Start Calibration"
 msgstr "Начать калибровку"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Завершенный"
@@ -4367,6 +4352,9 @@ msgstr "Проверка первого слоя"
 msgid "Auto-recovery from step loss"
 msgstr "Автоматическое восстановление после потери шага"
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr "Глобальный"
 
@@ -4520,6 +4508,9 @@ msgstr ""
 "Твердость сопла, необходимая для нити накала, выше, чем по умолчанию.\n"
 "жесткость сопла принтера. Пожалуйста, замените закаленное сопло или\n"
 "нити накаливания, в противном случае сопло будет изношено или повреждено."
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5862,9 +5853,6 @@ msgstr ""
 "Рекомендуемый диапазон температур сопла для данного филамента. 0 означает "
 "отсутствие установки"
 
-msgid "Recommended temperature range"
-msgstr "Рекомендуемый диапазон температур"
-
 msgid "Print temperature"
 msgstr "Температура печати"
 
@@ -5995,6 +5983,9 @@ msgstr "G-code перед сменой слоя"
 
 msgid "Layer change G-code"
 msgstr "G-code Смены слоя"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code Смены филамента"
@@ -8165,6 +8156,12 @@ msgstr ""
 "Включение этого параметра позволяет камере на принтере проверять качество "
 "первого слоя"
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "Тип сопла"
 
@@ -8203,6 +8200,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -9185,35 +9188,17 @@ msgid "Chamber temperature"
 msgstr "Температура в камере"
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Температура сопла для слоев после начального"
-
-msgid "Bed temperature difference"
-msgstr "Разность температур слоя"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"Не рекомендуется, чтобы температура слоя другого слоя была ниже, чем "
-"температура исходного слоя, при превышении этого порога. Слишком низкая "
-"температура слоя другого слоя может привести к тому, что модель будет "
-"разорвана без конструкционной пластины"
 
 msgid "Detect thin wall"
 msgstr "Обнаружение тонкой стенки"
@@ -9708,6 +9693,12 @@ msgid ""
 msgstr ""
 "Устанавливает уровень регистрации отладки. 0: неустранимый, 1: ошибка, 2: "
 "предупреждение, 3: информация, 4: отладка, 5: трассировка\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Ошибка в zip архиве"
@@ -10824,6 +10815,47 @@ msgstr ""
 "Повышение прочности\n"
 "Знаете ли вы, что для повышения прочности модели можно использовать больше "
 "периметров и более высокую плотность заполнения?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "Температура слоя другого слоя ниже температуры слоя исходного слоя более "
+#~ "чем на %d градусов по Цельсию.\n"
+#~ "Это может привести к отрыву модели от рабочей пластины во время печати"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "Температура слоя выше температуры стеклования этой нити.\n"
+#~ "Это может привести к блокировке сопла и сбою печати\n"
+#~ "Пожалуйста, держите принтер открытым во время процесса печати, чтобы "
+#~ "обеспечить доступ воздуха циркуляция или снизить температуру кровати"
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Идентификация резонансной частоты"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Рекомендуемый диапазон температур"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Разность температур слоя"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Не рекомендуется, чтобы температура слоя другого слоя была ниже, чем "
+#~ "температура исходного слоя, при превышении этого порога. Слишком низкая "
+#~ "температура слоя другого слоя может привести к тому, что модель будет "
+#~ "разорвана без конструкционной пластины"
 
 #~ msgid "Orient the model"
 #~ msgstr "Ориентировать модель"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-30 11:03+0800\n"
+"POT-Creation-Date: 2023-09-01 10:49+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2371,26 +2371,6 @@ msgid ""
 "centigrade"
 msgstr "이 필라멘트 타입에 권장되는 노즐 온도는 [%d, %d]도입니다."
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"다른 레이어의 베드 온도가 첫 번째 레이어의 베드 온도보다 %d도 이상 낮습니"
-"다.\n"
-"이로 인해 출력 중 모델이 빌드 플레이트에서 분리될 수 있습니다."
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"베드 온도가 이 필라멘트의 유리화 온도보다 높습니다.\n"
-"이로 인해 노즐이 막히거나 출력이 실패할 수 있습니다.\n"
-"출력중 공기 순환이 되도록 프린터를 열어두거나 베드의 온도를 낮추십시오."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -3092,8 +3072,11 @@ msgstr "라이다 센서 캘리브레이션"
 msgid "Bed leveling"
 msgstr "베드 레벨링"
 
-msgid "Resonance frequency identification"
-msgstr "공진 주파수 측정"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "캘리브레이션 프로그램"
@@ -3112,6 +3095,9 @@ msgstr "캘리브레이션 순서"
 
 msgid "Start Calibration"
 msgstr "캘리브레이션 시작"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "완료"
@@ -4275,6 +4261,9 @@ msgstr "첫 레이어 검사"
 msgid "Auto-recovery from step loss"
 msgstr "스텝 상실시 자동복구"
 
+msgid "Allow Prompt Sound"
+msgstr ""
+
 msgid "Global"
 msgstr "글로벌"
 
@@ -4426,6 +4415,9 @@ msgstr ""
 "필라멘트에 필요한 노즐 경도는 프린터의 기본 노즐 경도보다 높습니다. 노즐을 강"
 "화된 노즐로 변경하거나 필라멘트를 교체하십시오. 그렇지 않으면 노즐이 마모되거"
 "나 손상될 수 있습니다."
+
+msgid "Enable traditional timelapse will cause artifacts on this model."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -5756,9 +5748,6 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "이 필라멘트의 권장 노즐 온도 범위입니다. 0은 설정되지 않았음을 의미합니다."
 
-msgid "Recommended temperature range"
-msgstr "권장 온도 범위"
-
 msgid "Print temperature"
 msgstr "출력 온도"
 
@@ -5886,6 +5875,9 @@ msgstr "레이어 변경 전 G 코드"
 
 msgid "Layer change G-code"
 msgstr "레이어 변경 G 코드"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "필라멘트 변경 G 코드"
@@ -7980,6 +7972,12 @@ msgid ""
 msgstr ""
 "이 기능을 활성화하면 프린터의 카메라가 첫 레이어의 품질을 확인할 수 있습니다."
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "노즐 타입"
 
@@ -8018,6 +8016,12 @@ msgid "Hbot"
 msgstr ""
 
 msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
@@ -8989,34 +8993,17 @@ msgid "Chamber temperature"
 msgstr ""
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "첫 레이어 후 노즐 온도"
-
-msgid "Bed temperature difference"
-msgstr "베드 온도차"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"다른 레이어의 베드 온도가 첫 레이어보다 이 임계값보다 낮은 것은 권장되지 않습"
-"니다. 다른 레이어의 베드 온도가 너무 낮으면 출력물이 빌드 플레이트에서 분리"
-"될 수 있습니다."
 
 msgid "Detect thin wall"
 msgstr "얇은 벽 감지"
@@ -9492,6 +9479,12 @@ msgid ""
 msgstr ""
 "디버그 기록 수준을 설정합니다. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
 "5:trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "zip 아카이브의 오류"
@@ -10601,6 +10594,45 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "다른 레이어의 베드 온도가 첫 번째 레이어의 베드 온도보다 %d도 이상 낮습니"
+#~ "다.\n"
+#~ "이로 인해 출력 중 모델이 빌드 플레이트에서 분리될 수 있습니다."
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "베드 온도가 이 필라멘트의 유리화 온도보다 높습니다.\n"
+#~ "이로 인해 노즐이 막히거나 출력이 실패할 수 있습니다.\n"
+#~ "출력중 공기 순환이 되도록 프린터를 열어두거나 베드의 온도를 낮추십시오."
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "공진 주파수 측정"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "권장 온도 범위"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "베드 온도차"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "다른 레이어의 베드 온도가 첫 레이어보다 이 임계값보다 낮은 것은 권장되지 "
+#~ "않습니다. 다른 레이어의 베드 온도가 너무 낮으면 출력물이 빌드 플레이트에"
+#~ "서 분리될 수 있습니다."
 
 #~ msgid "Orient the model"
 #~ msgstr "모델 방향 지정"
