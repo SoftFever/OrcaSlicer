@@ -564,6 +564,7 @@ void PressureAdvanceWizard::on_cali_start()
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
+            return;
         }
 
         show_step(m_curr_step->next);
@@ -625,6 +626,7 @@ void PressureAdvanceWizard::on_cali_start()
             if (!wx_err_string.empty()) {
                 MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
+                return;
             }
 
             preset_page->on_cali_start_job();
@@ -923,6 +925,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
+            return;
         }
         show_step(m_curr_step->next);
 
@@ -987,6 +990,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
+            return;
         }
         preset_page->on_cali_start_job();
         if (temp_filament_preset)
@@ -1324,6 +1328,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     if (!wx_err_string.empty()) {
         MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
+        return;
     }
 
     preset_page->on_cali_start_job();
