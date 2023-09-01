@@ -31,7 +31,8 @@ static wxString sending_over_cloud_str      = _L("Sending print job through clou
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
-    m_dev_id(dev_id)
+    m_dev_id(dev_id),
+    m_is_calibration_task(false)
 {
     m_print_job_completed_id = plater->get_print_finished_event();
 }
@@ -279,6 +280,11 @@ void PrintJob::process()
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
+
+    if (m_is_calibration_task) {
+        params.project_name = m_project_name;
+        params.origin_model_id = "";
+    }
 
     wxString error_text;
     wxString msg_text;
@@ -534,5 +540,9 @@ void PrintJob::connect_to_local_mqtt()
     this->update_status(0, wxEmptyString);
 }
 
+void PrintJob::set_calibration_task(bool is_calibration)
+{
+    m_is_calibration_task = is_calibration;
+}
 
 }} // namespace Slic3r::GUI
