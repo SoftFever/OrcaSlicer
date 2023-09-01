@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -605,6 +605,15 @@ msgstr "Неправильний пароль"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Не вдалося підключити %s! [Серійний номер:%s, код=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1354,6 +1363,9 @@ msgstr "Автоматична Кайма"
 
 msgid "Auto"
 msgstr "Авто"
+
+msgid "Mouse ear"
+msgstr ""
 
 msgid "Outer brim only"
 msgstr "кайма зовні"
@@ -3838,6 +3850,24 @@ msgstr "Налаштування 3D-з'єднання"
 msgid "Swap Y/Z axes"
 msgstr "Змінити місцями осі Y/Z"
 
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr "Хід друку"
 
@@ -4628,6 +4658,12 @@ msgstr ""
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
+msgstr ""
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
 msgstr ""
 
 msgid ""
@@ -5644,6 +5680,9 @@ msgstr "Вихідний G-code"
 
 msgid "Post-processing Scripts"
 msgstr "Сценарії постобробки"
+
+msgid "Notes"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Частий"
@@ -7279,6 +7318,14 @@ msgstr ""
 "Використовуйте лише один периметр на першому шарі, щоб надати більшемісця "
 "для нижнього зразка заповнення"
 
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+
 msgid "Classic mode"
 msgstr "Класичний режим"
 
@@ -7327,9 +7374,6 @@ msgid ""
 msgstr ""
 "Це керує формуванням поля на зовнішній та/або внутрішній сторонімоделей. "
 "Auto означає, що ширина поля аналізується та обчислюється автоматично."
-
-msgid "Mouse ear"
-msgstr ""
 
 msgid "Brim-object gap"
 msgstr "Зазор між каймою та об'єктом"
@@ -7721,6 +7765,12 @@ msgstr "Колір філаменту за замовчуванням"
 
 msgid "Color"
 msgstr "Колір"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "Потрібний HRC сопла"
@@ -8559,8 +8609,8 @@ msgstr "Максимальне прискорення для відкату (M20
 msgid "Maximum acceleration for travel"
 msgstr "Максимальне прискорення руху"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "Максимальне прискорення руху (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "Швидкість вентилятора"
@@ -8616,6 +8666,14 @@ msgstr "Діаметр сопла"
 
 msgid "Diameter of nozzle"
 msgstr "Діаметр сопла"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "Тип хоста"
@@ -8721,6 +8779,12 @@ msgstr ""
 "комою. Сценаріям передається абсолютний шлях до файлу G-коду в як перший "
 "аргумент, і вони можуть отримати доступ до налаштувань Slic3r конфігурації "
 "шляхом читання змінних середовища."
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Відстань контакту плоту Z"
@@ -10446,6 +10510,15 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 
@@ -10485,7 +10558,7 @@ msgstr ""
 msgid "Delete input"
 msgstr ""
 
-msgid "Send to print"
+msgid "Send G-Code to printer host"
 msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
@@ -10494,14 +10567,11 @@ msgstr ""
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
 
+msgid "Upload to storage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr ""
-
-msgid "Simulate"
 msgstr ""
 
 msgid "Print host upload queue"
@@ -10523,7 +10593,7 @@ msgstr ""
 msgid "Filename"
 msgstr ""
 
-msgid "Error Message"
+msgid "Message"
 msgstr ""
 
 msgid "Cancel selected"
@@ -10541,7 +10611,7 @@ msgstr ""
 msgid "Cancelling"
 msgstr ""
 
-msgid "Error uploading to print host:"
+msgid "Error uploading to print host"
 msgstr ""
 
 msgid "PA Calibration"
@@ -10995,6 +11065,9 @@ msgstr ""
 "Підвищення міцності\n"
 "Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
 "більшепериметрів та вищу щільність заповнення?"
+
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "Максимальне прискорення руху (M204 T)"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "Зберіть вибрані деталі в одну деталь"

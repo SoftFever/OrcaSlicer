@@ -1122,13 +1122,12 @@ namespace client
 
     template<typename Iterator>
     struct InterpolateTableContext {
-        template<typename Iterator>
         struct Item {
             double                           x;
             boost::iterator_range<Iterator>  it_range_x;
             double                           y;
         };
-        std::vector<Item<Iterator>> table;
+        std::vector<Item> table;
 
         static void init(const expr<Iterator> &x) {
             if (!x.numeric_type())

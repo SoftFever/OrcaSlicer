@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -615,6 +615,15 @@ msgstr "Contraseña incorrecta"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "¡Conexión %s fallida! [SN:%s, code=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1370,6 +1379,9 @@ msgstr "Borde de Adherencia Automático"
 
 msgid "Auto"
 msgstr "Automático"
+
+msgid "Mouse ear"
+msgstr "Oreja de ratón"
 
 msgid "Outer brim only"
 msgstr "Solo borde de adherencia exterior"
@@ -3863,6 +3875,24 @@ msgstr "Ajustes de conexión 3D"
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
 
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr "Progreso de impresión"
 
@@ -4662,6 +4692,12 @@ msgid ""
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr "Cargar e imprimir"
 
 msgid ""
 "Print By Object: \n"
@@ -5714,6 +5750,9 @@ msgstr "G-code de salida"
 
 msgid "Post-processing Scripts"
 msgstr "Script de Post-procesado"
+
+msgid "Notes"
+msgstr ""
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -7387,6 +7426,14 @@ msgstr ""
 "Usar solo un perímetro en la primera capa, para dar más espacio en el patrón "
 "de relleno inferior"
 
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+
 msgid "Classic mode"
 msgstr "Modo clásico"
 
@@ -7439,9 +7486,6 @@ msgstr ""
 "Esto controla la generación del borde de adherencia en el lado exterior y/o "
 "interior de los modelos. Auto significa que el ancho de borde de adherencia "
 "es analizado y calculado automaticamente."
-
-msgid "Mouse ear"
-msgstr "Oreja de ratón"
 
 msgid "Brim-object gap"
 msgstr "Espacio borde de adherencia-objeto"
@@ -7851,6 +7895,12 @@ msgstr "Color de filamento por defecto"
 
 msgid "Color"
 msgstr "Color"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "HRC de boquilla requerido"
@@ -8707,8 +8757,8 @@ msgstr "Aceleración máxima de retracción (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "Aceleración máxima para el desplazamiento"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "Aceleración máxima para el desplazamiento (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "Velocidad del ventilador"
@@ -8765,6 +8815,14 @@ msgstr "Diámetro de la boquilla"
 
 msgid "Diameter of nozzle"
 msgstr "Diámetro de la boquilla"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "Tipo de host"
@@ -8880,6 +8938,12 @@ msgstr ""
 "punto y coma. A los scripts se les pasará la ruta absoluta al archivo G-code "
 "como primer argumento, y pueden acceder a los ajustes de configuración de "
 "OrcaSlicer leyendo variables de entorno."
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Distancia Z de contacto de la base de impresión"
@@ -10668,6 +10732,15 @@ msgstr "Buscando dispositivos"
 msgid "Finished"
 msgstr "Terminado"
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 "No es posible realizar la operación booleana en las partes selecionadas"
@@ -10708,8 +10781,8 @@ msgstr "Parte 2"
 msgid "Delete input"
 msgstr "Borrado de entrada"
 
-msgid "Send to print"
-msgstr "Mandar a imprimir"
+msgid "Send G-Code to printer host"
+msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Subido al Host de Impresión con el siguiente nombre de archivo:"
@@ -10719,16 +10792,13 @@ msgstr ""
 "Use barras oblicuas como separador de directorio \n"
 "si es necesario."
 
+msgid "Upload to storage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 "El nombre de archivo que va a cargar no acaba en \"%s\". ¿Desea continuar?"
-
-msgid "Upload and Print"
-msgstr "Cargar e imprimir"
-
-msgid "Simulate"
-msgstr "Simular"
 
 msgid "Print host upload queue"
 msgstr "Imprimir cola de carga del host"
@@ -10749,8 +10819,8 @@ msgstr "Tamaño"
 msgid "Filename"
 msgstr "Nombre de archivo"
 
-msgid "Error Message"
-msgstr "Mensaje de error"
+msgid "Message"
+msgstr ""
 
 msgid "Cancel selected"
 msgstr "Cancelar selección"
@@ -10767,8 +10837,8 @@ msgstr "Subiendo"
 msgid "Cancelling"
 msgstr "Cancelado"
 
-msgid "Error uploading to print host:"
-msgstr "Error cargando al host de impresión:"
+msgid "Error uploading to print host"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
@@ -11231,110 +11301,20 @@ msgstr ""
 "¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
 "relleno disperso para mejorar la resistencia del modelo?"
 
-msgid "Bambu Cube"
-msgstr ""
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "Aceleración máxima para el desplazamiento (M204 T)"
 
-msgid "Bambu Cube V2"
-msgstr ""
+#~ msgid "Send to print"
+#~ msgstr "Mandar a imprimir"
 
-msgid "ksr FDMTest"
-msgstr ""
+#~ msgid "Simulate"
+#~ msgstr "Simular"
 
-#, boost-format
-msgid " plate %1%: "
-msgstr ""
+#~ msgid "Error Message"
+#~ msgstr "Mensaje de error"
 
-msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset. "
-"Please update Bambu Studio or restart Bambu Studio to check if there is an "
-"update to system presets."
-msgstr ""
-
-msgid "Initial layer flow ratio"
-msgstr ""
-
-msgid "This factor affects the amount of material for the initial layer"
-msgstr ""
-
-msgid ""
-"Use only one wall on flat top surface, to give more space to the top infill "
-"pattern. Could be applyed on topmost surface or all top surface."
-msgstr ""
-
-msgid "Not apply"
-msgstr ""
-
-msgid ""
-"If enabled, Studio will generate support loops under the contours of "
-"internal bridges.These support loops could prevent internal bridges from "
-"extruding over the air and improve the top surface quality, especially when "
-"the sparse infill density is low.This value determines the thickness of the "
-"support loops. 0 means disable this feature"
-msgstr ""
-
-msgid ""
-"Enable pressure advance, auto calibration result will be overwriten once "
-"enabled. Useless for Bambu Printer"
-msgstr ""
-
-msgid ""
-"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
-"Bambu Printer"
-msgstr ""
-
-msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
-msgstr ""
-
-msgid "Default jerk"
-msgstr ""
-
-msgid "Jerk of infill"
-msgstr ""
-
-msgid "Jerk of top surface"
-msgstr ""
-
-msgid "First layer"
-msgstr ""
-
-msgid "Jerk of first layer"
-msgstr ""
-
-msgid "Jerk of travel"
-msgstr ""
-
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affact top/bottom layers"
-msgstr ""
-
-msgid ""
-"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
-"firmware printer"
-msgstr ""
-
-msgid ""
-"Detect the overhang percentage relative to line width and use different "
-"speed to print. For 100 percent overhang, bridge speed is used."
-msgstr ""
-
-msgid "Direct drive"
-msgstr ""
-
-msgid ""
-"In order to reduce the visibility of the seam in a closed loop extrusion, "
-"the loop is interrupted and shortened by a specified amount.\n"
-"This amount as a percentage of the current extruder diameter. The default "
-"value for this parameter is 15"
-msgstr ""
-
-msgid ""
-"If your firmware requires relative E values, check this, otherwise leave it "
-"unchecked. Must use relative e distance for Bambu printer"
-msgstr ""
-
-msgid "End temp: "
-msgstr ""
+#~ msgid "Error uploading to print host:"
+#~ msgstr "Error cargando al host de impresión:"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "Ensamblar las piezas seleccionadas en una sola pieza"
