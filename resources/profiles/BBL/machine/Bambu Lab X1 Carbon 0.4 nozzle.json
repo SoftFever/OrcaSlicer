@@ -28,7 +28,7 @@
     "machine_unload_filament_time": "28",
     "scan_first_layer": "1",
     "z_hop": [
-        "0.2"
+        "0.4"
     ],
     "printer_structure": "corexy",
     "upward_compatible_machine": [

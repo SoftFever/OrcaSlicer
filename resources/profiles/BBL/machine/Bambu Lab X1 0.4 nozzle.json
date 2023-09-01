@@ -30,7 +30,7 @@
     "nozzle_type": "stainless_steel",
     "scan_first_layer": "1",
     "z_hop": [
-        "0.2"
+        "0.4"
     ],
     "upward_compatible_machine": [
         "Bambu Lab P1P 0.4 nozzle",
