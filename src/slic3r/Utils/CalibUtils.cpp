@@ -980,6 +980,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
 
     CalibMode cali_mode = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
+    print_job->set_calibration_task(true);
 
     print_job->has_sdcard = obj_->has_sdcard();
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
