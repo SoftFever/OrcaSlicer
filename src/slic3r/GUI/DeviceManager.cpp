@@ -427,7 +427,7 @@ void MachineObject::set_user_access_code(std::string code, bool only_refresh)
     this->user_access_code = code;
     if (only_refresh && !code.empty()) {
         AppConfig* config = GUI::wxGetApp().app_config;
-        if (config) {
+        if (config && !code.empty()) {
             GUI::wxGetApp().app_config->set_str("user_access_code", dev_id, code);
         }
     }
