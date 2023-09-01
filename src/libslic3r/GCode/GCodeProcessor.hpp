@@ -240,7 +240,6 @@ namespace Slic3r {
         static const std::vector<std::string> Reserved_Tags;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
-        static const std::map<NozzleType, int>Nozzle_Type_To_HRC;
     public:
         enum class ETags : unsigned char
         {

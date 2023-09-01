@@ -672,6 +672,12 @@ class ConstPrintRegionPtrsAdaptor : public ConstVectorOfPtrsAdaptor<PrintRegion>
 };
 */
 
+enum FilamentTempType {
+    HighTemp=0,
+    LowTemp,
+    HighLowCompatible,
+    Undefine
+};
 // The complete print tray with possibly multiple objects.
 class Print : public PrintBaseWithState<PrintStep, psCount>
 {
@@ -819,7 +825,8 @@ public:
     Vec2d translate_to_print_space(const Vec2d& point) const;
     // scaled point
     Vec2d translate_to_print_space(const Point& point) const;
-
+    static FilamentTempType get_filament_temp_type(const std::string& filament_type);
+    static int get_hrc_by_nozzle_type(const NozzleType& type);
     static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
 
 protected:

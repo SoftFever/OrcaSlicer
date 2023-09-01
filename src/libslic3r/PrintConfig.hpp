@@ -210,6 +210,13 @@ enum NozzleType {
     ntCount
 };
 
+static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
+    {NozzleType::ntUndefine,        "undefine"},
+    {NozzleType::ntHardenedSteel,   "hardened_steel"},
+    {NozzleType::ntStainlessSteel,  "stainless_steel"},
+    {NozzleType::ntBrass,           "brass"}
+};
+
 // BBS
 enum PrinterStructure {
     psUndefine=0,

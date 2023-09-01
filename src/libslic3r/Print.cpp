@@ -899,30 +899,15 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
 
 bool Print::check_multi_filaments_compatibility(const std::vector<std::string>& filament_types)
 {
-    static std::map<std::string, bool> filament_is_high_temp{
-            {"PLA",     false},
-            {"PLA-CF",  false},
-            //{"PETG",    true},
-            {"ABS",     true},
-            {"TPU",     false},
-            {"PA",      true},
-            {"PA-CF",   true},
-            {"PET-CF",  true},
-            {"PC",      true},
-            {"ASA",     true},
-            {"HIPS",    true}
-    };
-
     bool has_high_temperature_filament = false;
     bool has_low_temperature_filament = false;
 
-    for (const auto& type : filament_types)
-        if (filament_is_high_temp.find(type) != filament_is_high_temp.end()) {
-            if (filament_is_high_temp[type])
-                has_high_temperature_filament = true;
-            else
-                has_low_temperature_filament = true;
-        }
+    for (const auto& type : filament_types) {
+        if (get_filament_temp_type(type) ==FilamentTempType::HighTemp)
+            has_high_temperature_filament = true;
+        else if (get_filament_temp_type(type) == FilamentTempType::LowTemp)
+            has_low_temperature_filament = true;
+    }
 
     if (has_high_temperature_filament && has_low_temperature_filament)
         return false;
@@ -2085,6 +2070,76 @@ Vec2d Print::translate_to_print_space(const Vec2d& point) const {
 
 Vec2d Print::translate_to_print_space(const Point& point) const {
     return Vec2d(unscaled(point.x()) - m_origin(0), unscaled(point.y()) - m_origin(1));
+}
+
+FilamentTempType Print::get_filament_temp_type(const std::string& filament_type)
+{
+    const static std::string HighTempFilamentStr = "high_temp_filament";
+    const static std::string LowTempFilamentStr = "low_temp_filament";
+    const static std::string HighLowCompatibleFilamentStr = "high_low_compatible_filament";
+    static std::unordered_map<std::string, std::unordered_set<std::string>>filament_temp_type_map;
+
+    if (filament_temp_type_map.empty()) {
+        fs::path file_path = fs::path(resources_dir()) / "info" / "filament_info.json";
+        std::ifstream in(file_path.string());
+        json j;
+        try{
+            j = json::parse(in);
+            in.close();
+            auto&&high_temp_filament_arr =j[HighTempFilamentStr].get < std::vector<std::string>>();
+            filament_temp_type_map[HighTempFilamentStr] = std::unordered_set<std::string>(high_temp_filament_arr.begin(), high_temp_filament_arr.end());
+            auto&& low_temp_filament_arr = j[LowTempFilamentStr].get < std::vector<std::string>>();
+            filament_temp_type_map[LowTempFilamentStr] = std::unordered_set<std::string>(low_temp_filament_arr.begin(), low_temp_filament_arr.end());
+            auto&& high_low_compatible_filament_arr = j[HighLowCompatibleFilamentStr].get < std::vector<std::string>>();
+            filament_temp_type_map[HighLowCompatibleFilamentStr] = std::unordered_set<std::string>(high_low_compatible_filament_arr.begin(), high_low_compatible_filament_arr.end());
+        }
+        catch (const json::parse_error& err){
+            in.close();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
+            filament_temp_type_map[HighTempFilamentStr] = {"ABS","ASA","PC","PA","PA-CF","PA6-CF","PET-CF","PPS","PPS-CF","PPA-GF","PPA-CF"};
+            filament_temp_type_map[LowTempFilamentStr] = {"PLA","TPU","PLA-CF","PLA-AERO","PVA"};
+            filament_temp_type_map[HighLowCompatibleFilamentStr] = { "HIPS","PETG" };
+        }
+    }
+
+    if (filament_temp_type_map[HighLowCompatibleFilamentStr].find(filament_type) != filament_temp_type_map[HighLowCompatibleFilamentStr].end())
+        return HighLowCompatible;
+    if (filament_temp_type_map[HighTempFilamentStr].find(filament_type) != filament_temp_type_map[HighTempFilamentStr].end())
+        return HighTemp;
+    if (filament_temp_type_map[LowTempFilamentStr].find(filament_type) != filament_temp_type_map[LowTempFilamentStr].end())
+        return LowTemp;
+    return Undefine;
+}
+
+int Print::get_hrc_by_nozzle_type(const NozzleType&type)
+{
+    static std::map<std::string, int>nozzle_type_to_hrc;
+    if (nozzle_type_to_hrc.empty()) {
+        fs::path file_path = fs::path(resources_dir()) / "info" / "nozzle_info.json";
+        std::ifstream in(file_path.string());
+        json j;
+        try {
+            j = json::parse(in);
+            in.close();
+            for (const auto& elem : j["nozzle_hrc"].items())
+                nozzle_type_to_hrc[elem.key()] = elem.value();
+        }
+        catch (const json::parse_error& err) {
+            in.close();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << file_path.string() << " got a nlohmann::detail::parse_error, reason = " << err.what();
+            nozzle_type_to_hrc = {
+                {"hardened_steel",55},
+                {"stainless_steel",20},
+                {"brass",2},
+                {"undefine",0}
+            };
+        }
+    }
+    auto iter = nozzle_type_to_hrc.find(NozzleTypeEumnToStr[type]);
+    if (iter != nozzle_type_to_hrc.end())
+        return iter->second;
+    //0 represents undefine
+    return 0;
 }
 
 void Print::finalize_first_layer_convex_hull()
