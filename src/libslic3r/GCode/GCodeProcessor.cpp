@@ -64,12 +64,6 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
-const std::map<NozzleType,int> GCodeProcessor::Nozzle_Type_To_HRC={
-    {NozzleType::ntStainlessSteel,20},
-    {NozzleType::ntHardenedSteel,55},
-    {NozzleType::ntBrass,2},
-    {NozzleType::ntUndefine,0}
-};
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
@@ -4315,7 +4309,7 @@ void GCodeProcessor::update_slice_warnings()
     warning.params.clear();
     warning.level=1;
 
-    int nozzle_hrc = Nozzle_Type_To_HRC.find(m_result.nozzle_type)->second;
+    int nozzle_hrc = Print::get_hrc_by_nozzle_type(m_result.nozzle_type);
     if (nozzle_hrc!=0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int HRC=0;
