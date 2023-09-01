@@ -1457,48 +1457,69 @@ void MachineObject::parse_version_func()
     auto rv1126_version = module_vers.find("rv1126");
     if (get_printer_series() == PrinterSeries::SERIES_X1) {
         if (ota_version != module_vers.end()) {
-            if (ota_version->second.sw_ver.compare("01.01.01.00") <= 0) {
-                ams_support_remain                      = false;
-                ams_support_auto_switch_filament_flag   = false;
-                is_xcam_buildplate_supported            = false;
-                xcam_support_recovery_step_loss         = false;
-                is_support_send_to_sdcard               = false;
-                is_support_1080dpi                      = false;
-                is_support_ai_monitoring                = false;
-                is_support_ams_humidity                 = false;
-            } else {
-                ams_support_remain                      = true;
-                ams_support_auto_switch_filament_flag   = true;
-                is_xcam_buildplate_supported            = true;
-                xcam_support_recovery_step_loss         = true;
-                is_support_send_to_sdcard               = true;
-                is_support_1080dpi                      = true;
-                is_support_ai_monitoring                = true;
-                is_support_ams_humidity                 = true;
-            }
 
-            if (ota_version != module_vers.end()) {
-                if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
-                    local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
-                }
-
-                if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
-                    is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
-                }
-                else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
-                    is_support_mqtt_alive = ota_version->second.sw_ver.compare("00.03.10.05") >= 0;
+            if (printer_type != "C13") {
+                if (ota_version->second.sw_ver.compare("01.01.01.00") <= 0) {
+                    ams_support_remain = false;
+                    ams_support_auto_switch_filament_flag = false;
+                    is_xcam_buildplate_supported = false;
+                    xcam_support_recovery_step_loss = false;
+                    is_support_send_to_sdcard = false;
+                    is_support_1080dpi = false;
+                    is_support_ai_monitoring = false;
+                    is_support_ams_humidity = false;
                 }
                 else {
-                    is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
+                    ams_support_remain = true;
+                    ams_support_auto_switch_filament_flag = true;
+                    is_xcam_buildplate_supported = true;
+                    xcam_support_recovery_step_loss = true;
+                    is_support_send_to_sdcard = true;
+                    is_support_1080dpi = true;
+                    is_support_ai_monitoring = true;
+                    is_support_ams_humidity = true;
                 }
 
-                is_support_remote_tunnel = true;
-                is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.05.06.06") >= 0
-                    || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.21.20") >= 0));
+                if (ota_version != module_vers.end()) {
+                    if (firmware_type == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
+                        local_use_ssl_for_mqtt = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
+                    }
+
+                    if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION) {
+                        is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
+                    }
+                    else if (lifecycle == PrinterFirmwareType::FIRMWARE_TYPE_ENGINEER) {
+                        is_support_mqtt_alive = ota_version->second.sw_ver.compare("00.03.10.05") >= 0;
+                    }
+                    else {
+                        is_support_mqtt_alive = ota_version->second.sw_ver.compare("01.05.06.05") >= 0;
+                    }
+
+                    is_support_remote_tunnel = true;
+                    is_support_tunnel_mqtt = (ota_version->second.sw_ver.compare("01.05.06.06") >= 0
+                        || (rv1126_version != module_vers.end() && rv1126_version->second.sw_ver.compare("00.00.21.20") >= 0));
+                }
+                local_camera_proto = local_rtsp_url.empty() ? -1 : local_rtsp_url == "disable" ? 0
+                    : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
+                file_proto = 2;
             }
-            local_camera_proto       = local_rtsp_url.empty() ? -1 : local_rtsp_url == "disable" ? 0 
-                                        : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
-            file_proto = 2;
+            else {
+                ams_support_remain = true;
+                ams_support_auto_switch_filament_flag = true;
+                is_xcam_buildplate_supported = true;
+                xcam_support_recovery_step_loss = true;
+                is_support_send_to_sdcard = true;
+                is_support_1080dpi = true;
+                is_support_ai_monitoring = true;
+                is_support_ams_humidity = true;
+                is_support_mqtt_alive = true;
+                local_use_ssl_for_mqtt = true;
+                is_support_remote_tunnel = true;
+                is_support_tunnel_mqtt = true;
+                local_camera_proto = local_rtsp_url.empty() ? -1 : local_rtsp_url == "disable" ? 0
+                    : boost::algorithm::starts_with(local_rtsp_url, "rtsps") ? 2 : 3;
+                file_proto = 2;
+            }
         }
     } else if (printer_type == "C11") {
         is_cloud_print_only = true;
