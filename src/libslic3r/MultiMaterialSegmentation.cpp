@@ -1372,18 +1372,23 @@ static void remove_multiple_edges_in_vertices(MMU_Graph &graph, const std::vecto
 static void cut_segmented_layers(const std::vector<ExPolygons>        &input_expolygons,
                                  std::vector<std::vector<ExPolygons>> &segmented_regions,
                                  const float                           cut_width,
+                                 const float                           interlocking_depth,
                                  const std::function<void()>          &throw_on_cancel_callback)
 {
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - begin";
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, segmented_regions.size()),[&segmented_regions, &input_expolygons, &cut_width, &throw_on_cancel_callback](const tbb::blocked_range<size_t>& range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, segmented_regions.size()),
+                      [&segmented_regions, &input_expolygons, &cut_width, &interlocking_depth, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
-            const size_t            num_extruders_plus_one = segmented_regions[layer_idx].size();
-            std::vector<ExPolygons> segmented_regions_cuts(num_extruders_plus_one); // Indexed by extruder_id
-            for (size_t extruder_idx = 0; extruder_idx < num_extruders_plus_one; ++extruder_idx)
-                if (const ExPolygons &ex_polygons = segmented_regions[layer_idx][extruder_idx]; !ex_polygons.empty())
-                    segmented_regions_cuts[extruder_idx] = diff_ex(ex_polygons, offset_ex(input_expolygons[layer_idx], cut_width));
-            segmented_regions[layer_idx] = std::move(segmented_regions_cuts);
+            const float  region_cut_width = ((layer_idx % 2 == 0) && (interlocking_depth != 0.f)) ? interlocking_depth : cut_width;
+            const size_t num_extruders_plus_one = segmented_regions[layer_idx].size();
+            if (region_cut_width > 0.f) {
+                std::vector<ExPolygons> segmented_regions_cuts(num_extruders_plus_one); // Indexed by extruder_id
+                for (size_t extruder_idx = 0; extruder_idx < num_extruders_plus_one; ++extruder_idx)
+                    if (const ExPolygons &ex_polygons = segmented_regions[layer_idx][extruder_idx]; !ex_polygons.empty())
+                        segmented_regions_cuts[extruder_idx] = diff_ex(ex_polygons, offset_ex(input_expolygons[layer_idx], -region_cut_width));
+                segmented_regions[layer_idx] = std::move(segmented_regions_cuts);
+            }
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - cutting segmented layers in parallel - end";
@@ -2040,10 +2045,10 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - layers segmentation in parallel - end";
     throw_on_cancel_callback();
 
-    //if (auto w = print_object.config().mmu_segmented_region_max_width; w > 0.f) {
-    //    cut_segmented_layers(input_expolygons, segmented_regions, float(-scale_(w)), throw_on_cancel_callback);
-    //    throw_on_cancel_callback();
-    //}
+    if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth; max_width > 0.f || interlocking_depth > 0.f) {
+        cut_segmented_layers(input_expolygons, segmented_regions, float(scale_(max_width)), float(scale_(interlocking_depth)), throw_on_cancel_callback);
+        throw_on_cancel_callback();
+    }
 
     // The first index is extruder number (includes default extruder), and the second one is layer number
     std::vector<std::vector<ExPolygons>> top_and_bottom_layers = mmu_segmentation_top_and_bottom_layers(print_object, input_expolygons, throw_on_cancel_callback);

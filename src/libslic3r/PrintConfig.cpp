@@ -1966,6 +1966,27 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def           = this->add("mmu_segmented_region_max_width", coFloat);
+    def->label    = L("Maximum width of a segmented region");
+    def->tooltip  = L("Maximum width of a segmented region. Zero disables this feature.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("mmu_segmented_region_interlocking_depth", coFloat);
+    def->label    = L("Interlocking depth of a segmented region");
+    //def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
+    //                 "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\""
+    //                 "is bigger then \"mmu_segmented_region_max_width\". Zero disables this feature.");
+    def->tooltip  = L("Interlocking depth of a segmented region. Zero disables this feature.");
+    def->sidetext = L("mm"); //(zero to disable)
+    def->min      = 0;
+    def->category = L("Advanced");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("ironing_type", coEnum);
     def->label = L("Ironing Type");
     def->category = L("Quality");

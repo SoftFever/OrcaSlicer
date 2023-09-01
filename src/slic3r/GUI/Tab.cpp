@@ -2050,6 +2050,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
 
+        optgroup = page->new_optgroup(L("Advanced"), L"advanced");
+        // optgroup->append_single_option_line("mmu_segmented_region_max_width");
+        optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
         optgroup->append_single_option_line("reduce_infill_retraction");
