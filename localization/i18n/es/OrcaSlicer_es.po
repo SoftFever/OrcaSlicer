@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-08-26 19:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -617,15 +617,6 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "¡Conexión %s fallida! [SN:%s, code=%s]"
 
 msgid ""
-"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
-"features.\n"
-"Click Yes to install it now."
-msgstr ""
-
-msgid "WebView2 Runtime"
-msgstr ""
-
-msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
 "Please delete the file and try again."
 msgstr ""
@@ -978,10 +969,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "Ensamblar los objetos seleccionados en un objeto con una sola pieza"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "Malla booleana"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "Las operaciones de malla booleana incluidas en la unión y resta"
 
 msgid "Along X axis"
 msgstr "A lo largo del eje X"
@@ -1108,7 +1099,7 @@ msgid "Lock"
 msgstr "Bloquear"
 
 msgid "Edit Plate Name"
-msgstr ""
+msgstr "Editar el nombre de la"
 
 msgid "Name"
 msgstr "Nombre"
@@ -1175,7 +1166,7 @@ msgid "Error!"
 msgstr "¡Error!"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "Fallo recuperando los datos del modelo del archivo actual."
 
 msgid "Generic"
 msgstr "Genérico"
@@ -1380,9 +1371,6 @@ msgstr "Borde de Adherencia Automático"
 msgid "Auto"
 msgstr "Automático"
 
-msgid "Mouse ear"
-msgstr "Oreja de ratón"
-
 msgid "Outer brim only"
 msgstr "Solo borde de adherencia exterior"
 
@@ -1537,7 +1525,7 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Auto Refill"
-msgstr ""
+msgstr "Auto Rellenado"
 
 msgid "AMS not connected"
 msgstr "AMS no conectado"
@@ -1781,7 +1769,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr ""
+msgstr "Enviado correctamente. Se cargará la siguiente página en %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Se necesita insertar una tarjeta SD antes de imprimir vía red local."
@@ -1973,10 +1961,10 @@ msgstr ""
 "Ajustes de información de ranura AMS mientras la impresión no sea soportada"
 
 msgid "Factors of Flow Dynamics Calibration"
-msgstr ""
+msgstr "Factores de Calibración Dinámica de Flujo"
 
 msgid "PA Profile"
-msgstr ""
+msgstr "Perfil de Avance de Presión de Línea"
 
 msgid "Factor K"
 msgstr "Factor K"
@@ -2170,6 +2158,8 @@ msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr ""
+"Cuando se termine el filamento actual, la impresora continuará imprimiendo "
+"en el siguiente orden."
 
 msgid "Group"
 msgstr "Agrupar"
@@ -2180,6 +2170,10 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
+"Actualmente no se dispone de consumibles de repuesto idénticos, por lo que "
+"la reposición automática no es posible. \n"
+"(Actualmente admite el suministro automático de consumibles con la misma "
+"marca, tipo de material y color)."
 
 msgid "AMS Settings"
 msgstr "Ajustes del AMS"
@@ -2714,26 +2708,30 @@ msgid "Failed to start printing job"
 msgstr "Fallo iniciando el trabajo de impresión"
 
 msgid "Invalid nozzle diameter"
-msgstr ""
+msgstr "Diámetro de boquilla incorrecto"
 
 msgid "Calibration error"
-msgstr ""
+msgstr "Error de calibración"
 
 msgid "TPU is not supported by AMS."
-msgstr ""
+msgstr "TPU no soportado por el AMS."
 
 msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr ""
+msgstr "Bambu PET-CF/PA6-CF no soportado por el AMS."
 
 msgid ""
 "Damp PVA will become flexible and get stuck inside AMS,please take care to "
 "dry it before use."
 msgstr ""
+"Damp PVA se hará más flexible y se atascará dentro del AMS, por favor, tenga "
+"cuidado de secarlo antes de usar."
 
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
+"Los filamentos CF/GF son duros y quebradizos. Es fácil romperlos o crear "
+"atascos en el AMS, por favor úselos con precaución."
 
 msgid "default"
 msgstr "por defecto"
@@ -3671,6 +3669,7 @@ msgstr "Cargando..."
 
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
+"Fallo inicializando (No soportado en la actual versión de la impresora)!"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "Inicialización fallida (No accesible en el modo solo Red Local)"
@@ -3801,8 +3800,8 @@ msgstr "Load failed [%d]"
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Vas a borrar el archivo %u de la impresora. ¿Estás seguro?"
+msgstr[1] "Vas a borrar los archivos %u de la impresora. ¿Estás seguro?"
 
 msgid "Delete files"
 msgstr "Borrar archivos"
@@ -3821,12 +3820,14 @@ msgid "Failed to fetching model infomations from printer."
 msgstr "Failed to fetch model infomation from printer."
 
 msgid "Failed to parse model infomations."
-msgstr "Failed to parse model infomation"
+msgstr "Fallo al analizar la información de modelado."
 
 msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
 "and export a new .gcode.3mf file."
 msgstr ""
+"El archivo .gcode. 3mf no contiene datos de G-Code. Por favor, lamine con "
+"OrcaSlicer y exporte un nuevo archivo .gcode.3mf."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3849,10 +3850,10 @@ msgid "Downloading %d%%..."
 msgstr "Descargando %d%%..."
 
 msgid "Not supported on the current printer version."
-msgstr ""
+msgstr "No soportado en la actual versión de la impresora."
 
 msgid "Storage unavailable, insert SD card."
-msgstr ""
+msgstr "Almacenamiento no disponible, inserte la tarjeta SD."
 
 msgid "Speed:"
 msgstr "Velocidad:"
@@ -3874,24 +3875,6 @@ msgstr "Ajustes de conexión 3D"
 
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
-
-msgid "Invert X axis"
-msgstr ""
-
-msgid "Invert Y axis"
-msgstr ""
-
-msgid "Invert Z axis"
-msgstr ""
-
-msgid "Invert Yaw axis"
-msgstr ""
-
-msgid "Invert Pitch axis"
-msgstr ""
-
-msgid "Invert Roll axis"
-msgstr ""
 
 msgid "Printing Progress"
 msgstr "Progreso de impresión"
@@ -4693,12 +4676,6 @@ msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
 
-msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
-msgstr ""
-
-msgid "Upload and Print"
-msgstr "Cargar e imprimir"
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -5093,7 +5070,7 @@ msgid "Incompatible"
 msgstr "Incompatible"
 
 msgid "The selected preset is null!"
-msgstr ""
+msgstr "¡El ajuste seleccionado es nulo!"
 
 msgid "Plate name"
 msgstr "Nombre de Bandeja"
@@ -5108,7 +5085,7 @@ msgid "Customize"
 msgstr "Personalizar"
 
 msgid "First layer filament sequence"
-msgstr ""
+msgstr "Secuencia de primera capa de filamento"
 
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
@@ -5290,7 +5267,7 @@ msgid "Bed Leveling"
 msgstr "Nivelación de la cama"
 
 msgid "Flow Dynamics Calibration"
-msgstr ""
+msgstr "Calibración de Flujo Dinámico"
 
 msgid "Can't connect to the printer"
 msgstr "No se puede conectar a la impresora"
@@ -5391,6 +5368,7 @@ msgstr "Es necesario introducir una tarjeta SD antes de imprimir."
 
 msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
+"La impresora seleccionada es incompatible con los ajustes seleccionados."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Es necesario insertar una tarjeta SD para guardar el timelapse."
@@ -5444,7 +5422,7 @@ msgstr ""
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
-msgstr ""
+msgstr "Conectando a la impresora. No es posible cancelar durante la conexión."
 
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
@@ -5459,9 +5437,11 @@ msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
 msgstr ""
+"¡Precaución! La calibración del flujo en la placa PEI texturizada puede "
+"fallar debido a la superficie dispersa."
 
 msgid "Automatic flow calibration using Micro Lidar"
-msgstr ""
+msgstr "Calibración automática de flujo usando Micro Lidar"
 
 msgid "Modifying the device name"
 msgstr "Modificar el nombre del dispositivo"
@@ -5750,9 +5730,6 @@ msgstr "G-code de salida"
 
 msgid "Post-processing Scripts"
 msgstr "Script de Post-procesado"
-
-msgid "Notes"
-msgstr ""
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -7433,14 +7410,6 @@ msgstr ""
 "Usar solo un perímetro en la primera capa, para dar más espacio en el patrón "
 "de relleno inferior"
 
-msgid "Extra perimeters on overhangs"
-msgstr ""
-
-msgid ""
-"Create additional perimeter paths over steep overhangs and areas where "
-"bridges cannot be anchored. "
-msgstr ""
-
 msgid "Classic mode"
 msgstr "Modo clásico"
 
@@ -7493,6 +7462,9 @@ msgstr ""
 "Esto controla la generación del borde de adherencia en el lado exterior y/o "
 "interior de los modelos. Auto significa que el ancho de borde de adherencia "
 "es analizado y calculado automaticamente."
+
+msgid "Mouse ear"
+msgstr "Oreja de ratón"
 
 msgid "Brim-object gap"
 msgstr "Espacio borde de adherencia-objeto"
@@ -7902,12 +7874,6 @@ msgstr "Color de filamento por defecto"
 
 msgid "Color"
 msgstr "Color"
-
-msgid "Filament notes"
-msgstr ""
-
-msgid "You can put your notes regarding the filament here."
-msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "HRC de boquilla requerido"
@@ -8764,8 +8730,8 @@ msgstr "Aceleración máxima de retracción (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "Aceleración máxima para el desplazamiento"
 
-msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
-msgstr ""
+msgid "Maximum acceleration for travel (M204 T)"
+msgstr "Aceleración máxima para el desplazamiento (M204 T)"
 
 msgid "Fan speed"
 msgstr "Velocidad del ventilador"
@@ -8822,14 +8788,6 @@ msgstr "Diámetro de la boquilla"
 
 msgid "Diameter of nozzle"
 msgstr "Diámetro de la boquilla"
-
-msgid "Configuration notes"
-msgstr ""
-
-msgid ""
-"You can put here your personal notes. This text will be added to the G-code "
-"header comments."
-msgstr ""
 
 msgid "Host Type"
 msgstr "Tipo de host"
@@ -8945,12 +8903,6 @@ msgstr ""
 "punto y coma. A los scripts se les pasará la ruta absoluta al archivo G-code "
 "como primer argumento, y pueden acceder a los ajustes de configuración de "
 "OrcaSlicer leyendo variables de entorno."
-
-msgid "Printer notes"
-msgstr ""
-
-msgid "You can put your notes regarding the printer here."
-msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Distancia Z de contacto de la base de impresión"
@@ -10329,34 +10281,34 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "This OBJ file couldn't be read because it's empty."
 
 msgid "Flow Rate Calibration"
-msgstr ""
+msgstr "Calibración de Ratio de Flujo"
 
 msgid "Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "Calibración de Velocidad Volumétrica Máxima"
 
 msgid "Manage Result"
-msgstr ""
+msgstr "Administrar Resultados"
 
 msgid "Manual Calibration"
-msgstr ""
+msgstr "Calibración Manual"
 
 msgid "Result can be read by human eyes."
-msgstr ""
+msgstr "El resultado puede leerse con ojos humanos."
 
 msgid "Auto-Calibration"
-msgstr ""
+msgstr "Auto-Calibración"
 
 msgid "We would use Lidar to read the calibration result"
-msgstr ""
+msgstr "Deberíamos usar Lidar para leer resultados de calibración."
 
 msgid "Prev"
-msgstr ""
+msgstr "Ant"
 
 msgid "Recalibration"
-msgstr ""
+msgstr "Recalibración"
 
 msgid "Calibrate"
-msgstr ""
+msgstr "Calibración"
 
 msgid "Finish"
 msgstr "Finalizar"
@@ -10365,90 +10317,98 @@ msgid "Wiki"
 msgstr ""
 
 msgid "How to use calibration result?"
-msgstr ""
+msgstr "¿Cómo usar el resultado de la calibración?"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
-msgstr ""
+msgstr "Deberías cambiar el Factor de Calibración de Dinámicas de Flujo"
 
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
 msgstr ""
+"La versión actual de firmware de la impresora no soporta la calibración.\n"
+"Por favor, actualice el firmware de la impresora."
 
 msgid "Calibration not supported"
-msgstr ""
+msgstr "Calibración no soportada"
 
 msgid "Flow Dynamics"
-msgstr ""
+msgstr "Dinámicas de Flujo"
 
 msgid "Flow Rate"
-msgstr ""
+msgstr "Ratio de Flujo"
 
 msgid "Max Volumetric Speed"
-msgstr ""
+msgstr "Velocidad Volumétrica Máxima"
 
 msgid "Please enter the name you want to save to printer."
-msgstr ""
+msgstr "Por favor, introduzca el nombre que quiera asignar a la impresora."
 
 msgid "The name cannot exceed 40 characters."
-msgstr ""
+msgstr "El nombre no puede exceder de 40 caracteres."
 
 msgid "The name cannot be empty."
-msgstr ""
+msgstr "El nombre no puede estar vacío."
 
 #, boost-format
 msgid "The selected preset: %1% is not found."
-msgstr ""
+msgstr "El ajuste seleccionado: %1% no encontrado."
 
 msgid "The name cannot be the same as the system preset name."
-msgstr ""
+msgstr "El nombre no puede ser el mismo que el nombre de ajuste del sistema"
 
 msgid "The name is the same as another existing preset name"
-msgstr ""
+msgstr "El nombre coincide con el de otro ajuste."
 
 msgid "create new preset failed."
-msgstr ""
+msgstr "crear un nuevo ajuste fallido."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
-msgstr ""
+msgstr "¿Estás seguro que no quiere cancelar la ca"
 
 msgid "No Printer Connected!"
-msgstr ""
+msgstr "¡No hay Impresoras Conectadas!"
 
 msgid "Printer is not connected yet."
-msgstr ""
+msgstr "La impresora no está conectada todavía."
 
 msgid "Please select filament to calibrate."
-msgstr ""
+msgstr "Por favor, seleccione el filamento para calibrar."
 
 msgid "Connecting to printer..."
-msgstr ""
+msgstr "Conectando a la impresora."
 
 msgid "The failed test result has been dropped."
-msgstr ""
+msgstr "El resultado del test fallido se ha descartado."
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
+"El resultado de la Calibración de Flujo Dinámica se ha salvado en la "
+"impresora."
 
 msgid "Internal Error"
-msgstr ""
+msgstr "Error interno"
 
 msgid "Please select at least one filament for calibration"
-msgstr ""
+msgstr "Por favor, selecciona al menos un filamento por calibración"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr ""
+"El resultado de la calibración del ratio de flujo se ha guardado en los "
+"ajustes."
 
 msgid "The input value size must be 3."
-msgstr ""
+msgstr "El valor de tamaño de entrada debe ser 3."
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
+"El resultado de la calibración de velocidad volumétrica máxima se ha salvado "
+"en los ajustes"
 
 msgid "When do you need Flow Dynamics Calibration"
-msgstr ""
+msgstr "Cuando necesita la Calibración de Flujo de Dinámicas"
 
 msgid ""
 "We now have added the auto-calibration for different filaments, which is "
@@ -10460,9 +10420,14 @@ msgid ""
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
+"Hemos añadido la auto-calibración para diferentes filamentos, los cuales "
+"están totalmente automatizados, y los resultados se guardarán en la "
+"impresora para futuros usos. Solo necesita calibrar en los siguientes "
+"casos:\n"
+"1. Sí introduce un nuevo filamento de diferentes marcas/modelos de los "
 
 msgid "About this calibration"
-msgstr ""
+msgstr "Acerca de la calibración"
 
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
@@ -10485,7 +10450,7 @@ msgid ""
 msgstr ""
 
 msgid "When to use Flow Rate Calibration"
-msgstr ""
+msgstr " Cuando usar la Calibración de Ratio de Flujo"
 
 msgid ""
 "After using Flow Dynamics Calibration, there might still be some extrusion "
@@ -10498,6 +10463,13 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
 "they should be."
 msgstr ""
+"Después de usar la Calibración de Dinámicas de Flujo, puede haber algunos "
+"problemas de extrusión, como:\n"
+"1 . Sobreextrusión: Exceso de material en la impresión, formando truños o "
+"capas más anchas y no uniformes.\n"
+"2. Infraextrusión: Capas muy finas, relleno poco resistente, o huecos en la "
+"capa superior del modelo, incluso cuando se imprime despacio.\n"
+"3. Calidad de "
 
 msgid ""
 "In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
@@ -10592,10 +10564,10 @@ msgid "Record Factor"
 msgstr ""
 
 msgid "We found the best flow ratio for you"
-msgstr ""
+msgstr "Vamos a encontrarle el mejor ratio de flujo."
 
 msgid "Flow Ratio"
-msgstr ""
+msgstr "Ratio de Flujo"
 
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
 msgstr ""
@@ -10713,7 +10685,7 @@ msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr ""
 
 msgid "Action"
-msgstr ""
+msgstr "Acción"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr ""
@@ -10738,15 +10710,6 @@ msgstr "Buscando dispositivos"
 
 msgid "Finished"
 msgstr "Terminado"
-
-msgid "Multiple resolved IP addresses"
-msgstr ""
-
-#, boost-format
-msgid ""
-"There are several IP addresses resolving to hostname %1%.\n"
-"Please select one that should be used."
-msgstr ""
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
@@ -10788,8 +10751,8 @@ msgstr "Parte 2"
 msgid "Delete input"
 msgstr "Borrado de entrada"
 
-msgid "Send G-Code to printer host"
-msgstr ""
+msgid "Send to print"
+msgstr "Mandar a imprimir"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Subido al Host de Impresión con el siguiente nombre de archivo:"
@@ -10799,13 +10762,16 @@ msgstr ""
 "Use barras oblicuas como separador de directorio \n"
 "si es necesario."
 
-msgid "Upload to storage"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 "El nombre de archivo que va a cargar no acaba en \"%s\". ¿Desea continuar?"
+
+msgid "Upload and Print"
+msgstr "Cargar e imprimir"
+
+msgid "Simulate"
+msgstr "Simular"
 
 msgid "Print host upload queue"
 msgstr "Imprimir cola de carga del host"
@@ -10826,8 +10792,8 @@ msgstr "Tamaño"
 msgid "Filename"
 msgstr "Nombre de archivo"
 
-msgid "Message"
-msgstr ""
+msgid "Error Message"
+msgstr "Mensaje de error"
 
 msgid "Cancel selected"
 msgstr "Cancelar selección"
@@ -10844,8 +10810,8 @@ msgstr "Subiendo"
 msgid "Cancelling"
 msgstr "Cancelado"
 
-msgid "Error uploading to print host"
-msgstr ""
+msgid "Error uploading to print host:"
+msgstr "Error cargando al host de impresión:"
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
@@ -11307,21 +11273,6 @@ msgstr ""
 "Mejorar la resistencia\n"
 "¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
 "relleno disperso para mejorar la resistencia del modelo?"
-
-#~ msgid "Maximum acceleration for travel (M204 T)"
-#~ msgstr "Aceleración máxima para el desplazamiento (M204 T)"
-
-#~ msgid "Send to print"
-#~ msgstr "Mandar a imprimir"
-
-#~ msgid "Simulate"
-#~ msgstr "Simular"
-
-#~ msgid "Error Message"
-#~ msgstr "Mensaje de error"
-
-#~ msgid "Error uploading to print host:"
-#~ msgstr "Error cargando al host de impresión:"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "Ensamblar las piezas seleccionadas en una sola pieza"
