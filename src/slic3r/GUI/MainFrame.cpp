@@ -3493,6 +3493,8 @@ std::wstring MainFrame::FileHistory::GetThumbnailUrl(int index) const
 
 void MainFrame::FileHistory::AddFileToHistory(const wxString &file)
 {
+    if (this->m_fileMaxFiles == 0)
+        return;
     wxFileHistory::AddFileToHistory(file);
     if (m_load_called)
         m_thumbnails.push_front(bbs_3mf_get_thumbnail(into_u8(file).c_str()));
@@ -3502,6 +3504,8 @@ void MainFrame::FileHistory::AddFileToHistory(const wxString &file)
 
 void MainFrame::FileHistory::RemoveFileFromHistory(size_t i)
 {
+    if (i >= m_thumbnails.size()) // FIX zero max
+        return;
     wxFileHistory::RemoveFileFromHistory(i);
     m_thumbnails.erase(m_thumbnails.begin() + i);
 }
