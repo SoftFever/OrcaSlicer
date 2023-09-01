@@ -59,8 +59,12 @@ static const int PARTPLATE_TEXT_OFFSET_X2 = 1;
 static const int PARTPLATE_TEXT_OFFSET_Y = 1;
 static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 
-static const float WIPE_TOWER_DEFAULT_X_POS = 15.;
-static const float WIPE_TOWER_DEFAULT_Y_POS = 220.;
+static const float WIPE_TOWER_DEFAULT_X_POS = 165.;
+static const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
+
+static const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
+static const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
+
 std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
 namespace Slic3r {
@@ -2969,17 +2973,7 @@ void PartPlateList::init()
 
 	if (m_plater) {
         // In GUI mode
-        DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
-        ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
-        ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
-        wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
-        wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
-
-        // set the default position, the same with print config(left top)
-        ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
-        ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
-        dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, 0, 0);
-        dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, 0, 0);
+        set_default_wipe_tower_pos_for_plate(0);
     }
 
 	select_plate(0);
@@ -3267,6 +3261,26 @@ void PartPlateList::release_icon_textures()
 	}
 }
 
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx)
+{
+    DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
+    ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+    ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+    wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
+    wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
+
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    // set the default position, the same with print config(left top)
+    ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
+    ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        wt_x_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_X_POS);
+        wt_y_opt = ConfigOptionFloat(I3_WIPE_TOWER_DEFAULT_Y_POS);
+    }
+    dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_idx, 0);
+    dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_idx, 0);
+}
+
 //this may be happened after machine changed
 void PartPlateList::reset_size(int width, int depth, int height, bool reload_objects, bool update_shapes)
 {
@@ -3431,17 +3445,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	// update wipe tower config
 	if (m_plater) {
 		// In GUI mode
-		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
-		ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
-		ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
-		wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
-		wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
-
-		// set the default position, the same with print config(left top)
-        ConfigOptionFloat wt_x_opt(WIPE_TOWER_DEFAULT_X_POS);
-        ConfigOptionFloat wt_y_opt(WIPE_TOWER_DEFAULT_Y_POS);
-        dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, new_index, 0);
-        dynamic_cast<ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, new_index, 0);
+        set_default_wipe_tower_pos_for_plate(new_index);
 	}
 
 	unprintable_plate.set_index(new_index+1);
@@ -3786,6 +3790,11 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 		//compute origin1 for PartPlate
 		origin1 = compute_origin(i, m_plate_cols);
 		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position);
+
+		// set default wipe pos when switch plate
+        if (m_plater && plate->get_used_extruders().size() <= 0) {
+			set_default_wipe_tower_pos_for_plate(i);
+		}
 	}
 
 	origin2 = compute_origin_for_unprintable();
