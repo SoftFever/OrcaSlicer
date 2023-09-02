@@ -16,7 +16,7 @@ wxFont Label::sysFont(int size, bool bold)
 
     // Check if the current locale is Korean
     if (wxLocale::GetSystemLanguage() == wxLANGUAGE_KOREAN) {
-        face = "Noto Sans KR";
+        face = "NanumGothic";
     }
 
     wxFont font{size, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL, false, face};
@@ -65,15 +65,15 @@ void Label::initSysFont()
     result = wxFont::AddPrivateFont(font_path);
     // BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
     printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
-    // Adding Noto Sans KR Regular and Bold
-    font_path = wxString::FromUTF8(resource_path + "/fonts/NotoSansKR-Regular.otf");
+    // Adding NanumGothic Regular and Bold
+    font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Regular.ttf");
     result = wxFont::AddPrivateFont(font_path);
-    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NotoSansKR-Regular returns %1%")%result;
-    printf("add font of NotoSansKR-Regular returns %d\n", result);
-    font_path = wxString::FromUTF8(resource_path + "/fonts/NotoSansKR-Bold.otf");
+    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Regular returns %1%")%result;
+    printf("add font of NanumGothic-Regular returns %d\n", result);
+    font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf");
     result = wxFont::AddPrivateFont(font_path);
-    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NotoSansKR-Bold returns %1%")%result;
-    printf("add font of NotoSansKR-Bold returns %d\n", result);
+    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Bold returns %1%")%result;
+    printf("add font of NanumGothic-Bold returns %d\n", result);
 #endif
     Head_48 = Label::sysFont(48, true);
     Head_32 = Label::sysFont(32, true);
