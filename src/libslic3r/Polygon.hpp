@@ -152,7 +152,7 @@ inline void polygons_append(Polygons &dst, Polygons &&src)
     }
 }
 
-Polygons polygons_simplify(const Polygons &polys, double tolerance);
+Polygons polygons_simplify(const Polygons &polys, double tolerance, bool strictly_simple = true);
 
 inline void polygons_rotate(Polygons &polys, double angle)
 {
@@ -266,6 +266,9 @@ inline Polygons to_polygons(std::vector<Points> &&paths)
 // Do polygons match? If they match, they must have the same topology,
 // however their contours may be rotated.
 bool polygons_match(const Polygon &l, const Polygon &r);
+
+Polygon make_circle(double radius, double error);
+Polygon make_circle_num_segments(double radius, size_t num_segments);
 
 bool overlaps(const Polygons& polys1, const Polygons& polys2);
 } // Slic3r

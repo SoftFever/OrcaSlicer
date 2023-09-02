@@ -8,6 +8,7 @@
 #include "Layer.hpp"
 #include "MutablePolygon.hpp"
 #include "SupportMaterial.hpp"
+#include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
@@ -813,9 +814,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_adaptive_layer_height"
             || opt_key == "tree_support_auto_brim"
             || opt_key == "tree_support_brim_width"
+            || opt_key == "tree_support_top_rate"
             || opt_key == "tree_support_branch_distance"
+            || opt_key == "tree_support_tip_diameter"
             || opt_key == "tree_support_branch_diameter"
+            || opt_key == "tree_support_branch_diameter_angle"
+            || opt_key == "tree_support_branch_diameter_double_wall"
             || opt_key == "tree_support_branch_angle"
+            || opt_key == "tree_support_angle_slow"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (
@@ -2494,8 +2500,14 @@ void PrintObject::_generate_support_material()
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 
-    TreeSupport tree_support(*this, m_slicing_params);
-    tree_support.generate();
+    if (this->config().enable_support.value && is_tree(this->config().support_type.value)) {
+        if (this->config().support_style.value == smsOrganic) {
+            fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
+        } else {
+            TreeSupport tree_support(*this, m_slicing_params);
+            tree_support.generate();
+        }
+    }
 }
 
 // BBS

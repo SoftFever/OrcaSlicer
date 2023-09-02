@@ -1173,6 +1173,20 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     return {L("The prime tower requires that support has the same layer height with object."), object, "support_filament"};
                 }
 #endif
+
+                // Prusa: Fixing crashes with invalid tip diameter or branch diameter
+                // https://github.com/prusa3d/PrusaSlicer/commit/96b3ae85013ac363cd1c3e98ec6b7938aeacf46d
+                if (object->config().support_style == smsOrganic) {
+                    float extrusion_width = std::min(
+                        support_material_flow(object).width(),
+                        support_material_interface_flow(object).width());
+                    if (object->config().tree_support_tip_diameter < extrusion_width - EPSILON)
+                        return { L("Organic support tree tip diameter must not be smaller than support material extrusion width."), object, "tree_support_tip_diameter" };
+                    if (object->config().tree_support_branch_diameter < 2. * extrusion_width - EPSILON)
+                        return { L("Organic support branch diameter must not be smaller than 2x support material extrusion width."), object, "tree_support_branch_diameter" };
+                    if (object->config().tree_support_branch_diameter < object->config().tree_support_tip_diameter)
+                        return { L("Organic support branch diameter must not be smaller than support tree tip diameter."), object, "tree_support_branch_diameter" };
+                }
             }
 
             // Do we have custom support data that would not be used?
