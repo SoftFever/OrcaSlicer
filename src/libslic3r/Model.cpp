@@ -40,6 +40,11 @@
 // Transtltion
 #include "I18N.hpp"
 
+// ModelIO support
+#ifdef __APPLE__
+#include "Format/ModelIO.hpp"
+#endif
+
 #define _L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
@@ -200,6 +205,18 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         //FIXME options & LoadStrategy::CheckVersion ?
         //BBS: is_xxx is used for is_bbs_3mf when load 3mf
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
+#ifdef __APPLE__
+    else if (boost::algorithm::iends_with(input_file, ".usd") || boost::algorithm::iends_with(input_file, ".usda") ||
+             boost::algorithm::iends_with(input_file, ".usdc") || boost::algorithm::iends_with(input_file, ".usdz") ||
+             boost::algorithm::iends_with(input_file, ".abc") || boost::algorithm::iends_with(input_file, ".ply")) {
+        std::string temp_stl = make_temp_stl_with_modelio(input_file);
+        if (temp_stl.empty()) {
+            throw Slic3r::RuntimeError("Failed to convert asset to STL via ModelIO.");
+        }
+        result = load_stl(temp_stl.c_str(), &model);
+        delete_temp_file(temp_stl);
+    }
+#endif
     else
         throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."));
 
