@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2023 Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../Print.hpp"
 #include "../PrintConfig.hpp"
 #include "../Slicing.hpp"

@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2022 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 // Tree supports by Thomas Rahm, losely based on Tree Supports by CuraEngine.
 // Original source of Thomas Rahm's tree supports:
 // https://github.com/ThomasRahm/CuraEngine
@@ -198,7 +202,7 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 
     const PrintConfig       &print_config           = print_object.print()->config();
     const PrintObjectConfig &config                 = print_object.config();
-    const bool               support_auto           = config.enable_support.value && is_auto(config.support_type.value);;
+    const bool               support_auto           = config.enable_support.value && is_auto(config.support_type.value);
     const int                support_enforce_layers = config.enforce_support_layers.value;
     std::vector<Polygons>    enforcers_layers{ print_object.slice_support_enforcers() };
     std::vector<Polygons>    blockers_layers{ print_object.slice_support_blockers() };
@@ -3457,7 +3461,9 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
 
         SupportParameters            support_params(print_object);
         support_params.with_sheath = true;
-        support_params.support_density = 0;
+// Don't override the support density of tree supports, as the support density is used for raft.
+// The trees will have the density zeroed in tree_supports_generate_paths()
+//        support_params.support_density = 0;
 
         SupportGeneratorLayerStorage layer_storage;
         SupportGeneratorLayersPtr    top_contacts;

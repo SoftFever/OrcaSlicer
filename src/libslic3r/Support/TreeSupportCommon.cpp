@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2023 Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 // Tree supports by Thomas Rahm, losely based on Tree Supports by CuraEngine.
 // Original source of Thomas Rahm's tree supports:
 // https://github.com/ThomasRahm/CuraEngine
@@ -85,7 +89,8 @@ TreeSupportSettings::TreeSupportSettings(const TreeSupportMeshGroupSettings &mes
       maximum_move_distance((mesh_group_settings.support_tree_angle < M_PI / 2.) ? (coord_t)(tan(mesh_group_settings.support_tree_angle) * layer_height) : std::numeric_limits<coord_t>::max()),
       maximum_move_distance_slow((mesh_group_settings.support_tree_angle_slow < M_PI / 2.) ? (coord_t)(tan(mesh_group_settings.support_tree_angle_slow) * layer_height) : std::numeric_limits<coord_t>::max()),
       support_bottom_layers(mesh_group_settings.support_bottom_enable ? (mesh_group_settings.support_bottom_height + layer_height / 2) / layer_height : 0),
-      tip_layers(std::max((branch_radius - min_radius) / (support_line_width / 3), branch_radius / layer_height)), // Ensure lines always stack nicely even if layer height is large
+      // Ensure lines always stack nicely even if layer height is large.
+      tip_layers(std::max((branch_radius - min_radius) / (support_line_width / 3), branch_radius / layer_height)),
       branch_radius_increase_per_layer(tan(mesh_group_settings.support_tree_branch_diameter_angle) * layer_height),
       max_to_model_radius_increase(mesh_group_settings.support_tree_max_diameter_increase_by_merges_when_support_to_model / 2),
       min_dtt_to_model(round_up_divide(mesh_group_settings.support_tree_min_height_to_model, layer_height)),
@@ -112,6 +117,9 @@ TreeSupportSettings::TreeSupportSettings(const TreeSupportMeshGroupSettings &mes
       settings(mesh_group_settings),
       min_feature_size(mesh_group_settings.min_feature_size)
 {
+    // At least one tip layer must be defined.
+    assert(tip_layers > 0);
+
     layer_start_bp_radius = (bp_radius - branch_radius) / bp_radius_increase_per_layer;
 
     if (TreeSupportSettings::soluble) {
