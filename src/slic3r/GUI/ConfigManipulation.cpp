@@ -632,7 +632,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     // Orca: Raft, grid, snug and organic supports use these two parameters to control the size & density of the "brim"/flange
     for (auto el : { "raft_first_layer_expansion", "raft_first_layer_density"})
-        toggle_field(el, have_support_material && !support_is_normal_tree);
+        toggle_field(el, have_support_material && !(support_is_normal_tree && !have_raft));
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : { "ironing_flow", "ironing_spacing", "ironing_speed" })
