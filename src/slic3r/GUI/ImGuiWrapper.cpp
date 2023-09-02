@@ -2095,8 +2095,8 @@ void ImGuiWrapper::init_font(bool compress)
     auto font_name_regular = "HarmonyOS_Sans_SC_Regular.ttf";
     auto font_name_bold = "HarmonyOS_Sans_SC_Bold.ttf";
     if(m_glyph_ranges == ImGui::GetIO().Fonts->GetGlyphRangesKorean()) {
-        font_name_regular = "NotoSansKR-Regular.otf";
-        font_name_bold = "NotoSansKR-Bold.otf";
+        font_name_regular = "NanumGothic-Regular.ttf";
+        font_name_bold = "NanumGothic-Bold.ttf";
     }
     default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + font_name_regular).c_str(), m_font_size, &cfg, ranges.Data);
     if (default_font == nullptr) {

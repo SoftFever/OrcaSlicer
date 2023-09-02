@@ -1,4 +1,8 @@
-Copyright 2012 Google Inc. All Rights Reserved.
+Copyright (c) 2010, NHN Corporation (http://www.nhncorp.com),
+with Reserved Font Name Nanum, Naver Nanum, NanumGothic, Naver 
+NanumGothic, NanumMyeongjo, Naver NanumMyeongjo, NanumBrush, Naver
+NanumBrush, NanumPen, Naver NanumPen.
+
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
