@@ -10,7 +10,7 @@ body:
   - type: input
     id: version
     attributes:
-      label:OrcaSlicer Version
+      label: OrcaSlicer Version
       description: Which version of Orca Slicer are you running? You can see the full version in `Help` -> `About Orca Slicer`.
       placeholder: e.g. 1.6.6
     validations:
