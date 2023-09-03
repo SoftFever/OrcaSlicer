@@ -3,6 +3,7 @@
 #include "Tab.hpp"
 #include "PresetHints.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -1419,7 +1420,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     // BBS set support style to default when support type changes
-    if (opt_key == "support_type") {
+    // Orca: do this only in simple mode
+    if (opt_key == "support_type" && m_mode == comSimple) {
         DynamicPrintConfig new_conf = *m_config;
         new_conf.set_key_value("support_style", new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
         m_config_manipulation.apply(m_config, &new_conf);
@@ -2002,6 +2004,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_type", "support#support-types");
         optgroup->append_single_option_line("support_style", "support#support-styles");
         optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
+        optgroup->append_single_option_line("raft_first_layer_density");
+        optgroup->append_single_option_line("raft_first_layer_expansion");
         optgroup->append_single_option_line("support_on_build_plate_only");
         optgroup->append_single_option_line("support_critical_regions_only");
         optgroup->append_single_option_line("support_remove_small_overhang");
@@ -2010,8 +2014,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");
         optgroup->append_single_option_line("raft_layers");
         optgroup->append_single_option_line("raft_contact_distance");
-        optgroup->append_single_option_line("raft_first_layer_density");
-        optgroup->append_single_option_line("raft_first_layer_expansion");
 
         optgroup = page->new_optgroup(L("Support filament"), L"param_support_filament");
         optgroup->append_single_option_line("support_filament", "support#support-filament");
@@ -2021,9 +2023,14 @@ void TabPrint::build()
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("tree_support_tip_diameter");
         optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_top_rate");
         optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter_angle");
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_angle_slow");
+        optgroup->append_single_option_line("tree_support_branch_diameter_double_wall");
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_adaptive_layer_height");
         optgroup->append_single_option_line("tree_support_auto_brim");
@@ -2100,6 +2107,12 @@ void TabPrint::build()
         option.opt.is_code = true;
         option.opt.height = 15;
         optgroup->append_single_option_line(option);
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"), "note", 0);
+        option = optgroup->get_option("notes");
+        option.opt.full_width = true;
+        option.opt.height = 25;//250;
+        optgroup->append_single_option_line(option);
 
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced.png");
@@ -2158,7 +2171,7 @@ void TabPrint::toggle_options()
     if (auto choice = dynamic_cast<Choice*>(field)) {
         auto def = print_config_def.get("support_style");
         std::vector<int> enum_set_normal = {0, 1, 2};
-        std::vector<int> enum_set_tree   = {0, 3, 4, 5};
+        std::vector<int> enum_set_tree   = {0, 3, 4, 5, 6};
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         auto &           opt             = const_cast<ConfigOptionDef &>(field->m_opt);
         auto             cb              = dynamic_cast<ComboBox *>(choice->window);
@@ -2807,6 +2820,7 @@ void TabFilament::build()
 #endif
 
         const int gcode_field_height = 15; // 150
+        const int notes_field_height = 25; // 250
 
     page = add_options_page(L("Advanced"), "advanced");
         optgroup = page->new_optgroup(L("Filament start G-code"), L"param_gcode", 0);
@@ -2828,7 +2842,14 @@ void TabFilament::build()
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
-        //BBS
+
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"),"note", 0);
+        optgroup->label_width = 0;
+        option = optgroup->get_option("filament_notes");
+        option.opt.full_width = true;
+        option.opt.height = notes_field_height;// 250;
+        optgroup->append_single_option_line(option);
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -3126,7 +3147,7 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
-
+        
         optgroup = page->new_optgroup(L("Cooling Fan"));
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
         line.append_option(optgroup->get_option("fan_speedup_time"));
@@ -3145,6 +3166,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("auxiliary_fan");
 
     const int gcode_field_height = 15; // 150
+    const int notes_field_height = 25; // 250
     page = add_options_page(L("Machine gcode"), "cog");
         optgroup = page->new_optgroup(L("Machine start G-code"), L"param_gcode", 0);
         optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
@@ -3214,6 +3236,12 @@ void TabPrinter::build_fff()
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
 
+    page = add_options_page(L("Notes"), "note");
+        optgroup = page->new_optgroup(L("Notes"), "note", 0);
+        option = optgroup->get_option("printer_notes");
+        option.opt.full_width = true;
+        option.opt.height = notes_field_height;//250;
+        optgroup->append_single_option_line(option);
 #if 0
     //page = add_options_page(L("Dependencies"), "advanced");
     //    optgroup = page->new_optgroup(L("Profile dependencies"));
@@ -3368,10 +3396,9 @@ PageShp TabPrinter::build_kinematics_page()
         }
         append_option_line(optgroup, "machine_max_acceleration_extruding");
         append_option_line(optgroup, "machine_max_acceleration_retracting");
-        if (m_supports_travel_acceleration)
-            append_option_line(optgroup, "machine_max_acceleration_travel");
+        append_option_line(optgroup, "machine_max_acceleration_travel");
 
-    optgroup = page->new_optgroup(L("Jerk limitation"));
+        optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_jerk_" + axis);
         }
@@ -3697,14 +3724,6 @@ void TabPrinter::toggle_options()
     if (m_active_page->title() == "Basic information") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
 
-        auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-        bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
-        // Disable silent mode for non-marlin firmwares.
-        toggle_option("silent_mode", is_marlin_flavor);
-        //BBS: extruder clearance of BBL printer can't be edited.
-        //for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
-        //    toggle_option(el, !is_BBL_printer);
-
         // SoftFever: hide BBL specific settings
         for (auto el :
              {"scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "bbl_calib_mark_logo"})
@@ -3784,16 +3803,15 @@ void TabPrinter::toggle_options()
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
 
-    //auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-    //if (m_active_page->title() == "Motion ability") {
-    //    assert(gcf == gcfMarlinLegacy || gcf == gcfMarlinFirmware || gcf == gcfKlipper);
-    //    bool silent_mode = m_config->opt_bool("silent_mode");
-    //    int  max_field = silent_mode ? 2 : 1;
-    //    //BBS: limits of BBL printer can't be edited.
-    //	for (const std::string &opt : Preset::machine_limits_options())
-    //        for (int i = 0; i < max_field; ++ i)
-	   //         toggle_option(opt, !is_BBL_printer, i);
-    //}
+    if (m_active_page->title() == "Motion ability") {
+        auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        assert(gcf == gcfMarlinLegacy || gcf == gcfMarlinFirmware || gcf == gcfKlipper);
+        bool silent_mode = m_config->opt_bool("silent_mode");
+        int  max_field   = silent_mode ? 2 : 1;
+        for (int i = 0; i < max_field; ++i)
+            toggle_option("machine_max_acceleration_travel", gcf == gcfMarlinFirmware, i);
+        toggle_line("machine_max_acceleration_travel", gcf == gcfMarlinFirmware);
+    }
 }
 
 void TabPrinter::update()
@@ -3816,14 +3834,6 @@ void TabPrinter::update_fff()
     if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
         m_rebuild_kinematics_page = true;
         m_use_silent_mode = m_config->opt_bool("silent_mode");
-    }
-
-    auto gcf_ =
-        m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-    bool supports_travel_acceleration = (gcf_ == gcfMarlinFirmware || gcf_ == gcfMarlinLegacy || gcf_ == gcfKlipper);
-    if (m_supports_travel_acceleration != supports_travel_acceleration) {
-        m_rebuild_kinematics_page = true;
-        m_supports_travel_acceleration = supports_travel_acceleration;
     }
 
     toggle_options();

@@ -1295,6 +1295,9 @@ GUI_App::GUI_App()
 	//app config initializes early becasuse it is used in instance checking in OrcaSlicer.cpp
     this->init_app_config();
     this->init_download_path();
+#if wxUSE_WEBVIEW_EDGE
+    this->init_webview_runtime();
+#endif
 
     reset_to_active();
 }
@@ -2044,6 +2047,20 @@ void GUI_App::init_download_path()
         }
     }
 }
+
+#if wxUSE_WEBVIEW_EDGE
+void GUI_App::init_webview_runtime()
+{
+    // Check WebView Runtime
+    if (!WebView::CheckWebViewRuntime()) {
+        int nRet = wxMessageBox(_L("Orca Slicer requires the Microsoft WebView2 Runtime to operate certain features.\nClick Yes to install it now."),
+                                _L("WebView2 Runtime"), wxYES_NO);
+        if (nRet == wxYES) {
+            WebView::DownloadAndInstallWebViewRuntime();
+        }
+    }
+}
+#endif
 
 void GUI_App::init_app_config()
 {

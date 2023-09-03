@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: 2023-08-23 15:56+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -602,6 +602,15 @@ msgstr "Incorrect password"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s 연결 실패! [SN:%s, code=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1335,6 +1344,9 @@ msgstr "자동 챙(브림)"
 
 msgid "Auto"
 msgstr "자동"
+
+msgid "Mouse ear"
+msgstr "생쥐 귀"
 
 msgid "Outer brim only"
 msgstr "외부 챙만"
@@ -3758,6 +3770,24 @@ msgstr "3D연결 설정"
 msgid "Swap Y/Z axes"
 msgstr "Y/Z 축 바꾸기"
 
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
+
 msgid "Printing Progress"
 msgstr "출력 진행률"
 
@@ -4537,6 +4567,12 @@ msgid ""
 "will be exported."
 msgstr ""
 "모델 메쉬에 부울 연산을 수행할 수 없습니다. 오직 양수 부품만 내보내집니다."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr "업로드 및 출력"
 
 msgid ""
 "Print By Object: \n"
@@ -5541,6 +5577,9 @@ msgstr "G코드 출력"
 
 msgid "Post-processing Scripts"
 msgstr "사후 처리 스크립트"
+
+msgid "Notes"
+msgstr ""
 
 msgid "Frequent"
 msgstr "빈도"
@@ -7146,6 +7185,14 @@ msgid ""
 msgstr ""
 "첫 레이어에 하나의 벽만 사용하여 하단 표면 패턴에 더 많은 공간을 제공합니다"
 
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+
 msgid "Classic mode"
 msgstr "클래식 모드"
 
@@ -7195,9 +7242,6 @@ msgid ""
 msgstr ""
 "모델의 외부 그리고/또는 내부에서 챙(브림)의 생성을 제어합니다. 자동은 챙(브"
 "림) 너비가 자동으로 분석 및 계산됨을 의미합니다."
-
-msgid "Mouse ear"
-msgstr "생쥐 귀"
 
 msgid "Brim-object gap"
 msgstr "챙(브림)-개체 간격"
@@ -7575,6 +7619,12 @@ msgstr "기본 필라멘트 색상"
 
 msgid "Color"
 msgstr "색상"
+
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
 
 msgid "Required nozzle HRC"
 msgstr "필수 노즐 록웰 경도"
@@ -8382,8 +8432,8 @@ msgstr "퇴출 중 최대 가속도 (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "이동 최대 가속도"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "이동 중 최대 가속도 (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "팬 속도"
@@ -8437,6 +8487,14 @@ msgstr "노즐 직경"
 
 msgid "Diameter of nozzle"
 msgstr "노즐 직경"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "호스트 유형"
@@ -8546,6 +8604,12 @@ msgstr ""
 "십시오. 여러 스크립트는 세미콜론(;)으로 구분합니다. 스크립트는 G코드 파일의 "
 "절대 경로를 첫 번째 인수로 전달하며 환경 변수를 읽어 Slic3r 구성 설정에 접근"
 "할 수 있습니다."
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "라프트 접점 Z 거리"
@@ -10252,6 +10316,15 @@ msgstr "장치 검색 중"
 msgid "Finished"
 msgstr "완료됨"
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "선택한 부품에서 부울 연산을 수행할 수 없습니다"
 
@@ -10291,8 +10364,8 @@ msgstr "요소 2"
 msgid "Delete input"
 msgstr "입력개체 삭제"
 
-msgid "Send to print"
-msgstr "프린터로 보내기"
+msgid "Send G-Code to printer host"
+msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "다음 파일 이름으로 프린터 호스트에 업로드:"
@@ -10300,15 +10373,12 @@ msgstr "다음 파일 이름으로 프린터 호스트에 업로드:"
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr "필요한 경우 슬래시( / )를 디렉토리 구분 기호로 사용하십시오."
 
+msgid "Upload to storage"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "업로드 파일 이름이 \"%s\"로 끝나지 않습니다. 계속하시겠습니까?"
-
-msgid "Upload and Print"
-msgstr "업로드 및 출력"
-
-msgid "Simulate"
-msgstr "모의실험"
 
 msgid "Print host upload queue"
 msgstr "출력 호스트 업로드 대기열"
@@ -10329,8 +10399,8 @@ msgstr "크기"
 msgid "Filename"
 msgstr "파일 이름"
 
-msgid "Error Message"
-msgstr "에러 메시지"
+msgid "Message"
+msgstr ""
 
 msgid "Cancel selected"
 msgstr "선택 취소"
@@ -10347,8 +10417,8 @@ msgstr "업로드 중"
 msgid "Cancelling"
 msgstr "취소 중"
 
-msgid "Error uploading to print host:"
-msgstr "출력 호스트에 업로드하는 중 오류 발생:"
+msgid "Error uploading to print host"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA 교정"
@@ -10801,102 +10871,20 @@ msgstr ""
 "모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 채우기 밀도를 사용"
 "할 수 있다는 것을 알고 있습니까?"
 
-msgid "Bambu Cube"
-msgstr ""
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "이동 중 최대 가속도 (M204 T)"
 
-msgid "Bambu Cube V2"
-msgstr ""
+#~ msgid "Send to print"
+#~ msgstr "프린터로 보내기"
 
-msgid "ksr FDMTest"
-msgstr ""
+#~ msgid "Simulate"
+#~ msgstr "모의실험"
 
-#, boost-format
-msgid " plate %1%: "
-msgstr ""
+#~ msgid "Error Message"
+#~ msgstr "에러 메시지"
 
-msgid ""
-"There are some unknown or uncompatible filaments mapped to generic preset. "
-"Please update Bambu Studio or restart Bambu Studio to check if there is an "
-"update to system presets."
-msgstr ""
-
-msgid "Initial layer flow ratio"
-msgstr ""
-
-msgid "This factor affects the amount of material for the initial layer"
-msgstr ""
-
-msgid ""
-"Use only one wall on flat top surface, to give more space to the top infill "
-"pattern. Could be applyed on topmost surface or all top surface."
-msgstr ""
-
-msgid "Not apply"
-msgstr ""
-
-msgid ""
-"Enable pressure advance, auto calibration result will be overwriten once "
-"enabled. Useless for Bambu Printer"
-msgstr ""
-
-msgid ""
-"Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
-"Bambu Printer"
-msgstr ""
-
-msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
-msgstr ""
-
-msgid "Default jerk"
-msgstr ""
-
-msgid "Jerk of infill"
-msgstr ""
-
-msgid "Jerk of top surface"
-msgstr ""
-
-msgid "First layer"
-msgstr ""
-
-msgid "Jerk of first layer"
-msgstr ""
-
-msgid "Jerk of travel"
-msgstr ""
-
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affact top/bottom layers"
-msgstr ""
-
-msgid ""
-"Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
-"firmware printer"
-msgstr ""
-
-msgid ""
-"Detect the overhang percentage relative to line width and use different "
-"speed to print. For 100 percent overhang, bridge speed is used."
-msgstr ""
-
-msgid "Direct drive"
-msgstr ""
-
-msgid ""
-"In order to reduce the visibility of the seam in a closed loop extrusion, "
-"the loop is interrupted and shortened by a specified amount.\n"
-"This amount as a percentage of the current extruder diameter. The default "
-"value for this parameter is 15"
-msgstr ""
-
-msgid ""
-"If your firmware requires relative E values, check this, otherwise leave it "
-"unchecked. Must use relative e distance for Bambu printer"
-msgstr ""
-
-msgid "End temp: "
-msgstr ""
+#~ msgid "Error uploading to print host:"
+#~ msgstr "출력 호스트에 업로드하는 중 오류 발생:"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "선택한 부품을 단일 부품으로 조립"

@@ -32,7 +32,7 @@
 namespace Slic3r {
 
 enum GCodeFlavor : unsigned char {
-    gcfMarlinLegacy, gcfKlipper, gcfRepRapFirmware, gcfRepRapSprinter, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
+    gcfMarlinLegacy, gcfKlipper, gcfRepRapFirmware, gcfMarlinFirmware, gcfRepRapSprinter, gcfRepetier, gcfTeacup, gcfMakerWare, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion
 };
 
@@ -101,7 +101,7 @@ enum SupportMaterialPattern {
 };
 
 enum SupportMaterialStyle {
-    smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid
+    smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic,
 };
 
 enum SupportMaterialInterfacePattern {
@@ -699,9 +699,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                flush_into_infill))
     ((ConfigOptionBool,                flush_into_support))
     // BBS
+    ((ConfigOptionPercent,            tree_support_top_rate))
     ((ConfigOptionFloat,              tree_support_branch_distance))
+    ((ConfigOptionFloat,              tree_support_tip_diameter))
     ((ConfigOptionFloat,              tree_support_branch_diameter))
+    ((ConfigOptionFloat,              tree_support_branch_diameter_angle))
+    ((ConfigOptionFloat,              tree_support_branch_diameter_double_wall))
     ((ConfigOptionFloat,              tree_support_branch_angle))
+    ((ConfigOptionFloat,              tree_support_angle_slow))
     ((ConfigOptionInt,                tree_support_wall_count))
     ((ConfigOptionBool,               tree_support_adaptive_layer_height))
     ((ConfigOptionBool,               tree_support_auto_brim))
@@ -1039,6 +1044,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,                gcode_comments))
     ((ConfigOptionInt,                 slow_down_layers))
     ((ConfigOptionInts,                support_material_interface_fan_speed))
+    // Orca: notes for profiles from PrusaSlicer
+    ((ConfigOptionStrings,            filament_notes))
+    ((ConfigOptionString,             notes))
+    ((ConfigOptionString,             printer_notes))
+
 
 
 )

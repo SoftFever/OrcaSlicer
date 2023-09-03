@@ -186,8 +186,8 @@ public:
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
     const GCodeWriter& writer() const { return m_writer; }
-    PlaceholderParser& placeholder_parser() { return m_placeholder_parser; }
-    const PlaceholderParser& placeholder_parser() const { return m_placeholder_parser; }
+    PlaceholderParser& placeholder_parser() { return m_placeholder_parser_integration.parser; }
+    const PlaceholderParser& placeholder_parser() const { return m_placeholder_parser_integration.parser; }
     // Process a template through the placeholder parser, collect error messages to be reported
     // inside the generated string and after the G-code export finishes.
     std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);
@@ -430,11 +430,37 @@ private:
     // scaled G-code resolution
     double                              m_scaled_resolution;
     GCodeWriter                         m_writer;
-    PlaceholderParser                   m_placeholder_parser;
-    // For random number generator etc.
-    PlaceholderParser::ContextData      m_placeholder_parser_context;
-    // Collection of templates, on which the placeholder substitution failed.
-    std::map<std::string, std::string>  m_placeholder_parser_failed_templates;
+
+    struct PlaceholderParserIntegration {
+        void reset();
+        void init(const GCodeWriter &config);
+        void update_from_gcodewriter(const GCodeWriter &writer);
+        void validate_output_vector_variables();
+
+        PlaceholderParser                   parser;
+        // For random number generator etc.
+        PlaceholderParser::ContextData      context;
+        // Collection of templates, on which the placeholder substitution failed.
+        std::map<std::string, std::string>  failed_templates;
+        // Input/output from/to custom G-code block, for returning position, retraction etc.
+        DynamicConfig                       output_config;
+        ConfigOptionFloats                 *opt_position { nullptr };
+        ConfigOptionFloat                  *opt_zhop { nullptr };
+        ConfigOptionFloats                 *opt_e_position { nullptr };
+        ConfigOptionFloats                 *opt_e_retracted { nullptr };
+        ConfigOptionFloats                 *opt_e_restart_extra { nullptr };
+        ConfigOptionFloats                 *opt_extruded_volume { nullptr };
+        ConfigOptionFloats                 *opt_extruded_weight { nullptr };
+        ConfigOptionFloat                  *opt_extruded_volume_total { nullptr };
+        ConfigOptionFloat                  *opt_extruded_weight_total { nullptr };
+        // Caches of the data passed to the script.
+        size_t                              num_extruders;
+        std::vector<double>                 position;
+        std::vector<double>                 e_position;
+        std::vector<double>                 e_retracted;
+        std::vector<double>                 e_restart_extra;
+    } m_placeholder_parser_integration;
+
     OozePrevention                      m_ooze_prevention;
     Wipe                                m_wipe;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;

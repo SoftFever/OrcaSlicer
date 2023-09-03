@@ -1067,7 +1067,10 @@ void Sidebar::update_all_preset_comboboxes()
             if(!url.Lower().starts_with("http"))
                 url = wxString::Format("http://%s",url);
 
-            p_mainframe->load_printer_url(url);
+            wxString apikey;
+            if (cfg.has("printhost_apikey"))
+                apikey = cfg.opt_string("printhost_apikey");
+            p_mainframe->load_printer_url(url, apikey);
         }
 
         m_bed_type_list->SelectAndNotify(btPEI-1);

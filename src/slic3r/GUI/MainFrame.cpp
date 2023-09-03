@@ -84,7 +84,7 @@ wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
-wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, LoadPrinterViewEvent);
 
 enum class ERescaleTarget
 {
@@ -1051,13 +1051,14 @@ void MainFrame::init_tabpanel() {
     m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
     m_printer_view = new PrinterWebView(m_tabpanel);
-    Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
+    Bind(EVT_LOAD_PRINTER_URL, [this](LoadPrinterViewEvent &evt) {
         wxString url = evt.GetString();
+        wxString key = evt.GetAPIkey();
         //select_tab(MainFrame::tpMonitor);
-        m_printer_view->load_url(url);
+        m_printer_view->load_url(url, key);
     });
     m_printer_view->Hide();
-
+    
     m_project = new ProjectPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_project->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_project, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
@@ -1090,22 +1091,22 @@ void MainFrame::show_device(bool bBBLPrinter) {
   if (bBBLPrinter) {
     if (m_tabpanel->GetPage(tpMonitor) != m_monitor) {
       m_printer_view->Hide();
-      m_monitor->Show(true);
+            m_monitor->Show(true);
       m_tabpanel->RemovePage(tpMonitor);
       m_tabpanel->InsertPage(tpMonitor, m_monitor, _L("Device"),
                              std::string("tab_monitor_active"),
                              std::string("tab_monitor_active"));
-      m_tabpanel->SetSelection(tp3DEditor);
+      //m_tabpanel->SetSelection(tp3DEditor);
     }
   } else {
     if (m_tabpanel->GetPage(tpMonitor) != m_printer_view) {
       m_printer_view->Show();
-      m_monitor->Show(false);
+            m_monitor->Show(false);
       m_tabpanel->RemovePage(tpMonitor);
       m_tabpanel->InsertPage(tpMonitor, m_printer_view, _L("Device"),
                           std::string("tab_monitor_active"),
                           std::string("tab_monitor_active"));
-      m_tabpanel->SetSelection(tp3DEditor);
+      //m_tabpanel->SetSelection(tp3DEditor);
     }
   }
 
@@ -3486,11 +3487,12 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
-void MainFrame::load_printer_url(wxString url)
+void MainFrame::load_printer_url(wxString url, wxString apikey)
 {
     BOOST_LOG_TRIVIAL(trace) << "load_printer_url:" << url;
-    auto evt = new wxCommandEvent(EVT_LOAD_PRINTER_URL, this->GetId());
+    auto evt = new LoadPrinterViewEvent(EVT_LOAD_PRINTER_URL, this->GetId());
     evt->SetString(url);
+    evt->SetAPIkey(apikey);
     wxQueueEvent(this, evt);
 }
 
@@ -3499,15 +3501,17 @@ void MainFrame::load_printer_url()
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     if (preset_bundle.is_bbl_vendor())
         return;
-    
-    auto cfg = preset_bundle.printers.get_edited_preset().config;
-    wxString url =
-        cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+
+    auto     cfg = preset_bundle.printers.get_edited_preset().config;
+    wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
+    wxString apikey;
+    if (cfg.has("printhost_apikey"))
+        apikey = cfg.opt_string("printhost_apikey");
     if (!url.empty()) {
         if (!url.Lower().starts_with("http"))
             url = wxString::Format("http://%s", url);
 
-        load_printer_url(url);
+        load_printer_url(url, apikey);
     }
 }
 

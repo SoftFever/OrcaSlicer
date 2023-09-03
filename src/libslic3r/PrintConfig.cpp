@@ -188,7 +188,8 @@ static t_config_enum_values s_keys_map_SupportMaterialStyle {
     { "snug",           smsSnug },
     { "tree_slim",      smsTreeSlim },
     { "tree_strong",    smsTreeStrong },
-    { "tree_hybrid",    smsTreeHybrid }
+    { "tree_hybrid",    smsTreeHybrid },
+    { "organic",        smsOrganic }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
@@ -1338,6 +1339,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{ "#F2754E" });
 
+    // PS
+    def = this->add("filament_notes", coStrings);
+    def->label = L("Filament notes");
+    def->tooltip = L("You can put your notes regarding the filament here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings { "" });
+
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);
     def->label   = L("Required nozzle HRC");
@@ -2311,11 +2322,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("machine_max_acceleration_travel", coFloats);
     def->full_label = L("Maximum acceleration for travel");
     def->category = L("Machine limits");
-    def->tooltip = L("Maximum acceleration for travel (M204 T)");
+    def->tooltip = L("Maximum acceleration for travel (M204 T), it only applies to Marlin 2");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->readonly = false;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     def = this->add("fan_max_speed", coInts);
@@ -2404,6 +2415,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->max = 100;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
+
+    def = this->add("notes", coString);
+    def->label = L("Configuration notes");
+    def->tooltip = L("You can put here your personal notes. This text will be added to the G-code "
+                   "header comments.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("host_type", coEnum);
     def->label = L("Host Type");
@@ -2569,6 +2590,15 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionString());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("printer_notes", coString);
+    def->label = L("Printer notes");
+    def->tooltip = L("You can put your notes regarding the printer here.");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 13;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+    
     def = this->add("printer_variant", coString);
     //def->label = L("Printer variant");
     def->label = "Printer variant";
@@ -3325,12 +3355,14 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("tree_slim");
     def->enum_values.push_back("tree_strong");
     def->enum_values.push_back("tree_hybrid");
+    def->enum_values.push_back("organic");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Snug"));
     def->enum_labels.push_back(L("Tree Slim"));
     def->enum_labels.push_back(L("Tree Strong"));
     def->enum_labels.push_back(L("Tree Hybrid"));
+    def->enum_labels.push_back(L("Organic"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
 
@@ -3363,6 +3395,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
 
+    def = this->add("tree_support_angle_slow", coFloat);
+    def->label = L("Preferred Branch Angle");
+    def->category = L("Support");
+    // TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+    def->tooltip = L("The preferred angle of the branches, when they do not have to avoid the model. "
+                     "Use a lower angle to make them more vertical and more stable. Use a higher angle for branches to merge faster.");
+    def->sidetext = L("°");
+    def->min = 10;
+    def->max = 85;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(25));
+
     def           = this->add("tree_support_branch_distance", coFloat);
     def->label    = L("Tree support branch distance");
     def->category = L("Support");
@@ -3372,6 +3416,20 @@ void PrintConfigDef::init_fff_params()
     def->max      = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
+
+    def = this->add("tree_support_top_rate", coPercent);
+    def->label = L("Branch Density");
+    def->category = L("Support");
+    // TRN PrintSettings: "Organic supports" > "Branch Density"
+    def->tooltip = L("Adjusts the density of the support structure used to generate the tips of the branches. "
+                     "A higher value results in better overhangs but the supports are harder to remove, "
+                     "thus it is recommended to enable top support interfaces instead of a high branch density value "
+                     "if dense interfaces are needed.");
+    def->sidetext = L("%");
+    def->min = 5;
+    def->max_literal = 35;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(15));
 
     def = this->add("tree_support_adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
@@ -3392,6 +3450,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Distance from tree branch to the outermost brim line");
     def->set_default_value(new ConfigOptionFloat(3));
 
+    def = this->add("tree_support_tip_diameter", coFloat);
+    def->label = L("Tip Diameter");
+    def->category = L("Support");
+    // TRN PrintSettings: "Organic supports" > "Tip Diameter"
+    def->tooltip = L("Branch tip diameter for organic supports.");
+    def->sidetext = L("mm");
+    def->min = 0.1f;
+    def->max = 100.f;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.8));
+
     def           = this->add("tree_support_branch_diameter", coFloat);
     def->label    = L("Tree support branch diameter");
     def->category = L("Support");
@@ -3401,6 +3470,32 @@ void PrintConfigDef::init_fff_params()
     def->max      = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
+
+    def = this->add("tree_support_branch_diameter_angle", coFloat);
+    // TRN PrintSettings: #lmFIXME 
+    def->label = L("Branch Diameter Angle");
+    def->category = L("Support");
+    // TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+    def->tooltip = L("The angle of the branches' diameter as they gradually become thicker towards the bottom. "
+                     "An angle of 0 will cause the branches to have uniform thickness over their length. "
+                     "A bit of an angle can increase stability of the organic support.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 15;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5));
+
+    def = this->add("tree_support_branch_diameter_double_wall", coFloat);
+    def->label = L("Branch Diameter with double walls");
+    def->category = L("Support");
+    // TRN PrintSettings: "Organic supports" > "Branch Diameter"
+    def->tooltip = L("Branches with area larger than the area of a circle of this diameter will be printed with double walls for stability. "
+                     "Set this value to zero for no double walls.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 100.f;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(3.));
 
     def = this->add("tree_support_wall_count", coInt);
     def->label = L("Tree support wall loops");
@@ -4611,7 +4706,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
-        "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
+        "tree_support_collision_resolution", "tree_support_with_infill",
         "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
