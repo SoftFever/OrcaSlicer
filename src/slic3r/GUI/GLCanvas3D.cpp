@@ -76,11 +76,6 @@
 
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
-static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
-static const float SLIDER_DEFAULT_BOTTOM_MARGIN = 10.0f;
-static const float SLIDER_RIGHT_MARGIN          = 124.0f;
-static const float SLIDER_BOTTOM_MARGIN         = 64.0f;
-
 float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[3] = { 0.906f, 0.906f, 0.906f };
 float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR_DARK[3] = { 0.329f, 0.329f, 0.353f };
 float GLCanvas3D::ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
@@ -6952,8 +6947,8 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
         IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
         IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
         const float sc = m_retina_helper->get_scale_factor();
-        m_layers_slider->set_scale(sc);
-        m_moves_slider->set_scale(sc);
+        m_layers_slider->set_scale(sc * m_layers_slider->m_scale);
+        m_moves_slider->set_scale(sc * m_layers_slider->m_scale);
         m_gcode_viewer.set_scale(sc);
 
         auto* m_notification = wxGetApp().plater()->get_notification_manager();
