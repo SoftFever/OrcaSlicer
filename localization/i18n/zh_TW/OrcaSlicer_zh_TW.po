@@ -41,7 +41,7 @@ msgid "Right mouse button"
 msgstr "滑鼠右鍵"
 
 msgid "Block supports"
-msgstr "隱藏支撐"
+msgstr "遮蔽支撐"
 
 msgid "Shift + Left mouse button"
 msgstr "Shift + 滑鼠左鍵"
@@ -473,7 +473,7 @@ msgid "Enforce seam"
 msgstr "新增Z縫"
 
 msgid "Block seam"
-msgstr "隱藏Z縫"
+msgstr "遮蔽Z縫"
 
 msgid "Seam painting"
 msgstr "Z縫繪製"
@@ -798,7 +798,7 @@ msgid "Add modifier"
 msgstr "新增修改器"
 
 msgid "Add support blocker"
-msgstr "新增支撐隱藏"
+msgstr "新增支撐遮蔽"
 
 msgid "Add support enforcer"
 msgstr "新增支撐生成器"
