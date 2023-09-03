@@ -1,10 +1,6 @@
-# Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Slic3rPE\n"
+"Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
@@ -45,7 +41,7 @@ msgid "Right mouse button"
 msgstr "滑鼠右鍵"
 
 msgid "Block supports"
-msgstr "屏蔽支撐"
+msgstr "遮蔽支撐"
 
 msgid "Shift + Left mouse button"
 msgstr "Shift + 滑鼠左鍵"
@@ -113,7 +109,7 @@ msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
-"耗材絲數量超過塗色工具支持的最大值，僅前%1%個耗材絲可在塗色工具中使用。"
+"線材數量超過塗色工具支持的最大值，僅前%1%個線材可在塗色工具中使用。"
 
 msgid "Color Painting"
 msgstr "塗色"
@@ -128,7 +124,7 @@ msgid "Key 1~9"
 msgstr "按鍵 1~9"
 
 msgid "Choose filament"
-msgstr "選擇耗材絲"
+msgstr "選擇線材"
 
 msgid "Edge detection"
 msgstr "邊沿檢測"
@@ -137,7 +133,7 @@ msgid "Triangles"
 msgstr "三角形"
 
 msgid "Filaments"
-msgstr "耗材絲"
+msgstr "線材"
 
 msgid "Brush"
 msgstr "畫刷"
@@ -171,7 +167,7 @@ msgstr "移除已繪製的顏色"
 
 #, boost-format
 msgid "Painted using: Filament %1%"
-msgstr "繪製使用：耗材絲%1%"
+msgstr "繪製使用：線材%1%"
 
 msgid "Move"
 msgstr "移動"
@@ -189,7 +185,7 @@ msgid "Scale"
 msgstr "縮放"
 
 msgid "Error: Please close all toolbar menus first"
-msgstr "錯誤：請先關閉所有工具欄菜單"
+msgstr "錯誤：請先關閉所有工具欄選單"
 
 msgid "Tool-Lay on Face"
 msgstr "工具-選擇底面"
@@ -255,7 +251,7 @@ msgid "Left click"
 msgstr "左擊"
 
 msgid "Add connector"
-msgstr "添加連接件"
+msgstr "新增連接件"
 
 msgid "Right click"
 msgstr "右擊"
@@ -297,7 +293,7 @@ msgid "Edit connectors"
 msgstr "編輯連接件"
 
 msgid "Add connectors"
-msgstr "添加連接件"
+msgstr "新增連接件"
 
 msgid "Upper part"
 msgstr "上半部分"
@@ -474,10 +470,10 @@ msgid "Brush shape"
 msgstr "畫刷形狀"
 
 msgid "Enforce seam"
-msgstr "添加Z縫"
+msgstr "新增Z縫"
 
 msgid "Block seam"
-msgstr "屏蔽Z縫"
+msgstr "遮蔽Z縫"
 
 msgid "Seam painting"
 msgstr "Z縫繪製"
@@ -492,7 +488,7 @@ msgid "Rotate text"
 msgstr "旋轉文字"
 
 msgid "Text shape"
-msgstr "文本形狀"
+msgstr "文字形狀"
 
 msgid "Font"
 msgstr "字體"
@@ -501,7 +497,7 @@ msgid "Thickness"
 msgstr "厚度"
 
 msgid "Input text"
-msgstr "輸入文本"
+msgstr "輸入文字"
 
 msgid "Embeded"
 msgstr "嵌入的"
@@ -546,10 +542,10 @@ msgid "Process"
 msgstr "工藝"
 
 msgid "Filament"
-msgstr "耗材絲"
+msgstr "線材"
 
 msgid "Machine"
-msgstr "印表機"
+msgstr "３Ｄ列印機"
 
 msgid "Configuration package was loaded, but some values were not recognized."
 msgstr "配置包已被載入，但部分數值未被識別。"
@@ -603,7 +599,8 @@ msgid ""
 "Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
 "features.\n"
 "Click Yes to install it now."
-msgstr ""
+msgstr "Orca Slicer 需要 Microsoft WebView2 Runtime 才能操作某些功能，"
+"請點擊 Yes 進行安裝。"
 
 msgid "WebView2 Runtime"
 msgstr ""
@@ -640,7 +637,7 @@ msgid "Info"
 msgstr "資訊"
 
 msgid "Rebuild"
-msgstr "重新構建"
+msgstr "重新建構"
 
 msgid "Loading current presets"
 msgstr "載入當前預設"
@@ -722,13 +719,13 @@ msgid "Choose files"
 msgstr "選擇文件"
 
 msgid "New Folder"
-msgstr "新建文件夾"
+msgstr "新增文件夾"
 
 msgid "Open"
 msgstr "打開"
 
 msgid "Rename"
-msgstr "重命名"
+msgstr "重新命名"
 
 msgid "Orca Slicer GUI initialization failed"
 msgstr " Orcaslicer 圖形界面初始化失敗"
@@ -792,19 +789,19 @@ msgid "Advanced"
 msgstr "高級"
 
 msgid "Add part"
-msgstr "添加部件"
+msgstr "新增部件"
 
 msgid "Add negative part"
-msgstr "添加負零件"
+msgstr "新增負零件"
 
 msgid "Add modifier"
-msgstr "添加修改器"
+msgstr "新增修改器"
 
 msgid "Add support blocker"
-msgstr "添加支撐屏蔽"
+msgstr "新增支撐遮蔽"
 
 msgid "Add support enforcer"
-msgstr "添加支撐生成器"
+msgstr "新增支撐生成器"
 
 msgid "Select settings"
 msgstr "選擇設置"
@@ -852,7 +849,7 @@ msgid "Height range Modifier"
 msgstr "高度範圍修改器"
 
 msgid "Add settings"
-msgstr "添加設置"
+msgstr "新增設置"
 
 msgid "Change type"
 msgstr "更改類型"
@@ -891,17 +888,17 @@ msgid "Replace the selected part with new STL"
 msgstr "用新的STL替換選中的零件"
 
 msgid "Change filament"
-msgstr "更換耗材絲"
+msgstr "更換線材"
 
 msgid "Set filament for selected items"
-msgstr "設置所選項的耗材絲"
+msgstr "設置所選項的線材"
 
 msgid "Default"
 msgstr "預設"
 
 #, c-format, boost-format
 msgid "Filament %d"
-msgstr "耗材絲%d"
+msgstr "線材%d"
 
 msgid "active"
 msgstr "活動的"
@@ -982,7 +979,7 @@ msgid "Invalidate cut info"
 msgstr "解除切割關係"
 
 msgid "Add Primitive"
-msgstr "添加標準模型"
+msgstr "新增標準模型"
 
 msgid "Show Labels"
 msgstr "顯示標籤"
@@ -1063,10 +1060,10 @@ msgid "Edit print parameters for a single object"
 msgstr "編輯單個對象的列印參數"
 
 msgid "Change Filament"
-msgstr "更換耗材絲"
+msgstr "更換線材"
 
 msgid "Set Filament for selected items"
-msgstr "設置所選項的耗材絲"
+msgstr "設置所選項的線材"
 
 msgid "current"
 msgstr "當前"
@@ -1084,7 +1081,7 @@ msgid "Name"
 msgstr "名稱"
 
 msgid "Fila."
-msgstr "耗材絲"
+msgstr "線材"
 
 #, c-format, boost-format
 msgid "%1$d error repaired"
@@ -1141,7 +1138,7 @@ msgid "Generic"
 msgstr "通用"
 
 msgid "Add Modifier"
-msgstr "添加修改器"
+msgstr "新增修改器"
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "切換到對象模式以編輯修改器的設置。"
@@ -1293,7 +1290,7 @@ msgid "Remove height range"
 msgstr "移除高度範圍"
 
 msgid "Add height range"
-msgstr "添加高度範圍"
+msgstr "新增高度範圍"
 
 msgid "Invalid numeric."
 msgstr "數值錯誤。"
@@ -1401,28 +1398,28 @@ msgid "Please enter the layer number"
 msgstr "請輸入層數"
 
 msgid "Add Pause"
-msgstr "添加暫停列印"
+msgstr "新增暫停列印"
 
 msgid "Insert a pause command at the beginning of this layer."
 msgstr "在該層的起始位置插入暫停。"
 
 msgid "Add Custom G-code"
-msgstr "添加自訂G-code"
+msgstr "新增自訂G-code"
 
 msgid "Insert custom G-code at the beginning of this layer."
 msgstr "在該層的起始位置插入自訂G-code。"
 
 msgid "Add Custom Template"
-msgstr "添加自訂模板"
+msgstr "新增自訂模板"
 
 msgid "Insert template custom G-code at the beginning of this layer."
 msgstr "在該層的起始位置插入模板自訂G-code。"
 
 msgid "Filament "
-msgstr "耗材絲"
+msgstr "線材"
 
 msgid "Change filament at the beginning of this layer."
-msgstr "在該層的起始位置更換耗材絲。"
+msgstr "在該層的起始位置更換線材。"
 
 msgid "Delete Pause"
 msgstr "刪除暫停列印"
@@ -1437,10 +1434,10 @@ msgid "Delete Custom G-code"
 msgstr "刪除自訂G-code"
 
 msgid "Delete Filament Change"
-msgstr "刪除耗材絲更換"
+msgstr "刪除線材更換"
 
 msgid "No printer"
-msgstr "無印表機"
+msgstr "無３Ｄ列印機"
 
 msgid "..."
 msgstr ""
@@ -1461,13 +1458,13 @@ msgid "Please click on the hyperlink above to view the cloud service status"
 msgstr "請點擊上方的超連結以查看雲服務狀態"
 
 msgid "Failed to connect to the printer"
-msgstr "無法連接印表機"
+msgstr "無法連接３Ｄ列印機"
 
 msgid "Connection to printer failed"
-msgstr "連接印表機失敗"
+msgstr "連接３Ｄ列印機失敗"
 
 msgid "Please check the network connection of the printer and Studio."
-msgstr "請檢查印表機和工作室的網路連接"
+msgstr "請檢查３Ｄ列印機和工作室的網路連接"
 
 msgid "Connecting..."
 msgstr "連線中..."
@@ -1527,22 +1524,22 @@ msgid "Heat the nozzle"
 msgstr "加熱噴嘴"
 
 msgid "Cut filament"
-msgstr "切斷耗材絲"
+msgstr "切斷線材"
 
 msgid "Pull back current filament"
-msgstr "抽回耗材絲"
+msgstr "抽回線材"
 
 msgid "Push new filament into extruder"
-msgstr "送出新的耗材絲到擠出機"
+msgstr "送出新的線材到擠出機"
 
 msgid "Purge old filament"
-msgstr "沖刷舊耗材絲"
+msgstr "沖刷舊線材"
 
 msgid "Push new filament into the extruder"
-msgstr "將新的耗材絲推入擠出機"
+msgstr "將新的線材推入擠出機"
 
 msgid "Grab new filament"
-msgstr "咬入耗材絲"
+msgstr "咬入線材"
 
 msgid ""
 "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically "
@@ -1638,7 +1635,7 @@ msgid "Login failed"
 msgstr "登錄失敗"
 
 msgid "Please check the printer network connection."
-msgstr "請檢查印表機的網路連接。"
+msgstr "請檢查３Ｄ列印機的網路連接。"
 
 msgid "Abnormal print file data. Please slice again."
 msgstr "列印文件數據異常，請重新切片"
@@ -1720,7 +1717,7 @@ msgid "Successfully sent. Close current page in %s s"
 msgstr "成功發送。即將關閉當前頁面（%s秒）"
 
 msgid "An SD card needs to be inserted before sending to printer."
-msgstr "需要插入SD卡後方可發送到印表機。"
+msgstr "需要插入SD卡後方可發送到３Ｄ列印機。"
 
 msgid "Choose SLA archive:"
 msgstr "選擇SLA存檔："
@@ -1895,7 +1892,7 @@ msgid "Setting Virtual slot information while printing is not supported"
 msgstr "不支持在列印時設置虛擬槽位資訊"
 
 msgid "Are you sure you want to clear the filament information?"
-msgstr "您確定要清除耗材絲資訊嗎？"
+msgstr "您確定要清除線材資訊嗎？"
 
 msgid "You need to select the material type and color first."
 msgstr "您需要先選擇材料類型和顏色。"
@@ -1992,7 +1989,7 @@ msgstr "AMS艙內材料"
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
-msgstr "僅允許選擇放入同種材質耗材絲的AMS槽位"
+msgstr "僅允許選擇放入同種材質線材的AMS槽位"
 
 msgid "Enable AMS"
 msgstr "啟用AMS"
@@ -2037,10 +2034,10 @@ msgid ""
 msgstr "配置當前列印任務應使用哪個AMS槽位"
 
 msgid "Filament used in this print job"
-msgstr "當前列印使用的耗材絲"
+msgstr "當前列印使用的線材"
 
 msgid "AMS slot used for this filament"
-msgstr "當前耗材絲對應的AMS槽位"
+msgstr "當前線材對應的AMS槽位"
 
 msgid "Click to select AMS slot manually"
 msgstr "點擊以手動選擇AMS槽位"
@@ -2060,7 +2057,7 @@ msgstr "採用掛載在機箱背部的材料列印"
 msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
-msgstr "當前材料耗盡時，印表機將按照以下順序繼續列印。"
+msgstr "當前材料耗盡時，３Ｄ列印機將按照以下順序繼續列印。"
 
 msgid "Group"
 msgstr "組"
@@ -2084,14 +2081,14 @@ msgid ""
 "The AMS will automatically read the filament information when inserting a "
 "new Bambu Lab filament. This takes about 20 seconds."
 msgstr ""
-"當插入新的Bambu Lab耗材絲的時候，AMS會自動讀取耗材絲資訊。這個過程大約需要20"
+"當插入新的Bambu Lab線材的時候，AMS會自動讀取線材資訊。這個過程大約需要20"
 "秒。"
 
 msgid ""
 "Note: if new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
-"注意：如果是在列印過程中插入新的耗材絲，AMS會在列印結束後自動讀取此耗材絲信"
+"注意：如果是在列印過程中插入新的線材，AMS會在列印結束後自動讀取此線材信"
 "息。"
 
 msgid ""
@@ -2116,7 +2113,7 @@ msgid ""
 "The AMS will not automatically read information from inserted filament "
 "during startup and will continue to use the information recorded before the "
 "last shutdown."
-msgstr "AMS不會在啟動時自動讀取耗材絲資訊。它會使用上次關機前記錄的資訊。"
+msgstr "AMS不會在啟動時自動讀取線材資訊。它會使用上次關機前記錄的資訊。"
 
 msgid "Update remaining capacity"
 msgstr "更新剩餘容量"
@@ -2126,7 +2123,7 @@ msgid ""
 "info is updated. During printing, remaining capacity will be updated "
 "automatically."
 msgstr ""
-"AMS讀取Bambu Lab耗材絲資訊同時推算料卷的剩餘容量。在列印過程中，剩餘容量會自"
+"AMS讀取Bambu Lab線材資訊同時推算料卷的剩餘容量。在列印過程中，剩餘容量會自"
 "動更新。"
 
 msgid "AMS filament backup"
@@ -2135,7 +2132,7 @@ msgstr "AMS材料備份"
 msgid ""
 "AMS will continue to another spool with the same properties of filament "
 "automatically when current filament runs out"
-msgstr "AMS料材絲耗盡後將自動切換到屬性完全相同的耗材絲"
+msgstr "AMS料材絲耗盡後將自動切換到屬性完全相同的線材"
 
 msgid "File"
 msgstr "文件"
@@ -2151,7 +2148,7 @@ msgstr "插件下載失敗。請檢查您的防火牆設置和vpn軟體,檢查�
 msgid ""
 "Failed to install the plug-in. Please check whether it is blocked or deleted "
 "by anti-virus software."
-msgstr "安裝插件失敗。請檢查是否被防毒軟體屏蔽或刪除。"
+msgstr "安裝插件失敗。請檢查是否被防毒軟體阻擋或刪除。"
 
 msgid "click here to see more info"
 msgstr "點擊這裡查看更多資訊"
@@ -2330,8 +2327,8 @@ msgid ""
 "Please keep the printer open during the printing process to ensure air "
 "circulation or reduce the temperature of the hot bed"
 msgstr ""
-"熱床溫度超過了耗材絲的軟化溫度，材料軟化可能造成噴頭堵塞。\n"
-"請保持印表機在列印過程中敞開，保證空氣流通或降低熱床溫度"
+"熱床溫度超過了線材的軟化溫度，材料軟化可能造成噴頭堵塞。\n"
+"請保持３Ｄ列印機在列印過程中敞開，保證空氣流通或降低熱床溫度"
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -2575,7 +2572,7 @@ msgstr "潮濕的PVA會變得柔軟並黏在AMS內，請在使用前注意乾燥
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
-msgstr "CF/GF耗材絲絲又硬又脆，在AMS中很容易斷裂或卡住，請謹慎使用。"
+msgstr "CF/GF線材絲又硬又脆，在AMS中很容易斷裂或卡住，請謹慎使用。"
 
 msgid "default"
 msgstr "預設"
@@ -2723,7 +2720,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "體積流量速度（mm³/s）"
 
 msgid "Used filament"
-msgstr "使用的耗材絲"
+msgstr "使用的線材"
 
 msgid "Travel"
 msgstr "空駛"
@@ -2738,7 +2735,7 @@ msgid "Unretract"
 msgstr "裝填回抽"
 
 msgid "Filament Changes"
-msgstr "耗材絲更換"
+msgstr "線材更換"
 
 msgid "Wipe"
 msgstr "擦拭"
@@ -2768,7 +2765,7 @@ msgid "Pause"
 msgstr "暫停"
 
 msgid "Printer"
-msgstr "印表機"
+msgstr "３Ｄ列印機"
 
 msgid "Print settings"
 msgstr "列印設置"
@@ -2886,10 +2883,10 @@ msgid "Avoid extrusion calibration region"
 msgstr "避開擠出標定區域"
 
 msgid "Add"
-msgstr "添加"
+msgstr "新增"
 
 msgid "Add plate"
-msgstr "添加新盤"
+msgstr "新增新盤"
 
 msgid "Auto orient"
 msgstr "自動朝向"
@@ -3024,16 +3021,16 @@ msgid "1080p"
 msgstr ""
 
 msgid "ConnectPrinter(LAN)"
-msgstr "連接印表機（區域網路）"
+msgstr "連接３Ｄ列印機（區域網路）"
 
 msgid "Please input the printer access code:"
-msgstr "請輸入印表機訪問碼："
+msgstr "請輸入３Ｄ列印機訪問碼："
 
 msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"你可以在印表機“設置->網路->連接->訪問碼\"\n"
+"你可以在３Ｄ列印機“設置->網路->連接->訪問碼\"\n"
 "查看，如下圖所示："
 
 msgid "Invalid input."
@@ -3479,7 +3476,7 @@ msgstr ""
 "包含如下資訊:\n"
 "1. 工藝預設\n"
 "2. 列印絲預設\n"
-"3. 印表機預設"
+"3. ３Ｄ列印機預設"
 
 msgid "Synchronization"
 msgstr "同步"
@@ -3494,19 +3491,19 @@ msgid "Initialize failed (No Camera Device)!"
 msgstr "初始化失敗（沒有攝影機）"
 
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
-msgstr "印表機正忙於下載，請等待下載完成。"
+msgstr "３Ｄ列印機正忙於下載，請等待下載完成。"
 
 msgid "Loading..."
 msgstr "正在載入影片……"
 
 msgid "Initialize failed (Not supported on the current printer version)!"
-msgstr "初始化失敗（當前印表機的版本不支持）！"
+msgstr "初始化失敗（當前３Ｄ列印機的版本不支持）！"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "初始化失敗（在區域網路模式中不可訪問）！"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr "初始化失敗（未找到印表機的區域網路地址）！"
+msgstr "初始化失敗（未找到３Ｄ列印機的區域網路地址）！"
 
 msgid "Initializing..."
 msgstr "正在初始化……"
@@ -3593,13 +3590,13 @@ msgid "Switch to 3mf model files."
 msgstr "切換到3MF模型文件。"
 
 msgid "Delete selected files from printer."
-msgstr "從印表機中刪除選中的文件"
+msgstr "從３Ｄ列印機中刪除選中的文件"
 
 msgid "Download"
 msgstr "下載"
 
 msgid "Download selected files from printer."
-msgstr "從印表機中下載選擇的文件"
+msgstr "從３Ｄ列印機中下載選擇的文件"
 
 msgid "Select"
 msgstr "選擇"
@@ -3608,7 +3605,7 @@ msgid "Batch manage files."
 msgstr "批次管理文件"
 
 msgid "No printers."
-msgstr "未選擇印表機"
+msgstr "未選擇３Ｄ列印機"
 
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
@@ -3629,14 +3626,14 @@ msgstr "載入失敗 [%d]"
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] "您將從印表機中刪除%u個文件。確定要繼續嗎？"
+msgstr[0] "您將從３Ｄ列印機中刪除%u個文件。確定要繼續嗎？"
 
 msgid "Delete files"
 msgstr "刪除文件"
 
 #, c-format, boost-format
 msgid "Do you want to delete the file '%s' from printer?"
-msgstr "你確定要從印表機中刪除文件'%s'嗎？"
+msgstr "你確定要從３Ｄ列印機中刪除文件'%s'嗎？"
 
 msgid "Delete file"
 msgstr "刪除文件"
@@ -3645,7 +3642,7 @@ msgid "Fetching model infomations ..."
 msgstr "正在獲取模型資訊..."
 
 msgid "Failed to fetching model infomations from printer."
-msgstr "無法從印表機獲取模型資訊。"
+msgstr "無法從３Ｄ列印機獲取模型資訊。"
 
 msgid "Failed to parse model infomations."
 msgstr "解析模型資訊失敗。"
@@ -3678,7 +3675,7 @@ msgid "Downloading %d%%..."
 msgstr "下載中 %d%%..."
 
 msgid "Not supported on the current printer version."
-msgstr "當前印表機的版本不支持。"
+msgstr "當前３Ｄ列印機的版本不支持。"
 
 msgid "Storage unavailable, insert SD card."
 msgstr "儲存不可用，請插入SD卡。"
@@ -3833,7 +3830,7 @@ msgstr "請先選擇一個AMS槽位後進行標定"
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
 "unload the filament and try again."
-msgstr "無法讀取耗材絲資訊：耗材絲已經載入到工具頭，請退出耗材絲後再重試。"
+msgstr "無法讀取線材資訊：線材已經載入到工具頭，請退出線材後再重試。"
 
 msgid "This only takes effect during printing"
 msgstr "僅在列印過程中生效"
@@ -4073,10 +4070,10 @@ msgid "View all object's settings"
 msgstr "查看所有對象的配置"
 
 msgid "Filament settings"
-msgstr "耗材絲設置"
+msgstr "線材設置"
 
 msgid "Printer settings"
-msgstr "印表機設置"
+msgstr "３Ｄ列印機設置"
 
 msgid "Untitled"
 msgstr "未命名"
@@ -4092,13 +4089,13 @@ msgid "Sliced Info"
 msgstr "切片你資訊"
 
 msgid "Used Filament (m)"
-msgstr "耗材絲消耗長度 (m)"
+msgstr "線材消耗長度 (m)"
 
 msgid "Used Filament (mm³)"
-msgstr "耗材絲消耗體積 (mm³)"
+msgstr "線材消耗體積 (mm³)"
 
 msgid "Used Filament (g)"
-msgstr "耗材絲消耗重量(g)"
+msgstr "線材消耗重量(g)"
 
 msgid "Used Materials"
 msgstr "材料消耗"
@@ -4135,7 +4132,7 @@ msgstr "配置可選擇的材料"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
-msgstr "沒有發現AMS材料。請在“設備”頁面選擇印表機，將載入 AMS 資訊"
+msgstr "沒有發現AMS材料。請在“設備”頁面選擇３Ｄ列印機，將載入 AMS 資訊"
 
 msgid "Sync filaments with AMS"
 msgstr "同步到 AMS 的材料列表"
@@ -4190,14 +4187,14 @@ msgstr "恢復"
 msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
-msgstr "熱床溫度超過了材料的軟化溫度。請在列印前打開印表機前門以防堵頭。"
+msgstr "熱床溫度超過了材料的軟化溫度。請在列印前打開３Ｄ列印機前門以防堵頭。"
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
 "nozzle hardness of the printer. Please replace the hardened nozzle or "
 "filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
-"列印絲所要求的噴嘴硬度高於印表機預設的噴嘴硬度。請更換硬化的噴嘴或列印絲，否"
+"列印絲所要求的噴嘴硬度高於３Ｄ列印機預設的噴嘴硬度。請更換硬化的噴嘴或列印絲，否"
 "則噴嘴可能被磨損或損壞。"
 
 #, c-format, boost-format
@@ -4431,10 +4428,10 @@ msgid "G-code files can not be loaded with models together!"
 msgstr "G-code文件不能和模型一起載入"
 
 msgid "Can not add models when in preview mode!"
-msgstr "在預覽模式不允許添加模型"
+msgstr "在預覽模式不允許增加模型"
 
 msgid "Add Models"
-msgstr "添加模型"
+msgstr "新增模型"
 
 msgid "All objects will be removed, continue?"
 msgstr "即將刪除所有對象，是否繼續？"
@@ -4461,7 +4458,7 @@ msgstr "切片文件另存為："
 msgid ""
 "The file %s has been sent to the printer's storage space and can be viewed "
 "on the printer."
-msgstr "文件%s已經發送到印表機的儲存空間，可以在印表機上瀏覽。"
+msgstr "文件%s已經發送到３Ｄ列印機的儲存空間，可以在３Ｄ列印機上瀏覽。"
 
 msgid ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
@@ -4485,7 +4482,7 @@ msgid "Send G-code"
 msgstr "發送 G 代碼"
 
 msgid "Send to printer"
-msgstr "發送到印表機"
+msgstr "發送到３Ｄ列印機"
 
 msgid "Custom supports and color painting were removed before repairing."
 msgstr "自訂的支撐和塗色在模型修復之前將被清除。"
@@ -4638,7 +4635,7 @@ msgid "Presets"
 msgstr "預設"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
-msgstr "同步用戶預設（印表機/耗材絲/工藝）"
+msgstr "同步用戶預設（３Ｄ列印機/線材/工藝）"
 
 msgid "User Sync"
 msgstr "用戶同步"
@@ -4828,7 +4825,7 @@ msgid "Please choose the filament colour"
 msgstr "請選擇材料顏色"
 
 msgid "Add/Remove presets"
-msgstr "添加/刪除配置"
+msgstr "新增/刪除配置"
 
 msgid "Edit preset"
 msgstr "編輯預設"
@@ -4837,13 +4834,13 @@ msgid "Project-inside presets"
 msgstr "項目預設"
 
 msgid "Add/Remove filaments"
-msgstr "添加/刪除材料"
+msgstr "新增/刪除材料"
 
 msgid "Add/Remove materials"
-msgstr "添加/刪除材料"
+msgstr "新增/刪除材料"
 
 msgid "Add/Remove printers"
-msgstr "添加/刪除印表機"
+msgstr "新增/刪除３Ｄ列印機"
 
 msgid "Incompatible"
 msgstr "不相容的預設"
@@ -4945,7 +4942,7 @@ msgstr "預設“%1%”已存在。"
 
 #, boost-format
 msgid "Preset \"%1%\" already exists and is incompatible with current printer."
-msgstr "預設“%1%”已存在，並且和當前印表機不相容。"
+msgstr "預設“%1%”已存在，並且和當前３Ｄ列印機不相容。"
 
 msgid "Please note that saving action will replace this preset"
 msgstr "請注意這個預設會在保存過程中被替換"
@@ -4971,7 +4968,7 @@ msgstr "拷貝"
 
 #, boost-format
 msgid "Printer \"%1%\" is selected with preset \"%2%\""
-msgstr "選中印表機“%1%”和預設“%2%”"
+msgstr "選中３Ｄ列印機“%1%”和預設“%2%”"
 
 #, boost-format
 msgid "Please choose an action with \"%1%\" preset after saving."
@@ -4983,7 +4980,7 @@ msgstr "為“%1%，”把“%2%”更換為“%3%” "
 
 #, boost-format
 msgid "For \"%1%\", add \"%2%\" as a new preset"
-msgstr "為“%1%”，添加“%2%”為一個新預設"
+msgstr "為“%1%”，增加“%2%”為一個新預設"
 
 #, boost-format
 msgid "Simply switch to \"%1%\""
@@ -5044,7 +5041,7 @@ msgid "Flow Dynamics Calibration"
 msgstr "動態流量校準"
 
 msgid "Can't connect to the printer"
-msgstr "無法連接印表機"
+msgstr "無法連接３Ｄ列印機"
 
 msgid "send completed"
 msgstr "發送完成"
@@ -5056,10 +5053,10 @@ msgid "Check the status of current system services"
 msgstr "請檢查當前系統服務狀態"
 
 msgid "Printer local connection failed, please try again."
-msgstr "印表機區域網路連接失敗，請重試。"
+msgstr "３Ｄ列印機區域網路連接失敗，請重試。"
 
 msgid "No login account, only printers in LAN mode are displayed"
-msgstr "未登入帳號，僅顯示區域網路模式的印表機"
+msgstr "未登入帳號，僅顯示區域網路模式的３Ｄ列印機"
 
 msgid "Connecting to server"
 msgstr "正在連接伺服器..."
@@ -5075,60 +5072,60 @@ msgstr "設備升級中，無法發送列印任務"
 
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
-msgstr "印表機正在執行指令，請在其結束後重新發起列印"
+msgstr "３Ｄ列印機正在執行指令，請在其結束後重新發起列印"
 
 msgid "The printer is busy on other print job"
-msgstr "印表機正在執行其他列印任務"
+msgstr "３Ｄ列印機正在執行其他列印任務"
 
 #, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
 "firmware to support AMS slot assignment."
-msgstr "材料編號%s超出AMS槽位數量，請更新印表機韌體以支持AMS槽位映射功能"
+msgstr "材料編號%s超出AMS槽位數量，請更新３Ｄ列印機韌體以支持AMS槽位映射功能"
 
 msgid ""
 "Filament exceeds the number of AMS slots. Please update the printer firmware "
 "to support AMS slot assignment."
-msgstr "材料編號超出AMS槽位數量，請更新印表機韌體以支持AMS槽位映射功能"
+msgstr "材料編號超出AMS槽位數量，請更新３Ｄ列印機韌體以支持AMS槽位映射功能"
 
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
 "filament above to change its mapping AMS slot"
 msgstr ""
-"已自動建立 \"耗材絲列表=>AMS槽位\" 的映射關係。 可點擊上方具體的耗材絲手動設"
+"已自動建立 \"線材列表=>AMS槽位\" 的映射關係。 可點擊上方具體的線材手動設"
 "置其所對應的AMS槽位"
 
 msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
-msgstr "請在發送列印前點擊上方各個耗材絲，指定其所對應的AMS槽位"
+msgstr "請在發送列印前點擊上方各個線材，指定其所對應的AMS槽位"
 
 #, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
 "printer firmware to support AMS slot assignment."
 msgstr ""
-"材料編號%s和AMS槽位%s中的耗材絲材質不匹配，請更新印表機韌體以支持AMS槽位映射"
+"材料編號%s和AMS槽位%s中的線材材質不匹配，請更新３Ｄ列印機韌體以支持AMS槽位映射"
 "功能"
 
 msgid ""
 "Filament does not match the filament in AMS slot. Please update the printer "
 "firmware to support AMS slot assignment."
 msgstr ""
-"材料編號和AMS槽位中的耗材絲材質不匹配，請更新印表機韌體以支持AMS槽位映射功能"
+"材料編號和AMS槽位中的線材材質不匹配，請更新３Ｄ列印機韌體以支持AMS槽位映射功能"
 
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
 msgstr ""
-"已自動建立 \"耗材絲列表=>AMS槽位\" 的映射關係。 可點擊上方具體的耗材絲手動設"
+"已自動建立 \"線材列表=>AMS槽位\" 的映射關係。 可點擊上方具體的線材手動設"
 "置其所對應的AMS槽位"
 
 msgid "An SD card needs to be inserted before printing."
 msgstr "請在發起列印前插入SD卡"
 
 msgid "The selected printer is incompatible with the chosen printer presets."
-msgstr "所選印表機與選擇的印表機預設不相容。"
+msgstr "所選３Ｄ列印機與選擇的３Ｄ列印機預設不相容。"
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "開啟延遲攝影功能需要插入SD卡"
@@ -5136,13 +5133,13 @@ msgstr "開啟延遲攝影功能需要插入SD卡"
 msgid ""
 "Cannot send the print job to a printer whose firmware is required to get "
 "updated."
-msgstr "需要更新印表機韌體後，才能將列印任務發送到印表機"
+msgstr "需要更新３Ｄ列印機韌體後，才能將列印任務發送到３Ｄ列印機"
 
 msgid "Cannot send the print job for empty plate"
 msgstr "無法為空盤髮送列印任務"
 
 msgid "This printer does not support printing all plates"
-msgstr "此印表機類型不支持列印所有盤"
+msgstr "此３Ｄ列印機類型不支持列印所有盤"
 
 msgid "Errors"
 msgstr "錯誤"
@@ -5155,7 +5152,7 @@ msgid ""
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 msgstr ""
-"生成G代碼時選擇的印表機類型與當前選擇的印表機不一致。建議您使用相同的印表機類"
+"生成G代碼時選擇的３Ｄ列印機類型與當前選擇的３Ｄ列印機不一致。建議您使用相同的３Ｄ列印機類"
 "型進行切片。"
 
 #, c-format, boost-format
@@ -5176,7 +5173,7 @@ msgstr "如果您仍然想繼續列印，請單擊“確定”按鈕。"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
-msgstr "正在連接印表機。連接過程中無法取消。"
+msgstr "正在連接３Ｄ列印機。連接過程中無法取消。"
 
 msgid "Preparing print job"
 msgstr "正在準備列印任務"
@@ -5196,22 +5193,22 @@ msgid "Automatic flow calibration using Micro Lidar"
 msgstr "使用微型雷射雷達進行自動流量校準"
 
 msgid "Modifying the device name"
-msgstr "修改印表機名稱"
+msgstr "修改３Ｄ列印機名稱"
 
 msgid "Send to Printer SD card"
-msgstr "發送到印表機的SD卡"
+msgstr "發送到３Ｄ列印機的SD卡"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "設備升級中，無法發送列印任務"
 
 msgid "An SD card needs to be inserted before send to printer SD card."
-msgstr "發送到印表機需要插入SD卡"
+msgstr "發送到３Ｄ列印機需要插入SD卡"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
-msgstr "印表機需要與Bambu Studio在同一個區域網路內。"
+msgstr "３Ｄ列印機需要與Bambu Studio在同一個區域網路內。"
 
 msgid "The printer does not support sending to printer SD card."
-msgstr "該印表機不支持發送到印表機SD卡。"
+msgstr "該３Ｄ列印機不支持發送到３Ｄ列印機SD卡。"
 
 msgid "Failed to create socket"
 msgstr ""
@@ -5241,10 +5238,10 @@ msgid "Unknown Failure"
 msgstr "發生錯誤"
 
 msgid "Log in printer"
-msgstr "登錄印表機"
+msgstr "登錄３Ｄ列印機"
 
 msgid "Would you like to log in this printer with current account?"
-msgstr "你想使用當前帳號登入這台印表機嗎?"
+msgstr "你想使用當前帳號登入這台３Ｄ列印機嗎?"
 
 msgid "Check the reason"
 msgstr "查看原因"
@@ -5273,7 +5270,7 @@ msgid "Privacy Policy"
 msgstr "隱私協議"
 
 msgid "We ask for your help to improve everyone's printer"
-msgstr "我們請求您的幫助來改善大家的印表機"
+msgstr "我們請求您的幫助來改善大家的３Ｄ列印機"
 
 msgid "Statement about User Experience Improvement Program"
 msgstr "關於用戶體驗改善計劃的聲明"
@@ -5306,16 +5303,16 @@ msgid "Log in successful."
 msgstr "登錄成功。"
 
 msgid "Log out printer"
-msgstr "登出印表機"
+msgstr "登出３Ｄ列印機"
 
 msgid "Would you like to log out the printer?"
-msgstr "你想登出印表機嗎?"
+msgstr "你想登出３Ｄ列印機嗎?"
 
 msgid "Please log in first."
 msgstr "請先登錄。"
 
 msgid "There was a problem connecting to the printer. Please try again."
-msgstr "連接印表機時發生錯誤。 請重試。"
+msgstr "連接３Ｄ列印機時發生錯誤。 請重試。"
 
 msgid "Failed to log out."
 msgstr "登出失敗。"
@@ -5387,8 +5384,8 @@ msgid ""
 "by right-click the empty position of build plate and choose \"Add Primitive"
 "\"->\"Timelapse Wipe Tower\"."
 msgstr ""
-"在錄製無工具頭延時攝影影片時，建議添加“延時攝影擦料塔”\n"
-"右鍵單擊列印板的空白位置，選擇“添加標準模型”->“延時攝影擦料塔”。"
+"在錄製無工具頭延時攝影影片時，建議增加“延時攝影擦料塔”\n"
+"右鍵單擊列印板的空白位置，選擇“新增標準模型”->“延時攝影擦料塔”。"
 
 msgid "Line width"
 msgstr "線寬"
@@ -5513,7 +5510,7 @@ msgstr "低溫列印熱床"
 msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
-msgstr "安裝低溫列印熱床時的熱床溫度。0值表示這個耗材絲不支持低溫列印熱床"
+msgstr "安裝低溫列印熱床時的熱床溫度。0值表示這個線材不支持低溫列印熱床"
 
 msgid "Engineering plate"
 msgstr "工程材料熱床"
@@ -5521,7 +5518,7 @@ msgstr "工程材料熱床"
 msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
-msgstr "安裝工程材料熱床時的熱床溫度。0值表示這個耗材絲不支持工程材料熱床"
+msgstr "安裝工程材料熱床時的熱床溫度。0值表示這個線材不支持工程材料熱床"
 
 msgid "High Temp Plate"
 msgstr "高溫列印熱床"
@@ -5529,7 +5526,7 @@ msgstr "高溫列印熱床"
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
-msgstr "安裝高溫列印熱床時的熱床溫度。0值表示這個耗材絲不支持高溫列印熱床"
+msgstr "安裝高溫列印熱床時的熱床溫度。0值表示這個線材不支持高溫列印熱床"
 
 msgid "Textured PEI Plate"
 msgstr "紋理PEI熱床"
@@ -5537,7 +5534,7 @@ msgstr "紋理PEI熱床"
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
-msgstr "安裝紋理PEI熱床時的熱床溫度。0值表示這個耗材絲不支持紋理PEI熱床"
+msgstr "安裝紋理PEI熱床時的熱床溫度。0值表示這個線材不支持紋理PEI熱床"
 
 msgid "Volumetric speed limitation"
 msgstr "體積速度限制"
@@ -5575,10 +5572,10 @@ msgid "Auxiliary part cooling fan"
 msgstr "輔助部件冷卻風扇"
 
 msgid "Filament start G-code"
-msgstr "耗材絲起始G-code"
+msgstr "線材起始G-code"
 
 msgid "Filament end G-code"
-msgstr "耗材絲結束G-code"
+msgstr "線材結束G-code"
 
 msgid "Printable space"
 msgstr "可列印區域"
@@ -5596,13 +5593,13 @@ msgid "Accessory"
 msgstr "配件"
 
 msgid "Machine gcode"
-msgstr "印表機G-code"
+msgstr "３Ｄ列印機G-code"
 
 msgid "Machine start G-code"
-msgstr "印表機起始G-code"
+msgstr "３Ｄ列印機起始G-code"
 
 msgid "Machine end G-code"
-msgstr "印表機結束G-code"
+msgstr "３Ｄ列印機結束G-code"
 
 msgid "Before layer change G-code"
 msgstr "換層前G-code"
@@ -5611,7 +5608,7 @@ msgid "Layer change G-code"
 msgstr "換層G-code"
 
 msgid "Change filament G-code"
-msgstr "耗材絲更換G-code"
+msgstr "線材更換G-code"
 
 msgid "Pause G-code"
 msgstr "暫停 G-code"
@@ -5749,7 +5746,7 @@ msgstr "預設 \"%1%\" 包含以下未保存的修改:"
 msgid ""
 "Preset \"%1%\" is not compatible with the new printer profile and it "
 "contains the following unsaved changes:"
-msgstr "預設 \"%1%\" 與新的印表機預設不相容，並且包含以下未保存的修改："
+msgstr "預設 \"%1%\" 與新的３Ｄ列印機預設不相容，並且包含以下未保存的修改："
 
 #, boost-format
 msgid ""
@@ -5786,7 +5783,7 @@ msgid "Show all presets (including incompatible)"
 msgstr "顯示所有預設(包括不相容的)"
 
 msgid "Add File"
-msgstr "添加文件"
+msgstr "新增文件"
 
 msgid "Set as cover"
 msgstr "設置為封面"
@@ -5866,13 +5863,13 @@ msgid "Auto-Calc"
 msgstr "自動計算"
 
 msgid "Flushing volumes for filament change"
-msgstr "耗材絲更換時的沖刷體積"
+msgstr "線材更換時的沖刷體積"
 
 msgid "Multiplier"
 msgstr "乘數"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "在兩個耗材絲間切換所需的沖刷量（mm³）"
+msgstr "在兩個線材間切換所需的沖刷量（mm³）"
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
@@ -5889,7 +5886,7 @@ msgid "loaded"
 msgstr "裝載"
 
 msgid "Filament #"
-msgstr "耗材絲#"
+msgstr "線材#"
 
 msgid "From"
 msgstr "從"
@@ -6035,7 +6032,7 @@ msgid "Esc"
 msgstr ""
 
 msgid "keyboard 1-9: set filament for object/part"
-msgstr "按鍵1-9：設置對象/零件的耗材絲"
+msgstr "按鍵1-9：設置對象/零件的線材"
 
 msgid "Camera view - Default"
 msgstr "攝影機視角 - 默認"
@@ -6186,12 +6183,12 @@ msgstr "LAN連接失敗 (發送列印文件)"
 
 msgid ""
 "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-msgstr "第1步，請確認Bambu Studio和您的印表機在同一個LAN上。"
+msgstr "第1步，請確認Bambu Studio和您的３Ｄ列印機在同一個LAN上。"
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
 "on your printer, please correct them."
-msgstr "步驟2, 如果下面的IP和訪問碼與印表機上的實際值不同，請輸入正確的值。"
+msgstr "步驟2, 如果下面的IP和訪問碼與３Ｄ列印機上的實際值不同，請輸入正確的值。"
 
 msgid "IP"
 msgstr ""
@@ -6200,7 +6197,7 @@ msgid "Access Code"
 msgstr "訪問碼"
 
 msgid "Where to find your printer's IP and Access Code?"
-msgstr "在哪裡可以找到印表機的IP和訪問碼?"
+msgstr "在哪裡可以找到３Ｄ列印機的IP和訪問碼?"
 
 msgid "Error: IP or Access Code are not correct"
 msgstr "錯誤：IP或訪問碼不正確"
@@ -6254,7 +6251,7 @@ msgid ""
 "update next time starting the studio."
 msgstr ""
 "當前韌體版本異常，需要進行修復升級，否則無法繼續列印。你想現在就開始升級嗎？"
-"你也可以稍後在印表機上升級，或者下一次啟動studio再升級。"
+"你也可以稍後在３Ｄ列印機上升級，或者下一次啟動studio再升級。"
 
 msgid "Extension Board"
 msgstr "擴展板"
@@ -6608,7 +6605,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
-msgstr "盤 %d: %s 不支持耗材絲 %s"
+msgstr "盤 %d: %s 不支持線材 %s"
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
@@ -6633,8 +6630,8 @@ msgid ""
 "left corner to cut filament during filament change. The area is expressed as "
 "polygon by points in following format: \"XxY, XxY, ...\""
 msgstr ""
-"XY平面上的不可列印區域。例如，X1系列印表機在換料過程中，會使用左前角區域來切"
-"斷耗材絲。這個多邊形區域由以下格式的點表示：“XxY，XxY，…”"
+"XY平面上的不可列印區域。例如，X1系列３Ｄ列印機在換料過程中，會使用左前角區域來切"
+"斷線材。這個多邊形區域由以下格式的點表示：“XxY，XxY，…”"
 
 msgid "Bed custom texture"
 msgstr "自訂熱床紋理"
@@ -6659,10 +6656,10 @@ msgid "Printable height"
 msgstr "可列印高度"
 
 msgid "Maximum printable height which is limited by mechanism of printer"
-msgstr "由印表機結構約束的最大可列印高度"
+msgstr "由３Ｄ列印機結構約束的最大可列印高度"
 
 msgid "Printer preset names"
-msgstr "印表機預設名"
+msgstr "３Ｄ列印機預設名"
 
 msgid "Hostname, IP or URL"
 msgstr "主機名，IP或者URL"
@@ -6674,7 +6671,7 @@ msgid ""
 "name and password into the URL in the following format: https://username:"
 "password@your-octopi-address/"
 msgstr ""
-"Slic3r可以將G-code文件上傳到印表機主機。此欄位應包含印表機主機實例的主機名、"
+"Slic3r可以將G-code文件上傳到３Ｄ列印機主機。此欄位應包含３Ｄ列印機主機實例的主機名、"
 "IP位址或URL。啟用基本身份驗證的Print host可以透過將使用者名稱和密碼放入以下格"
 "式的URL中來訪問：https://username:password@your-octopi-address/"
 
@@ -6683,7 +6680,7 @@ msgstr "設備用戶界面"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
-msgstr "如果印表機的設備用戶界面的URL不同，請在此指定。"
+msgstr "如果３Ｄ列印機的設備用戶界面的URL不同，請在此指定。"
 
 msgid "API Key / Password"
 msgstr ""
@@ -6692,11 +6689,11 @@ msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
 "the API Key or the password required for authentication."
 msgstr ""
-"Slic3r可以將G-code文件上傳到印表機主機。此欄位應包含用於身份驗證的API金鑰或密"
+"Slic3r可以將G-code文件上傳到３Ｄ列印機主機。此欄位應包含用於身份驗證的API金鑰或密"
 "碼。"
 
 msgid "Name of the printer"
-msgstr "印表機名稱"
+msgstr "３Ｄ列印機名稱"
 
 msgid "HTTPS CA File"
 msgstr ""
@@ -6727,7 +6724,7 @@ msgstr ""
 "來處理自簽名證書。"
 
 msgid "Names of presets related to the physical printer"
-msgstr "與物理印表機相關的預設名稱"
+msgstr "與物理３Ｄ列印機相關的預設名稱"
 
 msgid "Authorization Type"
 msgstr "授權類型"
@@ -6765,7 +6762,7 @@ msgstr "其它層"
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Cool Plate"
-msgstr "非首層熱床溫度。0值表示這個耗材絲不支持低溫列印熱床"
+msgstr "非首層熱床溫度。0值表示這個線材不支持低溫列印熱床"
 
 msgid "°C"
 msgstr "°C"
@@ -6773,17 +6770,17 @@ msgstr "°C"
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
-msgstr "非首層熱床溫度。0值表示這個耗材絲不支持工程材料熱床"
+msgstr "非首層熱床溫度。0值表示這個線材不支持工程材料熱床"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
-msgstr "非首層熱床溫度。0值表示這個耗材絲不支持高溫列印熱床"
+msgstr "非首層熱床溫度。0值表示這個線材不支持高溫列印熱床"
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
-msgstr "非首層熱床溫度。0值表示這個耗材絲不支持紋理PEI熱床"
+msgstr "非首層熱床溫度。0值表示這個線材不支持紋理PEI熱床"
 
 msgid "Initial layer"
 msgstr "首層"
@@ -6794,25 +6791,25 @@ msgstr "首層床溫"
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
-msgstr "首層熱床溫度。0值表示這個耗材絲不支持低溫列印熱床"
+msgstr "首層熱床溫度。0值表示這個線材不支持低溫列印熱床"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
-msgstr "首層熱床溫度。0值表示這個耗材絲不支持工程材料熱床"
+msgstr "首層熱床溫度。0值表示這個線材不支持工程材料熱床"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the High Temp Plate"
-msgstr "首層熱床溫度。0值表示這個耗材絲不支持高溫列印熱床"
+msgstr "首層熱床溫度。0值表示這個線材不支持高溫列印熱床"
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Textured PEI Plate"
-msgstr "首層熱床溫度。0值表示這個耗材絲不支持紋理PEI熱床"
+msgstr "首層熱床溫度。0值表示這個線材不支持紋理PEI熱床"
 
 msgid "Bed types supported by the printer"
-msgstr "印表機所支持的熱床類型"
+msgstr "３Ｄ列印機所支持的熱床類型"
 
 msgid "Cool Plate"
 msgstr "低溫列印熱床"
@@ -7173,7 +7170,7 @@ msgstr "確保垂直外殼厚度"
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)"
-msgstr "在斜面表面附近添加實心填充，以保證垂直外殼厚度（頂部+底部實心層）"
+msgstr "在斜面表面附近增加實心填充，以保證垂直外殼厚度（頂部+底部實心層）"
 
 msgid "Internal bridge support thickness"
 msgstr "內部橋接支撐厚度"
@@ -7395,7 +7392,7 @@ msgid ""
 "extruded per second. Printing speed is limited by max volumetric speed, in "
 "case of too high and unreasonable speed setting. Can't be zero"
 msgstr ""
-"這個設置表示在1秒內能夠融化和擠出的耗材絲體積。列印速度會受到最大體積速度的限"
+"這個設置表示在1秒內能夠融化和擠出的線材體積。列印速度會受到最大體積速度的限"
 "制，防止設置過高和不合理的速度。不允許設置為0。"
 
 msgid "mm³/s"
@@ -7413,21 +7410,21 @@ msgid ""
 msgstr ""
 
 msgid "Filament load time"
-msgstr "載入耗材絲的時間"
+msgstr "載入線材的時間"
 
 msgid "Time to load new filament when switch filament. For statistics only"
-msgstr "切換耗材絲時，載入新耗材絲所需的時間。只用於統計資訊。"
+msgstr "切換線材時，載入新線材所需的時間。只用於統計資訊。"
 
 msgid "Filament unload time"
-msgstr "卸載耗材絲的時間"
+msgstr "卸載線材的時間"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
-msgstr "切換耗材絲時，卸載舊的耗材絲所需時間。只用於統計資訊。"
+msgstr "切換線材時，卸載舊的線材所需時間。只用於統計資訊。"
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
 "and should be accurate"
-msgstr "耗材絲直徑被用於計算G-code文件中的擠出量。因此很重要，應盡可能精確。"
+msgstr "線材直徑被用於計算G-code文件中的擠出量。因此很重要，應盡可能精確。"
 
 msgid "Shrinkage"
 msgstr "耗材收縮率"
@@ -7449,13 +7446,13 @@ msgid "Density"
 msgstr "密度"
 
 msgid "Filament density. For statistics only"
-msgstr "耗材絲的密度。只用於統計資訊。"
+msgstr "線材的密度。只用於統計資訊。"
 
 msgid "g/cm³"
 msgstr "g/cm³"
 
 msgid "The material type of filament"
-msgstr "耗材絲的材料類型"
+msgstr "線材的材料類型"
 
 msgid "Soluble material"
 msgstr "可溶性材料"
@@ -7483,7 +7480,7 @@ msgid "Price"
 msgstr "價格"
 
 msgid "Filament price. For statistics only"
-msgstr "耗材絲的價格。只用於統計資訊。"
+msgstr "線材的價格。只用於統計資訊。"
 
 msgid "money/kg"
 msgstr "money/kg"
@@ -7806,7 +7803,7 @@ msgstr "首層掃描"
 msgid ""
 "Enable this to enable the camera on printer to check the quality of first "
 "layer"
-msgstr "開啟這個設置將打開印表機上的攝影機用於檢查首層列印質量。"
+msgstr "開啟這個設置將打開３Ｄ列印機上的攝影機用於檢查首層列印質量。"
 
 msgid "Nozzle type"
 msgstr "噴嘴類型"
@@ -7879,7 +7876,7 @@ msgid "G-code flavor"
 msgstr "G-code風格"
 
 msgid "What kind of gcode the printer is compatible with"
-msgstr "印表機相容的G-code風格'"
+msgstr "３Ｄ列印機相容的G-code風格'"
 
 msgid "Klipper"
 msgstr ""
@@ -7919,7 +7916,7 @@ msgstr ""
 "自動合併若干層稀疏填充一起列印以可縮短時間。內外牆依然保持原始層高列印。"
 
 msgid "Filament to print internal sparse infill."
-msgstr "列印內部稀疏填充的耗材絲"
+msgstr "列印內部稀疏填充的線材"
 
 msgid ""
 "Line width of internal sparse infill. If expressed as a %, it will be "
@@ -8179,7 +8176,7 @@ msgstr "主機類型"
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field must contain "
 "the kind of the host."
-msgstr "Slic3r可以將G-code文件上傳到印表機主機。此欄位必須包含主機類型。"
+msgstr "Slic3r可以將G-code文件上傳到３Ｄ列印機主機。此欄位必須包含主機類型。"
 
 msgid "Nozzle volume"
 msgstr "噴嘴內腔體積"
@@ -8434,7 +8431,7 @@ msgstr "裝填速度"
 msgid ""
 "Speed for reloading filament into extruder. Zero means same speed with "
 "retraction"
-msgstr "耗材絲裝填的速度，0表示和回抽速度一致。"
+msgstr "線材裝填的速度，0表示和回抽速度一致。"
 
 msgid "Use firmware retraction"
 msgstr "使用韌體回抽"
@@ -8597,7 +8594,7 @@ msgid "Start G-code when start the whole printing"
 msgstr "整個列印開始前的起始G-code"
 
 msgid "Start G-code when start the printing of this filament"
-msgstr "開始使用這個耗材絲列印的起始G-code"
+msgstr "開始使用這個線材列印的起始G-code"
 
 msgid "Slice gap closing radius"
 msgstr "切片間隙閉合半徑"
@@ -8705,7 +8702,7 @@ msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
 "filament for support and current filament is used"
 msgstr ""
-"列印支撐主體和筏層的耗材絲。\"預設\"代表不指定特定的耗材絲，並使用當前耗材"
+"列印支撐主體和筏層的線材。\"預設\"代表不指定特定的線材，並使用當前耗材"
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -8725,7 +8722,7 @@ msgstr "支撐/筏層界面"
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
 "for support interface and current filament is used"
-msgstr "列印支撐接觸面的耗材絲。\"預設\"代表不指定特定的耗材絲，並使用當前耗材"
+msgstr "列印支撐接觸面的線材。\"預設\"代表不指定特定的線材，並使用當前耗材"
 
 msgid "Top interface layers"
 msgstr "頂部接觸面層數"
@@ -9317,13 +9314,13 @@ msgid "Load General Settings"
 msgstr "載入通用設置"
 
 msgid "Load process/machine settings from the specified file"
-msgstr "從指定文件載入工藝/印表機設置"
+msgstr "從指定文件載入工藝/３Ｄ列印機設置"
 
 msgid "Load Filament Settings"
-msgstr "載入耗材絲設置"
+msgstr "載入線材設置"
 
 msgid "Load filament settings from the specified file list"
-msgstr "從指定文件載入耗材絲設置"
+msgstr "從指定文件載入線材設置"
 
 msgid "Skip Objects"
 msgstr "零件跳過"
@@ -9535,8 +9532,8 @@ msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
 msgstr ""
-"印表機當前的韌體版本不支持校準。\n"
-"請升級印表機韌體。"
+"３Ｄ列印機當前的韌體版本不支持校準。\n"
+"請升級３Ｄ列印機韌體。"
 
 msgid "Calibration not supported"
 msgstr "不支持校準"
@@ -9551,7 +9548,7 @@ msgid "Max Volumetric Speed"
 msgstr "最大容積速度"
 
 msgid "Please enter the name you want to save to printer."
-msgstr "請輸入要保存到印表機的名稱。"
+msgstr "請輸入要保存到３Ｄ列印機的名稱。"
 
 msgid "The name cannot exceed 40 characters."
 msgstr "名稱不能超過40個字元。"
@@ -9577,22 +9574,22 @@ msgid ""
 msgstr "您確定要取消當前的校準並返回首頁嗎？"
 
 msgid "No Printer Connected!"
-msgstr "沒有連接印表機！"
+msgstr "沒有連接３Ｄ列印機！"
 
 msgid "Printer is not connected yet."
-msgstr "印表機尚未連接。"
+msgstr "３Ｄ列印機尚未連接。"
 
 msgid "Please select filament to calibrate."
-msgstr "請選擇要校準的耗材絲。"
+msgstr "請選擇要校準的線材。"
 
 msgid "Connecting to printer..."
-msgstr "正在連接印表機..."
+msgstr "正在連接３Ｄ列印機..."
 
 msgid "The failed test result has been dropped."
 msgstr "測試失敗的結果已被刪除。"
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
-msgstr "動態流量校準的結果已保存至印表機。"
+msgstr "動態流量校準的結果已保存至３Ｄ列印機。"
 
 msgid "Internal Error"
 msgstr "內部錯誤"
@@ -9622,8 +9619,8 @@ msgid ""
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
-"我們現在已經為不同的列印材料添加了自動校準功能，該功能是完全自動化的，並且結"
-"果將保存在印表機中以供將來使用。您只需要在以下有限情況下進行校準：\n"
+"我們現在已經為不同的列印材料新增了自動校準功能，該功能是完全自動化的，並且結"
+"果將保存在３Ｄ列印機中以供將來使用。您只需要在以下有限情況下進行校準：\n"
 "1. 如果您引入了不同品牌/型號的新列印材料，或者列印材料受潮；\n"
 "2. 如果噴嘴磨損或更換了新的噴嘴；\n"
 "3. 如果您在列印材料設置中更改了最大體積速度或列印溫度。"
@@ -9653,8 +9650,8 @@ msgstr ""
 "請從我們的wiki中找到流量動態校準的詳細資訊。\n"
 "\n"
 "通常情況下，校準是不必要的。當您開始單色/單材料列印，並在列印開始選單中勾選"
-"了“流量動態校準”選項時，印表機將按照舊的方式，在列印前校準絲料；當您開始多色/"
-"多材料列印時，印表機將在每次換絲料時使用預設的補償參數，這在大多數情況下會產"
+"了“流量動態校準”選項時，３Ｄ列印機將按照舊的方式，在列印前校準絲料；當您開始多色/"
+"多材料列印時，３Ｄ列印機將在每次換絲料時使用預設的補償參數，這在大多數情況下會產"
 "生良好的效果。\n"
 "\n"
 "請注意，有幾種情況會導致校準結果不可靠：使用紋理板進行校準；建模平台黏附效果"
@@ -9700,7 +9697,7 @@ msgid ""
 "you still see the listed defects after you have done other calibrations. For "
 "more details, please check out the wiki article."
 msgstr ""
-"流量率校準測量預期擠出體積與實際擠出體積之間的比率。默認設置在Bambu Lab印表機"
+"流量率校準測量預期擠出體積與實際擠出體積之間的比率。默認設置在Bambu Lab３Ｄ列印機"
 "和官方材料上表現良好，因為它們已經進行了預先校準和微調。對於普通的材料，通常"
 "情況下，您不需要執行流量率校準，除非在完成其他校準後仍然看到上述列出的缺陷。"
 "如需更多詳細資訊，請查閱wiki文章。"
@@ -9732,7 +9729,7 @@ msgstr ""
 "種校準的準確性和相容性。\n"
 "\n"
 "注意：流量率校準是一項高級的過程，只有完全理解其目的和影響的人才應嘗試。錯誤"
-"的使用可能導致列印品質不佳或損壞印表機。請確保在執行之前仔細閱讀和理解此過"
+"的使用可能導致列印品質不佳或損壞３Ｄ列印機。請確保在執行之前仔細閱讀和理解此過"
 "程。"
 
 msgid "When you need Max Volumetric Speed Calibration"
@@ -9761,7 +9758,7 @@ msgstr ""
 msgid ""
 "*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
-msgstr "*我們建議您在名稱中添加品牌、材料、類型，甚至濕度水平。"
+msgstr "*我們建議您在名稱中加入品牌、材料、類型，甚至濕度水平。"
 
 msgid "Failed"
 msgstr "失敗"
@@ -9865,7 +9862,7 @@ msgid "Plate Type"
 msgstr "熱床類型"
 
 msgid "filament position"
-msgstr "耗材絲位置"
+msgstr "線材位置"
 
 msgid "External Spool"
 msgstr "外部線軸"
@@ -9896,10 +9893,10 @@ msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr "不支持TPU進行流量動態自動校準。"
 
 msgid "Connecting to printer"
-msgstr "正在連接印表機"
+msgstr "正在連接３Ｄ列印機"
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
-msgstr "噴嘴直徑已從印表機設置同步"
+msgstr "噴嘴直徑已從３Ｄ列印機設置同步"
 
 msgid "From Volumetric Speed"
 msgstr "從體積速度"
@@ -10176,7 +10173,7 @@ msgid "mm/mm"
 msgstr ""
 
 msgid "Physical Printer"
-msgstr "物理印表機"
+msgstr "物理３Ｄ列印機"
 
 msgid "Print Host upload"
 msgstr ""
@@ -10394,7 +10391,7 @@ msgid ""
 "model that actually need it."
 msgstr ""
 "繪製支撐\n"
-"您知道嗎，您可以手動繪製添加/屏蔽支撐的位置，此功能使僅將支撐材料放置在實際需"
+"您知道嗎，您可以手動繪製增加/隱藏支撐的位置，此功能使僅將支撐材料放置在實際需"
 "要的模型截面上變得容易。"
 
 #: resources/data/hints.ini: [hint:Different types of supports]
@@ -10488,13 +10485,13 @@ msgstr ""
 #~ msgstr "手動"
 
 #~ msgid "Ams filament backup"
-#~ msgstr "AMS耗材絲備份"
+#~ msgstr "AMS線材備份"
 
 #~ msgid "Feed new filament from external spool"
-#~ msgstr "將新的耗材絲推入擠出機"
+#~ msgstr "將新的線材推入擠出機"
 
 #~ msgid "Confirm whether the filament has been extruded"
-#~ msgstr "確認耗材絲是否已被擠出"
+#~ msgstr "確認線材是否已被擠出"
 
 #~ msgid "The region parameter is incorrrect"
 #~ msgstr "區域設置不正確"
@@ -10530,16 +10527,16 @@ msgstr ""
 #~ msgstr "訪問碼錯誤"
 
 #~ msgid "Send to Printer failed. Please try again."
-#~ msgstr "發送到印表機失敗。請重試。"
+#~ msgstr "發送到３Ｄ列印機失敗。請重試。"
 
 #~ msgid "No space left on Printer SD card"
-#~ msgstr "印表機SD卡上沒有剩餘空間"
+#~ msgstr "３Ｄ列印機SD卡上沒有剩餘空間"
 
 #~ msgid "Sending gcode file through cloud service"
 #~ msgstr "通過雲服務發送gcode文件"
 
 #~ msgid "Please log out and login to the printer again."
-#~ msgstr "請先退出登錄然後再重新登入印表機。"
+#~ msgstr "請先退出登錄然後再重新登入３Ｄ列印機。"
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "動態流量標定係數"
@@ -10551,10 +10548,10 @@ msgstr ""
 #~ msgstr "初始化失敗（不支持區域網路模式的影片連接）"
 
 #~ msgid "Initialize failed (Not supported by printer)!"
-#~ msgstr "初始化失敗（印表機不支持該功能）！"
+#~ msgstr "初始化失敗（３Ｄ列印機不支持該功能）！"
 
 #~ msgid "Not supported by this model of printer!"
-#~ msgstr "該型號的印表機不支持該功能！"
+#~ msgstr "該型號的３Ｄ列印機不支持該功能！"
 
 #~ msgid "No files"
 #~ msgstr "文件列表為空"
@@ -10563,7 +10560,7 @@ msgstr ""
 #~ msgstr "在區域網路模式中不可訪問！"
 
 #~ msgid "Missing LAN ip of printer!"
-#~ msgstr "未找到印表機的區域網路地址！"
+#~ msgstr "未找到３Ｄ列印機的區域網路地址！"
 
 #, c-format, boost-format
 #~ msgid "You are going to delete %u files. Are you sure to continue?"
@@ -10577,8 +10574,8 @@ msgstr ""
 #~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
 #~ "the printer by logging in with your user account."
 #~ msgstr ""
-#~ "由於LAN模式被禁用，已與印表機[%s]斷開連接。請使用您的用戶帳戶登入以重新連"
-#~ "接印表機。"
+#~ "由於LAN模式被禁用，已與３Ｄ列印機[%s]斷開連接。請使用您的用戶帳戶登入以重新連"
+#~ "接３Ｄ列印機。"
 
 #, c-format, boost-format
 #~ msgid ""
@@ -10586,8 +10583,8 @@ msgstr ""
 #~ "the printer by inputting Access Code which can be gotten from printer "
 #~ "screen."
 #~ msgstr ""
-#~ "由於啟用了LAN模式，已與印表機[%s]斷開連接。請通過輸入訪問碼重新連接列印"
-#~ "機，訪問碼可從印表機螢幕上獲取。"
+#~ "由於啟用了LAN模式，已與３Ｄ列印機[%s]斷開連接。請通過輸入訪問碼重新連接列印"
+#~ "機，訪問碼可從３Ｄ列印機螢幕上獲取。"
 
 #~ msgid "Media"
 #~ msgstr "影片檔案"
@@ -10599,7 +10596,7 @@ msgstr ""
 #~ msgstr "流量校準"
 
 #~ msgid "The printer is required to be in the same LAN as Orca Slicer."
-#~ msgstr "印表機需要與 Orcaslicer 在同一個區域網路內。"
+#~ msgstr "３Ｄ列印機需要與 Orcaslicer 在同一個區域網路內。"
 
 #~ msgid ""
 #~ "Click OK to update the Network plug-in when Orca Slicer launches next "
@@ -10611,7 +10608,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-#~ msgstr "步驟1, 請確認 Orcaslicer 和您的印表機在同一區域網路中。"
+#~ msgstr "步驟1, 請確認 Orcaslicer 和您的３Ｄ列印機在同一區域網路中。"
 
 #~ msgid ""
 #~ "The configuration may be generated by a newer version of BambuStudio."
@@ -10802,13 +10799,13 @@ msgstr ""
 #~ msgid ""
 #~ "Enable pressure advance, auto calibration result will be overwriten once "
 #~ "enabled. Useless for Bambu Printer"
-#~ msgstr "啟用壓力提前補償，啟用後自動校準結果將被覆蓋。對於Bambu印表機無效。"
+#~ msgstr "啟用壓力提前補償，啟用後自動校準結果將被覆蓋。對於Bambu３Ｄ列印機無效。"
 
 #~ msgid ""
 #~ "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 #~ "Bambu Printer"
 #~ msgstr ""
-#~ "壓力提前補償（Klipper）也稱為線性提前補償因子（Marlin）。對於Bambu印表機無"
+#~ "壓力提前補償（Klipper）也稱為線性提前補償因子（Marlin）。對於Bambu３Ｄ列印機無"
 #~ "效。"
 
 #~ msgid "Default line width if some line width is set to be zero"
@@ -10844,7 +10841,7 @@ msgstr ""
 #~ msgid ""
 #~ "Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
 #~ "firmware printer"
-#~ msgstr "啟用此選項以在Klipper韌體印表機的G代碼中添加“EXCLUDE OBJECT”命令。"
+#~ msgstr "啟用此選項以在Klipper韌體３Ｄ列印機的G代碼中新增“EXCLUDE OBJECT”命令。"
 
 #~ msgid "Length of sparse infill anchor"
 #~ msgstr "稀疏填充鉚線長度"
@@ -11044,7 +11041,7 @@ msgstr ""
 #~ msgid ""
 #~ "The P1P printer does not support smooth timelapse, use traditional "
 #~ "timelapse instead."
-#~ msgstr "P1P印表機不支持平滑模式的延時攝影，請改用傳統模式。"
+#~ msgstr "P1P３Ｄ列印機不支持平滑模式的延時攝影，請改用傳統模式。"
 
 #~ msgid "Support base"
 #~ msgstr "支撐主體"
@@ -11057,7 +11054,7 @@ msgstr ""
 #~ msgid ""
 #~ "Print a tower to prime material in nozzle after switching to a new "
 #~ "material."
-#~ msgstr "切換耗材絲時，列印擦拭塔來讓准配好噴嘴裡材料。"
+#~ msgstr "切換線材時，列印擦拭塔來讓准配好噴嘴裡材料。"
 
 #, c-format, boost-format
 #~ msgid ""
@@ -11102,7 +11099,7 @@ msgstr ""
 
 #, c-format, boost-format
 #~ msgid "Plate %d: %s does not support filament %s (%s)."
-#~ msgstr "盤 %d: %s 不支持耗材絲 %s(%s)."
+#~ msgstr "盤 %d: %s 不支持線材 %s(%s)."
 
 #~ msgid "Actual Volume = Flushing Volume * Multiplier"
 #~ msgstr "實際沖刷量 = 沖刷體積 * 乘數"
@@ -11162,20 +11159,20 @@ msgstr ""
 #~ msgstr "壓力提前"
 
 #~ msgid "Step 1. please confirm Orca Slicer and your printer are in same LAN."
-#~ msgstr "步驟1. 請確認 Orcaslicer 和您的印表機在同一區域網路中。"
+#~ msgstr "步驟1. 請確認 Orcaslicer 和您的３Ｄ列印機在同一區域網路中。"
 
 #~ msgid ""
 #~ "Step 2. if the IP and Access Code below are different from the actual "
 #~ "values on your printer,please correct them."
-#~ msgstr "步驟2. 如果下面的IP和訪問碼與印表機上的實際值不同，請更正它們。"
+#~ msgstr "步驟2. 如果下面的IP和訪問碼與３Ｄ列印機上的實際值不同，請更正它們。"
 
 #~ msgid "Unable to connect printer"
-#~ msgstr "無法連接印表機"
+#~ msgstr "無法連接３Ｄ列印機"
 
 #~ msgid ""
 #~ "Failed to connect to the printer through LAN. Please enter the correct "
 #~ "printer IP address and access code."
-#~ msgstr "無法通過區域網路連接印表機，請輸入正確的IP位址和訪問碼。"
+#~ msgstr "無法通過區域網路連接３Ｄ列印機，請輸入正確的IP位址和訪問碼。"
 
 #~ msgid ""
 #~ "Note : The location of IP and access code on the machine is as follows :"
@@ -11193,11 +11190,11 @@ msgstr ""
 #~ "Cannot detect the LAN IP address of %s. Are %s and Orca Slicer in the "
 #~ "same LAN?"
 #~ msgstr ""
-#~ "無法檢測到印表機%s 在區域網路中的的IP位址。%s 和  Orcaslicer 在同一個區域"
+#~ "無法檢測到３Ｄ列印機%s 在區域網路中的的IP位址。%s 和  Orcaslicer 在同一個區域"
 #~ "網路內嗎？"
 
 #~ msgid "Click the pencil icon to edit the filament."
-#~ msgstr "點擊鉛筆圖示編輯耗材絲。"
+#~ msgstr "點擊鉛筆圖示編輯線材。"
 
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
@@ -11227,7 +11224,7 @@ msgstr ""
 #~ "包含如下資訊:\n"
 #~ "1. 工藝預設\n"
 #~ "2. 列印絲預設\n"
-#~ "3. 印表機預設\n"
+#~ "3. ３Ｄ列印機預設\n"
 
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
@@ -11240,7 +11237,7 @@ msgstr ""
 #~ msgstr "該3mf文件的版本%s 比%s的版本%s更新，建議升級您的軟體。\n"
 
 #~ msgid "Plate %d: %s does not support filament %s (%s).\n"
-#~ msgstr "盤%d：%s不支持耗材絲%s (%s)。\n"
+#~ msgstr "盤%d：%s不支持線材%s (%s)。\n"
 
 #~ msgid ""
 #~ "Please check the following infomation and click Confirm to continue "
@@ -11252,7 +11249,7 @@ msgstr ""
 #~ "currently selected physical printer. It is recommend to re-slice by "
 #~ "selecting the same printer type.\n"
 #~ msgstr ""
-#~ "用於生成G-code的印表機類型與當前選定的物理印表機類型不同，建議選擇相同的打"
+#~ "用於生成G-code的３Ｄ列印機類型與當前選定的物理３Ｄ列印機類型不同，建議選擇相同的打"
 #~ "印機類型重新切片。\n"
 
 #~ msgid ""
@@ -11278,8 +11275,8 @@ msgstr ""
 #~ "by right-click the empty position of build plate and choose \"Add "
 #~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
 #~ msgstr ""
-#~ "在錄製無工具頭延時攝影影片時，建議添加“延時攝影擦料塔”\n"
-#~ "右鍵單擊構建板的空白位置，選擇“添加標準模型”->“延時攝影擦料塔”。\n"
+#~ "在錄製無工具頭延時攝影影片時，建議增加“延時攝影擦料塔”\n"
+#~ "右鍵單擊構建板的空白位置，選擇“新增標準模型”->“延時攝影擦料塔”。\n"
 
 #~ msgid " is too close to others, there may be collisions when printing.\n"
 #~ msgstr "到其他對象的距離太近了，可能在列印過程中發生碰撞。\n"
@@ -11289,7 +11286,7 @@ msgstr ""
 #~ msgstr "到屏蔽區域的距離太近了，可能在列印過程中發生碰撞。\n"
 
 #~ msgid "Plate %d: %s does not support filament %s\n"
-#~ msgstr "盤%d: %s 不支持耗材絲 %s\n"
+#~ msgstr "盤%d: %s 不支持線材 %s\n"
 
 #~ msgid ""
 #~ "Do not recommand bed temperature of other layer to be lower than initial "
@@ -11313,7 +11310,7 @@ msgstr ""
 #~ "Filament to print support and raft. \"Default\" means no specific "
 #~ "filament for support and current filament is used"
 #~ msgstr ""
-#~ "列印支撐和筏層的耗材絲。\"預設\"代表不指定特定的耗材絲，並使用當前耗材"
+#~ "列印支撐和筏層的線材。\"預設\"代表不指定特定的線材，並使用當前耗材"
 
 #~ msgid ""
 #~ "Spiral mode only works when wall loops is 1, \n"
@@ -11367,12 +11364,12 @@ msgstr ""
 #~ msgid ""
 #~ "Filament to print support and skirt. 0 means no specific filament for "
 #~ "support and current filament is used"
-#~ msgstr "列印支撐和skirt的耗材絲。0代表不指定特定的耗材絲，並使用當前耗材"
+#~ msgstr "列印支撐和skirt的線材。0代表不指定特定的線材，並使用當前耗材"
 
 #~ msgid ""
 #~ "Filament to print support interface. 0 means no specific filament for "
 #~ "support interface and current filament is used"
-#~ msgstr "列印支撐接觸面的耗材絲。0代表不指定特定的耗材絲，並使用當前耗材"
+#~ msgstr "列印支撐接觸面的線材。0代表不指定特定的線材，並使用當前耗材"
 
 #~ msgid "Repair"
 #~ msgstr "修復"
@@ -11429,7 +11426,7 @@ msgstr ""
 #~ msgstr "牆分布計數"
 
 #~ msgid "Send to Printer"
-#~ msgstr "發送到印表機"
+#~ msgstr "發送到３Ｄ列印機"
 
 #~ msgid ""
 #~ "Virtual camera is started.\n"
@@ -11452,7 +11449,7 @@ msgstr ""
 #~ msgstr "導出成功."
 
 #~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "盤%d：%s不支持耗材絲%s\n"
+#~ msgstr "盤%d：%s不支持線材%s\n"
 
 #~ msgid "Not supported."
 #~ msgstr "不支持"
@@ -11476,7 +11473,7 @@ msgstr ""
 #~ msgstr "消耗"
 
 #~ msgid "Filament 1"
-#~ msgstr "耗材絲 1"
+#~ msgstr "線材 1"
 
 #~ msgid "Flushed filament"
 #~ msgstr "換料沖刷消耗"
@@ -11521,7 +11518,7 @@ msgstr ""
 #~ msgstr "導出切片文件"
 
 #~ msgid "Add Custom Printer"
-#~ msgstr "添加自訂印表機"
+#~ msgstr "新增自訂３Ｄ列印機"
 
 #~ msgid "Show Log"
 #~ msgstr "顯示日誌"
@@ -11734,7 +11731,7 @@ msgstr ""
 #~ msgid ""
 #~ "It seems object %s needs support to print. Please enable support "
 #~ "generation."
-#~ msgstr "對象“%s”可能需要添加支撐才能列印。建議開啟支撐生成。"
+#~ msgstr "對象“%s”可能需要增加支撐才能列印。建議開啟支撐生成。"
 
 #~ msgid ""
 #~ "The model has overlapping or self-intersecting facets. I tried to repair "
@@ -11762,7 +11759,7 @@ msgstr ""
 #~ "The filament index exceeds the AMS's slot count and cannot send the print "
 #~ "job."
 #~ msgstr ""
-#~ "印表機韌體僅支持材料=>AMS槽位的順序映射。材料編號超過AMS的槽位數量，無法發"
+#~ "３Ｄ列印機韌體僅支持材料=>AMS槽位的順序映射。材料編號超過AMS的槽位數量，無法發"
 #~ "送列印任務。"
 
 #~ msgid "Timelapse without toolhead"
@@ -11784,13 +11781,13 @@ msgstr ""
 #~ msgstr "無法創建zip壓縮文件"
 
 #~ msgid "Printer firmware does not support material = >ams slot mapping."
-#~ msgstr "印表機韌體不支持材料=>AMS槽位映射"
+#~ msgstr "３Ｄ列印機韌體不支持材料=>AMS槽位映射"
 
 #~ msgid "Filaments Selection"
 #~ msgstr "材料選擇"
 
 #~ msgid "Printer Selection"
-#~ msgstr "印表機選擇"
+#~ msgstr "３Ｄ列印機選擇"
 
 #~ msgid "Auto arrange"
 #~ msgstr "自動擺盤"
@@ -11803,8 +11800,8 @@ msgstr ""
 #~ "front left corner to cut filament in multi-material printing. The area is "
 #~ "expressed as polygon by points in following format: \"XxY, XxY, ...\""
 #~ msgstr ""
-#~ "XY平面上的不可列印區域。例如，X1系列印表機在換料過程中，會使用左前角區域來"
-#~ "切斷耗材絲。這個多邊形區域由以下格式的點表示：“XxY，XxY，…”"
+#~ "XY平面上的不可列印區域。例如，X1系列３Ｄ列印機在換料過程中，會使用左前角區域來"
+#~ "切斷線材。這個多邊形區域由以下格式的點表示：“XxY，XxY，…”"
 
 #~ msgid "Connect %s[SN:%s] failed!"
 #~ msgstr "連接 %s[SN:%s]失敗."
@@ -11869,7 +11866,7 @@ msgstr ""
 #~ "包含如下資訊:\n"
 #~ "1. 工藝預設\n"
 #~ "2. 列印絲預設\n"
-#~ "3. 印表機預設\n"
+#~ "3. ３Ｄ列印機預設\n"
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "通過雲端修復模型"
@@ -11888,7 +11885,7 @@ msgstr ""
 #~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
-#~ msgstr "送出新的耗材絲到擠出機"
+#~ msgstr "送出新的線材到擠出機"
 
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
 #~ msgstr "已發送完成，即將自動跳轉到設備頁面 (%s 秒）"
@@ -11903,11 +11900,11 @@ msgstr ""
 #~ "是否從Bambu雲同步您的個人數據？\n"
 #~ "包含以下資訊：\n"
 #~ "1. 工藝預設\n"
-#~ "2. 耗材絲預設\n"
-#~ "3. 印表機預設\n"
+#~ "2. 線材預設\n"
+#~ "3. ３Ｄ列印機預設\n"
 
 #~ msgid "Please upgrade your printer first"
-#~ msgstr "請先升級印表機韌體"
+#~ msgstr "請先升級３Ｄ列印機韌體"
 
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "切換雲環境，請重新登入!"
@@ -11915,7 +11912,7 @@ msgstr ""
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
 #~ "latest version before sending the print job"
-#~ msgstr "印表機和AMS韌體版本過低，請更新到最新版本方可發送列印"
+#~ msgstr "３Ｄ列印機和AMS韌體版本過低，請更新到最新版本方可發送列印"
 
 #~ msgid "Output file"
 #~ msgstr "輸出文件"
@@ -12025,18 +12022,18 @@ msgstr ""
 #~ msgstr "振動校準"
 
 #~ msgid "Please select a printer first."
-#~ msgstr "請先選擇一台印表機。"
+#~ msgstr "請先選擇一台３Ｄ列印機。"
 
 #~ msgid ""
 #~ "The printer is updating firmware. Please send it after the update is "
 #~ "completed"
-#~ msgstr "印表機正在更新韌體，請在更新完成後發送"
+#~ msgstr "３Ｄ列印機正在更新韌體，請在更新完成後發送"
 
 #~ msgid "Enable spaghetti detector"
 #~ msgstr "炒麵檢測"
 
 #~ msgid "Enable the camera on printer to check spaghetti"
-#~ msgstr "開啟印表機的攝影機檢查是否發生炒麵。"
+#~ msgstr "開啟３Ｄ列印機的攝影機檢查是否發生炒麵。"
 
 #~ msgid ""
 #~ "The calibration program detects the status of your device automatically "
@@ -12052,7 +12049,7 @@ msgstr ""
 #~ msgstr "校準程序會自動檢測設備以最小化設備誤差。它可以讓設備保持最佳性能。"
 
 #~ msgid "Reading printer info timed out"
-#~ msgstr "讀取印表機資訊超時"
+#~ msgstr "讀取３Ｄ列印機資訊超時"
 
 #~ msgid "Per Object Setting"
 #~ msgstr "對象設置"
@@ -12094,7 +12091,7 @@ msgstr ""
 #~ msgstr "請手動選擇列印絲"
 
 #~ msgid "The printer is being updated. Please try again after the update."
-#~ msgstr "印表機正在更新。 請更新後重試。"
+#~ msgstr "３Ｄ列印機正在更新。 請更新後重試。"
 
 #~ msgid "Exporting 3mf..."
 #~ msgstr "正在導出3mf..."
@@ -12106,13 +12103,13 @@ msgstr ""
 #~ msgstr "導出3mf失敗，請重新切片。"
 
 #~ msgid "No printer available"
-#~ msgstr "沒有可用的印表機"
+#~ msgstr "沒有可用的３Ｄ列印機"
 
 #~ msgid "Current printer is busy"
-#~ msgstr "當前印表機正忙"
+#~ msgstr "當前３Ｄ列印機正忙"
 
 #~ msgid "Current printer is printing now"
-#~ msgstr "當前印表機正在列印中"
+#~ msgstr "當前３Ｄ列印機正在列印中"
 
 #~ msgid "YES"
 #~ msgstr "是"
@@ -12121,7 +12118,7 @@ msgstr ""
 #~ msgstr "否"
 
 #~ msgid "Reading printer information..."
-#~ msgstr "正在讀取印表機資訊"
+#~ msgstr "正在讀取３Ｄ列印機資訊"
 
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
@@ -12134,7 +12131,7 @@ msgstr ""
 #~ "包含如下資訊:\n"
 #~ "1. 工藝預設\n"
 #~ "2. 列印絲預設\n"
-#~ "3. 印表機預設\n"
+#~ "3. ３Ｄ列印機預設\n"
 
 #~ msgid "Machine Control"
 #~ msgstr "控制"
@@ -12228,7 +12225,7 @@ msgstr ""
 #~ msgstr "顯示每日小建議"
 
 #~ msgid "Choose Filaments"
-#~ msgstr "選擇耗材絲"
+#~ msgstr "選擇線材"
 
 #~ msgid "Bind Dialog"
 #~ msgstr "綁定對話框"
@@ -12237,7 +12234,7 @@ msgstr ""
 #~ msgstr "溫度和軸移動控制"
 
 #~ msgid "Current printer is busy. Please select another one."
-#~ msgstr "當前印表機正忙，請選擇另一台印表機。"
+#~ msgstr "當前３Ｄ列印機正忙，請選擇另一台３Ｄ列印機。"
 
 #~ msgid "Orca Slicer initialization failed"
 #~ msgstr " Orcaslicer 初始化失敗"
@@ -12291,7 +12288,7 @@ msgstr ""
 #~ msgstr "等待任務發送完成。"
 
 #~ msgid "The print job has been sent to your printer."
-#~ msgstr "列印任務已發送至印表機。"
+#~ msgstr "列印任務已發送至３Ｄ列印機。"
 
 #~ msgid "Invalid plate index %d"
 #~ msgstr "無效的盤索引 %d"
@@ -12392,10 +12389,10 @@ msgstr ""
 #~ msgstr "支撐材料"
 
 #~ msgid "Filament to print support and skirt."
-#~ msgstr "列印支撐和skirt的耗材絲"
+#~ msgstr "列印支撐和skirt的線材"
 
 #~ msgid "Filament to print support interface"
-#~ msgstr "列印支撐接觸面的耗材絲"
+#~ msgstr "列印支撐接觸面的線材"
 
 #~ msgid "Import STL/OBJ/AMF/3MF without config, keep plater"
 #~ msgstr "導入STL/OBJ/AMF/3MF"
@@ -12431,7 +12428,7 @@ msgstr ""
 #~ msgstr "攝影機視角 - 右面"
 
 #~ msgid "1-9 Set part consumable wire"
-#~ msgstr "1-9 設置零件耗材絲"
+#~ msgstr "1-9 設置零件線材"
 
 #~ msgid "overall_shortcuts"
 #~ msgstr "全局快捷鍵"
@@ -12623,43 +12620,43 @@ msgstr ""
 #~ msgstr "不同懸垂程度的列印速度。懸垂程度使用相對於線寬的百分表示"
 
 #~ msgid "Log in Printer"
-#~ msgstr "登錄印表機"
+#~ msgstr "登錄３Ｄ列印機"
 
 #~ msgid "Log out failed."
 #~ msgstr "登出失敗。"
 
 #~ msgid "Would you like to log in the current account from this printer?"
-#~ msgstr "你想使用當前帳號登入印表機嗎?"
+#~ msgstr "你想使用當前帳號登入３Ｄ列印機嗎?"
 
 #~ msgid "Log in success."
 #~ msgstr "登錄成功。"
 
 #~ msgid "Log out Printer"
-#~ msgstr "登出印表機"
+#~ msgstr "登出３Ｄ列印機"
 
 #~ msgid "Would you like to log out the current account from this printer?"
-#~ msgstr "你想使用當前帳號登出印表機嗎?"
+#~ msgstr "你想使用當前帳號登出３Ｄ列印機嗎?"
 
 #~ msgid "Log out success."
 #~ msgstr "登出成功。"
 
 #~ msgid "Invalid printer. Please select a printer."
-#~ msgstr "無效的印表機。 請選擇一台印表機。"
+#~ msgstr "無效的３Ｄ列印機。 請選擇一台３Ｄ列印機。"
 
 #~ msgid "Plese select an action"
 #~ msgstr "請選擇處理方式"
 
 #~ msgid "Click the pencil icon to edit the filament"
-#~ msgstr "點擊鉛筆圖示編輯耗材絲"
+#~ msgstr "點擊鉛筆圖示編輯線材"
 
 #~ msgid "Send Task to"
 #~ msgstr "發送任務至"
 
 #~ msgid "Selected a printer"
-#~ msgstr "選擇印表機"
+#~ msgstr "選擇３Ｄ列印機"
 
 #~ msgid "Please select a printer first!"
-#~ msgstr "請先選擇印表機!"
+#~ msgstr "請先選擇３Ｄ列印機!"
 
 #~ msgid "Please fill report first!"
 #~ msgstr "請先填寫報告！"
@@ -12834,20 +12831,20 @@ msgstr ""
 #~ msgstr "升級"
 
 #~ msgid "Filament N"
-#~ msgstr "耗材絲 N"
+#~ msgstr "線材 N"
 
 #~ msgid "Unable to connect server"
 #~ msgstr "無法連線到伺服器"
 
 #~ msgid "Unable to get printer status"
-#~ msgstr "無法獲取印表機狀態"
+#~ msgstr "無法獲取３Ｄ列印機狀態"
 
 #~ msgid "Tip: Click the button to edit your filament"
-#~ msgstr "提示：點擊此按鈕以編輯耗材絲"
+#~ msgstr "提示：點擊此按鈕以編輯線材"
 
 #~ msgid ""
 #~ "Before loading, please make sure the filament is pushed into toolhead."
-#~ msgstr "載入前，請確保耗材絲已送入到工具頭內。"
+#~ msgstr "載入前，請確保線材已送入到工具頭內。"
 
 #~ msgid "Remove frequency sweep gcode"
 #~ msgstr "跳過掃頻"
@@ -12868,7 +12865,7 @@ msgstr ""
 #~ msgstr "打開這個設置將跳過開始列印時的擠出標定。"
 
 #~ msgid "Monitor"
-#~ msgstr "印表機"
+#~ msgstr "３Ｄ列印機"
 
 #~ msgid "Modifications to the preset have been saved"
 #~ msgid_plural "Modifications to the presets have been saved"
@@ -12888,10 +12885,10 @@ msgstr ""
 #~ "包含以下資訊：\n"
 #~ "1. 工藝預設；\n"
 #~ "2. 列印絲預設；\n"
-#~ "3. 印表機預設；\n"
+#~ "3. ３Ｄ列印機預設；\n"
 
 #~ msgid "Current bed type do not support filament "
-#~ msgstr "當前熱床不支持耗材絲"
+#~ msgstr "當前熱床不支持線材"
 
 #~ msgid "Load from disk"
 #~ msgstr "從硬碟載入"
@@ -12994,7 +12991,7 @@ msgstr ""
 #~ msgstr "熱床類型"
 
 #~ msgid "current printer is busy! please select another!"
-#~ msgstr "當前印表機繁忙! 請選擇另一個!"
+#~ msgstr "當前３Ｄ列印機繁忙! 請選擇另一個!"
 
 #~ msgid ""
 #~ "This plate is locked,\n"
@@ -13168,7 +13165,7 @@ msgstr ""
 #~ "時，切片時將增加底部層數"
 
 #~ msgid "Filament to print support, raft and skirt"
-#~ msgstr "列印支撐，筏層和skirt時使用的耗材絲"
+#~ msgstr "列印支撐，筏層和skirt時使用的線材"
 
 #~ msgid ""
 #~ "Zero tree support branch distance is invalid.\n"
@@ -13186,7 +13183,7 @@ msgstr ""
 #~ msgstr "樹狀支撐碰撞解析度不可為0。將重設為0.2"
 
 #~ msgid "Add..."
-#~ msgstr "添加..."
+#~ msgstr "新增..."
 
 #~ msgid "Project Slicing: "
 #~ msgstr "項目切片："
@@ -13405,7 +13402,7 @@ msgstr ""
 #~ "This setting limits how much volume of filament can be milted and "
 #~ "extruded per second. Printing speed is limited by max volumetric speed, "
 #~ "in case of too high and unreasonable speed setting. Zero means no limit"
-#~ msgstr "這個設置限制了耗材絲在1秒內可以被融化和擠出的最大體積。列印速度"
+#~ msgstr "這個設置限制了線材在1秒內可以被融化和擠出的最大體積。列印速度"
 
 #~ msgid "Select a gcode file:"
 #~ msgstr "選擇GCode文件："
@@ -13437,7 +13434,7 @@ msgstr ""
 #~ msgid ""
 #~ "It seems your model needs support to print! Please enable support "
 #~ "material."
-#~ msgstr "可能需要為您的模型添加支撐以確保成功列印！"
+#~ msgstr "可能需要為您的模型新增支撐以確保成功列印！"
 
 #~ msgid "Paint-on supports"
 #~ msgstr "繪製支撐"
@@ -13585,13 +13582,13 @@ msgstr ""
 #~ msgstr "SLA 材料"
 
 #~ msgid "Custom Printer Setup"
-#~ msgstr "自訂印表機設置"
+#~ msgstr "自訂３Ｄ列印機設置"
 
 #~ msgid "Custom Printer"
-#~ msgstr "自訂印表機"
+#~ msgstr "自訂３Ｄ列印機"
 
 #~ msgid "Define a custom printer profile"
-#~ msgstr "定義自訂印表機配置文件"
+#~ msgstr "定義自訂３Ｄ列印機配置文件"
 
 #~ msgid "Custom profile name:"
 #~ msgstr "自訂配置檔案名稱："
@@ -13603,28 +13600,28 @@ msgstr ""
 #~ msgstr "無效的數字輸入。"
 
 #~ msgid "Filament and Nozzle Diameters"
-#~ msgstr "耗材絲和噴嘴直徑"
+#~ msgstr "線材和噴嘴直徑"
 
 #~ msgid "Print Diameters"
 #~ msgstr "列印直徑"
 
 #~ msgid "Enter the diameter of your printer's hot end nozzle."
-#~ msgstr "輸入印表機熱端噴嘴的直徑。"
+#~ msgstr "輸入３Ｄ列印機熱端噴嘴的直徑。"
 
 #~ msgid "Nozzle Diameter:"
 #~ msgstr "噴嘴直徑："
 
 #~ msgid "Enter the diameter of your filament."
-#~ msgstr "輸入耗材絲的直徑。"
+#~ msgstr "輸入線材的直徑。"
 
 #~ msgid ""
 #~ "Good precision is required, so use a caliper and do multiple measurements "
 #~ "along the filament, then compute the average."
 #~ msgstr ""
-#~ "需要良好的精度, 因此請使用游标卡尺, 沿耗材絲進行多次測量, 然後計算平均值。"
+#~ "需要良好的精度, 因此請使用游标卡尺, 沿線材進行多次測量, 然後計算平均值。"
 
 #~ msgid "Filament Diameter:"
-#~ msgstr "耗材絲直徑:"
+#~ msgstr "線材直徑:"
 
 #~ msgid "Temperatures"
 #~ msgstr "溫度"
@@ -13649,7 +13646,7 @@ msgstr ""
 #~ msgstr "熱床溫度:"
 
 #~ msgid "Select all standard printers"
-#~ msgstr "選擇所有標準印表機"
+#~ msgstr "選擇所有標準３Ｄ列印機"
 
 #~ msgid "< &Back"
 #~ msgstr "< &返回"
@@ -13712,7 +13709,7 @@ msgstr ""
 #~ msgstr "熱床形狀和大小"
 
 #~ msgid "Set the shape of your printer's bed."
-#~ msgstr "設置印表機熱床的形狀。"
+#~ msgstr "設置３Ｄ列印機熱床的形狀。"
 
 #~ msgid "One layer mode"
 #~ msgstr "一層模式"
@@ -13767,7 +13764,7 @@ msgstr ""
 #~ msgstr "選擇 耗材設置 選項卡"
 
 #~ msgid "Select Printer Settings Tab"
-#~ msgstr "選擇 印表機設置 選項卡"
+#~ msgstr "選擇 ３Ｄ列印機設置 選項卡"
 
 #~ msgid "Switch to 3D"
 #~ msgstr "切換到3D"
@@ -13782,7 +13779,7 @@ msgstr ""
 #~ msgstr "整理選中的"
 
 #~ msgid "Add Instance of the selected object"
-#~ msgstr "添加所選對象的實例"
+#~ msgstr "新增所選對象的實例"
 
 #~ msgid "Remove Instance of the selected object"
 #~ msgstr "刪除所選對象的實例"
@@ -13874,7 +13871,7 @@ msgstr ""
 #~ msgstr "混合"
 
 #~ msgid "Printer technology"
-#~ msgstr "印表機類型"
+#~ msgstr "３Ｄ列印機類型"
 
 #~ msgid "Between objects G-code"
 #~ msgstr "逐件列印G-code"
@@ -13901,16 +13898,16 @@ msgstr ""
 #~ msgstr "外牆"
 
 #~ msgid "Filament to print walls"
-#~ msgstr "列印外牆的耗材絲"
+#~ msgstr "列印外牆的線材"
 
 #~ msgid "Printer type"
-#~ msgstr "印表機類型"
+#~ msgstr "３Ｄ列印機類型"
 
 #~ msgid "Type of the printer"
-#~ msgstr "印表機類型"
+#~ msgstr "３Ｄ列印機類型"
 
 #~ msgid "Printer variant"
-#~ msgstr "印表機變種"
+#~ msgstr "３Ｄ列印機變種"
 
 #~ msgid "Retract on layer change"
 #~ msgstr "換層時回抽"
@@ -13931,7 +13928,7 @@ msgstr ""
 #~ msgstr "實心填充"
 
 #~ msgid "Filament to print solid infill."
-#~ msgstr "列印實心填充的耗材絲"
+#~ msgstr "列印實心填充的線材"
 
 #~ msgid "Solid layers"
 #~ msgstr "實心層數"
@@ -14146,7 +14143,7 @@ msgstr ""
 #~ msgstr "高亮懸空區域"
 
 #~ msgid "Enforce"
-#~ msgstr "添加"
+#~ msgstr "新增"
 
 #~ msgid "Overhang Threshold Angle"
 #~ msgstr "懸空角度閾值"
@@ -14204,7 +14201,7 @@ msgstr ""
 #~ msgstr "韌體類型"
 
 #~ msgid "Choose the type of firmware used by your printer."
-#~ msgstr "選擇印表機使用的韌體類型。"
+#~ msgstr "選擇３Ｄ列印機使用的韌體類型。"
 
 #~ msgid "Select by rectangle"
 #~ msgstr "框選"
@@ -14231,13 +14228,13 @@ msgstr ""
 #~ msgstr "對象順序已改變"
 
 #~ msgid "Layer setting added"
-#~ msgstr "層設置已添加"
+#~ msgstr "層設置已新增"
 
 #~ msgid "Part setting added"
-#~ msgstr "零件設置已添加"
+#~ msgstr "零件設置已新增"
 
 #~ msgid "Object setting added"
-#~ msgstr "對象設置已添加"
+#~ msgstr "對象設置已新增"
 
 #~ msgid "Height range settings added"
 #~ msgstr "高度範圍設置已填加"
@@ -14255,7 +14252,7 @@ msgstr ""
 #~ msgstr "載入修改器"
 
 #~ msgid "Add primitive"
-#~ msgstr "添加元件"
+#~ msgstr "新增元件"
 
 #~ msgid "Remove support painting"
 #~ msgstr "移除支撐繪製"
@@ -14273,13 +14270,13 @@ msgstr ""
 #~ msgstr "合併零件為一個對象"
 
 #~ msgid "Add layers"
-#~ msgstr "添加層"
+#~ msgstr "新增層"
 
 #~ msgid "Remove selected from list"
 #~ msgstr "從列表中移除所選項"
 
 #~ msgid "Add selected to list"
-#~ msgstr "添加所選項到列表"
+#~ msgstr "新增所選項到列表"
 
 #~ msgid "Change part type"
 #~ msgstr "更換零件類型"
@@ -14288,7 +14285,7 @@ msgstr ""
 #~ msgstr "分隔對象的實例"
 
 #~ msgid "Change Filaments"
-#~ msgstr "更換耗材絲"
+#~ msgstr "更換線材"
 
 #~ msgid "Additional Settings"
 #~ msgstr "其他設置"
@@ -14334,19 +14331,19 @@ msgstr ""
 #~ msgstr "還原單位米轉換"
 
 #~ msgid "Are you sure to delete \"%1%\" printer?"
-#~ msgstr "確定要刪除印表機“%1%”？"
+#~ msgstr "確定要刪除３Ｄ列印機“%1%”？"
 
 #~ msgid "Delete Physical Printer"
-#~ msgstr "刪除印表機"
+#~ msgstr "刪除３Ｄ列印機"
 
 #~ msgid "Add physical printer"
-#~ msgstr "添加印表機"
+#~ msgstr "新增３Ｄ列印機"
 
 #~ msgid "Edit physical printer"
-#~ msgstr "編輯印表機"
+#~ msgstr "編輯３Ｄ列印機"
 
 #~ msgid "Delete physical printer"
-#~ msgstr "刪除印表機"
+#~ msgstr "刪除３Ｄ列印機"
 
 #~ msgid "Fialment Change - Purging volume adjustment"
 #~ msgstr "材料更換 - 沖刷體積調整"
@@ -14354,18 +14351,18 @@ msgstr ""
 #~ msgid ""
 #~ "Here you can adjust required purging volume (mm³) for any given pair of "
 #~ "filaments."
-#~ msgstr "您可以在此為任意兩個耗材絲調整所需的沖刷體積（mm³）"
+#~ msgstr "您可以在此為任意兩個線材調整所需的沖刷體積（mm³）"
 
 #~ msgid "Fiament changed to"
-#~ msgstr "耗材絲切換到"
+#~ msgstr "線材切換到"
 
 #~ msgid ""
 #~ "Total purging volume is calculated by summing two values below, depending "
 #~ "on which filaments are loaded/unloaded."
-#~ msgstr "總沖刷量通過累加兩個數值得到，依賴於被加載/卸載的耗材絲。"
+#~ msgstr "總沖刷量通過累加兩個數值得到，依賴於被加載/卸載的線材。"
 
 #~ msgid "Volume to purge (mm³) when the filament is being"
-#~ msgstr "沖刷體積 (mm³) 當耗材絲被"
+#~ msgstr "沖刷體積 (mm³) 當線材被"
 
 #~ msgid ""
 #~ "Switching to simple settings will discard changes done in the advanced "
@@ -14397,7 +14394,7 @@ msgstr ""
 #~ msgid ""
 #~ "Preset with name \"%1%\" already exists and is incompatible with selected "
 #~ "printer."
-#~ msgstr "名為 \"%1%\" 的預設已存在。而且它和所選的印表機不相容。"
+#~ msgstr "名為 \"%1%\" 的預設已存在。而且它和所選的３Ｄ列印機不相容。"
 
 #~ msgid "Note: This preset will be replaced after saving"
 #~ msgstr "注意：這個預設會在保存後被替換"
@@ -14412,14 +14409,14 @@ msgstr ""
 #~ "You have selected physical printer \"%1%\" \n"
 #~ "with related printer preset \"%2%\""
 #~ msgstr ""
-#~ "您已選擇物理印表機 “%1%”\n"
-#~ "以及相關的印表機預設“%2%”"
+#~ "您已選擇物理３Ｄ列印機 “%1%”\n"
+#~ "以及相關的３Ｄ列印機預設“%2%”"
 
 #~ msgid "What would you like to do with \"%1%\" preset after saving?"
 #~ msgstr "在保存預設%1%後，您希望對它做什麼操作？"
 
 #~ msgid "Change \"%1%\" to \"%2%\" for this physical printer \"%3%\""
-#~ msgstr "為這台物理印表機%3%，從“%1%”改變到“%2%”"
+#~ msgstr "為這台物理３Ｄ列印機%3%，從“%1%”改變到“%2%”"
 
 #~ msgid "Add \"%1%\" as a next preset for the the physical printer \"%2%\""
 #~ msgstr "為這台物理列印%2%，把“%1%”增加為下一個預設"
@@ -14476,7 +14473,7 @@ msgstr ""
 #~ msgstr "材料設置標籤"
 
 #~ msgid "Printer Settings Tab"
-#~ msgstr "印表機設置標籤"
+#~ msgstr "３Ｄ列印機設置標籤"
 
 #~ msgid "Undo History"
 #~ msgstr "撤銷歷史操作"
@@ -14544,7 +14541,7 @@ msgstr ""
 #~ msgstr "總尺寸："
 
 #~ msgid "Selection-Add from rectangle"
-#~ msgstr "從矩形選擇-添加"
+#~ msgstr "從矩形選擇-新增"
 
 #~ msgid "Selection-Remove from rectangle"
 #~ msgstr "從矩形中選擇-刪除"
@@ -14557,7 +14554,7 @@ msgstr ""
 #~ "supports. For this reason, only the first %1% extruders will be able to "
 #~ "be used for painting."
 #~ msgstr ""
-#~ "印表機上的材料個數超出了多材料塗色工具支持的上限。因此，僅前%1%個材料會被"
+#~ "３Ｄ列印機上的材料個數超出了多材料塗色工具支持的上限。因此，僅前%1%個材料會被"
 #~ "用作塗色。"
 
 #~ msgid "First color"
@@ -14567,7 +14564,7 @@ msgstr ""
 #~ msgstr "第二個顏色"
 
 #~ msgid "Painted using: Extruder %1%"
-#~ msgstr "繪製使用：耗材絲 %1%"
+#~ msgstr "繪製使用：線材 %1%"
 
 #~ msgid ""
 #~ "ERROR: Please close all manipulators available from the left toolbar first"
@@ -14724,16 +14721,16 @@ msgstr ""
 #~ "Printer Settings anymore.\n"
 #~ "Settings will be available in physical printers settings."
 #~ msgstr ""
-#~ "但是從這個 Orcaslicer 版本開始，我們不再在印表機設置中顯示這個資訊了。\n"
-#~ "設置會被放置於物理印表機設置中。"
+#~ "但是從這個 Orcaslicer 版本開始，我們不再在３Ｄ列印機設置中顯示這個資訊了。\n"
+#~ "設置會被放置於物理３Ｄ列印機設置中。"
 
 #~ msgid ""
 #~ "By default new Printer devices will be named as \"Printer N\" during its "
 #~ "creation.\n"
 #~ "Note: This name can be changed later from the physical printers settings"
 #~ msgstr ""
-#~ "新的印表機設備會在創建時被預設命名為“印表機 N”。\n"
-#~ "注意：這個名稱可以後續在物理印表機設置中修改"
+#~ "新的３Ｄ列印機設備會在創建時被預設命名為“３Ｄ列印機 N”。\n"
+#~ "注意：這個名稱可以後續在物理３Ｄ列印機設置中修改"
 
 #~ msgid "Recreating"
 #~ msgstr "重造"
@@ -14778,10 +14775,10 @@ msgstr ""
 #~ msgstr "%s 視圖模式"
 
 #~ msgid "Flash Printer &Firmware"
-#~ msgstr "燒錄印表機韌體"
+#~ msgstr "燒錄３Ｄ列印機韌體"
 
 #~ msgid "Upload a firmware image into an Arduino based printer"
-#~ msgstr "將韌體鏡像上傳到基於 arduino 的印表機"
+#~ msgstr "將韌體鏡像上傳到基於 arduino 的３Ｄ列印機"
 
 #~ msgid "Taking a configuration snapshot"
 #~ msgstr "進行配置快照"
@@ -14865,7 +14862,7 @@ msgstr ""
 #~ msgstr "鏡像所選對象"
 
 #~ msgid "Add Shape"
-#~ msgstr "添加形狀"
+#~ msgstr "新增形狀"
 
 #~ msgid "Split the selected object into individual objects"
 #~ msgstr "拆分所選對象位多個獨立對象"
@@ -14892,7 +14889,7 @@ msgstr ""
 #~ msgstr "移除圖層範圍"
 
 #~ msgid "Add layer range"
-#~ msgstr "添加圖層範圍"
+#~ msgstr "新增圖層範圍"
 
 #~ msgid "No errors detected"
 #~ msgstr "未檢測到錯誤"
@@ -14940,31 +14937,31 @@ msgstr ""
 #~ msgstr "對象重新排序"
 
 #~ msgid "Add Settings for Layers"
-#~ msgstr "添加圖層設置"
+#~ msgstr "新增圖層設置"
 
 #~ msgid "Add Settings for Sub-object"
-#~ msgstr "添加子對象的設置"
+#~ msgstr "新增子對象的設置"
 
 #~ msgid "Add Settings for Object"
-#~ msgstr "添加對象的設置"
+#~ msgstr "新增對象的設置"
 
 #~ msgid "Add Settings Bundle for Height range"
-#~ msgstr "為高度範圍添加配置組"
+#~ msgstr "為高度範圍新增配置組"
 
 #~ msgid "Add Settings Bundle for Sub-object"
-#~ msgstr "為子對象添加配置組"
+#~ msgstr "為子對象新增配置組"
 
 #~ msgid "Add Settings Bundle for Object"
-#~ msgstr "為對象添加配置組"
+#~ msgstr "為對象新增配置組"
 
 #~ msgid "Add Generic Subobject"
-#~ msgstr "添加通用子對象"
+#~ msgstr "新增通用子對象"
 
 #~ msgid "Add Shape from Gallery"
-#~ msgstr "從倉庫添加形狀"
+#~ msgstr "從倉庫新增形狀"
 
 #~ msgid "Add Shapes from Gallery"
-#~ msgstr "從倉庫添加形狀"
+#~ msgstr "從倉庫新增形狀"
 
 #~ msgid "Remove paint-on supports"
 #~ msgstr "移除支撐繪製"
@@ -15007,7 +15004,7 @@ msgstr ""
 #~ msgstr "合併所有零件為一個對象"
 
 #~ msgid "Add Layers"
-#~ msgstr "添加圖層"
+#~ msgstr "新增圖層"
 
 #~ msgid "Delete Selected Item"
 #~ msgstr "刪除所選項目"
@@ -15016,7 +15013,7 @@ msgstr ""
 #~ msgstr "刪除所選"
 
 #~ msgid "Add Height Range"
-#~ msgstr "添加高度範圍"
+#~ msgstr "新增高度範圍"
 
 #~ msgid ""
 #~ "Cannot insert a new layer range after the current layer range.\n"
@@ -15049,7 +15046,7 @@ msgstr ""
 #~ msgstr "選擇-從列表中去除！"
 
 #~ msgid "Selection-Add from list!"
-#~ msgstr "選擇-添加到列表！"
+#~ msgstr "選擇-新增到列表！"
 
 #~ msgid "Object or Instance"
 #~ msgstr "對象或實例"
@@ -15151,13 +15148,13 @@ msgstr ""
 #~ msgstr "高級"
 
 #~ msgid "Quick Add Settings (%s)"
-#~ msgstr "快速添加設置 （%s）"
+#~ msgstr "快速新增設置 （%s）"
 
 #~ msgid "Add instance"
-#~ msgstr "添加實例"
+#~ msgstr "新增實例"
 
 #~ msgid "Add one more instance of the selected object"
-#~ msgstr "再添加一個選定對象的實例"
+#~ msgstr "再新增一個選定對象的實例"
 
 #~ msgid "Remove instance"
 #~ msgstr "刪除實例"
@@ -15184,10 +15181,10 @@ msgstr ""
 #~ msgstr "記錄"
 
 #~ msgid "Please select the nozzle diameter of your printer"
-#~ msgstr "請選擇印表機的噴嘴直徑"
+#~ msgstr "請選擇３Ｄ列印機的噴嘴直徑"
 
 #~ msgid "Please select the plate type of your printer"
-#~ msgstr "請選擇印表機的印版類型"
+#~ msgstr "請選擇３Ｄ列印機的印版類型"
 
 #~ msgid "Pause Print"
 #~ msgstr "暫停列印"
@@ -15229,7 +15226,7 @@ msgstr ""
 
 #~ msgid ""
 #~ "Dynamic Pressure Control calibration result has been saved to the printer"
-#~ msgstr "動態壓力控制校準結果已保存到印表機。"
+#~ msgstr "動態壓力控制校準結果已保存到３Ｄ列印機。"
 
 #~ msgid "When you need Dynamic Pressure Control Calibration"
 #~ msgstr "當您需要動態壓力控制校準時"
@@ -15247,7 +15244,7 @@ msgstr ""
 #~ msgstr "壓力提升"
 
 #~ msgid "Filament From"
-#~ msgstr "耗材絲來源"
+#~ msgstr "線材來源"
 
 #~ msgid ""
 #~ "Please select same type of material, because plate temperature might not "
@@ -15270,7 +15267,7 @@ msgstr ""
 #~ msgstr "將重新啟動以獲取結果。您確定要重新啟動嗎？"
 
 #~ msgid "Please select a printer and nozzle for calibration."
-#~ msgstr "請選擇用於校準的印表機和噴嘴。"
+#~ msgstr "請選擇用於校準的３Ｄ列印機和噴嘴。"
 
 #~ msgid "No print preset"
 #~ msgstr "沒有列印預設。"
@@ -15296,7 +15293,7 @@ msgstr ""
 #~ msgstr "無法同時列印 %s 和 %s。列印材料的列印床溫度差異較大。"
 
 #~ msgid "No AMS filaments. Please select a printer to load AMS info."
-#~ msgstr "沒有 AMS 材料。請先選擇一個印表機以載入 AMS 資訊。"
+#~ msgstr "沒有 AMS 材料。請先選擇一個３Ｄ列印機以載入 AMS 資訊。"
 
 #~ msgid "We found the best Pressure Advance Factor"
 #~ msgstr "我們找到了最佳的壓力提升因子"
@@ -15314,7 +15311,7 @@ msgstr ""
 #~ msgstr "編輯盤設置"
 
 #~ msgid "Filaments Auto refill"
-#~ msgstr "耗材絲自動補給"
+#~ msgstr "線材自動補給"
 
 #~ msgid "Auto refill"
 #~ msgstr "自動補給"
@@ -15330,7 +15327,7 @@ msgstr ""
 #~ msgid ""
 #~ "%s filaments are hard and brittle, It's easy to break or get stuck in "
 #~ "AMS, please use with caution."
-#~ msgstr "%s耗材絲又硬又脆，很容易斷裂或卡在AMS中，請謹慎使用。"
+#~ msgstr "%s線材又硬又脆，很容易斷裂或卡在AMS中，請謹慎使用。"
 
 #~ msgid "Edit plate setitngs"
 #~ msgstr "編輯盤設置"
@@ -15361,7 +15358,7 @@ msgstr ""
 #~ "currently selected physical printer. It is recommend to re-slice by "
 #~ "selecting the same printer type."
 #~ msgstr ""
-#~ "生成該G-code的印表機類型與當前選中的印表機類型不同。建議選擇相同的印表機類"
+#~ "生成該G-code的３Ｄ列印機類型與當前選中的３Ｄ列印機類型不同。建議選擇相同的３Ｄ列印機類"
 #~ "型後重新切片。"
 
 #~ msgid ""
@@ -15370,7 +15367,7 @@ msgstr ""
 #~ msgstr "設置外牆brim的生成方式，選擇自動意味著brim的寬度會被自動分析計算。"
 
 #~ msgid "Auto sync system presets(Printer/Filament/Process)"
-#~ msgstr "自動同步預設（印表機/耗材絲/工藝）"
+#~ msgstr "自動同步預設（３Ｄ列印機/線材/工藝）"
 
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
@@ -15381,7 +15378,7 @@ msgstr ""
 #~ "這可能會導致高速列印時懸垂表面質量的下降。"
 
 #~ msgid "Add/Edit connectors"
-#~ msgstr "添加/編輯連接件"
+#~ msgstr "新增/編輯連接件"
 
 #~ msgid "Shortcut key %1%"
 #~ msgstr "快捷鍵 %1%"
@@ -15475,5 +15472,5 @@ msgstr ""
 #~ "Printer Settings anymore.\n"
 #~ "Settings will be available in physical printers settings."
 #~ msgstr ""
-#~ "但是從這個BambuStudio版本開始，我們不再在印表機設置中顯示這個資訊了。\n"
-#~ "設置會被放置於物理印表機設置中。"
+#~ "但是從這個BambuStudio版本開始，我們不再在３Ｄ列印機設置中顯示這個資訊了。\n"
+#~ "設置會被放置於物理３Ｄ列印機設置中。"
