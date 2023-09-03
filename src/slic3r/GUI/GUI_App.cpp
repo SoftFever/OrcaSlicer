@@ -3648,7 +3648,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 #ifdef __APPLE__
         _L("Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"),
 #else
-                 _L("Choose one or more files (3mf/step/stl/svg/obj/amf):"),
+        _L("Choose one or more files (3mf/step/stl/svg/obj/amf):"),
 #endif
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
