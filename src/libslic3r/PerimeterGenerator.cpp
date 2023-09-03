@@ -1784,8 +1784,13 @@ void PerimeterGenerator::process_arachne()
             if (const auto& min_feature_size_opt = object_config->min_feature_size)
                 input_params.min_feature_size = min_feature_size_opt.value * 0.01 * min_nozzle_diameter;
 
-            if (const auto& min_bead_width_opt = object_config->min_bead_width)
-                input_params.min_bead_width = min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
+            if (this->layer_id == 0) {
+                if (const auto& initial_layer_min_bead_width_opt = object_config->initial_layer_min_bead_width)
+                    input_params.min_bead_width = initial_layer_min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
+            } else {
+                if (const auto& min_bead_width_opt = object_config->min_bead_width)
+				    input_params.min_bead_width = min_bead_width_opt.value * 0.01 * min_nozzle_diameter;
+            }
 
             if (const auto& wall_transition_filter_deviation_opt = object_config->wall_transition_filter_deviation)
                 input_params.wall_transition_filter_deviation = wall_transition_filter_deviation_opt.value * 0.01 * min_nozzle_diameter;
