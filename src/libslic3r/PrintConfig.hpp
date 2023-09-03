@@ -721,6 +721,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              wall_transition_angle))
     ((ConfigOptionInt,                wall_distribution_count))
     ((ConfigOptionPercent,            min_feature_size))
+    ((ConfigOptionPercent,            initial_layer_min_bead_width))
     ((ConfigOptionPercent,            min_bead_width))
 
     // Orca
