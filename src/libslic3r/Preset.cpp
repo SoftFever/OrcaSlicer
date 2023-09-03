@@ -765,7 +765,7 @@ static std::vector<std::string> s_Preset_print_options {
      "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
      "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max",
-     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes"
+     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes" ,"initial_layer_min_bead_width"
 
 };
 
