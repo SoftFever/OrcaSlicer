@@ -939,44 +939,12 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     support_material_extruder = printExtruders.front() + 1;
             }
             if (support_material_extruder == extruderNo && brimToWrite.at(object->id()).sup) {
-                if (!object->support_layers().empty() && object->support_layers().front()->support_type==stInnerNormal) {
+                if (!object->support_layers().empty()) {
                     for (const Polygon& support_contour : object->support_layers().front()->support_fills.polygons_covered_by_spacing()) {
-                        // Brim will not be generated for supports
-                        /*
-                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                            append(brim_area_support, diff_ex(offset_ex(support_contour, brim_width + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(support_contour, brim_offset)));
-                        }
-                        if (brim_type != BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(support_contour, 0));
-                        */
                         no_brim_area_support.emplace_back(support_contour);
                     }
                 }
-                // BBS
-                if (!object->support_layers().empty() && object->support_layers().front()->support_type == stInnerTree) {
-                    for (const ExPolygon &ex_poly : object->support_layers().front()->lslices) {
-                        // BBS: additional brim width will be added if adhension area is too small without brim
-                        float brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
-                            && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
-                        brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
-                        // Brim will not be generated for supports
-                        /*
-                        if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner || brim_type == BrimType::btAutoBrim) {
-                            append(brim_area_support, diff_ex(offset_ex(ex_poly.contour, brim_width_mod + brim_offset, jtRound, SCALED_RESOLUTION), offset_ex(ex_poly.contour, brim_offset)));
-                        }
-                        if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
-                            append(brim_area_support, diff_ex(offset_ex(ex_poly.holes, -brim_offset), offset_ex(ex_poly.holes, -brim_width - brim_offset)));
-                        */
-                        if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                            append(no_brim_area_support, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly.holes));
-                        if (brim_type == BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(ex_poly.holes, -no_brim_offset));
-                        append(holes_support, ex_poly.holes);
-                        if (brim_type != BrimType::btNoBrim)
-                            append(no_brim_area_support, offset_ex(ex_poly.contour, 0));
-                        no_brim_area_support.emplace_back(ex_poly.contour);
-                    }
-                }
+
                 brimToWrite.at(object->id()).sup = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_support.empty())

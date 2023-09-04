@@ -382,6 +382,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
 	it_per_layer_extruder_override = per_layer_extruder_switches.begin();
     unsigned int extruder_override = 0;
 
+    // BBS: collect first layer extruders of an object's wall, which will be used by brim generator
+    int layerCount = 0;
+    std::vector<int> firstLayerExtruders;
+    firstLayerExtruders.clear();
+
     // Collect the object extruders.
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
@@ -407,8 +412,12 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                             something_nonoverriddable = true;
                 }
 
-                if (something_nonoverriddable)
+                if (something_nonoverriddable){
                		layer_tools.extruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
+                    if (layerCount == 0) {
+                        firstLayerExtruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
+                    }
+                }
 
                 layer_tools.has_object = true;
             }
@@ -443,8 +452,12 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (has_solid_infill || has_infill)
                 layer_tools.has_object = true;
         }
+        layerCount++;
     }
 
+    sort_remove_duplicates(firstLayerExtruders);
+    const_cast<PrintObject&>(object).object_first_layer_wall_extruders = firstLayerExtruders;
+    
     for (auto& layer : m_layer_tools) {
         // Sort and remove duplicates
         sort_remove_duplicates(layer.extruders);

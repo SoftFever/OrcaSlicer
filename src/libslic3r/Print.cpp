@@ -1450,16 +1450,21 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
     std::map<ObjectID, unsigned int> objectExtruderMap;
     for (const PrintObject* object : print.objects()) {
         // BBS
-        unsigned int objectFirstLayerFirstExtruder = print.config().filament_diameter.size();
-        auto firstLayerRegions = object->layers().front()->regions();
-        if (!firstLayerRegions.empty()) {
-            for (const LayerRegion* regionPtr : firstLayerRegions) {
-                if (regionPtr -> has_extrusions())
-                    objectFirstLayerFirstExtruder = std::min(objectFirstLayerFirstExtruder,
-                        regionPtr->region().extruder(frExternalPerimeter));
+        if (object->object_first_layer_wall_extruders.empty()){
+            unsigned int objectFirstLayerFirstExtruder = print.config().filament_diameter.size();
+            auto firstLayerRegions = object->layers().front()->regions();
+            if (!firstLayerRegions.empty()) {
+                for (const LayerRegion* regionPtr : firstLayerRegions) {
+                    if (regionPtr->has_extrusions())
+                        objectFirstLayerFirstExtruder = std::min(objectFirstLayerFirstExtruder,
+                          regionPtr->region().extruder(frExternalPerimeter));
+                }
             }
+            objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
         }
-        objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
+        else {
+            objectExtruderMap.insert(std::make_pair(object->id(), object->object_first_layer_wall_extruders.front()));
+        }
     }
     return objectExtruderMap;
 }

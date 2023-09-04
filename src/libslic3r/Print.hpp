@@ -434,6 +434,9 @@ public:
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
 
+    // BBS: returns 1-based indices of extruders used to print the first layer wall of objects
+    std::vector<int>            object_first_layer_wall_extruders;
+
     // OrcaSlicer
     size_t get_klipper_object_id() const { return m_klipper_object_id; }
     void set_klipper_object_id(size_t id) { m_klipper_object_id = id; }
@@ -517,6 +520,7 @@ private:
     bool                    				m_typed_slices = false;
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
+
     // BBS: per object skirt
     ExtrusionEntityCollection               m_skirt;
 
