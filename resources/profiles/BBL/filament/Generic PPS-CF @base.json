@@ -14,6 +14,9 @@
     "filament_max_volumetric_speed": [
         "3"
     ],
+    "filament_type": [
+        "PPS-CF"
+    ],
     "nozzle_temperature_range_high": [
         "350"
     ],
