@@ -402,6 +402,10 @@
             "sub_path": "filament/fdm_filament_pps.json"
         },
         {
+            "name": "fdm_filament_ppa",
+            "sub_path": "filament/fdm_filament_ppa.json"
+        },
+        {
             "name": "Bambu PLA Matte @base",
             "sub_path": "filament/Bambu PLA Matte @base.json"
         },
@@ -604,6 +608,14 @@
         {
             "name": "Generic PPS @base",
             "sub_path": "filament/Generic PPS @base.json"
+        },
+        {
+            "name": "Generic PPA-CF @base",
+            "sub_path": "filament/Generic PPA-CF @base.json"
+        },
+        {
+            "name": "Generic PPA-GF @base",
+            "sub_path": "filament/Generic PPA-GF @base.json"
         },
         {
             "name": "Bambu PLA Matte @BBL X1C",
@@ -1356,6 +1368,22 @@
         {
             "name": "Generic PPS @BBL X1E",
             "sub_path": "filament/Generic PPS @BBL X1E.json"
+        },
+        {
+            "name": "Generic PPA-CF @BBL X1E",
+            "sub_path": "filament/Generic PPA-CF @BBL X1E.json"
+        },
+        {
+            "name": "Generic PPA-CF @BBL X1C",
+            "sub_path": "filament/Generic PPA-CF @BBL X1C.json"
+        },
+        {
+            "name": "Generic PPA-GF @BBL X1C",
+            "sub_path": "filament/Generic PPA-GF @BBL X1C.json"
+        },
+        {
+            "name": "Generic PPA-GF @BBL X1E",
+            "sub_path": "filament/Generic PPA-GF @BBL X1E.json"
         },
         {
             "name": "PolyTerra PLA @BBL X1C 0.2 nozzle",
