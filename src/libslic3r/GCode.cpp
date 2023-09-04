@@ -438,7 +438,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcode += gcodegen.writer().unretract();
         }
 
-
+        
         // Process the end filament gcode.
         std::string end_filament_gcode_str;
         if (gcodegen.writer().extruder() != nullptr) {
@@ -707,12 +707,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::prime(GCode& gcodegen)
     {
         std::string gcode;
-#if 0
-        for (const WipeTower::ToolChangeResult& tcr : m_priming) {
-            if (! tcr.extrusions.empty())
-                gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
-        }
-#endif
+        // if (!gcodegen.is_BBL_Printer()) {
+        //     for (const WipeTower::ToolChangeResult &tcr : m_priming) {
+        //         if (!tcr.extrusions.empty())
+        //             gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
+        //     }
+        // }
         return gcode;
     }
 
@@ -756,12 +756,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::finalize(GCode& gcodegen)
     {
         std::string gcode;
-        // BBS
-#if 0
-        if (std::abs(gcodegen.writer().get_position()(2) - m_final_purge.print_z) > EPSILON)
-            gcode += gcodegen.change_layer(m_final_purge.print_z);
-        gcode += append_tcr(gcodegen, m_final_purge, -1);
-#endif
+        // if (!gcodegen.is_BBL_Printer()) {
+        //     if (std::abs(gcodegen.writer().get_position()(2) - m_final_purge.print_z) > EPSILON)
+        //         gcode += gcodegen.change_layer(m_final_purge.print_z);
+        //     gcode += append_tcr(gcodegen, m_final_purge, -1);
+        // }
+
         return gcode;
     }
 

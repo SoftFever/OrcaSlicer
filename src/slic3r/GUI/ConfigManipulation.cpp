@@ -645,6 +645,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
+    // Orca todo: enable/disable wipe tower parameters
+    // for (auto el :
+    //      {"wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wipe_tower_cone_angle",
+    //       "wipe_tower_extra_spacing", "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming"})
+    //     toggle_field(el, have_wipe_tower);
+
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_volume", "prime_tower_brim_width"})
         toggle_line(el, have_prime_tower);
@@ -692,7 +698,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("exclude_object", gcflavor == gcfKlipper);
 
     toggle_line("min_width_top_surface",config->opt_bool("only_one_wall_top"));
-
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
