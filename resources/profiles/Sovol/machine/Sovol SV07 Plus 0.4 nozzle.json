@@ -122,7 +122,7 @@
 	],
 	"machine_start_gcode": "M190 S[bed_temperature_initial_layer_single] ; Setting bed temprature\nM109 S[nozzle_temperature_initial_layer] ; Setting hot-end temprature\nSTART_PRINT ; Running macro from klipper\n",
 	"machine_end_gcode": "END_PRINT",
-	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\nG92 E0.0\n;[layer_z]\n\n",
+	"before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;G92 E0.0\n;[layer_z]\n\n",
 	"layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
 	"scan_first_layer": "0"
 }
