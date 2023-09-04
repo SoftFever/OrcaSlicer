@@ -20,7 +20,7 @@
             "support_auto_leveling":true,
             "support_update_remain":true,
             "support_timelapse":true,
-            "support_filament_backup":false,
+            "support_filament_backup":true,
             "support_chamber_fan":true,
             "support_aux_fan":true,
             "support_send_to_sd":false,
