@@ -973,7 +973,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("activate_air_filtration",coBools);
     def->label = L("Activate air filtration");
-    def->tooltip = L("Acivate for better air filtration");
+    def->tooltip = L("Activate for better air filtration");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBools{false});
 
@@ -3231,7 +3231,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Chamber temperature");
     def->min = 0;
-    def->max = 70;
+    def->max = 60;
     def->set_default_value(new ConfigOptionInts{0});
 
     def = this->add("nozzle_temperature", coInts);
