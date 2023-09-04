@@ -40,11 +40,14 @@ public:
     void UpdateState();
     void OnClose(wxCloseEvent& evt);
     void OnError(wxWebViewEvent& evt);
+    void OnLoaded(wxWebViewEvent& evt);
 private:
-    void SendAPIKey(wxString apikey);
+    void SendAPIKey();
 
     wxWebView* m_browser;
     long m_zoomFactor;
+    wxString m_apikey;
+    bool m_apikey_sent;
 
     // DECLARE_EVENT_TABLE()
 };
