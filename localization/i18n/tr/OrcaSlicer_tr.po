@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-09-04 11:33+0200\n"
 "PO-Revision-Date: 2023-09-02 21:26+0300\n"
 "Last-Translator: Sadri Ercan\n"
 "Language-Team: Türkçe\n"
@@ -450,7 +450,7 @@ msgstr "Düşük"
 msgid "Extra low"
 msgstr "Ekstra düşük"
 
-#, boost-format
+#, c-format, boost-format
 msgid "%d triangles"
 msgstr "%d üçgen"
 
@@ -604,9 +604,18 @@ msgstr "Giriş bilgilerinin süresi doldu. Lütfen tekrar giriş yapın."
 msgid "Incorrect password"
 msgstr "Yanlış parola"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s bağlantısı başarısız oldu! [SN:%s, kod=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -615,7 +624,7 @@ msgstr ""
 "OrcaSlicer yapılandırma dosyası bozulmuş olabilir ve ayrıştırılması mümkün "
 "olmayabilir. Lütfen dosyayı silin ve tekrar deneyin."
 
-#, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "%s\n"
 "Do you want to continue?"
@@ -629,7 +638,7 @@ msgstr "Seçimimi hatırla"
 msgid "Loading configuration"
 msgstr "Yapılandırma yükleniyor"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Click to download new version in default browser: %s"
 msgstr "Yeni sürümü varsayılan tarayıcıda indirmek için tıklayın: %s"
 
@@ -907,7 +916,7 @@ msgstr "Seçilen öğeler için filamenti ayarla"
 msgid "Default"
 msgstr "Varsayılan"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Filament %d"
 msgstr "Filament %d"
 
@@ -1094,13 +1103,13 @@ msgstr "İsim"
 msgid "Fila."
 msgstr "Fila."
 
-#, boost-format
+#, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d hata onarıldı"
 msgstr[1] "%1$d hata onarıldı"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] "Hata: %1$d manifold olmayan kenar."
@@ -1109,7 +1118,7 @@ msgstr[1] "Hata: %1$d manifold olmayan kenar."
 msgid "Remaining errors"
 msgstr "Kalan hatalar"
 
-#, boost-format
+#, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
 msgstr[0] "%1$d manifold olmayan kenar"
@@ -1345,6 +1354,9 @@ msgstr "Otomatik Kenar"
 
 msgid "Auto"
 msgstr "Oto"
+
+msgid "Mouse ear"
+msgstr "Fare kulağı"
 
 msgid "Outer brim only"
 msgstr "Yalnızca dış kenar"
@@ -1615,7 +1627,7 @@ msgstr ""
 msgid "Arranging done."
 msgstr "Hizalama tamamlandı."
 
-#, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "Arrangement ignored the following objects which can't fit into a single "
 "bed:\n"
@@ -1737,11 +1749,11 @@ msgstr "Bilinmeyen Hata."
 msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayacak"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr ""
 "Başarıyla gönderildi. %ss'de otomatik olarak bir sonraki sayfaya atlayacak"
@@ -1755,7 +1767,7 @@ msgstr "LAN üzerinden gcode dosyası gönderiliyor"
 msgid "Sending gcode file to sdcard"
 msgstr "Gcode dosyası sdcard'a gönderiliyor"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Successfully sent. Close current page in %s s"
 msgstr "Başarıyla gönderildi. %s s'de mevcut sayfayı kapat"
 
@@ -1870,7 +1882,7 @@ msgstr ""
 "Bu yazılım, telif hakkı ve diğer mülkiyet hakları ilgili sahiplerine ait "
 "olan açık kaynaklı bileşenleri kullanır"
 
-#, boost-format
+#, c-format, boost-format
 msgid "About %s"
 msgstr "Hakkında %s"
 
@@ -2028,14 +2040,14 @@ msgstr "Son adım"
 msgid "Example"
 msgstr "Örnek"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Calibrating... %d%%"
 msgstr "Kalibre ediliyor... %d%%"
 
 msgid "Calibration completed"
 msgstr "Kalibrasyon tamamlandı"
 
-#, boost-format
+#, c-format, boost-format
 msgid "%s does not support %s"
 msgstr "%s, %s'yi desteklemiyor"
 
@@ -2394,7 +2406,7 @@ msgstr ""
 "Lütfen yazdırmak için sıcaklığı kullanıp kullanmayacağınızdan emin olun.\n"
 "\n"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Recommended nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
@@ -2402,7 +2414,7 @@ msgstr ""
 "Bu filament tipinin tavsiye edilen Nozul sıcaklığı [%d, %d] derece "
 "santigrattır"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Bed temperature of other layer is lower than bed temperature of initial "
 "layer for more than %d degree centigrade.\n"
@@ -2692,10 +2704,11 @@ msgstr "parametre adı"
 msgid "N/A"
 msgstr "N/A"
 
+#, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s yüzde olamaz"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Value %s is out of range, continue?"
 msgstr "Değer %s aralık dışında, devam edilsin mi?"
 
@@ -2705,6 +2718,7 @@ msgstr "Parametre doğrulama"
 msgid "Value is out of range."
 msgstr "Değer aralık dışında."
 
+#, c-format, boost-format
 msgid ""
 "Is it %s%% or %s %s?\n"
 "YES for %s%%, \n"
@@ -3045,7 +3059,7 @@ msgstr "Hacim:"
 msgid "Size:"
 msgstr "Boyut:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -3232,7 +3246,7 @@ msgstr "Güncellemeleri kontrol et"
 msgid "Open Network Test"
 msgstr "Ağ Testini Aç"
 
-#, boost-format
+#, c-format, boost-format
 msgid "&About %s"
 msgstr "&Hakkında %s"
 
@@ -3511,7 +3525,7 @@ msgstr "Stüdyoyu Aç"
 msgid "&Quit"
 msgstr "&Çıkış"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Quit %s"
 msgstr "%s'den çık"
 
@@ -3524,11 +3538,11 @@ msgstr "&Görünüm"
 msgid "&Help"
 msgstr "&Yardım"
 
-#, boost-format
+#, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
 msgstr "Aynı adda bir dosya var: %s, üzerine yazmak istiyor musunuz."
 
-#, boost-format
+#, c-format, boost-format
 msgid "A config exists with the same name: %s, do you want to override it."
 msgstr "Aynı adda bir yapılandırma mevcut: %s, üzerine yazmak istiyor musunuz."
 
@@ -3544,7 +3558,7 @@ msgstr "Tümüne hayır"
 msgid "Choose a directory"
 msgstr "Dizin seç"
 
-#, boost-format
+#, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
 msgstr[0] ""
@@ -3558,7 +3572,7 @@ msgstr "Sonucu dışa aktar"
 msgid "Select profile to load:"
 msgstr "Yüklenecek profili seç:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
 "There are %d configs imported. (Only non-system and compatible configs)"
@@ -3625,13 +3639,14 @@ msgstr "Başlatma başarısız oldu (Yazıcının LAN ip'si eksik)!"
 msgid "Initializing..."
 msgstr "Başlatılıyor..."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Initialize failed (%s)!"
 msgstr "Başlatma başarısız oldu (%s)!"
 
 msgid "Network unreachable"
 msgstr "Ağa ulaşılamıyor"
 
+#, c-format, boost-format
 msgid "Stopped [%d]!"
 msgstr "[%d] durduruldu!"
 
@@ -3660,7 +3675,7 @@ msgstr ""
 "Bambu Studio yalnızca tek bir sanal kamerayı destekler.\n"
 "Bu sanal kamerayı durdurmak istiyor musunuz?"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
 msgstr "Sanal kameranın başlatılması başarısız oldu (%s)!"
 
@@ -3670,6 +3685,7 @@ msgstr "Bilgi"
 msgid "Playing..."
 msgstr "Oynatılıyor..."
 
+#, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "Yükleme başarısız [%d]!"
 
@@ -3724,20 +3740,22 @@ msgstr "Dosyaları toplu olarak yönet."
 msgid "No printers."
 msgstr "Yazıcı yok."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Connect failed [%d]!"
 msgstr "Bağlantı başarısız oldu [%d]!"
 
 msgid "Loading file list..."
 msgstr "Dosya listesi yükleniyor..."
 
+#, c-format, boost-format
 msgid "No files [%d]"
 msgstr "Dosya yok [%d]"
 
+#, c-format, boost-format
 msgid "Load failed [%d]"
 msgstr "Yükleme başarısız [%d]"
 
-#, boost-format
+#, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural ""
 "You are going to delete %u files from printer. Are you sure to continue?"
@@ -3749,7 +3767,7 @@ msgstr[1] ""
 msgid "Delete files"
 msgstr "Dosyaları sil"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Do you want to delete the file '%s' from printer?"
 msgstr "'%s' dosyasını yazıcıdan silmek istiyor musunuz?"
 
@@ -3772,7 +3790,7 @@ msgstr ""
 ".gcode.3mf dosyası hiçbir G kodu verisi içermiyor. Lütfen dosyayı Bambu "
 "Studio ile dilimleyin ve yeni bir .gcode.3mf dosyasını dışa aktarın."
 
-#, boost-format
+#, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "'%s' dosyası kayboldu! Lütfen tekrar indirin."
 
@@ -3788,6 +3806,7 @@ msgstr "Klasörü Aç"
 msgid "Download finished"
 msgstr "İndirme tamamlandı"
 
+#, c-format, boost-format
 msgid "Downloading %d%%..."
 msgstr "%d%% indiriliyor..."
 
@@ -3817,6 +3836,24 @@ msgstr "3D bağlantı ayarları"
 
 msgid "Swap Y/Z axes"
 msgstr "Y/Z eksenlerini değiştirin"
+
+msgid "Invert X axis"
+msgstr ""
+
+msgid "Invert Y axis"
+msgstr ""
+
+msgid "Invert Z axis"
+msgstr ""
+
+msgid "Invert Yaw axis"
+msgstr ""
+
+msgid "Invert Pitch axis"
+msgstr ""
+
+msgid "Invert Roll axis"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "Yazdırma İlerlemesi"
@@ -3896,11 +3933,11 @@ msgstr "İndiriliyor..."
 msgid "Cloud Slicing..."
 msgstr "Bulut Dilimleme..."
 
-#, boost-format
+#, c-format, boost-format
 msgid "In Cloud Slicing Queue, there are %s tasks ahead."
 msgstr "Bulut Dilimleme Sırasında önünüzde %s görev var."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Layer: %s"
 msgstr "Katman: %s"
 
@@ -3910,6 +3947,7 @@ msgstr "Lütfen favori Bambu Market modelinize puan verin."
 msgid "Score"
 msgstr "Skor"
 
+#, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Katman: %d/%d"
 
@@ -3962,23 +4000,27 @@ msgstr "HMS"
 msgid "Don't show again"
 msgstr "Bir daha gösterme"
 
+#, c-format, boost-format
 msgid "%s error"
 msgstr "%s hata"
 
-#, boost-format
+#, c-format, boost-format
 msgid "%s has encountered an error"
 msgstr "%s bir hatayla karşılaştı"
 
+#, c-format, boost-format
 msgid "%s warning"
 msgstr "%s uyarı"
 
+#, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s'de uyarı var"
 
+#, c-format, boost-format
 msgid "%s info"
 msgstr "%s bilgi"
 
-#, boost-format
+#, c-format, boost-format
 msgid "%s information"
 msgstr "%s bilgisi"
 
@@ -4027,19 +4069,19 @@ msgstr "Klasörü Aç."
 msgid "Safely remove hardware."
 msgstr "Donanımı Güvenle Kaldır."
 
-#, boost-format
+#, c-format, boost-format
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
 msgstr[0] "%1$d Nesnenin özel destekleri var."
 msgstr[1] "%1$d Nesnelerin özel destekleri var."
 
-#, boost-format
+#, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d Nesnenin renkli resmi var."
 msgstr[1] "%1$d Nesnelerin renkli boyaması var."
 
-#, boost-format
+#, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] "%1$d nesne, kesme nesnesinin bir parçası olarak yüklendi."
@@ -4118,7 +4160,7 @@ msgstr "Lütfen grafik kartı sürücünüzü yükseltin."
 msgid "Unsupported OpenGL version"
 msgstr "Desteklenmeyen OpenGL sürümü"
 
-#, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
@@ -4183,6 +4225,7 @@ msgstr "Yazıcı ayarları"
 msgid "Untitled"
 msgstr "İsimsiz"
 
+#, boost-format
 msgid " plate %1%:"
 msgstr " plaka %1%:"
 
@@ -4279,7 +4322,7 @@ msgstr ""
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "\"%1%\" dosyasındaki değişiklikleri kaydetmek istiyor musunuz?"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Successfully unmounted. The device %s(%s) can now be safely removed from the "
 "computer."
@@ -4287,7 +4330,7 @@ msgstr ""
 "Başarıyla kaldırıldı. %s(%s) aygıtı artık bilgisayardan güvenli bir şekilde "
 "kaldırılabilir."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Ejecting of device %s(%s) has failed."
 msgstr "%s(%s) aygıtının çıkarılması başarısız oldu."
 
@@ -4313,6 +4356,7 @@ msgstr ""
 "sertliğinden daha yüksektir. Lütfen sertleşmiş nozülü veya filamanı "
 "değiştirin, aksi takdirde nozül aşınır veya hasar görür."
 
+#, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Dosya yükleniyor: %s"
 
@@ -4330,7 +4374,7 @@ msgstr ""
 "3mf, eski Orca Slicer tarafından oluşturulmuştur, yalnızca geometri "
 "verilerini yükleyin."
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:"
@@ -4344,7 +4388,7 @@ msgstr "Yazılımınızı yükseltseniz iyi olur.\n"
 msgid "Newer 3mf version"
 msgstr "Daha yeni 3mf sürümü"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
@@ -4380,7 +4424,7 @@ msgstr "Sıfır hacimli nesneler kaldırıldı"
 msgid "The volume of the object is zero"
 msgstr "Cismin hacmi sıfır"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "The object from file %s is too small, and maybe in meters or inches.\n"
 " Do you want to scale to millimeters?"
@@ -4474,6 +4518,7 @@ msgstr "Geçersiz veri"
 msgid "Slicing Canceled"
 msgstr "Dilimleme İptal Edildi"
 
+#, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Plaka %d dilimleniyor"
 
@@ -4521,6 +4566,7 @@ msgstr "3mf dosyasını hazırla..."
 msgid "downloading project ..."
 msgstr "proje indiriliyor..."
 
+#, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Proje %d%% indirildi"
 
@@ -4583,7 +4629,7 @@ msgstr "G-kod dosyasını şu şekilde kaydedin:"
 msgid "Save Sliced file as:"
 msgstr "Dilimlenmiş dosyayı şu şekilde kaydedin:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "The file %s has been sent to the printer's storage space and can be viewed "
 "on the printer."
@@ -4597,6 +4643,12 @@ msgid ""
 msgstr ""
 "Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca pozitif parçalar "
 "ihraç edilecektir."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+
+msgid "Upload and Print"
+msgstr "Yükle ve Yazdır"
 
 msgid ""
 "Print By Object: \n"
@@ -4629,9 +4681,11 @@ msgstr "Şu anda seçili parça sayısı: %1%\n"
 msgid "Number of currently selected objects: %1%\n"
 msgstr "Şu anda seçili nesnelerin sayısı: %1%\n"
 
+#, boost-format
 msgid "Part name: %1%\n"
 msgstr "Parça adı: %1%\n"
 
+#, boost-format
 msgid "Object name: %1%\n"
 msgstr "Nesne adı: %1%\n"
 
@@ -4643,12 +4697,15 @@ msgstr "Boyut: %1% x %2% x %3%\n"
 msgid "Size: %1% x %2% x %3% mm\n"
 msgstr "Boyut: %1% x %2% x %3% mm\n"
 
+#, boost-format
 msgid "Volume: %1% in³\n"
 msgstr "Hacim: %1% in³\n"
 
+#, boost-format
 msgid "Volume: %1% mm³\n"
 msgstr "Hacim: %1% mm³\n"
 
+#, boost-format
 msgid "Triangles: %1%\n"
 msgstr "Üçgenler: %1%\n"
 
@@ -4662,7 +4719,7 @@ msgstr ""
 "\"Modeli Onar\" özelliği şu anda yalnızca Windows'ta bulunmaktadır. Lütfen "
 "modeli Orca Slicer (windows) veya CAD yazılımlarında onarın."
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
 "still want to do this printing, please set this filament's bed temperature "
@@ -5045,7 +5102,7 @@ msgstr "Verileri 3mf'ye paketle"
 msgid "Jump to webpage"
 msgstr "Web sayfasına atla"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Save %s as"
 msgstr "%s'yi farklı kaydet"
 
@@ -5108,6 +5165,7 @@ msgstr "\"%1%\" yazıcısı \"%2%\" ön ayarıyla seçildi"
 msgid "Please choose an action with \"%1%\" preset after saving."
 msgstr "Lütfen kaydettikten sonra \"%1%\" ön ayarına sahip bir eylem seçin."
 
+#, boost-format
 msgid "For \"%1%\", change \"%2%\" to \"%3%\" "
 msgstr "\"%1%\" için \"%2%\"yi \"%3%\" olarak değiştirin "
 
@@ -5115,6 +5173,7 @@ msgstr "\"%1%\" için \"%2%\"yi \"%3%\" olarak değiştirin "
 msgid "For \"%1%\", add \"%2%\" as a new preset"
 msgstr "\"%1%\" için \"%2%\"yi yeni ön ayar olarak ekleyin"
 
+#, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Kolayca \"%1%\"e geçin"
 
@@ -5212,7 +5271,7 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr "Yazıcı başka bir yazdırma işiyle meşgul"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Filament %s exceeds the number of AMS slots. Please update the printer "
 "firmware to support AMS slot assignment."
@@ -5241,7 +5300,7 @@ msgstr ""
 "Yazdırma işini göndermeden önce eşleme AMS yuvasını belirtmek için lütfen "
 "yukarıdaki her filamente tıklayın"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Filament %s does not match the filament in AMS slot %s. Please update the "
 "printer firmware to support AMS slot assignment."
@@ -5299,6 +5358,7 @@ msgstr ""
 "G Kodu oluşturulurken seçilen yazıcı türü mevcut seçili yazıcıyla tutarlı "
 "değil. Dilimleme için aynı yazıcı tipini kullanmanız tavsiye edilir."
 
+#, c-format, boost-format
 msgid "%s is not supported by AMS."
 msgstr "%s AMS tarafından desteklenmiyor."
 
@@ -5427,7 +5487,7 @@ msgstr "Herkesin yazıcısını geliştirmek için yardımınızı istiyoruz"
 msgid "Statement about User Experience Improvement Program"
 msgstr "Kullanıcı Deneyimini İyileştirme Programına İlişkin Açıklama"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "In the 3D Printing community, we learn from each other's successes and "
 "failures to adjust our own slicing parameters and settings. %s follows the "
@@ -5476,6 +5536,7 @@ msgid "Failed to log out."
 msgstr "Oturum kapatılamadı."
 
 #. TRN "Save current Settings"
+#, c-format, boost-format
 msgid "Save current %s"
 msgstr "Mevcut %s kaydet"
 
@@ -5622,10 +5683,13 @@ msgstr "G kodu çıktısı"
 msgid "Post-processing Scripts"
 msgstr "İşlem Sonrası Komut Dosyaları"
 
+msgid "Notes"
+msgstr ""
+
 msgid "Frequent"
 msgstr "Sıklıkla"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Following line %s contains reserved keywords.\n"
 "Please remove it, or will beat G-code visualization and printing time "
@@ -5847,6 +5911,7 @@ msgid "Are you sure to %1% the selected preset?"
 msgstr "Seçilen ön ayarı %1% yaptığınızdan emin misiniz?"
 
 #. TRN  Remove/Delete
+#, boost-format
 msgid "%1% Preset"
 msgstr "%1% Ön Ayar"
 
@@ -6009,6 +6074,7 @@ msgstr "Yazar"
 msgid "Model Name"
 msgstr "Model adı"
 
+#, c-format, boost-format
 msgid "%s Update"
 msgstr "%s Güncelleme"
 
@@ -6030,7 +6096,7 @@ msgstr "Yapılandırma uyumsuz"
 msgid "the configuration package is incompatible with current application."
 msgstr "yapılandırma paketi mevcut uygulamayla uyumlu değil."
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "The configuration package is incompatible with current application.\n"
 "%s will update the configuration package, Otherwise it won't be able to start"
@@ -6038,7 +6104,7 @@ msgstr ""
 "Yapılandırma paketi mevcut uygulamayla uyumlu değil.\n"
 "%s yapılandırma paketini güncelleyecek, Aksi halde başlatılamayacak"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Exit %s"
 msgstr "%s'den çık"
 
@@ -6066,11 +6132,11 @@ msgstr "Çarpan"
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Her filament çifti için yıkama hacmi (mm³)."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
 msgstr "Öneri: Yıkama Hacmi [%d, %d] aralığında"
 
-#, boost-format
+#, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "Çarpan [%.2f, %.2f] aralığında olmalıdır."
 
@@ -6353,7 +6419,7 @@ msgstr "Shift+Fare tekerleği"
 msgid "Release Note"
 msgstr "Sürüm notu"
 
-#, boost-format
+#, c-format, boost-format
 msgid "version %s update information :"
 msgstr "sürüm %s güncelleme bilgileri:"
 
@@ -6366,7 +6432,7 @@ msgstr ""
 "Bambu Studio bir sonraki sefer başlatıldığında Ağ eklentisini güncellemek "
 "için Tamam'a tıklayın."
 
-#, boost-format
+#, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "Yeni bir Ağ eklentisi(%s) mevcut, Yüklemek istiyor musunuz?"
 
@@ -6536,6 +6602,7 @@ msgstr ""
 msgid "Object can't be printed for empty layer between %1% and %2%."
 msgstr "%1% ile %2% arasındaki boş katman için nesne yazdırılamıyor."
 
+#, boost-format
 msgid "Object: %1%"
 msgstr "Nesne: %1%"
 
@@ -6816,6 +6883,21 @@ msgstr ""
 "gerektirir."
 
 msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
+
+msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 "Destek uygulayıcıları kullanılıyor ancak destek etkinleştirilmiyor. Lütfen "
@@ -6847,7 +6929,7 @@ msgstr ""
 "Layer_gcode'da mutlak ekstruder adreslemeyle uyumlu olmayan \"G92 E0\" "
 "bulundu."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Plaka %d: %s, %s filamentini desteklemiyor"
 
@@ -7231,7 +7313,7 @@ msgstr ""
 msgid "One wall threshold"
 msgstr "Bir duvar eşiği"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "If a top surface has to be printed and it's partially covered by another "
 "layer, it won't be considered at a top layer where its width is below this "
@@ -7260,6 +7342,14 @@ msgid ""
 msgstr ""
 "Alt dolgu desenine daha fazla yer açmak için ilk katmanda yalnızca bir duvar "
 "kullanın"
+
+msgid "Extra perimeters on overhangs"
+msgstr ""
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
 
 msgid "Classic mode"
 msgstr "Klasik mod"
@@ -7313,9 +7403,6 @@ msgstr ""
 "Bu, modellerin dış ve/veya iç kısmındaki Kenar oluşumunu kontrol eder. "
 "Otomatik, kenar genişliğinin otomatik olarak analiz edilip hesaplandığı "
 "anlamına gelir."
-
-msgid "Mouse ear"
-msgstr "Fare kulağı"
 
 msgid "Brim-object gap"
 msgstr "Kenar-nesne boşluğu"
@@ -7712,6 +7799,12 @@ msgstr "Varsayılan filament rengi"
 msgid "Color"
 msgstr "Renk"
 
+msgid "Filament notes"
+msgstr ""
+
+msgid "You can put your notes regarding the filament here."
+msgstr ""
+
 msgid "Required nozzle HRC"
 msgstr "Gerekli nozul HRC"
 
@@ -7777,7 +7870,7 @@ msgstr ""
 msgid "Shrinkage"
 msgstr "Büzüşme"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Enter the shrinkage percentage that the filament will get after cooling "
 "(94% if you measure 94mm instead of 100mm). The part will be scaled in xy to "
@@ -8019,7 +8112,7 @@ msgstr "Klipper'ın max_accel_to_decel'i otomatik olarak ayarlanacak"
 msgid "accel_to_decel"
 msgstr "accel_to_decel"
 
-#, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 msgstr ""
 "Klipper'ın max_accel_to_decel değeri bu hızlanma % değerine ayarlanacaktır"
@@ -8549,8 +8642,8 @@ msgstr "Geri çekilme için maksimum hızlanma (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "Seyahat için maksimum hızlanma"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "Hareket için maksimum hızlanma (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "Fan hızı"
@@ -8607,6 +8700,14 @@ msgstr "Nozul çapı"
 
 msgid "Diameter of nozzle"
 msgstr "Nozul çapı"
+
+msgid "Configuration notes"
+msgstr ""
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
 
 msgid "Host Type"
 msgstr "Bağlantı Türü"
@@ -8688,7 +8789,7 @@ msgstr "mm²"
 msgid "Detect overhang wall"
 msgstr "Çıkıntılı duvarı algıla"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Detect the overhang percentage relative to line width and use different "
 "speed to print. For 100%% overhang, bridge speed is used."
@@ -8721,6 +8822,12 @@ msgstr ""
 "dosyasını noktalı virgülle ayırın. Komut dosyalarına ilk argüman olarak G "
 "kodu dosyasının mutlak yolu iletilecektir ve ortam değişkenlerini okuyarak "
 "Slic3r yapılandırma ayarlarına erişebilirler."
+
+msgid "Printer notes"
+msgstr ""
+
+msgid "You can put your notes regarding the printer here."
+msgstr ""
 
 msgid "Raft contact Z distance"
 msgstr "Raft kontak Z mesafesi"
@@ -9329,6 +9436,9 @@ msgstr "Ağaç Güçlü"
 msgid "Tree Hybrid"
 msgstr "Ağaç Hibrit"
 
+msgid "Organic"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "Bağımsız destek katmanı yüksekliği"
 
@@ -9362,12 +9472,34 @@ msgstr ""
 "açısını belirler. Açı artırılırsa dallar daha yatay olarak yazdırılarak daha "
 "uzağa ulaşmaları sağlanır."
 
+msgid "Preferred Branch Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+
 msgid "Tree support branch distance"
 msgstr "Ağaç destek dal mesafesi"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "Bu ayar, komşu ağaç destek düğümleri arasındaki mesafeyi belirler."
+
+msgid "Branch Density"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
+msgstr ""
 
 msgid "Adaptive layer height"
 msgstr "Uyarlanabilir katman yüksekliği"
@@ -9395,11 +9527,40 @@ msgstr "Ağaç desteği kenar genişliği"
 msgid "Distance from tree branch to the outermost brim line"
 msgstr "Ağaç dalından en dış kenar çizgisine kadar olan mesafe"
 
+msgid "Tip Diameter"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr "Ağaç destek dalı çapı"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Bu ayar, destek düğümlerinin başlangıç çapını belirler."
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+
+msgid "Branch Diameter with double walls"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
+msgstr ""
 
 msgid "Tree support wall loops"
 msgstr "Ağaç desteği duvar döngüleri"
@@ -9722,6 +9883,15 @@ msgstr ""
 "özellikler ise Minimum duvar genişliğine genişletilecektir. Nozul çapına "
 "göre yüzde olarak ifade edilir"
 
+msgid "First layer minimum wall width"
+msgstr ""
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
+msgstr ""
+
 msgid "Minimum wall width"
 msgstr "Minimum duvar genişliği"
 
@@ -9751,7 +9921,7 @@ msgstr ""
 msgid "invalid value "
 msgstr "geçersiz değer "
 
-#, boost-format
+#, c-format, boost-format
 msgid " doesn't work at 100%% density "
 msgstr " 100%% yoğunlukta çalışmıyor "
 
@@ -9964,7 +10134,7 @@ msgstr "yüzen konsol"
 msgid "large overhangs"
 msgstr "büyük çıkıntılar"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "It seems object %s has %s. Please re-orient the object or enable support "
 "generation."
@@ -10000,7 +10170,7 @@ msgstr ""
 "kullanılmayacaktır.\n"
 "XY Boyut telafisi  renkli boyamayla birleştirilemez."
 
-#, boost-format
+#, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Destek: %d katmanında takım yolu oluştur"
 
@@ -10019,15 +10189,15 @@ msgstr "Destek: çokgen çizme"
 msgid "Support: generate toolpath"
 msgstr "Destek: takım yolu oluştur"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
 msgstr "Destek: %d katmanında çokgenler oluşturma"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Support: fix holes at layer %d"
 msgstr "Destek: %d katmanındaki delikleri düzeltin"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Destek: %d katmanındaki dalları çoğalt"
 
@@ -10138,6 +10308,7 @@ msgstr "Ad 40 karakteri aşamaz."
 msgid "The name cannot be empty."
 msgstr "Ad boş olamaz."
 
+#, boost-format
 msgid "The selected preset: %1% is not found."
 msgstr "Seçilen ön ayar: %1% bulunamadı."
 
@@ -10380,7 +10551,7 @@ msgstr ""
 "Aynı ada sahip sonuçlardan yalnızca biri kaydedilecektir. Diğer sonuçları "
 "geçersiz kılmak istediğinizden emin misiniz?"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "There is already a historical calibration result with the same name: %s. "
 "Only one of the results with the same name is saved. Are you sure you want "
@@ -10432,6 +10603,7 @@ msgstr "En pürüzsüz üst yüzeye sahip bloğun üzerindeki değeri doldurun"
 msgid "Skip Calibration2"
 msgstr "Kalibrasyon2'yi atla"
 
+#, c-format, boost-format
 msgid "flow ratio : %s "
 msgstr "akış oranı : %s "
 
@@ -10499,6 +10671,7 @@ msgstr "Hata açıklaması"
 msgid "Extra info"
 msgstr "Fazladan bilgi"
 
+#, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s, %s ile uyumlu değil"
 
@@ -10556,6 +10729,15 @@ msgstr "Cihazlar aranıyor"
 msgid "Finished"
 msgstr "Bitti"
 
+msgid "Multiple resolved IP addresses"
+msgstr ""
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "Seçilen parçalarda bölme işlemi gerçekleştirilemiyor"
 
@@ -10595,8 +10777,8 @@ msgstr "Bölüm 2"
 msgid "Delete input"
 msgstr "Girişi sil"
 
-msgid "Send to print"
-msgstr "Baskıya gönder"
+msgid "Send G-Code to printer host"
+msgstr ""
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Yazıcıya aşağıdaki dosya adıyla yükleyin:"
@@ -10604,15 +10786,12 @@ msgstr "Yazıcıya aşağıdaki dosya adıyla yükleyin:"
 msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr "Gerekirse dizin ayırıcısı olarak eğik çizgileri ( / ) kullanın."
 
-#, boost-format
+msgid "Upload to storage"
+msgstr ""
+
+#, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "Yüklenen dosya adı \"%s\" ile bitmiyor. Devam etmek istiyor musunuz?"
-
-msgid "Upload and Print"
-msgstr "Yükle ve Yazdır"
-
-msgid "Simulate"
-msgstr "Simülasyon"
 
 msgid "Print host upload queue"
 msgstr "Ana yazıcıyükleme kuyruğunu yazdır"
@@ -10633,8 +10812,8 @@ msgstr "Boyut"
 msgid "Filename"
 msgstr "Dosya adı"
 
-msgid "Error Message"
-msgstr "Hata mesajı"
+msgid "Message"
+msgstr ""
 
 msgid "Cancel selected"
 msgstr "Seçileni iptal et"
@@ -10651,8 +10830,8 @@ msgstr "Yükleniyor"
 msgid "Cancelling"
 msgstr "İptal Ediliyor"
 
-msgid "Error uploading to print host:"
-msgstr "Ana bilgisayara yükleme hatası:"
+msgid "Error uploading to print host"
+msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA Kalibrasyonu"
@@ -10824,7 +11003,7 @@ msgstr "Sertifika dosyaları (*.crt, *.pem)|*.crt;*.pem|Tüm dosyalar|*.*"
 msgid "Open CA certificate file"
 msgstr "CA sertifika dosyasını aç"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
@@ -11112,3 +11291,18 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek "
 "dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
+
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "Hareket için maksimum hızlanma (M204 T)"
+
+#~ msgid "Send to print"
+#~ msgstr "Baskıya gönder"
+
+#~ msgid "Simulate"
+#~ msgstr "Simülasyon"
+
+#~ msgid "Error Message"
+#~ msgstr "Hata mesajı"
+
+#~ msgid "Error uploading to print host:"
+#~ msgstr "Ana bilgisayara yükleme hatası:"

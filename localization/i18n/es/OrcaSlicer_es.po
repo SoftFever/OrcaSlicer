@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-09-04 11:33+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -617,6 +617,18 @@ msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "¡Conexión %s fallida! [SN:%s, code=%s]"
 
 msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+"Orca Slicer requiere el tiempo de ejecución de Microsoft WebView2 para "
+"operar ciertas características.\n"
+"Haga clic en Sí para instalarlo ahora."
+
+msgid "WebView2 Runtime"
+msgstr "Tiempo de ejecución de WebView2"
+
+msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
 "Please delete the file and try again."
 msgstr ""
@@ -851,7 +863,7 @@ msgid "Orca Cube"
 msgstr "Cubo Orca"
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "3DBenchy"
 
 msgid "Autodesk FDM Test"
 msgstr "Prueba Autodesk FDM"
@@ -1371,6 +1383,9 @@ msgstr "Borde de Adherencia Automático"
 msgid "Auto"
 msgstr "Automático"
 
+msgid "Mouse ear"
+msgstr "Oreja de ratón"
+
 msgid "Outer brim only"
 msgstr "Solo borde de adherencia exterior"
 
@@ -1486,7 +1501,7 @@ msgid "No printer"
 msgstr "Sin impresión"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "No se ha podido conectar con el servidor"
@@ -1901,7 +1916,7 @@ msgid "About %s"
 msgstr "Acerca de %s"
 
 msgid "Orca Slicer "
-msgstr ""
+msgstr "Orca Slicer "
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer está basado en BambuStudio, PrusaSlicer, y SuperSlicer."
@@ -2024,7 +2039,7 @@ msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
 msgid "℃"
-msgstr ""
+msgstr "℃"
 
 msgid "Bed temperature"
 msgstr "Temperatura de la cama"
@@ -3522,13 +3537,13 @@ msgid "Max flowrate"
 msgstr "Máximo caudal"
 
 msgid "VFA"
-msgstr ""
+msgstr "VFA"
 
 msgid "More..."
 msgstr "Más..."
 
 msgid "Tutorial"
-msgstr ""
+msgstr "Tutorial"
 
 msgid "Calibration help"
 msgstr "Ayuda de calibración"
@@ -3875,6 +3890,24 @@ msgstr "Ajustes de conexión 3D"
 
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
+
+msgid "Invert X axis"
+msgstr "Invertir el eje X"
+
+msgid "Invert Y axis"
+msgstr "Invertir el eje Y"
+
+msgid "Invert Z axis"
+msgstr "Invertir el eje Z"
+
+msgid "Invert Yaw axis"
+msgstr "Invertir el eje de guiñada"
+
+msgid "Invert Pitch axis"
+msgstr "Invertir el eje de cabeceo"
+
+msgid "Invert Roll axis"
+msgstr "Invertir el eje de balanceo"
 
 msgid "Printing Progress"
 msgstr "Progreso de impresión"
@@ -4675,6 +4708,14 @@ msgid ""
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+"Está lista la impresora? ?Está la hoja de impresión en su lugar, vacía y "
+"limpia?"
+
+msgid "Upload and Print"
+msgstr "Cargar e imprimir"
 
 msgid ""
 "Print By Object: \n"
@@ -5730,6 +5771,9 @@ msgstr "G-code de salida"
 
 msgid "Post-processing Scripts"
 msgstr "Script de Post-procesado"
+
+msgid "Notes"
+msgstr "Notas"
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -6951,6 +6995,27 @@ msgstr ""
 "el objeto."
 
 msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+"El diámetro de la punta del árbol de soporte orgánico no debe ser menor que "
+"el ancho de extrusión del material de soporte."
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+"El diámetro de la rama de soporte orgánico no debe ser menor que 2x el ancho "
+"de extrusión del material de soporte."
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
+"El diámetro de la rama de soporte orgánico no debe ser menor que el diámetro "
+"de la punta del árbol de soporte."
+
+msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 "Se utilizan las herramientas de aplicación de soporte pero el soporte no "
@@ -7410,6 +7475,16 @@ msgstr ""
 "Usar solo un perímetro en la primera capa, para dar más espacio en el patrón "
 "de relleno inferior"
 
+msgid "Extra perimeters on overhangs"
+msgstr "Perímetros extra en voladizos"
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+"Crear caminos de perímetro adicionales sobre voladizos pronunciados y áreas "
+"donde los puentes no pueden ser anclados."
+
 msgid "Classic mode"
 msgstr "Modo clásico"
 
@@ -7462,9 +7537,6 @@ msgstr ""
 "Esto controla la generación del borde de adherencia en el lado exterior y/o "
 "interior de los modelos. Auto significa que el ancho de borde de adherencia "
 "es analizado y calculado automaticamente."
-
-msgid "Mouse ear"
-msgstr "Oreja de ratón"
 
 msgid "Brim-object gap"
 msgstr "Espacio borde de adherencia-objeto"
@@ -7874,6 +7946,12 @@ msgstr "Color de filamento por defecto"
 
 msgid "Color"
 msgstr "Color"
+
+msgid "Filament notes"
+msgstr "Notas del filamento"
+
+msgid "You can put your notes regarding the filament here."
+msgstr "Puede poner sus notas sobre el filamento aquí."
 
 msgid "Required nozzle HRC"
 msgstr "HRC de boquilla requerido"
@@ -8473,7 +8551,7 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "Con qué tipo de G-Code es compatible la impresora"
 
 msgid "Klipper"
-msgstr ""
+msgstr "Klipper"
 
 msgid "Label objects"
 msgstr "Etiquetar objetos"
@@ -8730,8 +8808,9 @@ msgstr "Aceleración máxima de retracción (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "Aceleración máxima para el desplazamiento"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "Aceleración máxima para el desplazamiento (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
+"Máxima aceleración para el desplazamiento (M204 T), solo se aplica a Marlin 2"
 
 msgid "Fan speed"
 msgstr "Velocidad del ventilador"
@@ -8745,7 +8824,7 @@ msgstr ""
 "velocidad máxima del ventilador de refrigeración parcial"
 
 msgid "Max"
-msgstr ""
+msgstr "Máx"
 
 msgid ""
 "The largest printable layer height for extruder. Used tp limits the maximum "
@@ -8767,7 +8846,7 @@ msgstr ""
 "capas, que se define por la ausencia de capas de refrigeración"
 
 msgid "Min"
-msgstr ""
+msgstr "Mín"
 
 msgid ""
 "The lowest printable layer height for extruder. Used tp limits the minimum "
@@ -8788,6 +8867,16 @@ msgstr "Diámetro de la boquilla"
 
 msgid "Diameter of nozzle"
 msgstr "Diámetro de la boquilla"
+
+msgid "Configuration notes"
+msgstr "Notas de configuración"
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
+"Puede poner aquí sus notas personales. Este texto se añadirá a los "
+"comentarios de la cabecera del G-Code."
 
 msgid "Host Type"
 msgstr "Tipo de host"
@@ -8864,7 +8953,7 @@ msgstr ""
 "cónico. El valor 0 llenará todos los huecos en la base del modelo."
 
 msgid "mm²"
-msgstr ""
+msgstr "mm²"
 
 msgid "Detect overhang wall"
 msgstr "Detectar el voladizo del perímetro"
@@ -8903,6 +8992,12 @@ msgstr ""
 "punto y coma. A los scripts se les pasará la ruta absoluta al archivo G-code "
 "como primer argumento, y pueden acceder a los ajustes de configuración de "
 "OrcaSlicer leyendo variables de entorno."
+
+msgid "Printer notes"
+msgstr "Puntos de la impresora"
+
+msgid "You can put your notes regarding the printer here."
+msgstr "Puede poner sus notas sobre la impresora aquí."
 
 msgid "Raft contact Z distance"
 msgstr "Distancia Z de contacto de la base de impresión"
@@ -9526,6 +9621,9 @@ msgstr "Árbol Fuerte"
 msgid "Tree Hybrid"
 msgstr "Árbol Híbrido"
 
+msgid "Organic"
+msgstr "Orgánico"
+
 msgid "Independent support layer height"
 msgstr "Altura de la capa de soporte independiente"
 
@@ -9559,6 +9657,19 @@ msgstr ""
 "ramas del soporte del árbol. Si se aumenta el ángulo, las ramas pueden "
 "imprimirse más horizontalmente, permitiendo que lleguen más lejos."
 
+msgid "Preferred Branch Angle"
+msgstr "Pendiente preferida de la rama"
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+"El ángulo preferido de las ramas, cuando no tienen que evitar el modelo. "
+"Utilice un ángulo más bajo para hacerlas más verticales y más estables. "
+"Utilice un ángulo más alto para que las ramas se fusionen más rápido."
+
 msgid "Tree support branch distance"
 msgstr "Distancia de la rama de soporte del árbol"
 
@@ -9567,6 +9678,23 @@ msgid ""
 msgstr ""
 "Este ajuste determina la distancia entre los nodos de soporte del árbol "
 "vecinos."
+
+msgid "Branch Density"
+msgstr "Baja densidad de ramas"
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
+msgstr ""
+"Ajusta la densidad de la estructura de soporte utilizada para generar las "
+"puntas de las ramas. Un valor más alto da como resultado mejores voladizos, "
+"pero los soportes son más difíciles de quitar, por lo que se recomienda "
+"activar las interfaces de soporte superior en lugar de un valor de densidad "
+"de rama alto si se necesitan interfaces densas."
 
 msgid "Adaptive layer height"
 msgstr "Altura de capa adaptable"
@@ -9596,11 +9724,47 @@ msgstr ""
 "Distancia desde la rama del árbol hasta la línea más externa del borde de "
 "adherencia"
 
+msgid "Tip Diameter"
+msgstr "Tamaño de la punta"
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr "Baja densidad de ramas"
+
 msgid "Tree support branch diameter"
 msgstr "Diámetro de la rama de soporte del árbol"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Este ajuste determina el diámetro inicial de los nodos de apoyo."
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr "Baja densidad de ramas"
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+"El ángulo del diámetro de las ramas a medida que se hacen más gruesas hacia "
+"la parte inferior. Un ángulo de 0 hará que las ramas tengan un grosor "
+"uniforme a lo largo de su longitud. Un poco de ángulo puede aumentar la "
+"estabilidad del soporte orgánico."
+
+msgid "Branch Diameter with double walls"
+msgstr "Baja densidad de ramas"
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
+msgstr ""
+"Las ramas con un área mayor que el área de un círculo de este diámetro se "
+"imprimirán con doble pared para mayor estabilidad. Establezca este valor en "
+"cero para no tener doble pared."
 
 msgid "Tree support wall loops"
 msgstr "Perímetros de las ramas"
@@ -9856,7 +10020,7 @@ msgid "Classic"
 msgstr "Clásico"
 
 msgid "Arachne"
-msgstr ""
+msgstr "Arachne"
 
 msgid "Wall transition length"
 msgstr "Anchura de transición de perímetro"
@@ -9932,6 +10096,18 @@ msgstr ""
 "características más gruesas que el Tamaño mínimo del elemento se ensancharán "
 "hasta el Ancho mínimo de perímetro. Se expresa en porcentaje sobre el "
 "diámetro de la boquilla"
+
+msgid "First layer minimum wall width"
+msgstr "Ancho mínimo del perímetro de la primera capa"
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
+msgstr ""
+"Se recomienda que el ancho mínimo del perímetro que se debe utilizar para la "
+"primera capa se establezca en el mismo tamaño que la boquilla. Se espera que "
+"este ajuste mejore la adherencia."
 
 msgid "Minimum wall width"
 msgstr "Ancho mínimo del perímetro"
@@ -10314,7 +10490,7 @@ msgid "Finish"
 msgstr "Finalizar"
 
 msgid "Wiki"
-msgstr ""
+msgstr "Wiki"
 
 msgid "How to use calibration result?"
 msgstr "¿Cómo usar el resultado de la calibración?"
@@ -10697,10 +10873,10 @@ msgid "Printing Parameters"
 msgstr "Parámetros de Impresión"
 
 msgid "- ℃"
-msgstr ""
+msgstr "- ℃"
 
 msgid " ℃"
-msgstr ""
+msgstr " ℃"
 
 msgid "Plate Type"
 msgstr "Plate Type"
@@ -10793,6 +10969,17 @@ msgstr "Buscando dispositivos"
 msgid "Finished"
 msgstr "Terminado"
 
+msgid "Multiple resolved IP addresses"
+msgstr "múltiples direcciones IP resueltas"
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+"Hay varias direcciones IP resolviendo el nombre de host %1%.\n"
+"Por favor, seleccione una que deba ser usada."
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 "No es posible realizar la operación booleana en las partes selecionadas"
@@ -10833,8 +11020,8 @@ msgstr "Parte 2"
 msgid "Delete input"
 msgstr "Borrado de entrada"
 
-msgid "Send to print"
-msgstr "Mandar a imprimir"
+msgid "Send G-Code to printer host"
+msgstr "Enviar G-Code al host de impresión"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Subido al Host de Impresión con el siguiente nombre de archivo:"
@@ -10844,28 +11031,25 @@ msgstr ""
 "Use barras oblicuas como separador de directorio \n"
 "si es necesario."
 
+msgid "Upload to storage"
+msgstr "Subir a almacenamiento"
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 "El nombre de archivo que va a cargar no acaba en \"%s\". ¿Desea continuar?"
 
-msgid "Upload and Print"
-msgstr "Cargar e imprimir"
-
-msgid "Simulate"
-msgstr "Simular"
-
 msgid "Print host upload queue"
 msgstr "Imprimir cola de carga del host"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
 msgstr "Progreso"
 
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 msgctxt "OfFile"
 msgid "Size"
@@ -10874,8 +11058,8 @@ msgstr "Tamaño"
 msgid "Filename"
 msgstr "Nombre de archivo"
 
-msgid "Error Message"
-msgstr "Mensaje de error"
+msgid "Message"
+msgstr "Mensaje"
 
 msgid "Cancel selected"
 msgstr "Cancelar selección"
@@ -10892,17 +11076,17 @@ msgstr "Subiendo"
 msgid "Cancelling"
 msgstr "Cancelado"
 
-msgid "Error uploading to print host:"
-msgstr "Error cargando al host de impresión:"
+msgid "Error uploading to print host"
+msgstr "Error al subir al host de impresión"
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
 
 msgid "DDE"
-msgstr ""
+msgstr "DDE"
 
 msgid "Bowden"
-msgstr ""
+msgstr "Bowden"
 
 msgid "Extruder type"
 msgstr "Tipo de extrusor"
@@ -10946,22 +11130,22 @@ msgid "Temperature calibration"
 msgstr "Calibración de temperatura"
 
 msgid "PLA"
-msgstr ""
+msgstr "PLA"
 
 msgid "ABS/ASA"
-msgstr ""
+msgstr "ABS/ASA"
 
 msgid "PETG"
-msgstr ""
+msgstr "PETG"
 
 msgid "TPU"
-msgstr ""
+msgstr "TPU"
 
 msgid "PA-CF"
-msgstr ""
+msgstr "PA-CF"
 
 msgid "PET-CF"
-msgstr ""
+msgstr "PET-CF"
 
 msgid "Filament type"
 msgstr "Tipo de filamento"
@@ -11032,7 +11216,7 @@ msgid "End retraction length: "
 msgstr "Finalizar "
 
 msgid "mm/mm"
-msgstr ""
+msgstr "mm/mm"
 
 msgid "Physical Printer"
 msgstr "Impresora física"
@@ -11041,7 +11225,7 @@ msgid "Print Host upload"
 msgstr "Carga de Host de Impresión"
 
 msgid "Test"
-msgstr ""
+msgstr "Test"
 
 msgid "Could not get a valid Printer Host reference"
 msgstr "No se ha podido obtener una referencia de host de impresora válida"
@@ -11355,6 +11539,21 @@ msgstr ""
 "Mejorar la resistencia\n"
 "¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
 "relleno disperso para mejorar la resistencia del modelo?"
+
+#~ msgid "Maximum acceleration for travel (M204 T)"
+#~ msgstr "Aceleración máxima para el desplazamiento (M204 T)"
+
+#~ msgid "Send to print"
+#~ msgstr "Mandar a imprimir"
+
+#~ msgid "Simulate"
+#~ msgstr "Simular"
+
+#~ msgid "Error Message"
+#~ msgstr "Mensaje de error"
+
+#~ msgid "Error uploading to print host:"
+#~ msgstr "Error cargando al host de impresión:"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "Ensamblar las piezas seleccionadas en una sola pieza"
