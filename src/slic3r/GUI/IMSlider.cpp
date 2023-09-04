@@ -478,12 +478,12 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     ImGui::ItemSize(draw_region);
 
     const float  handle_dummy_width  = 10.0f * m_scale;
-    const float  text_right_dummy    = 50.0f * scale;
+    const float  text_right_dummy    = 70.0f * scale * m_scale;
 
     const float  handle_radius       = 12.0f * m_scale;
     const float  handle_border       = 2.0f * m_scale;
 
-    const float  text_frame_rounding = 2.0f * scale;
+    const float  text_frame_rounding = 2.0f * scale * m_scale;
     const float  text_start_offset   = 8.0f * m_scale;
     const ImVec2 text_padding        = ImVec2(5.0f, 2.0f) * m_scale;
     const float  triangle_offsets[3] = {-3.5f * m_scale, 3.5f * m_scale, -6.06f * m_scale};
@@ -759,7 +759,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     const ImRect draw_region(pos, pos + size);
     ImGui::ItemSize(draw_region);
 
-    const float  text_dummy_height   = 30.0f * scale;
+    const float  text_dummy_height   = 60.0f * scale * m_scale;
 
     const float  handle_radius       = 12.0f * m_scale;
     const float  handle_border       = 2.0f * m_scale;
@@ -768,7 +768,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     const float  one_handle_offset   = 26.0f * m_scale;
     const float  bar_width           = 28.0f * m_scale;
 
-    const float  text_frame_rounding = 2.0f * scale;
+    const float  text_frame_rounding = 2.0f * scale * m_scale;
     const ImVec2 text_padding        = ImVec2(5.0f, 2.0f) * m_scale;
     const ImVec2 triangle_offsets[3] = {ImVec2(2.0f, 0.0f) * m_scale, ImVec2(0.0f, 8.0f) * m_scale, ImVec2(9.0f, 0.0f) * m_scale};
     ImVec2 text_content_size;
