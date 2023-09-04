@@ -9,6 +9,15 @@
     "required_nozzle_HRC": [
         "3"
     ],
+    "chamber_temperatures": [
+        "60"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
     "nozzle_temperature_initial_layer": [
         "280"
     ],
