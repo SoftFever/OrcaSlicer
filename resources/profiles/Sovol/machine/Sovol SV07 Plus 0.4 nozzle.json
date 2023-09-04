@@ -109,10 +109,10 @@
 		"1"
 	],
 	"retraction_speed": [
-		"30"
+		"140"
 	],
 	"deretraction_speed": [
-		"30"
+		"140"
 	],
 	"single_extruder_multi_material": "0",
 	"change_filament_gcode": "M600\nG1 E0.4 F1500 ; prime after color change",
