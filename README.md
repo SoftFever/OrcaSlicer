@@ -61,7 +61,8 @@ Orca Slicer's logo is designed by community member Justin Levine(@freejstnalxndr
   - run `build_release_macos.sh`
 
 - Ubuntu  
-  - run `BuildLinux.sh -udisr`
+  - run 'sudo ./BuildLinux.sh -u'
+  - run './BuildLinux.sh -dsir'
 
 
 # Note: 
