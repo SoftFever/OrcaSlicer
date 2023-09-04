@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-08-26 19:45+0800\n"
-"PO-Revision-Date: 2023-09-02 21:26+0300\n"
+"PO-Revision-Date: 2023-09-04 11:15+0300\n"
 "Last-Translator: Sadri Ercan\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -607,6 +607,18 @@ msgstr "Yanlış parola"
 #, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "%s bağlantısı başarısız oldu! [SN:%s, kod=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+"Orca Slicer, belirli özellikleri çalıştırmak için Microsoft WebView2 Runtime "
+"gerektirir.\n"
+"Şimdi yüklemek için Evet'e tıklayın."
+
+msgid "WebView2 Runtime"
+msgstr "WebView2 Çalışma Zamanı"
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -2305,6 +2317,9 @@ msgstr "G kodunu %1%'e aktarmayı başardınız"
 msgid "Running post-processing scripts"
 msgstr "İşlem sonrası komut dosyalarını çalıştırma"
 
+msgid "Notes"
+msgstr "Notlar"
+
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Geçici G kodunun çıkış G koduna kopyalanması başarısız oldu"
 
@@ -3818,6 +3833,24 @@ msgstr "3D bağlantı ayarları"
 msgid "Swap Y/Z axes"
 msgstr "Y/Z eksenlerini değiştirin"
 
+msgid "Invert X axis"
+msgstr "X eksenini ters çevir"
+
+msgid "Invert Y axis"
+msgstr "Y eksenini ters çevir"
+
+msgid "Invert Z axis"
+msgstr "Z eksenini ters çevir"
+
+msgid "Invert Yaw axis"
+msgstr "Sapma eksenini ters çevir"
+
+msgid "Invert Pitch axis"
+msgstr "Pitch eksenini ters çevir"
+
+msgid "Invert Roll axis"
+msgstr "Silindir eksenini ters çevir"
+
 msgid "Printing Progress"
 msgstr "Yazdırma İlerlemesi"
 
@@ -4597,6 +4630,9 @@ msgid ""
 msgstr ""
 "Model ağlarında boole işlemi gerçekleştirilemiyor. Yalnızca pozitif parçalar "
 "ihraç edilecektir."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr "Yazıcı hazır mı? Baskı plakası yerinde, boş ve temiz mi?"
 
 msgid ""
 "Print By Object: \n"
@@ -7261,6 +7297,16 @@ msgstr ""
 "Alt dolgu desenine daha fazla yer açmak için ilk katmanda yalnızca bir duvar "
 "kullanın"
 
+msgid "Extra perimeters on overhangs"
+msgstr "Çıkıntılarda ekstra çevre (perimeter)"
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+"Dik çıkıntılar ve köprülerin sabitlenemediği alanlar üzerinde ek çevre "
+"yolları (perimeter) oluşturun. "
+
 msgid "Classic mode"
 msgstr "Klasik mod"
 
@@ -7711,6 +7757,12 @@ msgstr "Varsayılan filament rengi"
 
 msgid "Color"
 msgstr "Renk"
+
+msgid "Filament notes"
+msgstr "Filament Notları"
+
+msgid "You can put your notes regarding the filament here."
+msgstr "Filament ile ilgili notlarınızı buraya yazabilirsiniz."
 
 msgid "Required nozzle HRC"
 msgstr "Gerekli nozul HRC"
@@ -8607,6 +8659,16 @@ msgstr "Nozul çapı"
 
 msgid "Diameter of nozzle"
 msgstr "Nozul çapı"
+
+msgid "Configuration notes"
+msgstr "Yapılandırma notları"
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
+"Buraya kişisel notlarınızı yazabilirsiniz. Bu not G-kodu başlık yorumlarına "
+"eklenecektir."
 
 msgid "Host Type"
 msgstr "Bağlantı Türü"
@@ -10555,6 +10617,17 @@ msgstr "Cihazlar aranıyor"
 
 msgid "Finished"
 msgstr "Bitti"
+
+msgid "Multiple resolved IP addresses"
+msgstr "Birden fazla çözülmüş IP adresi"
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+"%1% ana bilgisayar adına çözümlenen birkaç IP adresi var.\n"
+"Hangisinin kullanılacağını seçin."
 
 msgid "Unable to perform boolean operation on selected parts"
 msgstr "Seçilen parçalarda bölme işlemi gerçekleştirilemiyor"
