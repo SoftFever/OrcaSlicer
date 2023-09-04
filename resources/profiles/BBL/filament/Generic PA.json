@@ -6,6 +6,9 @@
     "filament_id": "GFN99",
     "setting_id": "GFSN98",
     "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
     "filament_max_volumetric_speed": [
         "16"
     ],

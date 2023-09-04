@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSS03_00",
     "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.6 nozzle",
