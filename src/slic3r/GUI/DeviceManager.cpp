@@ -4508,7 +4508,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
         }
 
         if (project_id.compare("0") == 0
-            || profile_id.compare("0") == 0) return;
+            || profile_id.compare("0") == 0
+            || subtask_id.compare("0") == 0) return;
 
         BOOST_LOG_TRIVIAL(trace) << "slice_info: start";
         slice_info = new BBLSliceInfo();
@@ -4520,8 +4521,6 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 if (plate_idx >= 0) {
                     plate_index = plate_idx;
                 } else {
-                    if (subtask_id.compare("0") == 0)
-                        return;
 
                     std::string subtask_json;
                     unsigned http_code = 0;

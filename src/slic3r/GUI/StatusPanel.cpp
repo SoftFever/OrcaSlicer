@@ -2712,7 +2712,10 @@ void StatusPanel::update_model_info()
             if (!curr_model_task) {
                 curr_model_task = new BBLModelTask();
                 curr_model_task->task_id = curr_task->task_id;
-                wxGetApp().getAgent()->get_subtask(curr_model_task,  get_subtask_fn);
+                request_model_info_flag = true;
+                if (!curr_model_task->task_id.empty() && curr_model_task->task_id.compare("0") != 0) {
+                    wxGetApp().getAgent()->get_subtask(curr_model_task,  get_subtask_fn);
+                }
             }
         }
     }
