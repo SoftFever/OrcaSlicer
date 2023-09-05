@@ -1,7 +1,7 @@
 {
   "type": "machine",
-  "setting_id": "GM003",
-  "name": "Prusa MK4 0.4 nozzle",
+  "setting_id": "GM004",
+  "name": "Prusa MK4 0.25 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_machine_common",
@@ -12,7 +12,7 @@
   ],
   "default_print_profile": "0.20mm Standard @MK4",
   "nozzle_diameter": [
-      "0.4"
+      "0.25"
   ],
   "bed_exclude_area": [
     "0x0"
@@ -50,6 +50,12 @@
   "machine_max_acceleration_travel": [
     "4000",
     "4000"
+  ],
+  "max_layer_height": [
+    "0.16"
+  ],
+  "min_layer_height": [
+      "0.04"
   ],
   "host_type": "prusalink",
   "printable_height": "220",
