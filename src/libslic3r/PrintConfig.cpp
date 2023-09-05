@@ -3179,7 +3179,7 @@ void PrintConfigDef::init_fff_params()
                     "While for PLA, PETG, TPU, PVA and other low temperature materials, the actual chamber temperature should not be high to avoid cloggings,"
                     "so extra chamber temperature compensation is not needed, and 0 is highly recommended");
     def->sidetext = L("°C");
-    def->full_label = L("Chamber temperature during print.0 means do not open compensation.Don't open it for low-temperature filaments like PLA, PETG, TPU");
+    def->full_label = L("Chamber temperature");
     def->min = 0;
     def->max = 60;
     def->set_default_value(new ConfigOptionInts{0});
