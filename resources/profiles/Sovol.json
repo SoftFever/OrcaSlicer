@@ -1,7 +1,7 @@
 {
     "name": "Sovol",
     "url": "",
-    "version": "01.06.00.00",
+    "version": "01.00.00.00",
     "force_update": "0",
     "description": "Sovol configurations",
     "machine_model_list": [
@@ -24,6 +24,14 @@
 		{
             "name": "Sovol SV06 Plus",
             "sub_path": "machine/Sovol SV06 Plus.json"
+        },
+		{
+            "name": "Sovol SV07",
+            "sub_path": "machine/Sovol SV07.json"
+        },
+		{
+            "name": "Sovol SV07 Plus",
+            "sub_path": "machine/Sovol SV07 Plus.json"
         }
     ],
     "process_list": [
@@ -51,6 +59,14 @@
             "name": "0.18mm Optimal @Sovol SV06Plus",
             "sub_path": "process/0.18mm Optimal @Sovol SV06Plus.json"
         },
+		{
+            "name": "0.18mm Optimal @Sovol SV07",
+            "sub_path": "process/0.18mm Optimal @Sovol SV07.json"
+        },
+		{
+            "name": "0.18mm Optimal @Sovol SV07 Plus",
+            "sub_path": "process/0.18mm Optimal @Sovol SV07Plus.json"
+        },
         {
             "name": "0.20mm Standard @Sovol SV01Pro",
             "sub_path": "process/0.20mm Standard @Sovol SV01Pro.json"
@@ -70,6 +86,14 @@
 		{
             "name": "0.20mm Standard @Sovol SV06Plus",
             "sub_path": "process/0.20mm Standard @Sovol SV06Plus.json"
+        },
+		{
+            "name": "0.20mm Standard @Sovol SV07",
+            "sub_path": "process/0.20mm Standard @Sovol SV07.json"
+        },
+		{
+            "name": "0.20mm Standard @Sovol SV07 Plus",
+            "sub_path": "process/0.20mm Standard @Sovol SV07Plus.json"
         }
     ],
     "filament_list": [
@@ -126,6 +150,14 @@
 		{
             "name": "Sovol SV06 Plus 0.4 nozzle",
             "sub_path": "machine/Sovol SV06 Plus 0.4 nozzle.json"
+        },
+		{
+            "name": "Sovol SV07 0.4 nozzle",
+            "sub_path": "machine/Sovol SV07 0.4 nozzle.json"
+        },
+		{
+            "name": "Sovol SV07 Plus 0.4 nozzle",
+            "sub_path": "machine/Sovol SV07 Plus 0.4 nozzle.json"
         }
     ]
 }

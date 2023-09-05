@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Sovol SV07 Plus",
+    "model_id": "Sovol-SV07Plus",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "Sovol",
+    "bed_model": "",
+    "bed_texture": "sovol_sv07plus_buildplate_texture.png",
+    "hotend_model": "",
+	"default_materials": "Sovol Generic ABS;Sovol Generic PETG;Sovol Generic PLA"
+}
