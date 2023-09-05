@@ -30,6 +30,6 @@ goto :eof
     if %FULL_MODE%==1 (
         msgmerge -N -o "%file%" "%file%" "%pot_file%"
     )
-    if not exist ./resources/i18n/%lang% mkdir ./resources/i18n/%lang%
-    msgfmt -o "./resources/i18n/%lang%/OrcaSlicer.mo" "%file%"
+    if not exist "./resources/i18n/%lang%" mkdir "./resources/i18n/%lang%"
+    msgfmt --check-format -o "./resources/i18n/%lang%/OrcaSlicer.mo" "%file%"
 goto :eof
