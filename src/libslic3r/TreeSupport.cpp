@@ -1587,7 +1587,7 @@ void TreeSupport::generate_toolpaths()
                         else if (layer_id > 0 && need_infill && m_support_params.base_fill_pattern != ipLightning) {
                             std::shared_ptr<Fill> filler_support = std::shared_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
                             filler_support->set_bounding_box(bbox_object);
-                            filler_support->spacing = object_config.support_base_pattern_spacing.value * support_density;// constant spacing to align support infill lines
+                            filler_support->spacing = support_flow.spacing();
                             filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
 
                             // allow infill-only mode if support is thick enough (so min_wall_count is 0);
