@@ -13,7 +13,7 @@
         "3"
     ],
     "complete_print_exhaust_fan_speed": [
-        "80"
+        "70"
     ],
     "cool_plate_temp": [
         "60"
@@ -22,7 +22,7 @@
         "60"
     ],
     "during_print_exhaust_fan_speed": [
-        "60"
+        "70"
     ],
     "eng_plate_temp": [
         "60"
