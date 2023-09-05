@@ -61,7 +61,10 @@ std::string escape_string_cstyle(const std::string &str)
         } else if (c == '\\' || c == '"') {
             (*outptr++) = '\\';
             (*outptr++) = c;
-        } else
+        }else if (c == '\"') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\"';
+        }else
             (*outptr ++) = c;
     }
     return std::string(out.data(), outptr - out.data());
