@@ -8011,7 +8011,8 @@ void Plater::import_model_id(wxString download_info)
     }
 
     bool download_ok = false;
-    /* save to a file */
+    int retry_count = 0;
+    const int max_retries = 3;
 
     /* jump to 3D eidtor */
     wxGetApp().mainframe->select_tab((size_t)MainFrame::TabPosition::tp3DEditor);
@@ -8039,7 +8040,7 @@ void Plater::import_model_id(wxString download_info)
     p->project.reset();
 
     /* prepare project and profile */
-    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &msg, &target_path, &download_ok, download_url, &filename] {
+    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &retry_count, max_retries, &msg, &target_path, &download_ok, download_url, &filename] {
 
         NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
         if (!m_agent) return;
@@ -8110,36 +8111,42 @@ void Plater::import_model_id(wxString download_info)
 
         auto url = download_url;
         auto http = Http::get(url);
-        http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
-            if (!cont) cancel = true;
-            if (progress.dltotal != 0) {
-                percent = progress.dlnow * 100 / progress.dltotal;
-            }
-            msg = wxString::Format(_L("Project downloaded %d%%"), percent);
-            })
-            .on_error([&msg, &cont](std::string body, std::string error, unsigned http_status) {
-                (void)body;
-                BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
-                    body,
-                    http_status,
-                    error);
-                msg = wxString::Format("Download Failed! body=%s, error=%s, status=%d", body, error, http_status);
-                cont = false;
-                return;
+
+        while (cont && retry_count < max_retries) {
+            retry_count++;
+            http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
+                    if (!cont) cancel = true;
+                    if (progress.dltotal != 0) {
+                        percent = progress.dlnow * 100 / progress.dltotal;
+                    }
+                    msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+                })
+                .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
+                    (void)body;
+                    BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
+                        body,
+                        http_status,
+                        error);
+                    
+                    if (retry_count == max_retries) {
+                        msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
+                        cont = false;
+                    }
                 })
                 .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
-                    fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-                    file.write(body.c_str(), body.size());
-                    file.close();
-                    fs::rename(tmp_path, target_path);
-                    cont = false;
-                    download_ok = true;
-                    })
-                    .perform_sync();
+                        fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                        file.write(body.c_str(), body.size());
+                        file.close();
+                        fs::rename(tmp_path, target_path);
+                        cont = false;
+                        download_ok = true;
+                }).perform_sync();
 
-                    // for break while
-                    cont = false;
-        });
+                // for break while
+                //cont = false;
+        }
+
+    });
 
     while (cont && cont_dlg) {
         wxMilliSleep(50);
@@ -8176,7 +8183,11 @@ void Plater::import_model_id(wxString download_info)
         p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
-        if (!msg.empty()) wxMessageBox(msg);
+        if (!msg.empty()) {
+            MessageDialog msg_wingow(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_wingow.SetSize(wxSize(FromDIP(480), -1));
+            msg_wingow.ShowModal();
+        }
         return;
     }
 }
