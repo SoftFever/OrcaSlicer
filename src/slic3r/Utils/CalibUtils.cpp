@@ -1058,7 +1058,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
     print_job->task_ams_mapping_info = "";
     print_job->task_use_ams = select_ams == "[254]" ? false : true;
 
-    CalibMode cali_mode = calib_info.params.mode;
+    CalibMode cali_mode       = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
 
@@ -1075,6 +1075,9 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
         j["print"]["start"]           = calib_info.params.start;
         j["print"]["end"]             = calib_info.params.end;
         j["print"]["step"]            = calib_info.params.step;
+        j["print"]["print_numbers"]   = calib_info.params.print_numbers;
+        j["print"]["cali_mode"]       = int(cali_mode);
+        j["print"]["project_name"]    = print_job->m_project_name;
         BOOST_LOG_TRIVIAL(trace) << "send_cali_job: " << j.dump();
     }
 

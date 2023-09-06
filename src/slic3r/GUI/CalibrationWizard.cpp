@@ -151,6 +151,24 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
 
     recover_preset_info(obj);
 
+    BOOST_LOG_TRIVIAL(info) << "on_device_connected - machine object status:"
+                            << " dev_id = " << obj->dev_id
+                            << ", print_type = " << obj->printer_type
+                            << ", cali_finished = " << obj->cali_finished
+                            << ", cali_version = " << obj->cali_version
+                            << ", cache_flow_ratio = " << obj->cache_flow_ratio
+                            << ", sub_task_name = " << obj->subtask_name
+                            << ", gcode_file_name = " << obj->m_gcode_file;
+
+    for (const CaliPresetInfo& preset_info : obj->selected_cali_preset) {
+        BOOST_LOG_TRIVIAL(info) << "on_device_connected - selected preset: "
+                                 << "tray_id = " << preset_info.tray_id
+                                 << ", nozzle_diameter = " << preset_info.nozzle_diameter
+                                 << ", filament_id = " << preset_info.filament_id
+                                 << ", settring_id = " << preset_info.setting_id
+                                 << ", name = " << preset_info.name;
+    }
+
     for (int i = 0; i < m_page_steps.size(); i++) {
         if (m_page_steps[i]->page)
             m_page_steps[i]->page->on_device_connected(obj);
@@ -606,6 +624,7 @@ void PressureAdvanceWizard::on_cali_start()
                 values[2].ToDouble(&calib_info.params.step);
             }
             calib_info.params.mode = preset_page->get_pa_cali_method();
+            calib_info.params.print_numbers = true;
 
             if (!is_pa_params_valid(calib_info.params))
                 return;

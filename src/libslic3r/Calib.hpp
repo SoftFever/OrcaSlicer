@@ -35,7 +35,7 @@ struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){}
     double start, end, step;
-    bool print_numbers;
+    bool print_numbers = false;
     CalibMode mode;
 };
 
