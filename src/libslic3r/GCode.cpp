@@ -2886,8 +2886,8 @@ GCode::LayerResult GCode::process_layer(
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
-            gcode_res = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.extruder()->id(), &config) + "\n";
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            gcode_res = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.extruder()->id(), &config) + "\n";
         }
         return gcode_res;
     };
@@ -2897,9 +2897,16 @@ GCode::LayerResult GCode::process_layer(
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional) {
-        gcode += insert_timelapse_gcode();
-        //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+        std::string timepals_gcode = insert_timelapse_gcode();
+        gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);
+        //BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2) = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
     }
     if (! print.config().layer_change_gcode.value.empty()) {
         DynamicConfig config;
@@ -3212,9 +3219,17 @@ GCode::LayerResult GCode::process_layer(
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
                     gcode += this->retract(false, false, LiftType::NormalLift);
                     m_writer.add_object_change_labels(gcode);
-                    gcode += insert_timelapse_gcode();
-                    //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+
+                    std::string timepals_gcode = insert_timelapse_gcode();
+                    gcode += timepals_gcode;
                     m_writer.set_current_position_clear(false);
+                    //BBS: check whether custom gcode changes the z position. Update if changed
+                    double temp_z_after_timepals_gcode;
+                    if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                        Vec3d pos = m_writer.get_position();
+                        pos(2) = temp_z_after_timepals_gcode;
+                        m_writer.set_position(pos);
+                    }
                     has_insert_timelapse_gcode = true;
                 }
                 gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
@@ -3431,9 +3446,16 @@ GCode::LayerResult GCode::process_layer(
                                 gcode += end_str;
                             }
 
-                            gcode += insert_timelapse_gcode();
-                            //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+                            std::string timepals_gcode = insert_timelapse_gcode();
+                            gcode += timepals_gcode;
                             m_writer.set_current_position_clear(false);
+                            //BBS: check whether custom gcode changes the z position. Update if changed
+                            double temp_z_after_timepals_gcode;
+                            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                                Vec3d pos = m_writer.get_position();
+                                pos(2) = temp_z_after_timepals_gcode;
+                                m_writer.set_position(pos);
+                            }
 
                             if (!temp_start_str.empty() && m_writer.empty_object_start_str())
                                 gcode += temp_start_str;
@@ -3453,9 +3475,16 @@ GCode::LayerResult GCode::process_layer(
                                 gcode += end_str;
                             }
 
-                            gcode += insert_timelapse_gcode();
-                            //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+                            std::string timepals_gcode = insert_timelapse_gcode();
+                            gcode += timepals_gcode;
                             m_writer.set_current_position_clear(false);
+                            //BBS: check whether custom gcode changes the z position. Update if changed
+                            double temp_z_after_timepals_gcode;
+                            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                                Vec3d pos = m_writer.get_position();
+                                pos(2) = temp_z_after_timepals_gcode;
+                                m_writer.set_position(pos);
+                            }
 
                             if (!temp_start_str.empty() && m_writer.empty_object_start_str())
                                 gcode += temp_start_str;
@@ -3522,9 +3551,17 @@ GCode::LayerResult GCode::process_layer(
             m_timelapse_warning_code = 1;
         gcode += this->retract(false, false, LiftType::NormalLift);
         m_writer.add_object_change_labels(gcode);
-        gcode += insert_timelapse_gcode();
-        //todo: get the last position of timelapse_gcode, and set into m_writer. Then delete the m_writer.set_current_position_clear(false)
+
+        std::string timepals_gcode = insert_timelapse_gcode();
+        gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);
+        //BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2) = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
     }
 
     result.gcode = std::move(gcode);
