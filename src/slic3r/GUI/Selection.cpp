@@ -459,7 +459,7 @@ void Selection::remove_curr_plate()
 void Selection::clone(int numbers)
 {
     if (numbers > 0)
-        wxGetApp().plater()->take_snapshot(std::string("Selection-clone!"));
+        wxGetApp().plater()->take_snapshot(std::string("Selection-clone"));
     for (int i = 0; i < numbers; i++) {
         copy_to_clipboard();
         paste_from_clipboard();
