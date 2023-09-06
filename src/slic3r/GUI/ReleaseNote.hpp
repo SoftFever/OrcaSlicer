@@ -24,6 +24,7 @@
 #include <wx/wrapsizer.h>
 #include <wx/event.h>
 #include <wx/hyperlink.h>
+#include <wx/richtext/richtextctrl.h>
 
 #include "AmsMappingPopup.hpp"
 #include "GUI_Utils.hpp"
@@ -199,6 +200,7 @@ public:
     Label* m_tip1{ nullptr };
     Label* m_tip2{ nullptr };
     Label* m_tip3{ nullptr };
+    Label* m_tip4{ nullptr };
     InputIpAddressDialog(wxWindow* parent = nullptr);
     ~InputIpAddressDialog();
 
@@ -206,24 +208,28 @@ public:
     Button* m_button_ok{ nullptr };
     Label* m_tips_ip{ nullptr };
     Label* m_tips_access_code{ nullptr };
-    Label* m_error_msg{ nullptr };
+    Label* m_test_right_msg{ nullptr };
+    Label* m_test_wrong_msg{ nullptr };
     TextInput* m_input_ip{ nullptr };
     TextInput* m_input_access_code{ nullptr };
     wxStaticBitmap* m_img_help1{ nullptr };
     wxStaticBitmap* m_img_help2{ nullptr };
+    wxStaticBitmap* m_img_help3{ nullptr };
     wxStaticBitmap* m_img_step1{ nullptr };
     wxStaticBitmap* m_img_step2{ nullptr };
+    wxStaticBitmap* m_img_step3{ nullptr };
+    wxHyperlinkCtrl* m_trouble_shoot{ nullptr };
     bool   m_show_access_code{ false };
-
+    int    m_result;
     std::shared_ptr<SendJob> m_send_job{nullptr};
     std::shared_ptr<BBLStatusBarSend> m_status_bar;
 
     void on_cancel();
     void update_title(wxString title);
     void set_machine_obj(MachineObject* obj);
-    void update_error_msg(wxString msg);
+    void update_test_msg(wxString msg, bool connected);
     bool isIp(std::string ipstr);
-    void check_ip_address_failed();
+    void check_ip_address_failed(int result);
     void on_check_ip_address_failed(wxCommandEvent& evt);
     void on_ok(wxMouseEvent& evt);
     void on_text(wxCommandEvent& evt);

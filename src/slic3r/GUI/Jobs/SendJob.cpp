@@ -142,7 +142,7 @@ void SendJob::process()
     result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
     if (result != 0) {
         BOOST_LOG_TRIVIAL(error) << "access code is invalid";
-        m_enter_ip_address_fun_fail();
+        m_enter_ip_address_fun_fail(result);
         m_job_finished = true;
         return;
     }
@@ -392,7 +392,7 @@ void SendJob::on_success(std::function<void()> success)
 	m_success_fun = success;
 }
 
-void SendJob::on_check_ip_address_fail(std::function<void()> func)
+void SendJob::on_check_ip_address_fail(std::function<void(int)> func)
 {
     m_enter_ip_address_fun_fail = func;
 }

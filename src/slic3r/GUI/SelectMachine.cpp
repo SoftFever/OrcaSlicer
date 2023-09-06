@@ -2242,6 +2242,7 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
+
     bool has_slice_warnings = false;
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -2487,7 +2488,6 @@ void SelectMachineDialog::on_send_print()
             ams_mapping_info = mapping_info_json.dump();
         }
     }
-
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {

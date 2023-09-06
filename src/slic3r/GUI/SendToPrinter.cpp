@@ -797,7 +797,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
  
     enable_prepare_mode = false;
 
-    m_send_job->on_check_ip_address_fail([this]() {
+    m_send_job->on_check_ip_address_fail([this](int result) {
         wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
         wxQueueEvent(this, evt);
         wxGetApp().show_ip_address_enter_dialog();
@@ -1042,7 +1042,7 @@ void SendToPrinterDialog::update_show_status()
 
     if (!obj_->is_info_ready()) {
         if (is_timeout()) {
-            (PrintDialogStatus::PrintStatusReadingTimeout);
+            show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
         }
         else {
@@ -1073,10 +1073,6 @@ void SendToPrinterDialog::update_show_status()
 		return;
 	}
 
-    if (obj_->dev_ip.empty()) {
-        show_status(PrintDialogStatus::PrintStatusNotOnTheSameLAN);
-        return;
-    }
 
     if (!obj_->is_support_send_to_sdcard) {
         show_status(PrintDialogStatus::PrintStatusNotSupportedSendToSDCard);
