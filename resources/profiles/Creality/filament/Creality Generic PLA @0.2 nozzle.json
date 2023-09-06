@@ -1,0 +1,29 @@
+{
+	"type": "filament",
+	"filament_id": "GFL99",
+	"setting_id": "GFSA04",
+	"name": "Creality Generic PLA @0.2 nozzle",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "Creality Generic PLA",
+	"filament_flow_ratio": ["0.98"],
+	"filament_max_volumetric_speed": ["12"],
+	"slow_down_layer_time": ["8"],
+	"compatible_printers": [
+		"Creality CR-6 SE (0.2 nozzle)",
+		"Creality CR-6 Max (0.2 nozzle)",
+		"Creality CR-10 V2 (0.2 nozzle)",
+		"Creality CR-10 Max (0.2 nozzle)",
+		"Creality CR-10 Smart Pro (0.2 nozzle)",
+		"Creality Ender-3 V2 (0.2 nozzle)",
+		"Creality Ender-3 S1 (0.2 nozzle)",
+		"Creality Ender-3 S1 Pro (0.2 nozzle)",
+		"Creality Ender-5 (0.2 nozzle)",
+		"Creality Ender-5 Plus (0.2 nozzle)",
+		"Creality Ender-5 Pro (2019) (0.2 nozzle)",
+		"Creality Ender-5S (0.2 nozzle)",
+		"Creality Ender-5 S1 (0.2 nozzle)",
+		"Creality Ender-6 (0.2 nozzle)",
+		"Creality Ender-7 (0.2 nozzle)"
+	]
+}

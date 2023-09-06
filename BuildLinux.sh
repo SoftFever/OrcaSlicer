@@ -231,7 +231,7 @@ then
         echo "[8/9] Building Slic3r..."
         make -j$NCORES OrcaSlicer # Slic3r
     popd
-    run_gettext.sh
+    ./run_gettext.sh
     echo "done"
 fi
 
