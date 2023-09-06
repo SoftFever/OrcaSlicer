@@ -851,7 +851,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
-        Destroy();
+        event.Skip();
         });
 }
 

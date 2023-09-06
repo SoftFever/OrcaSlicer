@@ -282,7 +282,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         for (unsigned int j = 0; j < num; ++j) {
             edit_boxes[j][i]->Reparent(panel);
             edit_boxes[j][i]->SetBackgroundColour(panel->GetBackgroundColour());
-            edit_boxes[j][i]->SetFont(::Label::Body_14);
+            edit_boxes[j][i]->SetFont(::Label::Body_13);
             sizer->AddSpacer(EDIT_BOXES_GAP);
             sizer->Add(edit_boxes[j][i], 0, wxALIGN_CENTER_VERTICAL, 0);
         }
@@ -368,10 +368,9 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
     // BBS
     m_sizer_advanced->AddSpacer(FromDIP(10));
-    tip_message_panel = new wxPanel(m_page_advanced, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    auto tip_message_panel = new wxPanel(m_page_advanced, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     tip_message_panel->SetBackgroundColour(wxColour(238, 238, 238));
     auto message_sizer = new wxBoxSizer(wxVERTICAL);
-    auto hyperlink_sizer = new wxBoxSizer(wxHORIZONTAL);
     tip_message_panel->SetSizer(message_sizer);
     {
         wxString message = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed. You could disable the auto-calculate in Bambu Studio > Preferences");

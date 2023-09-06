@@ -47,7 +47,6 @@ private:
 	wxPanel*	m_page_simple = nullptr;
 	wxPanel*	m_page_advanced = nullptr;
     wxPanel* header_line_panel = nullptr;
-    wxPanel* tip_message_panel = nullptr;
     wxBoxSizer*	m_sizer = nullptr;
     wxBoxSizer* m_sizer_simple = nullptr;
     wxBoxSizer* m_sizer_advanced = nullptr;
