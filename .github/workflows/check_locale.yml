@@ -1,0 +1,26 @@
+name: Check locale
+
+on: 
+    pull_request:
+      branches: 
+       - main 
+      paths:
+       - 'localization/**'
+       - ".github/workflows/check_locale.yml"
+
+jobs:
+  publish_docs_to_wiki:
+    name: Publish docs to Wiki
+    runs-on: ubuntu-latest
+    steps:  
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install gettext 
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+
+      - name: Check translation format
+        run: |
+          ./run_gettext.sh

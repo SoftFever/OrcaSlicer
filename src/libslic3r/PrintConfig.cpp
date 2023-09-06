@@ -3872,6 +3872,16 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
 
+    def = this->add("initial_layer_min_bead_width", coPercent);
+    def->label = L("First layer minimum wall width");
+    def->category = L("Quality");
+    def->tooltip = L("The minimum wall width that should be used for the first layer is recommended to be set "
+                     "to the same size as the nozzle. This adjustment is expected to enhance adhesion.");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionPercent(85));
+
     def = this->add("min_bead_width", coPercent);
     def->label = L("Minimum wall width");
     def->category = L("Quality");

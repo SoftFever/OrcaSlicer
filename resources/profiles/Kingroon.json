@@ -120,6 +120,10 @@
       "sub_path": "machine/fdm_machine_common.json"
     },
     {
+      "name": "fdm_klipper_common",
+      "sub_path": "machine/fdm_klipper_common.json"
+    },
+    {
       "name": "Kingroon KP3S PRO S1 0.4 nozzle",
       "sub_path": "machine/Kingroon KP3S PRO S1 0.4 nozzle.json"
     },
