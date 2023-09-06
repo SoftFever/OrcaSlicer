@@ -2020,43 +2020,70 @@ void PerimeterGenerator::process_arachne()
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i = 0;    // index to run through the walls
-                int outer, first_internal, second_internal; // allocate index values
-                // run the re-ordering for all wall loops in the same island
+                int outer, first_internal, second_internal, max_internal; // allocate index values
+                // scan to find the                 
                 while (position < ordered_extrusions.size()) {
                     outer = first_internal = second_internal = -1; // initialise all index values to -1
+                    max_internal = ordered_extrusions.size()-1; // initialise the maximum internal perimeter to the last perimeter on the extrusion list
                     // run through the walls to get the index values that need re-ordering until the first one for each
                     // is found. Start at "position" index to enable the for loop to iterate for multiple external
                     // perimeters in a single island
-		    // printf("Reorcer Loop. Position %d, extrusion list size: %d, Outer index %d, inner index %d, second inner index %d\n", position, ordered_extrusions.size(),outer,first_internal,second_internal);
+		    //printf("Reorder Loop. Position %d, extrusion list size: %d, Outer index %d, inner index %d, second inner index %d\n", position, ordered_extrusions.size(),outer,first_internal,second_internal);
                     for (arr_i = position; arr_i < ordered_extrusions.size(); ++arr_i) {
-			// printf("Perimeter: extrusion inset index %d, ordered extrusions array position %d\n",ordered_extrusions[arr_i].extrusion->inset_idx, arr_i);
+			//printf("Perimeter: extrusion inset index %d, ordered extrusions array position %d\n",ordered_extrusions[arr_i].extrusion->inset_idx, arr_i);
                         switch (ordered_extrusions[arr_i].extrusion->inset_idx) {
-                        case 0: // external perimeter
-                            if (outer == -1)
-                                outer = arr_i;
-                            break;
-                        case 1: // first internal wall
-                            if (first_internal==-1 && arr_i>outer && outer!=-1)
-                                first_internal = arr_i;
-                            break;
-                        case 2: // second internal wall
-                            if (ordered_extrusions[arr_i].extrusion->inset_idx == 2 && second_internal == -1 &&
-                                arr_i > first_internal && outer!=-1)
-                                second_internal = arr_i;
-                            break;
+                        	case 0: // external perimeter
+                            	if (outer == -1)
+                                	outer = arr_i;
+                            	break;
+                        	case 1: // first internal wall
+                            	if (first_internal==-1 && arr_i>outer && outer!=-1)
+                                	first_internal = arr_i;
+                            	break;
+                        	case 2: // second internal wall
+                           		if (ordered_extrusions[arr_i].extrusion->inset_idx == 2 && second_internal == -1 &&
+                                	arr_i > first_internal && outer!=-1)
+                                	second_internal = arr_i;
+                            	break;
                         }
-                        if (outer >-1 && first_internal>-1 && second_internal>-1)
-                            break; // found all three perimeters to re-order
+                        if(outer >-1 && first_internal>-1 && second_internal>-1){ // found all three perimeters to re-order
+                        	if(ordered_extrusions[arr_i].extrusion->inset_idx == 0){ // found a new external perimeter -> this means we entered a new island.
+                        	    arr_i=arr_i-1; //step back one perimeter
+                        		max_internal = arr_i; // new maximum internal perimeter is now this as we have found a new external perimeter, hence a new island.
+                        		break; // exit the for loop
+                        	}
+                        }
                     }
-		    //printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d\n",layer_id,outer,first_internal,second_internal);
-                    if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
-                        const auto temp = ordered_extrusions[second_internal];
-                        ordered_extrusions[second_internal] = ordered_extrusions[first_internal];
-                        ordered_extrusions[first_internal] = ordered_extrusions[outer];
-                        ordered_extrusions[outer] = temp;
-                    } else
-                        break; // did not find any more candidates to re-order, so stop the while loop early
-                    // go to the next perimeter to continue scanning for external walls in the same island
+		    
+		    //printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
+		    if (outer > -1 && first_internal > -1 && second_internal > -1) { // found perimeters to re-order?
+		    	std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
+        		inner_outer_extrusions.reserve(max_internal-position+1); // reserve array up to the maximum internal perimeter before a new island
+        		//printf("Allocated array %d, max_internal %d, start position %d \n",max_internal-position,max_internal,position);
+        		
+        		int current_perimeter = -1;
+        		
+        		for (int arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out (perimeters in reverse order) and map all internal perimeters from the first one identified with inset index 2
+        			if(arr_j>=second_internal){
+        				//printf("Inside out loop: Mapped perimeter %d to position %d\n", arr_j, max_internal-arr_j);
+        				inner_outer_extrusions[max_internal-arr_j] = ordered_extrusions[arr_j];
+        				current_perimeter++;
+        			}
+        		}
+        				
+        		for (int arr_j = position; arr_j < second_internal; ++arr_j){ // go outside in and map the remaining perimeters (external and first internal walls) using the outside in wall order
+        			current_perimeter++;
+        			//printf("Outside in loop: Mapped perimeter %d to position %d\n", arr_j, current_perimeter);
+        			if(current_perimeter>max_internal-position+1) printf("CAREFULL out of bounds\n");
+        			inner_outer_extrusions[current_perimeter] = ordered_extrusions[arr_j];
+        		}
+        		
+        		for(int arr_j=position; arr_j<=max_internal; ++arr_j){ // replace perimeter array with the new re-ordered array
+        			ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
+        		}
+        	} else 
+			break;
+		    // go to the next perimeter to continue scanning for external walls in the same island
                     position = arr_i + 1;
                 }
             }
