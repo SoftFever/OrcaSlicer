@@ -1498,18 +1498,12 @@ void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
 
-    if (!obj) {
-        p->ams_list_device = device;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " clear list";
-        wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
-        for (auto c : p->combos_filament)
-            c->update();
-        return;
-    }
-
     p->ams_list_device = device;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1% items") % filament_ams_list.size();
+    if (wxGetApp().preset_bundle->filament_ams_list == filament_ams_list)
+        return;
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
+
     for (auto c : p->combos_filament)
         c->update();
 }
