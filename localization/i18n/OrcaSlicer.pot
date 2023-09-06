@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-09-04 11:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5240,8 +5240,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -6419,6 +6419,21 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
+
+msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 
@@ -7482,10 +7497,10 @@ msgstr ""
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -8531,6 +8546,9 @@ msgstr ""
 msgid "Tree Hybrid"
 msgstr ""
 
+msgid "Organic"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr ""
 
@@ -8557,11 +8575,33 @@ msgid ""
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
 
+msgid "Preferred Branch Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+
 msgid "Tree support branch distance"
 msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
+msgstr ""
+
+msgid "Branch Density"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
 msgstr ""
 
 msgid "Adaptive layer height"
@@ -8586,10 +8626,39 @@ msgstr ""
 msgid "Distance from tree branch to the outermost brim line"
 msgstr ""
 
+msgid "Tip Diameter"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
+msgstr ""
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+
+msgid "Branch Diameter with double walls"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
 msgstr ""
 
 msgid "Tree support wall loops"
@@ -8832,6 +8901,15 @@ msgid ""
 "this value will not be printed, while features thicker than the Minimum "
 "feature size will be widened to the Minimum wall width. It's expressed as a "
 "percentage over nozzle diameter"
+msgstr ""
+
+msgid "First layer minimum wall width"
+msgstr ""
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
 msgstr ""
 
 msgid "Minimum wall width"

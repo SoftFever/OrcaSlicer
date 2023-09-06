@@ -58,6 +58,11 @@
 				"type": "po",
 				"pattern": "localization/i18n/zh_TW/OrcaSlicer_zh_TW.po",
 				"lang": "zh_TW"
+			},
+			{
+				"type": "po",
+				"pattern": "localization/i18n/tr/OrcaSlicer_tr.po",
+				"lang": "tr"
 			}
 		]
 	},
