@@ -2021,7 +2021,7 @@ void PerimeterGenerator::process_arachne()
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i = 0;    // index to run through the walls
                 int outer, first_internal, second_internal, max_internal; // allocate index values
-                // scan to find the                 
+                // scan to find the external perimeter, first internal, second internal and last perimeter in the island                  
                 while (position < ordered_extrusions.size()) {
                     outer = first_internal = second_internal = -1; // initialise all index values to -1
                     max_internal = ordered_extrusions.size()-1; // initialise the maximum internal perimeter to the last perimeter on the extrusion list
@@ -2063,7 +2063,7 @@ void PerimeterGenerator::process_arachne()
         		
         		int current_perimeter = -1;
         		
-        		for (int arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out (perimeters in reverse order) and map all internal perimeters from the first one identified with inset index 2
+        		for (int arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out (perimeters in reverse order) and map all internal perimeters from the first one identified with inset index 2, going towards the external perimeter
         			if(arr_j>=second_internal){
         				//printf("Inside out loop: Mapped perimeter %d to position %d\n", arr_j, max_internal-arr_j);
         				inner_outer_extrusions[max_internal-arr_j] = ordered_extrusions[arr_j];
@@ -2074,7 +2074,6 @@ void PerimeterGenerator::process_arachne()
         		for (int arr_j = position; arr_j < second_internal; ++arr_j){ // go outside in and map the remaining perimeters (external and first internal walls) using the outside in wall order
         			current_perimeter++;
         			//printf("Outside in loop: Mapped perimeter %d to position %d\n", arr_j, current_perimeter);
-        			if(current_perimeter>max_internal-position+1) printf("CAREFULL out of bounds\n");
         			inner_outer_extrusions[current_perimeter] = ordered_extrusions[arr_j];
         		}
         		
