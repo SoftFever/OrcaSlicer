@@ -641,20 +641,20 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 #else
     wxMediaCtrl::DoSetSize(x, y, width, height, sizeFlags);
 #endif
-    if (sizeFlags & wxSIZE_USE_EXISTING) return;
-    wxSize size = GetVideoSize();
-    if (size.GetWidth() <= 0)
-        size = wxSize{16, 9};
-    int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();
-    if (maxHeight != GetMaxHeight()) {
-        // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
-        SetMaxSize({-1, maxHeight});
-        CallAfter([this] {
-            if (auto p = GetParent()) {
-                p->Layout();
-                p->Refresh();
-            }
-        });
-    }
+    //if (sizeFlags & wxSIZE_USE_EXISTING) return;
+    //wxSize size = GetVideoSize();
+    //if (size.GetWidth() <= 0)
+    //    size = wxSize{16, 9};
+    //int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();
+    //if (maxHeight != GetMaxHeight()) {
+    //    // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
+    //    SetMaxSize({-1, maxHeight});
+    //    CallAfter([this] {
+    //        if (auto p = GetParent()) {
+    //            p->Layout();
+    //            p->Refresh();
+    //        }
+    //    });
+    //}
 }
 
