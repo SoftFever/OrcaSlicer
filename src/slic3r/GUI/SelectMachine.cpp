@@ -1207,7 +1207,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
 
     auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
-    m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Click here if you can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
 
     hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
     m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
