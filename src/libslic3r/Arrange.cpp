@@ -217,8 +217,14 @@ void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPr
                 double b = m11 / m00 - cx * cy;
                 double c = m02 / m00 - cy * cy;
 
-                angle = std::atan2(2 * b, (a - c)) / 2;
-                validResult = true;
+                //if a and c are close, there is no dominant axis, then do not rotate
+                if (std::abs(a) < 1.5*std::abs(c) && std::abs(c) < 1.5*std::abs(a)) {
+                    validResult = false;
+                }
+                else {
+                    angle = std::atan2(2 * b, (a - c)) / 2;
+                    validResult = true;
+                }
             }
         }
         if (validResult) { ap.rotation += (PI / 2 - angle); }
