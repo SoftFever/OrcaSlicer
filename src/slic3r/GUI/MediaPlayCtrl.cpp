@@ -263,6 +263,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     }
 
 
+    bool remote = m_url.find("/local/") == wxString::npos && m_url.find("/rtsp") == wxString::npos;
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
@@ -273,7 +274,6 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
         j["failed_retry"]   = m_failed_retry;
-        bool remote         = m_url.find("/local/") == wxString::npos;
         j["tunnel"]         = remote ? "remote" : "local";
         j["code"]           = m_failed_code;
         if (remote)
@@ -287,7 +287,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 
     m_url.clear();
     ++m_failed_retry;
-    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && !remote && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
