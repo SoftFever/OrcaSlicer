@@ -28,6 +28,7 @@
 #include <utility>
 #include <string_view>
 
+#include <regex>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
@@ -2957,12 +2958,25 @@ namespace Skirt {
 
 } // namespace Skirt
 
-inline std::string get_instance_name(const PrintObject *object, size_t inst_id) {
-    auto obj_name = object->model_object()->name;
-    // replace space in obj_name with '-'
-    std::replace(obj_name.begin(), obj_name.end(), ' ', '_');
+// Orca: Klipper can't parse object names with spaces and other spetical characters
+std::string sanitize_instance_name(const std::string& name) {
+    // Replace sequences of non-word characters with an underscore
+    std::string result = std::regex_replace(name, std::regex("[ !@#$%^&*()=+\\[\\]{};:\",']+"), "_");
+    // Remove leading and trailing underscores
+    if (!result.empty() && result.front() == '_') {
+        result.erase(result.begin());
+    }
+    if (!result.empty() && result.back() == '_') {
+        result.erase(result.end() - 1);
+    }
 
-    return (boost::format("%1%_id_%2%_copy_%3%") % obj_name % object->get_id() % inst_id).str();
+    return result;
+}
+
+inline std::string get_instance_name(const PrintObject *object, size_t inst_id) {
+    auto obj_name = sanitize_instance_name(object->model_object()->name);
+    auto name = (boost::format("%1%_id_%2%_copy_%3%") % obj_name % object->get_id() % inst_id).str();
+    return sanitize_instance_name(name);
 }
 
 inline std::string get_instance_name(const PrintObject *object, const PrintInstance &inst) {
