@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -195,7 +195,7 @@ msgid "Tool-Lay on Face"
 msgstr "工具-选择底面"
 
 msgid "Bottom:"
-msgstr ""
+msgstr "底边:"
 
 msgid "in"
 msgstr "在"
@@ -653,6 +653,9 @@ msgstr "加载模式视图"
 
 msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf）："
@@ -2582,6 +2585,18 @@ msgstr "验证失败。"
 
 msgid "Update failed."
 msgstr "更新失败。"
+
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
@@ -4553,6 +4568,11 @@ msgstr "项目下载中..."
 msgid "Project downloaded %d%%"
 msgstr "项目已下载%d%%"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "已选择的文件"
 
@@ -5190,8 +5210,8 @@ msgstr "热床调平"
 msgid "Flow Dynamics Calibration"
 msgstr "动态流量校准"
 
-msgid "Can't connect to the printer"
-msgstr "无法连接打印机"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "发送完成"
@@ -5793,6 +5813,18 @@ msgstr "切换材料时的回抽量"
 msgid "Detached"
 msgstr "分离的"
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% 预设"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "下列预设将被一起删除。"
@@ -5800,11 +5832,6 @@ msgstr[0] "下列预设将被一起删除。"
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "确定要%1%所选预设吗？"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% 预设"
 
 msgid "All"
 msgstr "所有"
@@ -7175,10 +7202,10 @@ msgid "Default process profile when switch to this machine profile"
 msgstr "该机器的默认切片配置"
 
 msgid "Activate air filtration"
-msgstr ""
+msgstr "激活空气过滤"
 
-msgid "Acivate for better air filtration"
-msgstr ""
+msgid "Activate for better air filtration"
+msgstr "激活以达到更好的空气过滤"
 
 msgid "Fan speed"
 msgstr "风扇速度"
@@ -7916,6 +7943,18 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "内部稀疏填充的打印速度"
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "熨烫类型"
@@ -10351,6 +10390,9 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "无法连接打印机"
 
 #~ msgid "Motor noise"
 #~ msgstr "电机降噪"

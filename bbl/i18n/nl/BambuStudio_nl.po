@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -659,6 +659,9 @@ msgstr "Een modusweergave laden"
 
 msgid "Choose one file (3mf):"
 msgstr "Kies een bestand (3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Kies een of meer bestanden (3mf/step/stl/svg/obj/amf):"
@@ -2717,6 +2720,18 @@ msgstr "Verificatie mislukt."
 msgid "Update failed."
 msgstr "Updaten mislukt."
 
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
 msgid "Failed to start printing job"
 msgstr "Het starten van de printopdracht is mislukt"
 
@@ -4746,6 +4761,11 @@ msgstr "project downloaden..."
 msgid "Project downloaded %d%%"
 msgstr "Project %d%% gedownload"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "Het geselecteerde bestand"
 
@@ -5416,8 +5436,8 @@ msgstr "Bed leveling"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "Kan geen verbinding maken met de printer"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "Versturen gelukt"
@@ -6081,6 +6101,19 @@ msgstr "Terugtrekken (retraction) bij het wisselen van filament"
 msgid "Detached"
 msgstr "Losgemaakt"
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% Voorinstelling"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "De volgende voorinstelling zal ook verwijderd worden@"
@@ -6089,11 +6122,6 @@ msgstr[1] "De volgende voorinstelling zal ook verwijderd worden@"
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Weet u zeker dat u de geselecteerde preset wilt %1%?"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% Voorinstelling"
 
 msgid "All"
 msgstr "Alles"
@@ -7600,7 +7628,7 @@ msgstr "Standaard procesprofiel bij het overschakelen naar dit machineprofiel"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -8417,6 +8445,18 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Dit is de snelheid voor de dunne vulling (infill)"
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Strijk type"
@@ -10961,6 +11001,9 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "Kan geen verbinding maken met de printer"
 
 #, c-format, boost-format
 #~ msgid ""

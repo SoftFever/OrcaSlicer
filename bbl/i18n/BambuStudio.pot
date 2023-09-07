@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -645,6 +645,9 @@ msgid "Loading a mode view"
 msgstr ""
 
 msgid "Choose one file (3mf):"
+msgstr ""
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
@@ -2502,6 +2505,18 @@ msgid "Verification failed."
 msgstr ""
 
 msgid "Update failed."
+msgstr ""
+
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -4443,6 +4458,11 @@ msgstr ""
 msgid "Project downloaded %d%%"
 msgstr ""
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr ""
 
@@ -5074,7 +5094,7 @@ msgstr ""
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
+msgid "Click here if you can't connect to the printer"
 msgstr ""
 
 msgid "send completed"
@@ -5636,6 +5656,19 @@ msgstr ""
 msgid "Detached"
 msgstr ""
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRN  Remove/Delete
+#, possible-boost-format
+msgid "%1% Preset"
+msgstr ""
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] ""
@@ -5643,11 +5676,6 @@ msgstr[1] ""
 
 #, possible-boost-format
 msgid "Are you sure to %1% the selected preset?"
-msgstr ""
-
-#. TRN  Remove/Delete
-#, possible-boost-format
-msgid "%1% Preset"
 msgstr ""
 
 msgid "All"
@@ -6972,7 +7000,7 @@ msgstr ""
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -7671,6 +7699,18 @@ msgid ""
 msgstr ""
 
 msgid "Speed of internal sparse infill"
+msgstr ""
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 
 msgid "Ironing Type"

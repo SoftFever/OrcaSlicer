@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -653,6 +653,9 @@ msgstr "모드 뷰 로드"
 
 msgid "Choose one file (3mf):"
 msgstr "하나의 파일 선택(3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "하나 이상의 파일을 선택합니다 (3mf/step/stl/svg/obj/amf):"
@@ -2641,6 +2644,18 @@ msgstr "인증 실패"
 
 msgid "Update failed."
 msgstr "업데이트 실패"
+
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "출력 작업을 시작하지 못했습니다."
@@ -4637,6 +4652,11 @@ msgstr "프로젝트 다운로드 중..."
 msgid "Project downloaded %d%%"
 msgstr "프로젝트 다운로드 %d%%"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "선택한 파일"
 
@@ -5286,8 +5306,8 @@ msgstr "베드 레벨링"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "프린터에 연결할 수 없습니다"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "보내기 완료"
@@ -5912,6 +5932,18 @@ msgstr "필라멘트 전환시 리트렉션"
 msgid "Detached"
 msgstr "분리됨"
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% 프리셋"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "다음 프리셋도 삭제됩니다."
@@ -5919,11 +5951,6 @@ msgstr[0] "다음 프리셋도 삭제됩니다."
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "선택한 프리셋의 %1% 를 정말로 원하십니까?"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% 프리셋"
 
 msgid "All"
 msgstr "전체"
@@ -7360,7 +7387,7 @@ msgstr "이 프린터 프로파일로 전환할 때의 기본 프로세스 프�
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -8135,6 +8162,18 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "내부채움 속도입니다."
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "다림질 유형"
@@ -10594,6 +10633,9 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "프린터에 연결할 수 없습니다"
 
 #, c-format, boost-format
 #~ msgid ""

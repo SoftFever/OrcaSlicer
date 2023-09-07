@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -658,6 +658,9 @@ msgstr "Загрузка режима просмотра"
 
 msgid "Choose one file (3mf):"
 msgstr "Выберите один файл (3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Выберите один или несколько файлов (3mf/step/stl/svg/obj/amf):"
@@ -2703,6 +2706,18 @@ msgstr "Проверка не удалась."
 msgid "Update failed."
 msgstr "Не удалось обновить."
 
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
 msgid "Failed to start printing job"
 msgstr "Не удалось запустить задание на печать"
 
@@ -4730,6 +4745,11 @@ msgstr "скачиваю проект..."
 msgid "Project downloaded %d%%"
 msgstr "Проект загружен %d%%"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "Выбранный файл"
 
@@ -5378,7 +5398,7 @@ msgstr "Выравнивание кровати"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
+msgid "Click here if you can't connect to the printer"
 msgstr ""
 
 msgid "send completed"
@@ -6020,6 +6040,20 @@ msgstr "Втягивание при переключении материала"
 msgid "Detached"
 msgstr "Отдельный"
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% Предустановка"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "Следующая предустановка также будет удалена."
@@ -6029,11 +6063,6 @@ msgstr[2] "Следующие стили также будут удалены."
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Вы уверены, что %1% выбранной предустановки?"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% Предустановка"
 
 msgid "All"
 msgstr "Всё"
@@ -7510,7 +7539,7 @@ msgstr "Профиль процесса по умолчанию при пере�
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -8306,6 +8335,18 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Скорость внутреннего заполнения"
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Тип глажки"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -660,6 +660,9 @@ msgstr "Caricamento di una modalità di visualizzazione"
 
 msgid "Choose one file (3mf):"
 msgstr "Scegli file (3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Scegli uno o più file (3mf/step/stl/svg/obj/amf):"
@@ -2717,6 +2720,18 @@ msgstr "Verifica fallita."
 msgid "Update failed."
 msgstr "Aggiornamento fallito"
 
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
 msgid "Failed to start printing job"
 msgstr "Impossibile avviare il processo di stampa"
 
@@ -4732,6 +4747,11 @@ msgstr "Download progetto..."
 msgid "Project downloaded %d%%"
 msgstr "Progetto scaricato %d%%"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "Il file selezionato"
 
@@ -5393,8 +5413,8 @@ msgstr "Livellamento piano"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "Impossibile connettersi alla stampante"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "Invio completo"
@@ -6055,6 +6075,19 @@ msgstr "Retrazione quando si cambia materiale"
 msgid "Detached"
 msgstr "Distaccato"
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% Preset"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "Verrà eliminato anche il seguente preset:"
@@ -6063,11 +6096,6 @@ msgstr[1] "Verranno eliminati anche i seguenti presets:"
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Sei sicuro di voler %1% il preset selezionato?"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% Preset"
 
 msgid "All"
 msgstr "Tutto"
@@ -7577,7 +7605,7 @@ msgstr ""
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -8397,6 +8425,18 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "E' la velocità del riempimento interno."
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Tipo di stiratura"
@@ -10940,6 +10980,9 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "Impossibile connettersi alla stampante"
 
 #, c-format, boost-format
 #~ msgid ""

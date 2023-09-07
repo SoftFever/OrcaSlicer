@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-01 10:49+0800\n"
+"POT-Creation-Date: 2023-09-07 20:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -664,6 +664,9 @@ msgstr "Mód nézet betöltése"
 
 msgid "Choose one file (3mf):"
 msgstr "Válassz ki egy fájlt (3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Válassz ki egy vagy több fájlt (3mf/step/stl/svg/obj/amf):"
@@ -2703,6 +2706,18 @@ msgstr "Sikertelen ellenőrzés."
 msgid "Update failed."
 msgstr "A frissítés sikertelen."
 
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
 msgid "Failed to start printing job"
 msgstr "Nem sikerült elindítani a nyomtatási feladatot"
 
@@ -4714,6 +4729,11 @@ msgstr "projekt letöltése ..."
 msgid "Project downloaded %d%%"
 msgstr "Projekt letöltve %d%%"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "A kiválasztott fájl"
 
@@ -5371,8 +5391,8 @@ msgstr "Asztalszintezés"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "Nem lehet csatlakozni a nyomtatóhoz"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "küldés befejezve"
@@ -6029,6 +6049,19 @@ msgstr "Visszahúzás anyagváltáskor"
 msgid "Detached"
 msgstr "Különálló"
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% beállítás"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "A következő beállítás szintén törlődni fog."
@@ -6037,11 +6070,6 @@ msgstr[1] "A következő beállítások szintén törlődni fognak."
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Biztos, hogy %1% a kiválasztott beállítást?"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% beállítás"
 
 msgid "All"
 msgstr "Összes"
@@ -7536,7 +7564,7 @@ msgstr "Alapértelmezett folyamat profil, ha erre a gép profilra váltasz"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -8344,6 +8372,18 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "A belső ritkás kitöltés sebessége"
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
+msgstr ""
 
 msgid "Ironing Type"
 msgstr "Vasalás típusa"
@@ -10868,6 +10908,9 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "Nem lehet csatlakozni a nyomtatóhoz"
 
 #, c-format, boost-format
 #~ msgid ""
