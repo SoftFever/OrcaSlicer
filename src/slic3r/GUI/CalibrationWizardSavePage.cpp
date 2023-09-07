@@ -593,6 +593,8 @@ bool CaliPASaveManualPanel::Show(bool show) {
             if (!m_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(m_obj->selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
                 set_default_name(default_name);
+                m_k_val->GetTextCtrl()->SetLabel("");
+                m_n_val->GetTextCtrl()->SetLabel("");
             }
         }
         else {
@@ -701,6 +703,14 @@ bool CaliPASaveP1PPanel::get_result(float* out_k, float* out_n){
         return false;
     }
     return true;
+}
+
+bool CaliPASaveP1PPanel::Show(bool show) {
+    if (show) {
+        m_k_val->GetTextCtrl()->SetLabel("");
+        m_n_val->GetTextCtrl()->SetLabel("");
+    }
+    return wxPanel::Show(show);
 }
 
 CaliSavePresetValuePanel::CaliSavePresetValuePanel(

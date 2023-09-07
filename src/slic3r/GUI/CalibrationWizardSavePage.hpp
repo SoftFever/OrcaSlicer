@@ -155,6 +155,8 @@ public:
 
     bool get_result(float* out_k, float* out_n);
 
+    virtual bool Show(bool show = true) override;
+
 protected:
     wxBoxSizer* m_top_sizer;
     Label *          m_complete_text;
