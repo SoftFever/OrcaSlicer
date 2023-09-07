@@ -1081,10 +1081,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer* m_sizer_material_tips = new wxBoxSizer(wxHORIZONTAL);
 
     enable_ams_mapping      = new ScalableBitmap(this, "enable_ams", 16);
-    auto img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, enable_ams_mapping->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, enable_ams_mapping->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     m_sizer_material_tips->Add(img_amsmapping_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
-    img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {
+    img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         wxPoint img_pos = img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
         wxPoint popup_pos(img_pos.x, img_pos.y + img_amsmapping_tip->GetRect().height);
         m_mapping_tutorial_popup.Position(popup_pos, wxSize(0, 0));
@@ -1101,7 +1101,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_mapping_tutorial_popup.Dismiss();
         });
-    amsmapping_tip = img_amsmapping_tip;
 
     m_sizer_material = new wxGridSizer(0, 4, 0, FromDIP(5));
 
@@ -1124,8 +1123,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_ams_backup_tip->Hide();
     img_ams_backup->Hide();
 
-    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
-    img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {SetCursor(wxCURSOR_HAND); });
+    m_ams_backup_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
+    img_ams_backup->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
 
     m_ams_backup_tip->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
     img_ams_backup->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
@@ -1543,12 +1542,12 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
 
     enable_ams       = new ScalableBitmap(this, "enable_ams", 16);
-    auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, enable_ams->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
+    img_use_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, enable_ams->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    sizer_checkbox->Add(img_use_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
-    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto& e) {
-        wxPoint img_pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
-        wxPoint popup_pos(img_pos.x, img_pos.y + img_ams_tip->GetRect().height);
+    img_use_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
+        wxPoint img_pos = img_use_ams_tip->ClientToScreen(wxPoint(0, 0));
+        wxPoint popup_pos(img_pos.x, img_pos.y + img_use_ams_tip->GetRect().height);
         m_mapping_tip_popup.Position(popup_pos, wxSize(0, 0));
         m_mapping_tip_popup.Popup();
 
@@ -1560,10 +1559,9 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
         }
     });
 
-    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+    img_use_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_mapping_tip_popup.Dismiss();
         });
-    ams_tip = img_ams_tip;
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();
@@ -3046,6 +3044,12 @@ void SelectMachineDialog::update_ams_check(MachineObject* obj)
 {
     if (obj && obj->ams_support_use_ams && obj->has_ams()) {
         select_use_ams->Show();
+        if (obj->get_printer_ams_type() == "generic") {
+            img_use_ams_tip->Show();
+        }
+        else {
+            img_use_ams_tip->Hide();
+        }
     } else {
         select_use_ams->Hide();
     }
@@ -3358,9 +3362,9 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     ams_editable->msw_rescale();
     ams_editable_light->msw_rescale();
     enable_ams_mapping->msw_rescale();
-    amsmapping_tip->SetBitmap(enable_ams_mapping->bmp());
+    img_amsmapping_tip->SetBitmap(enable_ams_mapping->bmp());
     enable_ams->msw_rescale();
-    ams_tip->SetBitmap(enable_ams->bmp());
+    img_use_ams_tip->SetBitmap(enable_ams->bmp());
 
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetCornerRadius(FromDIP(12));

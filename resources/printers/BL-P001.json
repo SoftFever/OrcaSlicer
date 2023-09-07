@@ -38,12 +38,16 @@
             "support_chamber_temp_edit":false,
             "support_extrusion_cali":false
         },
-        "model_id": "BL-P001",
+        "model_id":"BL-P001",
         "compatible_machine":["BL-P002", "C11", "C12", "C13"],
-        "printer_type": "3DPrinter-X1-Carbon",
-        "printer_thumbnail_image": "printer_thumbnail",
-        "printer_connect_help_image": "input_access_code_x1",
-        "printer_use_ams_image":"ams_icon"
+        "printer_type":"3DPrinter-X1-Carbon",
+        "printer_thumbnail_image":"printer_thumbnail",
+        "printer_connect_help_image":"input_access_code_x1",
+        "printer_use_ams_image":"ams_icon",
+        "use_ams_type":"generic",
+        "printer_arch":"core_xy",
+        "printer_series":"series_x1",
+        "has_cali_line":true
     }, 
     "01.01.01.00": {
         "print": {

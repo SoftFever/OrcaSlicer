@@ -202,6 +202,11 @@ const std::string& var_dir()
 
 std::string var(const std::string &file_name)
 {
+    boost::system::error_code ec;
+    if (boost::filesystem::exists(file_name, ec)) {
+       return file_name;
+    }
+
     auto file = (boost::filesystem::path(g_var_dir) / file_name).make_preferred();
     return file.string();
 }

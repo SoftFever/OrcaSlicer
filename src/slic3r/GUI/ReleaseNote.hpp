@@ -212,9 +212,7 @@ public:
     Label* m_test_wrong_msg{ nullptr };
     TextInput* m_input_ip{ nullptr };
     TextInput* m_input_access_code{ nullptr };
-    wxStaticBitmap* m_img_help1{ nullptr };
-    wxStaticBitmap* m_img_help2{ nullptr };
-    wxStaticBitmap* m_img_help3{ nullptr };
+    wxStaticBitmap* m_img_help{ nullptr };
     wxStaticBitmap* m_img_step1{ nullptr };
     wxStaticBitmap* m_img_step2{ nullptr };
     wxStaticBitmap* m_img_step3{ nullptr };

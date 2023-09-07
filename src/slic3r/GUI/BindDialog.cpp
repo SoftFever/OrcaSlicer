@@ -594,7 +594,7 @@ wxString get_fail_reason(int code)
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
 
-     if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+     if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
          m_bind_job->set_improved(false);
      }
      else {
@@ -614,7 +614,7 @@ void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 void BindMachineDialog::update_machine_info(MachineObject* info)
 {
     m_machine_info = info;
-    if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+    if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
         m_button_bind->Enable(true);
         m_panel_agreement->Hide();
     }

@@ -759,7 +759,7 @@ BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
     }
 
     std::string model_id = this->get_printer_type(preset_bundle);
-    if (model_id == "BL-P001" || model_id == "BL-P002") {
+    if (model_id == "BL-P001" || model_id == "BL-P002" || model_id == "C13") {
         return BedType::btPC;
     } else if (model_id == "C11") {
         return BedType::btPEI;
@@ -770,7 +770,7 @@ BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
 bool Preset::has_cali_lines(PresetBundle* preset_bundle)
 {
     std::string model_id = this->get_printer_type(preset_bundle);
-    if (model_id == "BL-P001" || model_id == "BL-P002") {
+    if (model_id == "BL-P001" || model_id == "BL-P002" || model_id == "C13") {
         return true;
     }
     return false;

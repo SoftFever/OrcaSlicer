@@ -340,6 +340,7 @@ protected:
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
     wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
     wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
+    wxStaticBitmap*                     img_amsmapping_tip{nullptr};
     ThumbnailPanel*                     m_thumbnailPanel{ nullptr };
     wxWindow*                           select_bed{ nullptr };
     wxWindow*                           select_flow{ nullptr };
@@ -383,9 +384,8 @@ protected:
     ScalableBitmap *                    print_time{nullptr};
     wxStaticBitmap *                    weightimg{nullptr};
     ScalableBitmap *                    print_weight{nullptr};
-    wxStaticBitmap *                    amsmapping_tip{nullptr};
     ScalableBitmap *                    enable_ams_mapping{nullptr};
-    wxStaticBitmap *                    ams_tip{nullptr};
+    wxStaticBitmap *                    img_use_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
 

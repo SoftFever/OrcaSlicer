@@ -407,12 +407,13 @@ public:
     void erase_user_access_code();
     std::string get_user_access_code();
     bool is_lan_mode_printer();
-    bool is_high_printer_type();
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
     PrinterSeries get_printer_series() const;
     PrinterArch get_printer_arch() const;
+    std::string get_printer_ams_type() const;
+
     void reload_printer_settings();
 
     std::string printer_thumbnail_img;
@@ -869,7 +870,6 @@ public:
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready();
-    bool is_function_supported(PrinterFunction func);
     bool is_camera_busy_off();
 
     std::vector<std::string> get_resolution_supported();
@@ -951,14 +951,14 @@ public:
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
+    static std::string get_printer_ams_type(std::string type_str);
+    static std::string get_printer_series(std::string type_str);
     static std::string get_printer_diagram_img(std::string type_str);
     static std::string get_printer_ams_img(std::string type_str);
     static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
-    static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
-    static bool load_functional_config(std::string config_file);
     static bool load_filaments_blacklist_config(std::string config_file);
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);

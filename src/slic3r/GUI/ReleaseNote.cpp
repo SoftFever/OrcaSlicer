@@ -1093,16 +1093,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     
     m_trouble_shoot = new wxHyperlinkCtrl(this, wxID_ANY, "How to trouble shooting", "");
 
-    m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("lan_mode_help_x1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
+    m_img_help = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_x1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(352), -1), 0);
     
-    m_img_help2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_p1p_en", this, 118), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(118)), 0);
-
-    m_img_help3 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_access_code_n1_en", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(118)), 0);
-    
-    m_img_help1->Hide();
-    m_img_help2->Hide();
-    m_img_help3->Hide();
-
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1210,9 +1202,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
     m_sizer_main_right->Add(m_tip3, 0, wxRIGHT | wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main_right->Add(m_img_help1, 0, 0, 0);
-    m_sizer_main_right->Add(m_img_help2, 0, 0, 0);
-    m_sizer_main_right->Add(m_img_help3, 0, 0, 0);
+    m_sizer_main_right->Add(m_img_help, 0, 0, 0);
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
     m_sizer_main_right->Add(m_input_tip_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -1288,22 +1278,11 @@ void InputIpAddressDialog::set_machine_obj(MachineObject* obj)
     m_input_ip->GetTextCtrl()->SetLabelText(m_obj->dev_ip);
     m_input_access_code->GetTextCtrl()->SetLabelText(m_obj->get_access_code());
 
-    if (m_obj->printer_type == "C11" || m_obj->printer_type == "C12") {
-        m_img_help1->Hide();
-        m_img_help2->Show();
-        m_img_help3->Hide();
-    }
-    else if (m_obj->printer_type == "BL-P001" || m_obj->printer_type == "BL-P002") {
-         m_img_help1->Show();
-         m_img_help2->Hide();
-         m_img_help3->Hide();
-    }
-    else if (m_obj->printer_type == "N1") {
-        m_img_help1->Hide();
-        m_img_help2->Hide();
-        m_img_help3->Show();
-    }
+    std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
+    auto diagram_bmp = create_scaled_bitmap(img_str + "_en", this, 198);
+    m_img_help->SetBitmap(diagram_bmp);
 
+    
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
     if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {

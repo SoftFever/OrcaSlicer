@@ -383,10 +383,22 @@ wxString MachineObject::get_printer_type_display_str()
 std::string MachineObject::get_printer_thumbnail_img_str()
 {
     std::string img_str = get_preset_printer_thumbnail_img(printer_type);
-    if (!img_str.empty())
-        return img_str;
-    else
-        return "printer_thumbnail";
+    std::string img_url;
+
+    if (!img_str.empty()) {
+        img_url =  Slic3r::resources_dir() + "\\printers\\image\\" + img_str;
+        if (fs::exists(img_url + ".svg")) {
+            return img_url;
+        }
+        else {
+            img_url = img_str;
+        }
+    }
+    else {
+        img_url =  "printer_thumbnail";
+    }
+
+    return img_url;
 }
 
 std::string MachineObject::get_ftp_folder()
@@ -450,16 +462,12 @@ bool MachineObject::is_lan_mode_printer()
     return result;
 }
 
-bool MachineObject::is_high_printer_type()
-{
-    return get_printer_series() == PrinterSeries::SERIES_X1;
-}
-
 PrinterSeries MachineObject::get_printer_series() const
 {
-    if (printer_type == "BL-P001" || printer_type == "BL-P002")
+    std::string series =  DeviceManager::get_printer_series(printer_type);
+    if (series == "series_x1")
         return PrinterSeries::SERIES_X1;
-    else if (printer_type == "C11" || printer_type == "C12")
+    else if (series == "series_p1p")
         return PrinterSeries::SERIES_P1P;
     else
         return PrinterSeries::SERIES_P1P;
@@ -468,6 +476,11 @@ PrinterSeries MachineObject::get_printer_series() const
 PrinterArch MachineObject::get_printer_arch() const
 {
     return DeviceManager::get_printer_arch(printer_type);
+}
+
+std::string MachineObject::get_printer_ams_type() const
+{
+    return DeviceManager::get_printer_ams_type(printer_type);
 }
 
 void MachineObject::reload_printer_settings()
@@ -2191,7 +2204,7 @@ int MachineObject::command_unload_filament()
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         return this->publish_json(j.dump());
     }
-    else if (printer_type == "C11" || (get_printer_series() == PrinterSeries::SERIES_X1 && ams_support_virtual_tray) ) {
+    else if (get_printer_series() == PrinterSeries::SERIES_P1P || (get_printer_series() == PrinterSeries::SERIES_X1 && ams_support_virtual_tray) ) {
         std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
         if (gcode.empty()) {
             return -1;
@@ -2508,15 +2521,6 @@ bool MachineObject::is_info_ready()
     return false;
 }
 
-bool MachineObject::is_function_supported(PrinterFunction func)
-{
-    std::string func_name;
-    switch (func) {
-    default:
-        return true;
-    }
-    return DeviceManager::is_function_supported(printer_type, func_name);
-}
 
 std::vector<std::string> MachineObject::get_resolution_supported()
 {
@@ -2530,7 +2534,7 @@ std::vector<std::string> MachineObject::get_compatible_machine()
 
 bool MachineObject::is_camera_busy_off()
 {
-    if (printer_type == "C11" || printer_type == "C12")
+    if (get_printer_series() == PrinterSeries::SERIES_P1P)
         return is_in_prepare() || is_in_upgrading();
     return false;
 }
@@ -5185,7 +5189,6 @@ void DeviceManager::load_last_machine()
     }
 }
 
-json DeviceManager::function_table = json::object();
 json DeviceManager::filaments_blacklist = json::object();
 
 
@@ -5229,31 +5232,21 @@ std::string DeviceManager::get_printer_thumbnail_img(std::string type_str)
 {
     return get_string_from_config(type_str, "printer_thumbnail_image");
 }
-
+std::string DeviceManager::get_printer_ams_type(std::string type_str)
+{
+    return get_string_from_config(type_str, "use_ams_type");
+}
+std::string DeviceManager::get_printer_series(std::string type_str)
+{
+    return get_string_from_config(type_str, "printer_series");
+}
 std::string DeviceManager::get_printer_diagram_img(std::string type_str)
 {
     return get_string_from_config(type_str, "printer_connect_help_image");
 }
-
 std::string DeviceManager::get_printer_ams_img(std::string type_str)
 {
     return get_string_from_config(type_str, "printer_use_ams_image");
-}
-
-
-bool DeviceManager::is_function_supported(std::string type_str, std::string function_name)
-{
-    if (DeviceManager::function_table.contains("printers")) {
-        for (auto printer : DeviceManager::function_table["printers"]) {
-            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
-                if (printer.contains("func")) {
-                    if (printer["func"].contains(function_name))
-                        return printer["func"][function_name].get<bool>();
-                }
-            }
-        }
-    }
-    return true;
 }
 
 std::vector<std::string> DeviceManager::get_resolution_supported(std::string type_str)
@@ -5301,23 +5294,6 @@ std::vector<std::string> DeviceManager::get_compatible_machine(std::string type_
     return compatible_machine;
 }
 
-bool DeviceManager::load_functional_config(std::string config_file)
-{
-    std::ifstream json_file(config_file.c_str());
-    try {
-        if (json_file.is_open()) {
-            json_file >> DeviceManager::function_table;
-            return true;
-        } else {
-            BOOST_LOG_TRIVIAL(error) << "load functional config failed, file = " << config_file;
-        }
-    }
-    catch(...) {
-        BOOST_LOG_TRIVIAL(error) << "load functional config failed, file = " << config_file;
-        return false;
-    }
-    return true;
-}
 
 bool DeviceManager::load_filaments_blacklist_config(std::string config_file)
 {

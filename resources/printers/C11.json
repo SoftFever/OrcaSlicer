@@ -41,7 +41,11 @@
         "ftp_folder" : "sdcard/",
         "printer_thumbnail_image": "printer_thumbnail_p1p",
         "printer_connect_help_image": "input_access_code_p1p",
-        "printer_use_ams_image":"ams_icon"
+        "printer_use_ams_image":"ams_icon",
+        "use_ams_type":"generic",
+        "printer_arch" : "core_xy",
+        "printer_series":"series_p1p",
+        "has_cali_line":false
     }, 
     "01.02.00.00": {
         "print": {
