@@ -1,0 +1,8 @@
+{
+    "type": "process",
+    "setting_id": "GP_CREALITY_050",
+    "name": "0.12mm Detail @Creality 0.4 CR-6",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "0.12mm Detail @Creality CR-6"
+}
