@@ -1885,10 +1885,16 @@ void PerimeterGenerator::process_arachne()
         int end_perimeter = -1;
         int direction = -1;
 
-        bool is_outer_wall_first =
-            this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
-            this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
+		bool is_outer_wall_first =
+            	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+            	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+        
+        if (layer_id>0){ // only enable inner outer inner algorithm after the first layer
+        	is_outer_wall_first =
+            	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+            	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
+            	this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
+        }
         if (is_outer_wall_first) {
             start_perimeter = 0;
             end_perimeter = int(perimeters.size());
@@ -2016,7 +2022,7 @@ void PerimeterGenerator::process_arachne()
         }
 
 		// printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
+        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill && layer_id > 0) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops
