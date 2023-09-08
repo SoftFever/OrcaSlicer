@@ -1887,13 +1887,13 @@ void PerimeterGenerator::process_arachne()
 
 		bool is_outer_wall_first =
             	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
-        
-        if (layer_id>0){ // only enable inner outer inner algorithm after the first layer
-        	is_outer_wall_first =
-            	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
             	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
             	this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
+        
+        if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
+        	is_outer_wall_first =
+            	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
+            	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
         }
         if (is_outer_wall_first) {
             start_perimeter = 0;
