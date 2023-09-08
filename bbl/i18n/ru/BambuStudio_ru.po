@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-07 20:48+0800\n"
+"POT-Creation-Date: 2023-09-08 15:39+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10857,7 +10857,6 @@ msgstr ""
 "Знаете ли вы, что для повышения прочности модели можно использовать больше "
 "периметров и более высокую плотность заполнения?"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degree centigrade.\n"
@@ -10944,7 +10943,6 @@ msgstr ""
 #~ "признателен, если вы сообщите о конкретном сценарии возникновения этой "
 #~ "проблемы."
 
-#, boost-format
 #~ msgid "OrcaSlicer got an unhandled exception: %1%"
 #~ msgstr "OrcaSlicer получил необработанное исключение: %1%"
 
@@ -11090,7 +11088,6 @@ msgstr ""
 #~ msgid "Layer Time (log)"
 #~ msgstr "Время слоя (журнал)"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. "
 #~ "Please separate the conflicted objects farther (%s <-> %s)."
@@ -11127,7 +11124,6 @@ msgstr ""
 #~ msgid "Missing LAN ip of printer!"
 #~ msgstr "Отсутствует LAN ip принтера!"
 
-#, c-format, boost-format
 #~ msgid "You are going to delete %u files. Are you sure to continue?"
 #~ msgstr ""
 #~ "Вы собираетесь удалить %u файлов. Вы уверены, что хотите продолжить?"
@@ -11135,7 +11131,6 @@ msgstr ""
 #~ msgid "Printing List"
 #~ msgstr "Список печати"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
 #~ "the printer by logging in with your user account."
@@ -11144,7 +11139,6 @@ msgstr ""
 #~ "Пожалуйста, переподключите принтер, войдя в свою учетную запись "
 #~ "пользователя."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
 #~ "the printer by inputting Access Code which can be gotten from printer "
@@ -11157,7 +11151,6 @@ msgstr ""
 #~ msgid "Media"
 #~ msgstr "Медиа"
 
-#, boost-format
 #~ msgid " plate %1%:"
 #~ msgstr " пластина %1%:"
 
@@ -11174,7 +11167,6 @@ msgstr ""
 #~ msgstr ""
 #~ "3mf генерируется старым слайсером Orca, загружать только данные геометрии."
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:"
@@ -11185,7 +11177,6 @@ msgstr ""
 #~ msgid "You'd better upgrade your software.\n"
 #~ msgstr "Вам лучше обновить программное обеспечение.\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
 #~ "your software."
@@ -11679,7 +11670,6 @@ msgstr ""
 #~ "полупрозрачными материалами или растворимым в ручном режиме материалом "
 #~ "подложки"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used."
@@ -11875,7 +11865,6 @@ msgstr ""
 #~ msgid "Open CA certificate file"
 #~ msgstr "Открыть файл сертификата ЦС"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "On this system, %s uses HTTPS certificates from the system Certificate "
 #~ "Store or Keychain."

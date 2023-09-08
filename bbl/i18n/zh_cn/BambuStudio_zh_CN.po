@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-07 20:48+0800\n"
+"POT-Creation-Date: 2023-09-08 15:39+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1536,10 +1536,10 @@ msgid "Purge old filament"
 msgstr "冲刷旧耗材丝"
 
 msgid "Feed Filament"
-msgstr ""
+msgstr "进料"
 
 msgid "Confirm extruded"
-msgstr ""
+msgstr "确认挤出"
 
 msgid "Check filament location"
 msgstr "检查耗材位置"
@@ -2932,7 +2932,7 @@ msgid "Avoid extrusion calibration region"
 msgstr "避开挤出校准区域"
 
 msgid "Align to Y axis"
-msgstr ""
+msgstr "对齐到Y轴"
 
 msgid "Add"
 msgstr "添加"
@@ -5387,16 +5387,16 @@ msgid "Failed to connect socket"
 msgstr ""
 
 msgid "Failed to publish login request"
-msgstr ""
+msgstr "发布登录请求失败"
 
 msgid "Get ticket from device timeout"
-msgstr ""
+msgstr "从设备获取ticket超时"
 
 msgid "Get ticket from server timeout"
-msgstr ""
+msgstr "从服务器获取ticket超时"
 
 msgid "Failed to post ticket to server"
-msgstr ""
+msgstr "将ticket发送到服务器失败"
 
 msgid "Failed to parse login report reason"
 msgstr ""
@@ -5736,13 +5736,13 @@ msgid "Auxiliary part cooling fan"
 msgstr "辅助部件冷却风扇"
 
 msgid "Exhaust fan"
-msgstr ""
+msgstr "排风扇"
 
 msgid "During print"
-msgstr ""
+msgstr "打印过程中"
 
 msgid "Complete print"
-msgstr ""
+msgstr "完成打印"
 
 msgid "Filament start G-code"
 msgstr "耗材丝起始G-code"
@@ -7213,10 +7213,10 @@ msgstr "风扇速度"
 msgid ""
 "Speed of exhuast fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
-msgstr ""
+msgstr "打印过程中排风扇的速度。此速度将覆盖材料的自定义G代码中的速度。"
 
 msgid "Speed of exhuast fan after printing completes"
-msgstr ""
+msgstr "打印完成后排风扇的速度。"
 
 msgid "No cooling for the first"
 msgstr "关闭冷却对前"
@@ -7269,12 +7269,12 @@ msgid "End G-code when finish the whole printing"
 msgstr "所有打印结束时的结尾G-code"
 
 msgid "Between Object Gcode"
-msgstr ""
+msgstr "对象之间Gcode"
 
 msgid ""
 "Insert Gcode between objects. This parameter will only come into effect when "
 "you print your models object by object"
-msgstr ""
+msgstr "在对象之间插入 Gcode。此参数仅在逐个打印模型物体时生效。"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
@@ -7833,26 +7833,26 @@ msgid "Delta"
 msgstr ""
 
 msgid "Best object position"
-msgstr ""
+msgstr "最佳对象位置"
 
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
-msgstr ""
+msgstr "相对于热床尺寸的最佳自动摆放位置，范围为[0,1]。"
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
 msgid "Support control chamber temperature"
-msgstr ""
+msgstr "支持控制室温度"
 
 msgid ""
 "This option is enabled if machine support controlling chamber temperature"
 msgstr ""
 
 msgid "Support air filtration"
-msgstr ""
+msgstr "支持空气过滤"
 
 msgid "Enable this if printer support air filtration"
-msgstr ""
+msgstr "如果打印机支持空气过滤则启用该选项"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -7951,10 +7951,10 @@ msgid "Maximum width of a segmented region. Zero disables this feature."
 msgstr ""
 
 msgid "Interlocking depth of a segmented region"
-msgstr ""
+msgstr "分割区域的交错深度"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
-msgstr ""
+msgstr "分割区域的交错深度。0 则禁用此功能。"
 
 msgid "Ironing Type"
 msgstr "熨烫类型"
@@ -9055,7 +9055,7 @@ msgstr ""
 "快打印速度。否则使用默认的直线填充。"
 
 msgid "invalid value "
-msgstr "非法的值 "
+msgstr "无效值"
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -9255,10 +9255,10 @@ msgstr ""
 "trace\n"
 
 msgid "Load custom gcode"
-msgstr ""
+msgstr "加载自定义 gcode"
 
 msgid "Load custom gcode from json"
-msgstr ""
+msgstr "从 json 中加载自定义 gcode"
 
 msgid "Error in zip archive"
 msgstr "zip文件中存在错误"
@@ -9750,7 +9750,7 @@ msgid "Calibration Type"
 msgstr "校准类型"
 
 msgid "Complete Calibration"
-msgstr "完整校准"
+msgstr "完成校准"
 
 msgid "Fine Calibration based on flow ratio"
 msgstr "基于流量比的精细校准"
@@ -10397,7 +10397,6 @@ msgstr ""
 #~ msgid "Motor noise"
 #~ msgstr "电机降噪"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degree centigrade.\n"
@@ -10476,7 +10475,6 @@ msgstr ""
 #~ "failed test result would be droped."
 #~ msgstr "部分校准失败！您可以清洁打印平台并重试。未通过的测试结果将被丢弃。"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:"
@@ -10485,13 +10483,11 @@ msgstr ""
 #~ msgid "You'd better upgrade your software.\n"
 #~ msgstr "建议升级您的软件版本。\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
 #~ "your software."
 #~ msgstr "该3mf的版本%s比%s的版本%s要新，建议升级你的软件。"
 
-#, boost-format
 #~ msgid "The selected preset: %1% is not found."
 #~ msgstr "未找到选定的预设：%1%。"
 
@@ -10514,7 +10510,6 @@ msgstr ""
 #~ msgid "HRC"
 #~ msgstr "洛氏硬度"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used."

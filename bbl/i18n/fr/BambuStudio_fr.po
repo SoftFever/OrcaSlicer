@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-07 20:48+0800\n"
+"POT-Creation-Date: 2023-09-08 15:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -11065,7 +11065,6 @@ msgstr ""
 #~ msgid "Can't connect to the printer"
 #~ msgstr "Impossible de se connecter à l'imprimante"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Bed temperature of other layer is lower than bed temperature of initial "
 #~ "layer for more than %d degree centigrade.\n"
@@ -11144,7 +11143,6 @@ msgstr ""
 #~ msgid "Score"
 #~ msgstr "Note"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
 #~ "unrecognized:"
@@ -11155,7 +11153,6 @@ msgstr ""
 #~ msgid "You'd better upgrade your software.\n"
 #~ msgstr "Vous feriez mieux de mettre à jour votre logiciel.\n"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
 #~ "your software."
@@ -11183,7 +11180,6 @@ msgstr ""
 #~ msgid "HRC"
 #~ msgstr "HRC"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used."
