@@ -216,6 +216,14 @@
 			"sub_path": "process/0.20mm Standard @Creality Ender6.json"
 		},
 		{
+			"name": "0.20mm Standard @Creality K1 (0.4 nozzle)",
+			"sub_path": "process/0.20mm Standard @Creality K1 (0.4 nozzle).json"
+		},
+		{
+			"name": "0.20mm Standard @Creality K1Max (0.4 nozzle)",
+			"sub_path": "process/0.20mm Standard @Creality K1Max (0.4 nozzle).json"
+		},
+		{
 			"name": "0.24mm Draft @Creality CR10Max",
 			"sub_path": "process/0.24mm Draft @Creality CR10Max.json"
 		},
@@ -227,7 +235,6 @@
 			"name": "0.24mm Draft @Creality Ender5Pro (2019)",
 			"sub_path": "process/0.24mm Draft @Creality Ender5Pro (2019).json"
 		},
-
 		{
 			"name": "0.08mm SuperDetail @Creality CR-6 0.2",
 			"sub_path": "process/0.08mm SuperDetail @Creality CR-6 0.2.json"
@@ -375,8 +382,6 @@
 			"name": "Creality Generic ABS",
 			"sub_path": "filament/Creality Generic ABS.json"
 		},
-		{
-			},
 		{
 			"name": "Creality Generic PLA @0.8 nozzle",
 			"sub_path": "filament/Creality Generic PLA @0.8 nozzle.json"
