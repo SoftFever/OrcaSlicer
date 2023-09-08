@@ -63,27 +63,29 @@ enum PrintingTaskType {
 
 struct ScoreData
 {
+    int                                            rating_id;
     int                                            design_id;
-    int                                            job_id;
     std::string                                    model_id;
     int                                            profile_id;
     int                                            star_count;
+    bool                                           success_printed;
     wxString                                       comment_text;
     std::vector<std::string>                       image_url_paths;
     std::set<wxString>                             need_upload_images;
-    wxArrayString                                  image;
-    std::unordered_map<wxString, std::string>      local_to_url_image;
+    std::vector<std::pair<wxString, std::string>>  local_to_url_image;
 };
 
 class ScoreDialog : public GUI::DPIDialog
 {
 public:
-    ScoreDialog(wxWindow *parent, int design_id, int job_id, std::string model_id, int profile_id, int star_count = 0);
+    ScoreDialog(wxWindow *parent, int design_id, std::string model_id, int profile_id, int rating_id, bool success_printed, int star_count = 0);
     ScoreDialog(wxWindow *parent, ScoreData *score_data);
     ~ScoreDialog();
 
-    int get_job_id() { return m_job_id;}
+    int       get_rating_id() { return m_rating_id; }
     ScoreData get_score_data();
+    void      set_comment(std::string comment);
+    void      set_cloud_bitmap(std::vector<std::string> cloud_bitmaps);
 
 protected:
     enum StatusCode { 
@@ -93,23 +95,24 @@ protected:
         CODE_NUMBER 
     };
 
-    const int                m_photo_nums = 5;
+    std::shared_ptr<int>     m_tocken;
+    const int                m_photo_nums = 16;
+    int                      m_rating_id;
     int                      m_design_id;
-    int                      m_job_id;
     std::string              m_model_id;
     int                      m_profile_id;
     int                      m_star_count;
+    bool                     m_success_printed;
     std::vector<std::string> m_image_url_paths;
-    std::set<wxString>    m_need_upload_images;
-    std::string              m_upload_error_info;
     StatusCode               m_upload_status_code;
 
     struct ImageMsg
     {
-        wxString          local_image_url;
-        vector<wxPanel *> image_broad;
+        wxString          local_image_url; //local image path
+        std::string       img_url_paths; // oss url path
+        vector<wxPanel *> image_broad; 
         bool              is_selected;
-        bool              is_uploaded;
+        bool              is_uploaded; // load
         wxBoxSizer *      image_tb_broad = nullptr;
     };
 
@@ -119,24 +122,30 @@ protected:
     Button *                                       m_button_cancel = nullptr;
     Label *                                        m_add_photo     = nullptr;
     Label *                                        m_delete_photo  = nullptr;
-    wxBoxSizer *                                   m_image_sizer   = nullptr;
+    wxGridSizer *                                  m_image_sizer   = nullptr;
+    wxStaticText *                                 warning_text    = nullptr;
     std::unordered_map<wxStaticBitmap *, ImageMsg> m_image;
     std::unordered_set<wxStaticBitmap *>           m_selected_image_list;
-    std::unordered_map<wxString, std::string>      m_local_to_url_image;
-
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-    void OnBitmapClicked(wxMouseEvent &event);
-    void add_need_upload_imgs();
 
     void init();
-    wxBoxSizer *get_score_sizer();
-    wxBoxSizer *get_star_sizer();
-    wxBoxSizer *get_comment_text_sizer();
-    void        create_comment_text(const wxString& comment = "");
-    wxBoxSizer *get_photo_btn_sizer();
-    wxBoxSizer *get_button_sizer();
-    void        load_photo(const wxArrayString &filePaths);
-    wxBoxSizer *get_main_sizer(const wxArrayString &images = wxArrayString(), const wxString &comment = "");
+    void update_static_bitmap(wxStaticBitmap *static_bitmap, wxImage image);
+    void create_comment_text(const wxString &comment = "");
+    void load_photo(const std::vector<std::pair<wxString, std::string>> &filePaths);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void OnBitmapClicked(wxMouseEvent &event);
+
+    wxBoxSizer * create_broad_sizer(wxStaticBitmap *bitmap, ImageMsg &cur_image_msg);
+    wxBoxSizer * get_score_sizer();
+    wxBoxSizer * get_star_sizer();
+    wxBoxSizer * get_comment_text_sizer();
+    wxBoxSizer * get_photo_btn_sizer();
+    wxBoxSizer * get_button_sizer();
+    wxBoxSizer * get_main_sizer(const std::vector<std::pair<wxString, std::string>> &images = std::vector<std::pair<wxString, std::string>>(), const wxString &comment = "");
+
+    std::set<std::pair<wxStaticBitmap *, wxString>>        add_need_upload_imgs();
+    std::pair<wxStaticBitmap *, ImageMsg>                  create_local_thumbnail(wxString &local_path);
+    std::pair<wxStaticBitmap *, ImageMsg>                  create_oss_thumbnail(std::string &oss_path);
+    
 };
 
 class PrintingTaskPanel : public wxPanel
@@ -145,6 +154,7 @@ public:
     PrintingTaskPanel(wxWindow* parent, PrintingTaskType type);
     ~PrintingTaskPanel();
     void create_panel(wxWindow* parent);
+    
 
 private:
     MachineObject*  m_obj;
@@ -176,8 +186,10 @@ private:
     Button*         m_button_clean;
     wxPanel *                     m_score_subtask_info;
     wxPanel *                     m_score_staticline;
+    // score page
     int                           m_star_count;
     std::vector<ScalableButton *> m_score_star;
+    bool                          m_star_count_dirty = false;
 
     ProgressBar*    m_gauge_progress;
     Label* m_error_text;
@@ -212,6 +224,11 @@ public:
     Button* get_clean_button() {return m_button_clean;};
     wxStaticBitmap* get_bitmap_thumbnail() {return m_bitmap_thumbnail;};
     int get_star_count() { return m_star_count; }
+    void set_star_count(int star_count);
+    std::vector<ScalableButton *> &get_score_star() { return m_score_star; }
+    bool get_star_count_dirty() { return m_star_count_dirty; }
+    void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
+
 };
 
 class StatusBasePanel : public wxScrolledWindow
@@ -293,7 +310,6 @@ protected:
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
     Button *        m_button_clean;
-    Button *        m_button_market_scoring;
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -445,6 +461,8 @@ protected:
     int          m_last_vcamera   = -1;
     bool         m_is_load_with_temp = false;
     bool         m_print_finish            = false;
+    json         m_rating_result;
+    json         m_last_result;
 
     wxWebRequest web_request;
     bool bed_temp_input    = false;
@@ -553,6 +571,9 @@ protected:
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
     bool is_task_changed(MachineObject* obj);
+
+    /* model mall score */
+    bool model_score_is_update();
 
     /* camera */
     void update_camera_state(MachineObject* obj);
