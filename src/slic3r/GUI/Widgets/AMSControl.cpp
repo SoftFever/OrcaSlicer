@@ -866,8 +866,15 @@ void AMSLib::render_generic_text(wxDC &dc)
         if (m_info.material_name.empty() /*&&  m_info.material_state != AMSCanType::AMS_CAN_TYPE_VIRTUAL*/) {
             auto tsize = dc.GetMultiLineTextExtent("?");
             auto pot = wxPoint(0, 0);
-            pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
+            
+            if (m_obj && show_k_value) {
+                pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
+            }
+            else {
+                pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
+            }
             dc.DrawText(L("?"), pot);
+
         }
         else {
             auto tsize = dc.GetMultiLineTextExtent(m_info.material_name);
@@ -1673,15 +1680,16 @@ void AMSItem::doRender(wxDC &dc)
     if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
 
     if (m_hover) {
-        dc.SetPen(wxPen(border_colour, 1));
+        dc.SetPen(wxPen(border_colour, 2));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
+        dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 3);
+
     }
 
     if (m_selected) {
-        dc.SetPen(wxPen(border_colour, 1));
+        dc.SetPen(wxPen(border_colour, 2));
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
+        dc.DrawRoundedRectangle(1, 1, size.x-1, size.y-1, 3);
     }
 }
 

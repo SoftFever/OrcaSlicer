@@ -1185,7 +1185,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetBestSize().y));
 
     m_sizer_msg->Add(0, 0, 0, wxALIGN_CENTER, FromDIP(20));
-    m_sizer_msg->Add(m_img_step3, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    m_sizer_msg->Add(m_img_step3, 0, wxALL, FromDIP(5));
     m_sizer_msg->Add(0, 0, 0, wxALIGN_CENTER, FromDIP(8));
     m_sizer_msg->Add(m_tip4, 0, wxALIGN_CENTER | wxEXPAND | wxLEFT, FromDIP(5));
     m_img_step3->Hide();
@@ -1470,7 +1470,7 @@ void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
         update_test_msg(_L("Connection failed! If your IP and Access Code is correct, \nplease move to step 3 for troubleshooting network issues"), false);
         m_img_step3->Show();
         m_tip4->Show();
-        m_trouble_shoot->Show();
+        //m_trouble_shoot->Show();
         Layout();
         Fit();
     }
