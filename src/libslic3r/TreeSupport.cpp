@@ -1441,7 +1441,7 @@ void TreeSupport::generate_toolpaths()
             raft_areas.push_back(expoly);
     }
 
-    raft_areas = std::move(offset_ex(raft_areas, scale_(3.)));
+    raft_areas = std::move(offset_ex(raft_areas, scale_(object_config.raft_first_layer_expansion)));
 
     // generate raft tool path
     if (m_raft_layers > 0)

@@ -108,14 +108,8 @@ jobs:
         run: |
           ./build_release_macos.sh -s -n -a ${{matrix.arch}}
 
-      - name: Create DMG
-        if: matrix.os == 'macos-12'
-        working-directory: ${{ github.workspace }}
-        run: |
-          ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
-
-      - name: Sign app
+ # Thanks to RaySajuuk, it's working now
+      - name: Sign app and notary
         if: github.ref == 'refs/heads/main' && matrix.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         env:
@@ -133,16 +127,20 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/OrcaSlicer.app
+          ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
           codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
-      
-      # Thanks to RaySajuuk, it's working now
-      - name: Notarize the app 
-        if: github.ref == 'refs/heads/main' && matrix.os == 'macos-12'
-        working-directory: ${{ github.workspace }}
-        run: |
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
           xcrun notarytool submit "OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
           xcrun stapler staple OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+
+      - name: Create DMG without notary
+        if: github.ref != 'refs/heads/main' && matrix.os == 'macos-12'
+        working-directory: ${{ github.workspace }}
+        run: |
+          ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
 
       - name: Upload artifacts mac
         if: matrix.os == 'macos-12'
