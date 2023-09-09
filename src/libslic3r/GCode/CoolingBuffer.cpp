@@ -5,6 +5,7 @@
 #include <boost/log/trivial.hpp>
 #include <iostream>
 #include <float.h>
+#include <system_error>
 #include <unordered_map>
 
 #if 0
@@ -462,22 +463,24 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             line.type = CoolingLine::TYPE_EXTRUDE_END;
             active_speed_modifier = size_t(-1);
         } else if (boost::starts_with(sline, m_toolchange_prefix)) {
-            unsigned int new_extruder = (unsigned int)atoi(sline.c_str() + m_toolchange_prefix.size());
-            // Only change extruder in case the number is meaningful. User could provide an out-of-range index through custom gcodes - those shall be ignored.
-            if (new_extruder < map_extruder_to_per_extruder_adjustment.size()) {
-                if (new_extruder != current_extruder) {
-                    // Switch the tool.
-                    line.type = CoolingLine::TYPE_SET_TOOL;
-                    current_extruder = new_extruder;
-                    adjustment         = &per_extruder_adjustments[map_extruder_to_per_extruder_adjustment[current_extruder]];
+            unsigned int new_extruder = 0;
+            auto ret = std::from_chars(sline.data() + m_toolchange_prefix.size(), sline.data() + sline.size(), new_extruder);
+            if (std::errc::invalid_argument != ret.ec) {
+                // Only change extruder in case the number is meaningful. User could provide an out-of-range index through custom gcodes -
+                // those shall be ignored.
+                if (new_extruder < map_extruder_to_per_extruder_adjustment.size()) {
+                    if (new_extruder != current_extruder) {
+                        // Switch the tool.
+                        line.type        = CoolingLine::TYPE_SET_TOOL;
+                        current_extruder = new_extruder;
+                        adjustment       = &per_extruder_adjustments[map_extruder_to_per_extruder_adjustment[current_extruder]];
+                    }
+                } else {
+                    // Only log the error in case of MM printer. Single extruder printers likely ignore any T anyway.
+                    if (map_extruder_to_per_extruder_adjustment.size() > 1)
+                        BOOST_LOG_TRIVIAL(error) << "CoolingBuffer encountered an invalid toolchange, maybe from a custom gcode: " << sline;
                 }
             }
-            else {
-                // Only log the error in case of MM printer. Single extruder printers likely ignore any T anyway.
-                if (map_extruder_to_per_extruder_adjustment.size() > 1)
-                    BOOST_LOG_TRIVIAL(error) << "CoolingBuffer encountered an invalid toolchange, maybe from a custom gcode: " << sline;
-            }
-
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_START")) {
             line.type = CoolingLine::TYPE_OVERHANG_FAN_START;
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_END")) {
@@ -801,7 +804,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
     int                 current_feedrate  = 0;
     change_extruder_set_fan(true);
 
-    // Reduce set fan commands by deferring the GCodeWriter::set_fan calls. Inspired by SuperSlicer
+    // Orca: Reduce set fan commands by deferring the GCodeWriter::set_fan calls. Inspired by SuperSlicer
     // define fan_speed_change_requests and initialize it with all possible types fan speed change requests
     std::unordered_map<int, bool> fan_speed_change_requests = {{CoolingLine::TYPE_OVERHANG_FAN_START, false},
                                                                {CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START, false},
@@ -814,10 +817,13 @@ std::string CoolingBuffer::apply_layer_cooldown(
         if (line_start > pos)
             new_gcode.append(pos, line_start - pos);
         if (line->type & CoolingLine::TYPE_SET_TOOL) {
-            unsigned int new_extruder = (unsigned int)atoi(line_start + m_toolchange_prefix.size());
-            if (new_extruder != m_current_extruder) {
-                m_current_extruder = new_extruder;
-                change_extruder_set_fan(false); //BBS: will force to resume fan speed when filament change is finished
+            unsigned int new_extruder = 0;
+            auto ret = std::from_chars(line_start + m_toolchange_prefix.size(), line_end, new_extruder);
+            if (std::errc::invalid_argument != ret.ec) {
+                if (new_extruder != m_current_extruder) {
+                    m_current_extruder = new_extruder;
+                    change_extruder_set_fan(true);
+                }
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
