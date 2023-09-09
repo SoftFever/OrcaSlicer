@@ -315,6 +315,13 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_staticText_progress_left->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
 
+    // Orca: display the end time of the print
+    m_staticText_progress_end = new wxStaticText(penel_text, wxID_ANY, L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_progress_end->Wrap(-1);
+    m_staticText_progress_end->SetFont(
+        wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_progress_end->SetForegroundColour(wxColour(146, 146, 146));
+
     //fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
     //fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
 
@@ -336,6 +343,9 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_text->Add(m_staticText_layers, 0, wxALIGN_CENTER | wxALL, 0);
     bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER | wxALL, 0);
+    // Orca: display the end time of the print
+    bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(8));
+    bSizer_text->Add(m_staticText_progress_end, 0, wxALIGN_CENTER | wxALL, 0);
 
     penel_text->SetMaxSize(wxSize(FromDIP(600), -1));
     penel_text->SetSizer(bSizer_text);
@@ -554,6 +564,22 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
 
     if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
     update_left_time(left_time_text);
+
+    //Update end time
+    std::string end_time;
+    wxString    end_time_text = NA_STR;
+    try {
+        end_time = get_bbl_monitor_end_time_dhm(mc_left_time);
+    } catch (...) {
+        ;
+    }
+    if (!end_time.empty())
+        end_time_text = wxString::Format("%s", end_time);
+    else
+        end_time_text = NA_STR;
+
+    m_staticText_progress_end->SetLabelText(end_time_text);
+
 }
 
 void PrintingTaskPanel::update_layers_num(bool show, wxString num)
