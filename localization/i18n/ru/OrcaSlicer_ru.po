@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.6.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 11:33+0200\n"
+"POT-Creation-Date: 2023-09-09 14:13+0800\n"
 "PO-Revision-Date: 2023-09-03 21:55+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -15,8 +15,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 "X-Generator: Poedit 3.3.2\n"
 
 msgid "Supports Painting"
@@ -4419,9 +4419,9 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Загрузка файла: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
 msgstr ""
-"Этот 3mf создан не в Bambu Lab, поэтому загрузятся только данные геометрии."
+"Этот 3mf создан не в Orca Slicer, поэтому загрузятся только данные геометрии."
 
 msgid "Load 3mf"
 msgstr "Загрузка 3mf"
@@ -5546,8 +5546,8 @@ msgid ""
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Перед использованием устройства Bambu Lab ознакомьтесь с правилами и "
-"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu "
-"Lab\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
+"условиями. Нажимая на кнопку \"Согласие на использование устройства Bambu Lab"
+"\", вы соглашаетесь соблюдать Политику конфиденциальности и Условия "
 "использования (далее - \"Условия\"). Если вы не соблюдаете или не согласны с "
 "Политикой конфиденциальности Bambu Lab, пожалуйста, не пользуйтесь "
 "оборудованием и услугами Bambu Lab."
@@ -5689,8 +5689,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записи таймлапса без видимости головы рекомендуется добавить «Черновая "
 "башня таймлапса». \n"
@@ -5917,6 +5917,21 @@ msgstr "Стартовый G-код прутка"
 msgid "Filament end G-code"
 msgstr "Завершающий G-код прутка"
 
+msgid "Multimaterial"
+msgstr ""
+
+msgid "Wipe tower parameters"
+msgstr ""
+
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr ""
+
+msgid "Ramming settings"
+msgstr ""
+
+msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Область печати"
 
@@ -5970,6 +5985,15 @@ msgstr "Ограничение ускорений"
 
 msgid "Jerk limitation"
 msgstr "Ограничение рывка"
+
+msgid "Single extruder multimaterial setup"
+msgstr ""
+
+msgid "Wipe tower"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Ограничение высоты слоя"
@@ -6211,6 +6235,36 @@ msgstr "Обновления отсутствуют."
 
 msgid "The configuration is up to date."
 msgstr "Текущая конфигурация не требует обновления."
+
+msgid "Ramming customization"
+msgstr ""
+
+msgid ""
+"Ramming denotes the rapid extrusion just before a tool change in a single-"
+"extruder MM printer. Its purpose is to properly shape the end of the "
+"unloaded filament so it does not prevent insertion of the new filament and "
+"can itself be reinserted later. This phase is important and different "
+"materials can require different extrusion speeds to get the good shape. For "
+"this reason, the extrusion rates during ramming are adjustable.\n"
+"\n"
+"This is an expert-level setting, incorrect adjustment will likely lead to "
+"jams, extruder wheel grinding into filament etc."
+msgstr ""
+
+msgid "Total ramming time"
+msgstr ""
+
+msgid "s"
+msgstr "с"
+
+msgid "Total rammed volume"
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Ramming line spacing"
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Авторасчёт"
@@ -7921,9 +7975,6 @@ msgstr ""
 "минимальной и максимальной скоростями вентилятора зависимости от времени "
 "печати слоя."
 
-msgid "s"
-msgstr "с"
-
 msgid "Default color"
 msgstr "Цвет по умолчанию"
 
@@ -7961,22 +8012,6 @@ msgstr ""
 
 msgid "mm³/s"
 msgstr "мм³/с"
-
-msgid "Minimal purge on wipe tower"
-msgstr "Мин. объём сброса на черновой башне"
-
-msgid ""
-"After a tool change, the exact position of the newly loaded filament inside "
-"the nozzle may not be known, and the filament pressure is likely not yet "
-"stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
-msgstr ""
-"После смены инструмента, точное положение вновь загруженного прутка внутри "
-"него может быть неизвестно, и давление прутка, вероятно, ещё не стабильно. "
-"Перед тем, как очистить печатающую головку в заполнение или в «жертвенную» "
-"модель Slic3r всегда будет выдавливать это количество материала на черновую "
-"башню, чтобы обеспечить надёжную печать заполнения или «жертвенной» модели."
 
 msgid "Filament load time"
 msgstr "Время загрузки прутка"
@@ -8017,6 +8052,120 @@ msgstr ""
 "периметра.\n"
 "Убедитесь, что между моделями достаточно места, так как эта компенсация "
 "выполняется после проверок."
+
+msgid "Loading speed"
+msgstr ""
+
+msgid "Speed used for loading the filament on the wipe tower."
+msgstr ""
+
+msgid "Loading speed at the start"
+msgstr ""
+
+msgid "Speed used at the very beginning of loading phase."
+msgstr ""
+
+msgid "Unloading speed"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the filament on the wipe tower (does not affect  "
+"initial part of unloading just after ramming)."
+msgstr ""
+
+msgid "Unloading speed at the start"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the tip of the filament immediately after ramming."
+msgstr ""
+
+msgid "Delay after unloading"
+msgstr ""
+
+msgid ""
+"Time to wait after the filament is unloaded. May help to get reliable "
+"toolchanges with flexible materials that may need more time to shrink to "
+"original dimensions."
+msgstr ""
+
+msgid "Number of cooling moves"
+msgstr ""
+
+msgid ""
+"Filament is cooled by being moved back and forth in the cooling tubes. "
+"Specify desired number of these moves."
+msgstr ""
+
+msgid "Speed of the first cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating beginning at this speed."
+msgstr ""
+
+msgid "Minimal purge on wipe tower"
+msgstr "Мин. объём сброса на черновой башне"
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
+"После смены инструмента, точное положение вновь загруженного прутка внутри "
+"него может быть неизвестно, и давление прутка, вероятно, ещё не стабильно. "
+"Перед тем, как очистить печатающую головку в заполнение или в «жертвенную» "
+"модель Slic3r всегда будет выдавливать это количество материала на черновую "
+"башню, чтобы обеспечить надёжную печать заполнения или «жертвенной» модели."
+
+msgid "Speed of the last cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating towards this speed."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Ramming parameters"
+msgstr ""
+
+msgid ""
+"This string is edited by RammingDialog and contains ramming specific "
+"parameters."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Enable ramming for multitool setups"
+msgstr ""
+
+msgid ""
+"Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
+"Multimaterial' in Printer Settings is unchecked). When checked, a small "
+"amount of filament is rapidly extruded on the wipe tower just before the "
+"toolchange. This option is only used when the wipe tower is enabled."
+msgstr ""
+
+msgid "Multitool ramming volume"
+msgstr ""
+
+msgid "The volume to be rammed before the toolchange."
+msgstr ""
+
+msgid "Multitool ramming flow"
+msgstr ""
+
+msgid "Flow used for ramming the filament before the toolchange."
+msgstr ""
 
 msgid "Density"
 msgstr "Плотность"
@@ -8334,17 +8483,17 @@ msgstr "Полная скорость вентилятора на слое"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Скорость вентилятора будет нарастать линейно от нуля на слое "
-"\"close_fan_the_first_x_layers\" до максимума на слое "
-"\"full_fan_speed_layer\". Значение \"full_fan_speed_layer\" будет "
-"игнорироваться, если оно меньше значения \"close_fan_the_first_x_layers\", в "
-"этом случае вентилятор будет работать на максимально допустимой скорости на "
-"слое \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" до максимума на слое \"full_fan_speed_layer"
+"\". Значение \"full_fan_speed_layer\" будет игнорироваться, если оно меньше "
+"значения \"close_fan_the_first_x_layers\", в этом случае вентилятор будет "
+"работать на максимально допустимой скорости на слое "
+"\"close_fan_the_first_x_layers\" + 1."
 
 msgid "Support interface fan speed"
 msgstr "Скорость вентилятора на связующем слое"
@@ -8881,6 +9030,45 @@ msgstr "Объём сопла"
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "Объём сопла между резцом прутка и кончиком сопла."
 
+msgid "Cooling tube position"
+msgstr ""
+
+msgid "Distance of the center-point of the cooling tube from the extruder tip."
+msgstr ""
+
+msgid "Cooling tube length"
+msgstr ""
+
+msgid "Length of the cooling tube to limit space for cooling moves inside it."
+msgstr ""
+
+msgid "High extruder current on filament swap"
+msgstr ""
+
+msgid ""
+"It may be beneficial to increase the extruder motor current during the "
+"filament exchange sequence to allow for rapid ramming feed rates and to "
+"overcome resistance when loading a filament with an ugly shaped tip."
+msgstr ""
+
+msgid "Filament parking position"
+msgstr ""
+
+msgid ""
+"Distance of the extruder tip from the position where the filament is parked "
+"when unloaded. This should match the value in printer firmware."
+msgstr ""
+
+msgid "Extra loading distance"
+msgstr ""
+
+msgid ""
+"When set to zero, the distance the filament is moved from parking position "
+"during load is exactly the same as it was moved back during unload. When "
+"positive, it is loaded further,  if negative, the loading move is shorter "
+"than unloading."
+msgstr ""
+
 msgid "Start end points"
 msgstr "Начальные и конечные точки"
 
@@ -9361,6 +9549,39 @@ msgstr "G-код выполняемый при каждом запуске пе�
 msgid "Start G-code when start the printing of this filament"
 msgstr ""
 "Стартовый G-код выполняемый при запуске печати с текущей пластиковой нитью."
+
+msgid "Single Extruder Multi Material"
+msgstr ""
+
+msgid "Use single nozzle to print multi filament"
+msgstr ""
+
+msgid "Purge in prime tower"
+msgstr ""
+
+msgid "Purge remaining filament into prime tower"
+msgstr ""
+
+msgid "Enable filament ramming"
+msgstr ""
+
+msgid "No sparse layers (EXPERIMENTAL)"
+msgstr ""
+
+msgid ""
+"If enabled, the wipe tower will not be printed on layers with no "
+"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"print the wipe tower. User is responsible for ensuring there is no collision "
+"with the print."
+msgstr ""
+
+msgid "Prime all printing extruders"
+msgstr ""
+
+msgid ""
+"If enabled, all printing extruders will be primed at the front edge of the "
+"print bed at the start of the print."
+msgstr ""
 
 msgid "Slice gap closing radius"
 msgstr "Радиус закрытия пробелов при нарезке"
@@ -9918,6 +10139,43 @@ msgstr "Ширина"
 msgid "Width of prime tower"
 msgstr "Ширина черновой башни."
 
+msgid "Wipe tower rotation angle"
+msgstr ""
+
+msgid "Wipe tower rotation angle with respect to x-axis."
+msgstr ""
+
+msgid "Stabilization cone apex angle"
+msgstr ""
+
+msgid ""
+"Angle at the apex of the cone that is used to stabilize the wipe tower. "
+"Larger angle means wider base."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Wipe tower extruder"
+msgstr ""
+
+msgid ""
+"The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
+"use the one that is available (non-soluble would be preferred)."
+msgstr ""
+
+msgid "Purging volumes - load/unload volumes"
+msgstr ""
+
+msgid ""
+"This vector saves required volumes to change from/to each tool used on the "
+"wipe tower. These values are used to simplify creation of the full purging "
+"volumes below."
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -9945,6 +10203,12 @@ msgstr ""
 "Эта модель будет использоваться для очистки сопла после смены материала для "
 "его экономии и сокращения времени печати. В результате цвета будут "
 "смешиваться. Это не будет действовать, если не будет включена черновая башня."
+
+msgid "Maximal bridging distance"
+msgstr ""
+
+msgid "Maximal distance between supports on sparse infill sections."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "Коррекция размеров отверстий по XY"
@@ -11149,13 +11413,9 @@ msgstr "Шаг температуры: "
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
-"End temp: >= 180\n"
+"End temp: >= 170\n"
 "Start temp > End temp + 5)"
 msgstr ""
-"Введите допустимые значения:\n"
-"Начальная температура: <= 350\n"
-"Конечная температура: >= 180\n"
-"Начальная температура > Конечная температура + 5)"
 
 msgid "Max volumetric speed test"
 msgstr "Тест макс. объёмной скорости"
@@ -11254,482 +11514,3 @@ msgstr ""
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
 "Не удалось подключиться к принтерам, подключенным через через хост печати."
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
-msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
-msgstr ""
-"Операции с 3D-сценой\n"
-"Знаете ли вы, как управлять видом и выбором модели/части с помощью мыши и "
-"сенсорной панели в 3D-сцене?"
-
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid ""
-"Cut Tool\n"
-"Did you know that you can cut a model at any angle and position with the "
-"cutting tool?"
-msgstr ""
-"Режущий инструмент\n"
-"Знаете ли вы, что можно разрезать модель под любым углом с помощью режущего "
-"инструмента?"
-
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
-msgstr ""
-"Починка модели\n"
-"Знаете ли вы, что можно починить повреждённую модель, чтобы избежать "
-"множества проблем при нарезке?"
-
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid ""
-"Timelapse\n"
-"Did you know that you can generate a timelapse video during each print?"
-msgstr ""
-"Таймлапсы (ускоренная видеосъёмка)\n"
-"Знаете ли вы, что во время печати можно создавать таймлапсы?"
-
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid ""
-"Auto-Arrange\n"
-"Did you know that you can auto-arrange all objects in your project?"
-msgstr ""
-"Авторасстановка\n"
-"Знаете ли вы, что можно автоматически расставить все модели на вашем столе?"
-
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid ""
-"Auto-Orient\n"
-"Did you know that you can rotate objects to an optimal orientation for "
-"printing by a simple click?"
-msgstr ""
-"Автоориентация\n"
-"Знаете ли вы, что можно повернуть модели в оптимальную для печати ориентацию "
-"простым щелчком мыши?"
-
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid ""
-"Lay on Face\n"
-"Did you know that you can quickly orient a model so that one of its faces "
-"sits on the print bed? Select the \"Place on face\" function or press the "
-"<b>F</b> key."
-msgstr ""
-"Поверхностью на стол\n"
-"Знаете ли вы, что можно быстро сориентировать модель так, чтобы одна из её "
-"граней лежала на столе? Используйте функцию «Поверхностью на стол» или "
-"нажмите клавишу <b>F</b>."
-
-#: resources/data/hints.ini: [hint:Object List]
-msgid ""
-"Object List\n"
-"Did you know that you can view all objects/parts in a list and change "
-"settings for each object/part?"
-msgstr ""
-"Список моделей\n"
-"Знаете ли вы, что можно просматривать все модели/части в списке и изменять "
-"настройки для каждой из них?"
-
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid ""
-"Simplify Model\n"
-"Did you know that you can reduce the number of triangles in a mesh using the "
-"Simplify mesh feature? Right-click the model and select Simplify model. Read "
-"more in the documentation."
-msgstr ""
-"Упростить сетку модели\n"
-"Знаете ли вы, что можно уменьшить количество треугольников в полигональной "
-"сетке, используя функцию упрощения сетки? Щелкните правой кнопкой мыши на "
-"модели и выберите «Упростить полигональную сетку». Подробнее читайте в "
-"документации."
-
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid ""
-"Slicing Parameter Table\n"
-"Did you know that you can view all objects/parts on a table and change "
-"settings for each object/part?"
-msgstr ""
-"Таблица параметров нарезки\n"
-"Знаете ли вы, что можно просмотреть все модели/части в таблице и изменить "
-"параметры печати для каждой из них?"
-
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid ""
-"Split to Objects/Parts\n"
-"Did you know that you can split a big object into small ones for easy "
-"colorizing or printing?"
-msgstr ""
-"Разделение на модели/части\n"
-"Знаете ли вы, что можно разделить большую модель на маленькие для удобства "
-"раскрашивания или печати?"
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the Negative "
-"part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-"Вычитание объёмов\n"
-"Знаете ли вы, что можно вычесть одну сетку из другой с помощью модификатора "
-"«Объём для вычитания»? Таким образом, например, отверстия в модели можно "
-"создавать непосредственно в Orca Slicer. Подробнее читайте в документации."
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP file "
-"instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than a "
-"lower resolution STL. Give it a try!"
-msgstr ""
-"STEP\n"
-"Знаете ли вы, что можно улучшить качество печати, используя STEP файлы "
-"вместо STL?\n"
-"Orca Slicer поддерживает нарезку STEP файлов, что обеспечивает более точное "
-"представление геометрии, чем при нарезке STL файлов."
-
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid ""
-"Z seam location\n"
-"Did you know that you can customize the location of the Z seam, and even "
-"paint it on your print, to have it in a less visible location? This improves "
-"the overall look of your model. Check it out!"
-msgstr ""
-"Позиция шва\n"
-"Знаете ли вы, что можно изменить расположение шва и даже нарисовать его на "
-"модели, чтобы он был менее заметен? Это улучшает общий вид модели. "
-"Попробуйте это!"
-
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid ""
-"Fine-tuning for flow rate\n"
-"Did you know that flow rate can be fine-tuned for even better-looking "
-"prints? Depending on the material, you can improve the overall finish of the "
-"printed model by doing some fine-tuning."
-msgstr ""
-"Точная настройка потока\n"
-"Знаете ли вы, что поток можно точно настроить для получения ещё более "
-"качественной печати? В зависимости от материала можно внести некоторые "
-"корректировки, чтобы улучшить общее качество печати."
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid ""
-"Split your prints into plates\n"
-"Did you know that you can split a model that has a lot of parts into "
-"individual plates ready to print? This will simplify the process of keeping "
-"track of all the parts."
-msgstr ""
-"Распределение печатаемого на другие столы\n"
-"Знаете ли вы, что модель, состоящую из большого количества частей, можно "
-"распределить на несколько столов? Это упрощает процесс отслеживания всех "
-"деталей при печати."
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
-msgid ""
-"Speed up your print with Adaptive Layer Height\n"
-"Did you know that you can print a model even faster, by using the Adaptive "
-"Layer Height option? Check it out!"
-msgstr ""
-"Ускорение печати с помощью функции «Переменная высота слоёв»\n"
-"Знаете ли вы, что можно печатать ещё быстрее, используя функцию «Переменная "
-"высота слоёв». Попробуйте!"
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid ""
-"Support painting\n"
-"Did you know that you can paint the location of your supports? This feature "
-"makes it easy to place the support material only on the sections of the "
-"model that actually need it."
-msgstr ""
-"Рисование поддержек\n"
-"Знаете ли вы, что можно прямо на модели рисовать где будет размещаться "
-"принудительная поддержка, а где поддержка будет заблокирована? Используйте "
-"для этого функцию «Рисование поддержек»."
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid ""
-"Different types of supports\n"
-"Did you know that you can choose from multiple types of supports? Tree "
-"supports work great for organic models, while saving filament and improving "
-"print speed. Check them out!"
-msgstr ""
-"Различные типы поддержек\n"
-"Знаете ли вы, что можно выбрать один из нескольких типов поддержек? "
-"Древовидная поддержка отлично подходит для органических моделей, экономя при "
-"этом материал, уменьшая время печати."
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid ""
-"Printing Silk Filament\n"
-"Did you know that Silk filament needs special consideration to print it "
-"successfully? Higher temperature and lower speed are always recommended for "
-"the best results."
-msgstr ""
-"Печать блестящей пластиковой нитью\n"
-"Знаете ли вы, что блестящая пластиковая нить требует особого внимания для "
-"успешной печати? Для достижения наилучшего результата рекомендуется более "
-"высокая температура и более низкая скорость печати."
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid ""
-"Brim for better adhesion\n"
-"Did you know that when printing models have a small contact interface with "
-"the printing surface, it's recommended to use a brim?"
-msgstr ""
-"Кайма для лучшей адгезии\n"
-"Знаете ли вы, что при печати модели имеющей небольшой контакт с поверхностью "
-"стола, рекомендуется использовать кайму?"
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid ""
-"Set parameters for multiple objects\n"
-"Did you know that you can set slicing parameters for all selected objects at "
-"one time?"
-msgstr ""
-"Задание параметров для нескольких моделей\n"
-"Знаете ли вы, что можно задать параметры нарезки сразу для всех выбранных "
-"моделей?"
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid ""
-"Stack objects\n"
-"Did you know that you can stack objects as a whole one?"
-msgstr ""
-"Объединение моделей\n"
-"Знаете ли вы, что можно объединить несколько моделей в единую? Используйте "
-"для этого команду «Объединить в сборку», выбрав несколько моделей."
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid ""
-"Flush into support/objects/infill\n"
-"Did you know that you can save the wasted filament by flushing them into "
-"support/objects/infill during filament change?"
-msgstr ""
-"Очистка в поддержку/модель/заполнение\n"
-"Знаете ли вы, что при смене пластиковой нити, можно сохранить материал, "
-"который иначе попал бы на черновую башню, сбросив его в поддержку/модель/"
-"заполнение?"
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid ""
-"Improve strength\n"
-"Did you know that you can use more wall loops and higher sparse infill "
-"density to improve the strength of the model?"
-msgstr ""
-"Увеличение прочности\n"
-"Знаете ли вы, что для повышения прочности модели можно увеличить количество "
-"периметров и плотность заполнения?"
-
-#~ msgid "Confirm whether the filament has been extruded"
-#~ msgstr "Подтвердите, что пластиковая нить была выдавлена"
-
-#~ msgid "The region parameter is incorrrect"
-#~ msgstr "Неправильная региональная настройка"
-
-#~ msgid "Failure of printer login"
-#~ msgstr "Не удалось подключиться к принтеру."
-
-#~ msgid "Failed to get ticket"
-#~ msgstr "Не удалось получить заявку"
-
-#~ msgid "User authorization timeout"
-#~ msgstr "Таймаут авторизации пользователя"
-
-#~ msgid "Failure of bind"
-#~ msgstr "Ошибка привязки"
-
-#~ msgid "Print file not found, please slice again"
-#~ msgstr "Файл для печати не найден, нарежьте ещё раз."
-
-#~ msgid "Failed uploading print file"
-#~ msgstr "Не удалось передать файл на печать."
-
-#~ msgid "Wrong Access code"
-#~ msgstr "Неправильный код доступа"
-
-#~ msgid "Send to Printer failed. Please try again."
-#~ msgstr "Ошибка отправки на принтер. Пожалуйста, попробуйте ещё раз."
-
-#~ msgid "No space left on Printer SD card"
-#~ msgstr "На SD-карте принтера недостаточно места"
-
-#~ msgid "Sending gcode file through cloud service"
-#~ msgstr "Отправка файла G-кода через облачный сервис"
-
-#~ msgid "Please log out and login to the printer again."
-#~ msgstr "Пожалуйста, выйдите и снова войдите в принтер."
-
-#~ msgid "Factors of dynamic flow cali"
-#~ msgstr "Коэф. калиб. динам. потока"
-
-#~ msgid "Fan Speed: "
-#~ msgstr "Скорость вентилятора: "
-
-#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
-#~ msgstr "Ошибка инициализации (не поддерживается в режиме «Только LAN»)!"
-
-#~ msgid "Initialize failed (Not supported by printer)!"
-#~ msgstr "Ошибка инициализации (не поддерживается принтером)!"
-
-#~ msgid "Not supported by this model of printer!"
-#~ msgstr "Не поддерживается этой моделью принтера!"
-
-#~ msgid "No files"
-#~ msgstr "Файлы отсутствуют"
-
-#~ msgid "Not accessible in LAN-only mode!"
-#~ msgstr "Недоступно в режиме «Только LAN»!"
-
-#~ msgid "Missing LAN ip of printer!"
-#~ msgstr "Отсутствует сетевой адрес принтера!"
-
-#, boost-format
-#~ msgid "You are going to delete %u files. Are you sure to continue?"
-#~ msgstr ""
-#~ "Вы собираетесь удалить %u файлов. Вы уверены, что хотите это сделать?"
-
-#, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
-#~ "the printer by logging in with your user account."
-#~ msgstr ""
-#~ "Отключено от принтера [%s] из-за отключения режима «Только LAN». Повторно "
-#~ "подключите принтер, войдя в свою учетную запись."
-
-#, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
-#~ "the printer by inputting Access Code which can be gotten from printer "
-#~ "screen."
-#~ msgstr ""
-#~ "Отключено от принтера [%s] из-за отключения режима «Только LAN». Повторно "
-#~ "подключите принтер, введя код доступа, который можно получить на экране "
-#~ "принтера."
-
-#~ msgid "Media"
-#~ msgstr "Носитель"
-
-#~ msgid "Dump video"
-#~ msgstr "Выгрузить видео"
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network problem and try again"
-#~ msgstr ""
-#~ "Истекло время ожидания отправки задания. Проверьте сетевое подключение и "
-#~ "повторите попытку."
-
-#~ msgid "Maximum acceleration for travel (M204 T)"
-#~ msgstr "Максимальное ускорение при перемещении (M204 T)"
-
-#~ msgid "Send to print"
-#~ msgstr "Отправить на печать"
-
-#~ msgid "Simulate"
-#~ msgstr "Cэмулировать"
-
-#~ msgid "Error Message"
-#~ msgstr "Сообщение об ошибке"
-
-#~ msgid "Error uploading to print host:"
-#~ msgstr "Ошибка при отправке на хост печати:"
-
-#~ msgid "Left Preset Value"
-#~ msgstr "Значение в левом профиле"
-
-#~ msgid "Right Preset Value"
-#~ msgstr "Значение в правом профиле"
-
-#~ msgid "Undef category"
-#~ msgstr "Неопределённая категория"
-
-#~ msgid "Undef group"
-#~ msgstr "Неопределённая группа"
-
-#~ msgid "Retraction Length (Toolchange)"
-#~ msgstr "Длина отката (при смене инструмента)"
-
-#~ msgid "Flow Dynamic"
-#~ msgstr "Динамика потока"
-
-#~ msgid "A fatal error occurred: %1%"
-#~ msgstr "Произошла фатальная ошибка: %1%"
-
-#~ msgid "Record"
-#~ msgstr "Запись"
-
-#~ msgid "Report issue"
-#~ msgstr "Сообщить о проблеме"
-
-#~ msgid "Connection to OctoPrint/Klipper works correctly."
-#~ msgstr "Соединение с OctoPrint/Klipper успешно установлено."
-
-#~ msgid "Could not connect to OctoPrint/Klipper"
-#~ msgstr "Не удаётся подключиться к OctoPrint/Klipper"
-
-#~ msgid "Connection to FlashAir works correctly."
-#~ msgstr "Соединение с FlashAir успешно установлено."
-
-#~ msgid "Could not connect to FlashAir"
-#~ msgstr "Не удаётся подключиться к FlashAir"
-
-#~ msgid "Connection to Duet works correctly."
-#~ msgstr "Соединение с Duet успешно установлено."
-
-#~ msgid "Could not connect to Duet"
-#~ msgstr "Не удалось подключиться к Duet"
-
-#~ msgid "Connection to AstroBox works correctly."
-#~ msgstr "Соединение с AstroBox успешно установлено."
-
-#~ msgid "Could not connect to AstroBox"
-#~ msgstr "Не удалось подключиться к AstroBox"
-
-#~ msgid "Connection to Repetier works correctly."
-#~ msgstr "Подключение к Repetier успешно установлено."
-
-#~ msgid "Could not connect to Repetier"
-#~ msgstr "Не удалось подключиться к Repetier"
-
-#~ msgid "Connection to MKS works correctly."
-#~ msgstr "Подключение к MKS успешно установлено."
-
-#~ msgid "Could not connect to MKS"
-#~ msgstr "Не удалось подключиться к MKS"
-
-#~ msgid "Note: OctoPrint version at least 1.1.0 is required."
-#~ msgstr "Примечание: требуется версия OctoPrint не ниже 1.1.0."
-
-#~ msgid "Connection refused"
-#~ msgstr "Соединение запрещено"
-
-#~ msgid "Failed to connect to %s port %ld: %s"
-#~ msgstr "Не удалось подключиться к порту %s %ld: %s"
-
-#~ msgid "Couldn't connect to server"
-#~ msgstr "Не удалось подключиться к серверу"
-
-#~ msgid "Couldn't resolve host '%s'"
-#~ msgstr "Не удаётся определить имя узла '%s'"
-
-#~ msgid "Suggestion"
-#~ msgstr "Совет"
-
-#~ msgid ""
-#~ "BambuSource has not correctly been registered for media playing! Press "
-#~ "Yes to re-register it."
-#~ msgstr ""
-#~ "Компонент BambuSource неправильно зарегистрирован для воспроизведения "
-#~ "мультимедиа! Нажмите «Да», чтобы перерегистрировать его."
-
-#~ msgid ""
-#~ "Missing BambuSource component registered for media playing! Please re-"
-#~ "install BambuStutio or seek after-sales help."
-#~ msgstr ""
-#~ "Отсутствует компонент BambuSource, зарегистрированный для воспроизведения "
-#~ "мультимедиа! Пожалуйста, переустановите BambuStutio или обратитесь в "
-#~ "поддержку."
