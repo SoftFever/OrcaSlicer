@@ -2328,7 +2328,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
         "brim_width", "wall_loops", "wall_filament", "sparse_infill_density", "sparse_infill_filament", "top_shell_layers",
         "enable_support", "support_filament", "support_interface_filament",
-        "support_top_z_distance", "support_bottom_z_distance", "raft_layers"
+        "support_top_z_distance", "support_bottom_z_distance", "raft_layers",
+        "wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extruder",
         }))
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
@@ -11302,7 +11303,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         else if (boost::starts_with(opt_key, "enable_prime_tower") ||
             boost::starts_with(opt_key, "prime_tower") ||
             boost::starts_with(opt_key, "wipe_tower") ||
-            // opt_key == "filament_minimal_purge_on_wipe_tower" // ? #ys_FIXME
+            opt_key == "filament_minimal_purge_on_wipe_tower" ||
             opt_key == "single_extruder_multi_material" ||
             // BBS
             opt_key == "prime_volume") {
