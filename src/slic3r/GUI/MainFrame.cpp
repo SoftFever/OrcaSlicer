@@ -3335,8 +3335,15 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
             m_print_enable = get_enable_print_status() && can_send_gcode();
         m_print_btn->Enable(m_print_enable);
         this->Layout();
+    } else if (select_type == PrintSelectType::eExportGcode) {
+        m_print_btn->SetLabel(_L("Export G-code file"));
+        m_print_select = eExportGcode;
+        if (m_print_enable)
+            m_print_enable = get_enable_print_status() && can_send_gcode();
+        m_print_btn->Enable(m_print_enable);
+        this->Layout();
     } else {
-        //unsupport
+        // unsupport
         return;
     }
 }

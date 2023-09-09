@@ -1059,8 +1059,8 @@ void Sidebar::update_all_preset_comboboxes()
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
         auto cfg = preset_bundle.printers.get_edited_preset().config;
+        auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
         if(!url.empty()) 
         {
@@ -1071,7 +1071,10 @@ void Sidebar::update_all_preset_comboboxes()
             if (cfg.has("printhost_apikey"))
                 apikey = cfg.opt_string("printhost_apikey");
             p_mainframe->load_printer_url(url, apikey);
+
+            print_btn_type = MainFrame::PrintSelectType::eSendGcode;
         }
+        p_mainframe->set_print_button_to_default(print_btn_type);
 
         m_bed_type_list->SelectAndNotify(btPEI-1);
         m_bed_type_list->Disable();
