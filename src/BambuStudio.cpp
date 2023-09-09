@@ -67,6 +67,7 @@ using namespace nlohmann;
 #include "libslic3r/FlushVolCalc.hpp"
 
 #include "libslic3r/Orient.hpp"
+#include "libslic3r/PNGReadWrite.hpp"
 
 #include "BambuStudio.hpp"
 //BBS: add exception handler for win32
@@ -420,6 +421,39 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
     }
     catch (...) {}
 #endif
+}
+
+static int decode_png_to_thumbnail(std::string png_file, ThumbnailData& thumbnail_data)
+{
+    if (!boost::filesystem::exists(png_file))
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("can not find file %1%")%png_file;
+        return -1;
+    }
+
+    const std::size_t &size  = boost::filesystem::file_size(png_file);
+    std::string png_buffer(size, '\0');
+    png_buffer.reserve(size);
+
+    boost::filesystem::ifstream ifs(png_file, std::ios::binary);
+    ifs.read(png_buffer.data(), png_buffer.size());
+    ifs.close();
+
+    Slic3r::png::ImageColorscale img;
+    Slic3r::png::ReadBuf rb{png_buffer.data(), png_buffer.size()};
+    BOOST_LOG_TRIVIAL(info) << boost::format("read png file %1%, size %2%")%png_file %size;
+
+    if ( !Slic3r::png::decode_colored_png(rb, img))
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("decode png file %1% failed")%png_file;
+        return -2;
+    }
+
+    thumbnail_data.width = img.cols;
+    thumbnail_data.height = img.rows;
+    thumbnail_data.pixels = std::move(img.buf);
+
+    return 0;
 }
 
 static void glfw_callback(int error_code, const char* description)
@@ -3616,8 +3650,9 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, reset plate %2%'s thumbnail.")%__LINE__%(i+1);
                                     plate_data->plate_thumbnail.reset();
                                 }
-                                else
+                                else {
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid thumbnail, width %2%, height %3%， directly using it")%(i+1) %plate_data->plate_thumbnail.width %plate_data->plate_thumbnail.height;
+                                }
                             }
                             else if (!plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file)))
                             {
@@ -3625,8 +3660,17 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("Line %1%: regenerate thumbnail, clear plate %2%'s thumbnail file path to empty.")%__LINE__%(i+1);
                                     plate_data->thumbnail_file.clear();
                                 }
-                                else
+                                else {
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% has a valid thumbnail %2% extracted from 3mf, directly using it")%(i+1) %plate_data->thumbnail_file;
+                                    int dec_ret = decode_png_to_thumbnail(plate_data->thumbnail_file, plate_data->plate_thumbnail);
+                                    if (!dec_ret)
+                                    {
+                                        BOOST_LOG_TRIVIAL(info) << boost::format("decode png to mem sucess.");
+                                    }
+                                    else {
+                                        BOOST_LOG_TRIVIAL(warning) << boost::format("decode png to mem failed.");
+                                    }
+                                }
                             }
                             else {
                                 ThumbnailData* thumbnail_data = &plate_data->plate_thumbnail;
@@ -3774,6 +3818,24 @@ int CLI::run(int argc, char **argv)
                     plate_data->top_file.clear();
                     plate_data->pick_file.clear();
                 }
+                else if (!plate_data->plate_thumbnail.is_valid() && !plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file)))
+                {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("no need to generate: plate %1% has a valid thumbnail %2% extracted from 3mf, convert to data")%(i+1) %plate_data->thumbnail_file;
+                    int dec_ret = decode_png_to_thumbnail(plate_data->thumbnail_file, plate_data->plate_thumbnail);
+                    if (!dec_ret)
+                    {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("decode png to mem sucess.");
+                        need_create_thumbnail_group = true;
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(warning) << boost::format("decode png to mem failed.");
+                    }
+                }
+            }
+
+            for (int i = 0; i < partplate_list.get_plate_count(); i++) {
+                PlateData *plate_data = plate_data_list[i];
+                Slic3r::GUI::PartPlate *part_plate      = partplate_list.get_plate(i);
 
                 if (need_create_thumbnail_group) {
                     thumbnails.push_back(&plate_data->plate_thumbnail);
@@ -3919,7 +3981,7 @@ int CLI::run(int argc, char **argv)
 
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;
         if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, top_thumbnails, pick_thumbnails,
-                                calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save))
+                                calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
         {
             release_PlateData_list(plate_data_list);
             record_exit_reson(outfile_dir, CLI_EXPORT_3MF_ERROR, 0, cli_errors[CLI_EXPORT_3MF_ERROR], sliced_info);
@@ -4141,7 +4203,7 @@ bool CLI::export_models(IO::ExportFormat format)
 //BBS: add export_project function
 bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partplate_data,
     std::vector<Preset*>& project_presets, std::vector<ThumbnailData*>& thumbnails, std::vector<ThumbnailData*>& top_thumbnails, std::vector<ThumbnailData*>& pick_thumbnails,
-    std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config, bool minimum_save)
+    std::vector<ThumbnailData*>& calibration_thumbnails, std::vector<PlateBBoxData*>& plate_bboxes, const DynamicPrintConfig* config, bool minimum_save, int plate_to_export)
 {
     //const std::string path = this->output_filepath(*model, IO::TMF);
     bool success = false;
@@ -4158,6 +4220,7 @@ bool CLI::export_project(Model *model, std::string& path, PlateDataPtrs &partpla
     store_params.calibration_thumbnail_data = calibration_thumbnails;
     store_params.id_bboxes = plate_bboxes;
     store_params.strategy = SaveStrategy::Silence|SaveStrategy::WithGcode|SaveStrategy::SplitModel|SaveStrategy::UseLoadedId|SaveStrategy::ShareMesh;
+    store_params.export_plate_idx = plate_to_export;
     if (minimum_save)
         store_params.strategy = store_params.strategy | SaveStrategy::SkipModel;
 
