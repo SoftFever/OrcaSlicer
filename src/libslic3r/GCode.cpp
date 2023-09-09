@@ -797,7 +797,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         check_add_eol(toolchange_gcode_str);
 
         // SoftFever: set new PA for new filament
-        if (gcodegen.config().enable_pressure_advance.get_at(new_extruder_id)) {
+        if (new_extruder_id != -1 && gcodegen.config().enable_pressure_advance.get_at(new_extruder_id)) {
             gcode += gcodegen.writer().set_pressure_advance(gcodegen.config().pressure_advance.get_at(new_extruder_id));
         }
 
@@ -909,7 +909,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (!gcodegen.is_BBL_Printer()) {
             for (const WipeTower::ToolChangeResult &tcr : m_priming) {
                 if (!tcr.extrusions.empty())
-                    gcode += append_tcr(gcodegen, tcr, tcr.new_tool);
+                    gcode += append_tcr2(gcodegen, tcr, tcr.new_tool);
             }
         }
         return gcode;
@@ -987,7 +987,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (!gcodegen.is_BBL_Printer()) {
             if (std::abs(gcodegen.writer().get_position().z() - m_final_purge.print_z) > EPSILON)
                 gcode += gcodegen.change_layer(m_final_purge.print_z);
-            gcode += append_tcr(gcodegen, m_final_purge, -1);
+            gcode += append_tcr2(gcodegen, m_final_purge, -1);
         }
 
         return gcode;
