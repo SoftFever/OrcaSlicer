@@ -114,7 +114,7 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 	while (stream >> x >> y)
 		buttons.push_back(std::make_pair(x, y));
 
-	m_chart = new Chart(this, wxRect(scale(1),scale(1),scale(48),scale(36)), buttons, ramming_speed_size, 0.25f, scale(1));
+	m_chart = new Chart(this, wxRect(scale(10),scale(10),scale(480),scale(360)), buttons, ramming_speed_size, 0.25f, scale(10));
 #ifdef _WIN32
     update_ui(m_chart);
 #else
@@ -122,10 +122,10 @@ RammingPanel::RammingPanel(wxWindow* parent, const std::string& parameters)
 #endif
  	sizer_chart->Add(m_chart, 0, wxALL, 5);
 
-    m_widget_time						= new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH(), -1),style,0.,5.0,3.,0.5);        
-    m_widget_volume							  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH(), -1),style,0,10000,0);        
-    m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH(), -1),style,10,200,100);        
-    m_widget_ramming_step_multiplicator		  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH(), -1),style,10,200,100);
+    m_widget_time						= new wxSpinCtrlDouble(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,0.,5.0,3.,0.5);        
+    m_widget_volume							  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,0,10000,0);        
+    m_widget_ramming_line_width_multiplicator = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,10,200,100);        
+    m_widget_ramming_step_multiplicator		  = new wxSpinCtrl(this,wxID_ANY,wxEmptyString,wxDefaultPosition,wxSize(ITEM_WIDTH()*2.5, -1),style,10,200,100);
 
 #ifdef _WIN32
     update_ui(m_widget_time->GetText());
