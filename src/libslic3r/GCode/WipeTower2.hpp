@@ -1,3 +1,6 @@
+// Orca: This file is ported from latest PrusaSlicer
+
+// Original PrusaSlicer Copyright:
 ///|/ Copyright (c) Prusa Research 2017 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv
 ///|/
 ///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
@@ -31,7 +34,8 @@ public:
     // WipeTowerWriter2 is moved from !
     WipeTower::ToolChangeResult construct_tcr(WipeTowerWriter2& writer,
                                    bool priming,
-                                   size_t old_tool) const;
+                                   size_t old_tool,
+								   bool is_finish) const;
 
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
 	// y			-- y coordinates of wipe tower in mm ( left bottom corner )
@@ -168,6 +172,7 @@ private:
 
 
 	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
+	bool   m_enable_filament_ramming = true;
     Vec2f  m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
@@ -313,9 +318,6 @@ private:
 		const WipeTower::box_coordinates  &cleaning_box,
 		float wipe_volume);
 };
-
-
-
 
 } // namespace Slic3r
 

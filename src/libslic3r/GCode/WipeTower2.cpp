@@ -1,3 +1,6 @@
+// Orca: This file is ported from latest PrusaSlicer
+
+// Original PrusaSlicer Copyright:
 ///|/ Copyright (c) Prusa Research 2017 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966
 ///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
 ///|/ Copyright (c) 2020 Paul Arden @ardenpm
@@ -141,8 +144,8 @@ public:
     float                get_and_reset_used_filament_length() { float temp = m_used_filament_length; m_used_filament_length = 0.f; return temp; }
 
 	// Extrude with an explicitely provided amount of extrusion.
-	WipeTowerWriter2& extrude_explicit(float x, float y, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
-	{
+    WipeTowerWriter2& extrude_explicit(float x, float y, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
+    {
 		if (x == m_current_pos.x() && y == m_current_pos.y() && e == 0.f && (f == 0.f || f == m_current_feedrate))
 			// Neither extrusion nor a travel move.
 			return *this;
@@ -205,17 +208,17 @@ public:
 		return *this;
 	}
 
-	WipeTowerWriter2& extrude_explicit(const Vec2f &dest, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
-		{ return extrude_explicit(dest.x(), dest.y(), e, f, record_length); }
+    WipeTowerWriter2& extrude_explicit(const Vec2f &dest, float e, float f = 0.f, bool record_length = false, bool limit_volumetric_flow = true)
+    { return extrude_explicit(dest.x(), dest.y(), e, f, record_length); }
 
-	// Travel to a new XY position. f=0 means use the current value.
+    // Travel to a new XY position. f=0 means use the current value.
 	WipeTowerWriter2& travel(float x, float y, float f = 0.f)
-		{ return extrude_explicit(x, y, 0.f, f); }
+    { return extrude_explicit(x, y, 0.f, f); }
 
-	WipeTowerWriter2& travel(const Vec2f &dest, float f = 0.f) 
-		{ return extrude_explicit(dest.x(), dest.y(), 0.f, f); }
+    WipeTowerWriter2& travel(const Vec2f &dest, float f = 0.f)
+    { return extrude_explicit(dest.x(), dest.y(), 0.f, f); }
 
-	// Extrude a line from current position to x, y with the extrusion amount given by m_extrusion_flow.
+    // Extrude a line from current position to x, y with the extrusion amount given by m_extrusion_flow.
 	WipeTowerWriter2& extrude(float x, float y, float f = 0.f)
 	{
 		float dx = x - m_current_pos.x();
@@ -223,8 +226,8 @@ public:
         return extrude_explicit(x, y, std::sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
 	}
 
-	WipeTowerWriter2& extrude(const Vec2f &dest, const float f = 0.f) 
-		{ return extrude(dest.x(), dest.y(), f); }
+    WipeTowerWriter2& extrude(const Vec2f &dest, const float f = 0.f)
+    { return extrude(dest.x(), dest.y(), f); }
 
     WipeTowerWriter2& rectangle(const Vec2f& ld,float width,float height,const float f = 0.f)
     {
@@ -310,8 +313,8 @@ public:
 	// extrude quickly amount e to x2 with feed f.
 	WipeTowerWriter2& ram(float x1, float x2, float dy, float e0, float e, float f)
 	{
-		extrude_explicit(x1, m_current_pos.y() + dy, e0, f, true, false);
-		extrude_explicit(x2, m_current_pos.y(), e, 0.f, true, false);
+        extrude_explicit(x1, m_current_pos.y() + dy, e0, f, true, false);
+        extrude_explicit(x2, m_current_pos.y(), e, 0.f, true, false);
 		return *this;
 	}
 
@@ -505,7 +508,8 @@ private:
 
 WipeTower::ToolChangeResult WipeTower2::construct_tcr(WipeTowerWriter2& writer,
                                                      bool priming,
-                                                     size_t old_tool) const
+                                                     size_t old_tool,
+                                                     bool is_finish) const
 {
     WipeTower::ToolChangeResult result;
     result.priming      = priming;
@@ -519,6 +523,7 @@ WipeTower::ToolChangeResult WipeTower2::construct_tcr(WipeTowerWriter2& writer,
     result.gcode        = std::move(writer.gcode());
     result.extrusions   = std::move(writer.extrusions());
     result.wipe_path    = std::move(writer.wipe_path());
+    result.is_finish_first = is_finish;
     return result;
 }
 
@@ -526,6 +531,7 @@ WipeTower::ToolChangeResult WipeTower2::construct_tcr(WipeTowerWriter2& writer,
 
 WipeTower2::WipeTower2(const PrintConfig& config, const PrintRegionConfig& default_region_config,int plate_idx, Vec3d plate_origin, const std::vector<std::vector<float>>& wiping_matrix, size_t initial_tool) :
     m_semm(config.single_extruder_multi_material.value),
+    m_enable_filament_ramming(config.enable_filament_ramming.value),
     m_wipe_tower_pos(config.wipe_tower_x.get_at(plate_idx), config.wipe_tower_y.get_at(plate_idx)),
     m_wipe_tower_width(float(config.prime_tower_width)),
     m_wipe_tower_rotation_angle(float(config.wipe_tower_rotation_angle)),
@@ -752,7 +758,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower2::prime(
                           "\n\n");
         }
 
-        results.emplace_back(construct_tcr(writer, true, old_tool));
+        results.emplace_back(construct_tcr(writer, true, old_tool, true));
     }
 
     m_old_temperature = -1; // If the priming is turned off in config, the temperature changing commands will not actually appear
@@ -839,7 +845,7 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
     if (m_current_tool < m_used_filament_length.size())
         m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-   return construct_tcr(writer, false, old_tool);
+    return construct_tcr(writer, false, old_tool, false);
 }
 
 
@@ -866,7 +872,7 @@ void WipeTower2::toolchange_Unload(
 	float remaining = xr - xl ;							// keeps track of distance to the next turnaround
 	float e_done = 0;									// measures E move done from each segment   
 
-    const bool do_ramming = m_semm || m_filpar[m_current_tool].multitool_ramming;
+    const bool do_ramming = m_enable_filament_ramming && (m_semm || m_filpar[m_current_tool].multitool_ramming);
 
     if (do_ramming) {
         writer.travel(ramming_start_pos); // move to starting position
@@ -906,6 +912,7 @@ void WipeTower2::toolchange_Unload(
     }
     
 
+    writer.append("; Ramming\n");
     // now the ramming itself:
     while (do_ramming && i < m_filpar[m_current_tool].ramming_speed.size())
     {
@@ -933,6 +940,7 @@ void WipeTower2::toolchange_Unload(
 	Vec2f end_of_ramming(writer.x(),writer.y());
     writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
 
+    writer.append("; Retract(unload)\n");
     // Retraction:
     float old_x = writer.x();
     float turning_point = (!m_left_to_right ? xl : xr );
@@ -957,6 +965,7 @@ void WipeTower2::toolchange_Unload(
         }
     }
 
+    writer.append("; Cooling\n");
     // Cooling:
     const int& number_of_moves = m_filpar[m_current_tool].cooling_moves;
     if (m_semm && number_of_moves > 0) {
@@ -978,6 +987,7 @@ void WipeTower2::toolchange_Unload(
     }
 
     if (m_semm) {
+        writer.append("; Cooling park\n");
         // let's wait is necessary:
         writer.wait(m_filpar[m_current_tool].delay);
         // we should be at the beginning of the cooling tube again - let's move to parking position:
@@ -1006,25 +1016,21 @@ void WipeTower2::toolchange_Change(
     if (m_current_tool < m_used_filament_length.size())
     	m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    // Orca TODO: handle multi extruders
+
     // This is where we want to place the custom gcodes. We will use placeholders for this.
     // These will be substituted by the actual gcodes when the gcode is generated.
-    //writer.append("[end_filament_gcode]\n");
-    //writer.append("[toolchange_gcode]\n");
-
     writer.append("[filament_end_gcode]\n");
     writer.append("[change_filament_gcode]\n");
 
     // Travel to where we assume we are. Custom toolchange or some special T code handling (parking extruder etc)
     // gcode could have left the extruder somewhere, we cannot just start extruding. We should also inform the
     // postprocessor that we absolutely want to have this in the gcode, even if it thought it is the same as before.
-    // Vec2f current_pos = writer.pos_rotated();
-    // writer.feedrate(m_travel_speed * 60.f) // see https://github.com/prusa3d/PrusaSlicer/issues/5483
-    //       .append(std::string("G1 X") + Slic3r::float_to_string_decimal_point(current_pos.x())
-    //                          +  " Y"  + Slic3r::float_to_string_decimal_point(current_pos.y())
-    //                          + never_skip_tag() + "\n");
-    // Orca todo: handle  deretraction_from_wipe_tower_generator
-    // writer.append("[deretraction_from_wipe_tower_generator]");
+    Vec2f current_pos = writer.pos_rotated();
+    writer.feedrate(m_travel_speed * 60.f) // see https://github.com/prusa3d/PrusaSlicer/issues/5483
+          .append(std::string("G1 X") + Slic3r::float_to_string_decimal_point(current_pos.x())
+                             +  " Y"  + Slic3r::float_to_string_decimal_point(current_pos.y())
+                             + never_skip_tag() + "\n");
+    writer.append("[deretraction_from_wipe_tower_generator]");
 
      // Orca TODO: handle multi extruders
     // The toolchange Tn command will be inserted later, only in case that the user does
@@ -1379,7 +1385,7 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
         m_current_height += m_layer_info->height;
     }
 
-    return construct_tcr(writer, false, old_tool);
+    return construct_tcr(writer, false, old_tool, true);
 }
 
 // Static method to get the radius and x-scaling of the stabilizing cone base.
@@ -1404,10 +1410,12 @@ std::vector<std::vector<float>> WipeTower2::extract_wipe_volumes(const PrintConf
 {
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
     std::vector<float> wiping_matrix(cast<float>(config.flush_volumes_matrix.values));
+    auto scale = config.flush_multiplier;
 
+    // Orca todo: currently we only/always support SEMM.
     // The values shall only be used when SEMM is enabled. The purging for other printers
     // is determined by filament_minimal_purge_on_wipe_tower.
-    if (! config.single_extruder_multi_material.value)
+    if (! config.purge_in_prime_tower.value)
         std::fill(wiping_matrix.begin(), wiping_matrix.end(), 0.f);
 
     // Extract purging volumes for each extruder pair:
@@ -1419,7 +1427,7 @@ std::vector<std::vector<float>> WipeTower2::extract_wipe_volumes(const PrintConf
     // Also include filament_minimal_purge_on_wipe_tower. This is needed for the preview.
     for (unsigned int i = 0; i<number_of_extruders; ++i)
         for (unsigned int j = 0; j<number_of_extruders; ++j)
-            wipe_volumes[i][j] = std::max<float>(wipe_volumes[i][j], config.filament_minimal_purge_on_wipe_tower.get_at(j));
+            wipe_volumes[i][j] = std::max<float>(wipe_volumes[i][j] * scale, config.filament_minimal_purge_on_wipe_tower.get_at(j));
 
     return wipe_volumes;
 }

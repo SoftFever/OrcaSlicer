@@ -25,7 +25,6 @@ public:
 
 	// WipeTower height to minimum depth map
 	static const std::map<float, float> min_depth_per_height;
-	static std::vector<std::vector<float>> extract_wipe_volumes(const PrintConfig& config);
 
     struct Extrusion
     {
@@ -256,15 +255,14 @@ public:
         bool                is_support = false;
         int  			    nozzle_temperature = 0;
         int  			    nozzle_temperature_initial_layer = 0;
-        // BBS: remove useless config
-        //float               loading_speed = 0.f;
-        //float               loading_speed_start = 0.f;
-        //float               unloading_speed = 0.f;
-        //float               unloading_speed_start = 0.f;
-        //float               delay = 0.f ;
-        //int                 cooling_moves = 0;
-        //float               cooling_initial_speed = 0.f;
-        //float               cooling_final_speed = 0.f;
+        float               loading_speed = 0.f;
+        float               loading_speed_start = 0.f;
+        float               unloading_speed = 0.f;
+        float               unloading_speed_start = 0.f;
+        float               delay = 0.f ;
+        int                 cooling_moves = 0;
+        float               cooling_initial_speed = 0.f;
+        float               cooling_final_speed = 0.f;
         float               ramming_line_width_multiplicator = 1.f;
         float               ramming_step_multiplicator = 1.f;
         float               max_e_speed = std::numeric_limits<float>::max();
@@ -288,6 +286,7 @@ private:
 
 	bool   m_enable_timelapse_print = false;
 	bool   m_semm               = true; // Are we using a single extruder multimaterial printer?
+	bool   m_purge_in_prime_tower = false; // Do we purge in the prime tower?
     Vec2f  m_wipe_tower_pos; 			// Left front corner of the wipe tower in mm.
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
@@ -307,15 +306,13 @@ private:
     size_t m_first_layer_idx    = size_t(-1);
 
 	// G-code generator parameters.
-    // BBS: remove useless config
-    //float           m_cooling_tube_retraction   = 0.f;
-    //float           m_cooling_tube_length       = 0.f;
-    //float           m_parking_pos_retraction    = 0.f;
-    //float           m_extra_loading_move        = 0.f;
+    float           m_cooling_tube_retraction   = 0.f;
+    float           m_cooling_tube_length       = 0.f;
+    float           m_parking_pos_retraction    = 0.f;
+    float           m_extra_loading_move        = 0.f;
     float           m_bridging                  = 0.f;
     bool            m_no_sparse_layers          = false;
-    // BBS: remove useless config
-    //bool            m_set_extruder_trimpot      = false;
+    bool            m_set_extruder_trimpot      = false;
     bool            m_adhesion                  = true;
     GCodeFlavor     m_gcode_flavor;
 
