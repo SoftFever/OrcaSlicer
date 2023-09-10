@@ -328,7 +328,7 @@ void AppConfig::set_defaults()
     }
 #else
     if (get("iot_environment").empty()) {
-        set("iot_environment", "1");
+        set("iot_environment", "2");
     }
 #endif
 
