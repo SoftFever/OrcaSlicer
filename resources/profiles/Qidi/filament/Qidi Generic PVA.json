@@ -10,7 +10,7 @@
 		"0.95"
 	],
 	"filament_max_volumetric_speed": [
-		"16"
+		"10"
 	],
 	"slow_down_layer_time": [
 		"7"
