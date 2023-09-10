@@ -247,6 +247,8 @@ class ExtrusionQualityEstimator
 {
     std::unordered_map<const PrintObject *, AABBTreeLines::LinesDistancer<Linef>> prev_layer_boundaries;
     std::unordered_map<const PrintObject *, AABBTreeLines::LinesDistancer<Linef>> next_layer_boundaries;
+    std::unordered_map<const PrintObject *, AABBTreeLines::LinesDistancer<CurledLine>> prev_curled_extrusions;
+    std::unordered_map<const PrintObject *, AABBTreeLines::LinesDistancer<CurledLine>> next_curled_extrusions;
     const PrintObject                                                            *current_object;
 
 public:
@@ -258,6 +260,8 @@ public:
         const PrintObject *object = obj;
         prev_layer_boundaries[object] = next_layer_boundaries[object];
         next_layer_boundaries[object] = AABBTreeLines::LinesDistancer<Linef>{to_unscaled_linesf(layer->lslices)};
+        prev_curled_extrusions[object] = next_curled_extrusions[object];
+        next_curled_extrusions[object] = AABBTreeLines::LinesDistancer<CurledLine>{layer->curled_lines};
     }
 
     std::vector<ProcessedPoint> estimate_extrusion_quality(const ExtrusionPath                &path,
