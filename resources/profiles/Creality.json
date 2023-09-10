@@ -56,7 +56,6 @@
 		{
 			"name": "Creality K1",
 			"sub_path": "machine/Creality K1.json"
-<<<<<<< HEAD
 		},
 		{
 			"name": "Creality CR-6 SE",
@@ -207,9 +206,6 @@
 		{
 			"name": "0.20mm Standard @Creality Ender5S",
 			"sub_path": "process/0.20mm Standard @Creality Ender5S.json"
-		},
-		{
-=======
 		}
 	],
 	"process_list": [
@@ -322,7 +318,6 @@
 			"sub_path": "process/0.20mm Standard @Creality Ender5S.json"
 		},
 		{
->>>>>>> main
 			"name": "0.20mm Standard @Creality Ender5S1",
 			"sub_path": "process/0.20mm Standard @Creality Ender5S1.json"
 		},
@@ -351,7 +346,6 @@
 			"sub_path": "process/0.24mm Draft @Creality Ender5Pro (2019).json"
 		},
 		{
-<<<<<<< HEAD
 			"name": "0.08mm SuperDetail @Creality CR-6 0.2",
 			"sub_path": "process/0.08mm SuperDetail @Creality CR-6 0.2.json"
 		},
@@ -413,8 +407,6 @@
 		},
 		{
 			{
-=======
->>>>>>> main
 			"name": "0.24mm Optimal @Creality K1 (0.6 nozzle)",
 			"sub_path": "process/0.24mm Optimal @Creality K1 (0.6 nozzle).json"
 		},
@@ -603,7 +595,6 @@
 			"sub_path": "machine/Creality Ender-6 0.4 nozzle.json"
 		},
 		{
-<<<<<<< HEAD
 			"name": "Creality CR-6 SE 0.2 nozzle",
 			"sub_path": "machine/Creality CR-6 SE 0.2 nozzle.json"
 		},
@@ -636,8 +627,6 @@
 			"sub_path": "machine/Creality CR-6 Max 0.8 nozzle.json"
 		},
 		{
-=======
->>>>>>> main
 			"name": "Creality K1 (0.4 nozzle)",
 			"sub_path": "machine/Creality K1 (0.4 nozzle).json"
 		},
