@@ -233,6 +233,7 @@ namespace AABBTreeLines {
         AABBTreeIndirect::detail::indexed_primitives_within_distance_squared_recurisve(distancer, size_t(0), max_distance_squared, found_lines);
         return found_lines;
     }
+    
 
     // return 1 if true, -1 if false, 0 for point on contour (or if cannot be determined)
     template <typename LineType, typename TreeType, typename VectorType>
@@ -352,7 +353,7 @@ namespace AABBTreeLines {
 
         std::vector<size_t> all_lines_in_radius(const Vec<2, typename LineType::Scalar>& point, Floating radius)
         {
-            return all_lines_in_radius(this->lines, this->tree, point, radius * radius);
+            return AABBTreeLines::all_lines_in_radius(this->lines, this->tree, point, radius * radius); //.template cast<Floating>()
         }
 
         template <bool sorted>

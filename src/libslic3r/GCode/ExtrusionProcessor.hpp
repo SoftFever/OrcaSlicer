@@ -272,6 +272,7 @@ public:
     {
         size_t                               speed_sections_count = std::min(overlaps.values.size(), speeds.values.size());
         std::vector<std::pair<float, float>> speed_sections;
+        
         for (size_t i = 0; i < speed_sections_count; i++) {
             float distance = path.width * (1.0 - (overlaps.get_at(i) / 100.0));
             float speed    = speeds.get_at(i).percent ? (ext_perimeter_speed * speeds.get_at(i).value / 100.0) : speeds.get_at(i).value;
@@ -301,6 +302,54 @@ public:
         for (size_t i = 0; i < extended_points.size(); i++) {
             const ExtendedPoint &curr = extended_points[i];
             const ExtendedPoint &next = extended_points[i + 1 < extended_points.size() ? i + 1 : i];
+            
+            // The following code artifically increases the distance to provide slowdown for extrusions that are over curled lines
+            float artificial_distance_to_curled_lines = 0.0;
+            const double dist_limit = 10.0 * path.width;
+			{
+				Vec2d middle = 0.5 * (curr.position + next.position);
+				auto line_indices = prev_curled_extrusions[current_object].all_lines_in_radius(Point::new_scale(middle), scale_(dist_limit));
+				if (!line_indices.empty()) {
+					double len   = (next.position - curr.position).norm();
+					// For long lines, there is a problem with the additional slowdown. If by accident, there is small curled line near the middle of this long line
+                    //  The whole segment gets slower unnecesarily. For these long lines, we do additional check whether it is worth slowing down.
+                    // NOTE that this is still quite rough approximation, e.g. we are still checking lines only near the middle point
+                    // TODO maybe split the lines into smaller segments before running this alg? but can be demanding, and GCode will be huge
+                    if (len > 8) {
+                        Vec2d dir   = Vec2d(next.position - curr.position) / len;
+                        Vec2d right = Vec2d(-dir.y(), dir.x());
+
+                        Polygon box_of_influence = {
+                            scaled(Vec2d(curr.position + right * dist_limit)),
+                            scaled(Vec2d(next.position + right * dist_limit)),
+                            scaled(Vec2d(next.position - right * dist_limit)),
+                            scaled(Vec2d(curr.position - right * dist_limit)),
+                        };
+
+                        double projected_lengths_sum = 0;
+                        for (size_t idx : line_indices) {
+                            const CurledLine &line   = prev_curled_extrusions[current_object].get_line(idx);
+                            Lines             inside = intersection_ln({{line.a, line.b}}, {box_of_influence});
+                            if (inside.empty())
+                                continue;
+                            double projected_length = abs(dir.dot(unscaled(Vec2d((inside.back().b - inside.back().a).cast<double>()))));
+                            projected_lengths_sum += projected_length;
+                        }
+                        if (projected_lengths_sum < 0.4 * len) {
+                            line_indices.clear();
+                        }
+                    }
+                    
+                    for (size_t idx : line_indices) {
+                        const CurledLine &line                 = prev_curled_extrusions[current_object].get_line(idx);
+                        float             distance_from_curled = unscaled(line_alg::distance_to(line, Point::new_scale(middle)));
+                        float             dist                 = path.width * (1.0 - (distance_from_curled / dist_limit)) *
+                                     (1.0 - (distance_from_curled / dist_limit)) *
+                                     (line.curled_height / (path.height * 10.0f)); // max_curled_height_factor from SupportSpotGenerator
+                        artificial_distance_to_curled_lines = std::max(artificial_distance_to_curled_lines, dist);
+                    }
+				}
+			}
 
             auto calculate_speed = [&speed_sections, &original_speed](float distance) {
                 float final_speed;
@@ -320,10 +369,14 @@ public:
                 }
                 return final_speed;
             };
-
-            float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
+            
+            float old_extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
+            float extrusion_speed = std::min(calculate_speed(curr.distance+artificial_distance_to_curled_lines), calculate_speed(next.distance+artificial_distance_to_curled_lines));
             float overlap = std::min(1 - curr.distance * width_inv, 1 - next.distance * width_inv);
-
+			
+			if(artificial_distance_to_curled_lines>0 ) printf("Found curls\n"); // Temporary debug messages
+			if(old_extrusion_speed>extrusion_speed ) printf("Reduced speed. Original: %f, New: %f\n",old_extrusion_speed,extrusion_speed); // Temporary debug messages
+			
             processed_points.push_back({ scaled(curr.position), extrusion_speed, overlap });
         }
         return processed_points;
