@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-26 19:45+0800\n"
+"POT-Creation-Date: 2023-08-31 21:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -615,6 +615,15 @@ msgstr "Contraseña incorrecta"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "¡Conexión %s fallida! [SN:%s, code=%s]"
+
+msgid ""
+"Orca Slicer requires the Microsoft WebView2 Runtime to operate certain "
+"features.\n"
+"Click Yes to install it now."
+msgstr ""
+
+msgid "WebView2 Runtime"
+msgstr ""
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -1370,6 +1379,9 @@ msgstr "Borde de Adherencia Automático"
 
 msgid "Auto"
 msgstr "Automático"
+
+msgid "Mouse ear"
+msgstr "Oreja de ratón"
 
 msgid "Outer brim only"
 msgstr "Solo borde de adherencia exterior"
@@ -3876,6 +3888,24 @@ msgstr "Ajustes de conexión 3D"
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
 
+msgid "Invert X axis"
+msgstr "Invertir eje X"
+
+msgid "Invert Y axis"
+msgstr "Invertir eje Y"
+
+msgid "Invert Z axis"
+msgstr "Invertir eje Z"
+
+msgid "Invert Yaw axis"
+msgstr "Invertir eje de Guiñada"
+
+msgid "Invert Pitch axis"
+msgstr "Invertir eje de Cabeceo"
+
+msgid "Invert Roll axis"
+msgstr "Invertir eje de Balanceo"
+
 msgid "Printing Progress"
 msgstr "Progreso de impresión"
 
@@ -4675,6 +4705,13 @@ msgid ""
 msgstr ""
 "Unable to perform boolean operation on model meshes. Only positive parts "
 "will be exported."
+
+msgid "Is the printer ready? Is the print sheet in place, empty and clean?"
+msgstr ""
+"¿Está la impresora preparada? ¿Está la hoja en el sitio. limpia y vacía?"
+
+msgid "Upload and Print"
+msgstr "Cargar e imprimir"
 
 msgid ""
 "Print By Object: \n"
@@ -5730,6 +5767,9 @@ msgstr "G-code de salida"
 
 msgid "Post-processing Scripts"
 msgstr "Script de Post-procesado"
+
+msgid "Notes"
+msgstr "Anotaciones"
 
 msgid "Frequent"
 msgstr "Frecuente"
@@ -7410,6 +7450,16 @@ msgstr ""
 "Usar solo un perímetro en la primera capa, para dar más espacio en el patrón "
 "de relleno inferior"
 
+msgid "Extra perimeters on overhangs"
+msgstr "Perímetros extra en los voladizos"
+
+msgid ""
+"Create additional perimeter paths over steep overhangs and areas where "
+"bridges cannot be anchored. "
+msgstr ""
+"Crear caminos perimetrales adicionales sobre voladizos escarpados y zonas "
+"donde no se puedan anclar puentes. "
+
 msgid "Classic mode"
 msgstr "Modo clásico"
 
@@ -7462,9 +7512,6 @@ msgstr ""
 "Esto controla la generación del borde de adherencia en el lado exterior y/o "
 "interior de los modelos. Auto significa que el ancho de borde de adherencia "
 "es analizado y calculado automaticamente."
-
-msgid "Mouse ear"
-msgstr "Oreja de ratón"
 
 msgid "Brim-object gap"
 msgstr "Espacio borde de adherencia-objeto"
@@ -7874,6 +7921,12 @@ msgstr "Color de filamento por defecto"
 
 msgid "Color"
 msgstr "Color"
+
+msgid "Filament notes"
+msgstr "Anotaciones de filamento"
+
+msgid "You can put your notes regarding the filament here."
+msgstr "Puede colocar sus anotaciones acerca del filamento aquí."
 
 msgid "Required nozzle HRC"
 msgstr "HRC de boquilla requerido"
@@ -8730,8 +8783,10 @@ msgstr "Aceleración máxima de retracción (M204 R)"
 msgid "Maximum acceleration for travel"
 msgstr "Aceleración máxima para el desplazamiento"
 
-msgid "Maximum acceleration for travel (M204 T)"
-msgstr "Aceleración máxima para el desplazamiento (M204 T)"
+msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
+msgstr ""
+"Aceleración máxima para el desplazamiento (M204 T), sólo se aplica en Marlin "
+"2"
 
 msgid "Fan speed"
 msgstr "Velocidad del ventilador"
@@ -8788,6 +8843,16 @@ msgstr "Diámetro de la boquilla"
 
 msgid "Diameter of nozzle"
 msgstr "Diámetro de la boquilla"
+
+msgid "Configuration notes"
+msgstr "Anotaciones de configuración"
+
+msgid ""
+"You can put here your personal notes. This text will be added to the G-code "
+"header comments."
+msgstr ""
+"Puede añadir sus notas personales aquí. Este texto será añadido a los "
+"comentarios de G-Code de cabecera."
 
 msgid "Host Type"
 msgstr "Tipo de host"
@@ -8903,6 +8968,12 @@ msgstr ""
 "punto y coma. A los scripts se les pasará la ruta absoluta al archivo G-code "
 "como primer argumento, y pueden acceder a los ajustes de configuración de "
 "OrcaSlicer leyendo variables de entorno."
+
+msgid "Printer notes"
+msgstr "Anotaciones de la impresora"
+
+msgid "You can put your notes regarding the printer here."
+msgstr "Puede colocar sus notas acerca de la impresora aquí."
 
 msgid "Raft contact Z distance"
 msgstr "Distancia Z de contacto de la base de impresión"
@@ -9326,7 +9397,7 @@ msgid ""
 "normal(manual) or tree(manual) is selected, only support enforcers are "
 "generated"
 msgstr ""
-"Normal(auto) y Árbol(auto) se utilizan para generar los soportes "
+"normal(auto) y Árbol(auto) se utilizan para generar los soportes "
 "automáticamente. Si se selecciona normal(manual) o árbol(manual), sólo se "
 "generan los refuerzos de apoyo"
 
@@ -9841,7 +9912,7 @@ msgstr ""
 "\"label_objects\". Algunos extrusores funcionan mejor con esta opción "
 "desactivada (modo de extrusión absoluta). La torre de purga sólo es "
 "compatible con el modo relativo. Siempre está activada en las impresoras "
-"BambuLab. Marcada por defecto."
+"BambuLab. Marcada por defecto"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for "
@@ -10793,6 +10864,17 @@ msgstr "Buscando dispositivos"
 msgid "Finished"
 msgstr "Terminado"
 
+msgid "Multiple resolved IP addresses"
+msgstr "Múltiples direcciones IP resueltas"
+
+#, boost-format
+msgid ""
+"There are several IP addresses resolving to hostname %1%.\n"
+"Please select one that should be used."
+msgstr ""
+"Hay varias direcciones IP resueltas del nombre del host  %1%.\n"
+"Por favor, seleccione la que debe usarse."
+
 msgid "Unable to perform boolean operation on selected parts"
 msgstr ""
 "No es posible realizar la operación booleana en las partes selecionadas"
@@ -10833,8 +10915,8 @@ msgstr "Parte 2"
 msgid "Delete input"
 msgstr "Borrado de entrada"
 
-msgid "Send to print"
-msgstr "Mandar a imprimir"
+msgid "Send G-Code to printer host"
+msgstr "Enviar G-Code a la impresora"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Subido al Host de Impresión con el siguiente nombre de archivo:"
@@ -10844,16 +10926,13 @@ msgstr ""
 "Use barras oblicuas como separador de directorio \n"
 "si es necesario."
 
+msgid "Upload to storage"
+msgstr "Cargar al almacenamiento"
+
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 "El nombre de archivo que va a cargar no acaba en \"%s\". ¿Desea continuar?"
-
-msgid "Upload and Print"
-msgstr "Cargar e imprimir"
-
-msgid "Simulate"
-msgstr "Simular"
 
 msgid "Print host upload queue"
 msgstr "Imprimir cola de carga del host"
@@ -10874,7 +10953,7 @@ msgstr "Tamaño"
 msgid "Filename"
 msgstr "Nombre de archivo"
 
-msgid "Error Message"
+msgid "Message"
 msgstr "Mensaje de error"
 
 msgid "Cancel selected"
@@ -10892,8 +10971,8 @@ msgstr "Subiendo"
 msgid "Cancelling"
 msgstr "Cancelado"
 
-msgid "Error uploading to print host:"
-msgstr "Error cargando al host de impresión:"
+msgid "Error uploading to print host"
+msgstr "Error cargando al host de impresión"
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
@@ -11355,6 +11434,12 @@ msgstr ""
 "Mejorar la resistencia\n"
 "¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
 "relleno disperso para mejorar la resistencia del modelo?"
+
+#~ msgid "Send to print"
+#~ msgstr "Mandar a imprimir"
+
+#~ msgid "Simulate"
+#~ msgstr "Simular"
 
 #~ msgid "Assemble the selected parts to a single part"
 #~ msgstr "Ensamblar las piezas seleccionadas en una sola pieza"
