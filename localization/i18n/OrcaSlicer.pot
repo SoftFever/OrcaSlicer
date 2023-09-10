@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-09-09 14:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4106,7 +4106,7 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr ""
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
 msgstr ""
 
 msgid "Load 3mf"
@@ -5429,6 +5429,21 @@ msgstr ""
 msgid "Filament end G-code"
 msgstr ""
 
+msgid "Multimaterial"
+msgstr ""
+
+msgid "Wipe tower parameters"
+msgstr ""
+
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr ""
+
+msgid "Ramming settings"
+msgstr ""
+
+msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
 msgid "Printable space"
 msgstr ""
 
@@ -5481,6 +5496,15 @@ msgid "Acceleration limitation"
 msgstr ""
 
 msgid "Jerk limitation"
+msgstr ""
+
+msgid "Single extruder multimaterial setup"
+msgstr ""
+
+msgid "Wipe tower"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
 msgstr ""
 
 msgid "Layer height limits"
@@ -5704,6 +5728,36 @@ msgid "No updates available."
 msgstr ""
 
 msgid "The configuration is up to date."
+msgstr ""
+
+msgid "Ramming customization"
+msgstr ""
+
+msgid ""
+"Ramming denotes the rapid extrusion just before a tool change in a single-"
+"extruder MM printer. Its purpose is to properly shape the end of the "
+"unloaded filament so it does not prevent insertion of the new filament and "
+"can itself be reinserted later. This phase is important and different "
+"materials can require different extrusion speeds to get the good shape. For "
+"this reason, the extrusion rates during ramming are adjustable.\n"
+"\n"
+"This is an expert-level setting, incorrect adjustment will likely lead to "
+"jams, extruder wheel grinding into filament etc."
+msgstr ""
+
+msgid "Total ramming time"
+msgstr ""
+
+msgid "s"
+msgstr ""
+
+msgid "Total rammed volume"
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Ramming line spacing"
 msgstr ""
 
 msgid "Auto-Calc"
@@ -6416,6 +6470,21 @@ msgstr ""
 
 msgid ""
 "The prime tower requires that support has the same layer height with object."
+msgstr ""
+
+msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
 msgstr ""
 
 msgid ""
@@ -7146,9 +7215,6 @@ msgid ""
 "maximum fan speeds according to layer printing time"
 msgstr ""
 
-msgid "s"
-msgstr ""
-
 msgid "Default color"
 msgstr ""
 
@@ -7181,17 +7247,6 @@ msgstr ""
 msgid "mm³/s"
 msgstr ""
 
-msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid ""
-"After a tool change, the exact position of the newly loaded filament inside "
-"the nozzle may not be known, and the filament pressure is likely not yet "
-"stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
-msgstr ""
-
 msgid "Filament load time"
 msgstr ""
 
@@ -7219,6 +7274,115 @@ msgid ""
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
+msgstr ""
+
+msgid "Loading speed"
+msgstr ""
+
+msgid "Speed used for loading the filament on the wipe tower."
+msgstr ""
+
+msgid "Loading speed at the start"
+msgstr ""
+
+msgid "Speed used at the very beginning of loading phase."
+msgstr ""
+
+msgid "Unloading speed"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the filament on the wipe tower (does not affect  "
+"initial part of unloading just after ramming)."
+msgstr ""
+
+msgid "Unloading speed at the start"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the tip of the filament immediately after ramming."
+msgstr ""
+
+msgid "Delay after unloading"
+msgstr ""
+
+msgid ""
+"Time to wait after the filament is unloaded. May help to get reliable "
+"toolchanges with flexible materials that may need more time to shrink to "
+"original dimensions."
+msgstr ""
+
+msgid "Number of cooling moves"
+msgstr ""
+
+msgid ""
+"Filament is cooled by being moved back and forth in the cooling tubes. "
+"Specify desired number of these moves."
+msgstr ""
+
+msgid "Speed of the first cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating beginning at this speed."
+msgstr ""
+
+msgid "Minimal purge on wipe tower"
+msgstr ""
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
+
+msgid "Speed of the last cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating towards this speed."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Ramming parameters"
+msgstr ""
+
+msgid ""
+"This string is edited by RammingDialog and contains ramming specific "
+"parameters."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Enable ramming for multitool setups"
+msgstr ""
+
+msgid ""
+"Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
+"Multimaterial' in Printer Settings is unchecked). When checked, a small "
+"amount of filament is rapidly extruded on the wipe tower just before the "
+"toolchange. This option is only used when the wipe tower is enabled."
+msgstr ""
+
+msgid "Multitool ramming volume"
+msgstr ""
+
+msgid "The volume to be rammed before the toolchange."
+msgstr ""
+
+msgid "Multitool ramming flow"
+msgstr ""
+
+msgid "Flow used for ramming the filament before the toolchange."
 msgstr ""
 
 msgid "Density"
@@ -7936,6 +8100,45 @@ msgstr ""
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr ""
 
+msgid "Cooling tube position"
+msgstr ""
+
+msgid "Distance of the center-point of the cooling tube from the extruder tip."
+msgstr ""
+
+msgid "Cooling tube length"
+msgstr ""
+
+msgid "Length of the cooling tube to limit space for cooling moves inside it."
+msgstr ""
+
+msgid "High extruder current on filament swap"
+msgstr ""
+
+msgid ""
+"It may be beneficial to increase the extruder motor current during the "
+"filament exchange sequence to allow for rapid ramming feed rates and to "
+"overcome resistance when loading a filament with an ugly shaped tip."
+msgstr ""
+
+msgid "Filament parking position"
+msgstr ""
+
+msgid ""
+"Distance of the extruder tip from the position where the filament is parked "
+"when unloaded. This should match the value in printer firmware."
+msgstr ""
+
+msgid "Extra loading distance"
+msgstr ""
+
+msgid ""
+"When set to zero, the distance the filament is moved from parking position "
+"during load is exactly the same as it was moved back during unload. When "
+"positive, it is loaded further,  if negative, the loading move is shorter "
+"than unloading."
+msgstr ""
+
 msgid "Start end points"
 msgstr ""
 
@@ -8325,6 +8528,39 @@ msgstr ""
 msgid "Start G-code when start the printing of this filament"
 msgstr ""
 
+msgid "Single Extruder Multi Material"
+msgstr ""
+
+msgid "Use single nozzle to print multi filament"
+msgstr ""
+
+msgid "Purge in prime tower"
+msgstr ""
+
+msgid "Purge remaining filament into prime tower"
+msgstr ""
+
+msgid "Enable filament ramming"
+msgstr ""
+
+msgid "No sparse layers (EXPERIMENTAL)"
+msgstr ""
+
+msgid ""
+"If enabled, the wipe tower will not be printed on layers with no "
+"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"print the wipe tower. User is responsible for ensuring there is no collision "
+"with the print."
+msgstr ""
+
+msgid "Prime all printing extruders"
+msgstr ""
+
+msgid ""
+"If enabled, all printing extruders will be primed at the front edge of the "
+"print bed at the start of the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr ""
 
@@ -8531,6 +8767,9 @@ msgstr ""
 msgid "Tree Hybrid"
 msgstr ""
 
+msgid "Organic"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr ""
 
@@ -8557,11 +8796,33 @@ msgid ""
 "printed more horizontally, allowing them to reach farther."
 msgstr ""
 
+msgid "Preferred Branch Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+
 msgid "Tree support branch distance"
 msgstr ""
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
+msgstr ""
+
+msgid "Branch Density"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
 msgstr ""
 
 msgid "Adaptive layer height"
@@ -8586,10 +8847,39 @@ msgstr ""
 msgid "Distance from tree branch to the outermost brim line"
 msgstr ""
 
+msgid "Tip Diameter"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr ""
 
 msgid "This setting determines the initial diameter of support nodes."
+msgstr ""
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+
+msgid "Branch Diameter with double walls"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
 msgstr ""
 
 msgid "Tree support wall loops"
@@ -8715,6 +9005,43 @@ msgstr ""
 msgid "Width of prime tower"
 msgstr ""
 
+msgid "Wipe tower rotation angle"
+msgstr ""
+
+msgid "Wipe tower rotation angle with respect to x-axis."
+msgstr ""
+
+msgid "Stabilization cone apex angle"
+msgstr ""
+
+msgid ""
+"Angle at the apex of the cone that is used to stabilize the wipe tower. "
+"Larger angle means wider base."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Wipe tower extruder"
+msgstr ""
+
+msgid ""
+"The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
+"use the one that is available (non-soluble would be preferred)."
+msgstr ""
+
+msgid "Purging volumes - load/unload volumes"
+msgstr ""
+
+msgid ""
+"This vector saves required volumes to change from/to each tool used on the "
+"wipe tower. These values are used to simplify creation of the full purging "
+"volumes below."
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -8732,6 +9059,12 @@ msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
 "as a result. It will not take effect, unless the prime tower is enabled."
+msgstr ""
+
+msgid "Maximal bridging distance"
+msgstr ""
+
+msgid "Maximal distance between supports on sparse infill sections."
 msgstr ""
 
 msgid "X-Y hole compensation"
@@ -8832,6 +9165,15 @@ msgid ""
 "this value will not be printed, while features thicker than the Minimum "
 "feature size will be widened to the Minimum wall width. It's expressed as a "
 "percentage over nozzle diameter"
+msgstr ""
+
+msgid "First layer minimum wall width"
+msgstr ""
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
 msgstr ""
 
 msgid "Minimum wall width"
@@ -9744,7 +10086,7 @@ msgstr ""
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
-"End temp: >= 180\n"
+"End temp: >= 170\n"
 "Start temp > End temp + 5)"
 msgstr ""
 
@@ -9831,104 +10173,4 @@ msgid ""
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
-msgid "3D Scene Operations\nDid you know how to control view and object/part selection with mouse and touchpanel in the 3D scene?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid "Cut Tool\nDid you know that you can cut a model at any angle and position with the cutting tool?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid "Fix Model\nDid you know that you can fix a corrupted 3D model to avoid a lot of slicing problems?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid "Timelapse\nDid you know that you can generate a timelapse video during each print?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid "Auto-Arrange\nDid you know that you can auto-arrange all objects in your project?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid "Auto-Orient\nDid you know that you can rotate objects to an optimal orientation for printing by a simple click?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid "Lay on Face\nDid you know that you can quickly orient a model so that one of its faces sits on the print bed? Select the \"Place on face\" function or press the <b>F</b> key."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Object List]
-msgid "Object List\nDid you know that you can view all objects/parts in a list and change settings for each object/part?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid "Simplify Model\nDid you know that you can reduce the number of triangles in a mesh using the Simplify mesh feature? Right-click the model and select Simplify model. Read more in the documentation."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid "Slicing Parameter Table\nDid you know that you can view all objects/parts on a table and change settings for each object/part?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid "Split to Objects/Parts\nDid you know that you can split a big object into small ones for easy colorizing or printing?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid "Subtract a Part\nDid you know that you can subtract one mesh from another using the Negative part modifier? That way you can, for example, create easily resizable holes directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid "STEP\nDid you know that you can improve your print quality by slicing a STEP file instead of an STL?\nOrca Slicer supports slicing STEP files, providing smoother results than a lower resolution STL. Give it a try!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid "Z seam location\nDid you know that you can customize the location of the Z seam, and even paint it on your print, to have it in a less visible location? This improves the overall look of your model. Check it out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid "Fine-tuning for flow rate\nDid you know that flow rate can be fine-tuned for even better-looking prints? Depending on the material, you can improve the overall finish of the printed model by doing some fine-tuning."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid "Split your prints into plates\nDid you know that you can split a model that has a lot of parts into individual plates ready to print? This will simplify the process of keeping track of all the parts."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
-msgid "Speed up your print with Adaptive Layer Height\nDid you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid "Support painting\nDid you know that you can paint the location of your supports? This feature makes it easy to place the support material only on the sections of the model that actually need it."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid "Different types of supports\nDid you know that you can choose from multiple types of supports? Tree supports work great for organic models, while saving filament and improving print speed. Check them out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid "Printing Silk Filament\nDid you know that Silk filament needs special consideration to print it successfully? Higher temperature and lower speed are always recommended for the best results."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid "Brim for better adhesion\nDid you know that when printing models have a small contact interface with the printing surface, it's recommended to use a brim?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid "Set parameters for multiple objects\nDid you know that you can set slicing parameters for all selected objects at one time?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid "Stack objects\nDid you know that you can stack objects as a whole one?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid "Flush into support/objects/infill\nDid you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""

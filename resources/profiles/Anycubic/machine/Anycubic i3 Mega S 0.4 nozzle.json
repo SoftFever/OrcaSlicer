@@ -104,7 +104,7 @@
 	"deretraction_speed": [
 		"50"
 	],
-	"single_extruder_multi_material": "0",
+	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "M600",
 	"machine_pause_gcode": "M25",
 	"default_filament_profile": [

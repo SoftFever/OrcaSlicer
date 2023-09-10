@@ -788,9 +788,7 @@ const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0
 GCodeViewer::GCodeViewer()
 {
     m_moves_slider  = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
-    m_moves_slider->set_scale(0.6f);
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
-    m_layers_slider->set_scale(0.6f);
     m_extrusions.reset_role_visibility_flags();
 
 //    m_sequential_view.skip_invisible_moves = true;
@@ -1296,7 +1294,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     }
 
     //BBS fixed bottom_margin for space to render horiz slider
-    int bottom_margin = 39;
+    int bottom_margin = SLIDER_BOTTOM_MARGIN * GCODE_VIEWER_SLIDER_SCALE;
     m_sequential_view.m_show_gcode_window =
         m_sequential_view.m_show_gcode_window ||
         (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path);

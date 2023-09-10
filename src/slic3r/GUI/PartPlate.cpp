@@ -1549,7 +1549,7 @@ std::vector<int> PartPlate::get_used_extruders()
 	return used_extruders;
 }
 
-Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volume) const
+Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double d) const
 {
 	Vec3d wipe_tower_size;
 	std::vector<int> plate_extruders = get_extruders(true);
@@ -1579,7 +1579,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
     auto timelapse_type    = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
+	double depth = d;
     if (timelapse_enabled || depth > EPSILON) {
 		float min_wipe_tower_depth = 0.f;
 		auto iter = WipeTower::min_depth_per_height.begin();

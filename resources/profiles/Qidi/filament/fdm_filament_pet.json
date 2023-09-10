@@ -5,10 +5,10 @@
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "cool_plate_temp" : [
-        "60"
+        "80"
     ],
     "eng_plate_temp" : [
-        "0"
+        "80"
     ],
     "hot_plate_temp" : [
         "70"
@@ -17,13 +17,13 @@
         "80"
     ],
     "cool_plate_temp_initial_layer" : [
-        "60"
+        "80"
     ],
     "eng_plate_temp_initial_layer" : [
-        "0"
+        "80"
     ],
     "hot_plate_temp_initial_layer" : [
-        "70"
+        "80"
     ],
     "textured_plate_temp_initial_layer" : [
         "80"
@@ -50,7 +50,7 @@
         "30"
     ],
     "nozzle_temperature_initial_layer": [
-        "250"
+        "240"
     ],
     "reduce_fan_stop_start_freq": [
         "1"

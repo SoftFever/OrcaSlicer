@@ -884,7 +884,8 @@ namespace client
                 case coPercents: output.set_d(static_cast<const ConfigOptionPercents*>(opt.opt)->values[idx]); break;
                 case coPoints:   output.set_s(to_string(static_cast<const ConfigOptionPoints  *>(opt.opt)->values[idx])); break;
                 case coBools:    output.set_b(static_cast<const ConfigOptionBools   *>(opt.opt)->values[idx] != 0); break;
-                //case coEnums:    output.set_s(opt.opt->vserialize()[idx]); break;
+                // Orca: support enum vector variable type
+                case coEnums:    output.set_i(static_cast<const ConfigOptionInts *>(opt.opt)->values[idx]); break;
                 default:
                     ctx->throw_exception("Unknown vector variable type", opt.it_range);
                 }

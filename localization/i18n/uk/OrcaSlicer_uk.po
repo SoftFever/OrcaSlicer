@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-09-09 14:13+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4379,8 +4379,8 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Завантаження файлу: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "3mf не від Bambu Lab, завантажуйте лише дані геометрії."
+msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
+msgstr "3mf не від Orca Slicer, завантажуйте лише дані геометрії."
 
 msgid "Load 3mf"
 msgstr "Завантажити 3mf"
@@ -5825,6 +5825,21 @@ msgstr "G-код початку Філаменту"
 msgid "Filament end G-code"
 msgstr "G-код кінця Філаменту"
 
+msgid "Multimaterial"
+msgstr ""
+
+msgid "Wipe tower parameters"
+msgstr ""
+
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr ""
+
+msgid "Ramming settings"
+msgstr ""
+
+msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Місце для друку"
 
@@ -5878,6 +5893,15 @@ msgstr "Обмеження прискорення"
 
 msgid "Jerk limitation"
 msgstr "Обмеження ривка"
+
+msgid "Single extruder multimaterial setup"
+msgstr ""
+
+msgid "Wipe tower"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Обмеження висоти шару"
@@ -6124,6 +6148,36 @@ msgstr "Оновлення відсутні."
 
 msgid "The configuration is up to date."
 msgstr "Конфігурація є актуальною."
+
+msgid "Ramming customization"
+msgstr ""
+
+msgid ""
+"Ramming denotes the rapid extrusion just before a tool change in a single-"
+"extruder MM printer. Its purpose is to properly shape the end of the "
+"unloaded filament so it does not prevent insertion of the new filament and "
+"can itself be reinserted later. This phase is important and different "
+"materials can require different extrusion speeds to get the good shape. For "
+"this reason, the extrusion rates during ramming are adjustable.\n"
+"\n"
+"This is an expert-level setting, incorrect adjustment will likely lead to "
+"jams, extruder wheel grinding into filament etc."
+msgstr ""
+
+msgid "Total ramming time"
+msgstr ""
+
+msgid "s"
+msgstr "c"
+
+msgid "Total rammed volume"
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Ramming line spacing"
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Автокалькулятор"
@@ -6880,6 +6934,21 @@ msgid ""
 "The prime tower requires that support has the same layer height with object."
 msgstr ""
 "Прайм-тауер вимагає, щоб підтримка мала однакову висоту шару з об'єктом."
+
+msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
 
 msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
@@ -7754,9 +7823,6 @@ msgstr ""
 "мінімальної та максимальної швидкості вентилятора відповідно до часудруку "
 "шару"
 
-msgid "s"
-msgstr "c"
-
 msgid "Default color"
 msgstr "Колір за замовчуванням"
 
@@ -7795,23 +7861,6 @@ msgstr ""
 msgid "mm³/s"
 msgstr "мм³/с"
 
-msgid "Minimal purge on wipe tower"
-msgstr "Мінімальне продування на очисній вежі"
-
-msgid ""
-"After a tool change, the exact position of the newly loaded filament inside "
-"the nozzle may not be known, and the filament pressure is likely not yet "
-"stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
-msgstr ""
-"Після заміни інструменту точне положення новонавантаженої нитки "
-"напруженнявсередині сопла може бути невідомо, і тиск нитки розжарення, "
-"ймовірно, ще неє стабільним. Перед продуванням друкувальної головки в "
-"наповнювач або об'єкт Slic3r, що витрачається, завжди буде дозувати цю "
-"кількість матеріалу в вежу для протирання, щоб забезпечити надійне "
-"послідовне заповненняабо видавлювання об'єкта, що витрачається."
-
 msgid "Filament load time"
 msgstr "Час завантаження філаменту"
 
@@ -7845,6 +7894,121 @@ msgid ""
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
+msgstr ""
+
+msgid "Loading speed"
+msgstr ""
+
+msgid "Speed used for loading the filament on the wipe tower."
+msgstr ""
+
+msgid "Loading speed at the start"
+msgstr ""
+
+msgid "Speed used at the very beginning of loading phase."
+msgstr ""
+
+msgid "Unloading speed"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the filament on the wipe tower (does not affect  "
+"initial part of unloading just after ramming)."
+msgstr ""
+
+msgid "Unloading speed at the start"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the tip of the filament immediately after ramming."
+msgstr ""
+
+msgid "Delay after unloading"
+msgstr ""
+
+msgid ""
+"Time to wait after the filament is unloaded. May help to get reliable "
+"toolchanges with flexible materials that may need more time to shrink to "
+"original dimensions."
+msgstr ""
+
+msgid "Number of cooling moves"
+msgstr ""
+
+msgid ""
+"Filament is cooled by being moved back and forth in the cooling tubes. "
+"Specify desired number of these moves."
+msgstr ""
+
+msgid "Speed of the first cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating beginning at this speed."
+msgstr ""
+
+msgid "Minimal purge on wipe tower"
+msgstr "Мінімальне продування на очисній вежі"
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
+"Після заміни інструменту точне положення новонавантаженої нитки "
+"напруженнявсередині сопла може бути невідомо, і тиск нитки розжарення, "
+"ймовірно, ще неє стабільним. Перед продуванням друкувальної головки в "
+"наповнювач або об'єкт Slic3r, що витрачається, завжди буде дозувати цю "
+"кількість матеріалу в вежу для протирання, щоб забезпечити надійне "
+"послідовне заповненняабо видавлювання об'єкта, що витрачається."
+
+msgid "Speed of the last cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating towards this speed."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Ramming parameters"
+msgstr ""
+
+msgid ""
+"This string is edited by RammingDialog and contains ramming specific "
+"parameters."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Enable ramming for multitool setups"
+msgstr ""
+
+msgid ""
+"Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
+"Multimaterial' in Printer Settings is unchecked). When checked, a small "
+"amount of filament is rapidly extruded on the wipe tower just before the "
+"toolchange. This option is only used when the wipe tower is enabled."
+msgstr ""
+
+msgid "Multitool ramming volume"
+msgstr ""
+
+msgid "The volume to be rammed before the toolchange."
+msgstr ""
+
+msgid "Multitool ramming flow"
+msgstr ""
+
+msgid "Flow used for ramming the filament before the toolchange."
 msgstr ""
 
 msgid "Density"
@@ -8691,6 +8855,45 @@ msgstr "Об'єм сопла"
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "Об'єм сопла між різцем та кінцем сопла"
 
+msgid "Cooling tube position"
+msgstr ""
+
+msgid "Distance of the center-point of the cooling tube from the extruder tip."
+msgstr ""
+
+msgid "Cooling tube length"
+msgstr ""
+
+msgid "Length of the cooling tube to limit space for cooling moves inside it."
+msgstr ""
+
+msgid "High extruder current on filament swap"
+msgstr ""
+
+msgid ""
+"It may be beneficial to increase the extruder motor current during the "
+"filament exchange sequence to allow for rapid ramming feed rates and to "
+"overcome resistance when loading a filament with an ugly shaped tip."
+msgstr ""
+
+msgid "Filament parking position"
+msgstr ""
+
+msgid ""
+"Distance of the extruder tip from the position where the filament is parked "
+"when unloaded. This should match the value in printer firmware."
+msgstr ""
+
+msgid "Extra loading distance"
+msgstr ""
+
+msgid ""
+"When set to zero, the distance the filament is moved from parking position "
+"during load is exactly the same as it was moved back during unload. When "
+"positive, it is loaded further,  if negative, the loading move is shorter "
+"than unloading."
+msgstr ""
+
 msgid "Start end points"
 msgstr "Початкові кінцеві точки"
 
@@ -9151,6 +9354,39 @@ msgstr "Стартовий G-code під час запуску всієї печ
 msgid "Start G-code when start the printing of this filament"
 msgstr "Стартовий G-code при запуску друку цим філаментом"
 
+msgid "Single Extruder Multi Material"
+msgstr ""
+
+msgid "Use single nozzle to print multi filament"
+msgstr ""
+
+msgid "Purge in prime tower"
+msgstr ""
+
+msgid "Purge remaining filament into prime tower"
+msgstr ""
+
+msgid "Enable filament ramming"
+msgstr ""
+
+msgid "No sparse layers (EXPERIMENTAL)"
+msgstr ""
+
+msgid ""
+"If enabled, the wipe tower will not be printed on layers with no "
+"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"print the wipe tower. User is responsible for ensuring there is no collision "
+"with the print."
+msgstr ""
+
+msgid "Prime all printing extruders"
+msgstr ""
+
+msgid ""
+"If enabled, all printing extruders will be primed at the front edge of the "
+"print bed at the start of the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Радіус закриття пробілів під час нарізування"
 
@@ -9386,6 +9622,9 @@ msgstr "Деревоподібна сильна"
 msgid "Tree Hybrid"
 msgstr "Деревоподібна гібридна"
 
+msgid "Organic"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "Незалежна висота опорного шару"
 
@@ -9418,12 +9657,34 @@ msgstr ""
 "підтримки дерева. Якщо кут збільшено, гілки можуть друкуватись "
 "більшегоризонтально, дозволяючи їм досягати більшої відстані."
 
+msgid "Preferred Branch Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+
 msgid "Tree support branch distance"
 msgstr "Адаптивна висота шару"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "Цей параметр визначає відстань між сусідніми вузлами підтримки дерева."
+
+msgid "Branch Density"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
+msgstr ""
 
 msgid "Adaptive layer height"
 msgstr "Адаптивна ширина шару"
@@ -9451,11 +9712,40 @@ msgstr "Ширина кайми деревовидної підтримки"
 msgid "Distance from tree branch to the outermost brim line"
 msgstr "Відстань від гілки дерева до зовнішньої крайньої лінії кайми"
 
+msgid "Tip Diameter"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr "Діаметр гілки деревоподібної підтримки"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Цей параметр визначає початковий діаметр опорних вузлів."
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+
+msgid "Branch Diameter with double walls"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
+msgstr ""
 
 msgid "Tree support wall loops"
 msgstr "Контури опорної стінки дерева"
@@ -9608,6 +9898,43 @@ msgstr "Ширина"
 msgid "Width of prime tower"
 msgstr "Ширина основної вежі"
 
+msgid "Wipe tower rotation angle"
+msgstr ""
+
+msgid "Wipe tower rotation angle with respect to x-axis."
+msgstr ""
+
+msgid "Stabilization cone apex angle"
+msgstr ""
+
+msgid ""
+"Angle at the apex of the cone that is used to stabilize the wipe tower. "
+"Larger angle means wider base."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Wipe tower extruder"
+msgstr ""
+
+msgid ""
+"The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
+"use the one that is available (non-soluble would be preferred)."
+msgstr ""
+
+msgid "Purging volumes - load/unload volumes"
+msgstr ""
+
+msgid ""
+"This vector saves required volumes to change from/to each tool used on the "
+"wipe tower. These values are used to simplify creation of the full purging "
+"volumes below."
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -9630,6 +9957,12 @@ msgstr ""
 "розжареннядля економії нитки розжарення та зменшення часу друку. В "
 "результаті кольору об'єктів будуть змішані. Він не набуде чинності, якщо не "
 "включена первиннавежа."
+
+msgid "Maximal bridging distance"
+msgstr ""
+
+msgid "Maximal distance between supports on sparse infill sections."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "Компенсація отвору XY"
@@ -9761,6 +10094,15 @@ msgid ""
 "this value will not be printed, while features thicker than the Minimum "
 "feature size will be widened to the Minimum wall width. It's expressed as a "
 "percentage over nozzle diameter"
+msgstr ""
+
+msgid "First layer minimum wall width"
+msgstr ""
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
 msgstr ""
 
 msgid "Minimum wall width"
@@ -10697,13 +11039,9 @@ msgstr "Крок температури: "
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
-"End temp: >= 180\n"
+"End temp: >= 170\n"
 "Start temp > End temp + 5)"
 msgstr ""
-"Введіть допустимі значення:\n"
-"Початкова температура: <= 350\n"
-"Кінцева температура: >= 180\n"
-"Початкова температура > Кінцева температура + 5)"
 
 msgid "Max volumetric speed test"
 msgstr "Тест максимальної об'ємної швидкості"
@@ -10801,584 +11139,3 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "Не вдалося підключитися до принтерів, підключених через вузол друку."
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
-msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
-msgstr ""
-"Операції з 3D сценами\n"
-"Чи знаєте ви, як керувати видом та вибором об'єкта/деталі за допомогою миші "
-"та Сенсорна панель у 3D сцені?"
-
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid ""
-"Cut Tool\n"
-"Did you know that you can cut a model at any angle and position with the "
-"cutting tool?"
-msgstr ""
-"Інструмент вирізування\n"
-"Чи знаєте ви, що можна вирізати модель під будь-яким кутом і в будь-якому "
-"положенніза допомогою різального інструмента?"
-
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
-msgstr ""
-"Виправити модель\n"
-"Чи знаєте ви, що ви можете виправити пошкоджену 3D-модель, щоб "
-"уникнутивеликої кількості проблем із нарізкою?"
-
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid ""
-"Timelapse\n"
-"Did you know that you can generate a timelapse video during each print?"
-msgstr ""
-"Таймлапс\n"
-"Чи знаєте ви, що ви можете генерувати відео під час кожного друку?"
-
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid ""
-"Auto-Arrange\n"
-"Did you know that you can auto-arrange all objects in your project?"
-msgstr ""
-"Авторозбудова\n"
-"Чи знаєте ви, що можна автоматично впорядкувати всі об'єкти в проекті?"
-
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid ""
-"Auto-Orient\n"
-"Did you know that you can rotate objects to an optimal orientation for "
-"printing by a simple click?"
-msgstr ""
-"Автоорієнтація\n"
-"Чи знаєте ви, що можна повертати об'єкти в оптимальну орієнтацію для друку "
-"простим клацанням?"
-
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid ""
-"Lay on Face\n"
-"Did you know that you can quickly orient a model so that one of its faces "
-"sits on the print bed? Select the \"Place on face\" function or press the "
-"<b>F</b> key."
-msgstr ""
-"Покласти на обличчя\n"
-"Чи знаєте ви, що ви можете швидко зорієнтувати модель так, щоб одна з її "
-"граней лежала на столі? Виберіть функцію «Розмістити на межі» або натисніть "
-"клавішу < b > F </b >."
-
-#: resources/data/hints.ini: [hint:Object List]
-msgid ""
-"Object List\n"
-"Did you know that you can view all objects/parts in a list and change "
-"settings for each object/part?"
-msgstr ""
-"Список об'єктів\n"
-"Чи знаєте ви, що можна переглядати всі об'єкти/деталі у списку та змінювати "
-"Параметри для кожного об'єкта/деталі?"
-
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid ""
-"Simplify Model\n"
-"Did you know that you can reduce the number of triangles in a mesh using the "
-"Simplify mesh feature? Right-click the model and select Simplify model. Read "
-"more in the documentation."
-msgstr ""
-"Спрощення моделі\n"
-"Чи знаєте ви, що можна зменшити кількість трикутників у мережі за допомогою "
-"Елемент Спростити мережу (Simplify mesh)? Клацніть модель правою кнопкою "
-"миші і виберіть «Спростити модель». Додаткову інформацію наведено в "
-"документації."
-
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid ""
-"Slicing Parameter Table\n"
-"Did you know that you can view all objects/parts on a table and change "
-"settings for each object/part?"
-msgstr ""
-"Таблиця параметрів зрізу\n"
-"Чи знаєте ви, що можна переглядати всі об'єкти/деталі в таблиці та змінювати "
-"налаштування для кожного об'єкта/деталі?"
-
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid ""
-"Split to Objects/Parts\n"
-"Did you know that you can split a big object into small ones for easy "
-"colorizing or printing?"
-msgstr ""
-"Розділити на об'єкти/деталі\n"
-"Чи знаєте ви, що ви можете розділити великий об'єкт на маленькі для "
-"легкоїзабарвлення чи друку?"
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the Negative "
-"part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-"Відняти деталь\n"
-"Чи знаєте ви, що можна віднімати одну мережу з іншої за допомогою "
-"модифікаторанегативної деталі? Таким чином можна, наприклад, створити "
-"легкоотвори, що змінюються безпосередньо в Orca Slicer. Додаткова інформацію "
-"наведено в документації."
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP file "
-"instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than a "
-"lower resolution STL. Give it a try!"
-msgstr ""
-"STEP\n"
-"Чи знаєте ви, що ви можете покращити якість друку, нарізавши файл "
-"STEPзамість STL?\n"
-"Orca Slicer підтримує нарізання файлів STEP, забезпечуючи більш "
-"плавнірезультати порівняно з нижчою роздільною здатністю STL. Спробуй!"
-
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid ""
-"Z seam location\n"
-"Did you know that you can customize the location of the Z seam, and even "
-"paint it on your print, to have it in a less visible location? This improves "
-"the overall look of your model. Check it out!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid ""
-"Fine-tuning for flow rate\n"
-"Did you know that flow rate can be fine-tuned for even better-looking "
-"prints? Depending on the material, you can improve the overall finish of the "
-"printed model by doing some fine-tuning."
-msgstr ""
-"Тонке налаштування витрати\n"
-"Чи знаєте ви, що швидкість потоку може бути точно налаштована для навіть "
-"більшекрасивих відбитків? Залежно від матеріалу можна покращити загальне "
-"оздобленнядрукарської моделі, виконавши деяке тонке налаштування."
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid ""
-"Split your prints into plates\n"
-"Did you know that you can split a model that has a lot of parts into "
-"individual plates ready to print? This will simplify the process of keeping "
-"track of all the parts."
-msgstr ""
-"Розбийте відбитки на пластини\n"
-"Чи знаєте ви, що можна розділити модель з великою кількістю деталей на "
-"окремі столи, готові до друку? Це спростить процес відстеження всіхдеталей."
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
-msgid ""
-"Speed up your print with Adaptive Layer Height\n"
-"Did you know that you can print a model even faster, by using the Adaptive "
-"Layer Height option? Check it out!"
-msgstr ""
-"Прискорення друку за допомогою функції «Адаптивна висота шару»\n"
-"Чи знаєте ви, що можна друкувати модель ще швидше за допомогою параметра "
-"«Адаптивна висота шару»? Подивися!"
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid ""
-"Support painting\n"
-"Did you know that you can paint the location of your supports? This feature "
-"makes it easy to place the support material only on the sections of the "
-"model that actually need it."
-msgstr ""
-"Опорне забарвлення\n"
-"Ти знав, що можеш намалювати розташування своїх опор? Ця функція "
-"спрощуєрозміщення матеріалу опори тільки на тих перерізах моделі, які в "
-"цьомупотребують."
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid ""
-"Different types of supports\n"
-"Did you know that you can choose from multiple types of supports? Tree "
-"supports work great for organic models, while saving filament and improving "
-"print speed. Check them out!"
-msgstr ""
-"Різні типи опор\n"
-"Чи знаєте ви, що можна вибрати один із кількох типів опор? Підтримка Tree "
-"відмінно працює для органічних моделей, зберігаючи при цьому ниткинапруження "
-"і підвищуючи швидкість друку. Перевірте їх!"
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid ""
-"Printing Silk Filament\n"
-"Did you know that Silk filament needs special consideration to print it "
-"successfully? Higher temperature and lower speed are always recommended for "
-"the best results."
-msgstr ""
-"Друк шовковим філаментом\n"
-"Чи знаєте ви, що шовковий іламент потребує особливої уваги, щоб її Успішно "
-"надрукувати? Для досягнення найкращих результатів завждирекомендується більш "
-"висока температура та нижча швидкість."
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid ""
-"Brim for better adhesion\n"
-"Did you know that when printing models have a small contact interface with "
-"the printing surface, it's recommended to use a brim?"
-msgstr ""
-"Кайма для кращої адгезії\n"
-"Чи знаєте ви, що коли моделі друку мають невеликий контактний інтерфейс з "
-"Поверхня друку, рекомендується використовувати Кайму?"
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid ""
-"Set parameters for multiple objects\n"
-"Did you know that you can set slicing parameters for all selected objects at "
-"one time?"
-msgstr ""
-"Встановлення параметрів для кількох об'єктів\n"
-"Чи знаєте ви, що можна встановити параметри нарізки для всіх "
-"вибранихоб'єктів одночасно?"
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid ""
-"Stack objects\n"
-"Did you know that you can stack objects as a whole one?"
-msgstr ""
-"Об'єкти стека\n"
-"Ви знали, що можете складати об'єкти?"
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid ""
-"Flush into support/objects/infill\n"
-"Did you know that you can save the wasted filament by flushing them into "
-"support/objects/infill during filament change?"
-msgstr ""
-"Урівень з опорою/об'єктами/заповненням\n"
-"Чи знаєте ви, що ви можете зберегти втрачені нитки, промиваючи їх в опору/"
-"об'єкти/заповнення під час зміни нитки?"
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid ""
-"Improve strength\n"
-"Did you know that you can use more wall loops and higher sparse infill "
-"density to improve the strength of the model?"
-msgstr ""
-"Підвищення міцності\n"
-"Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
-"більшепериметрів та вищу щільність заповнення?"
-
-#~ msgid "Maximum acceleration for travel (M204 T)"
-#~ msgstr "Максимальне прискорення руху (M204 T)"
-
-#~ msgid "Assemble the selected parts to a single part"
-#~ msgstr "Зберіть вибрані деталі в одну деталь"
-
-#~ msgid "Set Unprintable"
-#~ msgstr "Встановити недрукований"
-
-#~ msgid "Set Printable"
-#~ msgstr "Встановити для друку"
-
-#~ msgid "Manual"
-#~ msgstr "Посібник"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "Резервний філамент AMS"
-
-#~ msgid "Feed new filament from external spool"
-#~ msgstr "Подача нової нитки із зовнішньої котушки"
-
-#~ msgid "Confirm whether the filament has been extruded"
-#~ msgstr "Підтвердіть, чи був екструдований філамент"
-
-#~ msgid "The region parameter is incorrrect"
-#~ msgstr "Неправильний параметр регіону"
-
-#~ msgid "Failure of printer login"
-#~ msgstr "Помилка входу в принтер"
-
-#~ msgid "Failed to get ticket"
-#~ msgstr "Не вдалося отримати квиток"
-
-#~ msgid "User authorization timeout"
-#~ msgstr "Тайм-аут авторизації користувача"
-
-#~ msgid "Failure of bind"
-#~ msgstr "Помилка прив'язки"
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network problem and try again"
-#~ msgstr ""
-#~ "Час очікування завдання завантаження закінчився. Перевірте проблему з "
-#~ "мережею та повторіть спробу"
-
-#~ msgid "Print file not found, please slice again"
-#~ msgstr "Файл для друку не знайдено, повторіть нарізку"
-
-#~ msgid ""
-#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
-#~ "the model and slice again"
-#~ msgstr ""
-#~ "Файл друку перевищує максимальний розмір (1 ГБ). Будь ласка, спростіть\n"
-#~ "змоделюйте і знову наріжте"
-
-#~ msgid "Failed uploading print file"
-#~ msgstr "Неможливо завантажити файл для друку"
-
-#~ msgid "Wrong Access code"
-#~ msgstr "Неправильний код доступу"
-
-#~ msgid "Send to Printer failed. Please try again."
-#~ msgstr "Надіслати на принтер не вдалося. Будь ласка, спробуйте ще раз."
-
-#~ msgid "No space left on Printer SD card"
-#~ msgstr "На карті SD принтера не залишилося місця"
-
-#~ msgid "Sending gcode file through cloud service"
-#~ msgstr "Надсилання файлу gcode через хмарний сервіс"
-
-#~ msgid "Please log out and login to the printer again."
-#~ msgstr "Вийдіть із системи та знову увійдіть до принтера."
-
-#~ msgid "Factors of dynamic flow cali"
-#~ msgstr "Фактори динамічної течії, калібрування"
-
-#~ msgid "Filaments replace"
-#~ msgstr "Нити замінити"
-
-#~ msgid "3D Models"
-#~ msgstr "3D моделі"
-
-#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
-#~ msgstr "Помилка ініціалізації (не підтримується лише у локальній мережі)!"
-
-#~ msgid "Initialize failed (Not supported by printer)!"
-#~ msgstr "Помилка ініціалізації (не підтримується принтером)!"
-
-#~ msgid ""
-#~ "Another virtual camera is running.\n"
-#~ "Orca Slicer supports only a single virtual camera.\n"
-#~ "Do you want to stop this virtual camera?"
-#~ msgstr ""
-#~ "Запущено іншу віртуальну камеру.\n"
-#~ "Orca Slicer підтримує лише одну віртуальну камеру.\n"
-#~ "Ви хочете зупинити цю віртуальну камеру?"
-
-#~ msgid "Not supported by this model of printer!"
-#~ msgstr "Не підтримується цією моделлю принтера!"
-
-#~ msgid "No files"
-#~ msgstr "Файлів немає"
-
-#~ msgid "Not accessible in LAN-only mode!"
-#~ msgstr "Недоступно лише в режимі LAN! Відсутня LAN ip принтера!"
-
-#~ msgid "Missing LAN ip of printer!"
-#~ msgstr "Відсутня LAN ip принтера!"
-
-#, c-format, boost-format
-#~ msgid "You are going to delete %u files. Are you sure to continue?"
-#~ msgstr ""
-#~ "Ви збираєтеся видалити %u файлів. Ви впевнені, що хочете продовжити?"
-
-#~ msgid "Printing List"
-#~ msgstr "Список друку"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
-#~ "the printer by logging in with your user account."
-#~ msgstr ""
-#~ "Відключено від принтера [%s] через вимкнення режиму локальної мережі. "
-#~ "Приєднайте принтер до свого облікового запису користувача."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
-#~ "the printer by inputting Access Code which can be gotten from printer "
-#~ "screen."
-#~ msgstr ""
-#~ "Відключено від принтера [%s] через увімкнення режиму локальної мережі. "
-#~ "Будь ласка, перепідключіть\n"
-#~ "принтера, ввівши код доступу, який можна отримати на екрані принтера."
-
-#~ msgid "Media"
-#~ msgstr "Медіа"
-
-#~ msgid "Dump video"
-#~ msgstr "Дамп відео"
-
-#~ msgid "Flow Calibration"
-#~ msgstr "Калібрування потоку"
-
-#~ msgid "The printer is required to be in the same LAN as Orca Slicer."
-#~ msgstr ""
-#~ "Принтер повинен знаходитися в тій же локальній мережі, що й Orca Slicer."
-
-#~ msgid ""
-#~ "Click OK to update the Network plug-in when Orca Slicer launches next "
-#~ "time."
-#~ msgstr ""
-#~ "Натисніть OK, щоб оновити плагін Network під час наступного запуску Orca "
-#~ "Slicer."
-
-#~ msgid "New version of Orca Slicer"
-#~ msgstr "Нова версія програми Orca Slicer"
-
-#~ msgid ""
-#~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-#~ msgstr ""
-#~ "Крок 1. Переконайтеся, що Orca Slicer та ваш принтер знаходяться в одній "
-#~ "локальніймережі."
-
-#~ msgid "ERROR:"
-#~ msgstr "ПОМИЛКА:"
-
-#~ msgid "Bed temperatures for the used filaments differ significantly."
-#~ msgstr "Температури шару для використаного філаменту значно відрізняються."
-
-#~ msgid "Line width of outer wall"
-#~ msgstr "Ширина лінії зовнішнього периметра"
-
-#~ msgid "Default line width if some line width is set to be zero"
-#~ msgstr ""
-#~ "Ширина лінії за замовчуванням, якщо деяка ширина лінії встановлена "
-#~ "рівноюнулю"
-
-#, boost-format
-#~ msgid ""
-#~ "Processing model '%1%' with more than 1M triangles could be slow. It is "
-#~ "Highly recommended to simplify the model."
-#~ msgstr ""
-#~ "Обробка моделі '%1%' з більш ніж 1 міліметровими трикутниками може "
-#~ "бутиБути повільною. Настійно рекомендується спростити модель."
-
-#, c-format, boost-format
-#~ msgid "Click to download New version in default browser: %s"
-#~ msgstr "Натисніть, щоб завантажити нову версію в стандартному браузері: %s"
-
-#~ msgid "Line width of initial layer"
-#~ msgstr "Ширина лінії першого шару"
-
-#~ msgid ""
-#~ "Filter out gaps smaller than the threshold specified. This setting won't "
-#~ "affact top/bottom layers"
-#~ msgstr ""
-#~ "Фільтрація проміжків менша за вказаний поріг. Цей параметр не впливає на "
-#~ "верхні та нижні шари"
-
-#~ msgid ""
-#~ "Automatically Combine sparse infill of several layers to print together "
-#~ "to Reduce time. Wall is still printed with original layer height."
-#~ msgstr ""
-#~ "Автоматичне об'єднання заповнення декількох шарів для друкуСкорочення "
-#~ "часу. Периметр, як і раніше, друкується з вихідною висотою шару."
-
-#~ msgid "Line width of internal sparse infill"
-#~ msgstr "Ширина лінії внутрішнього заповнення"
-
-#~ msgid "Line width of inner wall"
-#~ msgstr "Ширина лінії внутрішнього периметра"
-
-#~ msgid ""
-#~ "G-code path is genereated after simplifing the contour of model to avoid "
-#~ "too Much points and gcode lines in gcode file. Smaller value means higher "
-#~ "resolution and more time to slice"
-#~ msgstr ""
-#~ "Шлях G-коду генерується після спрощення контуру моделі, щоб "
-#~ "уникнутизанадто багато точок і ліній gcode у файлі gcode. Менше значення "
-#~ "означає вищу роздільну здатність і більше часу для зрізу"
-
-#~ msgid ""
-#~ "The Length of fast retraction before wipe, relative to retraction length"
-#~ msgstr "Довжина швидкого втягування перед очищенням щодо довжини втягування"
-
-#~ msgid "Line width of internal solid infill"
-#~ msgstr "Ширина лінії внутрішнього суцільного заповнення"
-
-#~ msgid ""
-#~ "Use \"Even-odd\" for 3DLabPrint Airplane models. Use \"Close holes\" to "
-#~ "close all holes in the model."
-#~ msgstr ""
-#~ "Використовуйте «парний-непарний» для 3DLabPrint моделей літаків. Для "
-#~ "закриття всіх отворів у моделі використовується команда «Закрити отвори»."
-
-#~ msgid "XY separation між об'єктом і його підтримкою"
-#~ msgstr "Розділ XY між об'єктом та підтримкою"
-
-#~ msgid "Line width of support"
-#~ msgstr "Ширина лінії підтримки"
-
-#~ msgid ""
-#~ "Enabling this option means the height of tree support layer except the "
-#~ "first will be automatically calculated "
-#~ msgstr ""
-#~ "Включення цієї опції означає, що висота шару підтримки дерева, за "
-#~ "виключенням першого, буде розрахована автоматично "
-
-#~ msgid "Line width for top surfaces"
-#~ msgstr "Ширина лінії для верхнього шару"
-
-#~ msgid ""
-#~ "Purging after filament change will be done inside objects' infills. This "
-#~ "may Lower the amount of waste and decrease the print time. If the walls "
-#~ "are printed with transparent filament, the mixed color infill will be "
-#~ "seen outside. It will not take effect, unless the prime tower is enabled."
-#~ msgstr ""
-#~ "Продування після зміни нитки буде проводитися всередині заповнень "
-#~ "об'єктів. Це може зменшити кількість відходів та час друку. Якщо "
-#~ "периметри надруковані прозорою ниткою, змішане колірне наповнення "
-#~ "будеВидно зовні. Він не набуде чинності, якщо не включена первинна вежа."
-
-#~ msgid ""
-#~ "Purging after filament change will be done inside objects' support. This "
-#~ "may Lower the amount of waste and decrease the print time. It will not "
-#~ "take effect, unless the prime tower is enabled."
-#~ msgstr ""
-#~ "Продування після заміни нитки буде проводитися всередині опори об'єктів. "
-#~ "Це може зменшити кількість відходів та час друку. Він не набуде чинності,"
-#~ "якщо не включено первинну вежу."
-
-#~ msgid ""
-#~ "Classic wall generator produces walls with constant extrusion width and "
-#~ "for very thin areas is used gap-fill. Arachne engine produces walls with "
-#~ "Variable extrusion width"
-#~ msgstr ""
-#~ "Класичний генератор периметрів виготовляє периметри з постійною "
-#~ "шириноюВидавлювання і для дуже тонких областей використовується "
-#~ "заповнення проміжку.Двигун Arachne виробляє периметри зі змінною шириною "
-#~ "екструзії"
-
-#~ msgid ""
-#~ "Minimum thickness of thin features. Model features that are thinner than "
-#~ "Ця вага не буде printed, while features thicker than the Minimum feature "
-#~ "size will be widened to the Minimum wall width. It's expressed as a "
-#~ "percentage over nozzle diameter"
-#~ msgstr ""
-#~ "Мінімальна товщина тонких елементів. Елементи моделі, розмір яких "
-#~ "меншийЦього значення, друкуватись не будуть, а елементи, товщина яких "
-#~ "більшамінімального розміру елемента, будуть розширені до мінімальної "
-#~ "ширинипериметра. Він виражається у відсотках від діаметра сопла"
-
-#~ msgid ""
-#~ "Z seam location\n"
-#~ "Did you know that you can customize the location of the Z seam, and even "
-#~ "paint it on your print, to have it in a less visible location? This "
-#~ "improves The overall look of your model. Check it out!"
-#~ msgstr ""
-#~ "Розташування шва Z\n"
-#~ "Чи знаєте ви, що ви можете налаштувати розташування Z-шва і навіть "
-#~ "намалюватийого на відбитку, щоб він був у менш видимому місці? Це "
-#~ "покращує загальний виглядмоделі. Подивися!"
-
-#~ msgid ""
-#~ "If enabled, support loops will be generated under the contours of "
-#~ "internal bridges. These support loops could prevent internal bridges from "
-#~ "extruding over the air and improve the top surface quality, especially "
-#~ "when the sparse infill density is low.This value determines the thickness "
-#~ "of the support loops. 0 means disable this feature"
-#~ msgstr ""
-#~ "Якщо цей параметр увімкнено, під контурами внутрішніх мостів створюються "
-#~ "контури підтримки. Ці опорні петлі можуть перешкоджати екструзії "
-#~ "внутрішніх містків через повітря і покращувати якість верхньої поверхні,"
-#~ "особливо коли розріджена щільність заповнення є низькою. Це значення "
-#~ "визначає товщину контурів опори. 0 означає відключення цієїфункції"

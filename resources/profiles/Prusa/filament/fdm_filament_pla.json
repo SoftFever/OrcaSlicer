@@ -26,7 +26,7 @@
         "0"
     ],
     "hot_plate_temp" : [
-        "45"
+        "60"
     ],
     "cool_plate_temp_initial_layer" : [
         "35"
@@ -35,7 +35,7 @@
         "0"
     ],
     "hot_plate_temp_initial_layer" : [
-        "45"
+        "60"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

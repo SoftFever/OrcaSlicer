@@ -406,7 +406,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
     // Only offer the host type selection for FFF, for SLA it's always the SL1 printer (at the moment)
     bool supports_multiple_printers = false;
     if (tech == ptFFF) {
-update_host_type(printer_change);
+        update_host_type(printer_change);
         const auto opt = m_config->option<ConfigOptionEnum<PrintHostType>>("host_type");
         m_optgroup->show_field("host_type");
 
@@ -468,6 +468,13 @@ void PhysicalPrinterDialog::update_host_type(bool printer_change)
     Field* ht = m_optgroup->get_field("host_type");
     wxArrayString types;
     int last_in_conf = m_config->option("host_type")->getInt(); //  this is real position in last choice
+
+    // Append localized enum_labels
+    assert(ht->m_opt.enum_labels.size() == ht->m_opt.enum_values.size());
+    for (size_t i = 0; i < ht->m_opt.enum_labels.size(); ++ i) {
+        wxString label = _(ht->m_opt.enum_labels[i]);
+        types.Add(label);
+    }
 
     Choice* choice = dynamic_cast<Choice*>(ht);
     choice->set_values(types);

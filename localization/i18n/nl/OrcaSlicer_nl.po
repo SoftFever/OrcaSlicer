@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-09-09 14:13+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4369,9 +4369,9 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Bestand laden: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
 msgstr ""
-"De 3mf is niet van Bambu Lab, er worden alleen geometriegegevens geladen."
+"De 3mf is niet van Orca Slicer, er worden alleen geometriegegevens geladen."
 
 msgid "Load 3mf"
 msgstr "Laad 3mf"
@@ -5867,6 +5867,21 @@ msgstr "Filament start G-code"
 msgid "Filament end G-code"
 msgstr "Filament einde G-code"
 
+msgid "Multimaterial"
+msgstr ""
+
+msgid "Wipe tower parameters"
+msgstr ""
+
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr ""
+
+msgid "Ramming settings"
+msgstr ""
+
+msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Ruimte waarbinnen geprint kan worden"
 
@@ -5920,6 +5935,15 @@ msgstr "Versnellingsbeperking"
 
 msgid "Jerk limitation"
 msgstr "Jerk beperking"
+
+msgid "Single extruder multimaterial setup"
+msgstr ""
+
+msgid "Wipe tower"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Limieten voor laaghoogte"
@@ -6170,6 +6194,36 @@ msgstr "Geen updates beschikbaar."
 
 msgid "The configuration is up to date."
 msgstr "De configuratie is up to date."
+
+msgid "Ramming customization"
+msgstr ""
+
+msgid ""
+"Ramming denotes the rapid extrusion just before a tool change in a single-"
+"extruder MM printer. Its purpose is to properly shape the end of the "
+"unloaded filament so it does not prevent insertion of the new filament and "
+"can itself be reinserted later. This phase is important and different "
+"materials can require different extrusion speeds to get the good shape. For "
+"this reason, the extrusion rates during ramming are adjustable.\n"
+"\n"
+"This is an expert-level setting, incorrect adjustment will likely lead to "
+"jams, extruder wheel grinding into filament etc."
+msgstr ""
+
+msgid "Total ramming time"
+msgstr ""
+
+msgid "s"
+msgstr "s"
+
+msgid "Total rammed volume"
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Ramming line spacing"
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Automatisch berekenen"
@@ -6948,6 +7002,21 @@ msgid ""
 "The prime tower requires that support has the same layer height with object."
 msgstr ""
 "Een prime toren vereist dat support dezelfde laaghoogte heeft als het object."
+
+msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
 
 msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
@@ -7810,9 +7879,6 @@ msgstr ""
 "tussen de minimale en maximale ventilatorsnelheden volgens de printtijd van "
 "de laag"
 
-msgid "s"
-msgstr "s"
-
 msgid "Default color"
 msgstr "Standaardkleur"
 
@@ -7851,17 +7917,6 @@ msgstr ""
 msgid "mm³/s"
 msgstr "mm³/s"
 
-msgid "Minimal purge on wipe tower"
-msgstr "Minimale filament reiniging op de wipe tower"
-
-msgid ""
-"After a tool change, the exact position of the newly loaded filament inside "
-"the nozzle may not be known, and the filament pressure is likely not yet "
-"stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
-msgstr ""
-
 msgid "Filament load time"
 msgstr "Filament laadt tijd"
 
@@ -7895,6 +7950,115 @@ msgid ""
 "compensate. Only the filament used for the perimeter is taken into account.\n"
 "Be sure to allow enough space between objects, as this compensation is done "
 "after the checks."
+msgstr ""
+
+msgid "Loading speed"
+msgstr ""
+
+msgid "Speed used for loading the filament on the wipe tower."
+msgstr ""
+
+msgid "Loading speed at the start"
+msgstr ""
+
+msgid "Speed used at the very beginning of loading phase."
+msgstr ""
+
+msgid "Unloading speed"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the filament on the wipe tower (does not affect  "
+"initial part of unloading just after ramming)."
+msgstr ""
+
+msgid "Unloading speed at the start"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the tip of the filament immediately after ramming."
+msgstr ""
+
+msgid "Delay after unloading"
+msgstr ""
+
+msgid ""
+"Time to wait after the filament is unloaded. May help to get reliable "
+"toolchanges with flexible materials that may need more time to shrink to "
+"original dimensions."
+msgstr ""
+
+msgid "Number of cooling moves"
+msgstr ""
+
+msgid ""
+"Filament is cooled by being moved back and forth in the cooling tubes. "
+"Specify desired number of these moves."
+msgstr ""
+
+msgid "Speed of the first cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating beginning at this speed."
+msgstr ""
+
+msgid "Minimal purge on wipe tower"
+msgstr "Minimale filament reiniging op de wipe tower"
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
+
+msgid "Speed of the last cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating towards this speed."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Ramming parameters"
+msgstr ""
+
+msgid ""
+"This string is edited by RammingDialog and contains ramming specific "
+"parameters."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Enable ramming for multitool setups"
+msgstr ""
+
+msgid ""
+"Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
+"Multimaterial' in Printer Settings is unchecked). When checked, a small "
+"amount of filament is rapidly extruded on the wipe tower just before the "
+"toolchange. This option is only used when the wipe tower is enabled."
+msgstr ""
+
+msgid "Multitool ramming volume"
+msgstr ""
+
+msgid "The volume to be rammed before the toolchange."
+msgstr ""
+
+msgid "Multitool ramming flow"
+msgstr ""
+
+msgid "Flow used for ramming the filament before the toolchange."
 msgstr ""
 
 msgid "Density"
@@ -8684,6 +8848,45 @@ msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr ""
 "Volume van de nozzle tussen de filamentsnijder en het uiteinde van de nozzle"
 
+msgid "Cooling tube position"
+msgstr ""
+
+msgid "Distance of the center-point of the cooling tube from the extruder tip."
+msgstr ""
+
+msgid "Cooling tube length"
+msgstr ""
+
+msgid "Length of the cooling tube to limit space for cooling moves inside it."
+msgstr ""
+
+msgid "High extruder current on filament swap"
+msgstr ""
+
+msgid ""
+"It may be beneficial to increase the extruder motor current during the "
+"filament exchange sequence to allow for rapid ramming feed rates and to "
+"overcome resistance when loading a filament with an ugly shaped tip."
+msgstr ""
+
+msgid "Filament parking position"
+msgstr ""
+
+msgid ""
+"Distance of the extruder tip from the position where the filament is parked "
+"when unloaded. This should match the value in printer firmware."
+msgstr ""
+
+msgid "Extra loading distance"
+msgstr ""
+
+msgid ""
+"When set to zero, the distance the filament is moved from parking position "
+"during load is exactly the same as it was moved back during unload. When "
+"positive, it is loaded further,  if negative, the loading move is shorter "
+"than unloading."
+msgstr ""
+
 msgid "Start end points"
 msgstr "Start end points"
 
@@ -9130,6 +9333,39 @@ msgstr "Start G-code bij het starten van een print"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Start G-code wanneer het printen van dit filament begint"
 
+msgid "Single Extruder Multi Material"
+msgstr ""
+
+msgid "Use single nozzle to print multi filament"
+msgstr ""
+
+msgid "Purge in prime tower"
+msgstr ""
+
+msgid "Purge remaining filament into prime tower"
+msgstr ""
+
+msgid "Enable filament ramming"
+msgstr ""
+
+msgid "No sparse layers (EXPERIMENTAL)"
+msgstr ""
+
+msgid ""
+"If enabled, the wipe tower will not be printed on layers with no "
+"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"print the wipe tower. User is responsible for ensuring there is no collision "
+"with the print."
+msgstr ""
+
+msgid "Prime all printing extruders"
+msgstr ""
+
+msgid ""
+"If enabled, all printing extruders will be primed at the front edge of the "
+"print bed at the start of the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Sluitingsradius van de gap"
 
@@ -9373,6 +9609,9 @@ msgstr "Tree Strong"
 msgid "Tree Hybrid"
 msgstr "Tree Hybrid"
 
+msgid "Organic"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "Onafhankelijke support laaghoogte"
 
@@ -9407,6 +9646,16 @@ msgstr ""
 "support mogen maken. Als de hoek wordt vergroot, kunnen de uitlopen meer "
 "horizontaal worden geprint, waardoor ze verder kunnen reiken."
 
+msgid "Preferred Branch Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+
 msgid "Tree support branch distance"
 msgstr "Tree support tak-afstand"
 
@@ -9415,6 +9664,18 @@ msgid ""
 msgstr ""
 "Deze instelling bepaald de afstand tussen naastliggende tree support "
 "knooppunten."
+
+msgid "Branch Density"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
+msgstr ""
 
 msgid "Adaptive layer height"
 msgstr "Adaptieve laaghoogte"
@@ -9438,11 +9699,40 @@ msgstr "Tree support brim width"
 msgid "Distance from tree branch to the outermost brim line"
 msgstr ""
 
+msgid "Tip Diameter"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr "Tree support diameter van de takken"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Deze instelling bepaalt de initiële diameter van support knooppunten."
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+
+msgid "Branch Diameter with double walls"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
+msgstr ""
 
 msgid "Tree support wall loops"
 msgstr "Tree support wand lussen"
@@ -9600,6 +9890,43 @@ msgstr "Breedte"
 msgid "Width of prime tower"
 msgstr "Dit is de breedte van de prime toren."
 
+msgid "Wipe tower rotation angle"
+msgstr ""
+
+msgid "Wipe tower rotation angle with respect to x-axis."
+msgstr ""
+
+msgid "Stabilization cone apex angle"
+msgstr ""
+
+msgid ""
+"Angle at the apex of the cone that is used to stabilize the wipe tower. "
+"Larger angle means wider base."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Wipe tower extruder"
+msgstr ""
+
+msgid ""
+"The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
+"use the one that is available (non-soluble would be preferred)."
+msgstr ""
+
+msgid "Purging volumes - load/unload volumes"
+msgstr ""
+
+msgid ""
+"This vector saves required volumes to change from/to each tool used on the "
+"wipe tower. These values are used to simplify creation of the full purging "
+"volumes below."
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -9631,6 +9958,12 @@ msgstr ""
 "vervangen om filament te besparen en de printtijd te verkorten. Als "
 "resultaat worden de kleuren van de objecten gemengd. Het wordt niet van "
 "kracht tenzij de prime tower is ingeschakeld."
+
+msgid "Maximal bridging distance"
+msgstr ""
+
+msgid "Maximal distance between supports on sparse infill sections."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "X-Y-gaten compensatie"
@@ -9766,6 +10099,15 @@ msgstr ""
 "minimale afmeting van het object, worden verbreed tot de minimale "
 "wandbreedte. Dit wordt uitgedrukt als een percentage ten opzichte van de "
 "diameter van het mondstuk"
+
+msgid "First layer minimum wall width"
+msgstr ""
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
+msgstr ""
 
 msgid "Minimum wall width"
 msgstr "Minimale wandbreedte"
@@ -10698,7 +11040,7 @@ msgstr ""
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
-"End temp: >= 180\n"
+"End temp: >= 170\n"
 "Start temp > End temp + 5)"
 msgstr ""
 
@@ -10786,1816 +11128,3 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
-msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
-msgstr ""
-"3D-scènebewerkingen\n"
-"Weet u hoe u de weergave en selectie van objecten/onderdelen met de muis en "
-"het aanraakscherm in de 3D-scène kunt bedienen?"
-
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid ""
-"Cut Tool\n"
-"Did you know that you can cut a model at any angle and position with the "
-"cutting tool?"
-msgstr ""
-"Snijgereedschap\n"
-"Wist u dat u een model in elke hoek en positie kunt snijden met het "
-"snijgereedschap?"
-
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
-msgstr ""
-"Model repareren\n"
-"Wist u dat u een beschadigd 3D-model kunt repareren om veel snijproblemen te "
-"voorkomen?"
-
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid ""
-"Timelapse\n"
-"Did you know that you can generate a timelapse video during each print?"
-msgstr ""
-"Timelapse\n"
-"Wist je dat je bij elke afdruk een timelapse-video kunt genereren?"
-
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid ""
-"Auto-Arrange\n"
-"Did you know that you can auto-arrange all objects in your project?"
-msgstr ""
-"Automatisch rangschikken\n"
-"Wist je dat je alle objecten in je project automatisch kunt rangschikken?"
-
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid ""
-"Auto-Orient\n"
-"Did you know that you can rotate objects to an optimal orientation for "
-"printing by a simple click?"
-msgstr ""
-"Automatische oriëntatie\n"
-"Wist je dat je met een simpele klik objecten kunt roteren naar een optimale "
-"oriëntatie voor afdrukken?"
-
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid ""
-"Lay on Face\n"
-"Did you know that you can quickly orient a model so that one of its faces "
-"sits on the print bed? Select the \"Place on face\" function or press the "
-"<b>F</b> key."
-msgstr ""
-"Op gekozen selectie leggen\n"
-"Wist u dat u een model snel zo kunt oriënteren dat een van de gezichten op "
-"het printbed ligt? Selecteer de functie \"Op selectie leggen\" of druk op de "
-"<b>F</b> toets."
-
-#: resources/data/hints.ini: [hint:Object List]
-msgid ""
-"Object List\n"
-"Did you know that you can view all objects/parts in a list and change "
-"settings for each object/part?"
-msgstr ""
-"Objectenlijst\n"
-"Wist u dat u alle objecten/onderdelen in een lijst kunt bekijken en de "
-"instellingen voor ieder object/onderdeel kunt wijzigen?"
-
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid ""
-"Simplify Model\n"
-"Did you know that you can reduce the number of triangles in a mesh using the "
-"Simplify mesh feature? Right-click the model and select Simplify model. Read "
-"more in the documentation."
-msgstr ""
-"Vereenvoudig het model\n"
-"Wist u dat u het aantal driehoeken in een mesh kunt verminderen met de "
-"functie Simplify mesh? Klik met de rechtermuisknop op het model en selecteer "
-"Model vereenvoudigen. Lees meer in de documentatie."
-
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid ""
-"Slicing Parameter Table\n"
-"Did you know that you can view all objects/parts on a table and change "
-"settings for each object/part?"
-msgstr ""
-"Tabel met slicing parameters\n"
-"Wist je dat je alle objecten/onderdelen op een tabel kunt bekijken en "
-"instellingen voor ieder object/onderdeel kunt wijzigen?"
-
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid ""
-"Split to Objects/Parts\n"
-"Did you know that you can split a big object into small ones for easy "
-"colorizing or printing?"
-msgstr ""
-"Splitsen naar objecten/delen\n"
-"Wist u dat u een groot object kunt splitsen in kleine delen, zodat u het "
-"gemakkelijk kunt inkleuren of afdrukken?"
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the Negative "
-"part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP file "
-"instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than a "
-"lower resolution STL. Give it a try!"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid ""
-"Z seam location\n"
-"Did you know that you can customize the location of the Z seam, and even "
-"paint it on your print, to have it in a less visible location? This improves "
-"the overall look of your model. Check it out!"
-msgstr ""
-"Plaats van de Z-naad\n"
-"Wist je dat je de plaats van de Z-naad kunt aanpassen, en zelfs op je afdruk "
-"kunt schilderen, zodat hij minder zichtbaar is? Dit verbetert de algemene "
-"look van je model. Kijk maar!"
-
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid ""
-"Fine-tuning for flow rate\n"
-"Did you know that flow rate can be fine-tuned for even better-looking "
-"prints? Depending on the material, you can improve the overall finish of the "
-"printed model by doing some fine-tuning."
-msgstr ""
-"Nauwkeurige afstelling van flow rate\n"
-"Wist u dat de  flow rate nauwkeurig kan worden ingesteld voor nog mooiere "
-"afdrukken? Afhankelijk van het materiaal kunt u de algehele afwerking van "
-"het geprinte model verbeteren door wat fijnafstelling uit te voeren."
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid ""
-"Split your prints into plates\n"
-"Did you know that you can split a model that has a lot of parts into "
-"individual plates ready to print? This will simplify the process of keeping "
-"track of all the parts."
-msgstr ""
-"Uw afdrukken opsplitsen in platen\n"
-"Wist u dat u een model met veel onderdelen kunt splitsen in afzonderlijke "
-"platen die klaar zijn om te printen? Dit vereenvoudigt het proces van het "
-"bijhouden van alle onderdelen."
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
-msgid ""
-"Speed up your print with Adaptive Layer Height\n"
-"Did you know that you can print a model even faster, by using the Adaptive "
-"Layer Height option? Check it out!"
-msgstr ""
-"Versnel uw afdrukken met Adaptieve Laag Hoogte\n"
-"Wist u dat u een model nog sneller kunt afdrukken door de optie Adaptieve "
-"Laag Hoogte te gebruiken? Bekijk het eens!"
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid ""
-"Support painting\n"
-"Did you know that you can paint the location of your supports? This feature "
-"makes it easy to place the support material only on the sections of the "
-"model that actually need it."
-msgstr ""
-"Ondersteuning schilderen\n"
-"Wist je dat je de locatie van je ondersteuning kunt schilderen? Deze functie "
-"maakt het eenvoudig om het ondersteuningsmateriaal alleen op de delen van "
-"het model te plaatsen die het echt nodig hebben."
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid ""
-"Different types of supports\n"
-"Did you know that you can choose from multiple types of supports? Tree "
-"supports work great for organic models, while saving filament and improving "
-"print speed. Check them out!"
-msgstr ""
-"Verschillende soorten ondersteuningen\n"
-"Wist je dat je kunt kiezen uit meerdere soorten ondersteuningen? Tree "
-"Support werkt uitstekend voor organische modellen, bespaart filament en "
-"verbetert de printsnelheid. Bekijk ze eens!"
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid ""
-"Printing Silk Filament\n"
-"Did you know that Silk filament needs special consideration to print it "
-"successfully? Higher temperature and lower speed are always recommended for "
-"the best results."
-msgstr ""
-"Silk Filament printen \n"
-"Wist u dat Silk filament speciale aandacht nodig heeft om succesvol te "
-"printen? Voor het beste resultaat wordt altijd een hogere temperatuur en een "
-"lagere snelheid aanbevolen."
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid ""
-"Brim for better adhesion\n"
-"Did you know that when printing models have a small contact interface with "
-"the printing surface, it's recommended to use a brim?"
-msgstr ""
-"Brim voor betere hechting\n"
-"Wist u dat wanneer gedrukte modellen een kleine contactinterface met het "
-"printoppervlak hebben, het aanbevolen is om een brim te gebruiken?"
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid ""
-"Set parameters for multiple objects\n"
-"Did you know that you can set slicing parameters for all selected objects at "
-"one time?"
-msgstr ""
-"Parameters instellen voor meerdere objecten\n"
-"Wist u dat u slicing parameters kunt instellen voor alle geselecteerde "
-"objecten tegelijk?"
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid ""
-"Stack objects\n"
-"Did you know that you can stack objects as a whole one?"
-msgstr ""
-"Objecten stapelen\n"
-"Wist je dat je objecten als één geheel kunt stapelen?"
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid ""
-"Flush into support/objects/infill\n"
-"Did you know that you can save the wasted filament by flushing them into "
-"support/objects/infill during filament change?"
-msgstr ""
-"Flush in support/voorwerpen/infill\n"
-"Wist u dat u minder filament verspilt door het tijdens het verwisselen van "
-"filament in support/objecten/infill te spoelen?"
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid ""
-"Improve strength\n"
-"Did you know that you can use more wall loops and higher sparse infill "
-"density to improve the strength of the model?"
-msgstr ""
-"Stekte verbeteren\n"
-"Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
-"gebruiken om de sterkte van het model te verbeteren?"
-
-#~ msgid "Maximum acceleration for travel (M204 T)"
-#~ msgstr "Maximale versnelling voor verplaatsen (M204 T)"
-
-#~ msgid "Assemble the selected parts to a single part"
-#~ msgstr "Monteer de geselecteerde onderdelen tot een enkel onderdeel"
-
-#~ msgid "Set Unprintable"
-#~ msgstr "Instellen als niet printbaar"
-
-#~ msgid "Set Printable"
-#~ msgstr "Instellen als printbaar"
-
-#~ msgid "Manual"
-#~ msgstr "Handmatig"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "AMS filament backup"
-
-#~ msgid "Feed new filament from external spool"
-#~ msgstr "Feed new filament from external spool"
-
-#~ msgid "Confirm whether the filament has been extruded"
-#~ msgstr "Confirm whether the filament has been extruded"
-
-#~ msgid "The region parameter is incorrrect"
-#~ msgstr "De regioparameter is onjuist."
-
-#~ msgid "Failure of printer login"
-#~ msgstr "Fout bij inloggen op printer"
-
-#~ msgid "Failed to get ticket"
-#~ msgstr "Het is niet gelukt om een ticket te verkrijgen"
-
-#~ msgid "User authorization timeout"
-#~ msgstr "Timeout voor gebruikersautorisatie"
-
-#~ msgid "Failure of bind"
-#~ msgstr "Koppeling mislukt"
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network problem and try again"
-#~ msgstr ""
-#~ "Time-out tijdens het uploaden van de taak. Controleer of er een "
-#~ "netwerkprobleem is en probeer het opnieuw"
-
-#~ msgid "Print file not found, please slice again"
-#~ msgstr "Print bestand niet gevonden, opnieuw slicen a.u.b."
-
-#~ msgid ""
-#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
-#~ "the model and slice again"
-#~ msgstr ""
-#~ "Het afdrukbestand overschrijdt de maximale grootte (1 GB). Vereenvoudig "
-#~ "het model en slice opnieuw"
-
-#~ msgid "Failed uploading print file"
-#~ msgstr "Uploaden van het printbestand is mislukt"
-
-#~ msgid "Wrong Access code"
-#~ msgstr "Verkeerde toegangscode"
-
-#~ msgid "Send to Printer failed. Please try again."
-#~ msgstr "Verzenden naar de printer is mislukt. Probeer het opnieuw."
-
-#~ msgid "Sending gcode file through cloud service"
-#~ msgstr "G-codebestand verzenden via cloudservice"
-
-#~ msgid "Please log out and login to the printer again."
-#~ msgstr "Log uit en log opnieuw in op de printer."
-
-#~ msgid "Factors of dynamic flow cali"
-#~ msgstr "Factoren van dynamische flow cali"
-
-#~ msgid "Filaments replace"
-#~ msgstr "Backup Filament"
-
-#~ msgid "3D Models"
-#~ msgstr "3D Modellen"
-
-#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
-#~ msgstr "Initialisatie mislukt (niet ondersteund in alleen LAN-modus)!"
-
-#~ msgid "Initialize failed (Not supported by printer)!"
-#~ msgstr "Initialisatie is mislukt (niet ondersteund door de printer)!"
-
-#~ msgid "Not supported by this model of printer!"
-#~ msgstr "Niet ondersteund door dit model printer!"
-
-#~ msgid "No files"
-#~ msgstr "Geen bestanden"
-
-#~ msgid "Not accessible in LAN-only mode!"
-#~ msgstr "Niet toegankelijk in LAN-only modus!"
-
-#~ msgid "Missing LAN ip of printer!"
-#~ msgstr "LAN-IP van de printer ontbreekt!"
-
-#~ msgid "Printing List"
-#~ msgstr "Print lijst"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
-#~ "the printer by logging in with your user account."
-#~ msgstr ""
-#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
-#~ "uitgeschakeld. Sluit de printer opnieuw aan door in te loggen met uw "
-#~ "gebruikersaccount."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
-#~ "the printer by inputting Access Code which can be gotten from printer "
-#~ "screen."
-#~ msgstr ""
-#~ "De verbinding met printer [%s] is verbroken omdat de LAN-modus is "
-#~ "ingeschakeld. Sluit de printer opnieuw aan door de toegangscode in te "
-#~ "voeren die u op het scherm van de printer kunt vinden."
-
-#~ msgid "Media"
-#~ msgstr "Media"
-
-#~ msgid "Dump video"
-#~ msgstr "Video verwijderen"
-
-#~ msgid "Flow Calibration"
-#~ msgstr "Flow calibratie"
-
-#~ msgid "New version of Orca Slicer"
-#~ msgstr "Nieuwe versie van Orca Slicer"
-
-#~ msgid ""
-#~ "The configuration may be generated by a newer version of BambuStudio."
-#~ msgstr ""
-#~ "Het kan zijn dat de configuratie gegenereerd is een nieuwere versie van "
-#~ "BambuStudio."
-
-#~ msgid "Internal Version"
-#~ msgstr "Interne versie"
-
-#~ msgid ""
-#~ "BambuStudio will terminate because of running out of memory.It may be a "
-#~ "bug. It will be appreciated if you report the issue to our team."
-#~ msgstr ""
-#~ "Bambu Studio wordt beëindigd omdat het geheugen bijna vol is. Het kan een "
-#~ "bug zijn. Meldt dit probleem alstublieft bij support."
-
-#~ msgid ""
-#~ "BambuStudio will terminate because of a localization error. It will be "
-#~ "appreciated if you report the specific scenario this issue happened."
-#~ msgstr ""
-#~ "Er is een lokalisatiefout opgetreden en Bambu Studio wordt afgesloten."
-
-#, boost-format
-#~ msgid "BambuStudio got an unhandled exception: %1%"
-#~ msgstr "Er is een onbekende uitzondering opgetreden in Bambu Studio : %1%"
-
-#~ msgid ""
-#~ "BambuStudio configuration file may be corrupted and is not abled to be "
-#~ "parsed.Please delete the file and try again."
-#~ msgstr ""
-#~ "Het Bambu Studio-configuratiebestand is mogelijk beschadigd en kan niet "
-#~ "worden geladen. Verwijder het bestand en probeer het opnieuw."
-
-#~ msgid "The Bambu Studio needs an upgrade"
-#~ msgstr "Bambu Studio heeft een upgrade nodig"
-
-#~ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-#~ msgstr "Kies een bestand (.gcode/.gco/.g/.ngc/ngc):"
-
-#~ msgid ""
-#~ "The version of Bambu studio is too low and needs to be updated to the "
-#~ "latest version before it can be used normally"
-#~ msgstr ""
-#~ "De versie van Bambu studio is te oud en dient te worden bijgewerkt naar "
-#~ "de nieuwste versie voordat deze normaal kan worden gebruikt"
-
-#~ msgid "Bambu Studio GUI initialization failed"
-#~ msgstr "Initialisatie van Bambu Studio GUI is mislukt"
-
-#~ msgid "Bambu Studio is licensed under "
-#~ msgstr "Bambu Studio is gelicentieerd onder "
-
-#~ msgid ""
-#~ "Bambu Studio is based on PrusaSlicer by Prusa Research, which is from "
-#~ "Slic3r by Alessandro Ranellucci and the RepRap community"
-#~ msgstr ""
-#~ "Bambu Studio is gebaseerd op PrusaSlicer van Prusa Research, welke is "
-#~ "afgeleid van Slic3r van Alessandro Ranellucci en de RepRap gemeenschap"
-
-#~ msgid ""
-#~ "Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
-#~ "Merill(supermerill)."
-#~ msgstr ""
-#~ "Bambu Studio is gebaseerd op PrusaSlicer van PrusaResearch en SuperSlicer "
-#~ "van Merill (supermerill)."
-
-#~ msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
-#~ msgstr "Bambu Studio verwees ook naar enkele ideeën van Cura by Ultimaker."
-
-#~ msgid ""
-#~ "There many parts of the software that come from community contributions, "
-#~ "so we're unable to list them one-by-one, and instead, they'll be "
-#~ "attributed in the corresponding code comments."
-#~ msgstr ""
-#~ "Er zijn veel delen van de software die afkomstig zijn van "
-#~ "communitybijdragen, dus we kunnen ze niet één voor één opsommen, maar in "
-#~ "plaats daarvan worden ze toegeschreven in de bijbehorende codecommentaar."
-
-#~ msgid ""
-#~ "Too large layer height.\n"
-#~ "Reset to 0.2"
-#~ msgstr ""
-#~ "Laaghoogte is te groot\n"
-#~ "Teruggezet naar 0.2mm"
-
-#~ msgid "Layer Time (s)"
-#~ msgstr "Layer Time (s)"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Conflicts of gcode paths have been found at layer %d. Please separate the "
-#~ "conflicted objects farther (%s <-> %s)."
-#~ msgstr ""
-#~ "Conflicts of gcode paths have been found at layer %d. Please separate the "
-#~ "conflicting objects further (%s <-> %s)."
-
-#~ msgid "Report issue"
-#~ msgstr "Report issue"
-
-#~ msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
-#~ msgstr ""
-#~ "De 3mf is gegenereerd door een oude versie van Bambu Studio, enkel de "
-#~ "geometriegegevens werden geladen."
-
-#~ msgid ""
-#~ "\"Fix Model\" feature is currently only on Windows. Please repair the "
-#~ "model on Bambu Studio(windows) or CAD softwares."
-#~ msgstr ""
-#~ "De \"Fix Model\" functie is momenteel alleen op Windows. Repareer het "
-#~ "model in Bambu Studio (Windows) of CAD-software."
-
-#~ msgid "Associate files to BambuStudio"
-#~ msgstr "Koppel bestanden aan Bambu Studio"
-
-#~ msgid "Associate .3mf files to BambuStudio"
-#~ msgstr "Koppel .3mf-bestanden aan Bambu Studio"
-
-#~ msgid ""
-#~ "If enabled, sets BambuStudio as default application to open .3mf files"
-#~ msgstr ""
-#~ "Indien ingeschakeld, wordt Bambu Studio ingesteld als de "
-#~ "standaardtoepassing om .3mf-bestanden te openen"
-
-#~ msgid "Associate .stl files to BambuStudio"
-#~ msgstr "Koppel .stl-bestanden aan Bambu Studio"
-
-#~ msgid ""
-#~ "If enabled, sets BambuStudio as default application to open .stl files"
-#~ msgstr ""
-#~ "Indien ingeschakeld, wordt Bambu Studio ingesteld als de "
-#~ "standaardtoepassing om .stl-bestanden te openen"
-
-#~ msgid "Associate .step/.stp files to BambuStudio"
-#~ msgstr "Koppel .step/.stp bestanden aan Bambu Studio"
-
-#~ msgid ""
-#~ "If enabled, sets BambuStudio as default application to open .step files"
-#~ msgstr ""
-#~ "Indien ingeschakeld, wordt Bambu Studio ingesteld als de "
-#~ "standaardtoepassing om .step-bestanden te openen"
-
-#~ msgid "Post-processing scripts"
-#~ msgstr "Post-processing scripts"
-
-#~ msgid "Cool Plate / PLA Plate"
-#~ msgstr "Cool Plate / PLA Plate"
-
-#, boost-format
-#~ msgid "Copying directory %1% to %2% failed: %3%"
-#~ msgstr "Het kopieeren van map %1% naar %2% is mislukt: %3%"
-
-#~ msgid ""
-#~ "The following object(s) have empty initial layer and can't be printed. "
-#~ "Please Cut the bottom or enable supports."
-#~ msgstr ""
-#~ "The following object(s) have an empty initial layer and can't be printed. "
-#~ "Please cut the bottom or enable supports."
-
-#~ msgid "Bridge direction"
-#~ msgstr "Richting van de brug"
-
-#~ msgid "Use only one wall on the first layer of model"
-#~ msgstr "Use only one wall on the first layer of models"
-
-#~ msgid "Line width of outer wall"
-#~ msgstr "Lijn dikte van buitenste wand"
-
-#~ msgid "Max Radius"
-#~ msgstr "Maximale radius"
-
-#~ msgid ""
-#~ "Max clearance radius around extruder. Used for collision avoidance in by-"
-#~ "object printing."
-#~ msgstr ""
-#~ "Maximale spelingsradius rond extruder. Wordt gebruikt om botsingen te "
-#~ "voorkomen bij het afdrukken op basis van objecten."
-
-#~ msgid "Object flow ratio"
-#~ msgstr "Object flow ratio"
-
-#~ msgid "The flow ratio set by object, the meaning is the same as flow ratio."
-#~ msgstr ""
-#~ "The flow ratio set by object; the meaning is the same as flow ratio."
-
-#~ msgid "Default line width if some line width is set to be zero"
-#~ msgstr "Standaard lijn breedte als een lijn breedte is ingesteld op 0"
-
-#~ msgid "Line width of initial layer"
-#~ msgstr "Laag dikte voor eerste laag"
-
-#~ msgid "Length of sparse infill anchor"
-#~ msgstr "Length of sparse infill anchor"
-
-#~ msgid ""
-#~ "Connect a sparse infill line to an internal perimeter with a short "
-#~ "segment of an additional perimeter. If expressed as percentage (example: "
-#~ "15%) it is calculated over sparse infill line width. Slicer tries to "
-#~ "connect two close infill lines to a short perimeter segment. If no such "
-#~ "perimeter segment shorter than infill_anchor_max is found, the infill "
-#~ "line is connected to a perimeter segment at just one side and the length "
-#~ "of the perimeter segment taken is limited to this parameter, but no "
-#~ "longer than anchor_length_max. Set this parameter to zero to disable "
-#~ "anchoring perimeters connected to a single infill line."
-#~ msgstr ""
-#~ "This connects a sparse infill line to an internal perimeter with a short "
-#~ "segment of an additional perimeter. If expressed as percentage (example: "
-#~ "15%) it is calculated over sparse infill line width. Bambu Studio tries "
-#~ "to connect two close infill lines to a short perimeter segment. If no "
-#~ "such perimeter segment shorter than infill_anchor_max is found, the "
-#~ "infill line is connected to a perimeter segment at just one side and the "
-#~ "length of the perimeter segment taken is limited to this parameter, but "
-#~ "no longer than anchor_length_max. Set this parameter to zero to disable "
-#~ "anchoring perimeters connected to a single infill line."
-
-#~ msgid "Maximum length of sparse infill anchor"
-#~ msgstr "Maximum length of sparse infill anchor"
-
-#~ msgid ""
-#~ "Connect a sparse infill line to an internal perimeter with a short "
-#~ "segment of an additional perimeter. If expressed as percentage (example: "
-#~ "15%) it is calculated over sparse infill line width. Slicer tries to "
-#~ "connect two close infill lines to a short perimeter segment. If no such "
-#~ "perimeter segment shorter than this parameter is found, the infill line "
-#~ "is connected to a perimeter segment at just one side and the length of "
-#~ "the perimeter segment taken is limited to infill_anchor, but no longer "
-#~ "than this parameter. Set this parameter to zero to disable anchoring."
-#~ msgstr ""
-#~ "This connects a sparse infill line to an internal perimeter with a short "
-#~ "segment of an additional perimeter. If expressed as percentage (example: "
-#~ "15%) it is calculated over sparse infill line width. Bambu Studio tries "
-#~ "to connect two close infill lines to a short perimeter segment. If no "
-#~ "such perimeter segment shorter than this parameter is found, the infill "
-#~ "line is connected to a perimeter segment at just one side and the length "
-#~ "of the perimeter segment taken is limited to infill_anchor, but no longer "
-#~ "than this parameter. Set this parameter to zero to disable anchoring."
-
-#~ msgid "0 (not anchored)"
-#~ msgstr "0 (not anchored)"
-
-#~ msgid "Line width of internal sparse infill"
-#~ msgstr "Lijn dikte voor interne dunne vulling (infill)"
-
-#~ msgid "Line width of inner wall"
-#~ msgstr "Lijn dikte voor binnenste wand"
-
-#~ msgid ""
-#~ "If you want to process the output G-code through custom scripts, just "
-#~ "list their absolute paths here. Separate multiple scripts with a "
-#~ "semicolon. Scripts will be passed the absolute path to the G-code file as "
-#~ "the first argument, and variables of settings also can be read"
-#~ msgstr ""
-#~ "If you want to process the output G-code through custom scripts, just "
-#~ "list their absolute paths here. Separate multiple scripts with a "
-#~ "semicolon. Scripts will be passed via the absolute path to the G-code "
-#~ "file as the first argument, and variables of settings can also be read"
-
-#~ msgid "Z Hop Type"
-#~ msgstr "Z Hop Type"
-
-#~ msgid "Line width of internal solid infill"
-#~ msgstr "Lijn dikte voor interne solide vulling (infill)"
-
-#~ msgid "Line width of support"
-#~ msgstr "Lijn dikte van support"
-
-#~ msgid "The brim width around tree support. 0 means auto."
-#~ msgstr "The brim width around tree support. 0 means auto."
-
-#~ msgid "Line width for top surfaces"
-#~ msgstr "Lijn dikte voor bovenste lagen"
-
-#~ msgid ""
-#~ "Subtract a Part\n"
-#~ "Did you know that you can subtract one mesh from another using the "
-#~ "Negative part modifier? That way you can, for example, create easily "
-#~ "resizable holes directly in Bambu Studio. Read more in the documentation."
-#~ msgstr ""
-#~ "Een onderdeel aftrekken\n"
-#~ "Wist je dat je de ene mesh van het andere kunt aftrekken met behulp van "
-#~ "de Negative part modifier? Op die manier kun je bijvoorbeeld gemakkelijk "
-#~ "aanpasbare gaten direct in Bambu Studio maken. Lees meer in de "
-#~ "documentatie."
-
-#~ msgid ""
-#~ "STEP\n"
-#~ "Did you know that you can improve your print quality by slicing a STEP "
-#~ "file instead of an STL?\n"
-#~ "Bambu Studio supports slicing STEP files, providing smoother results than "
-#~ "a lower resolution STL. Give it a try!"
-#~ msgstr ""
-#~ "STEP\n"
-#~ "Wist u dat u uw afdrukkwaliteit kunt verbeteren door een STEP-bestand te "
-#~ "slicen in plaats van een STL?\n"
-#~ "Bambu Studio ondersteunt het slicen van STEP-bestanden, waardoor de "
-#~ "resultaten vloeiender zijn dan die van een STL met een lagere resolutie. "
-#~ "Probeer het eens!"
-
-#~ msgid "Pause Print"
-#~ msgstr "Pause Print"
-
-#~ msgid "Edit Pause Print Message"
-#~ msgstr "Edit Pause Print Message"
-
-#~ msgid "Delete Pause Print"
-#~ msgstr "Delete Pause Print"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid ""
-#~ "\n"
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr ""
-#~ "\n"
-#~ "%1% bevindt zich te dicht bij een uitgesloten gebied, er kunnen botsingen "
-#~ "optreden tijdens het printen."
-
-#~ msgid ""
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr ""
-#~ "%1% bevindt zich te dicht bij een uitgesloten gebied, er zullen botsingen "
-#~ "optreden tijdens het printen."
-
-#~ msgid "&Edit"
-#~ msgstr "&Bewerken"
-
-#~ msgid "0%"
-#~ msgstr "0%"
-
-#~ msgid "AMSMaterialsSetting"
-#~ msgstr "AMS Materiaal instellingen"
-
-#~ msgid "AMS auto switch filament"
-#~ msgstr "AMS automatische filament overschakelen"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr ""
-#~ "De huidige AMS-instellingen ondersteunen het gebruik van een externe "
-#~ "spoel niet."
-
-#~ msgid "AWS PRE host"
-#~ msgstr "AWS PRE host"
-
-#~ msgid "AWS host"
-#~ msgstr "AWS host"
-
-#~ msgid "Actual Volume = Flushing Volume * Multiplier"
-#~ msgstr "Werkelijk volume = spoelvolume * vermenigvuldigingsfactor"
-
-#~ msgid "Add Custom Printer"
-#~ msgstr "Aangepaste printer toevoegen"
-
-#~ msgid ""
-#~ "An object is layed over the boundary of plate.\n"
-#~ "Please solve the problem by moving it totally inside or outside plate."
-#~ msgstr ""
-#~ "Er bevindt zich een object buiten de grenzen van de printplaat.\n"
-#~ "Los dit probleem op door het object geheel binnen of buiten de printplaat "
-#~ "te plaatsen."
-
-#~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly"
-#~ msgstr ""
-#~ "De Arachne-motor werkt alleen als vertraging van de overhang is "
-#~ "uitgeschakeld. Dit kan leiden tot een achteruitgang van de kwaliteit van "
-#~ "het overhangende oppervlak bij snel printen."
-
-#~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly\n"
-#~ msgstr ""
-#~ "De Arachne-motor werkt alleen als vertraging van de overhang is "
-#~ "uitgeschakeld. Dit kan bij snel printen de kwaliteit van overhangende "
-#~ "oppervlakken verminderen.\n"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Automatisch rangschikken"
-
-#~ msgid ""
-#~ "Auto orientates selected objects or all objects.If there are selected "
-#~ "objects, it just orientates the selected ones.Otherwise, it will "
-#~ "orientates all objects in the project."
-#~ msgstr ""
-#~ "Automatisch oriënteren. Als er geselecteerde objecten zijn worden alleen "
-#~ "deze georiënteert. Anders worden alle objecten op de huidige project "
-#~ "georiënteert."
-
-#~ msgid "Auto refill"
-#~ msgstr "Auto refill"
-
-#~ msgid "Aux Cooling"
-#~ msgstr "Extra koeling"
-
-#~ msgid "Avoid crossing wall when travel"
-#~ msgstr "Vermijd wanden tijdens het verplaatsen"
-
-#~ msgid "Backup"
-#~ msgstr "Backup"
-
-#~ msgid "Backup interval"
-#~ msgstr "Backupinterval"
-
-#~ msgid ""
-#~ "Bed exclude area that can't used as printable area in X-Y plane. For "
-#~ "example, the bottom left area which is used to cut filament in X1 when "
-#~ "printing multi colors with AMS. The area is expressed as polygon by "
-#~ "points in following format: \"XxY, XxY, ...\""
-#~ msgstr ""
-#~ "Bed sluit het gebied uit dat niet kan worden gebruikt als printbaar "
-#~ "gebied in het X-Y vlak. Bijvoorbeeld het gebied linksonder dat wordt "
-#~ "gebruikt om filament te snijden op de X1 bij meerkleurendruk met een AMS. "
-#~ "Het gebied wordt uitgedrukt als polygoon met punten in het volgende "
-#~ "formaat: \"XxY, XxY, ...\""
-
-#~ msgid ""
-#~ "Bed temperature is higher than vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause nozzle blocked and printing failure"
-#~ msgstr ""
-#~ "De bedtemperatuur is hoger dan de verglazingstemperatuur van dit "
-#~ "filament. Hierdoor kan de nozzle verstopt raken en kan het printen "
-#~ "mislukken"
-
-#~ msgid ""
-#~ "Calibration completed. Please select the factors according to the left "
-#~ "figure and fill them in the input boxes."
-#~ msgstr ""
-#~ "Kalibratie voltooid. Selecteer de factoren volgens de linker figuur en "
-#~ "vul ze in de invoervakken in."
-
-#~ msgid ""
-#~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "
-#~ "same LAN?"
-#~ msgstr ""
-#~ "Kan het LAN IP-adres van %s niet detecteren. Zijn %s en Bambu Studio in "
-#~ "hetzelfde LAN aanwezig?"
-
-#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-#~ msgstr "Kies een of meer bestanden (3mf/step/stl/obj/amf):"
-
-#~ msgid "Choose save directory"
-#~ msgstr "Kies een opslagmap"
-
-#~ msgid "Clean"
-#~ msgstr "Opschonen"
-
-#~ msgid "Clear all"
-#~ msgstr "Alles wissen"
-
-#~ msgid ""
-#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
-#~ "collision when print object by object"
-#~ msgstr ""
-#~ "Vrije ruimte rond de printkop: deze wordt gebruikt als invoer voor "
-#~ "automatisch rangschikken om botsingen te voorkomen bij het afdrukken van "
-#~ "object voor object"
-
-#~ msgid "Click the pencil icon to edit the filament."
-#~ msgstr "Klik op het potlood icoon om het filament aan te passen."
-
-#~ msgid "Clipping of view"
-#~ msgstr "Knipsel van de weergave"
-
-#~ msgid "Color Print"
-#~ msgstr "Kleuren print"
-
-#~ msgid "Comsumption"
-#~ msgstr "Verbruik"
-
-#~ msgid "Creating"
-#~ msgstr "Bezig met creëren"
-
-#~ msgid "Ctrl + Any arrow"
-#~ msgstr "CTRL + willekeurige pijl"
-
-#~ msgid "Ctrl + Left mouse button"
-#~ msgstr "Ctrl + Linkermuisknop"
-
-#~ msgid "Debug"
-#~ msgstr "Debuggen"
-
-#~ msgid ""
-#~ "Desiccant status lower than two bars indicates that desiccant can be "
-#~ "inactive. Please change the desiccant.(Higher the better)"
-#~ msgstr ""
-#~ "De status van het droogmiddel lager dan twee streepjes geeft aan dat het "
-#~ "droogmiddel inactief kan zijn. Vervang het droogmiddel. (hoe hoger, hoe "
-#~ "beter)"
-
-#~ msgid "Designer"
-#~ msgstr "Ontwerper"
-
-#~ msgid "Device:"
-#~ msgstr "Apparaat:"
-
-#~ msgid ""
-#~ "Disable overhang slowing down automatically? \n"
-#~ "Yes - Enable arachne and disable overhang slowing down\n"
-#~ "No  - Give up using arachne this time"
-#~ msgstr ""
-#~ "Overhangvertraging automatisch uitschakelen?\n"
-#~ "Ja - Arachne inschakelen en overhangvertraging uitschakelen\n"
-#~ "Nee - Arachne niet gebruiken voor deze afdruk"
-
-#~ msgid "Display printable box"
-#~ msgstr "Toon printbare box"
-
-#~ msgid "Display shadow of objects"
-#~ msgstr "Toon de schaduw van objecten"
-
-#~ msgid "Display triangles of models"
-#~ msgstr "Toon de driehoeken van modellen"
-
-#~ msgid ""
-#~ "Do not recommand bed temperature of other layer to be lower than initial "
-#~ "layer for more than this threshold. Too low bed temperature of other "
-#~ "layer may cause the model broken free from build plate"
-#~ msgstr ""
-#~ "Een verschil in bedtemperatuur groter dan deze marge en lager dan de "
-#~ "bedtemperatuur van de eerste eerste laag, wordt niet geadviseerd. Een te "
-#~ "lage bedtemperatuur van de overige lagen kan ertoe leiden dat het model "
-#~ "loskomt van het printbed."
-
-#~ msgid ""
-#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
-#~ "Contains the following information:\n"
-#~ "1. The Process presets\n"
-#~ "2. The Filament presets\n"
-#~ "3. The Printer presets\n"
-#~ msgstr ""
-#~ "Wilt u uw persoonlijke gegevens van Bambu Cloud synchroniseren? \n"
-#~ "Dit bevat de volgende informatie:\n"
-#~ "1. Voorinstellingen voor processen\n"
-#~ "2. Voorinstellingen voor filament\n"
-#~ "3. Voorinstellingen voor printers\n"
-
-#~ msgid ""
-#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
-#~ "It contains the following information:\n"
-#~ "1. The Process presets\n"
-#~ "2. The Filament presets\n"
-#~ "3. The Printer presets\n"
-#~ msgstr ""
-#~ "Wil je je persoonlijke gegevens van Bambu Cloud synchroniseren? \n"
-#~ "Het bevat de volgende informatie:\n"
-#~ "1. Voorinstellingen verwerken\n"
-#~ "2. Voorinstellingen voor filament\n"
-#~ "3. Presets voor de printer\n"
-
-#~ msgid ""
-#~ "Don't retract when the travel is in infill area absolutely. That means "
-#~ "the oozing can't been seen"
-#~ msgstr ""
-#~ "Dit schakelt terugtrekken (retraction) uit wanneer reizen volledig binnen "
-#~ "een opvulgebied is en het druppelen uit de nozzle niet kan worden gezien."
-
-#~ msgid "Downloading Bambu Network plug-in"
-#~ msgstr "Bambu Netwerk Plug-in downloaden"
-
-#~ msgid "Edit plate setitngs"
-#~ msgstr "Edit plate settings"
-
-#~ msgid ""
-#~ "Enabling this option means the height of every layer except the first "
-#~ "will be automatically calculated during slicing according to the slope of "
-#~ "the model’s surface.\n"
-#~ "Note that this option only takes effect if no prime tower is generated in "
-#~ "current plate."
-#~ msgstr ""
-#~ "Als u deze optie inschakelt, betekent dit dat de hoogte van elke laag, "
-#~ "behalve die van de eerste laag, automatisch wordt berekend op basis van "
-#~ "de helling van het oppervlak van het model.\n"
-#~ "Houd er rekening mee dat deze optie alleen van kracht is als er geen "
-#~ "prime-toren is gegenereerd op het huidige printbed."
-
-#~ msgid "Enter a search term"
-#~ msgstr "Voer een zoekterm in"
-
-#~ msgid "Entering Seam painting"
-#~ msgstr "Naad schilderen invoeren"
-
-#~ msgid "Erase painting"
-#~ msgstr "Getekende delen wissen"
-
-#~ msgid "Error at line %1%:\n"
-#~ msgstr "Fout op laag %1%:\n"
-
-#~ msgid "Export."
-#~ msgstr "Exporteer."
-
-#~ msgid "Export G-Code."
-#~ msgstr "Exporteer naar G-Code"
-
-#~ msgid "Export Sliced File"
-#~ msgstr "Exporteer het \"sliced\" bestand"
-
-#~ msgid "Export current Sliced file"
-#~ msgstr "Exporteer het huidig \"sliced\" bestand"
-
-#~ msgid "Export ok."
-#~ msgstr "Exporteren ok"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exporteer het \"sliced\" bestand"
-
-#~ msgid "Extruder position"
-#~ msgstr "Positie van de extruder"
-
-#~ msgid ""
-#~ "Extrusion compensation calibration is not supported when using Textured "
-#~ "PEI Plate"
-#~ msgstr ""
-#~ "Extrusion compensation calibration is not supported when using the "
-#~ "Textured PEI Plate."
-
-#~ msgid ""
-#~ "Failed to connect to the printer through LAN. Please enter the correct "
-#~ "printer IP address and access code."
-#~ msgstr ""
-#~ "Kan geen verbinding maken met de printer via LAN. Voer het juiste IP-"
-#~ "adres en de juiste toegangscode van de printer in."
-
-#~ msgid "Failed to parse login report reason111"
-#~ msgstr "Failed to parse login report reason"
-
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr "Uploaden van printbestand is mislukt. Voer het IP-adres opnieuw in."
-
-#~ msgid "Filament 1"
-#~ msgstr "Filament 1"
-
-#~ msgid "Filament N XX"
-#~ msgstr "Filament N XX"
-
-#~ msgid ""
-#~ "Filament index %s does not match the filament in AMS slot %s. Please "
-#~ "update the printer firmware to support AMS slot assignment."
-#~ msgstr ""
-#~ "Filamentindex %s komt niet overeen met het filament in AMS-sleuf %s. Werk "
-#~ "de printerfirmware bij om de toewijzing van AMS-sleuven te ondersteunen."
-
-#~ msgid ""
-#~ "Filament index %s exceeds the number of AMS slots. Please update the "
-#~ "printer firmware to support AMS slot assignment."
-#~ msgstr ""
-#~ "De filamentindex %s is groter dan het aantal AMS-sleuven. Update de "
-#~ "firmware van de printer om de toewijzing van AMS-sleuven te ondersteunen."
-
-#~ msgid ""
-#~ "Filament index does not match the filament in AMS slot. Please update the "
-#~ "printer firmware to support AMS slot assignment."
-#~ msgstr ""
-#~ "De filamentindex komt niet overeen met het filament in de AMS-sleuf. "
-#~ "Update de firmware van de printer om de toewijzing van AMS-sleuven te "
-#~ "ondersteunen."
-
-#~ msgid ""
-#~ "Filament index exceeds the number of AMS slots. Please update the printer "
-#~ "firmware to support AMS slot assignment."
-#~ msgstr ""
-#~ "Filament index overschrijdt het aantal AMS slots. Werk de printerfirmware "
-#~ "bij om de toewijzing van AMS-sleuven te ondersteunen."
-
-#~ msgid ""
-#~ "Filament to print support and raft. \"Default\" means no specific "
-#~ "filament for support and current filament is used"
-#~ msgstr ""
-#~ "Filament om ondersteuning (support) en raft te printen. \"Standaard\" "
-#~ "betekent dat er geen specifiek filament voor ondersteuning (support) en "
-#~ "raft wordt gebruikt."
-
-#~ msgid ""
-#~ "Filament to print support and skirt. 0 means no specific filament for "
-#~ "support and current filament is used"
-#~ msgstr ""
-#~ "Filament om randen (skirt) en support te printen. Indien u kiest voor 0 "
-#~ "dan is er geen specifiek filament en wordt het huidige filament gebruikt"
-
-#~ msgid ""
-#~ "Filament to print support interface. 0 means no specific filament for "
-#~ "support interface and current filament is used"
-#~ msgstr ""
-#~ "Filament om support te printen. Indien u kiest voor 0 dan is er geen "
-#~ "specifiek filament en wordt het huidige filament gebruikt"
-
-#~ msgid "Filaments Auto refill"
-#~ msgstr "Filament Auto-refill"
-
-#~ msgid "Filaments Selection"
-#~ msgstr "Filaments selectie"
-
-#~ msgid "Fix model locally"
-#~ msgstr "Repareer model lokaal"
-
-#~ msgid "Fix model through cloud"
-#~ msgstr "Repareer model in de cloud"
-
-#~ msgid "Flushed filament"
-#~ msgstr "Flushed filament"
-
-#~ msgid ""
-#~ "Force cooling fan to be specific speed when overhang degree of printed "
-#~ "part exceeds this value. Expressed as percentage which indicides how much "
-#~ "width of the line without support from lower layer"
-#~ msgstr ""
-#~ "Forceer de snelheid van de koelventilator wanneer de overhanggraad van "
-#~ "het  onderdeel deze waarde overschrijdt. Uitgedrukt als percentage "
-
-#~ msgid "Fragment Filter"
-#~ msgstr "Fragmentfilter"
-
-#~ msgid "Fragment area"
-#~ msgstr "Fragmentgebied"
-
-#~ msgid "Fragment filter"
-#~ msgstr "Fragmentfilter"
-
-#~ msgid "G-code"
-#~ msgstr "G-code"
-
-#~ msgid ""
-#~ "Green represents that AMS humidity is normal, orange and red represent "
-#~ "that humidity is too high.(Lower the better)"
-#~ msgstr ""
-#~ "Groen betekent dat de AMS-luchtvochtigheid normaal is en oranje en rood "
-#~ "geven aan dat de luchtvochtigheid te hoog is. (hoe lager, hoe beter)"
-
-#~ msgid ""
-#~ "Heat the nozzle to target \n"
-#~ "temperature"
-#~ msgstr "Nozzle opwarmen tot doel temperatuur"
-
-#~ msgid "Heat the nozzle to target temperature"
-#~ msgstr "Nozzle opwarmen tot doel temperatuur"
-
-#~ msgid "Height:"
-#~ msgstr "Hoogte:"
-
-#~ msgid ""
-#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
-#~ "arrange to avoid collision when print object by object"
-#~ msgstr ""
-#~ "Hoogte van de spelingsruimte rond de printkop: wordt gebruikt als invoer "
-#~ "voor automatisch rangschikken om botsingen te voorkomen bij  object voor "
-#~ "object printen."
-
-#~ msgid ""
-#~ "If enabled, a timelapse video will be generated for each print. After "
-#~ "each layer is printed, the toolhead will move to the excess chute, and "
-#~ "then a snapshot is taken with the chamber camera. All of these snapshots "
-#~ "are composed into a timelapse video when printing completes. Since the "
-#~ "melt filament may leak from the nozzle during the process of taking a "
-#~ "snapshot, prime tower is required for nozzle priming."
-#~ msgstr ""
-#~ "Indien ingeschakeld, wordt voor elke afdruk een timelapse-video "
-#~ "gegenereerd. Nadat elke laag is afgedrukt, beweegt de gereedschapskop "
-#~ "naar de afvoer chute en wordt er een momentopname gemaakt met de kamer "
-#~ "camera. Al deze momentopnamen worden samengevoegd tot een timelapse-video "
-#~ "wanneer het afdrukken is voltooid. Aangezien het gesmolten filament uit "
-#~ "het mondstuk kan lekken tijdens het maken van een momentopname, is een "
-#~ "primetoren nodig voor het primen van de nozzle."
-
-#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
-#~ msgstr "Importeer 3MF/STL/STEP/OBJ/AMF"
-
-#~ msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
-#~ msgstr "Importeer geometrische data uit STL/STEP/3MF/OBJ/AMF bestanden."
-
-#~ msgid "In the calibration of extrusion flow"
-#~ msgstr "Bij de kalibratie van de extrusieflow"
-
-#~ msgid "In the calibration of laser scanner"
-#~ msgstr "Bij de kalibratie van laserscanner"
-
-#~ msgid "Initialize failed [%d]!"
-#~ msgstr "Het initialiseren is mislukt [%d]!"
-
-#~ msgid "Initialize failed (Not supported without remote video tunnel)!"
-#~ msgstr ""
-#~ "Initialisatie is mislukt (niet ondersteund zonder externe videotunnel)!"
-
-#~ msgid "Inner wall speed"
-#~ msgstr "Binnenste wand snelheid"
-
-#~ msgid ""
-#~ "It seems object %s has completely floating regions. Please re-orient the "
-#~ "object or enable support generation."
-#~ msgstr ""
-#~ "Het lijkt erop dat object %s volledig zwevende gebieden heeft. "
-#~ "Heroriënteer het object of schakel het genereren van ondersteuning in."
-
-#~ msgid ""
-#~ "It seems object %s has large overhangs. Please enable support generation."
-#~ msgstr ""
-#~ "Het lijkt erop dat object %s grote overhangen heeft. Schakel het "
-#~ "genereren van ondersteuning in."
-
-#~ msgid ""
-#~ "It seems object %s needs support to print. Please enable support "
-#~ "generation."
-#~ msgstr ""
-#~ "Het lijkt er op dat object %s support nodig heeft om te printen. Zet "
-#~ "support genereren aan indien nodig."
-
-#~ msgid "Keep lower part"
-#~ msgstr "Bewaar het onderste deel"
-
-#~ msgid "Keep upper part"
-#~ msgstr "Bewaar het bovenstee deel"
-
-#~ msgid "Layer Time(log): "
-#~ msgstr "Laagtijd (logboek):"
-
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Lagen: %d/%d"
-
-#~ msgid "Layers: %s"
-#~ msgstr "Lagen: %s"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Lagen: N/A"
-
-#~ msgid "Leaving Seam painting"
-#~ msgstr "Naad schilderen verlaten"
-
-#~ msgid "Line type"
-#~ msgstr "Lijn-type"
-
-#~ msgid "Loading user presets..."
-#~ msgstr "Gebruikersinstellingen worden geladen..."
-
-#~ msgid "Management"
-#~ msgstr "Management"
-
-#~ msgid "Max travel detour distance"
-#~ msgstr "Maximale afstand voor printpad omleiding"
-
-#~ msgid ""
-#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-#~ "detour distance is large than this value"
-#~ msgstr ""
-#~ "Maximale omleidingsafstand om beweging over muren te vermijden. Als de "
-#~ "afstand groter is dan deze waarde, is er geen omleiding."
-
-#~ msgid "Modify"
-#~ msgstr "Aanpassen"
-
-#~ msgid "Module"
-#~ msgstr "Module"
-
-#~ msgid "Monitoring"
-#~ msgstr "Monitoren"
-
-#~ msgid "Monitoring Recording"
-#~ msgstr "Monitoring en opname"
-
-#~ msgid "NO AMS"
-#~ msgstr "GEEN AMS"
-
-#~ msgid "Not supported."
-#~ msgstr "Niet ondersteund."
-
-#~ msgid ""
-#~ "Note : The location of IP and access code on the machine is as follows :"
-#~ msgstr ""
-#~ "Opmerking: De locatie van IP en toegangscode op de machine zijn als volgt:"
-
-#~ msgid "Open &PrusaSlicer"
-#~ msgstr "Open &PrusaSlicer"
-
-#~ msgid "Open PrusaSlicer"
-#~ msgstr "Open PrusaSlicer"
-
-#~ msgid "Output file"
-#~ msgstr "Bestand weergeven"
-
-#~ msgid "P1P General Settings - WLAN in the sidebar of the main screen"
-#~ msgstr "P1P Algemene instellingen - WLAN in de zijbalk van het hoofdscherm"
-
-#~ msgid "Paint-on seam editing"
-#~ msgstr "Paint-on naadbewerking"
-
-#~ msgid "Part Cooling"
-#~ msgstr "Koeling van de printkop"
-
-#~ msgid "Pause(heated bed temperature error)"
-#~ msgstr "Pauze (fout in temperatuur printbed)"
-
-#~ msgid "Pause(hotend temperature error)"
-#~ msgstr "Pauze (hotend temperatuurfout)"
-
-#~ msgid "Pause(toolhead shell off)"
-#~ msgstr "Pauze (printkop cover los)"
-
-#~ msgid "Per object edit"
-#~ msgstr "Instellingen per object"
-
-#~ msgid "Plate %d: %s does not support filament %s\n"
-#~ msgstr "Printbed %d: %s ondersteunt filament %s niet.\n"
-
-#~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "Printbed %d: %s onderstand filament %s niet.\n"
-
-#~ msgid "Plate %d: %s does not support filament %s (%s)."
-#~ msgstr "Printbed %d: %s ondersteunt filament %s (%s) niet."
-
-#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
-#~ msgstr "Plate %d: %s does not support filament %s (%s).\n"
-
-#~ msgid "Plate type"
-#~ msgstr "Plate type"
-
-#~ msgid "Plate types supported by the printer"
-#~ msgstr "Plate types supported by the printer"
-
-#~ msgid "Please Fill Task Report."
-#~ msgstr "Vul het taakrapport in."
-
-#~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
-#~ "sending print:"
-#~ msgstr ""
-#~ "Controleer de volgende informatie en klik op Bevestigen om door te gaan "
-#~ "met het verzenden van de print:"
-
-#~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
-#~ "sending print:\n"
-#~ msgstr ""
-#~ "Controleer de volgende informatie en klik op Bevestigen om door te gaan "
-#~ "met het verzenden van de print:\n"
-
-#~ msgid "Please fill report first."
-#~ msgstr "Gelieve eerst het rapport in te vullen."
-
-#~ msgid "Please upgrade your printer first"
-#~ msgstr "Upgrade eerst uw printer"
-
-#~ msgid "Position:"
-#~ msgstr "Positie:"
-
-#~ msgid ""
-#~ "Preview only mode:\n"
-#~ "The loaded file contains gcode only."
-#~ msgstr ""
-#~ "Voorbeeldmodus:\n"
-#~ "Het geladen bestand bevat alleen gcode."
-
-#~ msgid "Preview only mode for gcode file."
-#~ msgstr "Voorbeeldmodus voor gcode-bestand."
-
-#~ msgid ""
-#~ "Prime tower is required by timelapse. Do you want to enable both of them?"
-#~ msgstr ""
-#~ "Prime tower is vereist voor de timelapse. Wil je ze allebei inschakelen?"
-
-#~ msgid ""
-#~ "Prime tower is required by timeplase. Are you sure you want to disable "
-#~ "both of them?"
-#~ msgstr ""
-#~ "Prime Tower is voor de Timelapse vereist. Weet je zeker dat je ze allebei "
-#~ "wilt uitschakelen?"
-
-#~ msgid ""
-#~ "Print a tower to prime material in nozzle after switching to a new "
-#~ "material."
-#~ msgstr ""
-#~ "Deze optie maakt het mogelijk om een toren te printen om materiaal in de "
-#~ "nozzle te primen na het overschakelen naar een nieuw materiaal."
-
-#~ msgid "Printer Selection"
-#~ msgstr "Printer selectie"
-
-#~ msgid "Printer firmware does not support material = >ams slot mapping."
-#~ msgstr ""
-#~ "De printerfirmware biedt geen ondersteuning voor material = > AMS-"
-#~ "sleuftoewijzing."
-
-#~ msgid ""
-#~ "Purging after filament change will be done inside objects' infills. This "
-#~ "may lower the amount of waste and decrease the print time. If the walls "
-#~ "are printed with transparent filament, the mixed color infill will be "
-#~ "seen outside"
-#~ msgstr ""
-#~ "Het wisselen van filament wordt uitgevoerd in de vulling van objecten. "
-#~ "Dit kan de hoeveelheid afval verminderen en de print tijd verkorten. Let "
-#~ "op: indien de wanden zijn geprint met transparant filament, is de vulling "
-#~ "met gemengde kleuren zichtbaar."
-
-#~ msgid ""
-#~ "Purging after filament change will be done inside objects' support. This "
-#~ "may lower the amount of waste and decrease the print time"
-#~ msgstr ""
-#~ "Het wisselen van filament vindt plaats in de support van objecten. Dit "
-#~ "kan de hoeveelheid afval verminderen en de print tijd verkorten."
-
-#~ msgid ""
-#~ "Push new filament \n"
-#~ "into extruder"
-#~ msgstr "Nieuw filament in de extruder laden"
-
-#~ msgid ""
-#~ "Record timelapse video of printing without showing toolhead. In this mode "
-#~ "the toolhead docks near the excess chute at each layer change, and then a "
-#~ "snapshot is taken with the chamber camera. When printing finishes a "
-#~ "timelapse video is composed of all the snapshots."
-#~ msgstr ""
-#~ "Timelapse video opnemen van prints zonder de gereedschapskop te laten "
-#~ "zien. In deze modus dokt de gereedschapskop bij elke laagwissel in de "
-#~ "buurt van de overloop waarna een momentopname wordt gemaakt met de "
-#~ "kamercamera. Als het printen klaar is, wordt een timelapse-video gemaakt "
-#~ "van alle momentopnamen."
-
-#~ msgid "Reduce Triangles"
-#~ msgstr "Aantal driehoeken verkleinen (vereenvoudigen)"
-
-#~ msgid "Reload item"
-#~ msgstr "Onderdeel opnieuw laden"
-
-#~ msgid "Reload items"
-#~ msgstr "Onderdelen opnieuw laden"
-
-#~ msgid "Repair"
-#~ msgstr "Repareren"
-
-#~ msgid "Repair the model's meshes if it is non-manifold mesh"
-#~ msgstr "Repareer de meshes van het model als ze niet-manifold zijn."
-
-#~ msgid "Report"
-#~ msgstr "Rapport"
-
-#~ msgid "Rotation:"
-#~ msgstr "Rotatie:"
-
-#~ msgid "Save configuration as:"
-#~ msgstr "Bewaar configuratie als:"
-
-#~ msgid "Select Bed Type"
-#~ msgstr "Selecteer bedtype"
-
-#~ msgid "Sending"
-#~ msgstr "Verzenden"
-
-#~ msgid "Set pen size"
-#~ msgstr "Selecteer pen formaat"
-
-#~ msgid "Shift + Any arrow"
-#~ msgstr "Shift + willekeurige pijl"
-
-#~ msgid "Shift + Mouse wheel"
-#~ msgstr "Shift + muise wiel"
-
-#~ msgid "Show Log"
-#~ msgstr "Logboek tonen"
-
-#~ msgid "Show Model Mesh(TODO)"
-#~ msgstr "Toon model mesh(TODO)"
-
-#~ msgid "Show Model Shadow(TODO)"
-#~ msgstr "Toon schaduw van het model"
-
-#~ msgid "Show Printable Box(TODO)"
-#~ msgstr "Toon printbare uimte(TODO)"
-
-#~ msgid "Spaghetti Detection"
-#~ msgstr "Spaghetti-detectie"
-
-#~ msgid "Spaghetti and Excess Chute Pileup Detection"
-#~ msgstr "Spaghetti en afvoer chute detectie"
-
-#~ msgid "Spiral mode"
-#~ msgstr "Spiraal modus"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, \n"
-#~ "support is disabled, top shell layers is 0 and sparse infill density is "
-#~ "0\n"
-#~ msgstr ""
-#~ "Spiraal modus werkt alleen indien indien er 1 wall gekozen is, \n"
-#~ "support uitgeschakeld is, er 0 top layers gekozen zijn en de vulling "
-#~ "dichtheid 0 is\n"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, support is disabled, top "
-#~ "shell layers is 0, sparse infill density is 0 and timelapse type is "
-#~ "traditional"
-#~ msgstr ""
-#~ "De spiraalmodus werkt alleen als de wandlussen 1 zijn, de ondersteuning "
-#~ "is uitgeschakeld, de bovenste lagen 0 zijn, de sparse infill 0 is en het "
-#~ "timelapse-type traditioneel is"
-
-#~ msgid "Start"
-#~ msgstr "Starten"
-
-#~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
-#~ msgstr ""
-#~ "Stop met afdrukken wanneer Spaghetti of verstopping van de afvoer chute "
-#~ "wordt gedetecteerd"
-
-#~ msgid "Stop printing when spaghetti detected"
-#~ msgstr "Stop met afdrukken wanneer spaghetti wordt gedetecteerd"
-
-#~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
-#~ msgstr ""
-#~ "Succesvol verzonden. Automatisch terug naar de apparaatpagina in %s s"
-
-#~ msgid ""
-#~ "Successfully sent. Will automatically jump to the device page in %s s"
-#~ msgstr ""
-#~ "Succesvol verzonden. Automatisch terug naar de apparaatpagina in %s s"
-
-#~ msgid "Suggestion: Actual Volume in range [%d, %d]"
-#~ msgstr "Suggestie: Werkelijk volume in het bereik [%d, %d]"
-
-#~ msgid "Support base"
-#~ msgstr "Ondersteuningsbasis"
-
-#~ msgid ""
-#~ "Support layer uses layer height independent with object layer. This is to "
-#~ "support custom support gap,but may cause extra filament switches if "
-#~ "support is specified as different extruder with object"
-#~ msgstr ""
-#~ "De support layer gebruikt een laaghoogte onafhankelijk van objectlagen. "
-#~ "Dit is ter ondersteuning van aangepaste tussenruimtes, maar kan extra "
-#~ "filament wisselingen veroorzaken indien support is gespecificeerd als een "
-#~ "andere extruder dan het object"
-
-#~ msgid ""
-#~ "Support layer uses layer height independent with object layer. This is to "
-#~ "support customizing z-gap and save print time."
-#~ msgstr ""
-#~ "Ondersteuningslaag gebruikt laaghoogte-onafhankelijk met objectlaag. Dit "
-#~ "is ter ondersteuning van het aanpassen van z-gap en om afdruktijd te "
-#~ "besparen."
-
-#~ msgid ""
-#~ "Switch to rectilinear pattern?\n"
-#~ "Yes - switch to rectilinear pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "Omschakelen naar rechtlijnig patroon?\n"
-#~ "Ja - automatisch overschakelen op rechtlijnig patroon\n"
-#~ "Nee - dichtheid automatisch terugzetten naar de standaard niet 100% "
-#~ "waarde\n"
-
-#~ msgid ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - switch to zig-zag pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "Overschakelen naar zigzagpatroon?\n"
-#~ "Ja - Automatisch overschakelen naar zigzagpatroon\n"
-#~ "Nee - Reset vulling automatisch naar de standaard niet-100% waarde\n"
-
-#~ msgid "Swith cloud environment, Please login again!"
-#~ msgstr "De cloud omgeving is aangepast. Log opnieuw in aub."
-
-#~ msgid "Sync material list from AMS"
-#~ msgstr "Materiaallijst synchroniseren vanuit AMS"
-
-#~ msgid "The %s filament is too soft to be used with the AMS"
-#~ msgstr "Het %s-filament is te zacht om te worden gebruikt met de AMS"
-
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
-#~ "unrecognized:\n"
-#~ msgstr ""
-#~ "De 3mf-versie %s is nieuwer dan %s-versie %s, Gevonden volgende sleutels "
-#~ "zijn niet herkend:\n"
-
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
-#~ "your software.\n"
-#~ msgstr ""
-#~ "Versie %s van 3mf is nieuwer dan versie %s van %s; het wordt aanbevolen "
-#~ "om uw software bij te werken.\n"
-
-#~ msgid "The 3mf is not from Bambu lab, load geometry data only."
-#~ msgstr ""
-#~ "De 3mf is niet van Bambu Lab, er worden alleen geometriegegevens geladen."
-
-#~ msgid "The Config is not compatible and can not be loaded."
-#~ msgstr "De configuratie is niet compatibel en kan niet geladen worden!"
-
-#~ msgid ""
-#~ "The P1P printer does not support smooth timelapse, use traditional "
-#~ "timelapse instead."
-#~ msgstr ""
-#~ "De P1P-printer ondersteunt geen soepele timelapse. Gebruik in plaats "
-#~ "daarvan een traditionele timelapse."
-
-#~ msgid ""
-#~ "The firmware versions of printer and AMS are too low.Please update to the "
-#~ "latest version before sending the print job"
-#~ msgstr ""
-#~ "De firmwareversies van printer en AMS zijn te oud. Update naar de "
-#~ "nieuwste versie voordat u de afdruktaak verzendt"
-
-#~ msgid ""
-#~ "The flush volume is less than the minimum value and will be automatically "
-#~ "set to the minimum value."
-#~ msgstr ""
-#~ "Het flush volume is lager dan de minimumwaarde en wordt automatisch op de "
-#~ "minimumwaarde ingesteld."
-
-#~ msgid ""
-#~ "The model has overlapping or self-intersecting facets. I tried to repair "
-#~ "it, however you might want to check the results or repair the input file "
-#~ "and retry."
-#~ msgstr ""
-#~ "Het model heeft overlappende of elkaar kruisende facetten. De software "
-#~ "heeft geprobeerd om het te repareren, maar misschien wilt u de resultaten "
-#~ "controleren of het invoerbestand repareren en het opnieuw proberen."
-
-#~ msgid ""
-#~ "The printer type used to generate G-code is not the same type as the "
-#~ "currently selected physical printer. It is recommend to re-slice by "
-#~ "selecting the same printer type."
-#~ msgstr ""
-#~ "Het printertype dat wordt gebruikt voor het genereren van G-code is niet "
-#~ "hetzelfde type als de momenteel geselecteerde fysieke printer. Het is "
-#~ "raadzaam opnieuw te slicen nadat het juiste printertype is geselecteerd."
-
-#~ msgid ""
-#~ "The printer type used to generate G-code is not the same type as the "
-#~ "currently selected physical printer. It is recommend to re-slice by "
-#~ "selecting the same printer type.\n"
-#~ msgstr ""
-#~ "Het printertype dat wordt gebruikt voor het genereren van G-code is niet "
-#~ "hetzelfde type als de momenteel geselecteerde fysieke printer. Het is "
-#~ "raadzaam om opnieuw te slicen door hetzelfde printertype te selecteren.\n"
-
-#~ msgid ""
-#~ "There are some unknown filaments mapped to generic preset. Please update "
-#~ "Bambu Studio or restart Bambu Studio to check if there is an update to "
-#~ "system presets."
-#~ msgstr ""
-#~ "Er zijn enkele onbekende filamenten toegewezen aan generieke "
-#~ "voorinstellingen. Werk Bambu Studio bij of start Bambu Studio opnieuw op "
-#~ "om te controleren of er een update is voor systeemvoorinstellingen."
-
-#~ msgid ""
-#~ "This controls brim position including outer side of models, inner side of "
-#~ "holes or both. Auto means both the brim position and brim width is "
-#~ "analysed and calculated automatically"
-#~ msgstr ""
-#~ "Dit regelt de randpositie inclusief de buitenkant van de modellen, "
-#~ "binnenkant van gaten of beide. Automatisch betekent dat zowel de "
-#~ "randpositie als de randbreedte automatisch worden geanalyseerd en "
-#~ "berekend."
-
-#~ msgid ""
-#~ "This object will be used to purge the nozzle after a filament change to "
-#~ "save filament and decrease the print time. Colours of the objects will be "
-#~ "mixed as a result"
-#~ msgstr ""
-#~ "Dit object wordt gebruikt om de nozzle te reinigen na een filamentwissel "
-#~ "om filament te besparen en de print tijd te verkorten. De kleuren van de "
-#~ "objecten worden gemengd als resultaat"
-
-#~ msgid ""
-#~ "This setting stands for how much volume of filament can be melted and "
-#~ "extruded per second. Printing speed is limited by max volumetric speed, "
-#~ "in case of too high and unreasonable speed setting. Zero means no limit"
-#~ msgstr ""
-#~ "Deze instelling staat voor het volume filament dat per seconde kan worden "
-#~ "gesmolten en geëxtrudeerd. De printsnelheid wordt beperkt door de "
-#~ "maximale volumetrische snelheid in het geval van een te hoge en "
-#~ "onredelijke snelheidsinstelling. 0 betekent geen limiet."
-
-#~ msgid "Timelapse Wipe Tower"
-#~ msgstr "Timelapse Wipe Tower"
-
-#~ msgid "Timelapse without toolhead"
-#~ msgstr "Timelapse zonder toolhead"
-
-#~ msgid "Translation"
-#~ msgstr "Vertaling"
-
-#~ msgid "Unable to connect printer"
-#~ msgstr "Kan printer niet verbinden"
-
-#~ msgid "Unable to create zip file"
-#~ msgstr "Kan het zip-bestand niet aanmaken"
-
-#~ msgid "User pause"
-#~ msgstr "Pauze door de gebruiker"
-
-#~ msgid "Waiting"
-#~ msgstr "Wachten"
-
-#~ msgid ""
-#~ "When recording timelapse without toolhead, it is recommended to add a "
-#~ "\"Timelapse Wipe Tower\" \n"
-#~ "by right-click the empty position of build plate and choose \"Add "
-#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
-#~ msgstr ""
-#~ "Bij het opnemen van timelapse zonder toolhead is het aan te raden om een "
-#~ "„Timelapse Wipe Tower” toe te voegen \n"
-#~ "door met de rechtermuisknop op de lege positie van de bouwplaat te "
-#~ "klikken en „Add Primitive” ->\"Timelapse Wipe Tower” te kiezen.\n"
-
-#~ msgid ""
-#~ "When sparse infill density is low, the internal solid infill or internal "
-#~ "bridge may have no archor at the end of line. This cause falling and bad "
-#~ "quality when printing internal solid infill. When enable this feature, "
-#~ "loop paths will be added to the sparse fill of the lower layers for "
-#~ "specific thickness, so that better archor can be provided for internal "
-#~ "bridge. 0 means disable this feature"
-#~ msgstr ""
-#~ "Als de minimale vuldichtheid laag is, heeft de interne vaste infill of "
-#~ "interne brug mogelijk geen anker aan het einde van de lijn. Dit "
-#~ "veroorzaakt een daling en slechte kwaliteit bij het afdrukken van interne "
-#~ "vaste invullingen. Wanneer deze functie is ingeschakeld, worden luspaden "
-#~ "toegevoegd aan de dunne vulling van de onderste lagen voor een specifieke "
-#~ "dikte, zodat betere ankers kunnen worden aangebracht voor interne "
-#~ "bruggen. 0 betekent dat deze functie moet worden uitgeschakeld"
-
-#~ msgid ""
-#~ "When the current material run out,the printer will continue to print in "
-#~ "the following order."
-#~ msgstr ""
-#~ "When the current material runs out, the printer will continue to print in "
-#~ "the following order."
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the "
-#~ "following settings:\n"
-#~ "0 top z distance, 0 interface spacing, concentric pattern."
-#~ msgstr ""
-#~ "Als u ondersteuningsmateriaal gebruikt voor de ondersteuningsinterface, "
-#~ "raden we de volgende instellingen aan:\n"
-#~ "0 op z afstand, 0 interface-afstand, concentrisch patroon."
-
-#~ msgid ""
-#~ "X1 General Settings - Network Settings in the side bar of X1 main screen"
-#~ msgstr ""
-#~ "X1 Algemene instellingen - Netwerkinstellingen in de zijbalk van het X1-"
-#~ "hoofdscherm."
-
-#~ msgid ""
-#~ "You are going to delete %u files from printer. Are you sure to continue?"
-#~ msgstr ""
-#~ "You are going to delete %u files from the printer. Are you sure you want "
-#~ "to continue?"
-
-#~ msgid ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching preset?"
-#~ msgstr ""
-#~ "U hebt enkele voorinstellingen gewijzigd.\n"
-#~ "Wilt u deze gewijzigde instellingen behouden na het wisselen van "
-#~ "voorinstelling?"
-
-#~ msgid "Zig zag"
-#~ msgstr "Zig-zag"
-
-#~ msgid "(Sort)"
-#~ msgstr "(Sorteren)"
-
-#~ msgid " Object:"
-#~ msgstr "Object"
-
-#~ msgid ""
-#~ " is too close to exclusion area, there may be collisions when printing.\n"
-#~ msgstr ""
-#~ "is te dicht bij het uitsluitingsgebied, er kunnen botsingen optreden "
-#~ "tijdens het printen.\n"
-
-#~ msgid ""
-#~ " is too close to exclusion area, there will be collisions when printing.\n"
-#~ msgstr ""
-#~ " komt te dichtbij het uitgesloten gebied, er zullen botsingen optreden "
-#~ "tijdens het printen.\n"
-
-#~ msgid " is too close to others, there may be collisions when printing.\n"
-#~ msgstr " is too close to others; there may be collisions when printing.\n"
-
-#~ msgid " is too close to others, there will be collisions when printing.\n"
-#~ msgstr ""
-#~ " bevindt zich te dichtbij andere objecten, er zullen botsingen optreden "
-#~ "tijdens het printen.\n"
-
-#~ msgid ""
-#~ " will be closed before creating a new model. Do you want to continue?"
-#~ msgstr ""
-#~ " wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
-
-#~ msgid "default value"
-#~ msgstr "Standaardwaarde"
-
-#~ msgid "hybrid(auto)"
-#~ msgstr "Hybride (automatisch)"
-
-#~ msgid "normal"
-#~ msgstr "Normaal"
-
-#~ msgid ""
-#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
-#~ "normal or tree is selected, only support enforcers are generated"
-#~ msgstr ""
-#~ "normal (auto), hybride (auto) en tree (auto) worden gebruikt om "
-#~ "automatisch support te genereren. Als normaal of tree is geselecteerd, "
-#~ "worden alleen vereiste support gegenereerd."
-
-#~ msgid "preparing, export 3mf failed!"
-#~ msgstr "voorbereiden; exporteren van 3mf mislukt!"
-
-#~ msgid "the 3mf is not compatible, load geometry data only!"
-#~ msgstr ""
-#~ "Het 3mf bestand is niet compatibel, enkel de geometrische data wordt "
-#~ "geladen!"
-
-#~ msgid "tree"
-#~ msgstr "tree"

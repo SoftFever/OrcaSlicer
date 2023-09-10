@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-09-09 14:13+0800\n"
 "PO-Revision-Date: 2023-07-17 21:51+0200\n"
 "Last-Translator: Momo <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -4369,8 +4369,8 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Načítání souboru: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "3mf není od Bambu Lab, načtěte pouze geometrická data."
+msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
+msgstr "3mf není od Orca Slicer, načtěte pouze geometrická data."
 
 msgid "Load 3mf"
 msgstr "Načíst 3mf"
@@ -5823,6 +5823,21 @@ msgstr "Filament Začátek G-kók"
 msgid "Filament end G-code"
 msgstr "Filament Konec G-kód"
 
+msgid "Multimaterial"
+msgstr ""
+
+msgid "Wipe tower parameters"
+msgstr ""
+
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr ""
+
+msgid "Ramming settings"
+msgstr ""
+
+msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Prostor pro tisk"
 
@@ -5876,6 +5891,15 @@ msgstr "Omezení zrychlení"
 
 msgid "Jerk limitation"
 msgstr "Omezení Jerk-Ryv"
+
+msgid "Single extruder multimaterial setup"
+msgstr ""
+
+msgid "Wipe tower"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Výškové limity vrstvy"
@@ -6120,6 +6144,36 @@ msgstr "Žádné aktualizace nejsou dostupné."
 
 msgid "The configuration is up to date."
 msgstr "Konfigurace je aktuální."
+
+msgid "Ramming customization"
+msgstr ""
+
+msgid ""
+"Ramming denotes the rapid extrusion just before a tool change in a single-"
+"extruder MM printer. Its purpose is to properly shape the end of the "
+"unloaded filament so it does not prevent insertion of the new filament and "
+"can itself be reinserted later. This phase is important and different "
+"materials can require different extrusion speeds to get the good shape. For "
+"this reason, the extrusion rates during ramming are adjustable.\n"
+"\n"
+"This is an expert-level setting, incorrect adjustment will likely lead to "
+"jams, extruder wheel grinding into filament etc."
+msgstr ""
+
+msgid "Total ramming time"
+msgstr ""
+
+msgid "s"
+msgstr "s"
+
+msgid "Total rammed volume"
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Ramming line spacing"
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Automatický výpočet"
@@ -6875,6 +6929,21 @@ msgid ""
 "The prime tower requires that support has the same layer height with object."
 msgstr ""
 "Čistící věž vyžaduje, aby podpěry měly stejnou výšku vrstvy jako objekt."
+
+msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
 
 msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
@@ -7761,9 +7830,6 @@ msgstr ""
 "je kratší než tato hodnota. Rychlost ventilátoru je interpolována mezi "
 "minimální a maximální rychlost ventilátoru podle doby tisku vrstvy"
 
-msgid "s"
-msgstr "s"
-
 msgid "Default color"
 msgstr "Výchozí barva"
 
@@ -7800,22 +7866,6 @@ msgstr ""
 
 msgid "mm³/s"
 msgstr "mm³/s"
-
-msgid "Minimal purge on wipe tower"
-msgstr "Minimální vytlačený objem na čistící věži"
-
-msgid ""
-"After a tool change, the exact position of the newly loaded filament inside "
-"the nozzle may not be known, and the filament pressure is likely not yet "
-"stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
-msgstr ""
-"Po výměně nástroje nemusí být známa přesná poloha nově zavedeného filamentu "
-"uvnitř trysky a tlak filamentu pravděpodobně ještě není stabilní. Před "
-"vyčištěním tiskové hlavy do výplně nebo do objektu bude Slic3r toto množství "
-"materiálu vždy vytlačovat do čistící věže, aby se spolehlivě vytvořily "
-"následné výplně nebo objekty."
 
 msgid "Filament load time"
 msgstr "Doba zavádění filamentu"
@@ -7854,6 +7904,120 @@ msgstr ""
 "v úvahu pouze filamentu použit pro obvod.\n"
 "Ujistěte se aby byl mezi objekty dostatek prostoru, protože tato kompenzace "
 "se provádí po kontrolách."
+
+msgid "Loading speed"
+msgstr ""
+
+msgid "Speed used for loading the filament on the wipe tower."
+msgstr ""
+
+msgid "Loading speed at the start"
+msgstr ""
+
+msgid "Speed used at the very beginning of loading phase."
+msgstr ""
+
+msgid "Unloading speed"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the filament on the wipe tower (does not affect  "
+"initial part of unloading just after ramming)."
+msgstr ""
+
+msgid "Unloading speed at the start"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the tip of the filament immediately after ramming."
+msgstr ""
+
+msgid "Delay after unloading"
+msgstr ""
+
+msgid ""
+"Time to wait after the filament is unloaded. May help to get reliable "
+"toolchanges with flexible materials that may need more time to shrink to "
+"original dimensions."
+msgstr ""
+
+msgid "Number of cooling moves"
+msgstr ""
+
+msgid ""
+"Filament is cooled by being moved back and forth in the cooling tubes. "
+"Specify desired number of these moves."
+msgstr ""
+
+msgid "Speed of the first cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating beginning at this speed."
+msgstr ""
+
+msgid "Minimal purge on wipe tower"
+msgstr "Minimální vytlačený objem na čistící věži"
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
+"Po výměně nástroje nemusí být známa přesná poloha nově zavedeného filamentu "
+"uvnitř trysky a tlak filamentu pravděpodobně ještě není stabilní. Před "
+"vyčištěním tiskové hlavy do výplně nebo do objektu bude Slic3r toto množství "
+"materiálu vždy vytlačovat do čistící věže, aby se spolehlivě vytvořily "
+"následné výplně nebo objekty."
+
+msgid "Speed of the last cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating towards this speed."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Ramming parameters"
+msgstr ""
+
+msgid ""
+"This string is edited by RammingDialog and contains ramming specific "
+"parameters."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Enable ramming for multitool setups"
+msgstr ""
+
+msgid ""
+"Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
+"Multimaterial' in Printer Settings is unchecked). When checked, a small "
+"amount of filament is rapidly extruded on the wipe tower just before the "
+"toolchange. This option is only used when the wipe tower is enabled."
+msgstr ""
+
+msgid "Multitool ramming volume"
+msgstr ""
+
+msgid "The volume to be rammed before the toolchange."
+msgstr ""
+
+msgid "Multitool ramming flow"
+msgstr ""
+
+msgid "Flow used for ramming the filament before the toolchange."
+msgstr ""
 
 msgid "Density"
 msgstr "Hustota"
@@ -8688,6 +8852,45 @@ msgstr "Objem trysky"
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "Objem trysky mezi frézou a koncem trysky"
 
+msgid "Cooling tube position"
+msgstr ""
+
+msgid "Distance of the center-point of the cooling tube from the extruder tip."
+msgstr ""
+
+msgid "Cooling tube length"
+msgstr ""
+
+msgid "Length of the cooling tube to limit space for cooling moves inside it."
+msgstr ""
+
+msgid "High extruder current on filament swap"
+msgstr ""
+
+msgid ""
+"It may be beneficial to increase the extruder motor current during the "
+"filament exchange sequence to allow for rapid ramming feed rates and to "
+"overcome resistance when loading a filament with an ugly shaped tip."
+msgstr ""
+
+msgid "Filament parking position"
+msgstr ""
+
+msgid ""
+"Distance of the extruder tip from the position where the filament is parked "
+"when unloaded. This should match the value in printer firmware."
+msgstr ""
+
+msgid "Extra loading distance"
+msgstr ""
+
+msgid ""
+"When set to zero, the distance the filament is moved from parking position "
+"during load is exactly the same as it was moved back during unload. When "
+"positive, it is loaded further,  if negative, the loading move is shorter "
+"than unloading."
+msgstr ""
+
 msgid "Start end points"
 msgstr "Začátek konec body"
 
@@ -9154,6 +9357,39 @@ msgstr "Start G-kód při spuštění celého tisku"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Start G-kód při zahájení tisku tohoto filamentu"
 
+msgid "Single Extruder Multi Material"
+msgstr ""
+
+msgid "Use single nozzle to print multi filament"
+msgstr ""
+
+msgid "Purge in prime tower"
+msgstr ""
+
+msgid "Purge remaining filament into prime tower"
+msgstr ""
+
+msgid "Enable filament ramming"
+msgstr ""
+
+msgid "No sparse layers (EXPERIMENTAL)"
+msgstr ""
+
+msgid ""
+"If enabled, the wipe tower will not be printed on layers with no "
+"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"print the wipe tower. User is responsible for ensuring there is no collision "
+"with the print."
+msgstr ""
+
+msgid "Prime all printing extruders"
+msgstr ""
+
+msgid ""
+"If enabled, all printing extruders will be primed at the front edge of the "
+"print bed at the start of the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Poloměr uzavření mezery v tiskové vrstvě"
 
@@ -9388,6 +9624,9 @@ msgstr "Strom Silný"
 msgid "Tree Hybrid"
 msgstr "Strom Hybrid"
 
+msgid "Organic"
+msgstr ""
+
 msgid "Independent support layer height"
 msgstr "Výška nezávislé podpůrné vrstvy"
 
@@ -9422,12 +9661,34 @@ msgstr ""
 "stromu dělat. Pokud se úhel zvětší, větve mohou být vytištěny více "
 "vodorovně, což jim umožní dosáhnout dále."
 
+msgid "Preferred Branch Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+
 msgid "Tree support branch distance"
 msgstr "Vzdálenost větví podpěr stromů"
 
 msgid ""
 "This setting determines the distance between neighboring tree support nodes."
 msgstr "Toto nastavení určuje vzdálenost mezi sousedními uzly podpěr stromů."
+
+msgid "Branch Density"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
+msgstr ""
 
 msgid "Adaptive layer height"
 msgstr "Adaptivní výška vrstvy"
@@ -9455,11 +9716,40 @@ msgstr "Šířka Limce podpěr stromů"
 msgid "Distance from tree branch to the outermost brim line"
 msgstr "Vzdálenost od větve stromu k nejvzdálenější linii Límce"
 
+msgid "Tip Diameter"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr ""
+
 msgid "Tree support branch diameter"
 msgstr "Průměr větve podpěr stromů"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Toto nastavení určuje počáteční průměr uzlů poděry."
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+
+msgid "Branch Diameter with double walls"
+msgstr ""
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
+msgstr ""
 
 msgid "Tree support wall loops"
 msgstr "Stěnové smyčky na podpěry stromů"
@@ -9611,6 +9901,43 @@ msgstr "Šířka"
 msgid "Width of prime tower"
 msgstr "Šířka pro čistící věž"
 
+msgid "Wipe tower rotation angle"
+msgstr ""
+
+msgid "Wipe tower rotation angle with respect to x-axis."
+msgstr ""
+
+msgid "Stabilization cone apex angle"
+msgstr ""
+
+msgid ""
+"Angle at the apex of the cone that is used to stabilize the wipe tower. "
+"Larger angle means wider base."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Wipe tower extruder"
+msgstr ""
+
+msgid ""
+"The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
+"use the one that is available (non-soluble would be preferred)."
+msgstr ""
+
+msgid "Purging volumes - load/unload volumes"
+msgstr ""
+
+msgid ""
+"This vector saves required volumes to change from/to each tool used on the "
+"wipe tower. These values are used to simplify creation of the full purging "
+"volumes below."
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -9639,6 +9966,12 @@ msgstr ""
 "Tento objekt bude použit k očištění trysky po výměně filamentu, aby se "
 "ušetřil filament a zkrátila se doba tisku. V důsledku toho budou barvy "
 "objektů smíšené. Neprojeví se to, pokud není aktivována čistící věž."
+
+msgid "Maximal bridging distance"
+msgstr ""
+
+msgid "Maximal distance between supports on sparse infill sections."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "X-Y Kompenzace otvoru"
@@ -9775,6 +10108,15 @@ msgstr ""
 "hodnota, nebudou vytištěny, zatímco prvky tlustší než minimální velikost "
 "prvku budou rozšířeny na minimální šířku stěny. Vyjadřuje se jako procento "
 "průměru trysky"
+
+msgid "First layer minimum wall width"
+msgstr ""
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
+msgstr ""
 
 msgid "Minimum wall width"
 msgstr "Minimální šířka stěny"
@@ -10794,13 +11136,9 @@ msgstr "Teplotní krok: "
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
-"End temp: >= 180\n"
+"End temp: >= 170\n"
 "Start temp > End temp + 5)"
 msgstr ""
-"Zadejte prosím platné hodnoty:\n"
-"Počáteční teplota: <= 350\n"
-"Koncová teplota: >= 180\n"
-"Počáteční teplota > Koncová teplota + 5)"
 
 msgid "Max volumetric speed test"
 msgstr "Test maximální objemové rychlosti"
@@ -10900,501 +11238,3 @@ msgid "Connection to printers connected via the print host failed."
 msgstr ""
 "Připojení k tiskárnám připojených prostřednictvím tiskového serveru se "
 "nezdařilo."
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
-msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
-msgstr ""
-"Operace v 3D scéně\n"
-"Věděli jste, že můžete ovládat zobrazení a výběr objektů nebo částí pomocí "
-"myši a dotykového panelu v 3D scéně?"
-
-#: resources/data/hints.ini: [hint:Cut Tool]
-msgid ""
-"Cut Tool\n"
-"Did you know that you can cut a model at any angle and position with the "
-"cutting tool?"
-msgstr ""
-"Nástroj pro řezání\n"
-"Věděli jste, že můžete pomocí řezacího nástroje provádět řezy modelu pod "
-"různými úhly a pozicemi?"
-
-#: resources/data/hints.ini: [hint:Fix Model]
-msgid ""
-"Fix Model\n"
-"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
-msgstr ""
-"Opravit model\n"
-"Věděli jste, že můžete opravit poškozený 3D model a vyhnout se tak mnoha "
-"problémům při slicování?"
-
-#: resources/data/hints.ini: [hint:Timelapse]
-msgid ""
-"Timelapse\n"
-"Did you know that you can generate a timelapse video during each print?"
-msgstr ""
-"Časosběr\n"
-"Věděli jste, že můžete během každého tisku vytvářet časosběrné video?"
-
-#: resources/data/hints.ini: [hint:Auto-Arrange]
-msgid ""
-"Auto-Arrange\n"
-"Did you know that you can auto-arrange all objects in your project?"
-msgstr ""
-"Automatické uspořádání\n"
-"Věděli jste, že můžete automaticky uspořádat všechny objekty ve vašem "
-"projektu?"
-
-#: resources/data/hints.ini: [hint:Auto-Orient]
-msgid ""
-"Auto-Orient\n"
-"Did you know that you can rotate objects to an optimal orientation for "
-"printing by a simple click?"
-msgstr ""
-"Automatická Orientace\n"
-"Věděli jste, že můžete pomocí jednoho kliknutí otočit objekty do optimálního "
-"natočení pro tisk?"
-
-#: resources/data/hints.ini: [hint:Lay on Face]
-msgid ""
-"Lay on Face\n"
-"Did you know that you can quickly orient a model so that one of its faces "
-"sits on the print bed? Select the \"Place on face\" function or press the "
-"<b>F</b> key."
-msgstr ""
-"Plochou na podložku\n"
-"Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
-"\" nebo stiskněte klávesu <b>F</b>."
-
-#: resources/data/hints.ini: [hint:Object List]
-msgid ""
-"Object List\n"
-"Did you know that you can view all objects/parts in a list and change "
-"settings for each object/part?"
-msgstr ""
-"Seznam objektů\n"
-"Věděli jste, že si můžete zobrazit všechny objekty/části v seznamu a upravit "
-"nastavení pro každý objekt/část zvlášť?"
-
-#: resources/data/hints.ini: [hint:Simplify Model]
-msgid ""
-"Simplify Model\n"
-"Did you know that you can reduce the number of triangles in a mesh using the "
-"Simplify mesh feature? Right-click the model and select Simplify model. Read "
-"more in the documentation."
-msgstr ""
-"Zjednodušit model\n"
-"Věděli jste, že můžete snížit počet trojúhelníků v síti pomocí funkce "
-"Zjednodušit síť? Klikněte pravým tlačítkem na model a vyberte možnost "
-"Zjednodušit model. Více informací najdete v dokumentaci."
-
-#: resources/data/hints.ini: [hint:Slicing Parameter Table]
-msgid ""
-"Slicing Parameter Table\n"
-"Did you know that you can view all objects/parts on a table and change "
-"settings for each object/part?"
-msgstr ""
-"Tabulka parametrů pro Slicování\n"
-"Věděli jste, že můžete zobrazit všechny objekty/části v tabulce a změnit "
-"nastavení pro každý objekt/část?"
-
-#: resources/data/hints.ini: [hint:Split to Objects/Parts]
-msgid ""
-"Split to Objects/Parts\n"
-"Did you know that you can split a big object into small ones for easy "
-"colorizing or printing?"
-msgstr ""
-"Rozdělit na objekty/části\n"
-"Věděli jste, že můžete rozdělit velký objekt na menší části pro snadné "
-"barevné zpracování nebo tisk?"
-
-#: resources/data/hints.ini: [hint:Subtract a Part]
-msgid ""
-"Subtract a Part\n"
-"Did you know that you can subtract one mesh from another using the Negative "
-"part modifier? That way you can, for example, create easily resizable holes "
-"directly in Orca Slicer. Read more in the documentation."
-msgstr ""
-"Odečíst část\n"
-"Věděli jste, že můžete odečíst jednu síťovinu od druhé pomocí negativního "
-"modifikátoru části? Tímto způsobem můžete například vytvářet snadno "
-"nastavitelné otvory přímo v programu Orca Slicer. Přečtěte si více v "
-"dokumentaci."
-
-#: resources/data/hints.ini: [hint:STEP]
-msgid ""
-"STEP\n"
-"Did you know that you can improve your print quality by slicing a STEP file "
-"instead of an STL?\n"
-"Orca Slicer supports slicing STEP files, providing smoother results than a "
-"lower resolution STL. Give it a try!"
-msgstr ""
-"STEP\n"
-"Věděli jste, že můžete zlepšit kvalitu svého tisku tím, že rozdělíte soubor "
-"STEP namísto STL?\n"
-"Orca Slicer podporuje rozdělování souborů STEP, což poskytuje hladší "
-"výsledky než s nižším rozlišením STL. Vyzkoušejte to!"
-
-#: resources/data/hints.ini: [hint:Z seam location]
-msgid ""
-"Z seam location\n"
-"Did you know that you can customize the location of the Z seam, and even "
-"paint it on your print, to have it in a less visible location? This improves "
-"the overall look of your model. Check it out!"
-msgstr ""
-"Z poloha švu\n"
-"Věděli jste, že můžete přizpůsobit umístění Z spoje a dokonce ho na svém "
-"tisku namalovat, aby byl ve méně viditelné poloze? Tím se zlepší celkový "
-"vzhled vašeho modelu. Podívejte se na to!"
-
-#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
-msgid ""
-"Fine-tuning for flow rate\n"
-"Did you know that flow rate can be fine-tuned for even better-looking "
-"prints? Depending on the material, you can improve the overall finish of the "
-"printed model by doing some fine-tuning."
-msgstr ""
-"Jemné doladění pro rychlost průtoku\n"
-"Věděli jste, že průtokovou rychlost lze jemně doladit pro ještě lepší vzhled "
-"tisku? V závislosti na materiálu můžete zlepšit celkový povrch tištěného "
-"modelu pomocí drobného doladění."
-
-#: resources/data/hints.ini: [hint:Split your prints into plates]
-msgid ""
-"Split your prints into plates\n"
-"Did you know that you can split a model that has a lot of parts into "
-"individual plates ready to print? This will simplify the process of keeping "
-"track of all the parts."
-msgstr ""
-"Rozdělte své tisky na podložky\n"
-"Věděli jste, že můžete rozdělit model s mnoha díly na jednotlivé podložky "
-"připravené k tisku? Tímto zjednodušíte proces sledování všech dílů."
-
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
-msgid ""
-"Speed up your print with Adaptive Layer Height\n"
-"Did you know that you can print a model even faster, by using the Adaptive "
-"Layer Height option? Check it out!"
-msgstr ""
-"Zrychlete svůj 3D tisk pomocí adaptivní výšky vrstvy\n"
-"Věděli jste, že můžete ještě rychleji vytisknout své 3D modely pomocí "
-"možnosti adaptivní výšky vrstvy? Tímto způsobem dosáhnete zkrácení celkového "
-"času tisku!"
-
-#: resources/data/hints.ini: [hint:Support painting]
-msgid ""
-"Support painting\n"
-"Did you know that you can paint the location of your supports? This feature "
-"makes it easy to place the support material only on the sections of the "
-"model that actually need it."
-msgstr ""
-"Malování podpěr\n"
-"Věděli jste, že můžete malovat umístění podpěr? Tato funkce umožňuje snadné "
-"umístění podpůrného materiálu pouze na části modelu, které ho skutečně "
-"potřebují."
-
-#: resources/data/hints.ini: [hint:Different types of supports]
-msgid ""
-"Different types of supports\n"
-"Did you know that you can choose from multiple types of supports? Tree "
-"supports work great for organic models, while saving filament and improving "
-"print speed. Check them out!"
-msgstr ""
-"Různé typy podpěr\n"
-"Věděli jste, že můžete vybírat z různých typů podpěr? Stromové podpěry se "
-"skvěle hodí pro organické modely a zároveň šetří filament a zlepšuje "
-"rychlost tisku. Podívejte se na ně!"
-
-#: resources/data/hints.ini: [hint:Printing Silk Filament]
-msgid ""
-"Printing Silk Filament\n"
-"Did you know that Silk filament needs special consideration to print it "
-"successfully? Higher temperature and lower speed are always recommended for "
-"the best results."
-msgstr ""
-"Tisk hedvábného filamentu\n"
-"Věděli jste, že tisk hedvábného filamentu vyžaduje zvláštní zvážení pro "
-"úspěšné provedení? Vždy se doporučuje vyšší teplota a nižší rychlost pro "
-"dosažení nejlepších výsledků."
-
-#: resources/data/hints.ini: [hint:Brim for better adhesion]
-msgid ""
-"Brim for better adhesion\n"
-"Did you know that when printing models have a small contact interface with "
-"the printing surface, it's recommended to use a brim?"
-msgstr ""
-"Límec pro lepší přilnavost\n"
-"Věděli jste, že při tisku modelů s malým kontaktním rozhraním s tiskovou "
-"plochou se doporučuje použití Límce (brim)?"
-
-#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
-msgid ""
-"Set parameters for multiple objects\n"
-"Did you know that you can set slicing parameters for all selected objects at "
-"one time?"
-msgstr ""
-"Nastavte parametry pro více objektů\n"
-"Věděli jste, že můžete najednou nastavit parametry pro všechny vybrané "
-"objekty?"
-
-#: resources/data/hints.ini: [hint:Stack objects]
-msgid ""
-"Stack objects\n"
-"Did you know that you can stack objects as a whole one?"
-msgstr ""
-"Seskupit objekty\n"
-"Věděli jste, že můžete objekty seskupit do jednoho celku?"
-
-#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
-msgid ""
-"Flush into support/objects/infill\n"
-"Did you know that you can save the wasted filament by flushing them into "
-"support/objects/infill during filament change?"
-msgstr ""
-"Čištit do podpěr/objektů/výplně\n"
-"Věděli jste, že můžete ušetřit zahozené filamenty tím, že je očistíte do "
-"podpěr/objektů/výplně během výměny filamentu?"
-
-#: resources/data/hints.ini: [hint:Improve strength]
-msgid ""
-"Improve strength\n"
-"Did you know that you can use more wall loops and higher sparse infill "
-"density to improve the strength of the model?"
-msgstr ""
-"Zvýšení pevnosti\n"
-"Věděli jste, že můžete použít více opakování stěn a vyšší hustotu řídké "
-"výplně pro zvýšení pevnosti modelu?"
-
-#~ msgid "Maximum acceleration for travel (M204 T)"
-#~ msgstr "Maximální zrychlení pro cestování (M204 T)"
-
-#~ msgid "Send to print"
-#~ msgstr "Odeslat do tiskárny"
-
-#~ msgid "Simulate"
-#~ msgstr "Simulovat"
-
-#~ msgid "Error Message"
-#~ msgstr "Chybové hlášení"
-
-#~ msgid "Error uploading to print host:"
-#~ msgstr "Chyba při nahrávání na tiskový server:"
-
-#~ msgid "Assemble the selected parts to a single part"
-#~ msgstr "Sestavte vybrané díly do jednoho dílu"
-
-#~ msgid "Set Unprintable"
-#~ msgstr "Odebrán příznak Tisknout objekt"
-
-#~ msgid "Set Printable"
-#~ msgstr "Zvolen příznak Tisknout objekt"
-
-#~ msgid "Manual"
-#~ msgstr "Manuál"
-
-#~ msgid "Ams filament backup"
-#~ msgstr "AMS záloha filamentu"
-
-#~ msgid "Feed new filament from external spool"
-#~ msgstr "Zaveďte nový filament z externí cívky"
-
-#~ msgid "Confirm whether the filament has been extruded"
-#~ msgstr "Potvrďte, zda byl filament vytlačen"
-
-#~ msgid "The region parameter is incorrrect"
-#~ msgstr "Parametr regionu je nesprávný"
-
-#~ msgid "Failure of printer login"
-#~ msgstr "Chyba přihlášení k tiskárně"
-
-#~ msgid "Failed to get ticket"
-#~ msgstr "Nepodařilo se získat lístek"
-
-#~ msgid "User authorization timeout"
-#~ msgstr "Časový limit autorizace uživatele"
-
-#~ msgid "Failure of bind"
-#~ msgstr "Selhání vazb"
-
-#~ msgid ""
-#~ "Upload task timed out. Please check the network problem and try again"
-#~ msgstr ""
-#~ "Časový limit úlohy nahrávání vypršel. Zkontrolujte prosím síť a zkuste to "
-#~ "znovu"
-
-#~ msgid "Print file not found, please slice again"
-#~ msgstr "Tiskový soubor nebyl nalezen, prosím znovu slicovat"
-
-#~ msgid ""
-#~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
-#~ "the model and slice again"
-#~ msgstr ""
-#~ "Tiskový soubor překračuje maximální povolenou velikost (1 GB). "
-#~ "Zjednodušte prosím model a znovu slicujte"
-
-#~ msgid "Failed uploading print file"
-#~ msgstr "Nahrávání tiskového souboru se nezdařilo"
-
-#~ msgid "Wrong Access code"
-#~ msgstr "Chybný přístupový kód"
-
-#~ msgid "Send to Printer failed. Please try again."
-#~ msgstr "Odeslat na tiskárnu se nezdařilo. Zkuste to prosím znovu."
-
-#~ msgid "No space left on Printer SD card"
-#~ msgstr "Na SD kartě tiskárny nezbývá místo"
-
-#~ msgid "Sending gcode file through cloud service"
-#~ msgstr "Odesílání souboru gcode prostřednictvím cloudové služby"
-
-#~ msgid "Please log out and login to the printer again."
-#~ msgstr "Odhlaste se prosím a znovu se přihlaste k tiskárně."
-
-#~ msgid "Factors of dynamic flow cali"
-#~ msgstr "Faktory dynamického průtoku cali"
-
-#~ msgid "Filaments replace"
-#~ msgstr "Nahradit filameny"
-
-#~ msgid "3D Models"
-#~ msgstr "3D modely"
-
-#~ msgid "Initialize failed (Not supported with LAN-only mode)!"
-#~ msgstr "Inicializace se nezdařila (nepodporováno v režimu pouze LAN)!"
-
-#~ msgid "Initialize failed (Not supported by printer)!"
-#~ msgstr "Inicializace se nezdařila (není podporováno tiskárnou)!"
-
-#~ msgid ""
-#~ "Another virtual camera is running.\n"
-#~ "Orca Slicer supports only a single virtual camera.\n"
-#~ "Do you want to stop this virtual camera?"
-#~ msgstr ""
-#~ "Je spuštěna další virtuální kamera.\n"
-#~ "Orca Slicer podporuje pouze jednu virtuální kameru.\n"
-#~ "Chcete zastavit tuto virtuální kameru?"
-
-#~ msgid "Not supported by this model of printer!"
-#~ msgstr "Tento model tiskárny nepodporuje!"
-
-#~ msgid "No files"
-#~ msgstr "Žádné soubory"
-
-#~ msgid "Not accessible in LAN-only mode!"
-#~ msgstr "Není přístupné v režimu pouze LAN!"
-
-#~ msgid "Missing LAN ip of printer!"
-#~ msgstr "Chybí LAN IP tiskárny!"
-
-#, c-format, boost-format
-#~ msgid "You are going to delete %u files. Are you sure to continue?"
-#~ msgstr "Chystáte se smazat %u souborů. Opravdu chcete pokračovat?"
-
-#~ msgid "Printing List"
-#~ msgstr "Seznam pro tisk"
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect "
-#~ "the printer by logging in with your user account."
-#~ msgstr ""
-#~ "Odpojeno od tiskárny [%s] kvůli deaktivovanému režimu LAN. Znovu připojte "
-#~ "tiskárnu přihlášením pomocí svého uživatelského účtu."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect "
-#~ "the printer by inputting Access Code which can be gotten from printer "
-#~ "screen."
-#~ msgstr ""
-#~ "Odpojeno od tiskárny [%s] kvůli aktivovanému režimu LAN. Znovu připojte "
-#~ "tiskárna zadáním přístupového kódu, který lze získat z obrazovky tiskárny."
-
-#~ msgid "Media"
-#~ msgstr "Média"
-
-#~ msgid "Dump video"
-#~ msgstr "Vyhodit video"
-
-#~ msgid "First Layer print sequence"
-#~ msgstr "Sekvence tisku první vrstvy"
-
-#~ msgid "Flow Calibration"
-#~ msgstr "Kalibrace průtoku"
-
-#~ msgid "The printer is required to be in the same LAN as Orca Slicer."
-#~ msgstr "Tiskárna musí být ve stejné síti LAN jako Orca Slicer."
-
-#~ msgid ""
-#~ "Click OK to update the Network plug-in when Orca Slicer launches next "
-#~ "time."
-#~ msgstr ""
-#~ "Klepnutím na OK aktualizujte síťový zásuvný modul při příštím spuštění "
-#~ "Orca Slicer."
-
-#~ msgid "New version of Orca Slicer"
-#~ msgstr "Nová verze Orca Slicer"
-
-#~ msgid ""
-#~ "Step 1, please confirm Orca Slicer and your printer are in the same LAN."
-#~ msgstr ""
-#~ "Krok 1, potvrďte, že Orca Slicer a vaše tiskárna jsou ve stejné síti LAN."
-
-#~ msgid "ERROR:"
-#~ msgstr "CHYBA:"
-
-#~ msgid "Bed temperatures for the used filaments differ significantly."
-#~ msgstr "Teploty podložky pro použité filamenty se výrazně liší."
-
-#~ msgid "&Cancel"
-#~ msgstr "&Storno"
-
-#~ msgid "Post-processing scripts"
-#~ msgstr "Post-processing skripty"
-
-#~ msgid "Line width of outer wall"
-#~ msgstr "Šířka extruze vnější stěny"
-
-#~ msgid "Default line width if some line width is set to be zero"
-#~ msgstr "Výchozí šířka extruze pro šířku extruze nastavte na 0"
-
-#~ msgid "Line width of initial layer"
-#~ msgstr "Šířka extruze první vrstvy"
-
-#~ msgid ""
-#~ "Filter out gaps smaller than the threshold specified. This setting won't "
-#~ "affact top/bottom layers"
-#~ msgstr ""
-#~ "Odfiltrujte mezery menší než zadaná hraniční hodnota. Toto nastavení "
-#~ "neovlivní horní/spodní vrstvy"
-
-#~ msgid "Line width of internal sparse infill"
-#~ msgstr "Šířka extruze vnitřní výplně"
-
-#~ msgid "Line width of inner wall"
-#~ msgstr "Šířka extruze vnitřní stěny"
-
-#~ msgid ""
-#~ "In order to reduce the visibility of the seam in a closed loop extrusion, "
-#~ "the loop is interrupted and shortened by a specified amount.\n"
-#~ "This amount can be specified in millimeters or as a percentage of the "
-#~ "current extruder diameter. The default value for this parameter is 15%."
-#~ msgstr ""
-#~ "Aby se snížila viditelnost švu při extruzi s uzavřenou smyčkou, smyčka se "
-#~ "přeruší a zkrátí o zadanou hodnotu.\n"
-#~ "Toto množství může být specifikováno v milimetrech nebo v procentech "
-#~ "aktuální průměr extrudéru. Výchozí hodnota tohoto parametru je 15 %."
-
-#~ msgid "Line width of internal solid infill"
-#~ msgstr "Šířka extruze vnitřní plné výplně"
-
-#~ msgid "Line width of support"
-#~ msgstr "Šířka extruze podpěr"
-
-#~ msgid "Line width for top surfaces"
-#~ msgstr "Šířka extruze pro horní plochy"

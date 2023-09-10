@@ -78,6 +78,9 @@ cd build_$ARCH
 echo "building slicer..."
 cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
 cmake --build . --config Release --target ALL_BUILD 
+cd ..
+./run_gettext.sh
+cd build_$ARCH
 mkdir -p OrcaSlicer
 cd OrcaSlicer
 rm -r ./OrcaSlicer.app

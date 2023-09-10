@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-31 21:45+0800\n"
+"POT-Creation-Date: 2023-09-09 14:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -621,9 +621,12 @@ msgid ""
 "features.\n"
 "Click Yes to install it now."
 msgstr ""
+"Orca Slicer requiere el tiempo de ejecución de Microsoft WebView2 para "
+"operar ciertas características.\n"
+"Haga clic en Sí para instalarlo ahora."
 
 msgid "WebView2 Runtime"
-msgstr ""
+msgstr "Tiempo de ejecución de WebView2"
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
@@ -860,7 +863,7 @@ msgid "Orca Cube"
 msgstr "Cubo Orca"
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "3DBenchy"
 
 msgid "Autodesk FDM Test"
 msgstr "Prueba Autodesk FDM"
@@ -1498,7 +1501,7 @@ msgid "No printer"
 msgstr "Sin impresión"
 
 msgid "..."
-msgstr ""
+msgstr "..."
 
 msgid "Failed to connect to the server"
 msgstr "No se ha podido conectar con el servidor"
@@ -1913,7 +1916,7 @@ msgid "About %s"
 msgstr "Acerca de %s"
 
 msgid "Orca Slicer "
-msgstr ""
+msgstr "Orca Slicer "
 
 msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
 msgstr "OrcaSlicer está basado en BambuStudio, PrusaSlicer, y SuperSlicer."
@@ -2036,7 +2039,7 @@ msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
 msgid "℃"
-msgstr ""
+msgstr "℃"
 
 msgid "Bed temperature"
 msgstr "Temperatura de la cama"
@@ -3534,13 +3537,13 @@ msgid "Max flowrate"
 msgstr "Máximo caudal"
 
 msgid "VFA"
-msgstr ""
+msgstr "VFA"
 
 msgid "More..."
 msgstr "Más..."
 
 msgid "Tutorial"
-msgstr ""
+msgstr "Tutorial"
 
 msgid "Calibration help"
 msgstr "Ayuda de calibración"
@@ -4415,8 +4418,8 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Cargando archivo: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "El 3mf no es de Bambu Lab, cargar datos de geometría solo."
+msgid "The 3mf is not supported by OrcaSlicer, load geometry data only."
+msgstr "El 3mf no es de Orca Slicer, cargar datos de geometría solo."
 
 msgid "Load 3mf"
 msgstr "Cargar 3mf"
@@ -5915,6 +5918,21 @@ msgstr "G-Code de inicio de filamento"
 msgid "Filament end G-code"
 msgstr "Final del G-Code de filamento"
 
+msgid "Multimaterial"
+msgstr ""
+
+msgid "Wipe tower parameters"
+msgstr ""
+
+msgid "Toolchange parameters with single extruder MM printers"
+msgstr ""
+
+msgid "Ramming settings"
+msgstr ""
+
+msgid "Toolchange parameters with multi extruder MM printers"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Espacio imprimible"
 
@@ -5968,6 +5986,15 @@ msgstr "Limitación de la aceleración"
 
 msgid "Jerk limitation"
 msgstr "Limitación de Jerk"
+
+msgid "Single extruder multimaterial setup"
+msgstr ""
+
+msgid "Wipe tower"
+msgstr ""
+
+msgid "Single extruder multimaterial parameters"
+msgstr ""
 
 msgid "Layer height limits"
 msgstr "Límites de altura de la capa"
@@ -6214,6 +6241,36 @@ msgstr "No hay actualizaciones disponibles."
 
 msgid "The configuration is up to date."
 msgstr "La configuración está actualizada."
+
+msgid "Ramming customization"
+msgstr ""
+
+msgid ""
+"Ramming denotes the rapid extrusion just before a tool change in a single-"
+"extruder MM printer. Its purpose is to properly shape the end of the "
+"unloaded filament so it does not prevent insertion of the new filament and "
+"can itself be reinserted later. This phase is important and different "
+"materials can require different extrusion speeds to get the good shape. For "
+"this reason, the extrusion rates during ramming are adjustable.\n"
+"\n"
+"This is an expert-level setting, incorrect adjustment will likely lead to "
+"jams, extruder wheel grinding into filament etc."
+msgstr ""
+
+msgid "Total ramming time"
+msgstr ""
+
+msgid "s"
+msgstr "s"
+
+msgid "Total rammed volume"
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Ramming line spacing"
+msgstr ""
 
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
@@ -6991,6 +7048,27 @@ msgstr ""
 "el objeto."
 
 msgid ""
+"Organic support tree tip diameter must not be smaller than support material "
+"extrusion width."
+msgstr ""
+"El diámetro de la punta del árbol de soporte orgánico no debe ser menor que "
+"el ancho de extrusión del material de soporte."
+
+msgid ""
+"Organic support branch diameter must not be smaller than 2x support material "
+"extrusion width."
+msgstr ""
+"El diámetro de la rama de soporte orgánico no debe ser menor que 2x el ancho "
+"de extrusión del material de soporte."
+
+msgid ""
+"Organic support branch diameter must not be smaller than support tree tip "
+"diameter."
+msgstr ""
+"El diámetro de la rama de soporte orgánico no debe ser menor que el diámetro "
+"de la punta del árbol de soporte."
+
+msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
 "Se utilizan las herramientas de aplicación de soporte pero el soporte no "
@@ -7451,14 +7529,14 @@ msgstr ""
 "de relleno inferior"
 
 msgid "Extra perimeters on overhangs"
-msgstr "Perímetros extra en los voladizos"
+msgstr "Perímetros extra en voladizos"
 
 msgid ""
 "Create additional perimeter paths over steep overhangs and areas where "
 "bridges cannot be anchored. "
 msgstr ""
-"Crear caminos perimetrales adicionales sobre voladizos escarpados y zonas "
-"donde no se puedan anclar puentes. "
+"Crear caminos de perímetros adicionales sobre voladizos pronunciados y áreas "
+"donde los puentes no pueden ser anclados."
 
 msgid "Classic mode"
 msgstr "Modo clásico"
@@ -7910,9 +7988,6 @@ msgstr ""
 "interpola entre las velocidades mínima y máxima del ventilador según el "
 "tiempo de impresión de las capas"
 
-msgid "s"
-msgstr "s"
-
 msgid "Default color"
 msgstr "Color por defecto"
 
@@ -7950,23 +8025,6 @@ msgstr ""
 
 msgid "mm³/s"
 msgstr "mm³/s"
-
-msgid "Minimal purge on wipe tower"
-msgstr "Purga mínima en la torre de purga"
-
-msgid ""
-"After a tool change, the exact position of the newly loaded filament inside "
-"the nozzle may not be known, and the filament pressure is likely not yet "
-"stable. Before purging the print head into an infill or a sacrificial "
-"object, Slic3r will always prime this amount of material into the wipe tower "
-"to produce successive infill or sacrificial object extrusions reliably."
-msgstr ""
-"Tras un cambio de herramienta, es posible que no se conozca la posición "
-"exacta del filamento recién cargado dentro de la boquilla y que la presión "
-"del filamento aún no sea estable. Antes de purgar el cabezal de impresión en "
-"un relleno o un objeto de sacrificio, OrcaSlicer siempre cebará esta "
-"cantidad de material en la torre de purga para producir sucesivas "
-"extrusiones de relleno u objetos de sacrificio de forma fiable."
 
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
@@ -8008,6 +8066,121 @@ msgstr ""
 "perímetro.\n"
 "Asegúrese de dejar suficiente espacio entre los objetos, ya que esta "
 "compensación se realiza después de las comprobaciones."
+
+msgid "Loading speed"
+msgstr ""
+
+msgid "Speed used for loading the filament on the wipe tower."
+msgstr ""
+
+msgid "Loading speed at the start"
+msgstr ""
+
+msgid "Speed used at the very beginning of loading phase."
+msgstr ""
+
+msgid "Unloading speed"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the filament on the wipe tower (does not affect  "
+"initial part of unloading just after ramming)."
+msgstr ""
+
+msgid "Unloading speed at the start"
+msgstr ""
+
+msgid ""
+"Speed used for unloading the tip of the filament immediately after ramming."
+msgstr ""
+
+msgid "Delay after unloading"
+msgstr ""
+
+msgid ""
+"Time to wait after the filament is unloaded. May help to get reliable "
+"toolchanges with flexible materials that may need more time to shrink to "
+"original dimensions."
+msgstr ""
+
+msgid "Number of cooling moves"
+msgstr ""
+
+msgid ""
+"Filament is cooled by being moved back and forth in the cooling tubes. "
+"Specify desired number of these moves."
+msgstr ""
+
+msgid "Speed of the first cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating beginning at this speed."
+msgstr ""
+
+msgid "Minimal purge on wipe tower"
+msgstr "Purga mínima en la torre de purga"
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
+msgstr ""
+"Tras un cambio de herramienta, es posible que no se conozca la posición "
+"exacta del filamento recién cargado dentro de la boquilla y que la presión "
+"del filamento aún no sea estable. Antes de purgar el cabezal de impresión en "
+"un relleno o un objeto de sacrificio, OrcaSlicer siempre cebará esta "
+"cantidad de material en la torre de purga para producir sucesivas "
+"extrusiones de relleno u objetos de sacrificio de forma fiable."
+
+msgid "Speed of the last cooling move"
+msgstr ""
+
+msgid "Cooling moves are gradually accelerating towards this speed."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to load a new "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Ramming parameters"
+msgstr ""
+
+msgid ""
+"This string is edited by RammingDialog and contains ramming specific "
+"parameters."
+msgstr ""
+
+msgid ""
+"Time for the printer firmware (or the Multi Material Unit 2.0) to unload a "
+"filament during a tool change (when executing the T code). This time is "
+"added to the total print time by the G-code time estimator."
+msgstr ""
+
+msgid "Enable ramming for multitool setups"
+msgstr ""
+
+msgid ""
+"Perform ramming when using multitool printer (i.e. when the 'Single Extruder "
+"Multimaterial' in Printer Settings is unchecked). When checked, a small "
+"amount of filament is rapidly extruded on the wipe tower just before the "
+"toolchange. This option is only used when the wipe tower is enabled."
+msgstr ""
+
+msgid "Multitool ramming volume"
+msgstr ""
+
+msgid "The volume to be rammed before the toolchange."
+msgstr ""
+
+msgid "Multitool ramming flow"
+msgstr ""
+
+msgid "Flow used for ramming the filament before the toolchange."
+msgstr ""
 
 msgid "Density"
 msgstr "Densidad"
@@ -8526,7 +8699,7 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "Con qué tipo de G-Code es compatible la impresora"
 
 msgid "Klipper"
-msgstr ""
+msgstr "Klipper"
 
 msgid "Label objects"
 msgstr "Etiquetar objetos"
@@ -8869,6 +9042,45 @@ msgstr "Volumen de la boquilla"
 
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "Volumen de la boquilla entre el cortador y el extremo de la boquilla"
+
+msgid "Cooling tube position"
+msgstr ""
+
+msgid "Distance of the center-point of the cooling tube from the extruder tip."
+msgstr ""
+
+msgid "Cooling tube length"
+msgstr ""
+
+msgid "Length of the cooling tube to limit space for cooling moves inside it."
+msgstr ""
+
+msgid "High extruder current on filament swap"
+msgstr ""
+
+msgid ""
+"It may be beneficial to increase the extruder motor current during the "
+"filament exchange sequence to allow for rapid ramming feed rates and to "
+"overcome resistance when loading a filament with an ugly shaped tip."
+msgstr ""
+
+msgid "Filament parking position"
+msgstr ""
+
+msgid ""
+"Distance of the extruder tip from the position where the filament is parked "
+"when unloaded. This should match the value in printer firmware."
+msgstr ""
+
+msgid "Extra loading distance"
+msgstr ""
+
+msgid ""
+"When set to zero, the distance the filament is moved from parking position "
+"during load is exactly the same as it was moved back during unload. When "
+"positive, it is loaded further,  if negative, the loading move is shorter "
+"than unloading."
+msgstr ""
 
 msgid "Start end points"
 msgstr "Puntos de inicio fin"
@@ -9354,6 +9566,39 @@ msgstr "Inicie el G-Code cuando comience la impresión completa"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Inicie el G-Code al comenzar la impresión de este filamento"
 
+msgid "Single Extruder Multi Material"
+msgstr ""
+
+msgid "Use single nozzle to print multi filament"
+msgstr ""
+
+msgid "Purge in prime tower"
+msgstr ""
+
+msgid "Purge remaining filament into prime tower"
+msgstr ""
+
+msgid "Enable filament ramming"
+msgstr ""
+
+msgid "No sparse layers (EXPERIMENTAL)"
+msgstr ""
+
+msgid ""
+"If enabled, the wipe tower will not be printed on layers with no "
+"toolchanges. On layers with a toolchange, extruder will travel downward to "
+"print the wipe tower. User is responsible for ensuring there is no collision "
+"with the print."
+msgstr ""
+
+msgid "Prime all printing extruders"
+msgstr ""
+
+msgid ""
+"If enabled, all printing extruders will be primed at the front edge of the "
+"print bed at the start of the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Radio de cierre de laminado"
 
@@ -9597,6 +9842,9 @@ msgstr "Árbol Fuerte"
 msgid "Tree Hybrid"
 msgstr "Árbol Híbrido"
 
+msgid "Organic"
+msgstr "Orgánico"
+
 msgid "Independent support layer height"
 msgstr "Altura de la capa de soporte independiente"
 
@@ -9630,6 +9878,19 @@ msgstr ""
 "ramas del soporte del árbol. Si se aumenta el ángulo, las ramas pueden "
 "imprimirse más horizontalmente, permitiendo que lleguen más lejos."
 
+msgid "Preferred Branch Angle"
+msgstr "Pendiente preferida de la rama"
+
+#. TRN PrintSettings: "Organic supports" > "Preferred Branch Angle"
+msgid ""
+"The preferred angle of the branches, when they do not have to avoid the "
+"model. Use a lower angle to make them more vertical and more stable. Use a "
+"higher angle for branches to merge faster."
+msgstr ""
+"El ángulo preferido de las ramas, cuando no tienen que evitar el modelo. "
+"Utilice un ángulo más bajo para hacerlas más verticales y más estables. "
+"Utilice un ángulo más alto para que las ramas se fusionen más rápido."
+
 msgid "Tree support branch distance"
 msgstr "Distancia de la rama de soporte del árbol"
 
@@ -9638,6 +9899,23 @@ msgid ""
 msgstr ""
 "Este ajuste determina la distancia entre los nodos de soporte del árbol "
 "vecinos."
+
+msgid "Branch Density"
+msgstr "Baja densidad de ramas"
+
+#. TRN PrintSettings: "Organic supports" > "Branch Density"
+msgid ""
+"Adjusts the density of the support structure used to generate the tips of "
+"the branches. A higher value results in better overhangs but the supports "
+"are harder to remove, thus it is recommended to enable top support "
+"interfaces instead of a high branch density value if dense interfaces are "
+"needed."
+msgstr ""
+"Ajusta la densidad de la estructura de soporte utilizada para generar las "
+"puntas de las ramas. Un valor más alto da como resultado mejores voladizos, "
+"pero los soportes son más difíciles de quitar, por lo que se recomienda "
+"activar las interfaces de soporte superior en lugar de un valor de densidad "
+"de rama alto si se necesitan interfaces densas."
 
 msgid "Adaptive layer height"
 msgstr "Altura de capa adaptable"
@@ -9667,11 +9945,47 @@ msgstr ""
 "Distancia desde la rama del árbol hasta la línea más externa del borde de "
 "adherencia"
 
+msgid "Tip Diameter"
+msgstr "Tamaño de la punta"
+
+#. TRN PrintSettings: "Organic supports" > "Tip Diameter"
+msgid "Branch tip diameter for organic supports."
+msgstr "Baja densidad de ramas"
+
 msgid "Tree support branch diameter"
 msgstr "Diámetro de la rama de soporte del árbol"
 
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Este ajuste determina el diámetro inicial de los nodos de apoyo."
+
+#. TRN PrintSettings: #lmFIXME
+msgid "Branch Diameter Angle"
+msgstr "Baja densidad de ramas"
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter Angle"
+msgid ""
+"The angle of the branches' diameter as they gradually become thicker towards "
+"the bottom. An angle of 0 will cause the branches to have uniform thickness "
+"over their length. A bit of an angle can increase stability of the organic "
+"support."
+msgstr ""
+"El ángulo del diámetro de las ramas a medida que se hacen más gruesas hacia "
+"la parte inferior. Un ángulo de 0 hará que las ramas tengan un grosor "
+"uniforme a lo largo de su longitud. Un poco de ángulo puede aumentar la "
+"estabilidad del soporte orgánico."
+
+msgid "Branch Diameter with double walls"
+msgstr "Baja densidad de ramas"
+
+#. TRN PrintSettings: "Organic supports" > "Branch Diameter"
+msgid ""
+"Branches with area larger than the area of a circle of this diameter will be "
+"printed with double walls for stability. Set this value to zero for no "
+"double walls."
+msgstr ""
+"Las ramas con un área mayor que el área de un círculo de este diámetro se "
+"imprimirán con doble pared para mayor estabilidad. Establezca este valor en "
+"cero para no tener doble pared."
 
 msgid "Tree support wall loops"
 msgstr "Perímetros de las ramas"
@@ -9830,6 +10144,43 @@ msgstr "Ancho"
 msgid "Width of prime tower"
 msgstr "Anchura de la torre de purga"
 
+msgid "Wipe tower rotation angle"
+msgstr ""
+
+msgid "Wipe tower rotation angle with respect to x-axis."
+msgstr ""
+
+msgid "Stabilization cone apex angle"
+msgstr ""
+
+msgid ""
+"Angle at the apex of the cone that is used to stabilize the wipe tower. "
+"Larger angle means wider base."
+msgstr ""
+
+msgid "Wipe tower purge lines spacing"
+msgstr ""
+
+msgid "Spacing of purge lines on the wipe tower."
+msgstr ""
+
+msgid "Wipe tower extruder"
+msgstr ""
+
+msgid ""
+"The extruder to use when printing perimeter of the wipe tower. Set to 0 to "
+"use the one that is available (non-soluble would be preferred)."
+msgstr ""
+
+msgid "Purging volumes - load/unload volumes"
+msgstr ""
+
+msgid ""
+"This vector saves required volumes to change from/to each tool used on the "
+"wipe tower. These values are used to simplify creation of the full purging "
+"volumes below."
+msgstr ""
+
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -9860,6 +10211,12 @@ msgstr ""
 "filamento para ahorrar filamento y disminuir el tiempo de impresión. Los "
 "colores de los objetos se mezclarán como resultado. No tendrá efecto, a "
 "menos que la torre de purga esté activada."
+
+msgid "Maximal bridging distance"
+msgstr ""
+
+msgid "Maximal distance between supports on sparse infill sections."
+msgstr ""
 
 msgid "X-Y hole compensation"
 msgstr "Compensación de huecos X-Y"
@@ -10003,6 +10360,18 @@ msgstr ""
 "características más gruesas que el Tamaño mínimo del elemento se ensancharán "
 "hasta el Ancho mínimo de perímetro. Se expresa en porcentaje sobre el "
 "diámetro de la boquilla"
+
+msgid "First layer minimum wall width"
+msgstr "Ancho mínimo del perímetro de la primera capa"
+
+msgid ""
+"The minimum wall width that should be used for the first layer is "
+"recommended to be set to the same size as the nozzle. This adjustment is "
+"expected to enhance adhesion."
+msgstr ""
+"Se recomienda que el ancho mínimo del perímetro que se debe utilizar para la "
+"primera capa se establezca en el mismo tamaño que la boquilla. Se espera que "
+"este ajuste mejore la adherencia."
 
 msgid "Minimum wall width"
 msgstr "Ancho mínimo del perímetro"
@@ -10385,7 +10754,7 @@ msgid "Finish"
 msgstr "Finalizar"
 
 msgid "Wiki"
-msgstr ""
+msgstr "Wiki"
 
 msgid "How to use calibration result?"
 msgstr "¿Cómo usar el resultado de la calibración?"
@@ -10768,10 +11137,10 @@ msgid "Printing Parameters"
 msgstr "Parámetros de Impresión"
 
 msgid "- ℃"
-msgstr ""
+msgstr "- ℃"
 
 msgid " ℃"
-msgstr ""
+msgstr " ℃"
 
 msgid "Plate Type"
 msgstr "Plate Type"
@@ -10916,7 +11285,7 @@ msgid "Delete input"
 msgstr "Borrado de entrada"
 
 msgid "Send G-Code to printer host"
-msgstr "Enviar G-Code a la impresora"
+msgstr "Enviar G-Code al host de impresión"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr "Subido al Host de Impresión con el siguiente nombre de archivo:"
@@ -10927,7 +11296,7 @@ msgstr ""
 "si es necesario."
 
 msgid "Upload to storage"
-msgstr "Cargar al almacenamiento"
+msgstr "Subir a almacenamiento"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -10938,13 +11307,13 @@ msgid "Print host upload queue"
 msgstr "Imprimir cola de carga del host"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
 msgstr "Progreso"
 
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 msgctxt "OfFile"
 msgid "Size"
@@ -10954,7 +11323,7 @@ msgid "Filename"
 msgstr "Nombre de archivo"
 
 msgid "Message"
-msgstr "Mensaje de error"
+msgstr "Mensaje"
 
 msgid "Cancel selected"
 msgstr "Cancelar selección"
@@ -10972,16 +11341,16 @@ msgid "Cancelling"
 msgstr "Cancelado"
 
 msgid "Error uploading to print host"
-msgstr "Error cargando al host de impresión"
+msgstr "Error al subir al host de impresión"
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
 
 msgid "DDE"
-msgstr ""
+msgstr "DDE"
 
 msgid "Bowden"
-msgstr ""
+msgstr "Bowden"
 
 msgid "Extruder type"
 msgstr "Tipo de extrusor"
@@ -11025,22 +11394,22 @@ msgid "Temperature calibration"
 msgstr "Calibración de temperatura"
 
 msgid "PLA"
-msgstr ""
+msgstr "PLA"
 
 msgid "ABS/ASA"
-msgstr ""
+msgstr "ABS/ASA"
 
 msgid "PETG"
-msgstr ""
+msgstr "PETG"
 
 msgid "TPU"
-msgstr ""
+msgstr "TPU"
 
 msgid "PA-CF"
-msgstr ""
+msgstr "PA-CF"
 
 msgid "PET-CF"
-msgstr ""
+msgstr "PET-CF"
 
 msgid "Filament type"
 msgstr "Tipo de filamento"
@@ -11057,13 +11426,9 @@ msgstr "Paso temperatura: "
 msgid ""
 "Please input valid values:\n"
 "Start temp: <= 350\n"
-"End temp: >= 180\n"
+"End temp: >= 170\n"
 "Start temp > End temp + 5)"
 msgstr ""
-"Por favor introduzca valores válidos:\n"
-"Temperatura inicial: <= 350\n"
-"Temperatura final: >= 180\n"
-"Temperatura inicial > Temperatura final + 5)"
 
 msgid "Max volumetric speed test"
 msgstr "Test de velocidad volumétrica máxima"
@@ -11111,7 +11476,7 @@ msgid "End retraction length: "
 msgstr "Finalizar "
 
 msgid "mm/mm"
-msgstr ""
+msgstr "mm/mm"
 
 msgid "Physical Printer"
 msgstr "Impresora física"
@@ -11120,7 +11485,7 @@ msgid "Print Host upload"
 msgstr "Carga de Host de Impresión"
 
 msgid "Test"
-msgstr ""
+msgstr "Test"
 
 msgid "Could not get a valid Printer Host reference"
 msgstr "No se ha podido obtener una referencia de host de impresora válida"

@@ -108,5 +108,6 @@
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
     "wall_generator": "arachne",
-    "gcode_label_objects": "0"
+    "gcode_label_objects": "0",
+    "flush_multiplier": "1.0"
 }

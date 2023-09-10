@@ -27,6 +27,19 @@ function check_available_memory_and_disk() {
     fi
 }
 
+function usage() {
+    echo "Usage: ./BuildLinux.sh [-i][-u][-d][-s][-b][-g]"
+    echo "   -i: Generate appimage (optional)"
+    echo "   -g: force gtk2 build"
+    echo "   -b: build in debug mode"
+    echo "   -d: build deps (optional)"
+    echo "   -s: build orca-slicer (optional)"
+    echo "   -u: only update clock & dependency packets (optional and need sudo)"
+    echo "   -r: skip free ram check (low ram compiling)"
+    echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
+    echo "   and then './BuildLinux.sh -dsi'"
+}
+
 unset name
 while getopts ":dsiuhgbr" opt; do
   case ${opt} in
@@ -51,16 +64,7 @@ while getopts ":dsiuhgbr" opt; do
     r )
 	SKIP_RAM_CHECK="1"
 	;;
-    h ) echo "Usage: ./BuildLinux.sh [-i][-u][-d][-s][-b][-g]"
-        echo "   -i: Generate appimage (optional)"
-        echo "   -g: force gtk2 build"
-        echo "   -b: build in debug mode"
-        echo "   -d: build deps (optional)"
-        echo "   -s: build orca-slicer (optional)"
-        echo "   -u: only update clock & dependency packets (optional and need sudo)"
-	echo "   -r: skip free ram check (low ram compiling)"
-        echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
-        echo "   and then './BuildLinux.sh -dsi'"
+    h ) usage
         exit 0
         ;;
   esac
@@ -68,23 +72,8 @@ done
 
 if [ $OPTIND -eq 1 ]
 then
-    echo "Usage: ./BuildLinux.sh [-i][-u][-d][-s][-b][-g]"
-    echo "   -i: Generate appimage (optional)"
-    echo "   -g: force gtk2 build"
-    echo "   -b: build in debug mode"
-    echo "   -d: build deps (optional)"
-    echo "   -s: build orca-slicer (optional)"
-    echo "   -u: only update clock & dependency packets (optional and need sudo)"
-    echo "   -r: skip free ram check (low ram compiling)"
-    echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
-    echo "   and then './BuildLinux.sh -dsi'"
+    usage
     exit 0
-fi
-
-# mkdir build
-if [ ! -d "build" ]
-then
-    mkdir build
 fi
 
 # Addtional Dev packages for OrcaSlicer
@@ -92,7 +81,7 @@ export REQUIRED_DEV_PACKAGES="libmspack-dev libgstreamerd-3-dev libsecret-1-dev 
 # libwebkit2gtk-4.1-dev ??
 export DEV_PACKAGES_COUNT=$(echo ${REQUIRED_DEV_PACKAGES} | wc -w)
 if [ $(dpkg --get-selections | grep -E "$(echo ${REQUIRED_DEV_PACKAGES} | tr ' ' '|')" | wc -l) -lt ${DEV_PACKAGES_COUNT} ]; then
-    sudo apt install -y ${REQUIRED_DEV_PACKAGES} git cmake wget file
+    sudo apt install -y ${REQUIRED_DEV_PACKAGES} git cmake wget file gettext
 fi
 
 #FIXME: require root for -u option
@@ -109,11 +98,11 @@ then
         echo -e "\nFind libgtk-3, installing: libgtk-3-dev libglew-dev libudev-dev libdbus-1-dev cmake git\n"
         apt install -y libgtk-3-dev libglew-dev libudev-dev libdbus-1-dev cmake git
     fi
-    # for ubuntu 22.04:
-    ubu_version="$(cat /etc/issue)" 
-    if [[ $ubu_version == "Ubuntu 22.04"* ]]
+    # for ubuntu 22+ and 23+:
+    ubu_major_version="$(grep VERSION_ID /etc/os-release | cut -d "=" -f 2 | cut -d "." -f 1 | tr -d /\"/)"
+    if [ $ubu_major_version == "22" ] || [ $ubu_major_version == "23" ]
     then
-        apt install -y curl libssl-dev libcurl4-openssl-dev m4
+        apt install -y curl libfuse-dev libssl-dev libcurl4-openssl-dev m4
     fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
@@ -212,6 +201,12 @@ then
     echo "done"
 fi
 
+# Create main "build" directory
+if [ ! -d "build" ]
+then
+    mkdir build
+fi
+
 if [[ -n "$BUILD_ORCA" ]]
 then
     echo "[7/9] Configuring Slic3r..."
@@ -235,11 +230,8 @@ then
         # make Slic3r
         echo "[8/9] Building Slic3r..."
         make -j$NCORES OrcaSlicer # Slic3r
-
-        # make .mo
-        # make gettext_po_to_mo # FIXME: DeftDawg: complains about msgfmt not existing even in SuperSlicer, did this ever work?
-    
     popd
+    ./run_gettext.sh
     echo "done"
 fi
 

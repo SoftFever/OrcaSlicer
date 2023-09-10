@@ -1,6 +1,6 @@
 {
     "name": "RatRig",
-    "version": "01.06.05.01",
+    "version": "01.07.00.00",
     "force_update": "0",
     "description": "RatRig configurations",
     "machine_model_list": [
@@ -151,23 +151,23 @@
             "sub_path": "machine/fdm_klipper_common.json"
         },
 		{
-            "name": "RatRig V-Core 3 200",
+            "name": "RatRig V-Core 3 200 0.4 nozzle",
             "sub_path": "machine/RatRig V-Core 3 200 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 3 300",
+            "name": "RatRig V-Core 3 300 0.4 nozzle",
             "sub_path": "machine/RatRig V-Core 3 300 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 3 400",
+            "name": "RatRig V-Core 3 400 0.4 nozzle",
             "sub_path": "machine/RatRig V-Core 3 400 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Core 3 500",
+            "name": "RatRig V-Core 3 500 0.4 nozzle",
             "sub_path": "machine/RatRig V-Core 3 500 0.4 nozzle.json"
         },
         {
-            "name": "RatRig V-Minion",
+            "name": "RatRig V-Minion 0.4 nozzle",
             "sub_path": "machine/RatRig V-Minion 0.4 nozzle.json"
         },
         {
@@ -178,5 +178,5 @@
             "name": "RatRig V-Cast 0.6 nozzle",
             "sub_path": "machine/RatRig V-Cast 0.6 nozzle.json"
         }
-		    ]
+    ]
 }

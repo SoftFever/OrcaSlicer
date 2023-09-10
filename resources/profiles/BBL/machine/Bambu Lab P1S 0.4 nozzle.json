@@ -17,7 +17,6 @@
         "0x28"
     ],
     "default_print_profile": "0.20mm Standard @BBL X1C",
-    "extruder_clearance_max_radius": "56",
     "extruder_offset": [
         "0x2"
     ],
@@ -31,5 +30,6 @@
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.4 nozzle"
-    ]
+    ],
+    "version": "01.07.00.18"
 }

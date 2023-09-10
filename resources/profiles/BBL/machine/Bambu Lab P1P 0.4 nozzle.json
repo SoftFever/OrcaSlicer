@@ -10,7 +10,7 @@
     ],
     "printer_model": "Bambu Lab P1P",
     "printer_variant": "0.4",
-    "auxiliary_fan": "0",
+    "auxiliary_fan": "1",
     "bed_exclude_area": [
         "0x0",
         "18x0",
@@ -21,7 +21,6 @@
         "Bambu PLA Basic @BBL X1"
     ],
     "default_print_profile": "0.20mm Standard @BBL P1P",
-    "extruder_clearance_max_radius": "56",
     "extruder_offset": [
         "0x2"
     ],
@@ -35,5 +34,6 @@
         "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.4 nozzle"
-    ]
+    ],
+    "version": "01.07.00.18"
 }

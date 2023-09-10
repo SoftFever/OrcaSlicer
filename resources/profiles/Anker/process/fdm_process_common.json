@@ -86,7 +86,7 @@
     "top_solid_infill_flow_ratio": "1",
     "enable_prime_tower": "0",
     "wipe_tower_no_sparse_layers": "0",
-    "prime_tower_width": "35",
+    "prime_tower_width": "60",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
     "layer_height": "0.2",

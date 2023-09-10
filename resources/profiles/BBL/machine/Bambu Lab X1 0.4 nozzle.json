@@ -10,7 +10,7 @@
     ],
     "printer_model": "Bambu Lab X1",
     "printer_variant": "0.4",
-    "auxiliary_fan": "0",
+    "auxiliary_fan": "1",
     "bed_exclude_area": [
         "0x0",
         "18x0",
@@ -33,5 +33,6 @@
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab X1 Carbon 0.4 nozzle"
-    ]
+    ],
+    "version": "01.07.00.18"
 }
