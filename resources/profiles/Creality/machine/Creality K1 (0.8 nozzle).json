@@ -41,7 +41,7 @@
 	"single_extruder_multi_material": "0",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "PAUSE",
-	"default_filament_profile": ["Creality Generic PLA @0.8 nozzle"],
+	"default_filament_profile": ["Creality Generic PLA"],
 	"machine_start_gcode": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
 	"machine_end_gcode": "END_PRINT",
 	"scan_first_layer": "0"
