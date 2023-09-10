@@ -13,7 +13,7 @@
     "support_interface_speed": "80",
     "support_filament": "0",
     "support_interface_filament": "0",
-    "enable_prime_tower": "1",
+    "enable_prime_tower": "0",
     "initial_layer_speed": "50",
     "initial_layer_infill_speed": "105",
     "outer_wall_speed": "120",

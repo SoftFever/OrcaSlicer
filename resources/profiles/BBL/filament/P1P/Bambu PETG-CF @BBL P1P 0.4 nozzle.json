@@ -10,5 +10,6 @@
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle"
-    ]
+    ],
+    "version": "01.07.00.18"
 }

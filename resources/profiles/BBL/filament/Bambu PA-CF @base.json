@@ -5,8 +5,8 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_pa",
-    "filament_vendor": [
-        "Bambu Lab"
+    "filament_cost": [
+        "84.99"
     ],
     "filament_density": [
         "1.09"
@@ -14,22 +14,25 @@
     "filament_flow_ratio": [
         "0.96"
     ],
-    "nozzle_temperature_initial_layer": [
+    "filament_type": [
+        "PA-CF"
+    ],
+    "filament_vendor": [
+        "Bambu Lab"
+    ],
+    "nozzle_temperature": [
         "280"
     ],
-    "overhang_fan_threshold": [
-        "0%"
+    "nozzle_temperature_initial_layer": [
+        "280"
     ],
     "overhang_fan_speed": [
         "40"
     ],
-    "filament_type": [
-        "PA-CF"
+    "overhang_fan_threshold": [
+        "0%"
     ],
-    "filament_cost": [
-        "84.99"
-    ],
-    "nozzle_temperature": [
-        "280"
+    "temperature_vitrification": [
+        "170"
     ]
 }

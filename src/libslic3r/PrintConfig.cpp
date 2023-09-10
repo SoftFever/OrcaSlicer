@@ -1369,17 +1369,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 2. });
 
-    def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
-    def->label = L("Minimal purge on wipe tower");
-    def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
-                    "the nozzle may not be known, and the filament pressure is likely not yet stable. "
-                    "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
-                    "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
-    def->sidetext = L("mm³");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 15. });
-
     def = this->add("machine_load_filament_time", coFloat);
     def->label = L("Filament load time");
     def->tooltip = L("Time to load new filament when switch filament. For statistics only");
@@ -1415,6 +1404,132 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents{ 100 });
 
+def = this->add("filament_loading_speed", coFloats);
+    def->label = L("Loading speed");
+    def->tooltip = L("Speed used for loading the filament on the wipe tower.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 28. });
+
+    def = this->add("filament_loading_speed_start", coFloats);
+    def->label = L("Loading speed at the start");
+    def->tooltip = L("Speed used at the very beginning of loading phase.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 3. });
+
+    def = this->add("filament_unloading_speed", coFloats);
+    def->label = L("Unloading speed");
+    def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
+                      " initial part of unloading just after ramming).");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 90. });
+
+    def = this->add("filament_unloading_speed_start", coFloats);
+    def->label = L("Unloading speed at the start");
+    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 100. });
+
+    def = this->add("filament_toolchange_delay", coFloats);
+    def->label = L("Delay after unloading");
+    def->tooltip = L("Time to wait after the filament is unloaded. "
+                   "May help to get reliable toolchanges with flexible materials "
+                   "that may need more time to shrink to original dimensions.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
+    def = this->add("filament_cooling_moves", coInts);
+    def->label = L("Number of cooling moves");
+    def->tooltip = L("Filament is cooled by being moved back and forth in the "
+                   "cooling tubes. Specify desired number of these moves.");
+    def->max = 0;
+    def->max = 20;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts { 4 });
+
+    def = this->add("filament_cooling_initial_speed", coFloats);
+    def->label = L("Speed of the first cooling move");
+    def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 2.2 });
+
+    def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
+    def->label = L("Minimal purge on wipe tower");
+    def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
+                     "the nozzle may not be known, and the filament pressure is likely not yet stable. "
+                     "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
+                     "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 15. });
+
+    def = this->add("filament_cooling_final_speed", coFloats);
+    def->label = L("Speed of the last cooling move");
+    def->tooltip = L("Cooling moves are gradually accelerating towards this speed.");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 3.4 });
+
+    def = this->add("filament_load_time", coFloats);
+    def->label = L("Filament load time");
+    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
+    def = this->add("filament_ramming_parameters", coStrings);
+    def->label = L("Ramming parameters");
+    def->tooltip = L("This string is edited by RammingDialog and contains ramming specific parameters.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings { "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|"
+       " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" });
+
+    def = this->add("filament_unload_time", coFloats);
+    def->label = L("Filament unload time");
+    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to unload a filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
+    def = this->add("filament_multitool_ramming", coBools);
+    def->label = L("Enable ramming for multitool setups");
+    def->tooltip = L("Perform ramming when using multitool printer (i.e. when the 'Single Extruder Multimaterial' in Printer Settings is unchecked). "
+                     "When checked, a small amount of filament is rapidly extruded on the wipe tower just before the toolchange. "
+                     "This option is only used when the wipe tower is enabled.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBools { false });
+
+    def = this->add("filament_multitool_ramming_volume", coFloats);
+    def->label = L("Multitool ramming volume");
+    def->tooltip = L("The volume to be rammed before the toolchange.");
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 10. });
+
+    def = this->add("filament_multitool_ramming_flow", coFloats);
+    def->label = L("Multitool ramming flow");
+    def->tooltip = L("Flow used for ramming the filament before the toolchange.");
+    def->sidetext = L("mm³/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 10. });
+    
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only");
@@ -2460,6 +2575,48 @@ void PrintConfigDef::init_fff_params()
     def->readonly = false;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
 
+    def = this->add("cooling_tube_retraction", coFloat);
+    def->label = L("Cooling tube position");
+    def->tooltip = L("Distance of the center-point of the cooling tube from the extruder tip.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(91.5));
+
+    def = this->add("cooling_tube_length", coFloat);
+    def->label = L("Cooling tube length");
+    def->tooltip = L("Length of the cooling tube to limit space for cooling moves inside it.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(5.));
+
+    def = this->add("high_current_on_filament_swap", coBool);
+    def->label = L("High extruder current on filament swap");
+    def->tooltip = L("It may be beneficial to increase the extruder motor current during the filament exchange"
+                   " sequence to allow for rapid ramming feed rates and to overcome resistance when loading"
+                   " a filament with an ugly shaped tip.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(0));
+
+    def = this->add("parking_pos_retraction", coFloat);
+    def->label = L("Filament parking position");
+    def->tooltip = L("Distance of the extruder tip from the position where the filament is parked "
+                      "when unloaded. This should match the value in printer firmware.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(92.));
+
+    def = this->add("extra_loading_move", coFloat);
+    def->label = L("Extra loading distance");
+    def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
+                      "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
+                      " if negative, the loading move is shorter than unloading.");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-2.));
+
     def = this->add("start_end_points", coPoints);
     def->label = L("Start end points");
     def->tooltip  = L("The start and end points which is from cutter area to garbage can.");
@@ -3026,18 +3183,38 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { " " });
 
     def = this->add("single_extruder_multi_material", coBool);
-    //def->label = L("Single Extruder Multi Material");
-    //def->tooltip = L("Use single nozzle to print multi filament");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->label = L("Single Extruder Multi Material");
+    def->tooltip = L("Use single nozzle to print multi filament");
+    def->mode = comAdvanced;
+    def->readonly = true;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("purge_in_prime_tower", coBool);
+    def->label = L("Purge in prime tower");
+    def->tooltip = L("Purge remaining filament into prime tower");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("enable_filament_ramming", coBool);
+    def->label = L("Enable filament ramming");
+    def->tooltip = L("Enable filament ramming");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
-    //def->label = L("No sparse layers (EXPERIMENTAL)");
-    //def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
-    //                 "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
-    //                 "User is responsible for ensuring there is no collision with the print.");
-    def->mode = comDevelop;
+    def->label = L("No sparse layers (EXPERIMENTAL)");
+    def->tooltip = L("If enabled, the wipe tower will not be printed on layers with no toolchanges. "
+                    "On layers with a toolchange, extruder will travel downward to print the wipe tower. "
+                    "User is responsible for ensuring there is no collision with the print.");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("single_extruder_multi_material_priming", coBool);
+    def->label = L("Prime all printing extruders");
+    def->tooltip = L("If enabled, all printing extruders will be primed at the front edge of the print bed at the start of the print.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("slice_closing_radius", coFloat);
     def->label = L("Slice gap closing radius");
@@ -3679,7 +3856,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Flush multiplier");
     def->tooltip = L("The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table.");
     def->sidetext = "";
-    def->set_default_value(new ConfigOptionFloat(1.0));
+    def->set_default_value(new ConfigOptionFloat(0.3));
 
     // BBS
     def = this->add("prime_volume", coFloat);
@@ -3712,13 +3889,13 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 2.0;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionFloat(35.));
+    def->set_default_value(new ConfigOptionFloat(60.));
 
     def = this->add("wipe_tower_rotation_angle", coFloat);
-    //def->label = L("Wipe tower rotation angle");
-    //def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
-    //def->sidetext = L("°");
-    def->mode = comDevelop;
+    def->label = L("Wipe tower rotation angle");
+    def->tooltip = L("Wipe tower rotation angle with respect to x-axis.");
+    def->sidetext = L("°");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
     def = this->add("prime_tower_brim_width", coFloat);
@@ -3728,6 +3905,41 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 0.;
     def->set_default_value(new ConfigOptionFloat(3.));
+
+    def = this->add("wipe_tower_cone_angle", coFloat);
+    def->label = L("Stabilization cone apex angle");
+    def->tooltip = L("Angle at the apex of the cone that is used to stabilize the wipe tower. "
+                     "Larger angle means wider base.");
+    def->sidetext = L("°");
+    def->mode = comAdvanced;
+    def->min = 0.;
+    def->max = 90.;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def = this->add("wipe_tower_extra_spacing", coPercent);
+    def->label = L("Wipe tower purge lines spacing");
+    def->tooltip = L("Spacing of purge lines on the wipe tower.");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 100.;
+    def->max = 300.;
+    def->set_default_value(new ConfigOptionPercent(100.));
+
+    def = this->add("wipe_tower_extruder", coInt);
+    def->label = L("Wipe tower extruder");
+    def->category = L("Extruders");
+    def->tooltip = L("The extruder to use when printing perimeter of the wipe tower. "
+                     "Set to 0 to use the one that is available (non-soluble would be preferred).");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
+
+    def = this->add("wiping_volumes_extruders", coFloats);
+    def->label = L("Purging volumes - load/unload volumes");
+    def->tooltip = L("This vector saves required volumes to change from/to each tool used on the "
+                     "wipe tower. These values are used to simplify creation of the full purging "
+                     "volumes below.");
+    def->set_default_value(new ConfigOptionFloats { 70., 70., 70., 70., 70., 70., 70., 70., 70., 70.  });
 
     def = this->add("flush_into_infill", coBool);
     def->category = L("Flush options");
@@ -3754,13 +3966,12 @@ void PrintConfigDef::init_fff_params()
         "It will not take effect, unless the prime tower is enabled.");
     def->set_default_value(new ConfigOptionBool(false));
 
-    //BBS
-    //def = this->add("wipe_tower_bridging", coFloat);
-    //def->label = L("Maximal bridging distance");
-    //def->tooltip = L("Maximal distance between supports on sparse infill sections.");
-    //def->sidetext = L("mm");
-    //def->mode = comAdvanced;
-    //def->set_default_value(new ConfigOptionFloat(10.));
+    def = this->add("wipe_tower_bridging", coFloat);
+    def->label = L("Maximal bridging distance");
+    def->tooltip = L("Maximal distance between supports on sparse infill sections.");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(10.));
 
     def = this->add("xy_hole_compensation", coFloat);
     def->label = L("X-Y hole compensation");
@@ -4704,7 +4915,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         }
     } else if (opt_key == "overhang_fan_threshold" && value == "5%") {
         value = "10%";
-    } 
+    } else if(opt_key == "single_extruder_multi_material") {
+        value = "1";
+    }
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {

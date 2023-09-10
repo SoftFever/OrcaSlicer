@@ -88,6 +88,8 @@ private:
     wxStaticText*   m_staticText_progress_percent;
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
+    // Orca: show print end time
+    wxStaticText * m_staticText_progress_end;
     wxStaticText*   m_staticText_layers;
     wxStaticBitmap* m_bitmap_thumbnail;
     wxStaticBitmap* m_bitmap_static_use_time;

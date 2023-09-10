@@ -27,7 +27,7 @@
 	],
 	"printer_settings_id": "Qidi",
 	"retraction_minimum_travel": [
-		"2"
+		"1"
 	],
 	"retraction_length": [
 		"0.8"
@@ -38,10 +38,10 @@
 	"deretraction_speed": [
 		"0"
 	],
-	"single_extruder_multi_material": "0",
+	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [
-		"Qidi Generic PLA"
+		"QIDI PLA Rapido"
 	]
 }

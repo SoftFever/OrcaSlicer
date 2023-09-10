@@ -7,6 +7,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "WipeTowerDialog.hpp"
 
 #include "Search.hpp"
 #include "OG_CustomCtrl.hpp"
@@ -1590,15 +1591,15 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
             wxPostEvent(m_page_view, evt);
         }
     }
-    //else if (category == "Single extruder MM setup") {
-    //    // When we show and hide "Single extruder MM setup" page,
-    //    // related options are still in the search list
-    //    // So, let's hightlighte a "single_extruder_multi_material" option,
-    //    // as a "way" to show hidden page again
-    //    field = get_field("single_extruder_multi_material");
-    //    if (field)
-    //        set_focus(field->getWindow());
-    //}
+    else if (category == "Single extruder MM setup") {
+       // When we show and hide "Single extruder MM setup" page,
+       // related options are still in the search list
+       // So, let's hightlighte a "single_extruder_multi_material" option,
+       // as a "way" to show hidden page again
+       field = get_field("single_extruder_multi_material");
+       if (field)
+           set_focus(field->getWindow());
+    }
 
     m_highlighter.init(get_custom_ctrl_with_blinking_ptr(opt_key));
 }
@@ -2072,6 +2073,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_width");
         optgroup->append_single_option_line("prime_volume");
         optgroup->append_single_option_line("prime_tower_brim_width");
+        optgroup->append_single_option_line("wipe_tower_rotation_angle");
+        optgroup->append_single_option_line("wipe_tower_bridging");
+        optgroup->append_single_option_line("wipe_tower_cone_angle");
+        optgroup->append_single_option_line("wipe_tower_extra_spacing");
+        optgroup->append_single_option_line("wipe_tower_no_sparse_layers");
+        // optgroup->append_single_option_line("single_extruder_multi_material_priming");
+
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
         optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
@@ -2814,12 +2822,6 @@ void TabFilament::build()
 
         //BBS
         add_filament_overrides_page();
-#if 0
-    //page = add_options_page(L("Advanced"), "advanced");
-    //    optgroup = page->new_optgroup(L("Wipe tower parameters"));
-    //    optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
-#endif
-
         const int gcode_field_height = 15; // 150
         const int notes_field_height = 25; // 250
 
@@ -2844,7 +2846,49 @@ void TabFilament::build()
         option.opt.height = gcode_field_height;// 150;
         optgroup->append_single_option_line(option);
 
-    page = add_options_page(L("Notes"), "note");
+    page = add_options_page(L("Multimaterial"), "advanced");
+        optgroup = page->new_optgroup(L("Wipe tower parameters"));
+        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
+
+        optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
+        optgroup->append_single_option_line("filament_loading_speed_start");
+        optgroup->append_single_option_line("filament_loading_speed");
+        optgroup->append_single_option_line("filament_unloading_speed_start");
+        optgroup->append_single_option_line("filament_unloading_speed");
+        optgroup->append_single_option_line("filament_load_time");
+        optgroup->append_single_option_line("filament_unload_time");
+        optgroup->append_single_option_line("filament_toolchange_delay");
+        optgroup->append_single_option_line("filament_cooling_moves");
+        optgroup->append_single_option_line("filament_cooling_initial_speed");
+        optgroup->append_single_option_line("filament_cooling_final_speed");
+
+        create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
+            auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+            wxGetApp().UpdateDarkUI(ramming_dialog_btn);
+            ramming_dialog_btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
+            ramming_dialog_btn->SetSize(ramming_dialog_btn->GetBestSize());
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(ramming_dialog_btn);
+
+            ramming_dialog_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+                RammingDialog dlg(this,(m_config->option<ConfigOptionStrings>("filament_ramming_parameters"))->get_at(0));
+                if (dlg.ShowModal() == wxID_OK) {
+                    load_key_value("filament_ramming_parameters", dlg.get_parameters());
+                    update_changed_ui();
+                }
+            });
+            return sizer;
+        });
+
+        // Orca: multi tool is not supported yet.
+#ifdef ORCA_MULTI_TOOL
+        optgroup = page->new_optgroup(L("Toolchange parameters with multi extruder MM printers"));
+        optgroup->append_single_option_line("filament_multitool_ramming");
+        optgroup->append_single_option_line("filament_multitool_ramming_volume");
+        optgroup->append_single_option_line("filament_multitool_ramming_flow");
+#endif
+
+        page                  = add_options_page(L("Notes"), "note");
         optgroup = page->new_optgroup(L("Notes"),"note", 0);
         optgroup->label_width = 0;
         option = optgroup->get_option("filament_notes");
@@ -2917,7 +2961,7 @@ void TabFilament::toggle_options()
           wxGetApp().preset_bundle->is_bbl_vendor();
     }
 
-    if (m_active_page->title() == "Cooling") {
+    if (m_active_page->title() == L("Cooling")) {
       bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
       toggle_option("slow_down_min_speed", cooling);
 
@@ -2929,7 +2973,7 @@ void TabFilament::toggle_options()
           "additional_cooling_fan_speed",
           m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("auxiliary_fan")->value);
     }
-    if (m_active_page->title() == "Filament")
+    if (m_active_page->title() == L("Filament"))
     {
         bool pa = m_config->opt_bool("enable_pressure_advance", 0);
         toggle_option("pressure_advance", pa);
@@ -2939,8 +2983,17 @@ void TabFilament::toggle_options()
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
         toggle_option("chamber_temperature", !is_BBL_printer);
     }
-    if (m_active_page->title() == "Setting Overrides")
+    if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page();
+
+    if (m_active_page->title() == L("Multimaterial")) {
+        // Orca: hide specific settings for BBL printers
+        for (auto el :
+             {"filament_minimal_purge_on_wipe_tower", "filament_loading_speed_start", "filament_loading_speed",
+              "filament_unloading_speed_start", "filament_unloading_speed", "filament_load_time", "filament_unload_time",
+              "filament_toolchange_delay", "filament_cooling_moves", "filament_cooling_initial_speed", "filament_cooling_final_speed"})
+            toggle_option(el, !is_BBL_printer);
+    }
 }
 
 void TabFilament::update()
@@ -3041,12 +3094,12 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
         optgroup->append_single_option_line("nozzle_volume");
-        // BBS
+
 #if 0
         //optgroup->append_single_option_line("z_offset");
+#endif
 
-        //optgroup = page->new_optgroup(L("Capabilities"));
-        //ConfigOptionDef def;
+        // ConfigOptionDef def;
         //    def.type =  coInt,
         //    def.set_default_value(new ConfigOptionInt(1));
         //    def.label = L("Extruders");
@@ -3055,87 +3108,8 @@ void TabPrinter::build_fff()
         //    def.max = 256;
         //    //BBS
         //    def.mode = comDevelop;
-        //Option option(def, "extruders_count");
-        //optgroup->append_single_option_line(option);
-        //optgroup->append_single_option_line("single_extruder_multi_material");
-
-        //optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
-        //    // optgroup->get_value() return int for def.type == coInt,
-        //    // Thus, there should be boost::any_cast<int> !
-        //    // Otherwise, boost::any_cast<size_t> causes an "unhandled unknown exception"
-        //    size_t extruders_count = size_t(boost::any_cast<int>(optgroup->get_value("extruders_count")));
-        //    wxTheApp->CallAfter([this, opt_key, value, extruders_count]() {
-        //        if (opt_key == "extruders_count" || opt_key == "single_extruder_multi_material") {
-        //            extruders_count_changed(extruders_count);
-        //            init_options_list(); // m_options_list should be updated before UI updating
-        //            update_dirty();
-        //            if (opt_key == "single_extruder_multi_material") { // the single_extruder_multimaterial was added to force pages
-        //                on_value_change(opt_key, value);                      // rebuild - let's make sure the on_value_change is not skipped
-
-        //                if (boost::any_cast<bool>(value) && m_extruders_count > 1) {
-        //                    SuppressBackgroundProcessingUpdate sbpu;
-        //                    std::vector<double> nozzle_diameters = static_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values;
-        //                    const double frst_diam = nozzle_diameters[0];
-
-        //                    for (auto cur_diam : nozzle_diameters) {
-        //                        // if value is differs from first nozzle diameter value
-        //                        if (fabs(cur_diam - frst_diam) > EPSILON) {
-        //                            const wxString msg_text = _(L("Single Extruder Multi Material is selected, \n"
-        //                                                          "and all extruders must have the same diameter.\n"
-        //                                                          "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"));
-        //                            //wxMessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
-        //                            MessageDialog dialog(parent(), msg_text, _(L("Nozzle diameter")), wxICON_WARNING | wxYES_NO);
-
-        //                            DynamicPrintConfig new_conf = *m_config;
-        //                            if (dialog.ShowModal() == wxID_YES) {
-        //                                for (size_t i = 1; i < nozzle_diameters.size(); i++)
-        //                                    nozzle_diameters[i] = frst_diam;
-
-        //                                new_conf.set_key_value("nozzle_diameter", new ConfigOptionFloats(nozzle_diameters));
-        //                            }
-        //                            else
-        //                                new_conf.set_key_value("single_extruder_multi_material", new ConfigOptionBool(false));
-
-        //                            load_config(new_conf);
-        //                            break;
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        else {
-        //            update_dirty();
-        //            on_value_change(opt_key, value);
-        //        }
-        //    });
-        //};
-
-        //optgroup = page->new_optgroup(L("Firmware"));
-
-        //optgroup->append_single_option_line("silent_mode");
-
-        //optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value) {
-        //    wxTheApp->CallAfter([this, opt_key, value]() {
-        //        if (opt_key == "silent_mode") {
-        //            bool val = boost::any_cast<bool>(value);
-        //            if (m_use_silent_mode != val) {
-        //                m_rebuild_kinematics_page = true;
-        //                m_use_silent_mode = val;
-        //            }
-        //        }
-        //        if (opt_key == "gcode_flavor") {
-        //            bool supports_travel_acceleration = (boost::any_cast<int>(value) == int(gcfMarlinFirmware));
-        //            if (supports_travel_acceleration != m_supports_travel_acceleration) {
-        //                m_rebuild_kinematics_page = true;
-        //                m_supports_travel_acceleration = supports_travel_acceleration;
-        //            }
-        //        }
-        //        build_unregular_pages();
-        //        update_dirty();
-        //        on_value_change(opt_key, value);
-        //    });
-        //};
-#endif
+        // Option option(def, "extruders_count");
+        // optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("gcode_flavor");
@@ -3452,35 +3426,31 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         n_before_extruders++;
     size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
 
-    //if (m_extruders_count_old == m_extruders_count ||
-    //    (m_has_single_extruder_MM_page && m_extruders_count == 1))
-    //{
-    //    // if we have a single extruder MM setup, add a page with configuration options:
-    //    for (size_t i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
-    //        if (m_pages[i]->title().find(L("Single extruder MM setup")) != std::string::npos) {
-    //            m_pages.erase(m_pages.begin() + i);
-    //            break;
-    //        }
-    //    m_has_single_extruder_MM_page = false;
-    //}
+    if (from_initial_build) {
+        // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+        auto page     = add_options_page(L("Multimaterial"), "printer", true);
+        auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
+        optgroup->append_single_option_line("single_extruder_multi_material");
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
+            wxTheApp->CallAfter([this, opt_key, value]() {
+                if (opt_key == "single_extruder_multi_material") {
+                    build_unregular_pages();
+                }
+            });
+        };
+        optgroup = page->new_optgroup(L("Wipe tower"));
+        optgroup->append_single_option_line("purge_in_prime_tower");
+        optgroup->append_single_option_line("enable_filament_ramming");
 
-    //BBS: please add our single extruder multimaterial parameters here. Currently
-    //comment this part because we have no such config in this page.
-#if 0
-    //if (from_initial_build ||
-    //    (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page)) {
-    //    // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-    //    auto page = add_options_page(L("Single extruder MM setup"), "printer", true);
-    //    auto optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
-    //
-    //    if (from_initial_build)
-    //        page->clear();
-    //    else {
-    //        m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
-    //        m_has_single_extruder_MM_page = true;
-    //    }
-    //}
-#endif
+
+        optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
+        optgroup->append_single_option_line("cooling_tube_retraction");
+        optgroup->append_single_option_line("cooling_tube_length");
+        optgroup->append_single_option_line("parking_pos_retraction");
+        optgroup->append_single_option_line("extra_loading_move");
+        optgroup->append_single_option_line("high_current_on_filament_swap");
+        m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
+    }
 
     // BBS. Just create one extruder page because BBL machine has only on physical extruder.
     // Build missed extruder pages
@@ -3640,6 +3610,7 @@ void TabPrinter::on_preset_loaded()
     // update the GUI field according to the number of nozzle diameters supplied
     extruders_count_changed(extruders_count);
 #endif
+    build_unregular_pages();
 }
 
 void TabPrinter::update_pages()
@@ -3722,8 +3693,7 @@ void TabPrinter::toggle_options()
     //if (m_active_page->title() == "Custom G-code") {
     //    toggle_option("change_filament_gcode", have_multiple_extruders);
     //}
-    if (m_active_page->title() == "Basic information") {
-        toggle_option("single_extruder_multi_material", have_multiple_extruders);
+    if (m_active_page->title() == L("Basic information")) {
 
         // SoftFever: hide BBL specific settings
         for (auto el :
@@ -3735,9 +3705,18 @@ void TabPrinter::toggle_options()
           toggle_line(el, !is_BBL_printer);
     }
 
+    if (m_active_page->title() == L("Multimaterial")) {
+        // toggle_option("single_extruder_multi_material", have_multiple_extruders);
+
+        // SoftFever: hide specific settings for BBL printer
+        for (auto el :
+             {"purge_in_prime_tower", "enable_filament_ramming", "cooling_tube_retraction", "cooling_tube_length", "parking_pos_retraction", "extra_loading_move", "high_current_on_filament_swap",  })
+          toggle_option(el, !is_BBL_printer);
+
+    }
     wxString extruder_number;
     long val = 1;
-    if ( m_active_page->title().IsSameAs("Extruder") ||
+    if ( m_active_page->title().IsSameAs(L("Extruder")) ||
         (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
         val > 0 && (size_t)val <= m_extruders_count))
     {
@@ -3804,7 +3783,7 @@ void TabPrinter::toggle_options()
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
 
-    if (m_active_page->title() == "Motion ability") {
+    if (m_active_page->title() == L("Motion ability")) {
         auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         assert(gcf == gcfMarlinLegacy || gcf == gcfMarlinFirmware || gcf == gcfKlipper);
         bool silent_mode = m_config->opt_bool("silent_mode");

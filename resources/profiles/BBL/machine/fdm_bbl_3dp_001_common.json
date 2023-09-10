@@ -160,5 +160,7 @@
     "machine_pause_gcode": "M400 U1",
     "wipe": [
         "1"
-    ]
+    ],
+    "purge_in_prime_tower": "0",
+    "enable_filament_ramming": "0"
 }

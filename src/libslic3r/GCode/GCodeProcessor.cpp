@@ -3093,7 +3093,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     }
 
     if (m_spiral_vase_active && !m_result.spiral_vase_layers.empty()) {
-        if (m_result.spiral_vase_layers.back().first == FLT_MAX && delta_pos[Z] > 0.0)
+        if (m_result.spiral_vase_layers.back().first == FLT_MAX && delta_pos[Z] >= 0.0)
             // replace layer height placeholder with correct value
             m_result.spiral_vase_layers.back().first = static_cast<float>(m_end_position[Z]);
         if (!m_result.moves.empty())

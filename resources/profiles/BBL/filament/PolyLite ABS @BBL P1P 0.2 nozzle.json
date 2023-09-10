@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "setting_id": "GFSB60_05",
+    "name": "PolyLite ABS @BBL P1P 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "PolyLite ABS @BBL P1P",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.2 nozzle"
+    ],
+    "version": "01.07.00.18"
+}

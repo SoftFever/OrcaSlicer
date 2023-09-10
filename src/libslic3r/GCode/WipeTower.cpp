@@ -128,9 +128,9 @@ public:
     }
 
     WipeTowerWriter&            disable_linear_advance() {
-        if(m_gcode_flavor == gcfKlipper)
+        if (m_gcode_flavor == gcfKlipper)
             m_gcode += "SET_PRESSURE_ADVANCE ADVANCE=0\n";
-        else if(m_gcode_flavor == gcfRepRapFirmware)
+        else if (m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += std::string("M572 D") + std::to_string(m_current_tool) + " S0\n";
         else
             m_gcode += "M900 K0\n";
@@ -418,30 +418,36 @@ public:
 	// Let the firmware back up the active speed override value.
 	WipeTowerWriter& speed_override_backup()
     {
-        // This is only supported by Prusa at this point (https://github.com/prusa3d/PrusaSlicer/issues/3114)
+        // BBS: BBL machine don't support speed backup
+#if 0
         if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 B\n";
+#endif
 		return *this;
     }
 
 	// Let the firmware restore the active speed override value.
 	WipeTowerWriter& speed_override_restore()
 	{
+	    // BBS: BBL machine don't support speed restore
+#if 0
         if (m_gcode_flavor == gcfMarlinLegacy || m_gcode_flavor == gcfMarlinFirmware)
             m_gcode += "M220 R\n";
+#endif
 		return *this;
     }
 
 	// Set digital trimpot motor
 	WipeTowerWriter& set_extruder_trimpot(int current)
 	{
-        if (m_gcode_flavor == gcfKlipper)
-            return *this;
+        // BBS: don't control trimpot
+#if 0
         if (m_gcode_flavor == gcfRepRapSprinter || m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += "M906 E";
         else
             m_gcode += "M907 E";
         m_gcode += std::to_string(current) + "\n";
+#endif
 		return *this;
     }
 
