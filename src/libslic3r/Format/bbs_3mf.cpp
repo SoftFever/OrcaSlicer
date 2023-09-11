@@ -5883,9 +5883,26 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             /* step width and step height */
             int sw = thumbnail_data.width / PLATE_THUMBNAIL_SMALL_WIDTH;
             int sh = thumbnail_data.height / PLATE_THUMBNAIL_SMALL_HEIGHT;
-            for (int i = 0; i < thumbnail_data.width; i += sw) {
-                for (int j = 0; j < thumbnail_data.height; j += sh) {
-                    memcpy((void*)&small_pixels[4*(i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh)], thumbnail_data.pixels.data() + 4*(i * thumbnail_data.width + j), 4);
+            for (int i = 0; i < thumbnail_data.height; i += sh) {
+                for (int j = 0; j < thumbnail_data.width; j += sw) {
+                    int r = 0, g = 0, b = 0, a = 0;
+                    for (int m = 0; m < sh; m++) {
+                        for (int n = 0; n < sw; n++) {
+                            r += (int)thumbnail_data.pixels[4 * ((i + m) * thumbnail_data.width + j + n) + 0];
+                            g += (int)thumbnail_data.pixels[4 * ((i + m) * thumbnail_data.width + j + n) + 1];
+                            b += (int)thumbnail_data.pixels[4 * ((i + m) * thumbnail_data.width + j + n) + 2];
+                            a += (int)thumbnail_data.pixels[4 * ((i + m) * thumbnail_data.width + j + n) + 3];
+                        }
+                    }
+                    r = std::clamp(0, r / sw / sh, 255);
+                    g = std::clamp(0, g / sw / sh, 255);
+                    b = std::clamp(0, b / sw / sh, 255);
+                    a = std::clamp(0, a / sw / sh, 255);
+                    small_pixels[4 * (i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh) + 0] = (unsigned char)r;
+                    small_pixels[4 * (i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh) + 1] = (unsigned char)g;
+                    small_pixels[4 * (i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh) + 2] = (unsigned char)b;
+                    small_pixels[4 * (i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh) + 3] = (unsigned char)a;
+                    //memcpy((void*)&small_pixels[4*(i / sw * PLATE_THUMBNAIL_SMALL_WIDTH + j / sh)], thumbnail_data.pixels.data() + 4*(i * thumbnail_data.width + j), 4);
                 }
             }
             size_t small_png_size = 0;
