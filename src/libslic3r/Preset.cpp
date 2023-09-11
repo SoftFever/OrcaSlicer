@@ -523,9 +523,13 @@ void Preset::save(DynamicPrintConfig* parent_config)
             opt_dst->set(opt_src);
         }
         temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string(), this->custom_defined);
-    }
-    else
+    } else if (!filament_id.empty() && inherits().empty()) {
+        DynamicPrintConfig temp_config = config;
+        temp_config.set_key_value("filament_id", new ConfigOptionString(filament_id));
+        temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string(), this->custom_defined);
+    } else {
         this->config.save_to_json(this->file, this->name, from_str, this->version.to_string(), this->custom_defined);
+    }
 
     fs::path idx_file(this->file);
     idx_file.replace_extension(".info");
@@ -1132,6 +1136,8 @@ void PresetCollection::load_presets(
                     }
                     preset.version = *version;
 
+                    if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
+                        preset.filament_id = key_values[BBL_JSON_KEY_FILAMENT_ID];
                     if (key_values.find(BBL_JSON_KEY_IS_CUSTOM) != key_values.end())
                         preset.custom_defined = key_values[BBL_JSON_KEY_IS_CUSTOM];
                     if (key_values.find("instantiation") != key_values.end())
@@ -1275,6 +1281,8 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         {
             key_values[iter->first] = iter->second->serialize();
         }
+        if (!preset.filament_id.empty())
+            key_values[BBL_JSON_KEY_BASE_ID] = preset.filament_id;
     }
 
     //add other values
@@ -2116,9 +2124,9 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
 bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten)
 {
     return clone_presets(presets, failures, [printer](Preset &preset) {
-        preset.name = preset.alias + " @ " + printer;
-        preset.alias                = preset.name;
-        auto *compatible_printers     = dynamic_cast<ConfigOptionStrings*>(preset.config.option("compatible_printers"));
+        preset.name = preset.name.substr(0, preset.name.find("@")) + " @ " + printer;
+        //preset.alias                = "";
+        auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
     }, force_rewritten);
 }
@@ -2136,7 +2144,7 @@ bool PresetCollection::clone_presets_for_filament(std::vector<Preset const *> co
 {
     return clone_presets(presets, failures, [filament_name, filament_id](Preset &preset) {
         preset.name        = filament_name + " " + preset.name.substr(preset.name.find_last_of('@'));
-        preset.alias       = filament_name;
+        //preset.alias       = "";
         preset.filament_id = filament_id;
         },
         force_rewritten);
