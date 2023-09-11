@@ -834,7 +834,7 @@ void ObjectList::set_found_list(wxString current_search_text) {
     else {
         auto column = GetColumn(colName);
         wxString match_num = wxString::Format("%d", m_found_list.size());
-        wxString match_message = " (" + match_num + _L(" research result") + ")";
+        wxString match_message = " (" + match_num + _L(" search results") + ")";
         wxString column_name = _L("Name") + match_message;
         column->SetTitle(column_name);
     }
