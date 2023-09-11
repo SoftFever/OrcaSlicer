@@ -4529,7 +4529,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     std::vector<ProcessedPoint> new_points {};
 
     if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
-        (is_bridge(path.role()) || is_perimeter(path.role()))) {
+        ( is_perimeter(path.role()))) {
         double out_wall_ref_speed = m_config.get_abs_value("outer_wall_speed");
         ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
         ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
@@ -4545,8 +4545,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
              (m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
                  FloatOrPercent{100, true} :
                  FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true},
-             FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / out_wall_ref_speed, true},
-             FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / out_wall_ref_speed, true}});
+                          (m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
+                 FloatOrPercent{100, true} :
+                 FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true},
+                          (m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
+                 FloatOrPercent{100, true} :
+                 FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true}});
 
         if (out_wall_ref_speed == 0)
             out_wall_ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
