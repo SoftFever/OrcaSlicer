@@ -282,6 +282,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "enable_arc_fitting"
             || opt_key == "wall_infill_order") {
             osteps.emplace_back(posPerimeters);
+            osteps.emplace_back(posEstimateCurledExtrusions);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
 			osteps.emplace_back(posSimplifyPath);
