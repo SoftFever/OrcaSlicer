@@ -2859,7 +2859,7 @@ GCode::LayerResult GCode::process_layer(
 
     PrinterStructure printer_structure           = m_config.printer_structure.value;
     bool need_insert_timelapse_gcode_for_traditional = false;
-    if (printer_structure == PrinterStructure::psI3 && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
+    if (printer_structure == PrinterStructure::psI3 && !m_spiral_vase && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
         need_insert_timelapse_gcode_for_traditional = true;
     }
     bool has_insert_timelapse_gcode = false;
@@ -2881,7 +2881,7 @@ GCode::LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
-    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional) {
+    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase) {
         std::string timepals_gcode = insert_timelapse_gcode();
         gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);

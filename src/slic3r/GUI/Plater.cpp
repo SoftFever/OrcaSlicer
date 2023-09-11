@@ -2840,7 +2840,7 @@ wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& wa
     } else if (warning.msg == NOZZLE_HRC_CHECKER) {
         return _L("The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged.");
     } else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
-        return _L("Enable traditional timelapse will cause artifacts on this model.");
+        return _L("Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode.");
     } else {
         return wxString(warning.msg);
     }
