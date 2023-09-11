@@ -502,7 +502,7 @@ void PrintObject::generate_support_material()
 void PrintObject::estimate_curled_extrusions()
 {
     if (this->set_started(posEstimateCurledExtrusions)) {
-   		//printf("Estimating curled Extrusions \n");
+    printf("Estimating curled Extrusions \n");
         if ( std::any_of(this->print()->m_print_regions.begin(), this->print()->m_print_regions.end(),
                         [](const PrintRegion *region) { return region->config().enable_overhang_speed.getBool(); })) {
 

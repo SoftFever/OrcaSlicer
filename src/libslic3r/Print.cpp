@@ -1668,6 +1668,15 @@ void Print::process(bool use_cache)
         }
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
+                obj->estimate_curled_extrusions();
+            }
+            else {
+                if (obj->set_started(posEstimateCurledExtrusions))
+                    obj->set_done(posEstimateCurledExtrusions);
+            }
+        }
+        for (PrintObject *obj : m_objects) {
+            if (need_slicing_objects.count(obj) != 0) {
                 obj->infill();
             }
             else {
@@ -1693,7 +1702,6 @@ void Print::process(bool use_cache)
                     PrintObject* obj = m_objects[i];
                     if (need_slicing_objects.count(obj) != 0) {
                         obj->generate_support_material();
-                        obj->estimate_curled_extrusions();
                     }
                     else {
                         if (obj->set_started(posSupportMaterial))
