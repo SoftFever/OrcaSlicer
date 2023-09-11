@@ -371,15 +371,11 @@ public:
                 return final_speed;
             };
             
-            float old_extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
-            float extrusion_speed = std::min(calculate_speed(curr.distance+artificial_distance_to_curled_lines), calculate_speed(next.distance+artificial_distance_to_curled_lines));
+            float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
+            float curled_speed = calculate_speed(artificial_distance_to_curled_lines);
+            extrusion_speed       = std::min(curled_speed, extrusion_speed); // adjust extrusion speed based on what is smallest - the calculated overhang speed or the artificial curled speed
+            
             float overlap = std::min(1 - curr.distance * width_inv, 1 - next.distance * width_inv);
-			
-			/*printf("artificial_distance_to_curled_lines %f, curr.distance %f, next.distance %f, calculate_speed(curr.distance)%f,calculate_speed(next.distance) %f, new A%f, new B%f \n",artificial_distance_to_curled_lines, curr.distance,next.distance, calculate_speed(curr.distance),calculate_speed(next.distance), 
-					calculate_speed(curr.distance+artificial_distance_to_curled_lines), calculate_speed(next.distance+artificial_distance_to_curled_lines) );*/
-			
-			//if(artificial_distance_to_curled_lines>0 ) {printf("Found curls. Artificial distance: %f\n",artificial_distance_to_curled_lines ); /*extrusion_speed=500;*/}// Temporary debug messages
-			//if(old_extrusion_speed>extrusion_speed ) printf("Reduced speed. Original: %f, New: %f\n",old_extrusion_speed,extrusion_speed); // Temporary debug messages
 			
             processed_points.push_back({ scaled(curr.position), extrusion_speed, overlap });
         }
