@@ -514,7 +514,7 @@ void PrintObject::estimate_curled_extrusions()
             SupportSpotsGenerator::estimate_malformations(this->layers(), params);
             m_print->throw_if_canceled();
         }
-        this->set_done(posEstimateCurledExtrusions);
+        //this->set_done(posEstimateCurledExtrusions);
     }
 }
 
