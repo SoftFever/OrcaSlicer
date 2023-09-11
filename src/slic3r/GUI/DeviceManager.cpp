@@ -1645,9 +1645,22 @@ int MachineObject::command_control_fan_val(FanType fan_type, int val)
 
 int MachineObject::command_task_abort()
 {
+    BOOST_LOG_TRIVIAL(trace) << "command_task_abort: ";
     json j;
     j["print"]["command"] = "stop";
     j["print"]["param"] = "";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+    return this->publish_json(j.dump(), 1);
+}
+
+int MachineObject::command_task_cancel(std::string job_id)
+{
+    BOOST_LOG_TRIVIAL(trace) << "command_task_cancel: " << job_id;
+    json j;
+    j["print"]["command"] = "stop";
+    j["print"]["param"] = "";
+    j["print"]["job_id"] = job_id;
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
     return this->publish_json(j.dump(), 1);
@@ -2460,6 +2473,7 @@ void MachineObject::reset()
     nozzle_diameter = 0.0f;
     network_wired = false;
     dev_connection_name = "";
+    job_id_ = "";
 
     // reset print_json
     json empty_j;
@@ -3064,6 +3078,10 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
+                    if (jj.contains("job_id")) {
+                        this->job_id_ = jj["job_id"].get<std::string>();
+                    }
+
                     if (jj.contains("queue_number")) {
                         this->queue_number = jj["queue_number"].get<int>();
                     } else {
@@ -4010,6 +4028,15 @@ int MachineObject::parse_json(std::string payload)
                         t["signal"] = this->wifi_signal;
                         m_agent->track_event("ack_cmd_gcode_line", t.dump());
                     }
+                } else if (jj["command"].get<std::string>() == "project_prepare") {
+                    //ack of project file
+                    BOOST_LOG_TRIVIAL(info) << "parse_json, ack of project_prepare = " << j.dump(4);
+                    if (m_agent) {
+                        if (jj.contains("job_id")) {
+                            this->job_id_ = jj["job_id"].get<std::string>();
+                        }
+                    }
+
                 } else if (jj["command"].get<std::string>() == "project_file") {
                     //ack of project file
                     BOOST_LOG_TRIVIAL(debug) << "parse_json, ack of project_file = " << j.dump(4);
@@ -4020,7 +4047,6 @@ int MachineObject::parse_json(std::string payload)
                         t["signal"] = this->wifi_signal;
                         m_agent->track_event("ack_cmd_project_file", t.dump());
                     }
-
                     std::string result;
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();

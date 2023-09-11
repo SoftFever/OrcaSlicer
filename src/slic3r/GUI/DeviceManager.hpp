@@ -722,8 +722,6 @@ public:
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;
 
-    
-
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
     MachineObject::SdcardState get_sdcard_state();
@@ -742,6 +740,7 @@ public:
     std::string  profile_id_;
     std::string  task_id_;
     std::string  subtask_id_;
+    std::string  job_id_;
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
 
@@ -786,6 +785,8 @@ public:
     int command_control_fan(FanType fan_type, bool on_off);
     int command_control_fan_val(FanType fan_type, int val);
     int command_task_abort();
+    /* cancelled the job_id */
+    int command_task_cancel(std::string job_id);
     int command_task_pause();
     int command_task_resume();
     int command_set_bed(int temp);
