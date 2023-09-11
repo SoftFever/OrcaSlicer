@@ -175,11 +175,6 @@ void estimate_malformations(LayerPtrs &layers, const Params &params)
 
                     line_out.curled_up_height = estimate_curled_up_height(middle_distance * sign, 0.5 * (a.curvature + b.curvature),
                                                                           l->height, flow_width, bottom_line.curled_up_height, params);
-                    
-                    /*printf("middle_distance %f, sign %f , curvature %f , l->height %f, flow_width %f, bottom_line.curled_up_height%f\n", 
-                     middle_distance, sign , 0.5 * (a.curvature + b.curvature), l->height, flow_width, bottom_line.curled_up_height);*/
-                    
-                    //printf("Curled up height: %f\n", line_out.curled_up_height);
 
                     current_layer_lines.push_back(line_out);
                 }

@@ -502,12 +502,10 @@ void PrintObject::generate_support_material()
 void PrintObject::estimate_curled_extrusions()
 {
     if (this->set_started(posEstimateCurledExtrusions)) {
-    printf("Estimating curled Extrusions \n");
         if ( std::any_of(this->print()->m_print_regions.begin(), this->print()->m_print_regions.end(),
                         [](const PrintRegion *region) { return region->config().enable_overhang_speed.getBool(); })) {
 
             // Estimate curling of support material and add it to the malformaition lines of each layer
-            //printf("Estimating curling of support material and add it to the malformaition lines of each layer \n");
             float support_flow_width = support_material_flow(this, this->config().layer_height).width();
             SupportSpotsGenerator::Params params{this->print()->m_config.filament_type.values,
                                                  float(this->print()->m_config.inner_wall_acceleration.getFloat()),
@@ -516,7 +514,7 @@ void PrintObject::estimate_curled_extrusions()
             SupportSpotsGenerator::estimate_malformations(this->layers(), params);
             m_print->throw_if_canceled();
         }
-        //this->set_done(posEstimateCurledExtrusions);
+        this->set_done(posEstimateCurledExtrusions);
     }
 }
 

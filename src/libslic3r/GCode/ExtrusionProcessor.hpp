@@ -270,7 +270,6 @@ public:
                                                            float                               ext_perimeter_speed,
                                                            float                               original_speed)
     {
-        //printf("Estimate extrusion quality triggered \n");
         size_t                               speed_sections_count = std::min(overlaps.values.size(), speeds.values.size());
         std::vector<std::pair<float, float>> speed_sections;
         
