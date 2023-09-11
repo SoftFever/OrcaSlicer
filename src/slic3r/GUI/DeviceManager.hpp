@@ -573,6 +573,7 @@ public:
     std::string wifi_signal;
     std::string link_th;
     std::string link_ams;
+    bool        network_wired { false };
 
     /* lights */
     LIGHT_EFFECT chamber_light;
