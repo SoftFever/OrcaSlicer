@@ -278,6 +278,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
         wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."));
+
+        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+            msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
+        }
+
         if (is_global_config)
             msg_text += "\n\n" + _(L("Change these settings automatically? \n"
                                      "Yes - Change these settings and enable spiral mode automatically\n"
