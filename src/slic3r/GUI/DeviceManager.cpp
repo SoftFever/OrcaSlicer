@@ -1357,6 +1357,8 @@ void MachineObject::parse_status(int flag)
     }
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
+
+    network_wired = ((flag >> 18) & 0x1) != 0;
 }
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
@@ -2413,6 +2415,7 @@ void MachineObject::reset()
     m_new_ver_list_exist = false;
     extruder_axis_status = LOAD;
     nozzle_diameter = 0.0f;
+    network_wired = false;
 
     // reset print_json
     json empty_j;
