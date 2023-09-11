@@ -423,6 +423,26 @@ Transform3d rotation_transform(const Vec3d& rotation)
     return transform;
 }
 
+void scale_transform(Transform3d &transform, double scale) {
+    return scale_transform(transform, scale * Vec3d::Ones());
+}
+
+void scale_transform(Transform3d &transform, const Vec3d &scale)
+{
+    transform = Transform3d::Identity();
+    transform.scale(scale);
+}
+Transform3d scale_transform(double scale) {
+    return scale_transform(scale * Vec3d::Ones());
+}
+
+Transform3d scale_transform(const Vec3d &scale)
+{
+    Transform3d transform;
+    scale_transform(transform, scale);
+    return transform;
+}
+
 Transformation::Flags::Flags()
     : dont_translate(true)
     , dont_rotate(true)
@@ -454,7 +474,11 @@ Transformation::Transformation(const Transform3d& transform)
     set_from_transform(transform);
 }
 
-void Transformation::set_offset(const Vec3d& offset)
+Transform3d Transformation::get_offset_matrix() const { 
+   return translation_transform(get_offset());
+}
+
+void Transformation::set_offset(const Vec3d &offset)
 {
     set_offset(X, offset(0));
     set_offset(Y, offset(1));
@@ -470,7 +494,27 @@ void Transformation::set_offset(Axis axis, double offset)
     }
 }
 
-void Transformation::set_rotation(const Vec3d& rotation)
+static Transform3d extract_rotation_matrix(const Transform3d &trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return Transform3d(rotation);
+}
+
+static Transform3d extract_scale(const Transform3d &trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return Transform3d(scale);
+}
+
+Transform3d Transformation::get_rotation_matrix() const { 
+    return extract_rotation_matrix(m_matrix); 
+}
+
+void Transformation::set_rotation(const Vec3d &rotation)
 {
     set_rotation(X, rotation(0));
     set_rotation(Y, rotation(1));
@@ -577,12 +621,31 @@ void Transformation::reset()
     m_dirty = false;
 }
 
+void Transformation::reset_rotation() {
+    const Geometry::TransformationSVD svd(*this);
+    m_matrix = get_offset_matrix() * Transform3d(svd.v * svd.s * svd.v.transpose()) * svd.mirror_matrix();
+}
+
+void Transformation::reset_scaling_factor() {
+    const Geometry::TransformationSVD svd(*this);
+    m_matrix = get_offset_matrix() * Transform3d(svd.u) * Transform3d(svd.v.transpose()) * svd.mirror_matrix();
+}
+
+void Transformation::reset_skew() {
+    auto new_scale_factor = [](const Matrix3d &s) {
+        return pow(s(0, 0) * s(1, 1) * s(2, 2), 1. / 3.); // scale average
+    };
+
+    const Geometry::TransformationSVD svd(*this);
+    m_matrix = get_offset_matrix() * Transform3d(svd.u) * scale_transform(new_scale_factor(svd.s)) * Transform3d(svd.v.transpose()) * svd.mirror_matrix();
+}
+
 const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
     if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale, dont_mirror))
     {
         m_matrix = Geometry::assemble_transform(
-            dont_translate ? Vec3d::Zero() : m_offset, 
+            dont_translate ? Vec3d::Zero() : m_offset,
             dont_rotate ? Vec3d::Zero() : m_rotation,
             dont_scale ? Vec3d::Ones() : m_scaling_factor,
             dont_mirror ? Vec3d::Ones() : m_mirror
@@ -593,6 +656,20 @@ const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rot
     }
 
     return m_matrix;
+}
+
+Transform3d Transformation::get_matrix_no_offset() const
+{
+    Transformation copy(*this);
+    copy.reset_offset();
+    return copy.get_matrix();
+}
+
+Transform3d Transformation::get_matrix_no_scaling_factor() const
+{
+    Transformation copy(*this);
+    copy.reset_scaling_factor();
+    return copy.get_matrix();
 }
 
 Transformation Transformation::operator * (const Transformation& other) const
@@ -709,4 +786,48 @@ double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
     return (axis.z() < 0) ? -angle : angle;
 }
 
-}} // namespace Slic3r::Geometry
+Geometry::TransformationSVD::TransformationSVD(const Transform3d &trafo)
+{
+    const auto &m0 = trafo.matrix().block<3, 3>(0, 0);
+    mirror         = m0.determinant() < 0.0;
+
+    Matrix3d m;
+    if (mirror)
+        m = m0 * Eigen::DiagonalMatrix<double, 3, 3>(-1.0, 1.0, 1.0);
+    else
+        m = m0;
+    const Eigen::JacobiSVD<Matrix3d> svd(m, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    u = svd.matrixU();
+    v = svd.matrixV();
+    s = svd.singularValues().asDiagonal();
+
+    scale             = !s.isApprox(Matrix3d::Identity());
+    anisotropic_scale = !is_approx(s(0, 0), s(1, 1)) || !is_approx(s(1, 1), s(2, 2));
+    rotation          = !v.isApprox(u);
+
+    if (anisotropic_scale) {
+        rotation_90_degrees = true;
+        for (int i = 0; i < 3; ++i) {
+            const Vec3d  row       = v.row(i).cwiseAbs();
+            const size_t num_zeros = is_approx(row[0], 0.) + is_approx(row[1], 0.) + is_approx(row[2], 0.);
+            const size_t num_ones  = is_approx(row[0], 1.) + is_approx(row[1], 1.) + is_approx(row[2], 1.);
+            if (num_zeros != 2 || num_ones != 1) {
+                rotation_90_degrees = false;
+                break;
+            }
+        }
+        // Detect skew by brute force: check if the axes are still orthogonal after transformation
+        const Matrix3d             trafo_linear = trafo.linear();
+        const std::array<Vec3d, 3> axes         = {Vec3d::UnitX(), Vec3d::UnitY(), Vec3d::UnitZ()};
+        std::array<Vec3d, 3>       transformed_axes;
+        for (int i = 0; i < 3; ++i) { transformed_axes[i] = trafo_linear * axes[i]; }
+        skew = std::abs(transformed_axes[0].dot(transformed_axes[1])) > EPSILON || std::abs(transformed_axes[1].dot(transformed_axes[2])) > EPSILON ||
+               std::abs(transformed_axes[2].dot(transformed_axes[0])) > EPSILON;
+
+        // This following old code does not work under all conditions. The v matrix can become non diagonal (see SPE-1492)
+        //        skew = ! rotation_90_degrees;
+    } else
+        skew = false;
+}
+} // namespace Geometry
+} // namespace Slic3r

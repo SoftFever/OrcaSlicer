@@ -356,6 +356,12 @@ Transform3d translation_transform(const Vec3d &translation);
 // 2) rotate Y
 // 3) rotate Z
 Transform3d rotation_transform(const Vec3d &rotation);
+// Sets the given transform by assembling the given scale factors
+void scale_transform(Transform3d &transform, double scale);
+void scale_transform(Transform3d &transform, const Vec3d &scale);
+// Returns the transform obtained by assembling the given scale factors
+Transform3d scale_transform(double scale);
+Transform3d scale_transform(const Vec3d &scale);
 
 class Transformation
 {
@@ -390,13 +396,13 @@ public:
 
     const Vec3d& get_offset() const { return m_offset; }
     double get_offset(Axis axis) const { return m_offset(axis); }
-
+    Transform3d get_offset_matrix() const;
     void set_offset(const Vec3d& offset);
     void set_offset(Axis axis, double offset);
 
     const Vec3d& get_rotation() const { return m_rotation; }
     double get_rotation(Axis axis) const { return m_rotation(axis); }
-
+    Transform3d get_rotation_matrix() const;
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
 
@@ -417,8 +423,15 @@ public:
     void set_from_transform(const Transform3d& transform);
 
     void reset();
+    void reset_offset() { set_offset(Vec3d::Zero()); }
+    void reset_rotation();
+    void reset_scaling_factor();
+    void reset_mirror() { set_mirror(Vec3d::Ones()); }
+    void reset_skew();
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+    Transform3d        get_matrix_no_offset() const;
+    Transform3d        get_matrix_no_scaling_factor() const;
 
     Transformation operator * (const Transformation& other) const;
 
@@ -442,6 +455,25 @@ private:
 		construct(1);
 		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, construct.ptr()->m_mirror);
 	}
+};
+
+struct TransformationSVD
+{
+    Matrix3d u{Matrix3d::Identity()};
+    Matrix3d s{Matrix3d::Identity()};
+    Matrix3d v{Matrix3d::Identity()};
+
+    bool mirror{false};
+    bool scale{false};
+    bool anisotropic_scale{false};
+    bool rotation{false};
+    bool rotation_90_degrees{false};
+    bool skew{false};
+
+    explicit TransformationSVD(const Transformation &trafo) : TransformationSVD(trafo.get_matrix()) {}
+    explicit TransformationSVD(const Transform3d &trafo);
+
+    Eigen::DiagonalMatrix<double, 3, 3> mirror_matrix() const { return Eigen::DiagonalMatrix<double, 3, 3>(this->mirror ? -1. : 1., 1., 1.); }
 };
 
 // For parsing a transformation matrix from 3MF / AMF.
