@@ -77,13 +77,13 @@ std::pair<bool, std::string> GLShadersManager::init()
         //if (GUI::wxGetApp().plater() && GUI::wxGetApp().plater()->is_wireframe_enabled())
         //    valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
         //else
-            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
+            valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});//{"mm_gouraud.vs", "mm_gouraud.fs"}
     }
     else {
         //if (GUI::wxGetApp().plater() && GUI::wxGetApp().plater()->is_wireframe_enabled())
         //    valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"});
         //else
-            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
+            valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"});//{"mm_gouraud.vs", "mm_gouraud.fs"}
     }
 
     //BBS: add shader for outline

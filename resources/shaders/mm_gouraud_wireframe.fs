@@ -19,12 +19,13 @@ const float EPSILON = 0.0001;
 //BBS: add grey and orange
 //const vec3 GREY = vec3(0.9, 0.9, 0.9);
 const vec3 ORANGE = vec3(0.8, 0.4, 0.0);
-
+const vec3 LightRed = vec3(0.78, 0.0, 0.0);
+const vec3 LightBlue = vec3(0.73, 1.0, 1.0);
 uniform vec4 uniform_color;
 
 varying vec3 clipping_planes_dots;
 varying vec4 model_pos;
-
+varying vec4 world_pos;
 uniform bool volume_mirrored;
 
 struct SlopeDetection
@@ -65,19 +66,24 @@ void main()
     float alpha = uniform_color.a;
 
     vec3 triangle_normal = normalize(cross(dFdx(model_pos.xyz), dFdy(model_pos.xyz)));
-#ifdef FLIP_TRIANGLE_NORMALS
-    triangle_normal = -triangle_normal;
-#endif
-
-    vec3 transformed_normal = normalize(slope.volume_world_normal_matrix * triangle_normal);
-    if (slope.actived && transformed_normal.z < slope.normal_z - EPSILON) {
-        //color = vec3(0.7, 0.7, 1.0);
-        color = color * 0.5 + ORANGE * 0.5;
-        alpha = 1.0;
-    }
-
     if (volume_mirrored)
+    {
         triangle_normal = -triangle_normal;
+    }
+    vec3 transformed_normal = normalize(slope.volume_world_normal_matrix * triangle_normal);
+
+    if (slope.actived) {
+        if(world_pos.z<0.1&&world_pos.z>-0.1)
+         {
+              color = LightBlue;
+              alpha = 1.0;
+         }
+         else if( transformed_normal.z < slope.normal_z - EPSILON)
+        {
+            color = color * 0.7 + LightRed * 0.3;
+            alpha = 1.0;
+        }
+    }
 
     // First transform the normal into camera space and normalize the result.
     vec3 eye_normal = normalize(gl_NormalMatrix * triangle_normal);

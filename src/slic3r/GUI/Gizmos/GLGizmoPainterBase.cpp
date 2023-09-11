@@ -1252,6 +1252,12 @@ float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
+    static bool last_show_wireframe = false;
+    if (last_show_wireframe != wxGetApp().plater()->is_show_wireframe()) {
+        last_show_wireframe  = wxGetApp().plater()->is_show_wireframe();
+        m_update_render_data = true;
+        m_paint_changed      = true;
+    }
     if (m_update_render_data)
         update_render_data();
 
@@ -1262,9 +1268,9 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
     GLint position_id = -1;
     GLint barycentric_id = -1;
     if (wxGetApp().plater()->is_wireframe_enabled()) {
-        position_id = shader->get_attrib_location("v_position");
-        barycentric_id = shader->get_attrib_location("v_barycentric");
         if (m_need_wireframe && wxGetApp().plater()->is_show_wireframe()) {
+            position_id    = shader->get_attrib_location("v_position");
+            barycentric_id = shader->get_attrib_location("v_barycentric");
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe on");
             shader->set_uniform("show_wireframe", true);
         }
@@ -1324,7 +1330,7 @@ void TriangleSelectorPatch::update_triangles_per_type()
         patch.triangle_indices.reserve(m_triangles.size() / 3);
     }
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled())?true:false;
+    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
 
     for (auto& triangle : m_triangles) {
         if (!triangle.valid() || triangle.is_split())
@@ -1382,7 +1388,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled())?true:false;
+    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
