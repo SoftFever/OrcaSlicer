@@ -2374,13 +2374,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
         show_ams_group(true);
-
-        if (!is_support_filament_backup) {
-            m_ams_control->show_auto_refill(false); 
-        }
-        else {
-            m_ams_control->show_auto_refill(true); 
-        }
+        m_ams_control->show_auto_refill(true); 
     }
 
 
