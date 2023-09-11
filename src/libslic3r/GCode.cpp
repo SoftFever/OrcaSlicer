@@ -2925,7 +2925,7 @@ GCode::LayerResult GCode::process_layer(
     } 
     else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
         auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
-        gcode += writer().set_temperature(print.calib_params().end - offset);
+        gcode += writer().set_temperature(print.calib_params().start - offset);
     }
     else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
         auto _speed = print.calib_params().start + print_z * print.calib_params().step;
