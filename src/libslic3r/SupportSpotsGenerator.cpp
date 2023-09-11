@@ -105,10 +105,15 @@ float estimate_curled_up_height(
     float curled_up_height = 0;
     if (fabs(distance) < 3.0 * flow_width) {
         curled_up_height = std::max(prev_line_curled_height - layer_height * 0.75f, 0.0f);
+        //printf("If 1 %d\n",curled_up_height);
     }
+    
+    //printf("distance %f, params.malformation_distance_factors.first %f, params.malformation_distance_factors.second %f, flow_width %f\n", distance, params.malformation_distance_factors.first, params.malformation_distance_factors.second, flow_width);
+    //printf("distance %f,params.malformation_distance_factors.first * flow_width %f, params.malformation_distance_factors.second * flow_width %f\n", distance, params.malformation_distance_factors.first * flow_width, params.malformation_distance_factors.second * flow_width);
 
     if (distance > params.malformation_distance_factors.first * flow_width &&
         distance < params.malformation_distance_factors.second * flow_width) {
+        
         // imagine the extrusion profile. The part that has been glued (melted) with the previous layer will be called anchored section
         // and the rest will be called curling section
         // float anchored_section = flow_width - point.distance;
@@ -170,6 +175,11 @@ void estimate_malformations(LayerPtrs &layers, const Params &params)
 
                     line_out.curled_up_height = estimate_curled_up_height(middle_distance * sign, 0.5 * (a.curvature + b.curvature),
                                                                           l->height, flow_width, bottom_line.curled_up_height, params);
+                    
+                    /*printf("middle_distance %f, sign %f , curvature %f , l->height %f, flow_width %f, bottom_line.curled_up_height%f\n", 
+                     middle_distance, sign , 0.5 * (a.curvature + b.curvature), l->height, flow_width, bottom_line.curled_up_height);*/
+                    
+                    //printf("Curled up height: %f\n", line_out.curled_up_height);
 
                     current_layer_lines.push_back(line_out);
                 }

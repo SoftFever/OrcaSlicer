@@ -270,6 +270,7 @@ public:
                                                            float                               ext_perimeter_speed,
                                                            float                               original_speed)
     {
+        //printf("Estimate extrusion quality triggered \n");
         size_t                               speed_sections_count = std::min(overlaps.values.size(), speeds.values.size());
         std::vector<std::pair<float, float>> speed_sections;
         
@@ -374,8 +375,11 @@ public:
             float extrusion_speed = std::min(calculate_speed(curr.distance+artificial_distance_to_curled_lines), calculate_speed(next.distance+artificial_distance_to_curled_lines));
             float overlap = std::min(1 - curr.distance * width_inv, 1 - next.distance * width_inv);
 			
-			if(artificial_distance_to_curled_lines>0 ) printf("Found curls\n"); // Temporary debug messages
-			if(old_extrusion_speed>extrusion_speed ) printf("Reduced speed. Original: %f, New: %f\n",old_extrusion_speed,extrusion_speed); // Temporary debug messages
+			/*printf("artificial_distance_to_curled_lines %f, curr.distance %f, next.distance %f, calculate_speed(curr.distance)%f,calculate_speed(next.distance) %f, new A%f, new B%f \n",artificial_distance_to_curled_lines, curr.distance,next.distance, calculate_speed(curr.distance),calculate_speed(next.distance), 
+					calculate_speed(curr.distance+artificial_distance_to_curled_lines), calculate_speed(next.distance+artificial_distance_to_curled_lines) );*/
+			
+			//if(artificial_distance_to_curled_lines>0 ) {printf("Found curls. Artificial distance: %f\n",artificial_distance_to_curled_lines ); /*extrusion_speed=500;*/}// Temporary debug messages
+			//if(old_extrusion_speed>extrusion_speed ) printf("Reduced speed. Original: %f, New: %f\n",old_extrusion_speed,extrusion_speed); // Temporary debug messages
 			
             processed_points.push_back({ scaled(curr.position), extrusion_speed, overlap });
         }
