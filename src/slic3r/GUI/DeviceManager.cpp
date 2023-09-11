@@ -4098,7 +4098,16 @@ int MachineObject::parse_json(std::string payload)
                             GUI::wxGetApp().CallAfter([cali_mode, reason] {
                                 wxString info = "";
                                 if (reason == "invalid nozzle_diameter") {
-                                    info = _L("Invalid nozzle diameter");
+                                    info = _L("This calibration does not support the currently selected nozzle diameter");
+                                }
+                                else if (reason == "invalid handle_flowrate_cali param") {
+                                    info = _L("Current flowrate cali param is invalid");
+                                }
+                                else if (reason == "nozzle_diameter is not matched") {
+                                    info = _L("Selected diameter and machine diameter do not match");
+                                }
+                                else if (reason == "generate auto filament cali gcode failure") {
+                                    info = _L("Failed to generate cali gcode");
                                 }
                                 else {
                                     info = reason;

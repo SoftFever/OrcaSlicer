@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-08 15:39+0800\n"
+"POT-Creation-Date: 2023-09-11 17:12+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1948,14 +1948,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2588,21 +2588,31 @@ msgstr "更新失败。"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
 
-msgid "Invalid nozzle diameter"
-msgstr "非法喷嘴口径"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr "该标定不支持当前选中喷嘴直径"
+
+msgid "Current flowrate cali param is invalid"
+msgstr "当前流量标定参数非法"
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr "选择的直径和机器直径不匹配"
+
+msgid "Failed to generate cali gcode"
+msgstr "生成标定GCode失败"
 
 msgid "Calibration error"
 msgstr "校准错误"
@@ -3823,8 +3833,8 @@ msgstr "层： N/A"
 msgid "Clear"
 msgstr "清除"
 
-msgid "Immediately score"
-msgstr "立即打分"
+msgid "Rating"
+msgstr ""
 
 msgid "Camera"
 msgstr "摄像机"
@@ -3927,7 +3937,10 @@ msgstr "狂暴"
 msgid "Can't start this without SD card."
 msgstr "没有SD卡无法开始任务"
 
-msgid "Scoring"
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Rate"
 msgstr ""
 
 msgid "Comment"
@@ -3940,6 +3953,9 @@ msgid "Add Photo"
 msgstr ""
 
 msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
 msgstr ""
 
 msgid "Please click on the star first."
@@ -3960,13 +3976,13 @@ msgstr ""
 msgid " upload failed"
 msgstr ""
 
-msgid "upload config prase failed\n"
+msgid " upload config prase failed\n"
 msgstr ""
 
-msgid "No corresponding storage bucket\n"
+msgid " No corresponding storage bucket\n"
 msgstr ""
 
-msgid "can not be opened\n"
+msgid " can not be opened\n"
 msgstr ""
 
 msgid ""
@@ -3998,6 +4014,11 @@ msgid ""
 msgstr ""
 
 msgid "You can select up to 5 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
 msgstr ""
 
 msgid "Status"
@@ -5024,6 +5045,18 @@ msgstr "自定义"
 msgid "First layer filament sequence"
 msgstr "首层耗材打印顺序"
 
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "开启"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral Vase"
+msgstr ""
+
 msgid "Same as Global Plate Type"
 msgstr "跟随全局打印板类型"
 
@@ -5425,8 +5458,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -6381,8 +6414,16 @@ msgstr "访问码"
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "在哪里可以找到打印机的IP和访问代码?"
 
-msgid "Error: IP or Access Code are not correct"
-msgstr "错误:IP或访问代码不正确"
+msgid "Test"
+msgstr ""
+
+msgid "Connection failed, please double check IP and Access Code"
+msgstr ""
+
+msgid ""
+"Connection failed! If your IP and Access Code is correct, \n"
+"please move to step 3 for troubleshooting network issues"
+msgstr ""
 
 msgid "Model:"
 msgstr "型号："
@@ -7507,6 +7548,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -8203,9 +8247,6 @@ msgstr ""
 "当空驶完全在填充区域内时不触发回抽。这意味着即使漏料也是不可见的。对于复杂模"
 "型，该设置能够减少回抽次数以及打印时长，但是会造成G-code生成变慢"
 
-msgid "Enable"
-msgstr "开启"
-
 msgid "Filename format"
 msgstr "文件名格式"
 
@@ -8722,6 +8763,9 @@ msgstr "粗壮树"
 
 msgid "Tree Hybrid"
 msgstr "混合树"
+
+msgid "Tree Organic"
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "支撑独立层高"
@@ -9460,6 +9504,11 @@ msgid ""
 "End value: > Start value\n"
 "Value step: >= %.3f)"
 msgstr ""
+"请输入有效值:\n"
+"起始值: >= %.1f\n"
+"结束值: <= %.1f\n"
+"结束值: > 起始值\n"
+"值步长: >= %.3f)"
 
 msgid "The name cannot be empty."
 msgstr "名称不能为空。"
@@ -9744,7 +9793,7 @@ msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr "请输入一个有效值（0<=最大容积速度<=60）"
 
 msgid "Pattern"
-msgstr ""
+msgstr "图案"
 
 msgid "Calibration Type"
 msgstr "校准类型"
@@ -9766,10 +9815,10 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -9800,7 +9849,7 @@ msgid "Extra info"
 msgstr "额外信息"
 
 msgid "Method"
-msgstr ""
+msgstr "模式"
 
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
@@ -9813,10 +9862,13 @@ msgid "Connecting to printer"
 msgstr "正在连接打印机"
 
 msgid "From k Value"
-msgstr ""
+msgstr "起始k值"
 
 msgid "To k Value"
-msgstr ""
+msgstr "结束k值"
+
+msgid "Value step"
+msgstr "值步长"
 
 msgid "0.5"
 msgstr ""
@@ -9835,6 +9887,9 @@ msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
 msgstr "至体积速度"
+
+msgid "mm\\u00B3/s"
+msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
@@ -9855,28 +9910,28 @@ msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
 
 msgid "PA Calibration"
-msgstr ""
+msgstr "PA标定"
 
 msgid "PA Tower"
-msgstr ""
+msgstr "PA塔"
 
 msgid "PA Line"
-msgstr ""
+msgstr "PA线"
 
 msgid "PA Pattern"
-msgstr ""
+msgstr "PA图案"
 
 msgid "Start PA: "
-msgstr ""
+msgstr "起始PA值"
 
 msgid "End PA: "
-msgstr ""
+msgstr "结束PA值"
 
 msgid "PA step: "
-msgstr ""
+msgstr "PA值步长"
 
 msgid "Print numbers"
-msgstr ""
+msgstr "打印数字"
 
 msgid ""
 "Please input valid values:\n"
@@ -9884,9 +9939,13 @@ msgid ""
 "End PA: > Start PA\n"
 "PA step: >= 0.001)"
 msgstr ""
+"请输入有效值:\n"
+"起始PA值: >= 0.0\n"
+"结束PA值: > Start PA\n"
+"PA值步长: >= 0.001)"
 
 msgid "Temperature calibration"
-msgstr ""
+msgstr "温度标定"
 
 msgid "PLA"
 msgstr ""
@@ -9907,16 +9966,16 @@ msgid "PET-CF"
 msgstr ""
 
 msgid "Filament type"
-msgstr ""
+msgstr "材料类型"
 
 msgid "Start temp: "
-msgstr ""
+msgstr "起始温度值"
 
 msgid "End temp: "
-msgstr ""
+msgstr "结束温度值"
 
 msgid "Temp step: "
-msgstr ""
+msgstr "温度值步长"
 
 msgid ""
 "Please input valid values:\n"
@@ -9924,45 +9983,55 @@ msgid ""
 "End temp: >= 180\n"
 "Start temp > End temp + 5)"
 msgstr ""
+"请输入有效值:\n"
+"起始温度值: <= 350\n"
+"结束温度值: >= 180\n"
+"起始值 > 结束值 + 5)"
 
 msgid "Max volumetric speed test"
-msgstr ""
+msgstr "最大体积流量速度测试"
 
 msgid "Start volumetric speed: "
-msgstr ""
+msgstr "起始流量速度"
 
 msgid "End volumetric speed: "
-msgstr ""
+msgstr "结束流量速度"
 
 msgid "step: "
-msgstr ""
+msgstr "值步长"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"请输入有效值:\n"
+"起始值 > 0 \\值步长 >= 0\n"
+"结束值 > 起始值 + 值步长)"
 
 msgid "VFA test"
-msgstr ""
+msgstr "VFA测试"
 
 msgid "Start speed: "
-msgstr ""
+msgstr "起始速度"
 
 msgid "End speed: "
-msgstr ""
+msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"请输入有效值:\n"
+"起始值 > 0 \\值步长 >= 0\n"
+"结束值 > 起始值 + 值步长)"
 
 msgid "Start retraction length: "
-msgstr ""
+msgstr "起始回抽长度"
 
 msgid "End retraction length: "
-msgstr ""
+msgstr "结束回抽长度"
 
 msgid "mm/mm"
 msgstr ""
@@ -9989,7 +10058,7 @@ msgid "Finished"
 msgstr "完成"
 
 msgid "Send to print"
-msgstr ""
+msgstr "发送打印"
 
 msgid "Upload to Printer Host with the following filename:"
 msgstr ""
@@ -10390,6 +10459,15 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Invalid nozzle diameter"
+#~ msgstr "非法喷嘴口径"
+
+#~ msgid "Immediately score"
+#~ msgstr "立即打分"
+
+#~ msgid "Error: IP or Access Code are not correct"
+#~ msgstr "错误:IP或访问代码不正确"
 
 #~ msgid "Can't connect to the printer"
 #~ msgstr "无法连接打印机"

@@ -767,8 +767,8 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     if (m_cali_mode == CalibMode::Calib_PA_Line || m_cali_mode == CalibMode::Calib_PA_Pattern) {
         wxArrayString pa_cali_modes;
-        pa_cali_modes.push_back(PA_LINE);
-        pa_cali_modes.push_back(PA_PATTERN);
+        pa_cali_modes.push_back(_L("Line"));
+        pa_cali_modes.push_back(_L("Pattern"));
         m_pa_cali_method_combox = new CaliComboBox(parent, _L("Method"), pa_cali_modes);
     }
     
@@ -1523,7 +1523,7 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                 wxArrayString titles;
                 titles.push_back(_L("From k Value"));
                 titles.push_back(_L("To k Value"));
-                titles.push_back(_L("Step"));
+                titles.push_back(_L("Value step"));
                 m_custom_range_panel->set_titles(titles);
 
                 wxArrayString values;

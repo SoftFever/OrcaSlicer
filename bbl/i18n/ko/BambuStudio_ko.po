@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-08 15:39+0800\n"
+"POT-Creation-Date: 2023-09-11 17:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1983,14 +1983,14 @@ msgstr "베드 온도"
 msgid "Max volumetric speed"
 msgstr "최대 체적 속도"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "베드 온도"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "시작"
@@ -2647,20 +2647,30 @@ msgstr "업데이트 실패"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "출력 작업을 시작하지 못했습니다."
 
-msgid "Invalid nozzle diameter"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
 msgstr ""
 
 msgid "Calibration error"
@@ -3885,8 +3895,8 @@ msgstr "레이어: N/A"
 msgid "Clear"
 msgstr "지우기"
 
-msgid "Immediately score"
-msgstr "즉시 점수 매기기"
+msgid "Rating"
+msgstr ""
 
 msgid "Camera"
 msgstr "카메라"
@@ -3991,7 +4001,10 @@ msgstr "루디크러스"
 msgid "Can't start this without SD card."
 msgstr "microSD 카드 없이는 시작할 수 없습니다."
 
-msgid "Scoring"
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Rate"
 msgstr ""
 
 msgid "Comment"
@@ -4004,6 +4017,9 @@ msgid "Add Photo"
 msgstr ""
 
 msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
 msgstr ""
 
 msgid "Please click on the star first."
@@ -4024,13 +4040,13 @@ msgstr ""
 msgid " upload failed"
 msgstr ""
 
-msgid "upload config prase failed\n"
+msgid " upload config prase failed\n"
 msgstr ""
 
-msgid "No corresponding storage bucket\n"
+msgid " No corresponding storage bucket\n"
 msgstr ""
 
-msgid "can not be opened\n"
+msgid " can not be opened\n"
 msgstr ""
 
 msgid ""
@@ -4062,6 +4078,11 @@ msgid ""
 msgstr ""
 
 msgid "You can select up to 5 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
 msgstr ""
 
 msgid "Status"
@@ -5119,6 +5140,18 @@ msgstr ""
 msgid "First layer filament sequence"
 msgstr ""
 
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "활성화"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral Vase"
+msgstr ""
+
 msgid "Same as Global Plate Type"
 msgstr "글로벌 플레이트 타입과 동일"
 
@@ -5526,8 +5559,8 @@ msgstr "이용약관"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Bambu Lab 기기를 구매해 주셔서 감사합니다. Bambu Lab 기기를 사용하기 전에 이"
@@ -6512,8 +6545,16 @@ msgstr "액세스 코드"
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "프린터의 IP 및 액세스 코드는 어디서 찾을 수 있습니까?"
 
-msgid "Error: IP or Access Code are not correct"
-msgstr "오류: IP 또는 액세스 코드가 올바르지 않음"
+msgid "Test"
+msgstr ""
+
+msgid "Connection failed, please double check IP and Access Code"
+msgstr ""
+
+msgid ""
+"Connection failed! If your IP and Access Code is correct, \n"
+"please move to step 3 for troubleshooting network issues"
+msgstr ""
 
 msgid "Model:"
 msgstr "모델:"
@@ -7695,6 +7736,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "와이프타워에 최소 짜내기"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "필라멘트 로드 시간"
 
@@ -8434,9 +8478,6 @@ msgstr ""
 "보이지 않기 때문입니다. 이렇게 하면 복잡한 모델의 리트랙션 시간을 줄이고 출"
 "력 시간을 절약할 수 있지만 슬라이싱 및 G 코드 생성 속도가 느려집니다."
 
-msgid "Enable"
-msgstr "활성화"
-
 msgid "Filename format"
 msgstr "파일 이름 형식"
 
@@ -8970,6 +9011,9 @@ msgstr "트리 스트롱"
 
 msgid "Tree Hybrid"
 msgstr "트리 하이브리드"
+
+msgid "Tree Organic"
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "독립 서포트 레이어 높이"
@@ -9993,10 +10037,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10042,6 +10086,9 @@ msgstr ""
 msgid "To k Value"
 msgstr ""
 
+msgid "Value step"
+msgstr ""
+
 msgid "0.5"
 msgstr ""
 
@@ -10058,6 +10105,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10163,7 +10213,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10178,7 +10228,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10634,6 +10684,12 @@ msgstr ""
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
 
+#~ msgid "Immediately score"
+#~ msgstr "즉시 점수 매기기"
+
+#~ msgid "Error: IP or Access Code are not correct"
+#~ msgstr "오류: IP 또는 액세스 코드가 올바르지 않음"
+
 #~ msgid "Can't connect to the printer"
 #~ msgstr "프린터에 연결할 수 없습니다"
 
@@ -10764,12 +10820,6 @@ msgstr ""
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "동적 압출량 캘리의 요인"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid "Flow Calibration"
 #~ msgstr "Flow calibration"

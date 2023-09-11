@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-08 15:39+0800\n"
+"POT-Creation-Date: 2023-09-11 17:12+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2010,14 +2010,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -2691,20 +2691,30 @@ msgstr "Uppdatering misslyckades."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "Det gick inte att starta utskriftsjobbet"
 
-msgid "Invalid nozzle diameter"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
 msgstr ""
 
 msgid "Calibration error"
@@ -3933,8 +3943,8 @@ msgstr "Lager: N/A"
 msgid "Clear"
 msgstr "Rensa"
 
-msgid "Immediately score"
-msgstr "Omedelbar resultat"
+msgid "Rating"
+msgstr ""
 
 msgid "Camera"
 msgstr "Kamera"
@@ -4039,7 +4049,10 @@ msgstr "Galet"
 msgid "Can't start this without SD card."
 msgstr "Kan inte starta utan MicroSD-kort."
 
-msgid "Scoring"
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Rate"
 msgstr ""
 
 msgid "Comment"
@@ -4052,6 +4065,9 @@ msgid "Add Photo"
 msgstr ""
 
 msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
 msgstr ""
 
 msgid "Please click on the star first."
@@ -4072,13 +4088,13 @@ msgstr ""
 msgid " upload failed"
 msgstr ""
 
-msgid "upload config prase failed\n"
+msgid " upload config prase failed\n"
 msgstr ""
 
-msgid "No corresponding storage bucket\n"
+msgid " No corresponding storage bucket\n"
 msgstr ""
 
-msgid "can not be opened\n"
+msgid " can not be opened\n"
 msgstr ""
 
 msgid ""
@@ -4110,6 +4126,11 @@ msgid ""
 msgstr ""
 
 msgid "You can select up to 5 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
 msgstr ""
 
 msgid "Status"
@@ -5174,6 +5195,18 @@ msgstr ""
 msgid "First layer filament sequence"
 msgstr ""
 
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Aktivera"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral Vase"
+msgstr ""
+
 msgid "Same as Global Plate Type"
 msgstr "Samma som Global Bed Type"
 
@@ -5593,8 +5626,8 @@ msgstr "Villkor och bestämmelser"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab "
@@ -6607,8 +6640,16 @@ msgstr "Behörighetskod: "
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Var hittar du skrivarens IP- och åtkomstkod?"
 
-msgid "Error: IP or Access Code are not correct"
-msgstr "Fel: IP eller Åtkomstkod är inte korrekta"
+msgid "Test"
+msgstr ""
+
+msgid "Connection failed, please double check IP and Access Code"
+msgstr ""
+
+msgid ""
+"Connection failed! If your IP and Access Code is correct, \n"
+"please move to step 3 for troubleshooting network issues"
+msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
@@ -7815,6 +7856,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
 
@@ -8574,9 +8618,6 @@ msgstr ""
 "indragning för komplexa modeller och spara utskriftstid, men gör beredning "
 "och generering av G-kod långsammare."
 
-msgid "Enable"
-msgstr "Aktivera"
-
 msgid "Filename format"
 msgstr "Filnamns format"
 
@@ -9083,8 +9124,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Rectilinear Interlaced"
 msgstr "Rätlinjig sammanflätning"
@@ -9131,6 +9172,9 @@ msgstr "Tree Stark"
 
 msgid "Tree Hybrid"
 msgstr "Tree Hybrid"
+
+msgid "Tree Organic"
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Oberoende support lagerhöjd"
@@ -10173,10 +10217,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10222,6 +10266,9 @@ msgstr ""
 msgid "To k Value"
 msgstr ""
 
+msgid "Value step"
+msgstr ""
+
 msgid "0.5"
 msgstr ""
 
@@ -10238,6 +10285,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10343,7 +10393,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10358,7 +10408,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10817,6 +10867,12 @@ msgstr ""
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
 
+#~ msgid "Immediately score"
+#~ msgstr "Omedelbar resultat"
+
+#~ msgid "Error: IP or Access Code are not correct"
+#~ msgstr "Fel: IP eller Åtkomstkod är inte korrekta"
+
 #~ msgid "Can't connect to the printer"
 #~ msgstr "Kan inte ansluta till skrivaren"
 
@@ -10951,12 +11007,6 @@ msgstr ""
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "Faktorer för dynamiskt flödeskallibrering"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid "Flow Calibration"
 #~ msgstr "Flödes Kalibrering"

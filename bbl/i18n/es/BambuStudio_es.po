@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-08 15:39+0800\n"
+"POT-Creation-Date: 2023-09-11 17:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2031,14 +2031,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\ u2103"
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\ u00b3"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2726,20 +2726,30 @@ msgstr "Actualización fallida."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "No se pudo iniciar la impresión"
 
-msgid "Invalid nozzle diameter"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
 msgstr ""
 
 msgid "Calibration error"
@@ -3969,8 +3979,8 @@ msgstr "Layer: N/A"
 msgid "Clear"
 msgstr "Borrar"
 
-msgid "Immediately score"
-msgstr "Immediately score"
+msgid "Rating"
+msgstr ""
 
 msgid "Camera"
 msgstr "Cámara"
@@ -4077,7 +4087,10 @@ msgstr "Lúdico"
 msgid "Can't start this without SD card."
 msgstr "No puedo empezar sin una tarjeta microSD."
 
-msgid "Scoring"
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Rate"
 msgstr ""
 
 msgid "Comment"
@@ -4090,6 +4103,9 @@ msgid "Add Photo"
 msgstr ""
 
 msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
 msgstr ""
 
 msgid "Please click on the star first."
@@ -4110,13 +4126,13 @@ msgstr ""
 msgid " upload failed"
 msgstr ""
 
-msgid "upload config prase failed\n"
+msgid " upload config prase failed\n"
 msgstr ""
 
-msgid "No corresponding storage bucket\n"
+msgid " No corresponding storage bucket\n"
 msgstr ""
 
-msgid "can not be opened\n"
+msgid " can not be opened\n"
 msgstr ""
 
 msgid ""
@@ -4148,6 +4164,11 @@ msgid ""
 msgstr ""
 
 msgid "You can select up to 5 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
 msgstr ""
 
 msgid "Status"
@@ -5235,6 +5256,18 @@ msgstr ""
 msgid "First layer filament sequence"
 msgstr ""
 
+msgid "Same as Global"
+msgstr ""
+
+msgid "Enable"
+msgstr "Habilitar"
+
+msgid "Disable"
+msgstr ""
+
+msgid "Spiral Vase"
+msgstr ""
+
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
 
@@ -5661,8 +5694,8 @@ msgstr "Terms and Conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab "
@@ -6686,8 +6719,16 @@ msgstr "Código de acceso"
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "¿Dónde puedo encontrar la IP y el código de acceso de la impresora?"
 
-msgid "Error: IP or Access Code are not correct"
-msgstr "Error: la IP o el código de acceso no son correctos"
+msgid "Test"
+msgstr ""
+
+msgid "Connection failed, please double check IP and Access Code"
+msgstr ""
+
+msgid ""
+"Connection failed! If your IP and Access Code is correct, \n"
+"please move to step 3 for troubleshooting network issues"
+msgstr ""
 
 msgid "Model:"
 msgstr "Modelo:"
@@ -7942,6 +7983,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
 
@@ -8713,9 +8757,6 @@ msgstr ""
 "impresión, pero hace que la segmentación y la generación del gcode sean más "
 "lentas."
 
-msgid "Enable"
-msgstr "Habilitar"
-
 msgid "Filename format"
 msgstr "Formato de los archivos"
 
@@ -9279,6 +9320,9 @@ msgstr "Árbol fuerte"
 
 msgid "Tree Hybrid"
 msgstr "Árbol híbrido"
+
+msgid "Tree Organic"
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Altura de la capa de soporte independiente"
@@ -10332,10 +10376,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10381,6 +10425,9 @@ msgstr ""
 msgid "To k Value"
 msgstr ""
 
+msgid "Value step"
+msgstr ""
+
 msgid "0.5"
 msgstr ""
 
@@ -10397,6 +10444,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10502,7 +10552,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10517,7 +10567,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10977,6 +11027,12 @@ msgstr ""
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
 
+#~ msgid "Immediately score"
+#~ msgstr "Immediately score"
+
+#~ msgid "Error: IP or Access Code are not correct"
+#~ msgstr "Error: la IP o el código de acceso no son correctos"
+
 #~ msgid "Can't connect to the printer"
 #~ msgstr "No se puede conectar a la impresora"
 
@@ -11115,12 +11171,6 @@ msgstr ""
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "calibración de factores de flujo dinámico"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\ u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\ u00b3"
 
 #~ msgid "Flow Calibration"
 #~ msgstr "Calibración del flujo"
