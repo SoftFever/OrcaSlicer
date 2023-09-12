@@ -749,6 +749,10 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
         this->SetSelection(m_last_selected);
+        if (LABEL_ITEM_WIZARD_ADD_PRINTERS == marker) {
+            evt.Skip();
+            return;
+        }
         evt.StopPropagation();
         if (marker == LABEL_ITEM_MARKER)
             return;
@@ -1082,8 +1086,10 @@ void PlaterPresetComboBox::update()
             set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
         else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
-        else
-            set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+        else {
+            set_label_marker(Append(separator(L("Select/Remove printers(system presets)")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+            set_label_marker(Append(separator(L("Create printer")), *bmp), LABEL_ITEM_WIZARD_ADD_PRINTERS);
+        }
     }
 
     update_selection();

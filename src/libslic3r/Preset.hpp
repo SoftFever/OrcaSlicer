@@ -57,7 +57,6 @@
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
 
-
 namespace Slic3r {
 
 class AppConfig;

@@ -21,6 +21,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/locale.hpp>
 #include <boost/log/trivial.hpp>
+#include <miniz/miniz.h>
 
 
 // Store the print/filament/printer presets into a "presets" subdirectory of the Slic3rPE config dir.
@@ -646,99 +647,181 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
     std::vector<std::string>   result;
     for (auto &file : files) {
         if (Slic3r::is_json_file(file)) {
-            try {
-                DynamicPrintConfig config;
-                // BBS: change to json format
-                // ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
-                std::map<std::string, std::string> key_values;
-                std::string                        reason;
-                ConfigSubstitutions                config_substitutions = config.load_from_json(file, rule, key_values, reason);
-                std::string name = key_values[BBL_JSON_KEY_NAME];
-                std::string version_str = key_values[BBL_JSON_KEY_VERSION];
-                boost::optional<Semver> version = Semver::parse(version_str);
-                if (!version) continue;
-                Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-                if (version->maj() != app_version.maj()) {
-                    BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
-                    continue;
-                }
+            import_json_presets(substitutions, file, override_confirm, rule, overwrite, result);
+        }
+        // Determine if it is a preset bundle
+        if (boost::iends_with(file, ".bbscfg") || boost::iends_with(file, ".bbsflmt") || boost::iends_with(file, ".zip")) {
+            boost::system::error_code ec;
+            // create user folder
+            fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+            if (!fs::exists(user_folder)) fs::create_directory(user_folder, ec);
+            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
+            // create default folder
+            fs::path default_folder(user_folder / DEFAULT_USER_FOLDER_NAME);
+            if (!fs::exists(default_folder)) fs::create_directory(default_folder, ec);
+            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
+            //create temp folder
+            //std::string user_default_temp_dir = data_dir() + "/" + PRESET_USER_DIR + "/" + DEFAULT_USER_FOLDER_NAME + "/" + "temp";
+            fs::path temp_folder(default_folder / "temp");
+            std::string user_default_temp_dir = temp_folder.make_preferred().string();
+            if (fs::exists(temp_folder)) fs::remove_all(temp_folder);
+            fs::create_directory(temp_folder, ec);
+            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
 
-                PresetCollection * collection = nullptr;
-                if (config.has("printer_settings_id"))
-                    collection = &printers;
-                else if (config.has("print_settings_id"))
-                    collection = &prints;
-                else if (config.has("filament_settings_id"))
-                    collection = &filaments;
-                if (collection == nullptr) {
-                    BOOST_LOG_TRIVIAL(warning) << "Preset type is unknown, not loading: " << name;
-                    continue;
-                }
-                if (overwrite == 0) overwrite = 1;
-                if (auto p = collection->find_preset(name, false)) {
-                    if (p->is_default || p->is_system) {
-                        BOOST_LOG_TRIVIAL(warning) << "Preset already present and is system preset, not loading: " << name;
-                        continue;
-                    }
-                    overwrite = override_confirm(name);
-                }
-                if (overwrite == 0 || overwrite == 2) {
-                    BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
-                    continue;
-                }
+            file = boost::filesystem::path(file).make_preferred().string();
+            mz_zip_archive zip_archive;
+            mz_zip_zero_struct(&zip_archive);
+            mz_bool status;
 
-                DynamicPrintConfig new_config;
-                Preset *      inherit_preset  = nullptr;
-                ConfigOption *inherits_config = config.option(BBL_JSON_KEY_INHERITS);
-                std::string        inherits_value;
-                if (inherits_config) {
-                    ConfigOptionString *option_str     = dynamic_cast<ConfigOptionString *>(inherits_config);
-                    inherits_value = option_str->value;
-                    inherit_preset = collection->find_preset(inherits_value, false, true);
-                }
-                if (inherit_preset) {
-                    new_config = inherit_preset->config;
-                } else {
-                    // We support custom root preset now
-                    auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
-                    if (inherits_config2 && !inherits_config2->value.empty()) {
-                        // we should skip this preset here
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip") % name;
-                        continue;
-                    }
-                    // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
-                    const Preset &default_preset = collection->default_preset_for(config);
-                    new_config                   = default_preset.config;
-                }
-                new_config.apply(std::move(config));
+            /*if (!open_zip_reader(&zip_archive, file)) {
+                BOOST_LOG_TRIVIAL(info) << "Failed to initialize reader ZIP archive";
+                return substitutions;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "Success to initialize reader ZIP archive";
+            }*/
 
-                Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), name, std::move(new_config), false);
-                preset.is_external = true;
-                preset.version     = *version;
-                inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
-                if (inherit_preset)
-                    preset.base_id     = inherit_preset->setting_id;
-                Preset::normalize(preset.config);
-                // Report configuration fields, which are misplaced into a wrong group.
-                const Preset &default_preset = collection->default_preset_for(new_config);
-                std::string incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
-                if (!incorrect_keys.empty())
-                    BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << preset.file << "\" contains the following incorrect keys: " << incorrect_keys
-                                                << ", which were removed";
-                if (!config_substitutions.empty())
-                    substitutions.push_back({name, collection->type(), PresetConfigSubstitutions::Source::UserFile, file, std::move(config_substitutions)});
-
-                preset.save(inherit_preset ? &inherit_preset->config : nullptr);
-                result.push_back(file);
-            } catch (const std::ifstream::failure &err) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("The config cannot be loaded: %1%. Reason: %2%") % file % err.what();
-            } catch (const std::runtime_error &err) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("Failed importing config file: %1%. Reason: %2%") % file % err.what();
+            FILE *zipFile = boost::nowide::fopen(file.c_str(), "rb");
+            status        = mz_zip_reader_init_cfile(&zip_archive, zipFile, 0, MZ_ZIP_FLAG_CASE_SENSITIVE | MZ_ZIP_FLAG_IGNORE_PATH);
+            if (MZ_FALSE == status) {
+                BOOST_LOG_TRIVIAL(info) << "Failed to initialize reader ZIP archive";
+                return substitutions;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "Success to initialize reader ZIP archive";
             }
+
+            // Extract Files
+            int num_files = mz_zip_reader_get_num_files(&zip_archive);
+            for (int i = 0; i < num_files; i++) {
+                mz_zip_archive_file_stat file_stat;
+                status = mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
+                if (status) {
+                    std::string file_name = file_stat.m_filename;
+                    BOOST_LOG_TRIVIAL(info) << "Form zip file: " << file << ". Read file name: " << file_stat.m_filename;
+                    size_t index = file_name.find_last_of('/');
+                    if (std::string::npos != index) {
+                        file_name = file_name.substr(index + 1);
+                    }
+                    if (BUNDLE_STRUCTURE_JSON_NAME == file_name) continue;
+                    // create target file path
+                    std::string target_file_path = boost::filesystem::path(temp_folder / file_name).make_preferred().string();
+
+                    status = mz_zip_reader_extract_to_file(&zip_archive, i, target_file_path.c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
+                    // target file is opened
+                    if (MZ_FALSE == status) { 
+                        BOOST_LOG_TRIVIAL(info) << "Failed to open target file: " << target_file_path;
+                    } else {
+                        import_json_presets(substitutions, target_file_path, override_confirm, rule, overwrite, result);
+                        BOOST_LOG_TRIVIAL(info) << "Successed to open target file: " << target_file_path;
+                    }
+                }
+            }
+            fclose(zipFile);
+            if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
+            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
         }
     }
     files = result;
     return substitutions;
+}
+
+bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            substitutions,
+                                       std::string &                           file,
+                                       std::function<int(std::string const &)> override_confirm,
+                                       ForwardCompatibilitySubstitutionRule    rule,
+                                       int &                                   overwrite,
+                                       std::vector<std::string> &              result)
+{
+    try {
+        DynamicPrintConfig config;
+        // BBS: change to json format
+        // ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
+        std::map<std::string, std::string> key_values;
+        std::string                        reason;
+        ConfigSubstitutions                config_substitutions = config.load_from_json(file, rule, key_values, reason);
+        std::string                        name                 = key_values[BBL_JSON_KEY_NAME];
+        std::string                        version_str          = key_values[BBL_JSON_KEY_VERSION];
+        boost::optional<Semver>            version              = Semver::parse(version_str);
+        if (!version) return false;
+        Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+        if (version->maj() != app_version.maj()) {
+            BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
+            return false;
+        }
+
+        PresetCollection *collection = nullptr;
+        if (config.has("printer_settings_id"))
+            collection = &printers;
+        else if (config.has("print_settings_id"))
+            collection = &prints;
+        else if (config.has("filament_settings_id"))
+            collection = &filaments;
+        if (collection == nullptr) {
+            BOOST_LOG_TRIVIAL(warning) << "Preset type is unknown, not loading: " << name;
+            return false;
+        }
+        if (overwrite == 0) overwrite = 1;
+        if (auto p = collection->find_preset(name, false)) {
+            if (p->is_default || p->is_system) {
+                BOOST_LOG_TRIVIAL(warning) << "Preset already present and is system preset, not loading: " << name;
+                return false;
+            }
+            overwrite = override_confirm(name);
+        }
+        if (overwrite == 0 || overwrite == 2) {
+            BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+            return false;
+        }
+
+        DynamicPrintConfig new_config;
+        Preset *           inherit_preset  = nullptr;
+        ConfigOption *     inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+        std::string        inherits_value;
+        if (inherits_config) {
+            ConfigOptionString *option_str = dynamic_cast<ConfigOptionString *>(inherits_config);
+            inherits_value                 = option_str->value;
+            inherit_preset                 = collection->find_preset(inherits_value, false, true);
+        }
+        if (inherit_preset) {
+            new_config = inherit_preset->config;
+        } else {
+            // We support custom root preset now
+            auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
+            if (inherits_config2 && !inherits_config2->value.empty()) {
+                // we should skip this preset here
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip") % name;
+                return false;
+            }
+            // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+            const Preset &default_preset = collection->default_preset_for(config);
+            new_config                   = default_preset.config;
+        }
+        new_config.apply(std::move(config));
+
+        Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), name, std::move(new_config), false);
+        if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
+            preset.filament_id = key_values[BBL_JSON_KEY_FILAMENT_ID];
+        preset.is_external = true;
+        preset.version     = *version;
+        inherit_preset     = collection->find_preset(inherits_value, false, true); // pointer maybe wrong after insert, redo find
+        if (inherit_preset) preset.base_id = inherit_preset->setting_id;
+        Preset::normalize(preset.config);
+        // Report configuration fields, which are misplaced into a wrong group.
+        const Preset &default_preset = collection->default_preset_for(new_config);
+        std::string   incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
+        if (!incorrect_keys.empty())
+            BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << preset.file << "\" contains the following incorrect keys: " << incorrect_keys
+                                     << ", which were removed";
+        if (!config_substitutions.empty())
+            substitutions.push_back({name, collection->type(), PresetConfigSubstitutions::Source::UserFile, file, std::move(config_substitutions)});
+
+        preset.save(inherit_preset ? &inherit_preset->config : nullptr);
+        result.push_back(file);
+    } catch (const std::ifstream::failure &err) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("The config cannot be loaded: %1%. Reason: %2%") % file % err.what();
+    } catch (const std::runtime_error &err) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("Failed importing config file: %1%. Reason: %2%") % file % err.what();
+    }
+    return true;
 }
 
 //BBS save user preset to user_id preset folder

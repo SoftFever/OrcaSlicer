@@ -565,50 +565,10 @@ Sidebar::Sidebar(Plater *parent)
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
             });
 
-        StateColor create_printer_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
-
-        StateColor create_printer_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
-                                         std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
-
-        StateColor create_printer_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
-
-        auto create_printer_preset_btn = new Button(p->m_panel_printer_title, _L("Create Printer"));
-        create_printer_preset_btn->SetFont(Label::Body_10);
-        create_printer_preset_btn->SetPaddingSize(wxSize(FromDIP(8), FromDIP(3)));
-        create_printer_preset_btn->SetCornerRadius(FromDIP(8));
-        create_printer_preset_btn->SetBackgroundColor(create_printer_bg_col);
-        create_printer_preset_btn->SetBorderColor(create_printer_bd_col);
-        create_printer_preset_btn->SetTextColor(create_printer_fg_col);
-        create_printer_preset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-            //CreateFilamentPresetDialog dlg(p->m_panel_printer_title);
-            CreatePrinterPresetDialog dlg(p->m_panel_printer_title);
-            int res = dlg.ShowModal();
-            if (wxID_OK == res) {
-                wxGetApp().mainframe->update_side_preset_ui();
-                update_all_preset_comboboxes();
-                Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
-                if (printer_tab) {
-                    printer_tab->load_current_preset();
-                    printer_tab->update();
-                }
-                CreatePresetSuccessfulDialog success_dlg(p->m_panel_filament_title, SuccessType::PRINTER);
-                int res = success_dlg.ShowModal();
-                if (res == wxID_OK) {
-                    p->editing_filament = -1;
-                    if (p->combo_printer->switch_to_tab())
-                        p->editing_filament = 0;
-                }
-            }
-        });
-
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
         h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, em);
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
         h_sizer_title->AddStretchSpacer();
-        h_sizer_title->Add(create_printer_preset_btn, 0, wxRIGHT | wxALIGN_CENTER, FromDIP(10));
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->Add(15 * em / 10, 0, 0, 0, 0);
         h_sizer_title->SetMinSize(-1, 3 * em);
@@ -1045,7 +1005,29 @@ Sidebar::Sidebar(Plater *parent)
 
 Sidebar::~Sidebar() {}
 
-void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx) {
+void Sidebar::create_printer_preset()
+{
+    CreatePrinterPresetDialog dlg(p->m_panel_printer_title);
+    int                       res = dlg.ShowModal();
+    if (wxID_OK == res) {
+        wxGetApp().mainframe->update_side_preset_ui();
+        update_all_preset_comboboxes();
+        Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+        if (printer_tab) {
+            printer_tab->load_current_preset();
+            printer_tab->update();
+        }
+        CreatePresetSuccessfulDialog success_dlg(p->m_panel_filament_title, SuccessType::PRINTER);
+        int                          res = success_dlg.ShowModal();
+        if (res == wxID_OK) {
+            p->editing_filament = -1;
+            if (p->combo_printer->switch_to_tab()) p->editing_filament = 0;
+        }
+    }
+}
+
+void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx)
+{
     *combo = new PlaterPresetComboBox(p->m_panel_filament_content, Slic3r::Preset::TYPE_FILAMENT);
     (*combo)->set_filament_idx(filament_idx);
 
@@ -5866,6 +5848,12 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // m_presets_choice->GetSelection() will return first item, because search in PopupListCtrl is case-insensitive.
     // So, use GetSelection() from event parameter
     int selection = evt.GetSelection();
+
+    auto marker = reinterpret_cast<size_t>(combo->GetClientData(selection));
+    if (PresetComboBox::LabelItemType::LABEL_ITEM_WIZARD_ADD_PRINTERS == marker) {
+        sidebar->create_printer_preset();
+        return;
+    }
 
     auto idx = combo->get_filament_idx();
 

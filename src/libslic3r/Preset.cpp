@@ -525,7 +525,7 @@ void Preset::save(DynamicPrintConfig* parent_config)
         temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string(), this->custom_defined);
     } else if (!filament_id.empty() && inherits().empty()) {
         DynamicPrintConfig temp_config = config;
-        temp_config.set_key_value("filament_id", new ConfigOptionString(filament_id));
+        temp_config.set_key_value(BBL_JSON_KEY_FILAMENT_ID, new ConfigOptionString(filament_id));
         temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string(), this->custom_defined);
     } else {
         this->config.save_to_json(this->file, this->name, from_str, this->version.to_string(), this->custom_defined);
@@ -2124,7 +2124,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
 bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten)
 {
     return clone_presets(presets, failures, [printer](Preset &preset) {
-        preset.name = preset.name.substr(0, preset.name.find("@")) + " @ " + printer;
+        preset.name = preset.name.substr(0, preset.name.find("@")) + " @" + printer;
         //preset.alias                = "";
         auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
