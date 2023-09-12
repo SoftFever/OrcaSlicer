@@ -160,7 +160,7 @@ jobs:
       - name: Check signtool.exe
         if: matrix.os == 'windows-2019'
         run: |
-          signtool.exe
+          "C:/Program Files (x86)/Microsoft SDKs/ClickOnce/SignTool/signtool.exe/signtool.exe"
 
       - name: download deps
         if: matrix.os == 'windows-2019'
@@ -215,11 +215,11 @@ jobs:
           # Sign all .exe and .dll files in the specified folder
           for file in OrcaSlicer/*; do
             if [[ $file == *.exe ]] || [[ $file == *.dll ]]; then
-              signtool.exe sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "$file"
+              "C:/Program Files (x86)/Microsoft SDKs/ClickOnce/SignTool/signtool.exe/signtool.exe" sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "$file"
             fi
           done
           cpack -G NSIS
-          signtool.exe sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe"
+          "C:/Program Files (x86)/Microsoft SDKs/ClickOnce/SignTool/signtool.exe/signtool.exe" sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe"
 
       # - name: pack app
         # if: matrix.os == 'windows-2019'
