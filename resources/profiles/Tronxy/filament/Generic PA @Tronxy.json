@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "name": "Generic PA @Tronxy",
+    "inherits": "fdm_filament_pa",
+    "from": "system",
+    "filament_id": "GFN99",
+    "setting_id": "GFSN99_Tronxy_00",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
+    ]
+}

@@ -1,0 +1,33 @@
+{
+    "type": "filament",
+    "name": "Generic PETG @Tronxy",
+    "inherits": "fdm_filament_pet",
+    "from": "system",
+    "filament_id": "GFG99",
+    "setting_id": "GFSG99_Tronxy_00",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "90"
+    ],
+    "fan_min_speed": [
+        "40"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "10"
+    ],
+    "overhang_fan_speed": [
+        "90"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
+    ]
+}

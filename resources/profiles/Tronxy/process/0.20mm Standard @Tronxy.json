@@ -1,0 +1,14 @@
+{
+    "type": "process",
+    "setting_id": "GP_Tronxy_004",
+    "name": "0.20mm Standard @Tronxy",
+    "from": "system",
+    "inherits": "fdm_process_common",
+    "instantiation": "true",
+    "layer_height": "0.2",
+    "bottom_shell_layers": "3",
+    "top_shell_layers": "4",
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
+    ]
+}
