@@ -20,7 +20,6 @@
         "Bambu PLA Basic @BBL X1C"
     ],
     "default_print_profile": "0.20mm Standard @BBL X1C",
-    "extruder_clearance_max_radius": "56",
     "extruder_offset": [
         "0x2"
     ],
