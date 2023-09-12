@@ -27,6 +27,11 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_CANCELED                      -18
 #define BAMBU_NETWORK_ERR_INVALID_RESULT                -19
 #define BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED             -20
+#define BAMBU_NETWORK_ERR_GET_RATING_ID_FAILED          -21
+#define BAMBU_NETWORK_ERR_OPEN_FILE_FAILED              -22
+#define BAMBU_NETWORK_ERR_PARSE_CONFIG_FAILED           -23
+#define BAMBU_NETWORK_ERR_NO_CORRESPONDING_BUCKET       -24
+#define BAMBU_NETWORK_ERR_GET_INSTANCE_ID_FAILED        -25
 
     //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket 
@@ -50,7 +55,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_WR_PATCH_PROJECT_FAILED             -2080 //failed to patch project
 #define BAMBU_NETWORK_ERR_PRINT_WR_GET_MY_SETTING_FAILED            -2090 //failed to get my setting
 #define BAMBU_NETWORK_ERR_PRINT_WR_FILE_NOT_EXIST                   -2100 //3mf file is not exists
-#define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_3MF_TO_OSS_FAILED         -2110 //failed to upload 3mf to oss
+#define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_3MF_TO_OSS_FAILED         -2110 //failed to  upload 3mf to oss
 #define BAMBU_NETWORK_ERR_PRINT_WR_POST_TASK_FAILED                 -2120 //failed to post task
 #define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_FTP_FAILED                -2130 //failed to upload to ftp
 #define BAMBU_NETWORK_ERR_PRINT_WR_GET_USER_UPLOAD_FAILED           -2140 //failed to get_user_upload  
@@ -79,8 +84,8 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED                -5010 //failed to upload ftp
 
 //connection to printer failed
-#define BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED               -6010 //Connection to printer failed
-#define BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED                -6020 //Connection to server failed
+#define BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED              -6010 //Connection to printer failed
+#define BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED               -6020 //Connection to server failed
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
@@ -125,23 +130,24 @@ typedef std::function<void(int progress)> ProgressFn;
 typedef std::function<void(int retcode, std::string info)> LoginFn;
 typedef std::function<void(int result, std::string info)> ResultFn;
 typedef std::function<bool()> CancelFn;
+typedef std::function<bool(std::map<std::string, std::string> info)> CheckFn;
 
 enum SendingPrintJobStage {
     PrintingStageCreate = 0,
     PrintingStageUpload = 1,
     PrintingStageWaiting = 2,
     PrintingStageSending = 3,
-    PrintingStageRecord  = 4,
+    PrintingStageRecord = 4,
     PrintingStageWaitPrinter = 5,
     PrintingStageFinished = 6,
     PrintingStageERROR = 7,
 };
 
 enum PublishingStage {
-    PublishingCreate    = 0,
-    PublishingUpload    = 1,
-    PublishingWaiting   = 2,
-    PublishingJumpUrl   = 3,
+    PublishingCreate = 0,
+    PublishingUpload = 1,
+    PublishingWaiting = 2,
+    PublishingJumpUrl = 3,
 };
 
 enum BindJobStage {
