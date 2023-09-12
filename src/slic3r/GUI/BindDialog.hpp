@@ -61,7 +61,6 @@ private:
     wxStaticBitmap *m_static_bitmap_show_error;
     wxBitmap      m_bitmap_show_error_close;
     wxBitmap      m_bitmap_show_error_open;
-    wxWebRequest  web_request;
     wxScrolledWindow* m_sw_bind_failed_info;
     Label*          m_bind_failed_info;
     Label*          m_st_txt_error_code{ nullptr };
@@ -74,6 +73,7 @@ private:
     bool            m_allow_privacy{false};
     bool            m_allow_notice{false};
     int             m_result_code;
+    std::shared_ptr<int>     m_tocken;
 
     MachineObject *                   m_machine_info{nullptr};
     std::shared_ptr<BindJob>          m_bind_job;
@@ -108,7 +108,7 @@ protected:
     MachineObject *m_machine_info{nullptr};
     wxStaticBitmap *m_avatar;
     wxStaticBitmap *m_printer_img;
-    wxWebRequest    web_request;
+    std::shared_ptr<int>     m_tocken;
 
 public:
     UnBindMachineDialog(Plater *plater = nullptr);
