@@ -236,13 +236,6 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         m_checkbox_list["motor_noise"]->SetValue(false);
     }
 
-    if (!obj->is_calibration_running() && !m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() && !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue()) {
-        m_calibration_btn->Disable();
-        m_calibration_btn->SetLabel(_L("No step selected"));
-        return ;
-    } else {
-        m_calibration_btn->Enable();
-    }
 
     if (obj->is_calibration_running() || obj->is_calibration_done()) {
         if (obj->is_calibration_done()) {
@@ -279,6 +272,14 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         }
         m_calibration_flow->DeleteAllItems();
         m_calibration_btn->SetLabel(_L("Start Calibration"));
+    }
+    if (!obj->is_calibration_running() && !m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
+        !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue()) {
+        m_calibration_btn->Disable();
+        m_calibration_btn->SetLabel(_L("No step selected"));
+    }
+    else if(!obj->is_calibration_running()){
+        m_calibration_btn->Enable();
     }
 }
 

@@ -1879,13 +1879,11 @@ void StatusPanel::update(MachineObject *obj)
         }
 
         // update calibration status
-        if (calibration_dlg == nullptr) {
-            calibration_dlg = new CalibrationDialog();
+        if (calibration_dlg != nullptr) {
             calibration_dlg->update_machine_obj(obj);
-        } else {
-            calibration_dlg->update_machine_obj(obj);
+            calibration_dlg->update_cali(obj);
         }
-        calibration_dlg->update_cali(obj);
+        
 
 
         if (obj->is_support_first_layer_inspect
@@ -3812,9 +3810,11 @@ void StatusPanel::on_start_calibration(wxCommandEvent &event)
         if (calibration_dlg == nullptr) {
             calibration_dlg = new CalibrationDialog();
             calibration_dlg->update_machine_obj(obj);
+            calibration_dlg->update_cali(obj);
             calibration_dlg->ShowModal();
         } else {
             calibration_dlg->update_machine_obj(obj);
+            calibration_dlg->update_cali(obj);
             calibration_dlg->ShowModal();
         }
     }
