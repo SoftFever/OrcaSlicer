@@ -22,6 +22,8 @@
 #include "libslic3r/ObjectID.hpp"
 #include "GCode/ExtrusionProcessor.hpp"
 
+#include "GCode/PressureEqualizer.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
@@ -525,9 +527,9 @@ private:
 
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
-#ifdef HAS_PRESSURE_EQUALIZER
+
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
-#endif /* HAS_PRESSURE_EQUALIZER */
+
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     // Heights (print_z) at which the skirt has already been extruded.
@@ -586,6 +588,7 @@ private:
 
     friend class Wipe;
     friend class WipeTowerIntegration;
+    friend class PressureEqualizer;
     friend class Print;
 };
 
