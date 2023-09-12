@@ -806,7 +806,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("Enable this option to slow printing down in areas where potential curled perimeters may exist");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool{ true });
+    def->set_default_value(new ConfigOptionBool{ false });
 
     def = this->add("overhang_1_4_speed", coFloatOrPercent);
     def->label = "(10%, 25%)";
