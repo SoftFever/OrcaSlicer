@@ -9,8 +9,8 @@ on:
        - ".github/workflows/check_locale.yml"
 
 jobs:
-  publish_docs_to_wiki:
-    name: Publish docs to Wiki
+  check_translation:
+    name: Check translation
     runs-on: ubuntu-latest
     steps:  
       - name: Checkout repository
