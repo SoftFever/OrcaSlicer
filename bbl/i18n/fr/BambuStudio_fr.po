@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 14:29+0800\n"
+"POT-Creation-Date: 2023-09-12 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2039,14 +2039,14 @@ msgstr "Température du lit"
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique maximale"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Température du plateau"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Démarrer"
@@ -2541,6 +2541,9 @@ msgstr ""
 "Le mode spirale ne fonctionne que lorsque qu'il n'y a qu'un seul mur, les "
 "supports sont désactivés, que les couches supérieures de la coque sont à 0, "
 "qu'il n'y a pas de remplissage et que le type timelapse est traditionnel"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -4494,6 +4497,11 @@ msgstr ""
 "défaut de la buse de l'imprimante. Veuillez remplacer la buse ou le "
 "filament, sinon la buse s'usera ou s'endommagera."
 
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "Chargement du fichier : %s"
@@ -5636,8 +5644,8 @@ msgstr "Termes et conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Nous vous remercions d'avoir acheté un produit Bambu Lab. Avant d'utiliser "
@@ -6038,6 +6046,9 @@ msgstr "G-Code avant changement de couche"
 
 msgid "Layer change G-code"
 msgstr "Code G de changement de couche"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Changer le code G du filament"
@@ -7903,6 +7914,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Purge minimale sur la tour de nettoyage"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "Temps de chargement du filament"
 
@@ -8222,6 +8236,12 @@ msgstr ""
 "Activez cette option pour permettre à l'appareil photo de l'imprimante de "
 "vérifier la qualité de la première couche"
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "Type de buse"
 
@@ -8243,6 +8263,24 @@ msgstr "Acier inoxydable"
 
 msgid "Brass"
 msgstr "Laiton"
+
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
@@ -10253,10 +10291,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10300,6 +10338,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10408,7 +10449,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10423,7 +10464,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10889,14 +10930,13 @@ msgstr ""
 #~ msgid "HRC"
 #~ msgstr "HRC"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used."
 #~ msgstr ""
 #~ "Détectez le pourcentage de surplomb par rapport à la largeur de la ligne "
-#~ "et utilisez une vitesse différente pour imprimer. Pour un surplomb de "
-#~ "100%% la vitesse du pont est utilisée."
+#~ "et utilisez une vitesse différente pour imprimer. Pour un surplomb de 100%"
+#~ "% la vitesse du pont est utilisée."
 
 #~ msgid "Pause Print"
 #~ msgstr "Pause d'impression"
@@ -10909,12 +10949,6 @@ msgstr ""
 
 #~ msgid "Factors of dynamic flow cali"
 #~ msgstr "Calibration des facteurs de flux dynamique"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid "Flow Calibration"
 #~ msgstr "Calibration du débit"

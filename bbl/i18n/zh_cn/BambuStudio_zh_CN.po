@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 14:29+0800\n"
+"POT-Creation-Date: 2023-09-12 16:53+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1945,14 +1945,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2403,6 +2403,9 @@ msgid ""
 msgstr ""
 "旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
 "影时有效。"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr "但是I3结构的机器将不会生成延时视频。"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -4308,6 +4311,11 @@ msgstr ""
 "打印丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或打印丝，否"
 "则喷嘴可能被磨损或损坏。"
 
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
+msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
+
 #, c-format, boost-format
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
@@ -5359,8 +5367,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -5708,6 +5716,9 @@ msgstr "换层前G-code"
 
 msgid "Layer change G-code"
 msgstr "换层G-code"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
@@ -7393,6 +7404,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -7674,6 +7688,12 @@ msgid ""
 "layer"
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
+msgid "Thumbnail size"
+msgstr ""
+
+msgid "Decides the size of thumbnail stored in gcode files"
+msgstr ""
+
 msgid "Nozzle type"
 msgstr "喷嘴类型"
 
@@ -7693,6 +7713,24 @@ msgstr "不锈钢"
 
 msgid "Brass"
 msgstr "黄铜"
+
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
@@ -8171,18 +8209,15 @@ msgstr "Z抬升范围下限"
 msgid ""
 "Z hop will only come into effect when Z is above this value and is below the "
 "parameter: \"Z hop upper boundary\""
-msgstr ""
-"只有当Z抬升值在Z抬升下限和Z抬升上限之间时"
-"Z抬升才会生效"
+msgstr "只有当Z抬升值在Z抬升下限和Z抬升上限之间时Z抬升才会生效"
+
 msgid "Z hop upper boundary"
 msgstr "Z抬升范围上限"
 
 msgid ""
 "If this value is positive, Z hop will only come into effect when Z is above "
 "the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-"如果这个值为正，只有当Z抬升值在Z抬升下限和Z抬升上限之间时"
-"Z抬升才会生效"
+msgstr "如果这个值为正，只有当Z抬升值在Z抬升下限和Z抬升上限之间时Z抬升才会生效"
 
 msgid "Z Hop Type"
 msgstr "Z抬升方式"
@@ -9594,10 +9629,10 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -9645,6 +9680,9 @@ msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
 msgstr "至体积速度"
+
+msgid "mm\\u00B3/s"
+msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
@@ -9752,7 +9790,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -9767,7 +9805,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10201,7 +10239,6 @@ msgstr ""
 #~ msgid "HRC"
 #~ msgstr "洛氏硬度"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "
 #~ "speed to print. For 100%% overhang, bridge speed is used."
