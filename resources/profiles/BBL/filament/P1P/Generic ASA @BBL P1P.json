@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB98_10",
     "name": "Generic ASA @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic ASA @base",
+    "from": "system",
+    "setting_id": "GFSB98_10",
+    "instantiation": "true",
     "hot_plate_temp": [
         "100"
     ],
@@ -20,9 +20,6 @@
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab P1P 0.6 nozzle",
-        "Bambu Lab P1P 0.8 nozzle",
-        "Bambu Lab N1 0.4 nozzle",
-        "Bambu Lab N1 0.6 nozzle",
-        "Bambu Lab N1 0.8 nozzle"
+        "Bambu Lab P1P 0.8 nozzle"
     ]
 }

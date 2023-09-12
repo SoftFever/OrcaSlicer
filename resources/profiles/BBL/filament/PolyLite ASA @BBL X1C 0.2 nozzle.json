@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB61_01",
     "name": "PolyLite ASA @BBL X1C 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "PolyLite ASA @BBL X1C",
+    "from": "system",
+    "setting_id": "GFSB61_01",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "2"
     ],

@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB99_01",
     "name": "Generic ABS @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic ABS @base",
+    "from": "system",
+    "setting_id": "GFSB99_01",
+    "instantiation": "true",
     "fan_max_speed": [
         "20"
     ],
@@ -26,9 +26,6 @@
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab P1P 0.6 nozzle",
-        "Bambu Lab P1P 0.8 nozzle",
-        "Bambu Lab N1 0.4 nozzle",
-        "Bambu Lab N1 0.6 nozzle",
-        "Bambu Lab N1 0.8 nozzle"
+        "Bambu Lab P1P 0.8 nozzle"
     ]
 }

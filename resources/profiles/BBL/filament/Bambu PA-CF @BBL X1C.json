@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSN00",
     "name": "Bambu PA-CF @BBL X1C",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PA-CF @base",
+    "from": "system",
+    "setting_id": "GFSN00",
+    "instantiation": "true",
     "nozzle_temperature_initial_layer": [
         "290"
     ],

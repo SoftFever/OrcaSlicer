@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSG60_00",
     "name": "PolyLite PETG @BBL X1C",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "PolyLite PETG @base",
+    "from": "system",
+    "setting_id": "GFSG60_00",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "11"
     ],

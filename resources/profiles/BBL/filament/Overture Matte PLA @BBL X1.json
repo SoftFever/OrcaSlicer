@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSL05_02",
     "name": "Overture Matte PLA @BBL X1",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Overture Matte PLA @base",
+    "from": "system",
+    "setting_id": "GFSL05_02",
+    "instantiation": "true",
     "slow_down_layer_time": [
         "10"
     ],

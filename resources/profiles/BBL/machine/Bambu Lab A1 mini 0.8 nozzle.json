@@ -1,16 +1,16 @@
 {
     "type": "machine",
-    "setting_id": "GM023",
-    "name": "Bambu Lab N1 0.8 nozzle",
+    "name": "Bambu Lab A1 mini 0.8 nozzle",
+    "inherits": "Bambu Lab A1 mini 0.4 nozzle",
     "from": "system",
+    "setting_id": "GM023",
     "instantiation": "true",
-    "inherits": "Bambu Lab N1 0.4 nozzle",
     "nozzle_diameter": [
         "0.8"
     ],
-    "printer_model": "Bambu Lab N1",
+    "printer_model": "Bambu Lab A1 mini",
     "printer_variant": "0.8",
-    "default_print_profile": "0.40mm Standard @BBL N1 0.8 nozzle",
+    "default_print_profile": "0.40mm Standard @BBL A1M 0.8 nozzle",
     "max_layer_height": [
         "0.56"
     ],

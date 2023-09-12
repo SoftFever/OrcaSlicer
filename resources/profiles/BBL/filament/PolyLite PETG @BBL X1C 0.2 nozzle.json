@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSG60_01",
     "name": "PolyLite PETG @BBL X1C 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "PolyLite PETG @BBL X1C",
+    "from": "system",
+    "setting_id": "GFSG60_01",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1"
     ],

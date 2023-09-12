@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB98_00",
     "name": "Generic ASA @0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic ASA @base",
+    "from": "system",
+    "setting_id": "GFSB98_00",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "2"
     ],

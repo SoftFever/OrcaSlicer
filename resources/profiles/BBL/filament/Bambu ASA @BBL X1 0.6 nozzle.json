@@ -1,10 +1,10 @@
 {
-    "name": "Bambu ASA @BBL X1 0.6 nozzle",
     "type": "filament",
-    "instantiation": "true",
-    "from": "system",
+    "name": "Bambu ASA @BBL X1 0.6 nozzle",
     "inherits": "Bambu ASA @base",
+    "from": "system",
     "setting_id": "GFSB01_04",
+    "instantiation": "true",
     "fan_max_speed": [
         "90"
     ],

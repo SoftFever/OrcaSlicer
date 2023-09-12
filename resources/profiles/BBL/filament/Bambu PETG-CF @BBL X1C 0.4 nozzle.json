@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSG50_02",
     "name": "Bambu PETG-CF @BBL X1C 0.4 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PETG-CF @base",
+    "from": "system",
+    "setting_id": "GFSG50_02",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "13"
     ],

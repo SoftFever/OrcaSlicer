@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB99_02",
     "name": "Generic ABS @BBL P1P 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic ABS @base",
+    "from": "system",
+    "setting_id": "GFSB99_02",
+    "instantiation": "true",
     "fan_max_speed": [
         "20"
     ],

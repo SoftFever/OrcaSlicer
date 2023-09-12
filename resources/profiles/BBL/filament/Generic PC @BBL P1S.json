@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSC99_04",
     "name": "Generic PC @BBL P1S",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PC",
+    "from": "system",
+    "setting_id": "GFSC99_04",
+    "instantiation": "true",
     "eng_plate_temp": [
         "100"
     ],

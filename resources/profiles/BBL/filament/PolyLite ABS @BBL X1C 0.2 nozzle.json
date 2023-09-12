@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB60_02",
     "name": "PolyLite ABS @BBL X1C 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "PolyLite ABS @BBL X1C",
+    "from": "system",
+    "setting_id": "GFSB60_02",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "2"
     ],

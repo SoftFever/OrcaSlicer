@@ -1,10 +1,10 @@
 {
     "type": "process",
-    "setting_id": "GP012",
     "name": "0.40mm Standard @BBL X1 0.8 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_process_bbl_0.40_nozzle_0.8",
+    "from": "system",
+    "setting_id": "GP012",
+    "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 0.8 nozzle"
     ]

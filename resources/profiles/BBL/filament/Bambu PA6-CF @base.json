@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFN05",
     "name": "Bambu PA6-CF @base",
-    "from": "system",
-    "instantiation": "false",
     "inherits": "fdm_filament_pa",
+    "from": "system",
+    "filament_id": "GFN05",
+    "instantiation": "false",
     "fan_cooling_layer_time": [
         "5"
     ],

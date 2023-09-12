@@ -1,10 +1,13 @@
 {
-    "name": "Bambu PLA Aero @BBL X1",
     "type": "filament",
-    "instantiation": "true",
-    "from": "system",
+    "name": "Bambu PLA Aero @BBL X1",
     "inherits": "Bambu PLA Aero @base",
+    "from": "system",
     "setting_id": "GFSA11_00",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

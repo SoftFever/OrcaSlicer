@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB00_00",
     "name": "Bambu ABS @BBL X1C 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu ABS @base",
+    "from": "system",
+    "setting_id": "GFSB00_00",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "2"
     ],
