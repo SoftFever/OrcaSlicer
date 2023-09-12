@@ -2616,7 +2616,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Distance from skirt to brim or object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->max = 10;
+    def->max = 55;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(2));
 
