@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-09 14:13+0800\n"
+"POT-Creation-Date: 2023-09-12 20:34+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Chun <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -10555,3 +10555,248 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr ""
+
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr ""
+"3D場景操作\n"
+"如何在3D場景中使用滑鼠和觸摸面板進行視角控制和對象/部件選擇"
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+"切割工具\n"
+"您知道嗎？您可以使用切割工具以任何角度和位置切割模型。"
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr ""
+"修復模型\n"
+"您知道嗎？您可以修復一個損壞的3D模型以避免諸多切片問題。"
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+"延時攝影\n"
+"您知道嗎？您可以每次列印時生成一段延時攝影。"
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+"自動擺盤\n"
+"您知道嗎？您可以自動排列項目中的所有對象。"
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+"自動朝向\n"
+"您知道嗎，您只需單擊滑鼠，即可將對象旋轉到適合的列印方向。"
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+"放置在臉部\n"
+"您知道嗎，您可以快速指定模型的底面，使其位於列印床上。選擇“放置在臉部”功能或"
+"按<b>F</b>鍵。"
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+"對象列表\n"
+"您知道對象列表嗎？您可以在其中的查看所有對象/部件，並更改每個對象/部件的設"
+"置。"
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+"簡化模型\n"
+"您知道嗎，您可以使用“簡化模型”功能減少模型的三角形數。在模型上單擊滑鼠右鍵，"
+"然後選擇“簡化模型”。"
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+"參數表格\n"
+"您知道嗎？您可以參數表格上的所有對象/部件，並更改每個對象/部件的設置。"
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+"分割成對象/零件\n"
+"您知道嗎，您可以把一個大對象分割成多個小對象/零件以便著色或列印。"
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Orca Slicer. Read more in the documentation."
+msgstr ""
+"減去部分幾何體\n"
+"您知道嗎，您可以使用負零件從另一個幾何體中減去另一個幾何體。例如，可以直接在 "
+"Orcaslicer 中創建可輕鬆調整大小的孔。"
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Orca Slicer supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+"STEP文件\n"
+"您知道嗎，通過切片STEP文件而不是STL文件可以提高列印質量。\n"
+" Orcaslicer 支持切片STEP文件，提供比低解析度STL更平滑的結果。試試看！"
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+"Z接縫位置\n"
+"您知道嗎，您可以自訂Z接縫的位置，甚至可以將其繪製在列印上，使其位於不太可見的"
+"位置。這樣可以改善模型的整體外觀。試試看！"
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+"流量微調\n"
+"你知道嗎，您可以微調流量，以獲得更好看的列印效果。根據材料的不同，可以通過進"
+"行一些微調來提高列印模型的整體光潔度。"
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+"分盤列印\n"
+"您知道嗎，您可以把一個有很多零件的模型安排到多個獨立的分盤，然後列印出來，這"
+"將簡化對所有零件的管理。"
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+"自適應層高度加速列印\n"
+"您知道嗎，您可以使用“自適應層高度”選項可以更快地列印模型。試試看！"
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+"繪製支撐\n"
+"您知道嗎，您可以手動繪製增加/隱藏支撐的位置，此功能使僅將支撐材料放置在實際需"
+"要的模型截面上變得容易。"
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+"支撐類型\n"
+"您知道嗎，有多種可選的支撐類型，樹狀支撐非常適合人物/動物模型，同時可以節耗材"
+"並提高列印速度。試試看！"
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+"列印絲綢耗材\n"
+"你知道嗎，絲綢耗材需要特別考慮才能成功列印。為了獲得最佳效果，通常建議使用較"
+"高的溫度和較低的速度。"
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+"使用Brim\n"
+"您知道嗎？當模型與熱床表面的接觸面積較小時，建議使用brim以提高列印成功率。"
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+"為多個對象設置參數\n"
+"您知道嗎，可以同時為所有選定對象設置切片參數。"
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+"組合物體\n"
+"你知道嗎？你可以把多個對象組合為一個整體。"
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+"沖刷到支持/對象/填充中\n"
+"你知道嗎？你可以在換料時將它們沖入支撐/對象/填充，以節省浪費的料絲。"
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+"提高強度\n"
+"你知道嗎？你可以使用更多的牆層數和更高的疏散填充密度來提高模型的強度。"
