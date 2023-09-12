@@ -38,6 +38,8 @@
 #include "NotificationManager.hpp"
 #include "format.hpp"
 
+#include <slic3r/GUI/GUI_Utils.hpp>
+
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
 #endif
@@ -2029,7 +2031,11 @@ void GLCanvas3D::render(bool only_init)
         float right_margin = SLIDER_DEFAULT_RIGHT_MARGIN;
         float bottom_margin = SLIDER_DEFAULT_BOTTOM_MARGIN;
         if (m_canvas_type == ECanvasType::CanvasPreview) {
-            const float scale_factor = get_scale();
+            float scale_factor = get_scale();
+#ifdef WIN32
+            int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+            scale_factor *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
             right_margin = SLIDER_RIGHT_MARGIN * scale_factor * GCODE_VIEWER_SLIDER_SCALE;
             bottom_margin = SLIDER_BOTTOM_MARGIN * scale_factor * GCODE_VIEWER_SLIDER_SCALE;
         }
@@ -6873,7 +6879,6 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
 //BBS: GUI refactor: add canvas size as parameters
 void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
 {
-    float scale_factor = get_scale() * GCODE_VIEWER_SLIDER_SCALE;
     m_gcode_viewer.render(canvas_width, canvas_height, SLIDER_RIGHT_MARGIN * GCODE_VIEWER_SLIDER_SCALE);
     IMSlider *layers_slider = m_gcode_viewer.get_layers_slider();
     IMSlider *moves_slider  = m_gcode_viewer.get_moves_slider();
@@ -6946,7 +6951,11 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     if (wxGetApp().plater()->is_preview_shown()) {
         IMSlider   *m_layers_slider = get_gcode_viewer().get_layers_slider();
         IMSlider   *m_moves_slider  = get_gcode_viewer().get_moves_slider();
-        const float sc              = get_scale();
+        float sc              = get_scale();
+#ifdef WIN32
+        int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        sc *= (float) dpi / (float) DPI_DEFAULT;
+#endif // WIN32
 
         m_layers_slider->set_scale(sc * GCODE_VIEWER_SLIDER_SCALE);
         m_moves_slider->set_scale(sc * GCODE_VIEWER_SLIDER_SCALE);
