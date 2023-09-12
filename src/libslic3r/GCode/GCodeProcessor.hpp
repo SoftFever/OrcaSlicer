@@ -72,6 +72,7 @@ namespace Slic3r {
 
         std::vector<double>                                 volumes_per_color_change;
         std::map<size_t, double>                            volumes_per_extruder;
+        std::map<size_t, double>                            wipe_tower_volumes_per_extruder;
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
@@ -87,6 +88,7 @@ namespace Slic3r {
             }
             volumes_per_color_change.clear();
             volumes_per_color_change.shrink_to_fit();
+            wipe_tower_volumes_per_extruder.clear();
             volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
@@ -256,7 +258,8 @@ namespace Slic3r {
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
             Total_Layer_Number_Placeholder,
-            During_Print_Exhaust_Fan
+            Wipe_Tower_Start,
+            Wipe_Tower_End,
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
@@ -467,8 +470,11 @@ namespace Slic3r {
             double color_change_cache;
             std::vector<double> volumes_per_color_change;
 
-            double tool_change_cache;
+            double model_extrude_cache;
             std::map<size_t, double> volumes_per_extruder;
+
+            double wipe_tower_cache;
+            std::map<size_t, double>wipe_tower_volume_per_extruder;
 
             //BBS: the flush amount of every filament
             std::map<size_t, double> flush_per_filament;
@@ -478,10 +484,12 @@ namespace Slic3r {
 
             void reset();
 
-            void increase_caches(double extruded_volume);
+            void increase_model_caches(double extruded_volume);
+            void increase_wipe_tower_caches(double extruded_volume);
 
             void process_color_change_cache();
-            void process_extruder_cache(GCodeProcessor* processor);
+            void process_model_cache(GCodeProcessor* processor);
+            void process_wipe_tower_cache(GCodeProcessor* processor);
             void update_flush_per_filament(size_t extrude_id, float flush_length);
             void process_role_cache(GCodeProcessor* processor);
             void process_caches(GCodeProcessor* processor);
@@ -630,6 +638,7 @@ namespace Slic3r {
         CachedPosition m_cached_position;
         bool m_wiping;
         bool m_flushing;
+        bool m_wipe_tower;
         float m_remaining_volume;
 
         //BBS: x, y offset for gcode generated

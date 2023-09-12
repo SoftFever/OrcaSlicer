@@ -936,9 +936,9 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::LayerTime);
     view_type_items.push_back(EViewType::FanSpeed);
     view_type_items.push_back(EViewType::Temperature);
-    if (mode == ConfigOptionMode::comDevelop) {
-        view_type_items.push_back(EViewType::Tool);
-    }
+    //if (mode == ConfigOptionMode::comDevelop) {
+    //    view_type_items.push_back(EViewType::Tool);
+    //}
 
     for (int i = 0; i < view_type_items.size(); i++) {
         view_type_items_str.push_back(get_view_type_string(view_type_items[i]));
@@ -951,9 +951,9 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     options_items.push_back(EMoveType::Retract);
     options_items.push_back(EMoveType::Unretract);
     options_items.push_back(EMoveType::Wipe);
-    if (mode == ConfigOptionMode::comDevelop) {
-        options_items.push_back(EMoveType::Tool_change);
-    }
+    //if (mode == ConfigOptionMode::comDevelop) {
+    //    options_items.push_back(EMoveType::Tool_change);
+    //}
     //BBS: seam is not real move and extrusion, put at last line
     options_items.push_back(EMoveType::Seam);
 }
@@ -4692,8 +4692,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::vector<double> flushed_filaments_m;
     std::vector<double> flushed_filaments_g;
     double total_flushed_filament_m = 0, total_flushed_filament_g = 0;
-    bool show_model_used_filaments = true;
-    bool show_flushed_filaments = true;
+    std::vector<double> wipe_tower_used_filaments_m;
+    std::vector<double> wipe_tower_used_filaments_g;
+    double total_wipe_tower_used_filament_m = 0, total_wipe_tower_used_filament_g = 0;
+    struct ColumnData {
+        enum {
+            Model = 1,
+            Flushed = 2,
+            WipeTower = 4,
+        };
+    };
+    int displayed_columns = ColumnData::Model | ColumnData::Flushed | ColumnData::WipeTower;
     const PrintStatistics& ps = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
     double koef = imperial_units ? GizmoObjectManipulation::in_to_mm : 1000.0;
     double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1;
@@ -4782,7 +4791,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             total_model_used_filament_g += model_used_filament_g;
         }
         if (model_used_filaments_m.size() == 0 || model_used_filaments_g.size() == 0)
-            show_model_used_filaments = false;
+            displayed_columns &= ~ColumnData::Model;
+
+        for (size_t extruder_id : m_extruder_ids) {
+            if (m_print_statistics.wipe_tower_volumes_per_extruder.find(extruder_id) == m_print_statistics.wipe_tower_volumes_per_extruder.end()) continue;
+            double volume = m_print_statistics.wipe_tower_volumes_per_extruder.at(extruder_id);
+            auto [wipe_tower_used_filament_m, wipe_tower_used_filament_g] = get_used_filament_from_volume(volume, extruder_id);
+            wipe_tower_used_filaments_m.push_back(wipe_tower_used_filament_m);
+            wipe_tower_used_filaments_g.push_back(wipe_tower_used_filament_g);
+            total_wipe_tower_used_filament_m += wipe_tower_used_filament_m;
+            total_wipe_tower_used_filament_g += wipe_tower_used_filament_g;
+        }
+        if (wipe_tower_used_filaments_m.size() == 0 || wipe_tower_used_filaments_g.size() == 0)
+            displayed_columns &= ~ColumnData::WipeTower;
 
         for (size_t extruder_id : m_extruder_ids) {
             if (m_print_statistics.flush_per_filament.find(extruder_id) == m_print_statistics.flush_per_filament.end()) continue;
@@ -4794,18 +4815,27 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             total_flushed_filament_g += flushed_filament_g;
         }
         if (flushed_filaments_m.size() == 0 || flushed_filaments_g.size() == 0)
-            show_flushed_filaments = false;
+            displayed_columns &= ~ColumnData::Flushed;
 
         std::vector<std::string> total_filaments;
         char buffer[64];
         ::sprintf(buffer, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", ps.total_used_filament / /*1000*/koef, ps.total_weight / unit_conver);
         total_filaments.push_back(buffer);
 
-        offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, /*{_u8L("Tower"), total_filaments},*/ {_u8L("Total"), total_filaments} }, icon_size);
-        if (m_extruder_ids.size() <= 1 || !show_flushed_filaments)
+
+        if (displayed_columns == ColumnData::Model) {
+            offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
             append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[2]}});
-        else
-            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, /*{_u8L("Tower"), offsets[3]},*/ {_u8L("Total"), offsets[3]}});// to add Tower
+        }
+        if (displayed_columns == (ColumnData::Model | ColumnData::Flushed)) {
+            offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
+            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {_u8L("Total"), offsets[3]} });
+        }
+        if (displayed_columns == (ColumnData::Model | ColumnData::Flushed | ColumnData::WipeTower)) {
+            offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Tower"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
+            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {_u8L("Tower"), offsets[3]}, {_u8L("Total"), offsets[4]} });
+        }
+
         break;
     }
     default: { break; }
@@ -4976,7 +5006,12 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                         columns_offsets.push_back({ std::to_string(extruder_idx + 1), offsets[0] });
 
                         char buf[64];
-                        if (show_flushed_filaments) {
+                        if (displayed_columns == ColumnData::Model) {
+                            char buf[64];
+                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
+                            columns_offsets.push_back({ buf, offsets[2] });
+                        }
+                        if (displayed_columns == (ColumnData::Model | ColumnData::Flushed)) {
                             ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
                             columns_offsets.push_back({ buf, offsets[1] });
 
@@ -4984,14 +5019,24 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                             columns_offsets.push_back({ buf, offsets[2] });
 
                             ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (model_used_filaments_m[i] + flushed_filaments_m[i]),
-                                      (model_used_filaments_g[i] + flushed_filaments_g[i]) / unit_conver);
+                                (model_used_filaments_g[i] + flushed_filaments_g[i]) / unit_conver);
                             columns_offsets.push_back({ buf, offsets[3] });
                         }
-                        else {
-                            char buf[64];
-                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
-                            columns_offsets.push_back({buf, offsets[2]});
+                        if (displayed_columns == (ColumnData::Model | ColumnData::Flushed | ColumnData::WipeTower)) {
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i] / unit_conver);
+                            columns_offsets.push_back({ buf, offsets[1] });
+
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i] / unit_conver);
+                            columns_offsets.push_back({ buf, offsets[2] });
+
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", wipe_tower_used_filaments_m[i], wipe_tower_used_filaments_g[i] / unit_conver);
+                            columns_offsets.push_back({ buf, offsets[3] });
+
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (model_used_filaments_m[i] + flushed_filaments_m[i] + wipe_tower_used_filaments_m[i]),
+                                (model_used_filaments_g[i] + flushed_filaments_g[i] + wipe_tower_used_filaments_g[i]) / unit_conver);
+                            columns_offsets.push_back({ buf, offsets[4] });
                         }
+
 
                         append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
                                 m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
@@ -5038,13 +5083,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
             std::vector<std::pair<std::string, float>> columns_offsets;
             columns_offsets.push_back({ _u8L("Total"), offsets[0] });
-            if (!show_flushed_filaments) {
+            if (displayed_columns == ColumnData::Model) {
                 ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[2] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
             }
-            else {
+            if (displayed_columns == (ColumnData::Model | ColumnData::Flushed)) {
                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
                 columns_offsets.push_back({ buf, offsets[1] });
 
@@ -5052,8 +5097,24 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 columns_offsets.push_back({ buf, offsets[2] });
 
                 bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_flushed_filament_m, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_flushed_filament_m , (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
                 columns_offsets.push_back({ buf, offsets[3] });
+
+                append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
+            }
+            if (displayed_columns == (ColumnData::Model | ColumnData::Flushed | ColumnData::WipeTower)) {
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g / unit_conver);
+                columns_offsets.push_back({ buf, offsets[1] });
+
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_flushed_filament_m, total_flushed_filament_g / unit_conver);
+                columns_offsets.push_back({ buf, offsets[2] });
+
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_wipe_tower_used_filament_m, total_wipe_tower_used_filament_g / unit_conver);
+                columns_offsets.push_back({ buf, offsets[3] });
+
+                bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+                ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m + total_flushed_filament_m + total_wipe_tower_used_filament_m, (total_model_used_filament_g + total_flushed_filament_g + total_wipe_tower_used_filament_g) / unit_conver);
+                columns_offsets.push_back({ buf, offsets[4] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
             }

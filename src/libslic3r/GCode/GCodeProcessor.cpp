@@ -58,7 +58,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
-    "_DURING_PRINT_EXHAUST_FAN"
+    " WIPE_TOWER_START",
+    " WIPE_TOWER_END"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -698,20 +699,28 @@ void GCodeProcessor::UsedFilaments::reset()
     color_change_cache = 0.0f;
     volumes_per_color_change = std::vector<double>();
 
-    tool_change_cache = 0.0f;
+    model_extrude_cache = 0.0f;
     volumes_per_extruder.clear();
 
     flush_per_filament.clear();
 
     role_cache = 0.0f;
     filaments_per_role.clear();
+
+    wipe_tower_cache = 0.0f;
+    wipe_tower_volume_per_extruder.clear();
 }
 
-void GCodeProcessor::UsedFilaments::increase_caches(double extruded_volume)
+void GCodeProcessor::UsedFilaments::increase_model_caches(double extruded_volume)
 {
     color_change_cache += extruded_volume;
-    tool_change_cache += extruded_volume;
+    model_extrude_cache += extruded_volume;
     role_cache += extruded_volume;
+}
+
+void GCodeProcessor::UsedFilaments::increase_wipe_tower_caches(double extruded_volume)
+{
+    wipe_tower_cache += extruded_volume;
 }
 
 void GCodeProcessor::UsedFilaments::process_color_change_cache()
@@ -722,15 +731,27 @@ void GCodeProcessor::UsedFilaments::process_color_change_cache()
     }
 }
 
-void GCodeProcessor::UsedFilaments::process_extruder_cache(GCodeProcessor* processor)
+void GCodeProcessor::UsedFilaments::process_model_cache(GCodeProcessor* processor)
 {
     size_t active_extruder_id = processor->m_extruder_id;
-    if (tool_change_cache != 0.0f) {
+    if (model_extrude_cache != 0.0f) {
         if (volumes_per_extruder.find(active_extruder_id) != volumes_per_extruder.end())
-            volumes_per_extruder[active_extruder_id] += tool_change_cache;
+            volumes_per_extruder[active_extruder_id] += model_extrude_cache;
         else
-            volumes_per_extruder[active_extruder_id] = tool_change_cache;
-        tool_change_cache = 0.0f;
+            volumes_per_extruder[active_extruder_id] = model_extrude_cache;
+        model_extrude_cache = 0.0f;
+    }
+}
+
+void GCodeProcessor::UsedFilaments::process_wipe_tower_cache(GCodeProcessor* processor)
+{
+    size_t active_extruder_id = processor->m_extruder_id;
+    if (wipe_tower_cache != 0.0f) {
+        if (wipe_tower_volume_per_extruder.find(active_extruder_id) != wipe_tower_volume_per_extruder.end())
+            wipe_tower_volume_per_extruder[active_extruder_id] += wipe_tower_cache;
+        else
+            wipe_tower_volume_per_extruder[active_extruder_id] = wipe_tower_cache;
+        wipe_tower_cache = 0.0f;
     }
 }
 
@@ -765,8 +786,9 @@ void GCodeProcessor::UsedFilaments::process_role_cache(GCodeProcessor* processor
 void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
 {
     process_color_change_cache();
-    process_extruder_cache(processor);
+    process_model_cache(processor);
     process_role_cache(processor);
+    process_wipe_tower_cache(processor);
 }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -1266,6 +1288,7 @@ void GCodeProcessor::reset()
     m_cached_position.reset();
     m_wiping = false;
     m_flushing = false;
+    m_wipe_tower = false;
     m_remaining_volume = 0.f;
     // BBS: arc move related data
     m_move_path_type = EMovePathType::Noop_move;
@@ -2042,6 +2065,17 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         return;
     }
 
+    if (boost::starts_with(comment, reserved_tag(ETags::Wipe_Tower_Start))) {
+        m_wipe_tower = true;
+        return;
+    }
+
+    if (boost::starts_with(comment, reserved_tag(ETags::Wipe_Tower_End))) {
+        m_wipe_tower = false;
+        m_used_filaments.process_wipe_tower_cache(this);
+        return;
+    }
+
     //BBS: flush start tag
     if (boost::starts_with(comment, GCodeProcessor::Flush_Start_Tag)) {
         m_flushing = true;
@@ -2731,10 +2765,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         float delta_xyz = std::sqrt(sqr(delta_pos[X]) + sqr(delta_pos[Y]) + sqr(delta_pos[Z]));
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
-
-        // save extruded volume to the cache
-        m_used_filaments.increase_caches(volume_extruded_filament);
-
+        if (m_wipe_tower) {
+            m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
+        }
+        else {
+            // save extruded volume to the cache
+            m_used_filaments.increase_model_caches(volume_extruded_filament);
+        }
         // volume extruded filament / tool displacement = area toolpath cross section
         m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -3188,10 +3225,14 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
         float area_toolpath_cross_section = volume_extruded_filament / delta_xyz;
-
-        //BBS: save extruded volume to the cache
-        m_used_filaments.increase_caches(volume_extruded_filament);
-
+        if (m_wipe_tower) {
+            //BBS: save wipe tower volume to the cache
+            m_used_filaments.increase_wipe_tower_caches(volume_extruded_filament);
+        }
+        else {
+            //BBS: save extruded volume to the cache
+            m_used_filaments.increase_model_caches(volume_extruded_filament);
+        }
         //BBS: volume extruded filament / tool displacement = area toolpath cross section
         m_mm3_per_mm = area_toolpath_cross_section;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -4236,7 +4277,7 @@ void GCodeProcessor::process_filaments(CustomGCode::Type code)
         m_used_filaments.process_color_change_cache();
 
     if (code == CustomGCode::ToolChange) {
-        m_used_filaments.process_extruder_cache(this);
+        m_used_filaments.process_model_cache(this);
         //BBS: reset remaining filament
         m_remaining_volume = m_nozzle_volume;
     }
@@ -4269,6 +4310,7 @@ void GCodeProcessor::update_estimated_times_stats()
 
     m_result.print_statistics.volumes_per_color_change  = m_used_filaments.volumes_per_color_change;
     m_result.print_statistics.volumes_per_extruder      = m_used_filaments.volumes_per_extruder;
+    m_result.print_statistics.wipe_tower_volumes_per_extruder = m_used_filaments.wipe_tower_volume_per_extruder;
     m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
 }
