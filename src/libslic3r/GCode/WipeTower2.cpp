@@ -912,10 +912,10 @@ void WipeTower2::toolchange_Unload(
     }
     
 
-    writer.append("; Ramming\n");
     // now the ramming itself:
     while (do_ramming && i < m_filpar[m_current_tool].ramming_speed.size())
     {
+        writer.append("; Ramming\n");
         // The time step is different for SEMM ramming and the MM ramming. See comments in set_extruder() for details.
         const float time_step = m_semm ? 0.25f : m_filpar[m_current_tool].multitool_ramming_time;
 
@@ -940,11 +940,11 @@ void WipeTower2::toolchange_Unload(
 	Vec2f end_of_ramming(writer.x(),writer.y());
     writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
 
-    writer.append("; Retract(unload)\n");
     // Retraction:
     float old_x = writer.x();
     float turning_point = (!m_left_to_right ? xl : xr );
     if (m_semm && (m_cooling_tube_retraction != 0 || m_cooling_tube_length != 0)) {
+        writer.append("; Retract(unload)\n");
         float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
         writer.suppress_preview()
               .retract(15.f, m_filpar[m_current_tool].unloading_speed_start * 60.f) // feedrate 5000mm/min = 83mm/s
@@ -965,10 +965,10 @@ void WipeTower2::toolchange_Unload(
         }
     }
 
-    writer.append("; Cooling\n");
     // Cooling:
     const int& number_of_moves = m_filpar[m_current_tool].cooling_moves;
-    if (m_semm && number_of_moves > 0) {
+    if (m_semm && number_of_moves > 0 && m_cooling_tube_length != 0) {
+        writer.append("; Cooling\n");
         const float& initial_speed = m_filpar[m_current_tool].cooling_initial_speed;
         const float& final_speed   = m_filpar[m_current_tool].cooling_final_speed;
 
@@ -991,7 +991,9 @@ void WipeTower2::toolchange_Unload(
         // let's wait is necessary:
         writer.wait(m_filpar[m_current_tool].delay);
         // we should be at the beginning of the cooling tube again - let's move to parking position:
-        writer.retract(-m_cooling_tube_length/2.f+m_parking_pos_retraction-m_cooling_tube_retraction, 2000);
+        const auto _e = -m_cooling_tube_length / 2.f + m_parking_pos_retraction - m_cooling_tube_retraction;
+        if (_e != 0.f)
+            writer.retract(_e, 2000);
     }
 
     // this is to align ramming and future wiping extrusions, so the future y-steps can be uniform from the start:
