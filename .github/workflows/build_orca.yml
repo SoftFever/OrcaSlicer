@@ -19,8 +19,6 @@ on:
        - 'src/**'
        - '**/CMakeLists.txt'
        - 'version.inc'
-       - 'localization/**'
-       - 'resources/**'
        - ".github/workflows/build_orca.yml"
  
 concurrency:
