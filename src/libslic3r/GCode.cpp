@@ -4529,7 +4529,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     std::vector<ProcessedPoint> new_points {};
 
     if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
-        ( is_perimeter(path.role()))) {
+        (is_bridge(path.role()) || is_perimeter(path.role()))) {
                
         	double out_wall_ref_speed = m_config.get_abs_value("outer_wall_speed");
         	ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
@@ -4562,10 +4562,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         		}
 
         		new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
-                                                                              out_wall_ref_speed, speed, true);
-
-        		variable_speed = std::any_of(new_points.begin(), new_points.end(), [speed](const ProcessedPoint &p) { return p.speed != speed; });
-        
+                                                                              out_wall_ref_speed, speed, m_config.slowdown_for_curled_perimeters);
         	}else{
             	ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
             	{(m_config.get_abs_value("overhang_1_4_speed") < 0.5) ?
@@ -4591,10 +4588,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         		}
 
         		new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
-                                                                              out_wall_ref_speed, speed, false);
-
-        		variable_speed = std::any_of(new_points.begin(), new_points.end(), [speed](const ProcessedPoint &p) { return p.speed != speed; });
+                                                                              out_wall_ref_speed, speed, m_config.slowdown_for_curled_perimeters);
         	}
+        	variable_speed = std::any_of(new_points.begin(), new_points.end(), [speed](const ProcessedPoint &p) { return p.speed != speed; });
 
     }
 
