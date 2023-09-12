@@ -4479,8 +4479,8 @@ void GUI_App::sync_preset(Preset* preset)
     if (preset->is_custom_defined()) return;
 
     auto setting_id = preset->setting_id;
+    std::map<std::string, std::string> values_map;
     if (setting_id.empty() && preset->sync_info.empty()) {
-        std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
             std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
@@ -4494,6 +4494,7 @@ void GUI_App::sync_preset(Preset* preset)
                 if (http_code >= 400) {
                     result = 0;
                     updated_info = "hold";
+                    values_map.clear();
                 }
                 else
                     result = -1;
@@ -4506,7 +4507,6 @@ void GUI_App::sync_preset(Preset* preset)
         }
     }
     else if (preset->sync_info.compare("create") == 0) {
-        std::map<std::string, std::string> values_map;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
             std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
@@ -4531,7 +4531,6 @@ void GUI_App::sync_preset(Preset* preset)
     }
     else if (preset->sync_info.compare("update") == 0) {
         if (!setting_id.empty()) {
-            std::map<std::string, std::string> values_map;
             int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
             if (!ret) {
                 if (values_map[BBL_JSON_KEY_BASE_ID] == setting_id) {
@@ -4577,6 +4576,11 @@ void GUI_App::sync_preset(Preset* preset)
         } else if (preset->type == Preset::Type::TYPE_PRINTER) {
             preset_bundle->printers.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
         }
+    }
+    if (http_code >= 400 && values_map["code"] == "14") { // Limit
+        auto msg = wxString::Format(_L("An error occurred when uploading user presets, affecting the synchronization of user presets on other devices.\n"
+            "Error message: %s"), from_u8(values_map["error"]));
+        MessageDialog(mainframe, msg, _L("Sync user presets"), wxICON_WARNING | wxOK).ShowModal();
     }
 }
 
