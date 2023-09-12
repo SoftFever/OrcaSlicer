@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:22+0800\n"
+"POT-Creation-Date: 2023-09-12 14:29+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -651,6 +651,9 @@ msgstr "모드 뷰 로드"
 msgid "Choose one file (3mf):"
 msgstr "하나의 파일 선택(3mf):"
 
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
+
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "하나 이상의 파일을 선택합니다 (3mf/step/stl/svg/obj/amf):"
 
@@ -828,6 +831,9 @@ msgstr "원기둥"
 
 msgid "Cone"
 msgstr "원뿔"
+
+msgid "Disc"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr ""
@@ -1471,6 +1477,9 @@ msgstr "연결 중…"
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "비어 있음"
 
@@ -1482,12 +1491,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS가 연결되지 않음"
-
-msgid "Cali"
-msgstr "Cali"
-
-msgid "Calibration of extrusion"
-msgstr "압출 캘리브레이션"
 
 msgid "Load Filament"
 msgstr "로드"
@@ -1519,6 +1522,12 @@ msgstr "다시 캘리브레이션하기"
 msgid "Cancel calibration"
 msgstr "캘리브레이션 취소"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "노즐 가열"
 
@@ -1534,8 +1543,14 @@ msgstr "새 필라멘트를 압출기에 밀어 넣습니다."
 msgid "Purge old filament"
 msgstr "이전 필라멘트를 밀어 빼냅니다."
 
-msgid "Push new filament into the extruder"
-msgstr "새 필라멘트를 압출기에 밀어 넣으세요."
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "새 필라멘트 가져오기"
@@ -2574,6 +2589,36 @@ msgstr "노즐 온도 오작동으로 인해 일시정지됨"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "베드 온도 오작동으로 인해 일시정지됨"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3037,8 +3082,14 @@ msgstr "라이다 센서 캘리브레이션"
 msgid "Bed leveling"
 msgstr "베드 레벨링"
 
-msgid "Resonance frequency identification"
-msgstr "공진 주파수 측정"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "캘리브레이션 프로그램"
@@ -3057,6 +3108,9 @@ msgstr "캘리브레이션 순서"
 
 msgid "Start Calibration"
 msgstr "캘리브레이션 시작"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "완료"
@@ -3777,11 +3831,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "레이어: N/A"
 
-msgid "Immediately score"
-msgstr "즉시 점수 매기기"
-
 msgid "Clear"
 msgstr "지우기"
+
+msgid "Rating"
+msgstr ""
 
 msgid "Camera"
 msgstr "카메라"
@@ -3848,12 +3902,6 @@ msgstr "클라우드 슬라이싱 대기열에 %s개의 작업이 있습니다."
 msgid "Layer: %s"
 msgstr "레이어: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "좋아하는 Bambu Market 모델에 점수를 매겨주세요."
-
-msgid "Score"
-msgstr "점수"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "레이어: %d/%d"
@@ -3894,6 +3942,90 @@ msgstr "루디크러스"
 
 msgid "Can't start this without SD card."
 msgstr "microSD 카드 없이는 시작할 수 없습니다."
+
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Rate"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid " upload config prase failed\n"
+msgstr ""
+
+msgid " No corresponding storage bucket\n"
+msgstr ""
+
+msgid " can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "info"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
+msgstr ""
 
 msgid "Status"
 msgstr "출력상황"
@@ -4103,6 +4235,9 @@ msgstr "첫 레이어 검사"
 
 msgid "Auto-recovery from step loss"
 msgstr "스텝 상실시 자동복구"
+
+msgid "Allow Prompt Sound"
+msgstr ""
 
 msgid "Global"
 msgstr "글로벌"
@@ -4837,9 +4972,6 @@ msgstr "error"
 msgid "warning"
 msgstr "warning"
 
-msgid "info"
-msgstr "info"
-
 msgid "debug"
 msgstr "debug"
 
@@ -5093,8 +5225,14 @@ msgstr "PLA 플레이트"
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu Engineering Plate"
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Bambu High Temperature Plate"
+msgid "Bamabu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bamabu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
@@ -5108,8 +5246,8 @@ msgstr "베드 레벨링"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "프린터에 연결할 수 없습니다"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "보내기 완료"
@@ -5213,6 +5351,11 @@ msgstr "빈 플레이트에 대한 출력 작업을 보낼 수 없습니다."
 
 msgid "This printer does not support printing all plates"
 msgstr "이 프린터는 모든 플레이트 출력을 지원하지 않습니다."
+
+msgid ""
+"This printer does not support selected timelapse mode, you can change the "
+"timelapse mode"
+msgstr ""
 
 msgid "Errors"
 msgstr "오류"
@@ -5602,15 +5745,14 @@ msgstr ""
 "엔지니어링 플레이트를 사용할 때의 베드 온도입니다.값이 0이면 필라멘트가 엔지"
 "니어링 플레이트에서의 출력을 지원하지 않는다는 의미입니다."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"High temperature plate 를 사용할 때의 베드 온도입니다. 값이 0이면 필라멘트가 "
-"High temperature Plate에서의 출력을 지원하지 않음을 의미합니다."
 
 msgid "Textured PEI Plate"
 msgstr "Textured PEI 플레이트"
@@ -5659,6 +5801,15 @@ msgstr ""
 
 msgid "Auxiliary part cooling fan"
 msgstr "보조 부품 냉각 팬"
+
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
 
 msgid "Filament start G-code"
 msgstr "필라멘트 시작 G 코드"
@@ -7142,6 +7293,23 @@ msgstr "기본 프로세스 프로파일"
 msgid "Default process profile when switch to this machine profile"
 msgstr "이 프린터 프로파일로 전환할 때의 기본 프로세스 프로파일"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "팬 속도"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "레이어 초기에 쿨링 안함"
 
@@ -7757,6 +7925,19 @@ msgstr "황동"
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "프린터에 보조 냉각 팬이 있는 경우 이 옵션을 활성화하십시오."
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "G-code flavor"
 
@@ -8020,9 +8201,6 @@ msgstr "이동 최대 가속도"
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "이동 최대 가속도 (M204 T)"
 
-msgid "Fan speed"
-msgstr "팬 속도"
-
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed limitation of part cooling fan"
@@ -8237,6 +8415,22 @@ msgstr ""
 "리트랙션시마다 노즐을 약간 들어 올려 노즐과 출력물 사이에 간격을 만듭니다. 이"
 "렇게 하면 이동이 길어질 때 노즐이 출력물에 부딪히는 것을 방지할 수 있습니다. "
 "Spiral line을 사용하여 z를 들어 올리면 거미줄을 방지할 수 있습니다."
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr "Z 홉 유형"
@@ -8679,7 +8873,16 @@ msgstr "트리서포트 주변의 브림 폭. 0은 자동생성을 의미함"
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9033,6 +9236,12 @@ msgstr ""
 msgid "Load first filament as default for those not loaded"
 msgstr ""
 
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -9087,14 +9296,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "단위 변환"
 
 msgid "Convert the units of model"
 msgstr "모델 단위 변환"
 
-msgid "Orient the model"
-msgstr "모델 방향 지정"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "소수점 단위로 스케일 조정"
@@ -9140,6 +9374,12 @@ msgid ""
 msgstr ""
 "디버그 기록 수준을 설정합니다. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, "
 "5:trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "zip 아카이브의 오류"
@@ -10156,6 +10396,46 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "Cali"
+#~ msgstr "Cali"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "압출 캘리브레이션"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "새 필라멘트를 압출기에 밀어 넣으세요."
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "공진 주파수 측정"
+
+#~ msgid "Immediately score"
+#~ msgstr "즉시 점수 매기기"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "좋아하는 Bambu Market 모델에 점수를 매겨주세요."
+
+#~ msgid "Score"
+#~ msgstr "점수"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Bambu High Temperature Plate"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "프린터에 연결할 수 없습니다"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "High Temp Plate"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "High temperature plate 를 사용할 때의 베드 온도입니다. 값이 0이면 필라멘트"
+#~ "가 High temperature Plate에서의 출력을 지원하지 않음을 의미합니다."
+
+#~ msgid "Orient the model"
+#~ msgstr "모델 방향 지정"
 
 #~ msgid ""
 #~ "Use only one wall on flat top surface, to give more space to the top "

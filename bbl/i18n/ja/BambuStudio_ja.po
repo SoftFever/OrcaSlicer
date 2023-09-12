@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-16 20:22+0800\n"
+"POT-Creation-Date: 2023-09-12 14:29+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -647,6 +647,9 @@ msgstr "モードビューをロード"
 msgid "Choose one file (3mf):"
 msgstr "ファイルを選択 (3mf):"
 
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
+
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "ファイルを選択 (3mf/step/stl/svg/obj/amf)"
 
@@ -821,6 +824,9 @@ msgstr "シリンダー"
 
 msgid "Cone"
 msgstr "コーン"
+
+msgid "Disc"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr ""
@@ -1466,6 +1472,9 @@ msgstr "接続中…"
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "空"
 
@@ -1477,12 +1486,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS が接続されていません"
-
-msgid "Cali"
-msgstr "標定"
-
-msgid "Calibration of extrusion"
-msgstr "押出のキャリブレーション"
 
 msgid "Load Filament"
 msgstr "ロード"
@@ -1516,6 +1519,12 @@ msgstr "再度キャリブレーションを行う"
 msgid "Cancel calibration"
 msgstr "キャリブレーションを取消し"
 
+msgid "AMS-Extra"
+msgstr ""
+
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "ノズルを加熱"
 
@@ -1531,8 +1540,14 @@ msgstr "フィラメントを押出機に押入れる"
 msgid "Purge old filament"
 msgstr "古いフィラメントを排出"
 
-msgid "Push new filament into the extruder"
-msgstr "Push new filament into the extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "Grab new filament"
@@ -2539,6 +2554,36 @@ msgstr "ノズル温度異常により一時停止"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "ベッド温度異常により一時停止"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -3000,8 +3045,14 @@ msgstr "ライダー キャリブレーション"
 msgid "Bed leveling"
 msgstr "ベッドレベリング"
 
-msgid "Resonance frequency identification"
-msgstr "共振特性測定"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "キャリブレーション項目"
@@ -3019,6 +3070,9 @@ msgstr "キャリブレーション項目"
 
 msgid "Start Calibration"
 msgstr "キャリブレーションを開始"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "完了"
@@ -3734,11 +3788,11 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
-msgid "Immediately score"
-msgstr "Immediately score"
-
 msgid "Clear"
 msgstr "クリア"
+
+msgid "Rating"
+msgstr ""
 
 msgid "Camera"
 msgstr "カメラ"
@@ -3805,12 +3859,6 @@ msgstr "In Cloud Slicing Queue, there are %s tasks ahead of you."
 msgid "Layer: %s"
 msgstr "Layer: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "Please give a score for your favorite Bambu Market model."
-
-msgid "Score"
-msgstr "Score"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Layer: %d/%d"
@@ -3851,6 +3899,90 @@ msgstr "超高速"
 
 msgid "Can't start this without SD card."
 msgstr "起動するのにSDカードが必要です。"
+
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Rate"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid " upload config prase failed\n"
+msgstr ""
+
+msgid " No corresponding storage bucket\n"
+msgstr ""
+
+msgid " can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "情報"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. Would you like "
+"to redirect to the webpage for storing?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for storing?"
+msgstr ""
+
+msgid "You can select up to 5 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
+msgstr ""
 
 msgid "Status"
 msgstr "デバイス状態"
@@ -4058,6 +4190,9 @@ msgstr "1層目検査"
 
 msgid "Auto-recovery from step loss"
 msgstr "自動回復"
+
+msgid "Allow Prompt Sound"
+msgstr ""
 
 msgid "Global"
 msgstr "全般"
@@ -4784,9 +4919,6 @@ msgstr "エラー"
 msgid "warning"
 msgstr "警告"
 
-msgid "info"
-msgstr "情報"
-
 msgid "debug"
 msgstr "デバッグ"
 
@@ -5039,8 +5171,14 @@ msgstr "PLA Plate"
 msgid "Bamabu Engineering Plate"
 msgstr "Bambu エンジニアリングプレート"
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Bambu 高温プレート"
+msgid "Bamabu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bamabu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "造形タスクを送信"
@@ -5054,8 +5192,8 @@ msgstr "ベッドレベリング"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "プリンターに接続できない"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "送信完了"
@@ -5148,6 +5286,11 @@ msgstr "空プレートがある為、送信できません"
 
 msgid "This printer does not support printing all plates"
 msgstr "プリンターが全てのプレートを造形することができません"
+
+msgid ""
+"This printer does not support selected timelapse mode, you can change the "
+"timelapse mode"
+msgstr ""
 
 msgid "Errors"
 msgstr "エラー"
@@ -5539,15 +5682,14 @@ msgstr ""
 "エンジニアリングプレートが装着時のベッド温度です。値が0の場合、フィラメントが"
 "エンジニアリングプレートに使用できない意味です。"
 
-msgid "High Temp Plate"
-msgstr "高温プレート"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"高温プレートが装着時のベッド温度です。値が0の場合、フィラメントが高温プレート"
-"に使用できない意味です。"
 
 msgid "Textured PEI Plate"
 msgstr "PEIプレート"
@@ -5595,6 +5737,15 @@ msgstr ""
 
 msgid "Auxiliary part cooling fan"
 msgstr "パーツ補助冷却ファン"
+
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
 
 msgid "Filament start G-code"
 msgstr "フィラメント開始G-code"
@@ -7047,6 +7198,23 @@ msgstr "デフォルト プロセスプロファイル"
 msgid "Default process profile when switch to this machine profile"
 msgstr "デバイスを切替える時のデフォルト プロセス プロファイル"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Acivate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "回転速度"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "冷却しない最初層数"
 
@@ -7645,6 +7813,19 @@ msgstr "真鍮"
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "パーツ補助冷却ファンがある場合有効にしてください"
 
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Decide whether support activating air filtration"
+msgstr ""
+
 msgid "G-code flavor"
 msgstr "G-codeスタイル"
 
@@ -7908,9 +8089,6 @@ msgstr "移動最大加速度"
 msgid "Maximum acceleration for travel (M204 T)"
 msgstr "移動最大加速度 (M204 T)"
 
-msgid "Fan speed"
-msgstr "回転速度"
-
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed limitation of part cooling fan"
@@ -8118,6 +8296,22 @@ msgid ""
 msgstr ""
 "リトラクション時に、ノズルを少し上げてから移動します。この動作でモデルとの衝"
 "突を回避できます。"
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z Hop Type"
 msgstr "Z方向調整タイプ"
@@ -8551,7 +8745,16 @@ msgstr "The brim width around tree support. 0 means auto."
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"By opening chamber_temperature compensation, the heating components will "
+"operate to elevate the chamber temperature.This can help suppress or reduce "
+"warping for high-temperature materials and potentially lead to higher "
+"interlayer bonding strength"
+msgstr ""
+
+msgid ""
+"Chamber temperature during print.0 means do not open compensation.Don't open "
+"it for low-temperature filaments like PLA, PETG, TPU"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -8894,6 +9097,12 @@ msgstr ""
 msgid "Load first filament as default for those not loaded"
 msgstr ""
 
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -8948,14 +9157,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "単位変換"
 
 msgid "Convert the units of model"
 msgstr "モデルの単位を変換"
 
-msgid "Orient the model"
-msgstr "モデルの向きを調整"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "指定した比率で伸縮する"
@@ -9001,6 +9235,12 @@ msgid ""
 msgstr ""
 "デバッグロギングレベルを設定します。0:fatal、1:error、2:warning、3:info、4:"
 "debug、5:trace。\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "ファイル圧縮にエラー発生"
@@ -9992,6 +10232,46 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Cali"
+#~ msgstr "標定"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "押出のキャリブレーション"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Push new filament into the extruder"
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "共振特性測定"
+
+#~ msgid "Immediately score"
+#~ msgstr "Immediately score"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Please give a score for your favorite Bambu Market model."
+
+#~ msgid "Score"
+#~ msgstr "Score"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Bambu 高温プレート"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "プリンターに接続できない"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "高温プレート"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "高温プレートが装着時のベッド温度です。値が0の場合、フィラメントが高温プ"
+#~ "レートに使用できない意味です。"
+
+#~ msgid "Orient the model"
+#~ msgstr "モデルの向きを調整"
 
 #~ msgid ""
 #~ "Use only one wall on flat top surface, to give more space to the top "
