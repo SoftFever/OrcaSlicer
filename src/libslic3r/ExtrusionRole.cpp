@@ -12,25 +12,55 @@
 
 namespace Slic3r {
 
+
+/* IG For reference only. Defined in Extrusion Entity hpp. Do not uncomment:
+
+// Each ExtrusionRole value identifies a distinct set of { extruder, speed }
+enum ExtrusionRole : uint8_t {
+    erNone,
+    erPerimeter,
+    erExternalPerimeter,
+    erOverhangPerimeter,
+    erInternalInfill,
+    erSolidInfill,
+    erTopSolidInfill,
+    erBottomSurface,
+    erIroning,
+    erBridgeInfill,
+    erInternalBridgeInfill,
+    erGapFill,
+    erSkirt,
+    erBrim,
+    erSupportMaterial,
+    erSupportMaterialInterface,
+    erSupportTransition,
+    erWipeTower,
+    erCustom,
+    // Extrusion role for a collection with multiple extrusion roles.
+    erMixed,
+    erCount
+};
+
+*/
+
 // Convert a rich bitmask based ExtrusionRole to a less expressive ordinal GCodeExtrusionRole.
 // GCodeExtrusionRole is to be serialized into G-code and deserialized by G-code viewer,
 GCodeExtrusionRole extrusion_role_to_gcode_extrusion_role(ExtrusionRole role)
 {
-    if (role == ExtrusionRole::None)                return GCodeExtrusionRole::None;
-    if (role.is_perimeter()) {
-        return role.is_bridge() ? GCodeExtrusionRole::OverhangPerimeter :
-               role.is_external() ? GCodeExtrusionRole::ExternalPerimeter : GCodeExtrusionRole::Perimeter;
-    }
-    if (role == ExtrusionRole::InternalInfill)      return GCodeExtrusionRole::InternalInfill;
-    if (role == ExtrusionRole::SolidInfill)         return GCodeExtrusionRole::SolidInfill;
-    if (role == ExtrusionRole::TopSolidInfill)      return GCodeExtrusionRole::TopSolidInfill;
-    if (role == ExtrusionRole::Ironing)             return GCodeExtrusionRole::Ironing;
-    if (role == ExtrusionRole::BridgeInfill)        return GCodeExtrusionRole::BridgeInfill;
-    if (role == ExtrusionRole::GapFill)             return GCodeExtrusionRole::GapFill;
-    if (role == ExtrusionRole::Skirt)               return GCodeExtrusionRole::Skirt;
-    if (role == ExtrusionRole::SupportMaterial)     return GCodeExtrusionRole::SupportMaterial;
-    if (role == ExtrusionRole::SupportMaterialInterface) return GCodeExtrusionRole::SupportMaterialInterface;
-    if (role == ExtrusionRole::WipeTower)           return GCodeExtrusionRole::WipeTower;
+    if (role == erNone)                return GCodeExtrusionRole::None;
+   	if (role == erOverhangPerimeter)                return GCodeExtrusionRole::OverhangPerimeter;
+	if (role == erExternalPerimeter)                return GCodeExtrusionRole::ExternalPerimeter;
+    if (role == erPerimeter)                		  return GCodeExtrusionRole::Perimeter;
+    if (role == erInternalInfill)      return GCodeExtrusionRole::InternalInfill;
+    if (role == erSolidInfill)         return GCodeExtrusionRole::SolidInfill;
+    if (role == erTopSolidInfill)      return GCodeExtrusionRole::TopSolidInfill;
+    if (role == erIroning)             return GCodeExtrusionRole::Ironing;
+    if (role == erBridgeInfill)        return GCodeExtrusionRole::BridgeInfill;
+    if (role == erGapFill)             return GCodeExtrusionRole::GapFill;
+    if (role == erSkirt)               return GCodeExtrusionRole::Skirt;
+    if (role == erSupportMaterial)     return GCodeExtrusionRole::SupportMaterial;
+    if (role == erSupportMaterialInterface) return GCodeExtrusionRole::SupportMaterialInterface;
+    if (role == erWipeTower)           return GCodeExtrusionRole::WipeTower;
     assert(false);
     return GCodeExtrusionRole::None;
 }
