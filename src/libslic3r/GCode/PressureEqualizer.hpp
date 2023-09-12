@@ -1,41 +1,59 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas
+///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GCode_PressureEqualizer_hpp_
 #define slic3r_GCode_PressureEqualizer_hpp_
 
 #include "../libslic3r.h"
 #include "../PrintConfig.hpp"
-#include "../ExtrusionEntity.hpp"
+#include "../ExtrusionRole.hpp"
+
+#include <queue>
 
 namespace Slic3r {
+
+struct LayerResult;
+
+class GCodeG1Formatter;
+
+//#define PRESSURE_EQUALIZER_STATISTIC
+//#define PRESSURE_EQUALIZER_DEBUG
 
 // Processes a G-code. Finds changes in the volumetric extrusion speed and adjusts the transitions
 // between these paths to limit fast changes in the volumetric extrusion speed.
 class PressureEqualizer
 {
 public:
-    PressureEqualizer(const Slic3r::GCodeConfig *config);
-    ~PressureEqualizer();
+    PressureEqualizer() = delete;
+    explicit PressureEqualizer(const Slic3r::GCodeConfig &config);
+    ~PressureEqualizer() = default;
 
-    void reset();
-
-    // Process a next batch of G-code lines. Flush the internal buffers if asked for.
-    const char* process(const char *szGCode, bool flush);
-
-    size_t get_output_buffer_length() const { return output_buffer_length; }
-
+    // Process a next batch of G-code lines.
+    // The last LayerResult must be LayerResult::make_nop_layer_result() because it always returns GCode for the previous layer.
+    // When process_layer is called for the first layer, then LayerResult::make_nop_layer_result() is returned.
+    LayerResult process_layer(LayerResult &&input);
 private:
+
+    void process_layer(const std::string &gcode);
+
+#ifdef PRESSURE_EQUALIZER_STATISTIC
     struct Statistics
     {
-        void reset() {
-			volumetric_extrusion_rate_min = std::numeric_limits<float>::max();
+        void reset()
+        {
+            volumetric_extrusion_rate_min = std::numeric_limits<float>::max();
             volumetric_extrusion_rate_max = 0.f;
             volumetric_extrusion_rate_avg = 0.f;
-            extrusion_length = 0.f;
+            extrusion_length              = 0.f;
         }
-        void update(float volumetric_extrusion_rate, float length) {
-            volumetric_extrusion_rate_min = std::min(volumetric_extrusion_rate_min, volumetric_extrusion_rate);
-            volumetric_extrusion_rate_max = std::max(volumetric_extrusion_rate_max, volumetric_extrusion_rate);
+        void update(float volumetric_extrusion_rate, float length)
+        {
+            volumetric_extrusion_rate_min  = std::min(volumetric_extrusion_rate_min, volumetric_extrusion_rate);
+            volumetric_extrusion_rate_max  = std::max(volumetric_extrusion_rate_max, volumetric_extrusion_rate);
             volumetric_extrusion_rate_avg += volumetric_extrusion_rate * length;
-            extrusion_length += length;          
+            extrusion_length              += length;
         }
         float volumetric_extrusion_rate_min;
         float volumetric_extrusion_rate_max;
@@ -44,9 +62,7 @@ private:
     };
 
     struct Statistics m_stat;
-
-    // Keeps the reference, does not own the config.
-    const Slic3r::GCodeConfig *m_config;
+#endif
 
     // Private configuration values
     // How fast could the volumetric extrusion rate increase / decrase? mm^3/sec^2
@@ -54,12 +70,9 @@ private:
         float positive;
         float negative;
     };
-    enum { numExtrusionRoles = erSupportMaterialInterface + 1 };
-    ExtrusionRateSlope              m_max_volumetric_extrusion_rate_slopes[numExtrusionRoles];
+    ExtrusionRateSlope              m_max_volumetric_extrusion_rate_slopes[size_t(GCodeExtrusionRole::Count)];
     float                           m_max_volumetric_extrusion_rate_slope_positive;
     float                           m_max_volumetric_extrusion_rate_slope_negative;
-    // Maximum segment length to split a long segment, if the initial and the final flow rate differ.
-    float                           m_max_segment_length;
 
     // Configuration extracted from config.
     // Area of the crossestion of each filament. Necessary to calculate the volumetric flow rate.
@@ -69,11 +82,15 @@ private:
     // X,Y,Z,E,F
     float                           m_current_pos[5];
     size_t                          m_current_extruder;
-    ExtrusionRole                   m_current_extrusion_role;
+    GCodeExtrusionRole     m_current_extrusion_role;
     bool                            m_retracted;
+    bool                            m_use_relative_e_distances;
 
-    enum GCodeLineType
-    {
+    // Indicate if extrude set speed block was opened using the tag ";_EXTRUDE_SET_SPEED"
+    // or not (not opened, or it was closed using the tag ";_EXTRUDE_END").
+    bool                            opened_extrude_set_speed_block = false;
+
+    enum GCodeLineType {
         GCODELINETYPE_INVALID,
         GCODELINETYPE_NOOP,
         GCODELINETYPE_OTHER,
@@ -128,18 +145,16 @@ private:
         // or maybe the line needs to be split into multiple lines.
         bool                modified;
 
-        // float       timeStart;
-        // float       timeEnd;
         // X,Y,Z,E,F. Storing the state of the currently active extruder only.
         float       pos_start[5];
         float       pos_end[5];
-        // Was the axis found on the G-code line? X,Y,Z,F
+        // Was the axis found on the G-code line? X,Y,Z,E,F
         bool        pos_provided[5];
 
         // Index of the active extruder.
         size_t      extruder_id;
         // Extrusion role of this segment.
-        ExtrusionRole extrusion_role;
+        GCodeExtrusionRole extrusion_role;
 
         // Current volumetric extrusion rate.
         float       volumetric_extrusion_rate;
@@ -152,59 +167,41 @@ private:
         // If set to zero, the slope is unlimited.
         float       max_volumetric_extrusion_rate_slope_positive;
         float       max_volumetric_extrusion_rate_slope_negative;
-    };
 
-    // Circular buffer of GCode lines. The circular buffer size will be limited to circular_buffer_size.
-    std::vector<GCodeLine>          circular_buffer;
-    // Current position of the circular buffer (index, where to write the next line to, the line has to be pushed out before it is overwritten).
-    size_t                          circular_buffer_pos;
-    // Circular buffer size, configuration value.
-    size_t                          circular_buffer_size;
-    // Number of valid lines in the circular buffer. Lower or equal to circular_buffer_size.
-    size_t                          circular_buffer_items;
+        bool        adjustable_flow       = false;
+
+        bool        extrude_set_speed_tag = false;
+        bool        extrude_end_tag       = false;
+    };
 
     // Output buffer will only grow. It will not be reallocated over and over.
     std::vector<char>               output_buffer;
     size_t                          output_buffer_length;
+    size_t                          output_buffer_prev_length;
 
+#ifdef PRESSURE_EQUALIZER_DEBUG
     // For debugging purposes. Index of the G-code line processed.
     size_t                          line_idx;
+#endif
 
-    bool process_line(const char *line, const size_t len, GCodeLine &buf);
-    void output_gcode_line(GCodeLine &buf);
+    bool process_line(const char *line, const char *line_end, GCodeLine &buf);
+    void output_gcode_line(size_t line_idx);
 
     // Go back from the current circular_buffer_pos and lower the feedtrate to decrease the slope of the extrusion rate changes.
     // Then go forward and adjust the feedrate to decrease the slope of the extrusion rate changes.
     void adjust_volumetric_rate();
 
     // Push the text to the end of the output_buffer.
-    void push_to_output(const char *text, const size_t len, bool add_eol = true);
-    // Push an axis assignment to the end of the output buffer.
-    void push_axis_to_output(const char axis, const float value, bool add_eol = false);
-    // Push a G-code line to the output, 
-    void push_line_to_output(const GCodeLine &line, const float new_feedrate, const char *comment);
+    inline void push_to_output(GCodeG1Formatter &formatter);
+    inline void push_to_output(const std::string &text, bool add_eol);
+    inline void push_to_output(const char *text, size_t len, bool add_eol = true);
+    // Push a G-code line to the output.
+    void push_line_to_output(size_t line_idx, float new_feedrate, const char *comment);
 
-    size_t circular_buffer_idx_head() const {
-        size_t idx = circular_buffer_pos + circular_buffer_size - circular_buffer_items;
-        if (idx >= circular_buffer_size)
-            idx -= circular_buffer_size;
-        return idx;
-    }
+public:
+    std::queue<LayerResult*> m_layer_results;
 
-    size_t circular_buffer_idx_tail() const { return circular_buffer_pos; }
-
-    size_t circular_buffer_idx_prev(size_t idx) const {
-        idx += circular_buffer_size - 1;
-        if (idx >= circular_buffer_size)
-            idx -= circular_buffer_size;
-        return idx;
-    }
-
-    size_t circular_buffer_idx_next(size_t idx) const {
-        if (++ idx >= circular_buffer_size)
-            idx -= circular_buffer_size;
-        return idx;
-    }
+    std::vector<GCodeLine> m_gcode_lines;
 };
 
 } // namespace Slic3r
