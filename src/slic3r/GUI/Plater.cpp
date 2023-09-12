@@ -4191,6 +4191,20 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
 
     wxString out_path = dlg.GetPath();
     fs::path path(into_path(out_path));
+#ifdef __WXMSW__
+    if (path.extension() != output_file.extension()) {
+        out_path += output_file.extension().string();
+        boost::system::error_code ec;
+        if (boost::filesystem::exists(into_u8(out_path), ec)) {
+            auto result = MessageBox(q->GetHandle(), 
+                wxString::Format(_L("The file %s already exists\nDo you want to replace it?"), out_path), 
+                _L("Comfirm Save As"), 
+                MB_YESNO | MB_ICONWARNING);
+            if (result != IDYES)
+                return wxEmptyString;
+        }
+    }
+#endif
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
 
     return out_path;
