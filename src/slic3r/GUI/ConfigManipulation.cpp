@@ -692,6 +692,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // Orca
     auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");
     toggle_field("wipe_speed",!is_role_based_wipe_speed);
+    // Orca
+    bool has_slowdown_for_curled_perimeters = config->opt_bool("slowdown_for_curled_perimeters");
+    //toggle_field("slowdown_for_curled_perimeters",has_slowdown_for_curled_perimeters);
     
     for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
         toggle_line(el, gcflavor == gcfKlipper);

@@ -268,10 +268,13 @@ public:
                                                            const ConfigOptionPercents         &overlaps,
                                                            const ConfigOptionFloatsOrPercents &speeds,
                                                            float                               ext_perimeter_speed,
-                                                           float                               original_speed)
+                                                           float                               original_speed,
+                                                           bool								   slowdown_for_curled_edges)
     {
         size_t                               speed_sections_count = std::min(overlaps.values.size(), speeds.values.size());
         std::vector<std::pair<float, float>> speed_sections;
+        
+        
         
         for (size_t i = 0; i < speed_sections_count; i++) {
             float distance = path.width * (1.0 - (overlaps.get_at(i) / 100.0));
@@ -371,8 +374,10 @@ public:
             };
             
             float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
-            float curled_speed = calculate_speed(artificial_distance_to_curled_lines);
-            extrusion_speed       = std::min(curled_speed, extrusion_speed); // adjust extrusion speed based on what is smallest - the calculated overhang speed or the artificial curled speed
+            if(slowdown_for_curled_edges) {
+            	float curled_speed = calculate_speed(artificial_distance_to_curled_lines);
+            	extrusion_speed       = std::min(curled_speed, extrusion_speed); // adjust extrusion speed based on what is smallest - the calculated overhang speed or the artificial curled speed
+            }
             
             float overlap = std::min(1 - curr.distance * width_inv, 1 - next.distance * width_inv);
 			

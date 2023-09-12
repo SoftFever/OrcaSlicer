@@ -775,6 +775,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
             || opt_key == "slicing_mode"
+            || opt_key == "slowdown_for_curled_perimeters"
             || opt_key == "make_overhang_printable"
             || opt_key == "make_overhang_printable_angle"
             || opt_key == "make_overhang_printable_hole_size") {
