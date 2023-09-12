@@ -1,0 +1,23 @@
+{
+  "type": "machine",
+  "setting_id": "GM_Tronxy_003",
+  "name": "Tronxy X5SA 400 0.4 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_machine_common",
+  "printer_model": "Tronxy X5SA 400 Marlin Firmware",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printable_area": [
+    "0x0",
+    "400x0",
+    "400x400",
+    "0x400"
+  ],
+  "printable_height": "400",
+  "default_filament_profile": [
+    "Generic PLA @Tronxy"
+  ],
+  "default_print_profile": "0.20mm Standard @Tronxy"
+}

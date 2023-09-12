@@ -1,0 +1,130 @@
+{
+    "name": "Tronxy",
+    "version": "01.07.00.1",
+    "force_update": "0",
+    "description": "Tronxy configurations",
+    "machine_model_list": [
+        {
+            "name": "Tronxy X5SA 400 Marlin Firmware",
+            "sub_path": "machine/Tronxy X5SA 400 Marlin Firmware.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @Tronxy",
+            "sub_path": "process/0.08mm Extra Fine @Tronxy.json"
+        },
+        {
+            "name": "0.12mm Fine @Tronxy",
+            "sub_path": "process/0.12mm Fine @Tronxy.json"
+        },
+        {
+            "name": "0.15mm Optimal @Tronxy",
+            "sub_path": "process/0.15mm Optimal @Tronxy.json"
+        },
+        {
+            "name": "0.20mm Standard @Tronxy",
+            "sub_path": "process/0.20mm Standard @Tronxy.json"
+        },
+        {
+            "name": "0.24mm Draft @Tronxy",
+            "sub_path": "process/0.24mm Draft @Tronxy.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Tronxy",
+            "sub_path": "process/0.28mm Extra Draft @Tronxy.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "Generic PLA @Tronxy",
+            "sub_path": "filament/Generic PLA @Tronxy.json"
+        },
+        {
+            "name": "Generic PLA-CF @Tronxy",
+            "sub_path": "filament/Generic PLA-CF @Tronxy.json"
+        },
+        {
+            "name": "Generic TPU @Tronxy",
+            "sub_path": "filament/Generic TPU @Tronxy.json"
+        },
+        {
+            "name": "Generic PETG @Tronxy",
+            "sub_path": "filament/Generic PETG @Tronxy.json"
+        },
+        {
+            "name": "Generic ABS @Tronxy",
+            "sub_path": "filament/Generic ABS @Tronxy.json"
+        },
+        {
+            "name": "Generic PC @Tronxy",
+            "sub_path": "filament/Generic PC @Tronxy.json"
+        },
+        {
+            "name": "Generic ASA @Tronxy",
+            "sub_path": "filament/Generic ASA @Tronxy.json"
+        },
+        {
+            "name": "Generic PVA @Tronxy",
+            "sub_path": "filament/Generic PVA @Tronxy.json"
+        },
+        {
+            "name": "Generic PA @Tronxy",
+            "sub_path": "filament/Generic PA @Tronxy.json"
+        },
+        {
+            "name": "Generic PA-CF @Tronxy",
+            "sub_path": "filament/Generic PA-CF @Tronxy.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "Tronxy X5SA 400 0.4 nozzle",
+            "sub_path": "machine/Tronxy X5SA 400 0.4 nozzle.json"
+        }
+    ]
+}

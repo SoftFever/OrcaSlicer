@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "name": "Generic PVA @Tronxy",
+    "inherits": "fdm_filament_pva",
+    "from": "system",
+    "filament_id": "GFS99",
+    "setting_id": "GFSS99_Tronxy_00",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
+    ]
+}

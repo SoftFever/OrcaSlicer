@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "name": "Generic ABS @Tronxy",
+    "inherits": "fdm_filament_abs",
+    "from": "system",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99_Tronxy_00",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "0.926"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
+    ]
+}

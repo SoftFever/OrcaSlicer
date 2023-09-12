@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "name": "Generic PLA @Tronxy",
+    "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "GFL99",
+    "setting_id": "GFSL99_Tronxy_00",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
+    ]
+}
