@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2452,6 +2452,9 @@ msgstr ""
 "나선형 꽃병모드는 다음 경우에만 작동합니다. 벽 수 1, 서포트 비활성화, 상단 레"
 "이어 0, 내부채움 밀도 0, 타임랩스 유형 일반."
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4349,6 +4352,9 @@ msgstr "예상 시간"
 msgid "Filament changes"
 msgstr "필라멘트 변경"
 
+msgid "Create Printer"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "프리셋을 수정하려면 클릭하십시오."
 
@@ -4360,6 +4366,9 @@ msgstr "플레이트 타입"
 
 msgid "Flushing volumes"
 msgstr "짜낸 필라 양"
+
+msgid "Create Filament"
+msgstr ""
 
 msgid "Add one filament"
 msgstr "필라멘트 1개 추가"
@@ -4452,7 +4461,9 @@ msgstr ""
 "화된 노즐로 변경하거나 필라멘트를 교체하십시오. 그렇지 않으면 노즐이 마모되거"
 "나 손상될 수 있습니다."
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
 msgstr ""
 
 #, c-format, boost-format

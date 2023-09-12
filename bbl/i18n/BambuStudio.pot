@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2335,6 +2335,9 @@ msgid ""
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4187,6 +4190,9 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
+msgid "Create Printer"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr ""
 
@@ -4197,6 +4203,9 @@ msgid "Bed type"
 msgstr ""
 
 msgid "Flushing volumes"
+msgstr ""
+
+msgid "Create Filament"
 msgstr ""
 
 msgid "Add one filament"
@@ -4277,7 +4286,9 @@ msgid ""
 "filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
 msgstr ""
 
 #, possible-c-format, possible-boost-format

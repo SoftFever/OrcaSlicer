@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2418,6 +2418,9 @@ msgstr ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4305,6 +4308,9 @@ msgstr "予測時間"
 msgid "Filament changes"
 msgstr "フィラメント交換"
 
+msgid "Create Printer"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "プリセットを編集"
 
@@ -4316,6 +4322,9 @@ msgstr "プレート"
 
 msgid "Flushing volumes"
 msgstr "フラッシュ量"
+
+msgid "Create Filament"
+msgstr ""
 
 msgid "Add one filament"
 msgstr "フィラメントを追加"
@@ -4404,7 +4413,9 @@ msgstr ""
 "ノズル硬度はフィラメントの要求硬度より低いです。高硬度ノズルに交換してくださ"
 "い。"
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
 msgstr ""
 
 #, c-format, boost-format

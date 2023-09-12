@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2526,6 +2526,9 @@ msgstr ""
 "disabilitato, i layers superiori del guscio sono 0, la densità riempimento è "
 "0 e il tipo di timelapse è tradizionale"
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4436,6 +4439,9 @@ msgstr "Tempo stimato"
 msgid "Filament changes"
 msgstr "Cambi filamento"
 
+msgid "Create Printer"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Clicca per modificare il preset"
 
@@ -4447,6 +4453,9 @@ msgstr "Tipo di piatto"
 
 msgid "Flushing volumes"
 msgstr "Volumi di spurgo"
+
+msgid "Create Filament"
+msgstr ""
 
 msgid "Add one filament"
 msgstr "Aggiungere un filamento"
@@ -4542,7 +4551,9 @@ msgstr ""
 "nozzle predefinito della stampante. Si prega di sostituire il nozzle o il "
 "filamento indurito, altrimenti il nozzle sarà usurato o danneggiato."
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
 msgstr ""
 
 #, c-format, boost-format

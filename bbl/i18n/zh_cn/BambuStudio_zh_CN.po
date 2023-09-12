@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2396,6 +2396,9 @@ msgstr ""
 "旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
 "影时有效。"
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr "但是I3结构的机器将不会生成延时视频。"
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4280,6 +4283,9 @@ msgstr "预估打印时间"
 msgid "Filament changes"
 msgstr "材料切换"
 
+msgid "Create Printer"
+msgstr "创建打印机"
+
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
@@ -4291,6 +4297,9 @@ msgstr "打印板类型"
 
 msgid "Flushing volumes"
 msgstr "冲刷体积"
+
+msgid "Create Filament"
+msgstr "创建材料"
 
 msgid "Add one filament"
 msgstr "增加一个材料"
@@ -4374,8 +4383,10 @@ msgstr ""
 "打印丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或打印丝，否"
 "则喷嘴可能被磨损或损坏。"
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
-msgstr ""
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
+msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为平滑模式。"
 
 #, c-format, boost-format
 msgid "Loading file: %s"

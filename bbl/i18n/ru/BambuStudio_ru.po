@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2510,6 +2510,9 @@ msgstr ""
 "отключена, верхняя оболочка равны 0, плотность заполнения равна 0, а тип "
 "замедленной съемки — традиционный."
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4440,6 +4443,9 @@ msgstr "Расчетное время"
 msgid "Filament changes"
 msgstr "Изменения нити"
 
+msgid "Create Printer"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Нажмите, чтобы изменить предустановку"
 
@@ -4451,6 +4457,9 @@ msgstr "Тип кровати"
 
 msgid "Flushing volumes"
 msgstr "Промывочные объемы"
+
+msgid "Create Filament"
+msgstr ""
 
 msgid "Add one filament"
 msgstr "Добавьте один филамент"
@@ -4545,7 +4554,9 @@ msgstr ""
 "жесткость сопла принтера. Пожалуйста, замените закаленное сопло или\n"
 "нити накаливания, в противном случае сопло будет изношено или повреждено."
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
 msgstr ""
 
 #, c-format, boost-format

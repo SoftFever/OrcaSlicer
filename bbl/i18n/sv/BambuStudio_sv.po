@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-11 17:12+0800\n"
+"POT-Creation-Date: 2023-09-12 18:48+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2496,6 +2496,9 @@ msgstr ""
 "Spiralläget fungerar endast när vägg varv är 1, support är inaktiverat, top "
 "skalets lager är 0, gles ifyllnad är 0 och timelapse typen är traditionell."
 
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
+
 msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
@@ -4400,6 +4403,9 @@ msgstr "Uppskattad tid"
 msgid "Filament changes"
 msgstr "Filament byten"
 
+msgid "Create Printer"
+msgstr ""
+
 msgid "Click to edit preset"
 msgstr "Tryck för att redigera inställningar"
 
@@ -4411,6 +4417,9 @@ msgstr "Typ av byggplatta"
 
 msgid "Flushing volumes"
 msgstr "Rensnings volymer"
+
+msgid "Create Filament"
+msgstr ""
 
 msgid "Add one filament"
 msgstr "Lägg till ett filament"
@@ -4504,7 +4513,9 @@ msgstr ""
 "nozzeln. Byt ut den härdade nozzeln eller filamentet, annars kommer nozzeln "
 "att slitas ner eller skadas."
 
-msgid "Enable traditional timelapse will cause artifacts on this model."
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
 msgstr ""
 
 #, c-format, boost-format
