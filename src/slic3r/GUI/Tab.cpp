@@ -42,6 +42,7 @@
 #include "Widgets/TabCtrl.hpp"
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
+#include "BedShapeDialog.hpp"
 
 #ifdef WIN32
 	#include <commctrl.h>
@@ -2990,9 +2991,10 @@ void TabPrinter::build_fff()
     auto page = add_options_page(L("Basic information"), "printer");
         auto optgroup = page->new_optgroup(L("Printable space")/*, L"param_printable_space"*/);
 
-        //create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
-        //    return 	create_bed_shape_widget(parent);
-        //});
+        create_line_with_widget(optgroup.get(), "printable_area", "custom-svg-and-png-bed-textures_124612", [this](wxWindow* parent) {
+            return 	create_bed_shape_widget(parent);
+            });
+
         Option option = optgroup->get_option("bed_exclude_area");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
@@ -3690,6 +3692,7 @@ void TabPrinter::toggle_options()
     //    toggle_option("change_filament_gcode", have_multiple_extruders);
     //}
     if (m_active_page->title() == "Basic information") {
+        toggle_line("printable_area", !is_BBL_printer);
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
         //BBS: gcode_flavore of BBL printer can't be edited and changed
         toggle_option("gcode_flavor", !is_BBL_printer);
@@ -4932,7 +4935,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
 }
 
 // Return a callback to create a TabPrinter widget to edit bed shape
-/*wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
+wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
 {
     ScalableButton* btn = new ScalableButton(parent, wxID_ANY, "printer", " " + _(L("Set")) + " " + dots,
         wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
@@ -4962,7 +4965,7 @@ wxSizer* Tab::compatible_widget_create(wxWindow* parent, PresetDependencies &dep
     }
 
     return sizer;
-}*/
+}
 
 void TabPrinter::cache_extruder_cnt()
 {

@@ -188,15 +188,16 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 
     auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Rectangle));
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize);
-    BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
+    // BBS hide
+    //BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
     activate_options_page(optgroup);
 
-    optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
+    // BBS hide
+/*    optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
     BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
     activate_options_page(optgroup);
 
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Custom));
-
 	Line line{ "", "" };
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
@@ -214,15 +215,19 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 		return sizer;
 	};
 	optgroup->append_line(line);
-    activate_options_page(optgroup);
+    activate_options_page(optgroup);*/
 
     wxPanel* texture_panel = init_texture_panel();
     wxPanel* model_panel = init_model_panel();
+    // BBS hide
+    texture_panel->Hide();
+    model_panel->Hide();
 
     Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent& e) { update_shape(); }));
 
 	// right pane with preview canvas
 	m_canvas = new Bed_2D(this);
+    m_canvas->SetMinSize({ FromDIP(320), FromDIP(320) });
     m_canvas->Bind(wxEVT_PAINT, [this](wxPaintEvent& e) { m_canvas->repaint(m_shape); });
     m_canvas->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) { m_canvas->Refresh(); });
 
@@ -483,8 +488,9 @@ void BedShapePanel::update_shape()
 		try { rect_size = boost::any_cast<Vec2d>(opt_group->get_value("rect_size")); }
         catch (const std::exception& /* e */) { return; }
 
-        try { rect_origin = boost::any_cast<Vec2d>(opt_group->get_value("rect_origin")); }
-		catch (const std::exception & /* e */)  { return; }
+        // BBS
+        //try { rect_origin = boost::any_cast<Vec2d>(opt_group->get_value("rect_origin")); }
+		//catch (const std::exception & /* e */)  { return; }
  		
 		auto x = rect_size(0);
 		auto y = rect_size(1);
