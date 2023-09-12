@@ -157,6 +157,11 @@ jobs:
         run: |
           choco install nsis
 
+      - name: Check signtool.exe
+        if: matrix.os == 'windows-2019'
+        run: |
+          signtool.exe
+
       - name: download deps
         if: matrix.os == 'windows-2019'
         shell: powershell
@@ -200,8 +205,21 @@ jobs:
 
       - name: Create installer Win
         if: matrix.os == 'windows-2019'
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
         working-directory: ${{ github.workspace }}/build
-        run: cpack -G NSIS
+        run: |
+          # Decode the certificate
+          echo "$BUILD_CERTIFICATE_BASE64" | base64 -d > certificate.p12
+          # Sign all .exe and .dll files in the specified folder
+          for file in OrcaSlicer/*; do
+            if [[ $file == *.exe ]] || [[ $file == *.dll ]]; then
+              signtool.exe sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "$file"
+            fi
+          done
+          cpack -G NSIS
+          signtool.exe sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe"
 
       # - name: pack app
         # if: matrix.os == 'windows-2019'
