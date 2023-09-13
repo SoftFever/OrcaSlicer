@@ -2568,6 +2568,7 @@ void MachineObject::reset()
     extruder_axis_status = LOAD;
     nozzle_diameter = 0.0f;
     network_wired = false;
+    dev_connection_name = "";
 
     // reset print_json
     json empty_j;
@@ -4776,13 +4777,24 @@ void DeviceManager::on_machine_alive(std::string json_str)
             // update properties
             /* ip changed */
             obj = it->second;
-            if (obj->dev_ip.compare(dev_ip) != 0 && !obj->dev_ip.empty()
-                && obj->dev_connection_name.compare(connection_name) != 0
-                ) {
-                BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
-                obj->dev_ip = dev_ip;
+
+            if (obj->dev_ip.compare(dev_ip) != 0) {
+                if ( connection_name.empty() ) {
+                    BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip;
+                    obj->dev_ip = dev_ip;
+                }
+                else {
+                    if ( obj->dev_connection_name.empty() || obj->dev_connection_name.compare(connection_name) == 0) {
+                        BOOST_LOG_TRIVIAL(info) << "MachineObject IP changed from " << obj->dev_ip << " to " << dev_ip << " connection_name is " << connection_name;
+                        if(obj->dev_connection_name.empty()){obj->dev_connection_name = connection_name;}
+                        obj->dev_ip = dev_ip;
+                    }
+                    
+                }
                 /* ip changed reconnect mqtt */
             }
+
+
             obj->wifi_signal        = printer_signal;
             obj->dev_connection_type= connect_type;
             obj->bind_state         = bind_state;
