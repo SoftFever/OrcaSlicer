@@ -1550,7 +1550,9 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         //BBS: spacing according to width and layer height
         float   extrusion_spacing{ 0.f };
     };
-    auto layer_color_stat = [&layers = std::as_const(layers)](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
+    PrintConfig print_config = print_object.print()->config();
+    float default_line_width = float(print_object.config().line_width.value);
+    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
         LayerColorStat out;
         const Layer &layer = *layers[layer_idx];
         for (const LayerRegion *region : layer.regions())
@@ -1559,16 +1561,18 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
                 color_idx == 0 || config.wall_filament == int(color_idx)) {
                 //BBS: the extrusion line width is outer wall rather than inner wall
-                out.extrusion_width     = std::max<float>(out.extrusion_width, float(config.outer_wall_line_width));
+                float nozzle_diamter = float(print_config.nozzle_diameter.get_at(config.wall_filament - 1));
+                float outer_wall_line_width = float(config.outer_wall_line_width) == 0.0 ? (default_line_width == 0.0 ? nozzle_diamter : default_line_width) : float(config.outer_wall_line_width.value);
+                out.extrusion_width     = std::max<float>(out.extrusion_width, outer_wall_line_width);
                 out.top_shell_layers    = std::max<int>(out.top_shell_layers, config.top_shell_layers);
                 out.bottom_shell_layers = std::max<int>(out.bottom_shell_layers, config.bottom_shell_layers);
                 out.small_region_threshold = config.gap_infill_speed.value > 0 ?
                                              // Gap fill enabled. Enable a single line of 1/2 extrusion width.
-                                             0.5f * float(config.outer_wall_line_width) :
+                                             0.5f * outer_wall_line_width :
                                              // Gap fill disabled. Enable two lines slightly overlapping.
-                                             float(config.outer_wall_line_width) + 0.7f * Flow::rounded_rectangle_extrusion_spacing(float(config.outer_wall_line_width), float(layer.height));
+                                             outer_wall_line_width + 0.7f * Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
                 out.small_region_threshold = scaled<float>(out.small_region_threshold * 0.5f);
-                out.extrusion_spacing = Flow::rounded_rectangle_extrusion_spacing(float(config.outer_wall_line_width), float(layer.height));
+                out.extrusion_spacing = Flow::rounded_rectangle_extrusion_spacing(outer_wall_line_width, float(layer.height));
                 ++ out.num_regions;
             }
         assert(out.num_regions > 0);
