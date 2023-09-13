@@ -2023,20 +2023,8 @@ void TabPrint::build()
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
 
-        //BBS
+        // Support 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("tree_support_tip_diameter");
-        optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_top_rate");
-        optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_branch_diameter_angle");
-        optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
-        optgroup->append_single_option_line("tree_support_angle_slow");
-        optgroup->append_single_option_line("tree_support_branch_diameter_double_wall");
-        optgroup->append_single_option_line("tree_support_wall_count");
-        optgroup->append_single_option_line("tree_support_adaptive_layer_height");
-        optgroup->append_single_option_line("tree_support_auto_brim");
-        optgroup->append_single_option_line("tree_support_brim_width");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
         optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
@@ -2055,6 +2043,23 @@ void TabPrint::build()
         optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
         optgroup->append_single_option_line("independent_support_layer_height", "support");
 
+        optgroup = page->new_optgroup(L("Tree supports"), L"param_advanced");
+        optgroup->append_single_option_line("tree_support_tip_diameter");
+        optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_distance_organic", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_top_rate");
+        optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter_organic", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter_angle");
+        optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_angle_organic", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_angle_slow");
+        optgroup->append_single_option_line("tree_support_branch_diameter_double_wall");
+        optgroup->append_single_option_line("tree_support_wall_count");
+        optgroup->append_single_option_line("tree_support_adaptive_layer_height");
+        optgroup->append_single_option_line("tree_support_auto_brim");
+        optgroup->append_single_option_line("tree_support_brim_width");
+        
     page = add_options_page(L("Others"), "advanced");
         optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
         optgroup->append_single_option_line("skirt_loops");
