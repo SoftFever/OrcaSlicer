@@ -498,6 +498,8 @@ public:
 
 bool load_image(const std::string& filename, wxImage &image);
 bool generate_image(const std::string &filename, wxImage &image, wxSize img_size, int method = GERNERATE_IMAGE_RESIZE);
+int get_dpi_for_window(const wxWindow *window);
+
 
 }}
 
