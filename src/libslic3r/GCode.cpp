@@ -1873,14 +1873,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     if (print.config().spiral_mode.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
-#ifdef HAS_PRESSURE_EQUALIZER
-    if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 ||
-        print.config().max_volumetric_extrusion_rate_slope_negative.value > 0)
-        m_pressure_equalizer = make_unique<PressureEqualizer>(&print.config());
+//#ifdef HAS_PRESSURE_EQUALIZER
+    //if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 ||
+    //    print.config().max_volumetric_extrusion_rate_slope_negative.value > 0)
+    const GCodeConfig& tmp_config = print.config();
+        m_pressure_equalizer = make_unique<PressureEqualizer>(print.config());
     m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
-#else /* HAS_PRESSURE_EQUALIZER */
-    m_enable_extrusion_role_markers = false;
-#endif /* HAS_PRESSURE_EQUALIZER */
+//#else /* HAS_PRESSURE_EQUALIZER */
+//    m_enable_extrusion_role_markers = false;
+//#endif /* HAS_PRESSURE_EQUALIZER */
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
