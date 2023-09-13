@@ -328,9 +328,13 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
                     boost::algorithm::to_lower(file_extension);
 
                     //image
-                    if (file_extension == ".jpg" ||
-                        file_extension == ".jpeg" ||
-                        file_extension == ".png" ||
+                    if (file_extension == ".jpg"    ||
+                        file_extension == ".jpeg"   ||
+                        file_extension == ".pjpeg"  ||
+                        file_extension == ".png"    ||
+                        file_extension == ".jfif"   ||
+                        file_extension == ".pjp"    ||
+                        file_extension == ".webp"   ||
                         file_extension == ".bmp")
                     {
 
@@ -360,27 +364,30 @@ std::string ProjectPanel::formatBytes(unsigned long bytes)
 
 wxString ProjectPanel::to_base64(std::string file_path) 
 {
-    std::map<std::string, wxBitmapType> base64_format;
-    base64_format[".jpg"] = wxBITMAP_TYPE_JPEG;
-    base64_format[".jpeg"] = wxBITMAP_TYPE_JPEG;
-    base64_format[".png"] = wxBITMAP_TYPE_PNG;
-    base64_format[".bmp"] = wxBITMAP_TYPE_BMP;
 
-    
-    std::string extension = file_path.substr(file_path.rfind("."), file_path.length());
-    boost::algorithm::to_lower(extension);
+    std::ifstream imageFile(encode_path(file_path.c_str()), std::ios::binary);
+    if (!imageFile) {
+        return wxEmptyString;
+    }
 
-    auto image = new wxImage(encode_path(file_path.c_str()));
-    wxMemoryOutputStream mem;
-    image->SaveFile(mem, base64_format[extension]);
+    std::ostringstream imageStream;
+    imageStream << imageFile.rdbuf();
 
-    wxString km = wxBase64Encode(mem.GetOutputStreamBuffer()->GetBufferStart(),
-        mem.GetSize());
+    std::string binaryImageData = imageStream.str();
+
+    std::string extension;
+    size_t last_dot = file_path.find_last_of(".");
+   
+    if (last_dot != std::string::npos) {
+        extension = file_path.substr(last_dot + 1);
+    }
+
+    wxString bease64_head = wxString::Format("data:image/%s;base64,", extension);
+
 
     std::wstringstream wss;
-    wss << L"data:image/jpg;base64,";
-    //wss << wxBase64Encode(km.data(), km.size());
-    wss << km;
+    wss << bease64_head;
+    wss << wxBase64Encode(binaryImageData.data(), binaryImageData.size());
 
     wxString base64_str = wss.str();
     return  base64_str;
