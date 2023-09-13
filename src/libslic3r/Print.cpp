@@ -1797,7 +1797,15 @@ void Print::process(bool use_cache)
     }
 
     // BBS
-    if(!m_no_check)
+    bool has_adaptive_layer_height = false;
+    for (PrintObject* obj : m_objects) {
+        if (obj->model_object()->layer_height_profile.empty() == false) {
+            has_adaptive_layer_height = true;
+            break;
+        }
+    }
+    // TODO adaptive layer height won't work with conflict checker because m_fake_wipe_tower's path is generated using fixed layer height
+    if(!m_no_check && !has_adaptive_layer_height)
     {
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();

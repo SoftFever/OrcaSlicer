@@ -91,34 +91,34 @@ inline Grids line_rasterization(const Line &line, int64_t xdist = RasteXDistance
 
 void LinesBucketQueue::emplace_back_bucket(ExtrusionLayers &&els, const void *objPtr, Point offset)
 {
-    auto oldSize = _buckets.capacity();
-    _buckets.emplace_back(std::move(els), objPtr, offset);
-    _pq.push(&_buckets.back());
-    auto newSize = _buckets.capacity();
+    auto oldSize = line_buckets.capacity();
+    line_buckets.emplace_back(std::move(els), objPtr, offset);
+    line_bucket_ptr_queue.push(&line_buckets.back());
+    auto newSize = line_buckets.capacity();
     if (oldSize != newSize) { // pointers change
-        decltype(_pq) newQueue;
-        for (LinesBucket &bucket : _buckets) { newQueue.push(&bucket); }
-        std::swap(_pq, newQueue);
+        decltype(line_bucket_ptr_queue) newQueue;
+        for (LinesBucket &bucket : line_buckets) { newQueue.push(&bucket); }
+        std::swap(line_bucket_ptr_queue, newQueue);
     }
 }
 
 // remove lowest and get the current bottom z
 float LinesBucketQueue::getCurrBottomZ()
 {
-    auto lowest = _pq.top();
-    _pq.pop();
+    auto lowest = line_bucket_ptr_queue.top();
+    line_bucket_ptr_queue.pop();
     float                      layerBottomZ = lowest->curBottomZ();
     std::vector<LinesBucket *> lowests;
     lowests.push_back(lowest);
 
-    while (_pq.empty() == false && std::abs(_pq.top()->curBottomZ() - lowest->curBottomZ()) < EPSILON) {
-        lowests.push_back(_pq.top());
-        _pq.pop();
+    while (line_bucket_ptr_queue.empty() == false && std::abs(line_bucket_ptr_queue.top()->curBottomZ() - lowest->curBottomZ()) < EPSILON) {
+        lowests.push_back(line_bucket_ptr_queue.top());
+        line_bucket_ptr_queue.pop();
     }
 
     for (LinesBucket *bp : lowests) {
         bp->raise();
-        if (bp->valid()) { _pq.push(bp); }
+        if (bp->valid()) { line_bucket_ptr_queue.push(bp); }
     }
     return layerBottomZ;
 }
@@ -126,7 +126,7 @@ float LinesBucketQueue::getCurrBottomZ()
 LineWithIDs LinesBucketQueue::getCurLines() const
 {
     LineWithIDs lines;
-    for (const LinesBucket &bucket : _buckets) {
+    for (const LinesBucket &bucket : line_buckets) {
         if (bucket.valid()) {
             LineWithIDs tmpLines = bucket.curLines();
             lines.insert(lines.end(), tmpLines.begin(), tmpLines.end());

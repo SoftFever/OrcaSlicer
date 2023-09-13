@@ -109,12 +109,12 @@ struct LinesBucketPtrComp
 class LinesBucketQueue
 {
 public:
-    std::vector<LinesBucket>                                                           _buckets;
-    std::priority_queue<LinesBucket *, std::vector<LinesBucket *>, LinesBucketPtrComp> _pq;
+    std::vector<LinesBucket>                                                           line_buckets;
+    std::priority_queue<LinesBucket *, std::vector<LinesBucket *>, LinesBucketPtrComp> line_bucket_ptr_queue;
 
 public:
     void        emplace_back_bucket(ExtrusionLayers &&els, const void *objPtr, Point offset);
-    bool        valid() const { return _pq.empty() == false; }
+    bool        valid() const { return line_bucket_ptr_queue.empty() == false; }
     float       getCurrBottomZ();
     LineWithIDs getCurLines() const;
 };
