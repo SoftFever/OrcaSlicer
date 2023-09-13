@@ -980,6 +980,23 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
 
 void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_message, int flow_ratio_mode)
 {
+    {  // before send
+        json j;
+        j["print"]["cali_mode"]       = calib_info.params.mode;
+        j["print"]["start"]           = calib_info.params.start;
+        j["print"]["end"]             = calib_info.params.end;
+        j["print"]["step"]            = calib_info.params.step;
+        j["print"]["print_numbers"]   = calib_info.params.print_numbers;
+        j["print"]["flow_ratio_mode"] = flow_ratio_mode;
+        j["print"]["tray_id"]         = calib_info.select_ams;
+        j["print"]["dev_id"]          = calib_info.dev_id;
+        j["print"]["bed_type"]        = calib_info.bed_type;
+        j["print"]["printer_prest"]   = calib_info.printer_prest ? calib_info.printer_prest->name : "";
+        j["print"]["filament_prest"]  = calib_info.filament_prest ? calib_info.filament_prest->name : "";
+        j["print"]["print_prest"]     = calib_info.print_prest ? calib_info.print_prest->name : "";
+        BOOST_LOG_TRIVIAL(info) << "send_cali_job - before send: " << j.dump();
+    }
+
     std::string dev_id = calib_info.dev_id;
     std::string select_ams = calib_info.select_ams;
     std::shared_ptr<ProgressIndicator> process_bar = calib_info.process_bar;
@@ -1066,19 +1083,11 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
     print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
-    {  // record the print job
+    {  // after send: record the print job
         json j;
-        j["print"]["cali_type"]       = calib_info.params.mode;
-        j["print"]["flow_ratio_mode"] = flow_ratio_mode;
-        j["print"]["tray_id"]         = calib_info.select_ams;
-        j["print"]["dev_id"]          = calib_info.dev_id;
-        j["print"]["start"]           = calib_info.params.start;
-        j["print"]["end"]             = calib_info.params.end;
-        j["print"]["step"]            = calib_info.params.step;
-        j["print"]["print_numbers"]   = calib_info.params.print_numbers;
-        j["print"]["cali_mode"]       = int(cali_mode);
         j["print"]["project_name"]    = print_job->m_project_name;
-        BOOST_LOG_TRIVIAL(trace) << "send_cali_job: " << j.dump();
+        j["print"]["is_cali_task"]    = print_job->m_is_calibration_task;
+        BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
     }
 
     print_job->start();

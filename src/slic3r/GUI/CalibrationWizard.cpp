@@ -154,6 +154,7 @@ void CalibrationWizard::on_device_connected(MachineObject* obj)
     BOOST_LOG_TRIVIAL(info) << "on_device_connected - machine object status:"
                             << " dev_id = " << obj->dev_id
                             << ", print_type = " << obj->printer_type
+                            << ", printer_status = " << obj->print_status
                             << ", cali_finished = " << obj->cali_finished
                             << ", cali_version = " << obj->cali_version
                             << ", cache_flow_ratio = " << obj->cache_flow_ratio
