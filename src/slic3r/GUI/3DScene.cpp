@@ -1183,6 +1183,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
     mesh.merge(brim_mesh);
 #endif
 
+    // Orca: make it transparent
+    for(auto& color : colors)
+        color[3] = 0.66f;
     volumes.emplace_back(new GLWipeTowerVolume(colors));
     GLWipeTowerVolume& v = *dynamic_cast<GLWipeTowerVolume*>(volumes.back());
     v.iva_per_colors.resize(colors.size());

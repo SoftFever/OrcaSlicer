@@ -3522,8 +3522,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Style and shape of the support. For normal support, projecting the supports into a regular grid "
                      "will create more stable supports (default), while snug support towers will save material and reduce "
                      "object scarring.\n"
-                     "For tree support, slim style will merge branches more aggressively and save "
-                     "a lot of material (default), while hybrid style will create similar structure to normal support "
+                     "For tree support, slim and organic style will merge branches more aggressively and save "
+                     "a lot of material (default organic), while hybrid style will create similar structure to normal support "
                      "under large flat overhangs.");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
     def->enum_values.push_back("default");
@@ -3572,6 +3572,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40.));
 
+    def = this->add("tree_support_branch_angle_organic", coFloat);
+    def->label = L("Tree support branch angle");
+    def->category = L("Support");
+    def->tooltip = L("This setting determines the maximum overhang angle that t he branches of tree support allowed to make."
+                     "If the angle is increased, the branches can be printed more horizontally, allowing them to reach farther.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->max = 60;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(40.));
+
     def = this->add("tree_support_angle_slow", coFloat);
     def->label = L("Preferred Branch Angle");
     def->category = L("Support");
@@ -3594,6 +3605,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
 
+    def           = this->add("tree_support_branch_distance_organic", coFloat);
+    def->label    = L("Tree support branch distance");
+    def->category = L("Support");
+    def->tooltip  = L("This setting determines the distance between neighboring tree support nodes.");
+    def->sidetext = L("mm");
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
     def = this->add("tree_support_top_rate", coPercent);
     def->label = L("Branch Density");
     def->category = L("Support");
@@ -3606,7 +3627,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 5;
     def->max_literal = 35;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionPercent(15));
+    def->set_default_value(new ConfigOptionPercent(30));
 
     def = this->add("tree_support_adaptive_layer_height", coBool);
     def->label = L("Adaptive layer height");
@@ -3647,6 +3668,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->max      = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(5.));
+
+    def           = this->add("tree_support_branch_diameter_organic", coFloat);
+    def->label    = L("Tree support branch diameter");
+    def->category = L("Support");
+    def->tooltip  = L("This setting determines the initial diameter of support nodes.");
+    def->sidetext = L("mm");
+    def->min      = 1.0;
+    def->max      = 10;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(2.));
 
     def = this->add("tree_support_branch_diameter_angle", coFloat);
     // TRN PrintSettings: #lmFIXME 

@@ -20,62 +20,21 @@
 	"printable_height": "265",
 	"nozzle_type": "hardened_steel",
 	"auxiliary_fan": "0",
-	"machine_max_acceleration_extruding": [
-		"500",
-		"500"
-	],
-	"machine_max_acceleration_retracting": [
-		"1000",
-		"1000"
-	],
-	"machine_max_acceleration_travel": [
-		"500",
-		"500"
-	],
-	"machine_max_acceleration_x": [
-		"500",
-		"500"
-	],
-	"machine_max_acceleration_y": [
-		"500",
-		"500"
-	],
-	"machine_max_acceleration_z": [
-		"100",
-		"100"
-	],
-	"machine_max_speed_e": [
-		"60",
-		"60"
-	],
-	"machine_max_speed_x": [
-		"500",
-		"500"
-	],
-	"machine_max_speed_y": [
-		"500",
-		"500"
-	],
-	"machine_max_speed_z": [
-		"10",
-		"10"
-	],
-	"machine_max_jerk_e": [
-		"5",
-		"5"
-	],
-	"machine_max_jerk_x": [
-		"8",
-		"8"
-	],
-	"machine_max_jerk_y": [
-		"8",
-		"8"
-	],
-	"machine_max_jerk_z": [
-		"0.4",
-		"0.4"
-	],
+	"machine_max_acceleration_e": ["5000", "5000"],
+	"machine_max_acceleration_extruding": ["20000", "20000"],
+	"machine_max_acceleration_retracting": ["5000", "5000"],
+	"machine_max_acceleration_travel": ["20000", "20000"],
+	"machine_max_acceleration_x": ["20000", "20000"],
+	"machine_max_acceleration_y": ["20000", "20000"],
+	"machine_max_acceleration_z": ["500", "200"],
+	"machine_max_speed_e": ["25", "25"],
+	"machine_max_speed_x": ["500", "200"],
+	"machine_max_speed_y": ["500", "200"],
+	"machine_max_speed_z": ["12", "12"],
+	"machine_max_jerk_e": ["2.5", "2.5"],
+	"machine_max_jerk_x": ["12", "12"],
+	"machine_max_jerk_y": ["12", "12"],
+	"machine_max_jerk_z": ["0.2", "0.4"],
 	"max_layer_height": [
 		"0.28"
 	],
