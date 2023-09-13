@@ -39,6 +39,7 @@ static const size_t MIN_EXTRUDERS_COUNT = 5;
 static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
 static const int   DEFAULT_FILAMENT_HRC = 0;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
+static const float DEFAULT_FILAMENT_COST = 29.99f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
@@ -840,6 +841,7 @@ void GCodeProcessorResult::reset() {
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
     required_nozzle_HRC = std::vector<int>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_HRC);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
+    filament_costs = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_COST);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     warnings.clear();
@@ -946,6 +948,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_result.required_nozzle_HRC.resize(extruders_count);
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
+    m_result.filament_costs.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
     m_result.nozzle_type = config.nozzle_type;
     for (size_t i = 0; i < extruders_count; ++ i) {
@@ -955,6 +958,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_result.required_nozzle_HRC[i] = static_cast<int>(config.required_nozzle_HRC.get_at(i));
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
+        m_result.filament_costs[i]      = static_cast<float>(config.filament_cost.get_at(i));
     }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper) {
@@ -1078,6 +1082,19 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
             m_result.filament_densities.emplace_back(DEFAULT_FILAMENT_DENSITY);
         }
     }
+
+    //BBS
+    const ConfigOptionFloats* filament_costs = config.option<ConfigOptionFloats>("filament_cost");
+    if (filament_costs != nullptr) {
+        m_result.filament_costs.clear();
+        m_result.filament_costs.resize(filament_costs->values.size());
+        for (size_t i = 0; i < filament_costs->values.size(); ++i)
+            m_result.filament_costs[i]=static_cast<float>(filament_costs->values[i]);
+    }
+    for (size_t i = m_result.filament_costs.size(); i < m_result.extruders_count; ++i) {
+        m_result.filament_costs.emplace_back(DEFAULT_FILAMENT_COST);
+    }
+
     //BBS
     const ConfigOptionInts* filament_vitrification_temperature = config.option<ConfigOptionInts>("temperature_vitrification");
     if (filament_vitrification_temperature != nullptr) {

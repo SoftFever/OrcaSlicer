@@ -190,6 +190,7 @@ namespace Slic3r {
         std::vector<float> filament_diameters;
         std::vector<int>   required_nozzle_HRC;
         std::vector<float> filament_densities;
+        std::vector<float> filament_costs;
         std::vector<int> filament_vitrification_temperature;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
@@ -222,6 +223,7 @@ namespace Slic3r {
             extruder_colors = other.extruder_colors;
             filament_diameters = other.filament_diameters;
             filament_densities = other.filament_densities;
+            filament_costs = other.filament_costs;
             print_statistics = other.print_statistics;
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
             spiral_vase_layers = other.spiral_vase_layers;
