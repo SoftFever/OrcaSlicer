@@ -2072,6 +2072,14 @@ void NotificationManager::push_exporting_finished_notification(const std::string
 	set_slicing_progress_hidden();
 }
 
+void NotificationManager::push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
+{
+    close_notification_of_type(NotificationType::ExportFinished);
+    NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Model file downloaded.") + "\n" + path };
+    push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
+    set_slicing_progress_hidden();
+}
+
 void  NotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage)
 {
 	// find if upload with same id was not already in notification

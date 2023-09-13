@@ -8156,6 +8156,7 @@ void Plater::import_model_id(wxString download_info)
 
         // show save new project
         p->set_project_filename(wxString(filename));
+        p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
         if (!msg.empty()) wxMessageBox(msg);

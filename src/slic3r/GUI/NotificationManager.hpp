@@ -236,6 +236,7 @@ public:
 	void set_sla(bool b) { set_fff(!b); }
 	// Exporting finished, show this information with path, button to open containing folder and if ejectable - eject button
 	void push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
+	void push_import_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable);
 	// notifications with progress bar
 	// slicing progress
 	void init_slicing_progress_notification(std::function<bool()> cancel_callback);
