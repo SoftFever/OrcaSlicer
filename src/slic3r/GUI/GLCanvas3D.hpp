@@ -473,7 +473,7 @@ public:
 
     struct ArrangeSettings
     {
-        float distance           = 5.;
+        float distance           = 0.f;
 //        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
         bool  enable_rotation    = false;

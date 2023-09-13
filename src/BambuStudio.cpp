@@ -2614,10 +2614,7 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
                 arrange_cfg.cleareance_radius                   = cleareance_radius;
                 arrange_cfg.printable_height                    = print_height;
-                if (arrange_cfg.is_seq_print)
-                    arrange_cfg.min_obj_distance = std::max(arrange_cfg.min_obj_distance, scaled(arrange_cfg.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-                else
-                    arrange_cfg.min_obj_distance = scaled(22.0);
+                arrange_cfg.min_obj_distance = 0;
 
                 arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
                 arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
