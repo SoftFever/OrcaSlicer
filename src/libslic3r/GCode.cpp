@@ -2598,9 +2598,19 @@ void GCode::process_layers(
     size_t layer_to_print_idx = 0;
     const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> GCode::LayerResult {
-            if (layer_to_print_idx == layers_to_print.size()) {
-                fc.stop();
-                return {};
+            if (layer_to_print_idx >= layers_to_print.size()) {
+            	if ((!m_pressure_equalizer && layer_to_print_idx == layers_to_print.size()) || (m_pressure_equalizer && layer_to_print_idx == (layers_to_print.size() + 1))) {
+                    fc.stop();
+                    return {};
+                } else {
+                    // Pressure equalizer need insert empty input. Because it returns one layer back.
+                    // Insert NOP (no operation) layer;
+                    ++layer_to_print_idx;
+                    return {}; // IG TO CHANGE
+                   // return LayerResult::make_nop_layer_result();
+                }
+                //fc.stop();
+                //return {};
             } else {
                 const std::pair<coordf_t, std::vector<LayerToPrint>>& layer = layers_to_print[layer_to_print_idx++];
                 const LayerTools& layer_tools = tool_ordering.tools_for_layer(layer.first);
@@ -2613,10 +2623,15 @@ void GCode::process_layers(
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
         });
+   
     const auto spiral_mode = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
         [&spiral_mode = *this->m_spiral_vase.get()](GCode::LayerResult in) -> GCode::LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
             return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+        });
+    const auto pressure_equalizer = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [pressure_equalizer = this->m_pressure_equalizer.get()](LayerResult in) -> LayerResult {
+            return pressure_equalizer->process_layer(std::move(in));
         });
     const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
         [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in) -> std::string {
