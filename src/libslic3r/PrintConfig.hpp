@@ -699,7 +699,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                flush_into_infill))
     ((ConfigOptionBool,                flush_into_support))
     // BBS
-    ((ConfigOptionPercent,            tree_support_top_rate))
     ((ConfigOptionFloat,              tree_support_branch_distance))
     ((ConfigOptionFloat,              tree_support_tip_diameter))
     ((ConfigOptionFloat,              tree_support_branch_diameter))
@@ -727,6 +726,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca
     ((ConfigOptionFloat,              make_overhang_printable_angle))
     ((ConfigOptionFloat,              make_overhang_printable_hole_size))
+    ((ConfigOptionFloat,              tree_support_branch_distance_organic))
+    ((ConfigOptionPercent,            tree_support_top_rate))
+    ((ConfigOptionFloat,              tree_support_branch_diameter_organic))
+    ((ConfigOptionFloat,              tree_support_branch_angle_organic))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
