@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 16:53+0800\n"
+"POT-Creation-Date: 2023-09-13 16:19+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9615,6 +9615,15 @@ msgstr ""
 msgid "The name cannot exceed 40 characters."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
@@ -9644,6 +9653,9 @@ msgstr ""
 msgid "Please select filament to calibrate."
 msgstr ""
 
+msgid "The input value size must be 3."
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr ""
 
@@ -9660,9 +9672,6 @@ msgid "Please select at least one filament for calibration"
 msgstr ""
 
 msgid "Flow rate calibration result has been saved to preset"
-msgstr ""
-
-msgid "The input value size must be 3."
 msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
@@ -9800,6 +9809,9 @@ msgstr ""
 msgid "Please find the best line on your plate"
 msgstr ""
 
+msgid "Please find the cornor with perfect degree of extrusion"
+msgstr ""
+
 msgid "Input Value"
 msgstr ""
 
@@ -9852,6 +9864,9 @@ msgstr ""
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr ""
 
+msgid "Pattern"
+msgstr ""
+
 msgid "Calibration Type"
 msgstr ""
 
@@ -9902,6 +9917,9 @@ msgstr ""
 msgid "Extra info"
 msgstr ""
 
+msgid "Method"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr ""
@@ -9910,6 +9928,24 @@ msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr ""
 
 msgid "Connecting to printer"
+msgstr ""
+
+msgid "From k Value"
+msgstr ""
+
+msgid "To k Value"
+msgstr ""
+
+msgid "Step value"
+msgstr ""
+
+msgid "0.5"
+msgstr ""
+
+msgid "0.05"
+msgstr ""
+
+msgid "0.005"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
@@ -9952,9 +9988,6 @@ msgid "PA Line"
 msgstr ""
 
 msgid "PA Pattern"
-msgstr ""
-
-msgid "Method"
 msgstr ""
 
 msgid "Start PA: "
