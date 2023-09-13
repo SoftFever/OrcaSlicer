@@ -534,23 +534,26 @@ public:
     		}
     		return false;
     	}
-    	size_t i = 0;
+
     	size_t cnt = std::min(this->size(), rhs_vec->size());
-    	bool   modified = false;
-    	for (; i < cnt; ++ i)
-    		if (! rhs_vec->is_nil(i) && this->values[i] != rhs_vec->values[i]) {
-    			this->values[i] = rhs_vec->values[i];
-    			modified = true;
-    		}
-    	for (; i < rhs_vec->size(); ++ i)
-    		if (! rhs_vec->is_nil(i)) {
-    			if (this->values.empty())
-    				this->values.resize(i + 1);
-    			else
-    				this->values.resize(i + 1, this->values.front());
-    			this->values[i] = rhs_vec->values[i];
-    			modified = true;
-    		}
+        if (cnt < 1)
+            return false;
+
+        if (this->values.empty())
+            this->values.resize(rhs_vec->size());
+        else
+            this->values.resize(rhs_vec->size(), this->values.front());
+
+    	bool modified = false;
+        auto default_value = this->values[0];
+        for (size_t i = 0; i < rhs_vec->size(); ++i) {
+            if (!rhs_vec->is_nil(i)) {
+                this->values[i] = rhs_vec->values[i];
+                modified        = true;
+            } else {
+                this->values[i] = default_value;
+            }
+        }
         return modified;
     }
 
