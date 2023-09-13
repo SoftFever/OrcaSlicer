@@ -71,14 +71,34 @@ TreeSupportMeshGroupSettings::TreeSupportMeshGroupSettings(const PrintObject &pr
 //    this->minimum_support_area      = 
 //    this->minimum_bottom_area       = 
 //    this->support_offset            = 
-    this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance.value);
-    this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
+    this->support_tree_branch_distance = scaled<coord_t>(config.tree_support_branch_distance_organic.value);
+    this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle_organic * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
     this->support_tree_angle_slow     = std::clamp<double>(config.tree_support_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
-    this->support_tree_branch_diameter = scaled<coord_t>(config.tree_support_branch_diameter.value);
+    this->support_tree_branch_diameter = scaled<coord_t>(config.tree_support_branch_diameter_organic.value);
     this->support_tree_branch_diameter_angle = std::clamp<double>(config.tree_support_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
     this->support_tree_top_rate       = config.tree_support_top_rate.value; // percent
 //    this->support_tree_tip_diameter = this->support_line_width;
     this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(config.tree_support_tip_diameter.value), 0, this->support_tree_branch_diameter);
+
+    std::cout << "\n---------------\n"
+              << "layer_height: " << layer_height << "\nresolution: " << resolution << "\nmin_feature_size: " << min_feature_size
+              << "\nsupport_angle: " << support_angle << "\nconfig.support_threshold_angle: " << config.support_threshold_angle << "\nsupport_line_width: " << support_line_width
+              << "\nsupport_roof_line_width: " << support_roof_line_width << "\nsupport_bottom_enable: " << support_bottom_enable
+              << "\nsupport_bottom_height: " << support_bottom_height
+              << "\nsupport_material_buildplate_only: " << support_material_buildplate_only
+              << "\nsupport_xy_distance: " << support_xy_distance << "\nsupport_xy_distance_overhang: " << support_xy_distance_overhang
+              << "\nsupport_top_distance: " << support_top_distance << "\nsupport_bottom_distance: " << support_bottom_distance
+              << "\nsupport_roof_enable: " << support_roof_enable << "\nsupport_roof_layers: " << support_roof_layers
+              << "\nsupport_floor_enable: " << support_floor_enable << "\nsupport_floor_layers: " << support_floor_layers
+              << "\nsupport_roof_pattern: " << support_roof_pattern << "\nsupport_pattern: " << support_pattern
+              << "\nsupport_line_spacing: " << support_line_spacing << "\nsupport_wall_count: " << support_wall_count
+              << "\nsupport_roof_line_distance: " << support_roof_line_distance
+              << "\nsupport_tree_branch_distance: " << support_tree_branch_distance
+              << "\nsupport_tree_angle_slow: " << support_tree_angle_slow
+              << "\nsupport_tree_branch_diameter: " << support_tree_branch_diameter
+              << "\nsupport_tree_branch_diameter_angle: " << support_tree_branch_diameter_angle
+              << "\nsupport_tree_top_rate: " << support_tree_top_rate << "\nsupport_tree_tip_diameter: " << support_tree_tip_diameter
+              << "\n---------------\n";
 }
 
 TreeSupportSettings::TreeSupportSettings(const TreeSupportMeshGroupSettings &mesh_group_settings, const SlicingParameters &slicing_params)
