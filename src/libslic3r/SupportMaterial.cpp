@@ -1768,6 +1768,48 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
     return std::make_tuple(std::move(contact_polygons), std::move(enforcer_polygons), no_interface_offset);
 }
 
+// find the object layer that is closest to the {layer.bottom_z-gap_support_object} for top contact,
+// or {layer.print_z+gap_object_support} for bottom contact
+Layer* sync_gap_with_object_layer(const Layer& layer, const coordf_t gap_support_object, bool is_top_contact)
+{
+    // sync gap with the object layer height
+    float gap_synced = 0;
+    if (is_top_contact) {
+        Layer* lower_layer = layer.lower_layer, * last_valid_gap_layer = layer.lower_layer;
+        while (lower_layer && gap_synced < gap_support_object) {
+            last_valid_gap_layer = lower_layer;
+            gap_synced += lower_layer->height;
+            lower_layer = lower_layer->lower_layer;
+
+        }
+        // maybe gap_synced is too large, find the nearest object layer (one layer above may be better)
+        if (std::abs(gap_synced - last_valid_gap_layer->height - gap_support_object) < std::abs(gap_synced - gap_support_object)) {
+            gap_synced -= last_valid_gap_layer->height;
+            last_valid_gap_layer = last_valid_gap_layer->upper_layer;
+        }
+        lower_layer = last_valid_gap_layer;  // layer just below the last valid gap layer
+        if (last_valid_gap_layer->lower_layer)
+            lower_layer = last_valid_gap_layer->lower_layer;
+        return lower_layer;
+    }else{
+        Layer* upper_layer = layer.upper_layer, * last_valid_gap_layer = layer.upper_layer;
+        while (upper_layer && gap_synced < gap_support_object) {
+            last_valid_gap_layer = upper_layer;
+            gap_synced += upper_layer->height;
+            upper_layer = upper_layer->upper_layer;
+        }
+        // maybe gap_synced is too large, find the nearest object layer (one layer above may be better)
+        if (std::abs(gap_synced - last_valid_gap_layer->height - gap_support_object) < std::abs(gap_synced - gap_support_object)) {
+            gap_synced -= last_valid_gap_layer->height;
+            last_valid_gap_layer = last_valid_gap_layer->lower_layer;
+        }
+        upper_layer = last_valid_gap_layer;  // layer just above the last valid gap layer
+        if (last_valid_gap_layer->upper_layer)
+            upper_layer = last_valid_gap_layer->upper_layer;
+        return upper_layer;
+    }
+}
+
 // Allocate one, possibly two support contact layers.
 // For "thick" overhangs, one support layer will be generated to support normal extrusions, the other to support the "thick" extrusions.
 static inline std::pair<SupportGeneratorLayer*, SupportGeneratorLayer*> new_contact_layer(
@@ -1796,9 +1838,18 @@ static inline std::pair<SupportGeneratorLayer*, SupportGeneratorLayer*> new_cont
         print_z  = layer.bottom_z();
         height   = layer.lower_layer->height;
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
-    } else {
-        print_z  = layer.bottom_z() - slicing_params.gap_support_object;
-        height   = print_config.independent_support_layer_height ? 0. : layer.lower_layer->height/*object_config.layer_height*/; // BBS: need to consider adaptive layer heights
+    }
+    else {
+        // BBS: need to consider adaptive layer heights
+        if (print_config.independent_support_layer_height) {
+            print_z = layer.bottom_z() - slicing_params.gap_support_object;
+            height = 0;
+        }
+        else {
+            Layer* synced_layer = sync_gap_with_object_layer(layer, slicing_params.gap_support_object, true);
+            print_z = synced_layer->print_z;
+            height = synced_layer->height;
+        }
         bottom_z = print_z - height;
         // Ignore this contact area if it's too low.
         // Don't want to print a layer below the first layer height as it may not stick well.
@@ -1823,7 +1874,7 @@ static inline std::pair<SupportGeneratorLayer*, SupportGeneratorLayer*> new_cont
 
         // Contact layer will be printed with a normal flow, but
         // it will support layers printed with a bridging flow.
-        if (object_config.thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
+        if (object_config.thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer) && print_config.independent_support_layer_height) {
             coordf_t bridging_height = 0.;
             for (const LayerRegion* region : layer.regions())
                 bridging_height += region->region().bridging_height_avg(print_config);
@@ -2458,15 +2509,22 @@ static inline SupportGeneratorLayer* detect_bottom_contacts(
     // Grow top surfaces so that interface and support generation are generated
     // with some spacing from object - it looks we don't need the actual
     // top shapes so this can be done here
-    //FIXME calculate layer height based on the actual thickness of the layer:
-    // If the layer is extruded with no bridging flow, support just the normal extrusions.
-    layer_new.height = slicing_params.soluble_interface || !object.print()->config().independent_support_layer_height ?
-        // Align the interface layer with the object's layer height.
-        layer.upper_layer->height :
-        // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
-        support_params.support_material_bottom_interface_flow.height();
-    layer_new.print_z = slicing_params.soluble_interface ? layer.upper_layer->print_z :
-        layer.print_z + layer_new.height + slicing_params.gap_object_support;
+    if (object.print()->config().independent_support_layer_height) {
+        // If the layer is extruded with no bridging flow, support just the normal extrusions.
+        layer_new.height = slicing_params.soluble_interface?
+            // Align the interface layer with the object's layer height.
+            layer.upper_layer->height :
+            // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
+            support_params.support_material_bottom_interface_flow.height();
+        layer_new.print_z = slicing_params.soluble_interface ? layer.upper_layer->print_z :
+            layer.print_z + layer_new.height + slicing_params.gap_object_support;
+    }
+    else {
+        Layer* synced_layer = sync_gap_with_object_layer(layer, slicing_params.gap_object_support, false);
+        // If the layer is extruded with no bridging flow, support just the normal extrusions.
+        layer_new.height = synced_layer->height;
+        layer_new.print_z = synced_layer->print_z;
+    }
     layer_new.bottom_z = layer.print_z;
     layer_new.idx_object_layer_below = layer_id;
     layer_new.bridging = !slicing_params.soluble_interface && object.config().thick_bridges;
