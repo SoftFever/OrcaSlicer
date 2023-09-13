@@ -190,6 +190,10 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
                     profile_line_points.push_back({pt1, pt2});
                 }
             }
+
+            if (profile_line_points.empty())
+                continue;
+
             // keep the start and end points of profile connected
             if (shape->fill.gradient != nullptr)
                 profile_line_points.back().second = profile_line_points[0].first;
@@ -268,6 +272,9 @@ bool get_svg_profile(const char *path, std::vector<Element_Info> &element_infos,
             }
             wires.emplace_back(wire);
         }
+
+        if (wires.empty())
+            continue;
 
         gp_Vec      dir(0, 0, 10);
         BRepBuilderAPI_MakeFace face_make(wires[index]);
