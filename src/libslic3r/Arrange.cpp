@@ -103,7 +103,7 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
-        ap.inflation = std::max(scaled(ap.brim_width), params.min_obj_distance / 2);
+        ap.inflation = params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2;
         BoundingBox apbb = ap.poly.contour.bounding_box();
         auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
         auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
@@ -130,7 +130,7 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
     double scaled_exclusion_gap = scale_(1);
     std::for_each(unselected.begin(), unselected.end(),
-        [&](auto& ap) { ap.inflation = !ap.is_virt_object ? std::max(scaled(ap.brim_width), params.min_obj_distance / 2)
+        [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
         : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
 }
 

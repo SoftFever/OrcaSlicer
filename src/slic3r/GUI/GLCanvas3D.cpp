@@ -5406,7 +5406,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
             //BBS:
             seq_print = true;
         } else {
-            dist_min     = 0.1f;
+            dist_min     = 0.0f;
             postfix     = "_fff";
         }
     }

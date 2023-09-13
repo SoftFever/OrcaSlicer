@@ -2614,10 +2614,7 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
                 arrange_cfg.cleareance_radius                   = cleareance_radius;
                 arrange_cfg.printable_height                    = print_height;
-                if (arrange_cfg.is_seq_print)
-                    arrange_cfg.min_obj_distance = std::max(arrange_cfg.min_obj_distance, scaled(arrange_cfg.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-                else
-                    arrange_cfg.min_obj_distance = scaled(22.0);
+                arrange_cfg.min_obj_distance = 0;
 
                 if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
                     arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
