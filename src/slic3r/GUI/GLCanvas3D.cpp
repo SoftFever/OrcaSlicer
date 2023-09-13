@@ -4910,6 +4910,12 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
             float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
             wti.m_bb.offset((brim_width));
 
+            // BBS: the wipe tower pos might be outside bed
+            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+            BoundingBoxf3 build_volume = plate->get_build_volume();
+            wti.m_pos.x() = std::clamp(wti.m_pos.x(), 0.0, build_volume.max.x() - wti.m_bb.size().x());
+            wti.m_pos.y() = std::clamp(wti.m_pos.y(), 0.0, build_volume.max.y() - wti.m_bb.size().y());
+
             // BBS: add partplate logic
             wti.m_plate_idx = plate_idx;
             break;

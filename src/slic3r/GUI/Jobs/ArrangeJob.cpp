@@ -255,18 +255,19 @@ void ArrangeJob::prepare_wipe_tower()
     bool need_wipe_tower = false;
 
     // if wipe tower is explicitly disabled, no need to estimate
-    DynamicPrintConfig &current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    auto                op             = current_config.option("enable_prime_tower");
-    if (op && op->getBool() == false || params.is_seq_print) return;
+    DynamicPrintConfig& current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto                op = current_config.option("enable_prime_tower");
+    bool enable_prime_tower = op && op->getBool();
+    if (!enable_prime_tower || params.is_seq_print) return;
 
     bool smooth_timelapse = false;
-    auto sop              = current_config.option("timelapse_type");
+    auto sop = current_config.option("timelapse_type");
     if (sop) { smooth_timelapse = sop->getInt() == TimelapseType::tlSmooth; }
     if (smooth_timelapse) { need_wipe_tower = true; }
 
     // estimate if we need wipe tower for all plates:
     // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
-    for (const auto &item : m_selected) {
+    for (const auto& item : m_selected) {
         std::set<int> obj_extruders;
         obj_extruders.insert(item.extrude_ids.begin(), item.extrude_ids.end());
         if (obj_extruders.size() > 1) {
@@ -278,11 +279,11 @@ void ArrangeJob::prepare_wipe_tower()
 
     // if multile extruders have same bed temp, we need wipe tower
     // 允许不同材料落在相同盘，且所有选定对象中使用了多种热床温度相同的材料
-     if (params.allow_multi_materials_on_same_plate) {
+    if (params.allow_multi_materials_on_same_plate) {
         std::map<int, std::set<int>> bedTemp2extruderIds;
-        for (const auto &item : m_selected)
+        for (const auto& item : m_selected)
             for (auto id : item.extrude_ids) { bedTemp2extruderIds[item.bed_temp].insert(id); }
-        for (const auto &be : bedTemp2extruderIds) {
+        for (const auto& be : bedTemp2extruderIds) {
             if (be.second.size() > 1) {
                 need_wipe_tower = true;
                 BOOST_LOG_TRIVIAL(info) << "arrange: need wipe tower because allow_multi_materials_on_same_plate=true and we have multiple extruders of same type";
@@ -292,35 +293,24 @@ void ArrangeJob::prepare_wipe_tower()
     }
     BOOST_LOG_TRIVIAL(info) << "arrange: need_wipe_tower=" << need_wipe_tower;
 
-    if (need_wipe_tower) {
-        // check all plates to see if wipe tower is already there
-        ArrangePolygon    wipe_tower_ap;
-        std::vector<bool> plates_have_wipe_tower(MAX_NUM_PLATES, false);
-        for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
-            if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-                ArrangePolygon &&ap = get_wipetower_arrange_poly(&wti);
-                wipe_tower_ap       = ap;
-                ap.bed_idx          = bedid;
-                m_unselected.emplace_back(std::move(ap));
-                plates_have_wipe_tower[bedid] = true;
-            }
 
-        // if wipe tower is not init yet (no wipe tower in any plate before arrangement)
-        //if (wipe_tower_ap.poly.empty()) {
-        //    auto &print                       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-        //    wipe_tower_ap.poly.contour.points = print.first_layer_wipe_tower_corners(false);
-            wipe_tower_ap.name                = "WipeTower";
-            wipe_tower_ap.is_virt_object      = true;
-            wipe_tower_ap.is_wipe_tower       = true;
-        //}
-        const GLCanvas3D* canvas3D=static_cast<const GLCanvas3D *>(m_plater->canvas3D());
-        for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
-            if (!plates_have_wipe_tower[bedid]) {
-                wipe_tower_ap.translation = {0, 0};
-                wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid, !only_on_partplate);
-                wipe_tower_ap.bed_idx             = bedid;
-                m_unselected.emplace_back(wipe_tower_ap);
-            }
+    ArrangePolygon    wipe_tower_ap;
+    wipe_tower_ap.name = "WipeTower";
+    wipe_tower_ap.is_virt_object = true;
+    wipe_tower_ap.is_wipe_tower = true;
+    const GLCanvas3D* canvas3D = static_cast<const GLCanvas3D*>(m_plater->canvas3D());
+    for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
+        if (auto wti = get_wipe_tower(*m_plater, bedid)) {
+            // wipe tower is already there
+            wipe_tower_ap = get_wipetower_arrange_poly(&wti);
+            wipe_tower_ap.bed_idx = bedid;
+            m_unselected.emplace_back(wipe_tower_ap);
+        }
+        else if (need_wipe_tower) {
+            wipe_tower_ap.translation = { 0, 0 };
+            wipe_tower_ap.poly.contour.points = canvas3D->estimate_wipe_tower_points(bedid, !only_on_partplate);
+            wipe_tower_ap.bed_idx = bedid;
+            m_unselected.emplace_back(wipe_tower_ap);
         }
     }
 }
@@ -520,8 +510,7 @@ void ArrangeJob::process()
     double scaled_exclusion_gap = scale_(1);
     partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
 
-    BOOST_LOG_TRIVIAL(debug) << "arrange bed_shrink_x=" << params.bed_shrink_x
-        << "; bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
+    BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();
 
     params.stopcondition = [this]() { return was_canceled(); };
 
@@ -537,8 +526,7 @@ void ArrangeJob::process()
             << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
         BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
         for (auto item : m_unselected)
-            if (!item.is_virt_object)
-            BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+            BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
 
     arrangement::arrange(m_selected, m_unselected, bedpts, params);
@@ -553,9 +541,7 @@ void ArrangeJob::process()
                                      << ", trans: " << unscale<double>(selected.translation(X)) << ","<< unscale<double>(selected.translation(Y));
         BOOST_LOG_TRIVIAL(debug) << "items unselected after arrange: ";
         for (auto item : m_unselected)
-            if (!item.is_virt_object)
-                BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
-                << ", trans: " << item.translation.transpose();
+            BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
 
     arrangement::arrange(m_unprintable, {}, bedpts, params);

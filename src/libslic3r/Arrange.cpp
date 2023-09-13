@@ -725,6 +725,7 @@ public:
             for (Item itm : items) {
                 if (itm.is_wipe_tower) {
                     starting_point = itm.boundingBox().center();
+                    BOOST_LOG_TRIVIAL(debug) << "arrange we have wipe tower, change starting point to: " << starting_point;
                     break;
                 }
             }
@@ -749,15 +750,13 @@ public:
                         if (on_packed)
                             on_packed(ap);
                         BOOST_LOG_TRIVIAL(debug) << "arrange " + last_packed.name + " succeed!"
-                            << ", plate id=" << ap.bed_idx;
+                            << ", plate id=" << ap.bed_idx << ", pos=" << last_packed.translation();
                     }
                 });
 
-        if (progressind) {
-            m_pck.unfitIndicator([this, progressind](std::string name) {
-                BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
-                });
-        }
+        m_pck.unfitIndicator([this](std::string name) {
+            BOOST_LOG_TRIVIAL(debug) << "arrange progress: " + name;
+            });
 
         if (stopcond) m_pck.stopCondition(stopcond);
 
