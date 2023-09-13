@@ -1273,6 +1273,28 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
     return presets.get_preset_name_by_alias(alias);
 }
 
+//BBS: get filament required hrc by filament type
+const int PresetBundle::get_required_hrc_by_filament_type(const std::string& filament_type) const
+{
+    static std::unordered_map<std::string, int>filament_type_to_hrc;
+    if (filament_type_to_hrc.empty()) {
+        for (auto iter = filaments.m_presets.begin(); iter != filaments.m_presets.end(); iter++) {
+            if (iter->vendor && iter->vendor->id == "BBL") {
+                if (iter->config.has("filament_type") && iter->config.has("required_nozzle_HRC")) {
+                    auto type = iter->config.opt_string("filament_type", 0);
+                    auto hrc = iter->config.opt_int("required_nozzle_HRC", 0);
+                    filament_type_to_hrc[type] = hrc;
+                }
+            }
+        }
+    }
+    auto iter = filament_type_to_hrc.find(filament_type);
+    if (iter != filament_type_to_hrc.end())
+        return iter->second;
+    else
+        return 0;
+}
+
 //BBS: add project embedded preset logic
 void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::Type type,
                                            const std::vector<std::string>& unselected_options, bool save_to_project)
