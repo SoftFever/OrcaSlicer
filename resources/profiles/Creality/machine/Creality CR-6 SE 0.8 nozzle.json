@@ -1,12 +1,13 @@
 {
   "type": "machine",
+  "setting_id": "GM001",
   "name": "Creality CR-6 SE 0.8 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_creality_common",
   "printer_model": "Creality CR-6 SE",
   "default_filament_profile": [
-    "Generic PLA @Creality CR-6"
+    "Creality Generic PLA"
   ],
   "printer_variant": "0.8",
   "default_print_profile": "0.32mm Standard @Creality CR-6 0.8",

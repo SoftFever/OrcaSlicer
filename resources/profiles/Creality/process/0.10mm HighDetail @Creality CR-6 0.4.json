@@ -1,7 +1,7 @@
 {
     "type": "process",
-    "setting_id": "GP_CREALITY_000",
-    "name": "0.10mm HighDetail @Creality CR-6",
+    "setting_id": "GP004",
+    "name": "0.10mm HighDetail @Creality 0.4 CR-6 0.4",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_creality_common",

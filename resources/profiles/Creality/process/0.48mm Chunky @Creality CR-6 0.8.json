@@ -1,7 +1,7 @@
 {
     "type": "process",
-    "setting_id": "GP_CREALITY_046",
-    "name": "0.48mm Draft @Creality CR-6",
+    "setting_id": "GP004",
+    "name": "0.48mm Chunky @Creality CR-6 0.8",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_creality_common",
@@ -9,7 +9,7 @@
     "initial_layer_print_height": "0.48",
     "inner_wall_line_width": "0.8",
     "internal_solid_infill_line_width": "0.8",
-    "layer_height": "0.48",
+    "layer_height": "0.4",
     "line_width": "0.8",
     "outer_wall_line_width": "0.8",
     "sparse_infill_line_width": "0.8",

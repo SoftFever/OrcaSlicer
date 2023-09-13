@@ -1,7 +1,7 @@
 {
     "type": "process",
-    "setting_id": "GP_CREALITY_039",
-    "name": "0.44mm SuperExtraChunky @Creality CR-6",
+    "setting_id": "GP004",
+    "name": "0.36mm SuperChunky @Creality CR-6 0.6",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_creality_common",
@@ -9,7 +9,7 @@
     "initial_layer_print_height": "0.3",
     "inner_wall_line_width": "0.6",
     "internal_solid_infill_line_width": "0.6",
-    "layer_height": "0.44",
+    "layer_height": "0.36",
     "line_width": "0.6",
     "outer_wall_line_width": "0.6",
     "sparse_infill_line_width": "0.6",
