@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 18:48+0800\n"
+"POT-Creation-Date: 2023-09-13 12:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2031,14 +2031,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm\\u00B3"
-msgstr "mm\\ u00b3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2729,14 +2729,14 @@ msgstr "Actualización fallida."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -5705,8 +5705,8 @@ msgstr "Terms and Conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab "
@@ -6730,7 +6730,13 @@ msgstr "Código de acceso"
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "¿Dónde puedo encontrar la IP y el código de acceso de la impresora?"
 
+msgid "Step 3: Ping the IP address to check for packet loss and latency."
+msgstr ""
+
 msgid "Test"
+msgstr ""
+
+msgid "IP and Access Code Verified! You may close the window"
 msgstr ""
 
 msgid "Connection failed, please double check IP and Access Code"
@@ -7170,6 +7176,11 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "La altura de la capa no puede superar el diámetro de la boquilla"
+
+msgid ""
+"Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
+"Layer height limits"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -7993,9 +8004,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
@@ -10387,10 +10395,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -10455,9 +10463,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10563,7 +10568,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10578,7 +10583,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11037,6 +11042,12 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\ u00b3"
 
 #~ msgid "Immediately score"
 #~ msgstr "Immediately score"

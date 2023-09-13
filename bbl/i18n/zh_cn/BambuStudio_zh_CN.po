@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 18:48+0800\n"
+"POT-Creation-Date: 2023-09-13 12:07+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -831,7 +831,7 @@ msgid "Cone"
 msgstr "锥体"
 
 msgid "Disc"
-msgstr "圆盘"
+msgstr "小圆片"
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -1948,14 +1948,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2591,14 +2591,14 @@ msgstr "更新失败。"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -4088,7 +4088,7 @@ msgid "Details"
 msgstr "详情"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "有新的打印机配置可用。"
 
 msgid "Undo integration failed."
 msgstr "集成取消失败。"
@@ -5057,16 +5057,16 @@ msgid "First layer filament sequence"
 msgstr "首层耗材打印顺序"
 
 msgid "Same as Global"
-msgstr ""
+msgstr "跟随全局"
 
 msgid "Enable"
 msgstr "开启"
 
 msgid "Disable"
-msgstr ""
+msgstr "禁用"
 
 msgid "Spiral Vase"
-msgstr ""
+msgstr "旋转花瓶"
 
 msgid "Same as Global Plate Type"
 msgstr "跟随全局打印板类型"
@@ -5255,7 +5255,7 @@ msgid "Flow Dynamics Calibration"
 msgstr "动态流量校准"
 
 msgid "Click here if you can't connect to the printer"
-msgstr ""
+msgstr "如果您无法连接打印机，请点击这里"
 
 msgid "send completed"
 msgstr "发送完成"
@@ -5469,8 +5469,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -6425,16 +6425,22 @@ msgstr "访问码"
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "在哪里可以找到打印机的IP和访问代码?"
 
+msgid "Step 3: Ping the IP address to check for packet loss and latency."
+msgstr "步骤3，请ping打印机的IP地址，以此检查丢包和延迟。"
+
 msgid "Test"
-msgstr ""
+msgstr "测试"
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr ""
+msgstr "连接失败，请再次检查IP地址和访问码。"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
-msgstr ""
+msgstr "连接失败！如果您的IP地址和访问码是正确的，\n请查看第三步的提示，以便定位网络问题所在。"
 
 msgid "Model:"
 msgstr "型号："
@@ -6818,6 +6824,11 @@ msgstr "使用了支撑添加器但没有打开支撑。请打开支撑。"
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "层高不能超过喷嘴直径"
+
+msgid ""
+"Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
+"Layer height limits"
+msgstr "层高不能超过打印机设置->挤出机->层高限制中的限制"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -7558,9 +7569,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
@@ -9826,10 +9834,10 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -9898,9 +9906,6 @@ msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
 msgstr "至体积速度"
-
-msgid "mm\\u00B3/s"
-msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
@@ -10013,12 +10018,9 @@ msgstr "值步长"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值:\n"
-"起始值 > 0 \\值步长 >= 0\n"
-"结束值 > 起始值 + 值步长)"
 
 msgid "VFA test"
 msgstr "VFA测试"
@@ -10031,12 +10033,9 @@ msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值:\n"
-"起始值 > 0 \\值步长 >= 0\n"
-"结束值 > 起始值 + 值步长)"
 
 msgid "Start retraction length: "
 msgstr "起始回抽长度"
@@ -10470,6 +10469,24 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
 
 #~ msgid "Invalid nozzle diameter"
 #~ msgstr "非法喷嘴口径"

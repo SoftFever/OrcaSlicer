@@ -1087,7 +1087,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
 
-    m_tip4 = new Label(this, ::Label::Body_13, "Step 3: Ping the IP address to check for packet loss and latency.", LB_AUTO_WRAP);
+    m_tip4 = new Label(this, ::Label::Body_13, _L("Step 3: Ping the IP address to check for packet loss and latency."), LB_AUTO_WRAP);
     m_tip4->SetMinSize(wxSize(FromDIP(352), -1));
     m_tip4->SetMaxSize(wxSize(FromDIP(352), -1));
     
@@ -1425,7 +1425,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         wxPostEvent(this, event);
         m_result = 0;
         
-        update_test_msg("IP and Access Code Verified! You may close the window", true);
+        update_test_msg(_L("IP and Access Code Verified! You may close the window"), true);
        
     });
 
