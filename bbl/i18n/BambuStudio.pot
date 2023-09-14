@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -362,6 +362,12 @@ msgstr ""
 msgid "Hexagon"
 msgstr ""
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr ""
 
@@ -398,6 +404,9 @@ msgid "Plug"
 msgstr ""
 
 msgid "Dowel"
+msgstr ""
+
+msgid "Snap"
 msgstr ""
 
 msgid "Tolerance"
@@ -1121,7 +1130,7 @@ msgstr ""
 msgid "Click the icon to shift this object to the bed"
 msgstr ""
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2048,9 +2057,16 @@ msgstr ""
 msgid "Group"
 msgstr ""
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2223,9 +2239,6 @@ msgid "Circular"
 msgstr ""
 
 msgid "Custom"
-msgstr ""
-
-msgid "Load shape from STL..."
 msgstr ""
 
 msgid "Settings"
@@ -2975,13 +2988,13 @@ msgstr ""
 msgid "Start Calibration"
 msgstr ""
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr ""
 
 msgid "Calibrating"
+msgstr ""
+
+msgid "No step selected"
 msgstr ""
 
 msgid "Auto-record Monitoring"
@@ -4057,6 +4070,9 @@ msgstr ""
 msgid "Export successfully."
 msgstr ""
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4220,7 +4236,7 @@ msgstr ""
 msgid "Set filaments to use"
 msgstr ""
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -361,6 +361,12 @@ msgstr "Carré"
 msgid "Hexagon"
 msgstr "Hexagone"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "Confirmer les connecteurs"
 
@@ -400,6 +406,9 @@ msgstr "Connecteur"
 
 msgid "Dowel"
 msgstr "Tourillon"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolérance"
@@ -1156,7 +1165,7 @@ msgstr "Cliquez sur l'icône pour modifier la couleur de peinture de l'objet"
 msgid "Click the icon to shift this object to the bed"
 msgstr "Cliquez sur l'icône pour déplacer cet objet vers le plateau"
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2182,9 +2191,16 @@ msgstr ""
 msgid "Group"
 msgstr "Groupe"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2393,9 +2409,6 @@ msgstr "Circulaire"
 
 msgid "Custom"
 msgstr "Personnalisé"
-
-msgid "Load shape from STL..."
-msgstr "Charger une forme depuis un STL..."
 
 msgid "Settings"
 msgstr "Réglages"
@@ -3206,14 +3219,14 @@ msgstr "Calibration débit"
 msgid "Start Calibration"
 msgstr "Démarrer la calibration"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "Terminé"
 
 msgid "Calibrating"
 msgstr "Étalonnage"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "Surveillance de l'enregistrement automatique"
@@ -3243,8 +3256,9 @@ msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"Vous pouvez le trouver dans \n« Paramètres > Réseau > Code de connexion » sur\n "
-"l'imprimante, comme illustré sur le schéma:"
+"Vous pouvez le trouver dans \n"
+"« Paramètres > Réseau > Code de connexion » sur\n"
+" l'imprimante, comme illustré sur le schéma:"
 
 msgid "Invalid input."
 msgstr "Saisie non valide"
@@ -4314,6 +4328,9 @@ msgstr "Avertissement:"
 msgid "Export successfully."
 msgstr "Exportation réussie"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4482,7 +4499,7 @@ msgstr "Synchroniser la liste des filaments depuis l'AMS"
 msgid "Set filaments to use"
 msgstr "Définir les filaments à utiliser"
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""
@@ -11127,6 +11144,9 @@ msgstr ""
 "Améliorer la résistance\n"
 "Saviez-vous que vous pouvez définir un plus grand nombre de périmètre et une "
 "densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Charger une forme depuis un STL..."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

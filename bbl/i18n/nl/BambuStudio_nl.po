@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -357,6 +357,12 @@ msgstr "Square"
 msgid "Hexagon"
 msgstr "Hexagon"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "Confirm connectors"
 
@@ -396,6 +402,9 @@ msgstr "Plug"
 
 msgid "Dowel"
 msgstr "Dowel"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerance"
@@ -1147,7 +1156,7 @@ msgstr "Klik op het pictogram om de kleur van het object te bewerken"
 msgid "Click the icon to shift this object to the bed"
 msgstr "Click the icon to shift this object to the bed"
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2170,9 +2179,16 @@ msgstr ""
 msgid "Group"
 msgstr "Group"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2379,9 +2395,6 @@ msgstr "Rond"
 
 msgid "Custom"
 msgstr "Aangepast"
-
-msgid "Load shape from STL..."
-msgstr "Vorm laden vanuit het stl. bestand..."
 
 msgid "Settings"
 msgstr "Instellingen"
@@ -3200,14 +3213,14 @@ msgstr "Flow kalibratie"
 msgid "Start Calibration"
 msgstr "Start kalibreren"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "Voltooid"
 
 msgid "Calibrating"
 msgstr "Kalibreren"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "Automatische opnamebewaking"
@@ -4306,6 +4319,9 @@ msgstr "Waarschuwing:"
 msgid "Export successfully."
 msgstr "Succesvol geëxporteerd"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4476,7 +4492,7 @@ msgstr "Synchroniseer filamentlijst vanuit AMS"
 msgid "Set filaments to use"
 msgstr "Stel filamenten in om te gebruiken"
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""
@@ -11067,6 +11083,9 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Vorm laden vanuit het stl. bestand..."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"

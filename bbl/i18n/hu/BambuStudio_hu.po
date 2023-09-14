@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -359,6 +359,12 @@ msgstr "Square"
 msgid "Hexagon"
 msgstr "Hexagon"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "Confirm connectors"
 
@@ -398,6 +404,9 @@ msgstr "Plug"
 
 msgid "Dowel"
 msgstr "Dowel"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerance"
@@ -1149,7 +1158,7 @@ msgstr "Kattints az ikonra az objektum színfestésének szerkesztéséhez"
 msgid "Click the icon to shift this object to the bed"
 msgstr "Click the icon to shift this object to the bed"
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2164,9 +2173,16 @@ msgstr ""
 msgid "Group"
 msgstr "Group"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2369,9 +2385,6 @@ msgstr "Kör"
 
 msgid "Custom"
 msgstr "Egyéni"
-
-msgid "Load shape from STL..."
-msgstr "Forma betöltése STL-ből..."
 
 msgid "Settings"
 msgstr "Beállítások"
@@ -3186,14 +3199,14 @@ msgstr "Kalibrációs anyagáramlás"
 msgid "Start Calibration"
 msgstr "Kalibrálás"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "Befejezve"
 
 msgid "Calibrating"
 msgstr "Kalibrálás"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "Automatikus felügyelet"
@@ -4284,6 +4297,9 @@ msgstr "Figyelem:"
 msgid "Export successfully."
 msgstr "Sikeresen exportálva"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4454,7 +4470,7 @@ msgstr "Filamentlista szinkronizálása az AMS-ből"
 msgid "Set filaments to use"
 msgstr "Használni kívánt filament beállítása"
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""
@@ -10974,6 +10990,9 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Forma betöltése STL-ből..."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

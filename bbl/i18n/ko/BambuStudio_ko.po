@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -359,6 +359,12 @@ msgstr "정사각형"
 msgid "Hexagon"
 msgstr "육각형"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "커넥터 확인"
 
@@ -398,6 +404,9 @@ msgstr "Plug"
 
 msgid "Dowel"
 msgstr "Dowel"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "공차"
@@ -1131,7 +1140,7 @@ msgstr "객체의 컬러 페인팅을 수정하기 위해 아이콘을 클릭합
 msgid "Click the icon to shift this object to the bed"
 msgstr "이 객체를 베드로 옮기려면 아이콘을 클릭하십시오."
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2114,9 +2123,16 @@ msgstr ""
 msgid "Group"
 msgstr "그룹"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2313,9 +2329,6 @@ msgstr "원형"
 
 msgid "Custom"
 msgstr "커스텀"
-
-msgid "Load shape from STL..."
-msgstr "STL에서 형상 로드..."
 
 msgid "Settings"
 msgstr "설정"
@@ -3124,14 +3137,14 @@ msgstr "캘리브레이션 순서"
 msgid "Start Calibration"
 msgstr "캘리브레이션 시작"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "완료"
 
 msgid "Calibrating"
 msgstr "캘리브레이션 중"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "자동 녹화 모니터링"
@@ -4214,6 +4227,9 @@ msgstr "경고:"
 msgid "Export successfully."
 msgstr "내보내기 성공"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4382,7 +4398,7 @@ msgstr "AMS에서 필라멘트 목록 동기화"
 msgid "Set filaments to use"
 msgstr "사용할 필라멘트 설정"
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""
@@ -10699,6 +10715,9 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "STL에서 형상 로드..."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

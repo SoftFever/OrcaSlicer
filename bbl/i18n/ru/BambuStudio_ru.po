@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -366,6 +366,12 @@ msgstr "Квадрат"
 msgid "Hexagon"
 msgstr "Шестиугольник"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "Подтвердить соединители"
 
@@ -405,6 +411,9 @@ msgstr "Подключи"
 
 msgid "Dowel"
 msgstr "Дюбель"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Допуск"
@@ -1142,7 +1151,7 @@ msgstr "Щелкните значок, чтобы отредактировать
 msgid "Click the icon to shift this object to the bed"
 msgstr "Щелкните значок, чтобы переместить этот объект на кровать"
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2157,9 +2166,16 @@ msgstr ""
 msgid "Group"
 msgstr "Группа"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2367,9 +2383,6 @@ msgstr "Округлый"
 
 msgid "Custom"
 msgstr "Стандартный"
-
-msgid "Load shape from STL..."
-msgstr "Загрузить форму из STL..."
 
 msgid "Settings"
 msgstr "Настройка"
@@ -3184,14 +3197,14 @@ msgstr "Калибровочный поток"
 msgid "Start Calibration"
 msgstr "Начать калибровку"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "Завершенный"
 
 msgid "Calibrating"
 msgstr "Калибровка"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "Автозапись Мониторинга"
@@ -4303,6 +4316,9 @@ msgstr "Предупреждение:"
 msgid "Export successfully."
 msgstr "Экспорт успешно."
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4473,7 +4489,7 @@ msgstr "Синхронизировать список нитей из AMS"
 msgid "Set filaments to use"
 msgstr "Установите нити для использования"
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""
@@ -10922,6 +10938,9 @@ msgstr ""
 "Повышение прочности\n"
 "Знаете ли вы, что для повышения прочности модели можно использовать больше "
 "периметров и более высокую плотность заполнения?"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Загрузить форму из STL..."
 
 #~ msgid "Error: IP or Access Code are not correct"
 #~ msgstr "Ошибка: IP или код доступа не верны"

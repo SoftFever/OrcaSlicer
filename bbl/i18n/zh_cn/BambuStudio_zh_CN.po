@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -362,6 +362,12 @@ msgstr "正方形"
 msgid "Hexagon"
 msgstr "六边形"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "确认"
 
@@ -401,6 +407,9 @@ msgstr "插销"
 
 msgid "Dowel"
 msgstr "销钉"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "容差"
@@ -1125,8 +1134,8 @@ msgstr "点击此图标可编辑这个对象的颜色绘制"
 msgid "Click the icon to shift this object to the bed"
 msgstr "点击这个图标可将对象移动到热床上"
 
-msgid " research result"
-msgstr ""
+msgid " search results"
+msgstr " 搜索结果"
 
 msgid "Loading file"
 msgstr "载入文件中"
@@ -2075,9 +2084,16 @@ msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
 msgid "Group"
 msgstr "组"
 
+msgid "The printer does not currently support auto refill."
+msgstr "打印机当前不支持自动重新填充。"
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr "AMS耗材备份未启用，请在AMS设置中启用。"
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2266,9 +2282,6 @@ msgstr "圆"
 
 msgid "Custom"
 msgstr "自定义"
-
-msgid "Load shape from STL..."
-msgstr "从STL文件加载形状..."
 
 msgid "Settings"
 msgstr "设置"
@@ -3062,14 +3075,14 @@ msgstr "校准流程"
 msgid "Start Calibration"
 msgstr "开始校准"
 
-msgid "No step selected"
-msgstr "请选择一项校准"
-
 msgid "Completed"
 msgstr "已完成"
 
 msgid "Calibrating"
 msgstr "校准中"
+
+msgid "No step selected"
+msgstr "请选择一项校准"
 
 msgid "Auto-record Monitoring"
 msgstr "监控录像"
@@ -4150,6 +4163,9 @@ msgstr "警告："
 msgid "Export successfully."
 msgstr "发送成功。"
 
+msgid "Model file downloaded."
+msgstr "已下载模型文件。"
+
 msgid "Serious warning:"
 msgstr "严重警告："
 
@@ -4313,8 +4329,8 @@ msgstr "从AMS同步材料列表"
 msgid "Set filaments to use"
 msgstr "配置可选择的材料"
 
-msgid "Search plater, object and part."
-msgstr ""
+msgid "Search plate, object and part."
+msgstr "搜索盘、模型和零件。"
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -4825,10 +4841,10 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr "如果启用，将在启动时显示有用的提示。"
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
-msgstr "冲刷体积：每一次更换颜色时重新计算。"
+msgstr "冲刷体积：每一次更换颜色时自动计算。"
 
 msgid "If enabled, auto-calculate everytime the color changed."
-msgstr "如果启用，会在每一次更换颜色时重新计算。"
+msgstr "如果启用，会在每一次更换颜色时自动计算。"
 
 msgid "Presets"
 msgstr "预设"
@@ -6086,7 +6102,7 @@ msgid ""
 "Preferences"
 msgstr ""
 "Studio 将会在每一次更换耗材颜色时重新计算你的冲刷体积， 你可以在 Bambu "
-"Studio > 偏好设置 中关闭重新计算"
+"Studio > 偏好设置 中关闭自动计算"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -6440,7 +6456,9 @@ msgstr "连接失败，请再次检查IP地址和访问码。"
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
-msgstr "连接失败！如果您的IP地址和访问码是正确的，\n请查看第三步的提示，以便定位网络问题所在。"
+msgstr ""
+"连接失败！如果您的IP地址和访问码是正确的，\n"
+"请查看第三步的提示，以便定位网络问题所在。"
 
 msgid "Model:"
 msgstr "型号："
@@ -10047,22 +10065,22 @@ msgid "mm/mm"
 msgstr ""
 
 msgid "Network lookup"
-msgstr ""
+msgstr "网络寻找"
 
 msgid "Address"
-msgstr ""
+msgstr "地址"
 
 msgid "Hostname"
-msgstr ""
+msgstr "主机名"
 
 msgid "Service name"
-msgstr ""
+msgstr "服务名"
 
 msgid "OctoPrint version"
 msgstr ""
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "正在搜索设备"
 
 msgid "Finished"
 msgstr "完成"
@@ -10469,6 +10487,21 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Search plater, object and part."
+#~ msgstr "搜索盘，模型和零件。"
+
+#~ msgid ""
+#~ "There are currently no identical spare consumables available, and "
+#~ "automatic replenishment is currently not possible. \n"
+#~ "(Currently supporting automatic supply of consumables with the same "
+#~ "brand, material type, and color)"
+#~ msgstr ""
+#~ "当前无相同的备用耗材，暂时无法自动补给。\n"
+#~ "（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "从STL文件加载形状..."
 
 #~ msgid ""
 #~ "Please input valid values:\n"

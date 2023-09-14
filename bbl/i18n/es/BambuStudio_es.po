@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 12:07+0800\n"
+"POT-Creation-Date: 2023-09-14 14:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -361,6 +361,12 @@ msgstr "Square"
 msgid "Hexagon"
 msgstr "Hexagon"
 
+msgid "Bulge"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
 msgid "Confirm connectors"
 msgstr "Confirm connectors"
 
@@ -400,6 +406,9 @@ msgstr "Plug"
 
 msgid "Dowel"
 msgstr "Dowel"
+
+msgid "Snap"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerance"
@@ -1156,7 +1165,7 @@ msgstr "Haga clic en el icono para editar la pintura de color del objeto"
 msgid "Click the icon to shift this object to the bed"
 msgstr "Click the icon to shift this object to the bed"
 
-msgid " research result"
+msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -2167,9 +2176,16 @@ msgstr ""
 msgid "Group"
 msgstr "Group"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2378,9 +2394,6 @@ msgstr "Circular"
 
 msgid "Custom"
 msgstr "Personalizado"
-
-msgid "Load shape from STL..."
-msgstr "Cargar forma desde STL..."
 
 msgid "Settings"
 msgstr "Ajustes"
@@ -3204,14 +3217,14 @@ msgstr "Calibración del flujo"
 msgid "Start Calibration"
 msgstr "Iniciar Calibración"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "Terminado"
 
 msgid "Calibrating"
 msgstr "Calibrando"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "Supervisión de grabación automática"
@@ -4303,6 +4316,9 @@ msgstr "Advertencia:"
 msgid "Export successfully."
 msgstr "Exportado correctamente"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4474,7 +4490,7 @@ msgstr "Sincronizar filamentos desde AMS"
 msgid "Set filaments to use"
 msgstr "Establecer filamentos a utilizar"
 
-msgid "Search plater, object and part."
+msgid "Search plate, object and part."
 msgstr ""
 
 msgid ""
@@ -11042,6 +11058,9 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Cargar forma desde STL..."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"
