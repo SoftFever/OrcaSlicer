@@ -200,23 +200,9 @@ jobs:
 
       - name: Create installer Win
         if: matrix.os == 'windows-2019'
-        shell: pwsh
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
         working-directory: ${{ github.workspace }}/build
         run: |
-          # Decode the certificate
-          echo "$BUILD_CERTIFICATE_BASE64" | base64 -d > certificate.p12
-          # Sign all .exe and .dll files in the specified folder
-          # Decode the certificate
-          [System.Convert]::FromBase64String($env:BUILD_CERTIFICATE_BASE64) | Set-Content -AsByteStream -Path certificate.p12
-          Get-ChildItem -Path OrcaSlicer -Include *.exe,*.dll -Recurse | ForEach-Object {
-            & "C:/Program Files (x86)/Microsoft SDKs/ClickOnce/SignTool/signtool.exe" sign /fd sha256 /f certificate.p12 /p $env:P12_PASSWORD $_.FullName
-          }
           cpack -G NSIS
-          ls "${{ github.workspace }}/build"
-          "C:/Program Files (x86)/Microsoft SDKs/ClickOnce/SignTool/signtool.exe/signtool.exe" sign /fd sha256 /f certificate.p12 /p $P12_PASSWORD  "${{ github.workspace }}/build/OrcaSlicer_Windows_Installer_${{ env.ver }}.exe"
 
       # - name: pack app
         # if: matrix.os == 'windows-2019'
