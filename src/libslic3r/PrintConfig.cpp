@@ -363,7 +363,8 @@ void PrintConfigDef::init_common_params()
     def = this->add("printable_area", coPoints);
     def->label = L("Printable area");
     //BBS
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) });
 
     //BBS: add "bed_exclude_area"
@@ -378,11 +379,13 @@ void PrintConfigDef::init_common_params()
     def = this->add("bed_custom_texture", coString);
     def->label = L("Bed custom texture");
     def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("bed_custom_model", coString);
     def->label = L("Bed custom model");
     def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("elefant_foot_compensation", coFloat);
@@ -2341,7 +2344,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Nozzle volume");
     def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle");
     def->sidetext = L("mm³");
-    def->mode = comDevelop;
+    def->mode     = comAdvanced;
     def->readonly = true;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
 

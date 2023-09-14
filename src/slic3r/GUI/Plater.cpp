@@ -588,11 +588,16 @@ Sidebar::Sidebar(Plater *parent)
             if (wxID_OK == res) {
                 wxGetApp().mainframe->update_side_preset_ui();
                 update_all_preset_comboboxes();
+                Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+                if (printer_tab) {
+                    printer_tab->load_current_preset();
+                    printer_tab->update();
+                }
                 CreatePresetSuccessfulDialog success_dlg(p->m_panel_filament_title, SuccessType::PRINTER);
                 int res = success_dlg.ShowModal();
-                if (res == wxID_OK) { 
+                if (res == wxID_OK) {
                     p->editing_filament = -1;
-                    if (p->combo_printer->switch_to_tab()) 
+                    if (p->combo_printer->switch_to_tab())
                         p->editing_filament = 0;
                 }
             }

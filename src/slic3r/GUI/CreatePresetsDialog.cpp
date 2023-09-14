@@ -1,5 +1,5 @@
 #include "CreatePresetsDialog.hpp"
-
+#include <regex>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -1237,7 +1237,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     length_sizer->Add(static_length_text, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_x_input             = new TextInput(parent, wxEmptyString, "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_size_x_input             = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_size_x_input->GetTextCtrl()->SetValidator(validator);
     length_input_sizer->Add(m_bed_size_x_input, 0, wxEXPAND | wxALL, 0);
@@ -1250,7 +1250,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_bed_size_item(wxWindow *parent)
     width_sizer->Add(static_width_text, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer      = new wxBoxSizer(wxVERTICAL);
-    m_bed_size_y_input            = new TextInput(parent, wxEmptyString, "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_size_y_input            = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_bed_size_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_size_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1276,7 +1276,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     length_sizer->Add(static_origin_x_text, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(length_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *length_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_x_input           = new TextInput(parent, wxEmptyString, "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_origin_x_input           = new TextInput(parent, "0", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_bed_origin_x_input->GetTextCtrl()->SetValidator(validator);
     length_input_sizer->Add(m_bed_origin_x_input, 0, wxEXPAND | wxALL, 0);
@@ -1289,7 +1289,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_origin_item(wxWindow *parent)
     width_sizer->Add(static_origin_y_text, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     wxBoxSizer *width_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_bed_origin_y_input          = new TextInput(parent, wxEmptyString, "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_bed_origin_y_input          = new TextInput(parent, "0", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_bed_origin_y_input->GetTextCtrl()->SetValidator(validator);
     width_input_sizer->Add(m_bed_origin_y_input, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(width_input_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1316,6 +1316,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
 
     m_button_bed_stl = new Button(parent, _L("Upload"));
+    m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_model_stl(); }));
     m_button_bed_stl->SetFont(Label::Body_10);
 
     m_button_bed_stl->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8)));
@@ -1349,6 +1350,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_svg_item(wxWindow *parent)
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
 
     m_button_bed_svg = new Button(parent, _L("Upload"));
+    m_button_bed_svg->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
     m_button_bed_svg->SetFont(Label::Body_10);
 
     m_button_bed_svg->SetPaddingSize(wxSize(FromDIP(30), FromDIP(8)));
@@ -1374,7 +1376,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *hight_input_sizer = new wxBoxSizer(wxVERTICAL);
-    m_print_height_input          = new TextInput(parent, wxEmptyString, "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_print_height_input          = new TextInput(parent, "200", "mm", wxEmptyString, wxDefaultPosition, PRINTER_SPACE_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     wxTextValidator validator(wxFILTER_DIGITS);
     m_print_height_input->GetTextCtrl()->SetValidator(validator);
     hight_input_sizer->Add(m_print_height_input, 0, wxEXPAND | wxLEFT, FromDIP(5));
@@ -1401,7 +1403,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
     m_button_OK->SetCornerRadius(FromDIP(12));
     bSizer_button->Add(m_button_OK, 0, wxRIGHT, FromDIP(10));
 
-    m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
+    m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        if (!validate_input_valid()) return;
         data_init();
         show_page2();
         });
@@ -1422,6 +1425,39 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
 
     return bSizer_button;
 }
+static std::string last_directory = "";
+void CreatePrinterPresetDialog::load_texture() {
+    wxFileDialog       dialog(this, _L("Choose a file to import bed texture from (PNG/SVG):"), last_directory, "", file_wildcards(FT_TEX), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    m_custom_texture = "";
+    last_directory        = dialog.GetDirectory().ToUTF8().data();
+    std::string file_name = dialog.GetPath().ToUTF8().data();
+    if (!boost::algorithm::iends_with(file_name, ".png") && !boost::algorithm::iends_with(file_name, ".svg")) {
+        show_error(this, _L("Invalid file format."));
+        return;
+    }
+    m_custom_texture = file_name;
+}
+
+void CreatePrinterPresetDialog::load_model_stl()
+{
+    wxFileDialog dialog(this, _L("Choose an STL file to import bed model from:"), last_directory, "", file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() != wxID_OK)
+        return;
+
+    m_custom_model = "";
+    last_directory        = dialog.GetDirectory().ToUTF8().data();
+    std::string file_name = dialog.GetPath().ToUTF8().data();
+    if (!boost::algorithm::iends_with(file_name, ".stl")) {
+        show_error(this, _L("Invalid file format."));
+        return;
+    }
+    m_custom_model = file_name;
+}
 
 wxBoxSizer *CreatePrinterPresetDialog::create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list)
 {
@@ -1431,12 +1467,12 @@ wxBoxSizer *CreatePrinterPresetDialog::create_radio_item(wxString title, wxWindo
     horizontal_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(5));
     radiobox_list.push_back(std::make_pair(radiobox,title));
     int btn_idx = radiobox_list.size() - 1;
-    radiobox->Bind(wxEVT_LEFT_DOWN, [this, &radiobox_list, btn_idx](wxMouseEvent &e) { 
+    radiobox->Bind(wxEVT_LEFT_DOWN, [this, &radiobox_list, btn_idx](wxMouseEvent &e) {
         select_curr_radiobox(radiobox_list, btn_idx);
     });
 
     wxStaticText *text = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
-    text->Bind(wxEVT_LEFT_DOWN, [this, &radiobox_list, btn_idx](wxMouseEvent &e) { 
+    text->Bind(wxEVT_LEFT_DOWN, [this, &radiobox_list, btn_idx](wxMouseEvent &e) {
         select_curr_radiobox(radiobox_list, btn_idx);
     });
     horizontal_sizer->Add(text, 0, wxEXPAND | wxLEFT, 0);
@@ -1675,8 +1711,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
     m_button_create->SetCornerRadius(FromDIP(12));
     bSizer_button->Add(m_button_create, 0, wxRIGHT, FromDIP(10));
 
-    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
-        if (!validate_input_valid()) return;
+    m_button_create->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
         wxString curr_selected_printer_type = curr_create_printer_type();
         wxString curr_selected_preset_type  = curr_create_preset_type();
@@ -1689,7 +1725,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             std::string nozzle_diameter = into_u8(m_nozzle_diameter->GetStringSelection());
             if (m_can_not_find_vendor_combox->GetValue()) {
                 std::string vendor_model = into_u8(m_custom_vendor_model->GetLabel());
-                if (vendor_model.empty()) { 
+                if (vendor_model.empty()) {
                     MessageDialog dlg(this, _L("The custom printer and model are not inputed, place return page 1 to input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     dlg.ShowModal();
@@ -1700,16 +1736,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             } else {
                 std::string vender_name  = into_u8(m_select_vendor->GetStringSelection());
                 std::string model_name   = into_u8(m_select_model->GetStringSelection());
-                if (vender_name.empty() || model_name.empty()) {
-                    MessageDialog dlg(this, _L("The printer and model are not selected, place return page 1 to select."),
-                                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
-                    dlg.ShowModal();
-                    show_page1();
-                    return;
-                }
                 printer_preset_name = vender_name + " " + model_name + " " + nozzle_diameter;
             }
-            
             //Confirm if the printer preset exists
             if (!m_printer_preset) {
                 MessageDialog dlg(this, _L("You have not yet chosen which printer preset to create based on. Please choose the vendor and model of the printer"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
@@ -1797,7 +1825,6 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                     dlg.ShowModal();
                 }
             }
-            save_preset_config(m_printer_preset);
             preset_bundle->printers.save_current_preset(printer_preset_name, true, false, m_printer_preset);
             preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
         }
@@ -2071,40 +2098,91 @@ void CreatePrinterPresetDialog::clear_preset_combobox()
     m_process_preset_template_sizer->Clear(true);
 }
 
-void CreatePrinterPresetDialog::save_preset_config(Preset* preset)
+bool CreatePrinterPresetDialog::save_printable_area_config(Preset *preset)
 {
     DynamicPrintConfig &config = preset->config;
 
-    double              prnite_area_x = 0;
-    m_bed_size_x_input->GetTextCtrl()->GetValue().ToDouble(&prnite_area_x);
-    double prnite_area_y = 0;
-    m_bed_size_y_input->GetTextCtrl()->GetValue().ToDouble(&prnite_area_y);
-    std::vector<Vec2d> points = {{0, 0}, {prnite_area_x, 0}, {prnite_area_x, prnite_area_y}, {0, prnite_area_y}};
+    double x = 0;
+    m_bed_size_x_input->GetTextCtrl()->GetValue().ToDouble(&x);
+    double y = 0;
+    m_bed_size_y_input->GetTextCtrl()->GetValue().ToDouble(&y);
+    double dx = 0;
+    m_bed_origin_x_input->GetTextCtrl()->GetValue().ToDouble(&dx);
+    double dy = 0;
+    m_bed_origin_y_input->GetTextCtrl()->GetValue().ToDouble(&dy);
+    //range check begin
+    if (x == 0 || y == 0) {
+        return false;
+    }
+    double x0 = 0.0;
+    double y0 = 0.0;
+    double x1 = x;
+    double y1 = y;
+    if (dx >= x || dy >= y) {
+        return false;
+    }
+    x0 -= dx;
+    x1 -= dx;
+    y0 -= dy;
+    y1 -= dy;
+    // range check end
+    std::vector<Vec2d> points = {Vec2d(x0, y0),
+                                Vec2d(x1, y0),
+                                Vec2d(x1, y1),
+                                Vec2d(x0, y1)};
     config.set_key_value("printable_area", new ConfigOptionPoints(points));
 
     double max_print_height = 0;
     m_print_height_input->GetTextCtrl()->GetValue().ToDouble(&max_print_height);
     config.set("printable_height", max_print_height);
+    std::regex  regex("\\\\");
+    m_custom_model = std::regex_replace(m_custom_model, regex, "/");
+    m_custom_texture = std::regex_replace(m_custom_texture, regex, "/");
+    config.set("bed_custom_model", m_custom_model);
+    config.set("bed_custom_texture", m_custom_texture);
+    return true;
 }
 
 bool CreatePrinterPresetDialog::validate_input_valid()
 {
     if (m_bed_size_x_input->GetTextCtrl()->GetValue().empty() || m_bed_size_y_input->GetTextCtrl()->GetValue().empty()) {
-        MessageDialog dlg(this, _L("You did not entered in the printable area of the printer. Please return to page 1 to input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+        MessageDialog dlg(this, _L("You did not entered in the printable area of the printer."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                           wxYES | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
-        show_page1();
         return false;
     }
 
     if (m_print_height_input->GetTextCtrl()->GetValue().empty()) {
-        MessageDialog dlg(this, _L("You have not entered the maximum printing height of the printer. Please return to page 1 for input."),
+        MessageDialog dlg(this, _L("You have not entered the maximum printing height of the printer."),
                           wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
-        show_page1();
         return false;
     }
-
+    std::string vender_name = into_u8(m_select_vendor->GetStringSelection());
+    std::string model_name  = into_u8(m_select_model->GetStringSelection());
+    if (vender_name.empty() || model_name.empty()) {
+        MessageDialog dlg(this, _L("You have not selected the printer and model."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                          wxYES | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        return false;
+    }
+    if (m_custom_texture.empty()) {
+        MessageDialog dlg(this, _L("You have not upload bed texture."),
+                          wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        return false;
+    }
+    if (m_custom_model.empty()) {
+        MessageDialog dlg(this, _L("You have not upload bed model."),
+                          wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        return false;
+    }
+    if (save_printable_area_config(m_printer_preset) == false) {
+        MessageDialog dlg(this, _L("Please check bed shape input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+        dlg.ShowModal();
+        return false;
+    }
     return true;
 }
 

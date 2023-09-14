@@ -131,7 +131,9 @@ void Field::PostInitialize()
 	// For the mode, when settings are in non-modal dialog, neither dialog nor tabpanel doesn't receive wxEVT_KEY_UP event, when some field is selected.
 	// So, like a workaround check wxEVT_KEY_UP event for the Filed and switch between tabs if Ctrl+(1-4) was pressed
     if (getWindow()) {
-        if (m_opt.readonly) getWindow()->Disable();
+        if (m_opt.readonly) { 
+            this->disable();
+        }
 		getWindow()->Bind(wxEVT_KEY_UP, [](wxKeyEvent& evt) {
 		    if ((evt.GetModifiers() & wxMOD_CONTROL) != 0) {
 			    int tab_id = -1;
@@ -420,6 +422,12 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
                                 if (0 <= x && x <= 256 && 0 <= y && y <= 256) {
+                                    out_values.push_back(Vec2d(x, y));
+                                    continue;
+                                }
+                            }
+                            else if (m_opt_id == "printable_area") {
+                                if (0 <= x && x <= 1000 && 0 <= y && y <= 1000) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }

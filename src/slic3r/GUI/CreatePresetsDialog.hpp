@@ -100,8 +100,8 @@ protected:
     wxBoxSizer *create_hot_bed_svg_item(wxWindow *parent);
     wxBoxSizer *create_max_print_height_item(wxWindow *parent);
     wxBoxSizer *create_page1_btns_item(wxWindow *parent);
-
-
+    void        load_texture();
+    void        load_model_stl();
     //Improt Presets Page2
     void create_printer_page2(wxWindow *parent);
     wxBoxSizer *create_printer_preset_item(wxWindow *parent);
@@ -120,12 +120,12 @@ protected:
     void          update_presets_list();
     void          on_preset_model_value_change(wxCommandEvent &e);
     void          clear_preset_combobox();
-    void          save_preset_config(Preset *preset);
+    bool          save_printable_area_config(Preset *preset);
     bool          validate_input_valid();
     wxArrayString printer_preset_sort_with_nozzle_diameter(const VendorProfile &vendor_profile, float nozzle_diameter);
 
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
-    
+
     wxString    curr_create_preset_type();
     wxString    curr_create_printer_type();
 
@@ -170,7 +170,8 @@ private:
     wxPanel *                                          m_filament_preset_panel          = nullptr;
     wxPanel *                                          m_process_preset_panel           = nullptr;
     wxPanel *                                          m_preset_template_panel          = nullptr;
-    
+    std::string                                        m_custom_texture;
+    std::string                                        m_custom_model;
 };
 
 enum SuccessType {

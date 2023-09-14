@@ -3692,7 +3692,7 @@ void TabPrinter::toggle_options()
     //    toggle_option("change_filament_gcode", have_multiple_extruders);
     //}
     if (m_active_page->title() == "Basic information") {
-        toggle_line("printable_area", !is_BBL_printer);
+        //toggle_line("printable_area", !is_configed_by_BBL);//all printer can entry and view data
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
         //BBS: gcode_flavore of BBL printer can't be edited and changed
         toggle_option("gcode_flavor", !is_BBL_printer);
@@ -4945,16 +4945,26 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL);
 
-    btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
-        {
+    btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
+            bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(m_preset_bundle->printers.get_edited_preset()).size() > 0;
             BedShapeDialog dlg(this);
-            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"), {}, {});
-            if (dlg.ShowModal() == wxID_OK) {
-                const std::vector<Vec2d>& shape = dlg.get_shape();
-                if (!shape.empty())
-                {
-                    load_key_value("printable_area", shape);
-                    update_changed_ui();
+            dlg.build_dialog(*m_config->option<ConfigOptionPoints>("printable_area"),
+                            *m_config->option<ConfigOptionString>("bed_custom_texture"),
+                             *m_config->option<ConfigOptionString>("bed_custom_model") , !is_configed_by_BBL);
+            if (dlg.ShowModal() == wxID_OK && !is_configed_by_BBL) {
+                if (dlg.get_valid()) {
+                    const std::vector<Vec2d> &shape          = dlg.get_shape();
+                    const std::string &       custom_texture = dlg.get_custom_texture();
+                    const std::string &       custom_model   = dlg.get_custom_model();
+                    if (!shape.empty()) {
+                        load_key_value("printable_area", shape);
+                        load_key_value("bed_custom_texture", custom_texture);
+                        load_key_value("bed_custom_model", custom_model);
+                        update_changed_ui();
+                    }
+                
+                } else {
+                    show_error(m_parent, _L("Invalid input."));
                 }
             }
         }));
@@ -4962,6 +4972,8 @@ wxSizer* TabPrinter::create_bed_shape_widget(wxWindow* parent)
     {
         Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
         const Search::GroupAndCategory& gc = searcher.get_group_and_category("printable_area");
+        searcher.add_key("bed_custom_texture", m_type, gc.group, gc.category);
+        searcher.add_key("bed_custom_model", m_type, gc.group, gc.category);
     }
 
     return sizer;

@@ -920,6 +920,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
     // BBS
+    ((ConfigOptionString,             bed_custom_texture))
+    ((ConfigOptionString,             bed_custom_model))
     ((ConfigOptionEnum<BedType>,      curr_bed_type))
     ((ConfigOptionInts,               cool_plate_temp))
     ((ConfigOptionInts,               eng_plate_temp))
