@@ -4521,7 +4521,9 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                     error_info += _L("obtaining instance_id failed\n").ToUTF8().data();
                 if (!error_info.empty()) { BOOST_LOG_TRIVIAL(info) << error_info; }
 
-                dlg_info = new MessageDialog(this, _L("Your comment result cannot be uploaded due to some reasons. Would you like to redirect to the webpage for storing?"),
+                dlg_info = new MessageDialog(this,
+                                             _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
+                                                 "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for storing?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
                 if (dlg_info->ShowModal() == wxID_OK) {
                     market_model_scoring_page(m_design_id);
