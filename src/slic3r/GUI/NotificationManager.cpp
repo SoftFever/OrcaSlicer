@@ -1903,7 +1903,7 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
-void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id)
+void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level/* = NotificationLevel::WarningNotificationLevel*/)
 {
     auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
 		auto & objects = wxGetApp().model().objects;
@@ -1916,7 +1916,7 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
 	} : std::function<bool(wxEvtHandler *)>();
     auto link = callback ? _u8L("Jump to") : "";
     if (obj) link += std::string(" [") + obj->name + "]";
-	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text, link, callback };
+	NotificationData data { NotificationType::SlicingWarning, level, 0,  _u8L("Warning:") + "\n" + text, link, callback };
 
 	data.sub_msg_id = warning_msg_id;
 	data.ori_text = text;
