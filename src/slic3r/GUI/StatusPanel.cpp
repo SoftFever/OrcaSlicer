@@ -2383,7 +2383,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 
         show_ams_group(true);
 
-        if (!obj->m_is_support_show_bak || !is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
+        if (!is_support_filament_backup || !obj->ams_support_auto_switch_filament_flag) {
             m_ams_control->show_auto_refill(false); 
         }
         else {
@@ -3240,6 +3240,7 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
     if (obj) {
         m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
         m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
+        m_ams_setting_dlg->update_image(obj->printer_type == "N1"?"generic":"f1");
         std::string ams_id = m_ams_control->GetCurentShowAms();
         if (obj->amsList.size() == 0) {
             /* wxString txt = _L("AMS settings are not supported for external spool");

@@ -1551,6 +1551,7 @@ void MachineObject::parse_version_func()
         is_support_tunnel_mqtt   = true;
         is_support_ams_humidity  = false;
         is_support_1080dpi       = true;
+        ams_support_remain       = false;
     }
 }
 

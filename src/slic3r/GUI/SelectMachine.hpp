@@ -385,7 +385,7 @@ protected:
     ScalableBitmap *                    print_weight{nullptr};
     wxStaticBitmap *                    amsmapping_tip{nullptr};
     ScalableBitmap *                    enable_ams_mapping{nullptr};
-    wxStaticBitmap *                    ams_tip{nullptr};
+    wxStaticBitmap *                    img_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
 
@@ -400,7 +400,7 @@ public:
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();
     void update_select_layout(MachineObject *obj);
-    void prepare_mode();
+    void prepare_mode(bool refresh_button = true);
     void sending_mode();
     void finish_mode();
 	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);

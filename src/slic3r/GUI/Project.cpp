@@ -310,6 +310,9 @@ std::map<std::string, std::vector<json>> ProjectPanel::Reload(wxString aux_path)
                     pfile_obj["filename"] = wxGetApp().url_encode(file_path_obj.filename().string().c_str());
                     pfile_obj["size"] = formatBytes((unsigned long)filelen);
 
+                    std::string file_extension = file_path_obj.extension().string();
+                    boost::algorithm::to_lower(file_extension);
+
                     //image
                     if (file_extension == ".jpg"    ||
                         file_extension == ".jpeg"   ||

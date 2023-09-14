@@ -1543,10 +1543,10 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     sizer_checkbox->Add(text, 0, wxALIGN_CENTER, 0);
 
     enable_ams       = new ScalableBitmap(this, "enable_ams", 16);
-    auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, enable_ams->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, enable_ams->bmp(), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
-    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto& e) {
+    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         wxPoint img_pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
         wxPoint popup_pos(img_pos.x, img_pos.y + img_ams_tip->GetRect().height);
         m_mapping_tip_popup.Position(popup_pos, wxSize(0, 0));
@@ -1563,7 +1563,6 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_mapping_tip_popup.Dismiss();
         });
-    ams_tip = img_ams_tip;
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();
@@ -1683,7 +1682,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     Fit();
 }
 
-void SelectMachineDialog::prepare_mode()
+void SelectMachineDialog::prepare_mode(bool refresh_button)
 {
     // disable combobox
     m_comboBox_printer->Enable();
@@ -1698,7 +1697,9 @@ void SelectMachineDialog::prepare_mode()
     if (wxIsBusy())
         wxEndBusyCursor();
 
-    Enable_Send_Button(true);
+    if (refresh_button) {
+        Enable_Send_Button(true);
+    }
 
     m_status_bar->reset();
     if (m_simplebook->GetSelection() != 0) {
@@ -2016,12 +2017,6 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     else
         m_comboBox_printer->Enable();
 
-    // m_panel_warn m_simplebook
-    if (status == PrintDialogStatus::PrintStatusSending) {
-        sending_mode();
-    } else {
-        prepare_mode();
-    }
 
     // other
     if (status == PrintDialogStatus::PrintStatusInit) {
@@ -2163,6 +2158,14 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    }
+
+    // m_panel_warn m_simplebook
+    if (status == PrintDialogStatus::PrintStatusSending) {
+        sending_mode();
+    }
+    else {
+        prepare_mode(false);
     }
 }
 
@@ -2947,7 +2950,6 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if (!obj_ 
         || obj_->amsList.empty() 
         || obj_->ams_exist_bits == 0 
-        || !obj_->m_is_support_show_bak 
         || !obj_->ams_support_auto_switch_filament_flag
         || !obj_->ams_auto_switch_filament_flag 
         || !obj_->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)
@@ -3036,6 +3038,8 @@ void SelectMachineDialog::update_ams_check(MachineObject* obj)
         && obj->ams_support_use_ams
         && obj->has_ams()) {
         select_use_ams->Show();
+        if (obj->printer_type == "N1") {img_ams_tip->Hide();}
+        else {img_ams_tip->Show();}
     } else {
         select_use_ams->Hide();
     }
@@ -3350,7 +3354,7 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     enable_ams_mapping->msw_rescale();
     amsmapping_tip->SetBitmap(enable_ams_mapping->bmp());
     enable_ams->msw_rescale();
-    ams_tip->SetBitmap(enable_ams->bmp());
+    img_ams_tip->SetBitmap(enable_ams->bmp());
 
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetCornerRadius(FromDIP(12));

@@ -2832,13 +2832,10 @@ void AMSControl::EnterNoneAMSMode(bool support_vt_load)
     m_extruder->no_ams_mode(true);
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
-    if (support_vt_load) {
-        m_button_extruder_feed->Show();
-        m_button_extruder_back->Show();
-    } else {
-        m_button_extruder_feed->Hide();
-        m_button_extruder_back->Hide();
-    }
+    
+    m_button_extruder_feed->Show();
+    m_button_extruder_back->Show();
+
 
     ShowFilamentTip(false);
     m_amswin->Layout();
