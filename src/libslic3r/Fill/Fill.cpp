@@ -15,7 +15,7 @@
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
 
-#define NARROW_INFILL_AREA_THRESHOLD 3
+#define NARROW_INFILL_AREA_THRESHOLD 2
 
 namespace Slic3r {
 
