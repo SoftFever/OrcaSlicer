@@ -2883,7 +2883,7 @@ void AMSControl::EnterExtraAMSMode()
 
     
     m_vams_lib->m_ams_model = AMSModel::EXTRA_AMS;
-    m_ams_tip->SetLabel(_L("AMS-Extra"));
+    m_ams_tip->SetLabel(_L("AMS"));
     m_img_vams_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));
     m_img_vams_tip->Disable();
     m_img_amsmapping_tip->SetBitmap(create_scaled_bitmap("enable_ams_disable", this, 16));

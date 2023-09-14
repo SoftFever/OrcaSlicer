@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 16:19+0800\n"
+"POT-Creation-Date: 2023-09-14 17:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1559,9 +1559,6 @@ msgstr "Calibrar de nuevo"
 msgid "Cancel calibration"
 msgstr "Cancelar  calibración"
 
-msgid "AMS-Extra"
-msgstr ""
-
 msgid "Idling..."
 msgstr ""
 
@@ -2028,14 +2025,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm\\u00B3"
-msgstr "mm\\ u00b3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2376,9 +2373,6 @@ msgstr "Circular"
 msgid "Custom"
 msgstr "Personalizado"
 
-msgid "Load shape from STL..."
-msgstr "Cargar forma desde STL..."
-
 msgid "Settings"
 msgstr "Ajustes"
 
@@ -2469,6 +2463,13 @@ msgid ""
 msgstr ""
 "Velocidad volumétrica máxima demasiado pequeña.\n"
 "El valor se restableció a 0.5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -3170,9 +3171,6 @@ msgid "Bed leveling"
 msgstr "Nivelación de la plataforma de impresión"
 
 msgid "Vibration compensation"
-msgstr ""
-
-msgid "Motor noise"
 msgstr ""
 
 msgid "Motor noise cancellation"
@@ -4245,6 +4243,9 @@ msgstr "Advertencia:"
 
 msgid "Export successfully."
 msgstr "Exportado correctamente"
+
+msgid "Model file downloaded."
+msgstr ""
 
 msgid "Serious warning:"
 msgstr ""
@@ -5493,11 +5494,6 @@ msgstr "No se puede enviar una impresión de una plancha vacía."
 msgid "This printer does not support printing all plates"
 msgstr "Esta impresora no admite la impresión de todas las planchas"
 
-msgid ""
-"This printer does not support selected timelapse mode, you can change the "
-"timelapse mode"
-msgstr ""
-
 msgid "Errors"
 msgstr "Errores"
 
@@ -5618,8 +5614,8 @@ msgstr "Terms and Conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab "
@@ -7540,7 +7536,7 @@ msgstr ""
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -7856,9 +7852,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
@@ -8239,7 +8232,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -9232,12 +9225,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -10230,10 +10221,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -10298,9 +10289,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10406,7 +10394,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10421,7 +10409,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10817,6 +10805,15 @@ msgstr ""
 "Mejorar la fuerza\n"
 "¿Sabía que puede utilizar más bucles de pared y una densidad de relleno "
 "dispersa más alta para mejorar la resistencia del modelo?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\ u00b3"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Cargar forma desde STL..."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"

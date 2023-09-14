@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 16:19+0800\n"
+"POT-Creation-Date: 2023-09-14 17:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1506,9 +1506,6 @@ msgstr ""
 msgid "Cancel calibration"
 msgstr ""
 
-msgid "AMS-Extra"
-msgstr ""
-
 msgid "Idling..."
 msgstr ""
 
@@ -1923,13 +1920,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -2222,9 +2219,6 @@ msgstr ""
 msgid "Custom"
 msgstr ""
 
-msgid "Load shape from STL..."
-msgstr ""
-
 msgid "Settings"
 msgstr ""
 
@@ -2294,6 +2288,13 @@ msgstr ""
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -2934,9 +2935,6 @@ msgid "Bed leveling"
 msgstr ""
 
 msgid "Vibration compensation"
-msgstr ""
-
-msgid "Motor noise"
 msgstr ""
 
 msgid "Motor noise cancellation"
@@ -3988,6 +3986,9 @@ msgid "Warning:"
 msgstr ""
 
 msgid "Export successfully."
+msgstr ""
+
+msgid "Model file downloaded."
 msgstr ""
 
 msgid "Serious warning:"
@@ -5126,11 +5127,6 @@ msgstr ""
 msgid "This printer does not support printing all plates"
 msgstr ""
 
-msgid ""
-"This printer does not support selected timelapse mode, you can change the "
-"timelapse mode"
-msgstr ""
-
 msgid "Errors"
 msgstr ""
 
@@ -5241,8 +5237,8 @@ msgstr ""
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 
@@ -6909,7 +6905,7 @@ msgstr ""
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -7179,9 +7175,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"
@@ -7519,7 +7512,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8366,12 +8359,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9266,10 +9257,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -9334,9 +9325,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -9442,7 +9430,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -9457,7 +9445,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 16:19+0800\n"
+"POT-Creation-Date: 2023-09-14 17:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1522,9 +1522,6 @@ msgstr "다시 캘리브레이션하기"
 msgid "Cancel calibration"
 msgstr "캘리브레이션 취소"
 
-msgid "AMS-Extra"
-msgstr ""
-
 msgid "Idling..."
 msgstr ""
 
@@ -1980,14 +1977,14 @@ msgstr "베드 온도"
 msgid "Max volumetric speed"
 msgstr "최대 체적 속도"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "베드 온도"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "시작"
@@ -2311,9 +2308,6 @@ msgstr "원형"
 msgid "Custom"
 msgstr "커스텀"
 
-msgid "Load shape from STL..."
-msgstr "STL에서 형상 로드..."
-
 msgid "Settings"
 msgstr "설정"
 
@@ -2397,6 +2391,13 @@ msgid ""
 msgstr ""
 "최대 체적 속도가 너무 작습니다.\n"
 "값이 0.5로 재설정되었습니다."
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -3086,9 +3087,6 @@ msgid "Bed leveling"
 msgstr "베드 레벨링"
 
 msgid "Vibration compensation"
-msgstr ""
-
-msgid "Motor noise"
 msgstr ""
 
 msgid "Motor noise cancellation"
@@ -4152,6 +4150,9 @@ msgstr "경고:"
 
 msgid "Export successfully."
 msgstr "내보내기 성공"
+
+msgid "Model file downloaded."
+msgstr ""
 
 msgid "Serious warning:"
 msgstr ""
@@ -5360,11 +5361,6 @@ msgstr "빈 플레이트에 대한 출력 작업을 보낼 수 없습니다."
 msgid "This printer does not support printing all plates"
 msgstr "이 프린터는 모든 플레이트 출력을 지원하지 않습니다."
 
-msgid ""
-"This printer does not support selected timelapse mode, you can change the "
-"timelapse mode"
-msgstr ""
-
 msgid "Errors"
 msgstr "오류"
 
@@ -5479,8 +5475,8 @@ msgstr "이용약관"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Bambu Lab 기기를 구매해 주셔서 감사합니다. Bambu Lab 기기를 사용하기 전에 이"
@@ -7307,7 +7303,7 @@ msgstr "이 프린터 프로파일로 전환할 때의 기본 프로세스 프�
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -7606,9 +7602,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "와이프타워에 최소 짜내기"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "필라멘트 로드 시간"
@@ -7973,7 +7966,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8915,12 +8908,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9887,10 +9878,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -9955,9 +9946,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10063,7 +10051,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10078,7 +10066,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10470,6 +10458,15 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "STL에서 형상 로드..."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"

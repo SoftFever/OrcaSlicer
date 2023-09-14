@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 16:19+0800\n"
+"POT-Creation-Date: 2023-09-14 17:45+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1511,9 +1511,6 @@ msgstr "重新校准"
 msgid "Cancel calibration"
 msgstr "取消校准"
 
-msgid "AMS-Extra"
-msgstr ""
-
 msgid "Idling..."
 msgstr ""
 
@@ -1539,7 +1536,7 @@ msgid "Confirm extruded"
 msgstr ""
 
 msgid "Check filament location"
-msgstr ""
+msgstr "检查耗材位置"
 
 msgid "Grab new filament"
 msgstr "咬入耗材丝"
@@ -1945,14 +1942,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2264,9 +2261,6 @@ msgstr "圆"
 msgid "Custom"
 msgstr "自定义"
 
-msgid "Load shape from STL..."
-msgstr "从STL文件加载形状..."
-
 msgid "Settings"
 msgstr "设置"
 
@@ -2346,6 +2340,13 @@ msgid ""
 msgstr ""
 "最大体积流量设置过小\n"
 "重置为0.5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -2559,7 +2560,7 @@ msgid "Paused by the Gcode inserted by user"
 msgstr ""
 
 msgid "Motor noise showoff"
-msgstr ""
+msgstr "电机噪音标定结果展示"
 
 msgid "MC"
 msgstr ""
@@ -3023,13 +3024,10 @@ msgid "Bed leveling"
 msgstr "热床调平"
 
 msgid "Vibration compensation"
-msgstr ""
-
-msgid "Motor noise"
-msgstr ""
+msgstr "振动补偿"
 
 msgid "Motor noise cancellation"
-msgstr ""
+msgstr "电机降噪"
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -3049,7 +3047,7 @@ msgid "Start Calibration"
 msgstr "开始校准"
 
 msgid "No step selected"
-msgstr ""
+msgstr "请选择一项校准"
 
 msgid "Completed"
 msgstr "已完成"
@@ -4087,6 +4085,9 @@ msgstr "警告："
 msgid "Export successfully."
 msgstr "发送成功。"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr "严重警告："
 
@@ -4169,7 +4170,7 @@ msgid "Auto-recovery from step loss"
 msgstr "自动从丢步中恢复"
 
 msgid "Allow Prompt Sound"
-msgstr ""
+msgstr "支持提示音"
 
 msgid "Global"
 msgstr "全局"
@@ -5248,11 +5249,6 @@ msgstr "无法为空盘发送打印任务"
 msgid "This printer does not support printing all plates"
 msgstr "该打印机不支持打印所有盘"
 
-msgid ""
-"This printer does not support selected timelapse mode, you can change the "
-"timelapse mode"
-msgstr ""
-
 msgid "Errors"
 msgstr "错误"
 
@@ -5367,8 +5363,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -7109,7 +7105,7 @@ msgstr "该机器的默认切片配置"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -7403,9 +7399,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
@@ -7745,7 +7738,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8650,12 +8643,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -9649,10 +9640,10 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -9721,9 +9712,6 @@ msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
 msgstr "至体积速度"
-
-msgid "mm\\u00B3/s"
-msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
@@ -9836,12 +9824,9 @@ msgstr "值步长"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值:\n"
-"起始值 > 0 \\值步长 >= 0\n"
-"结束值 > 起始值 + 值步长)"
 
 msgid "VFA test"
 msgstr "VFA测试"
@@ -9854,12 +9839,9 @@ msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值:\n"
-"起始值 > 0 \\值步长 >= 0\n"
-"结束值 > 起始值 + 值步长)"
 
 msgid "Start retraction length: "
 msgstr "起始回抽长度"
@@ -10230,6 +10212,27 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "从STL文件加载形状..."
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 \\step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
 
 #~ msgid "Cali"
 #~ msgstr "校准"

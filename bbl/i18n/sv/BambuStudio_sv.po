@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 16:19+0800\n"
+"POT-Creation-Date: 2023-09-14 17:45+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1541,9 +1541,6 @@ msgstr "Kalibrera igen"
 msgid "Cancel calibration"
 msgstr "Avbryt kalibrering"
 
-msgid "AMS-Extra"
-msgstr ""
-
 msgid "Idling..."
 msgstr ""
 
@@ -2007,14 +2004,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -2352,9 +2349,6 @@ msgstr "Cirkulär"
 msgid "Custom"
 msgstr "Custom"
 
-msgid "Load shape from STL..."
-msgstr "Ladda form ifrån STL..."
-
 msgid "Settings"
 msgstr "Inställningar"
 
@@ -2441,6 +2435,13 @@ msgid ""
 msgstr ""
 "För liten max volymhastighet.\n"
 "Värdet återställdes till 0,5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -3131,9 +3132,6 @@ msgid "Bed leveling"
 msgstr "Justering av Byggplattan"
 
 msgid "Vibration compensation"
-msgstr ""
-
-msgid "Motor noise"
 msgstr ""
 
 msgid "Motor noise cancellation"
@@ -4204,6 +4202,9 @@ msgstr "Varning:"
 
 msgid "Export successfully."
 msgstr "Exportering lyckades"
+
+msgid "Model file downloaded."
+msgstr ""
 
 msgid "Serious warning:"
 msgstr ""
@@ -5425,11 +5426,6 @@ msgstr "Det går inte att skicka ett utskriftsjobb för en tom platta."
 msgid "This printer does not support printing all plates"
 msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
 
-msgid ""
-"This printer does not support selected timelapse mode, you can change the "
-"timelapse mode"
-msgstr ""
-
 msgid "Errors"
 msgstr "Fel"
 
@@ -5547,8 +5543,8 @@ msgstr "Villkor och bestämmelser"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab "
@@ -7414,7 +7410,7 @@ msgstr "Standard process profil vid byte till denna maskinens profil"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Acivate for better air filtration"
+msgid "Activate for better air filtration"
 msgstr ""
 
 msgid "Fan speed"
@@ -7726,9 +7722,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
@@ -8102,7 +8095,7 @@ msgstr ""
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Decide whether support activating air filtration"
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8963,8 +8956,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Rectilinear Interlaced"
 msgstr "Rätlinjig sammanflätning"
@@ -9077,12 +9070,10 @@ msgid ""
 "By opening chamber_temperature compensation, the heating components will "
 "operate to elevate the chamber temperature.This can help suppress or reduce "
 "warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength"
-msgstr ""
-
-msgid ""
-"Chamber temperature during print.0 means do not open compensation.Don't open "
-"it for low-temperature filaments like PLA, PETG, TPU"
+"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
+"temperature materials, the actual chamber temperature should not be high to "
+"avoid cloggings,so extra chamber temperature compensation is not needed, and "
+"0 is highly recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
@@ -10067,10 +10058,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -10135,9 +10126,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10243,7 +10231,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10258,7 +10246,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10653,6 +10641,15 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Ladda form ifrån STL..."
 
 #~ msgid "Cali"
 #~ msgstr "Kalib"

@@ -51,7 +51,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     select_xcam_cali    = create_check_option(_L("Micro lidar calibration"), cali_left_panel, _L("Micro lidar calibration"),            "xcam_cali");
     select_bed_leveling = create_check_option(_L("Bed leveling"),            cali_left_panel, _L("Bed leveling"),                       "bed_leveling");
     select_vibration    = create_check_option(_L("Vibration compensation"), cali_left_panel, _L("Vibration compensation"), "vibration");
-    select_motor_noise  = create_check_option(_L("Motor noise"), cali_left_panel, _L("Motor noise cancellation"), "motor_noise");
+    select_motor_noise  = create_check_option(_L("Motor noise cancellation"), cali_left_panel, _L("Motor noise cancellation"), "motor_noise");
 
     
 
