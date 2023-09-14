@@ -2173,6 +2173,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 coordf_t         max_layers_above_roof1 = 0;
                 bool has_polygon_node = false;
                 bool has_circle_node = false;
+                bool need_extra_wall = false;
 
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << contact_nodes[layer_nr].size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
@@ -2238,6 +2239,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             append(area, overhang_expanded);
                         }
                         has_circle_node = true;
+                        if(node.is_merged || (node.movement.x()> line_width_scaled /2 || node.movement.y()> line_width_scaled /2))
+                            need_extra_wall = true;
                     }
 
                     if (node.distance_to_top < 0)
@@ -2258,18 +2261,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
 
-                    if (layer_nr < brim_skirt_layers)
-                        append(ts_layer->lslices, area);
                 }
-
-                ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
-
-                //Must update bounding box which is used in avoid crossing perimeter
-                ts_layer->lslices_bboxes.clear();
-                ts_layer->lslices_bboxes.reserve(ts_layer->lslices.size());
-                for (const ExPolygon &expoly : ts_layer->lslices)
-                    ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
-                ts_layer->backup_untyped_slices();
 
                 m_object->print()->set_status(65, (boost::format( _L("Support: generate polygons at layer %d")) % layer_nr).str());
 
@@ -2345,6 +2337,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 for (auto& area : ts_layer->base_areas) {
                     area_groups.emplace_back(&area, SupportLayer::BaseType, max_layers_above_base);
                     area_groups.back().need_infill = has_polygon_node;
+                    // area_groups.back().need_extra_wall = need_extra_wall;
                 }
                 for (auto &area : ts_layer->roof_areas) area_groups.emplace_back(&area, SupportLayer::RoofType, max_layers_above_roof);
                 for (auto &area : ts_layer->floor_areas) area_groups.emplace_back(&area, SupportLayer::FloorType, 10000);
@@ -2358,7 +2351,18 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                                                            return bbox_size[0] < scale_(2) && bbox_size[1] < scale_(2);
                                                        }),
                                         expoly->holes.end());
+
+                    if (layer_nr < brim_skirt_layers)
+                        ts_layer->lslices.emplace_back(*expoly);
                 }
+
+                ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
+                //Must update bounding box which is used in avoid crossing perimeter
+                ts_layer->lslices_bboxes.clear();
+                ts_layer->lslices_bboxes.reserve(ts_layer->lslices.size());
+                for (const ExPolygon& expoly : ts_layer->lslices)
+                    ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
+                ts_layer->backup_untyped_slices();
 
             }
         });
