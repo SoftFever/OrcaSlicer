@@ -5,7 +5,6 @@
     "bed_model": "bbl-3dp-X1.stl",
     "bed_texture": "bbl-3dp-logo.svg",
     "family": "BBL-3DP",
-    "hotend_model": "bbl-3dp-hotend.stl",
     "machine_tech": "FFF",
     "model_id": "C13",
     "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1 Carbon.json",

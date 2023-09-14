@@ -8,6 +8,5 @@
     "family": "BBL-3DP",
     "bed_model": "bbl-3dp-A1M.stl",
     "bed_texture": "bbl-3dp-logo.svg",
-    "hotend_model": "bbl-3dp-hotend.stl",
     "default_materials": "Generic PLA @BBL A1M;Generic PLA Silk @BBL A1M;Bambu PLA Matte @BBL A1M;Bambu PLA Basic @BBL A1M;Bambu ABS @BBL P1P;Bambu PC @BBL P1P;Bambu Support W @BBL A1M;Bambu TPU 95A @BBL P1P;PolyTerra PLA @BBL A1M;PolyLite PLA @BBL A1M;"
 }
