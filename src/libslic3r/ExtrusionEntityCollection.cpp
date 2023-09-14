@@ -26,6 +26,7 @@ ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths
 
 ExtrusionEntityCollection& ExtrusionEntityCollection::operator=(const ExtrusionEntityCollection &other)
 {
+    clear();
     this->entities      = other.entities;
     for (size_t i = 0; i < this->entities.size(); ++i)
         this->entities[i] = this->entities[i]->clone();
@@ -58,10 +59,7 @@ ExtrusionEntityCollection::operator ExtrusionPaths() const
 
 ExtrusionEntity* ExtrusionEntityCollection::clone() const
 {
-    ExtrusionEntityCollection* coll = new ExtrusionEntityCollection(*this);
-    for (size_t i = 0; i < coll->entities.size(); ++i)
-        coll->entities[i] = this->entities[i]->clone();
-    return coll;
+    return new ExtrusionEntityCollection(*this);
 }
 
 void ExtrusionEntityCollection::reverse()
