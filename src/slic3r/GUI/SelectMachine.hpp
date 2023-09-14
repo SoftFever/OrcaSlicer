@@ -272,7 +272,8 @@ enum PrintDialogStatus {
     PrintStatusNotSupportedSendToSDCard,
     PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate,
-    PrintStatusUnsupportedPrinter
+    PrintStatusUnsupportedPrinter,
+    PrintStatusTimelapseWarning
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -443,6 +444,8 @@ public:
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state);
     bool is_show_timelapse();
+    int  get_timelapse_warning_code();
+    void update_timelapse_enable_status();
     bool is_same_printer_model();
     bool is_blocking_printing();
     bool is_same_nozzle_diameters(std::string& nozzle_type, std::string& nozzle_diameter);
