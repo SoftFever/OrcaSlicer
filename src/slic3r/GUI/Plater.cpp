@@ -995,7 +995,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_search_bar = new wxSearchCtrl(p->scrolled, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     p->m_search_bar->ShowSearchButton(true);
     p->m_search_bar->ShowCancelButton(true);
-    p->m_search_bar->SetDescriptiveText(_L("Search plater, object and part."));
+    p->m_search_bar->SetDescriptiveText(_L("Search plate, object and part."));
     p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
         this->p->on_search_update();});
     p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
