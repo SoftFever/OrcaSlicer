@@ -1161,6 +1161,13 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
 
+    m_timelapse_warning_code = 0;
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
+        m_timelapse_warning_code += 1;
+    }
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && print->config().print_sequence == PrintSequence::ByObject) {
+        m_timelapse_warning_code += (1 << 1);
+    }
     m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
@@ -2859,7 +2866,10 @@ GCode::LayerResult GCode::process_layer(
 
     PrinterStructure printer_structure           = m_config.printer_structure.value;
     bool need_insert_timelapse_gcode_for_traditional = false;
-    if (printer_structure == PrinterStructure::psI3 && !m_spiral_vase && (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print())) {
+    if (printer_structure == PrinterStructure::psI3 &&
+        !m_spiral_vase &&
+        (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) &&
+        print.config().print_sequence == PrintSequence::ByLayer) {
         need_insert_timelapse_gcode_for_traditional = true;
     }
     bool has_insert_timelapse_gcode = false;
@@ -2881,7 +2891,7 @@ GCode::LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
-    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase) {
+    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
         std::string timepals_gcode = insert_timelapse_gcode();
         gcode += timepals_gcode;
         m_writer.set_current_position_clear(false);
@@ -3532,8 +3542,6 @@ GCode::LayerResult GCode::process_layer(
     log_memory_info();
 
     if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
-        if (m_timelapse_warning_code == 0)
-            m_timelapse_warning_code = 1;
         gcode += this->retract(false, false, LiftType::NormalLift);
         m_writer.add_object_change_labels(gcode);
 

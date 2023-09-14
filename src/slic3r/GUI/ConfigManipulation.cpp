@@ -318,6 +318,26 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    if (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject) {
+        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+            wxString msg_text = _(L("When print by object, machines with I3 structure will not generate timelapse videos."));
+
+            if (is_global_config)
+                msg_text += "\n\n" + _(L("Still print by object?"));
+        
+            MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
+            auto answer  = dialog.ShowModal();
+            if (answer == wxID_NO) {
+                is_msg_dlg_already_exist    = true;
+                DynamicPrintConfig new_conf = *config;
+                new_conf.set_key_value("print_sequence", new ConfigOptionEnum<TimelapseType>(tlTraditional));
+                apply(config, &new_conf);
+                is_msg_dlg_already_exist = false;
+            }
+        }
+    }
+
     //BBS
     //if (config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne &&
     //    config->opt_bool("enable_overhang_speed"))

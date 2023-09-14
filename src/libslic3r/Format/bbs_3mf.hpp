@@ -88,6 +88,7 @@ struct PlateData
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
     bool            is_label_object_enabled {false};
+    int             timelapse_warning_code = 0; // 1<<0 sprial vase, 1<<1 by object
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
 

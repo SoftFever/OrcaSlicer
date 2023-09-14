@@ -1674,6 +1674,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         && obj->is_support_print_with_timelapse()
         && is_show_timelapse()) {
         select_timelapse->Show();
+        update_timelapse_enable_status();
     } else {
         select_timelapse->Hide();
     }
@@ -2157,6 +2158,17 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         wxString msg_text = _L("This printer does not support printing all plates");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusTimelapseWarning) {
+        int error_code = get_timelapse_warning_code();
+        wxString msg_text;
+        if (error_code & 1) {
+            msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
+        } else if ((error_code >> 1) & 1) {
+            msg_text = _L("When print by object, machines with I3 structure will not generate timelapse videos.");
+        }
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
 
@@ -3185,6 +3197,11 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
+    if (get_timelapse_warning_code() != 0) {
+        show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
+        return;
+    }
+
     // no ams
     if (!obj_->has_ams() || !m_checkbox_list["use_ams"]->GetValue()) {
         if (!has_tips(obj_))
@@ -3250,6 +3267,29 @@ void SelectMachineDialog::update_show_status()
         }
     }
 }
+
+int SelectMachineDialog::get_timelapse_warning_code()
+{
+    PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+    return plate->timelapse_warning_code();
+}
+
+void SelectMachineDialog::update_timelapse_enable_status()
+{
+    AppConfig *config = wxGetApp().app_config;
+    if (get_timelapse_warning_code() == 0) {
+        if (!config || config->get("print", "timelapse") == "0")
+            m_checkbox_list["timelapse"]->SetValue(false);
+        else
+            m_checkbox_list["timelapse"]->SetValue(true);
+        select_timelapse->Enable(true);
+    } else {
+        m_checkbox_list["timelapse"]->SetValue(false);
+        select_timelapse->Enable(false);
+        if (config) { config->set_str("print", "timelapse", "0"); }
+    }
+}
+
 
 bool SelectMachineDialog::is_show_timelapse()
 {

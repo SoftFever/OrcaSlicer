@@ -146,6 +146,7 @@ private:
     GLUquadricObject* m_quadric;
     int m_hover_id;
     bool m_selected;
+    int m_timelapse_warning_code = 0;
 
     // BBS
     DynamicPrintConfig m_config;
@@ -263,7 +264,8 @@ public:
     // set the plate's name
     void set_plate_name(const std::string &name);
 
-
+    void set_timelapse_warning_code(int code) { m_timelapse_warning_code = code; }
+    int  timelapse_warning_code() { return m_timelapse_warning_code; }
 
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);
