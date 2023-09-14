@@ -21,6 +21,10 @@
 			"sub_path": "machine/Creality Ender-3 S1.json"
 		},
 		{
+			"name": "Creality Ender-3",
+			"sub_path": "machine/Creality Ender-3.json"
+		},
+		{
 			"name": "Creality Ender-3 S1 Pro",
 			"sub_path": "machine/Creality Ender-3 S1 Pro.json"
 		},
