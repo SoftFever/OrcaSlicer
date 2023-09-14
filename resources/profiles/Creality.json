@@ -21,6 +21,10 @@
 			"sub_path": "machine/Creality Ender-3 S1.json"
 		},
 		{
+			"name": "Creality Ender-3",
+			"sub_path": "machine/Creality Ender-3.json"
+		},
+		{
 			"name": "Creality Ender-3 S1 Pro",
 			"sub_path": "machine/Creality Ender-3 S1 Pro.json"
 		},
@@ -48,7 +52,6 @@
 			"name": "Creality Ender-6",
 			"sub_path": "machine/Creality Ender-6.json"
 		},
-
 		{
 			"name": "Creality K1 Max",
 			"sub_path": "machine/Creality K1 Max.json"
@@ -138,6 +141,10 @@
 		{
 			"name": "0.20mm Standard @Creality CR10Max",
 			"sub_path": "process/0.20mm Standard @Creality CR10Max.json"
+		},
+		{
+			"name": "0.20mm Standard @Creality Ender3",
+			"sub_path": "process/0.20mm Standard @Creality Ender3.json"
 		},
 		{
 			"name": "0.20mm Standard @Creality Ender3V2",
@@ -302,6 +309,10 @@
 		{
 			"name": "Creality Ender-3 V2 0.4 nozzle",
 			"sub_path": "machine/Creality Ender-3 V2 0.4 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-3 0.4 nozzle",
+			"sub_path": "machine/Creality Ender-3 0.4 nozzle.json"
 		},
 		{
 			"name": "Creality Ender-3 S1 0.4 nozzle",
