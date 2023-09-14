@@ -123,6 +123,7 @@ bool decode_colored_png(IStream &in_buf, ImageColorscale &out_img)
     dsc.info = png_create_info_struct(dsc.png);
     if(!dsc.info) {
         BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_create_info_struct failed");
+        png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
         return false;
     }
 
@@ -137,6 +138,7 @@ bool decode_colored_png(IStream &in_buf, ImageColorscale &out_img)
     out_img.rows = png_get_image_height(dsc.png, dsc.info);
     size_t color_type = png_get_color_type(dsc.png, dsc.info);
     size_t bit_depth  = png_get_bit_depth(dsc.png, dsc.info);
+    unsigned long rowbytes = png_get_rowbytes(dsc.png, dsc.info);
 
     switch(color_type)
     {
@@ -147,15 +149,26 @@ bool decode_colored_png(IStream &in_buf, ImageColorscale &out_img)
             out_img.bytes_per_pixel = 4;
             break;
         default: //not supported currently
+            png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
             return false;
     }
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("png's cols %1%, rows %2%, color_type %3%, bit_depth %4%, bytes_per_pixel %5%")%out_img.cols %out_img.rows %color_type %bit_depth %out_img.bytes_per_pixel;
-    out_img.buf.resize(out_img.rows * out_img.cols * out_img.bytes_per_pixel);
+    BOOST_LOG_TRIVIAL(info) << boost::format("png's cols %1%, rows %2%, color_type %3%, bit_depth %4%, bytes_per_pixel %5%, rowbytes %6%")%out_img.cols %out_img.rows %color_type %bit_depth %out_img.bytes_per_pixel %rowbytes;
+    out_img.buf.resize(out_img.rows * rowbytes);
+
+    int filter_type = png_get_filter_type(dsc.png, dsc.info);
+    int compression_type = png_get_compression_type(dsc.png, dsc.info);
+    int interlace_type = png_get_interlace_type(dsc.png, dsc.info);
+    BOOST_LOG_TRIVIAL(info) << boost::format("filter_type %1%, compression_type %2%, interlace_type %3%, rowbytes %4%")%filter_type %compression_type %interlace_type %rowbytes;
 
     auto readbuf = static_cast<png_bytep>(out_img.buf.data());
-    for (size_t r = 0; r < out_img.rows; ++r)
-        png_read_row(dsc.png, readbuf + r * out_img.cols * out_img.bytes_per_pixel, nullptr);
+    for (size_t r = out_img.rows; r > 0; r--)
+    {
+        png_read_row(dsc.png, readbuf + (r - 1) * rowbytes, nullptr);
+    }
+
+    png_read_end(dsc.png, dsc.info);
+    png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
 
     return true;
 }
