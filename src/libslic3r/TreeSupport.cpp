@@ -875,20 +875,15 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                 ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                 ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
 
-                overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(),
-                    [extrusion_width_scaled](ExPolygon& area) { return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }),
-                    overhang_areas.end());
-
-
                 if (is_auto(stype) && g_config_support_sharp_tails)
                 {
                     // BBS detect sharp tail
                     for (const ExPolygon* expoly : curr_poly_ptrs) {
                         bool  is_sharp_tail = false;
                         // 1. nothing below
-                        // this is a sharp tail region if it's small but non-ignorable
+                        // this is a sharp tail region if it's floating and non-ignorable
                         if (!overlaps(offset_ex(*expoly, 0.5 * extrusion_width_scaled), lower_polys)) {
-                            is_sharp_tail = expoly->area() < area_thresh_well_supported && !offset_ex(*expoly, -0.1 * extrusion_width_scaled).empty();
+                            is_sharp_tail = !offset_ex(*expoly, -0.1 * extrusion_width_scaled).empty();
                         }
 
                         if (is_sharp_tail) {
@@ -910,7 +905,6 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
                 for (ExPolygon& poly : overhang_areas) {
-                    if (offset_ex(poly, -0.1 * extrusion_width_scaled).empty()) continue;
                     ts_layer->overhang_areas.emplace_back(poly);
 
                     // check cantilever
