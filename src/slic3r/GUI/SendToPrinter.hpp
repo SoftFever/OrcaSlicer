@@ -95,7 +95,7 @@ private:
     Label*                              m_st_txt_error_code{ nullptr };
     Label*                              m_st_txt_error_desc{ nullptr };
     Label*                              m_st_txt_extra_info{ nullptr };
-    Label *                             m_link_network_state;
+    wxHyperlinkCtrl*                    m_link_network_state{ nullptr };
 	StateColor							btn_bg_enable;
     wxBoxSizer*							rename_sizer_v{ nullptr };
     wxBoxSizer*							rename_sizer_h{ nullptr };

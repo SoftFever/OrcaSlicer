@@ -17,6 +17,7 @@
 #include <wx/dialog.h>
 #include <curl/curl.h>
 #include <wx/webrequest.h>
+#include <wx/hyperlink.h>
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
@@ -66,7 +67,7 @@ private:
     Label*          m_st_txt_error_code{ nullptr };
     Label*          m_st_txt_error_desc{ nullptr };
     Label*          m_st_txt_extra_info{ nullptr };
-    Label*          m_link_network_state{ nullptr };
+    wxHyperlinkCtrl* m_link_network_state{ nullptr };
     wxString        m_result_info;
     wxString        m_result_extra;
     bool            m_show_error_info_state = true;

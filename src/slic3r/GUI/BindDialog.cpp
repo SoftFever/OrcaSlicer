@@ -298,8 +298,7 @@ wxString get_fail_reason(int code)
      wxBoxSizer* m_sizer_bind_failed_info = new wxBoxSizer(wxVERTICAL);
      m_sw_bind_failed_info->SetSizer( m_sizer_bind_failed_info );
 
-     m_link_network_state = new Label(m_sw_bind_failed_info, _L("Check the status of current system services"));
-     m_link_network_state->SetForegroundColour(0x00AE42);
+     m_link_network_state = new wxHyperlinkCtrl(m_sw_bind_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
      m_link_network_state->SetFont(::Label::Body_12);
      m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
      m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });

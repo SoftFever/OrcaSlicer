@@ -360,8 +360,8 @@ protected:
     Label*                              m_st_txt_error_code{nullptr};
     Label*                              m_st_txt_error_desc{nullptr};
     Label*                              m_st_txt_extra_info{nullptr};
-    Label *                             m_link_network_state;
     Label*                              m_ams_backup_tip{nullptr};
+    wxHyperlinkCtrl*                    m_link_network_state{ nullptr };
     wxSimplebook*                       m_rename_switch_panel{nullptr};
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
