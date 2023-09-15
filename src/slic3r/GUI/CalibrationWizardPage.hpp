@@ -222,6 +222,33 @@ private:
     CaliPageActionType m_action_type;
 };
 
+class CaliPageSendingPanel : public wxPanel 
+{
+public:
+    CaliPageSendingPanel(wxWindow* parent,
+        //CalibMode cali_mode,
+        //CaliPageType page_type,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+    void create(wxWindow* parent);
+    void update_print_error_info(int code, const std::string& msg, const std::string& extra);
+    void show_send_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    std::shared_ptr<BBLStatusBarSend> get_sending_progress_bar();
+    void reset();
+
+private:
+    std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;
+    wxScrolledWindow* m_sw_print_failed_info{ nullptr };
+    Label* m_st_txt_error_code{ nullptr };
+    Label* m_st_txt_error_desc{ nullptr };
+    Label* m_st_txt_extra_info{ nullptr };
+    int                               m_print_error_code;
+    std::string                       m_print_error_msg;
+    std::string                       m_print_error_extra;
+};
+
 class CaliPageActionPanel : public wxPanel
 {
 public:

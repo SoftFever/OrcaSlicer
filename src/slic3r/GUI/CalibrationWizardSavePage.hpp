@@ -239,6 +239,16 @@ public:
 
     virtual bool Show(bool show = true) override;
 
+    void on_cali_start_job();
+
+    void on_cali_finished_job();
+
+    void on_cali_cancel_job();
+
+    std::shared_ptr<ProgressIndicator> get_sending_progress_bar() {
+        return m_sending_panel->get_sending_progress_bar();
+    }
+
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
     CaliPagePicture*   m_picture_panel;
@@ -251,6 +261,8 @@ protected:
     bool m_skip_fine_calibration = false;
     float m_curr_flow_ratio;
     float m_coarse_flow_ratio;
+
+    CaliPageSendingPanel* m_sending_panel{ nullptr };
 };
 
 class CalibrationFlowFineSavePage : public CalibrationCommonSavePage

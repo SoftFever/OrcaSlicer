@@ -633,108 +633,6 @@ void CalibrationPresetPage::create_ext_spool_panel(wxWindow* parent)
         });
 }
 
-void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
-{
-    parent->SetMinSize({ FromDIP(475), FromDIP(200) });
-    parent->SetMaxSize({ FromDIP(475), FromDIP(200) });
-
-    auto panel_sizer = new wxBoxSizer(wxVERTICAL);
-    parent->SetSizer(panel_sizer);
-
-    m_send_progress_bar = std::shared_ptr<BBLStatusBarSend>(new BBLStatusBarSend(parent));
-    m_send_progress_bar->set_cancel_callback_fina([this]() {
-            BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-            if (CalibUtils::print_job) {
-                if (CalibUtils::print_job->is_running()) {
-                    BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-                    CalibUtils::print_job->cancel();
-                }
-                CalibUtils::print_job->join();
-            }
-            show_status(CaliPresetStatusNormal);
-        });
-    panel_sizer->Add(m_send_progress_bar->get_panel(), 0, wxEXPAND);
-
-    m_sw_print_failed_info = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(380), FromDIP(125)), wxVSCROLL);
-    m_sw_print_failed_info->SetBackgroundColour(*wxWHITE);
-    m_sw_print_failed_info->SetScrollRate(0, 5);
-    m_sw_print_failed_info->SetMinSize(wxSize(FromDIP(380), FromDIP(125)));
-    m_sw_print_failed_info->SetMaxSize(wxSize(FromDIP(380), FromDIP(125)));
-
-    m_sw_print_failed_info->Hide();
-
-    panel_sizer->Add(m_sw_print_failed_info, 0, wxEXPAND);
-
-    // create error info panel
-    wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
-    m_sw_print_failed_info->SetSizer(sizer_print_failed_info);
-
-    wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
-
-    auto st_title_error_code = new Label(m_sw_print_failed_info, _L("Error code"));
-    auto st_title_error_code_doc = new Label(m_sw_print_failed_info, ": ");
-    m_st_txt_error_code = new Label(m_sw_print_failed_info, wxEmptyString);
-    st_title_error_code->SetForegroundColour(0x909090);
-    st_title_error_code_doc->SetForegroundColour(0x909090);
-    m_st_txt_error_code->SetForegroundColour(0x909090);
-    st_title_error_code->SetFont(::Label::Body_13);
-    st_title_error_code_doc->SetFont(::Label::Body_13);
-    m_st_txt_error_code->SetFont(::Label::Body_13);
-    st_title_error_code->SetMinSize(wxSize(FromDIP(74), -1));
-    st_title_error_code->SetMaxSize(wxSize(FromDIP(74), -1));
-    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(260), -1));
-    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(260), -1));
-    sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
-    sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
-    sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
-
-    auto st_title_error_desc = new Label(m_sw_print_failed_info, _L("Error desc"));
-    auto st_title_error_desc_doc = new Label(m_sw_print_failed_info, ": ");
-    m_st_txt_error_desc = new Label(m_sw_print_failed_info, wxEmptyString);
-    st_title_error_desc->SetForegroundColour(0x909090);
-    st_title_error_desc_doc->SetForegroundColour(0x909090);
-    m_st_txt_error_desc->SetForegroundColour(0x909090);
-    st_title_error_desc->SetFont(::Label::Body_13);
-    st_title_error_desc_doc->SetFont(::Label::Body_13);
-    m_st_txt_error_desc->SetFont(::Label::Body_13);
-    st_title_error_desc->SetMinSize(wxSize(FromDIP(74), -1));
-    st_title_error_desc->SetMaxSize(wxSize(FromDIP(74), -1));
-    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(260), -1));
-    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(260), -1));
-    sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
-    sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
-    sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
-
-    auto st_title_extra_info = new Label(m_sw_print_failed_info, _L("Extra info"));
-    auto st_title_extra_info_doc = new Label(m_sw_print_failed_info, ": ");
-    m_st_txt_extra_info = new Label(m_sw_print_failed_info, wxEmptyString);
-    st_title_extra_info->SetForegroundColour(0x909090);
-    st_title_extra_info_doc->SetForegroundColour(0x909090);
-    m_st_txt_extra_info->SetForegroundColour(0x909090);
-    st_title_extra_info->SetFont(::Label::Body_13);
-    st_title_extra_info_doc->SetFont(::Label::Body_13);
-    m_st_txt_extra_info->SetFont(::Label::Body_13);
-    st_title_extra_info->SetMinSize(wxSize(FromDIP(74), -1));
-    st_title_extra_info->SetMaxSize(wxSize(FromDIP(74), -1));
-    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(260), -1));
-    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(260), -1));
-    sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
-    sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
-    sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
-
-    sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);
-    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
-    sizer_print_failed_info->Add(sizer_error_desc, 0, wxLEFT, 5);
-    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
-    sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
-
-    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
-        show_send_failed_info(true);
-    });
-}
-
 void CalibrationPresetPage::create_page(wxWindow* parent)
 {
     m_page_caption = new CaliPageCaption(parent, m_cali_mode);
@@ -788,10 +686,18 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     m_tips_panel = new CaliPresetTipsPanel(parent);
 
-    m_sending_panel = new wxPanel(parent);
-    m_sending_panel->SetBackgroundColour(*wxWHITE);
-    create_sending_panel(m_sending_panel);
-
+    m_sending_panel = new CaliPageSendingPanel(parent);
+    m_sending_panel->get_sending_progress_bar()->set_cancel_callback_fina([this]() {
+        BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
+        if (CalibUtils::print_job) {
+            if (CalibUtils::print_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+                CalibUtils::print_job->cancel();
+            }
+            CalibUtils::print_job->join();
+        }
+        on_cali_cancel_job();
+        });
     m_sending_panel->Hide();
 
     m_custom_range_panel = new CaliPresetCustomRangePanel(parent);
@@ -1189,12 +1095,6 @@ bool CalibrationPresetPage::is_blocking_printing()
 
 void CalibrationPresetPage::update_show_status()
 {
-    if (get_status() == CaliPresetPageStatus::CaliPresetStatusSending)
-        return;
-
-    if (get_status() == CaliPresetPageStatus::CaliPresetStatusSendingCanceled)
-        return;
-
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!agent) {return;}
@@ -1307,13 +1207,6 @@ bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
 
 void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
 {
-    if (status == CaliPresetPageStatus::CaliPresetStatusSending) {
-        sending_mode();
-    }
-    else {
-        prepare_mode();
-    }
-
     if (m_page_status != status)
         //BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: show_status = " << status << "(" << get_print_status_info(status) << ")";
     m_page_status = status;
@@ -1324,7 +1217,6 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         Enable_Send_Button(false);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusNormal) {
-        m_sending_panel->Show(false);
         update_print_status_msg(wxEmptyString, false);
         Enable_Send_Button(true);
         Layout();
@@ -1358,15 +1250,6 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         wxString msg_text = _L("The printer is busy on other print job");
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
-    }
-    else if (status == CaliPresetPageStatus::CaliPresetStatusSending) {
-        m_sending_panel->Show();
-        Enable_Send_Button(false);
-        Layout();
-        Fit();
-    }
-    else if (status == CaliPresetPageStatus::CaliPresetStatusSendingCanceled) {
-        Enable_Send_Button(true);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
@@ -1412,13 +1295,6 @@ void CalibrationPresetPage::prepare_mode()
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
 }
 
-void CalibrationPresetPage::sending_mode()
-{
-    Enable_Send_Button(false);
-    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, false);
-}
-
-
 float CalibrationPresetPage::get_nozzle_value()
 {
     double nozzle_value = 0.0;
@@ -1446,44 +1322,6 @@ void CalibrationPresetPage::on_device_connected(MachineObject* obj)
 {   
     init_with_machine(obj);
     update_combobox_filaments(obj);
-}
-
-void CalibrationPresetPage::update_print_error_info(int code, const std::string& msg, const std::string& extra)
-{
-    m_print_error_code = code;
-    m_print_error_msg = msg;
-    m_print_error_extra = extra;
-}
-
-void CalibrationPresetPage::show_send_failed_info(bool show, int code, wxString description, wxString extra) 
-{
-    if (show) {
-        if (!m_sw_print_failed_info->IsShown()) {
-            m_sw_print_failed_info->Show(true);
-
-            m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_print_error_code));
-            m_st_txt_error_desc->SetLabelText(wxGetApp().filter_string(m_print_error_msg));
-            m_st_txt_extra_info->SetLabelText(wxGetApp().filter_string(m_print_error_extra));
-
-            m_st_txt_error_code->Wrap(FromDIP(260));
-            m_st_txt_error_desc->Wrap(FromDIP(260));
-            m_st_txt_extra_info->Wrap(FromDIP(260));
-        }
-        else {
-            m_sw_print_failed_info->Show(false);
-        }
-        Layout();
-        Fit();
-    }
-    else {
-        if (!m_sw_print_failed_info->IsShown()) { return; }
-        m_sw_print_failed_info->Show(false);
-        m_st_txt_error_code->SetLabelText(wxEmptyString);
-        m_st_txt_error_desc->SetLabelText(wxEmptyString);
-        m_st_txt_extra_info->SetLabelText(wxEmptyString);
-        Layout();
-        Fit();
-    }
 }
 
 void CalibrationPresetPage::set_cali_filament_mode(CalibrationFilamentMode mode)
@@ -1577,14 +1415,32 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
 
 void CalibrationPresetPage::on_cali_start_job()
 {
-    m_send_progress_bar->reset();
-    m_sw_print_failed_info->Show(false);
-    show_status(CaliPresetPageStatus::CaliPresetStatusSending);
+    m_sending_panel->reset();
+    m_sending_panel->Show();
+    Enable_Send_Button(false);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, false);
+    Layout();
+    Fit();
 }
 
 void CalibrationPresetPage::on_cali_finished_job()
 {
-    show_status(CaliPresetPageStatus::CaliPresetStatusNormal);
+    m_sending_panel->reset();
+    m_sending_panel->Show(false);
+    update_print_status_msg(wxEmptyString, false);
+    Enable_Send_Button(true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
+}
+
+void CalibrationPresetPage::on_cali_cancel_job()
+{
+    m_sending_panel->reset();
+    m_sending_panel->Show(false);
+    update_print_status_msg(wxEmptyString, false);
+    Enable_Send_Button(true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
+    Layout();
+    Fit();
 }
 
 void CalibrationPresetPage::init_with_machine(MachineObject* obj)

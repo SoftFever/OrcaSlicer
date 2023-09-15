@@ -512,8 +512,8 @@ void CalibrationPanel::update_print_error_info(int code, std::string msg, std::s
             auto page = m_cali_panels[curr_selected]->get_curr_step()->page;
             if(page && page->get_page_type() == CaliPageType::CALI_PAGE_PRESET){
                 auto preset_page = static_cast<CalibrationPresetPage*>(page);
-                if (preset_page->get_page_status() == CaliPresetPageStatus::CaliPresetStatusSending)
-                    preset_page->update_print_error_info(code, msg, extra);
+                //if (preset_page->get_page_status() == CaliPresetPageStatus::CaliPresetStatusSending)
+                //    ;// preset_page->update_print_error_info(code, msg, extra);
             }
         }
     }

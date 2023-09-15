@@ -1270,6 +1270,21 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
         m_coarse_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_coarse_flow_ratio)));
         });
 
+    m_sending_panel = new CaliPageSendingPanel(parent);
+    m_sending_panel->get_sending_progress_bar()->set_cancel_callback_fina([this]() {
+        BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
+        if (CalibUtils::print_job) {
+            if (CalibUtils::print_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+                CalibUtils::print_job->cancel();
+            }
+            CalibUtils::print_job->join();
+        }
+        on_cali_cancel_job();
+        });
+    m_sending_panel->Hide();
+    m_top_sizer->Add(m_sending_panel, 0, wxALIGN_CENTER);
+
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_COARSE_SAVE);
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_COARSE_SAVE, false);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
@@ -1334,6 +1349,34 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         }
     }
     return wxPanel::Show(show);
+}
+
+void CalibrationFlowCoarseSavePage::on_cali_start_job()
+{
+    m_sending_panel->reset();
+    m_sending_panel->Show();
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, false);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, false);
+    Layout();
+    Fit();
+}
+
+void CalibrationFlowCoarseSavePage::on_cali_finished_job()
+{
+    m_sending_panel->reset();
+    m_sending_panel->Show(false);
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+}
+
+void CalibrationFlowCoarseSavePage::on_cali_cancel_job()
+{
+    m_sending_panel->reset();
+    m_sending_panel->Show(false);
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    Layout();
+    Fit();
 }
 
 CalibrationFlowFineSavePage::CalibrationFlowFineSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
