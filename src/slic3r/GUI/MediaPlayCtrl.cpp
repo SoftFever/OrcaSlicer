@@ -385,6 +385,24 @@ void MediaPlayCtrl::ToggleStream()
             wxGetApp().app_config->set("not_show_vcamera_stop_prev", "1");
         if (res == wxID_CANCEL) return;
     }
+    if (m_lan_proto > MachineObject::LVL_None && (m_lan_mode || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+        std::string url;
+        if (m_lan_proto == MachineObject::LVL_Local)
+            url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        else if (m_lan_proto == MachineObject::LVL_Rtsps)
+            url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
+        else if (m_lan_proto == MachineObject::LVL_Rtsp)
+            url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
+        url += "&device=" + m_machine;
+        url += "&dev_ver=" + m_dev_ver;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream camera_url: " << url;
+        std::string             file_url = data_dir() + "/cameratools/url.txt";
+        boost::nowide::ofstream file(file_url);
+        auto                    url2 = encode_path(url.c_str());
+        file.write(url2.c_str(), url2.size());
+        file.close();
+        m_streaming = true;
+    }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
     agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
@@ -393,7 +411,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&version=" + v;
             url += "&dev_ver=" + dv;
         }
-        BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream camera_url: " << url;
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
