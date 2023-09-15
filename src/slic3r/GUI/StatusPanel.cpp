@@ -1857,6 +1857,17 @@ void StatusPanel::update(MachineObject *obj)
     update_subtask(obj);
     m_project_task_panel->Thaw();
 
+#if !BBL_RELEASE_TO_PUBLIC
+    auto delay1  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_update_time - std::chrono::system_clock::now()).count();
+    auto delay2  = std::chrono::duration_cast<std::chrono::milliseconds>(obj->last_push_time - std::chrono::system_clock::now()).count();
+    auto delay = wxString::Format(" %ld/%ld", delay1, delay2);
+    m_staticText_timelapse
+        ->SetLabel((obj->is_lan_mode_printer() ? "Local Mqtt" : obj->is_tunnel_mqtt ? "Tunnel Mqtt" : "Cloud Mqtt") + delay);
+    m_bmToggleBtn_timelapse
+        ->Enable(!obj->is_lan_mode_printer());
+    m_bmToggleBtn_timelapse
+        ->SetValue(obj->is_tunnel_mqtt);
+#endif
 
     m_machine_ctrl_panel->Freeze();
 

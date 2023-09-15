@@ -2685,6 +2685,10 @@ int MachineObject::parse_json(std::string payload)
             j = j_pre;
         }
 
+        uint64_t t_utc = j.value("t_utc", 0);
+        if (t_utc > 0) 
+            last_update_time = std::chrono::system_clock::time_point(t_utc * 1ms);
+
         BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << dev_id << ", playload=" << j.dump(4);
 
         // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
@@ -2944,7 +2948,7 @@ int MachineObject::parse_json(std::string payload)
 
                 if (jj["command"].get<std::string>() == "push_status") {
                     m_push_count++;
-                    last_push_time = std::chrono::system_clock::now();
+                    last_push_time = last_update_time;
 #pragma region printing
                     // U0 firmware
                     if (jj.contains("print_type")) {
