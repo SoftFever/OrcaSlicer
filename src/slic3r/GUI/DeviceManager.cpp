@@ -509,7 +509,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     bed_temp            = 0.0f;
     bed_temp_target     = 0.0f;
     chamber_temp        = 0.0f;
-    chamber_temp_target = 0;
+    chamber_temp_target = 0.0f;
     frame_temp          = 0.0f;
 
     /* ams fileds */
@@ -3132,7 +3132,7 @@ int MachineObject::parse_json(std::string payload)
                     }
                     if (jj.contains("ctt")) {
                         if (jj["ctt"].is_number()) {
-                            chamber_temp_target = jj["ctt"].get<int>();
+                            chamber_temp_target = jj["ctt"].get<float>();
                         }
                     }
                     /* signals */

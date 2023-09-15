@@ -514,7 +514,7 @@ public:
     float  bed_temp;
     float  bed_temp_target;
     float  chamber_temp;
-    int    chamber_temp_target;
+    float  chamber_temp_target;
     float  frame_temp;
 
     /* cooling */
