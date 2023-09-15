@@ -121,6 +121,7 @@ protected:
     void          on_preset_model_value_change(wxCommandEvent &e);
     void          clear_preset_combobox();
     bool          save_printable_area_config(Preset *preset);
+    bool          check_printable_area();
     bool          validate_input_valid();
     wxArrayString printer_preset_sort_with_nozzle_diameter(const VendorProfile &vendor_profile, float nozzle_diameter);
 

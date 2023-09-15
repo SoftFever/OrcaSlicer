@@ -1803,7 +1803,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                 bool create_preset_result = preset_bundle->filaments.clone_presets_for_printer(selected_filament_presets, failures, printer_preset_name, rewritten);
                 if (!create_preset_result) {
                     std::string message;
-                    for (const std::string& failure : failures) { 
+                    for (const std::string& failure : failures) {
                         message += "\t" + failure + "\n";
                     }
                     MessageDialog dlg(this, _L("Create filament presets failed. As follows:\n") + message, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
@@ -1818,17 +1818,18 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                 bool create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, rewritten);
                 if (!create_preset_result) {
                     std::string message;
-                    for (const std::string& failure : failures) { 
-                        message += "\t" + failure + "\n"; 
+                    for (const std::string& failure : failures) {
+                        message += "\t" + failure + "\n";
                     }
                     MessageDialog dlg(this, _L("Create process presets failed. As follows:\n") + message, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
                     dlg.ShowModal();
                 }
             }
+            save_printable_area_config(m_printer_preset);
             preset_bundle->printers.save_current_preset(printer_preset_name, true, false, m_printer_preset);
             preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
         }
-        EndModal(wxID_OK); 
+        EndModal(wxID_OK);
         });
 
     m_button_page2_cancel = new Button(parent, _L("Cancel"));
@@ -2143,21 +2144,31 @@ bool CreatePrinterPresetDialog::save_printable_area_config(Preset *preset)
     return true;
 }
 
+bool CreatePrinterPresetDialog::check_printable_area() {
+    double x = 0;
+    m_bed_size_x_input->GetTextCtrl()->GetValue().ToDouble(&x);
+    double y = 0;
+    m_bed_size_y_input->GetTextCtrl()->GetValue().ToDouble(&y);
+    double dx = 0;
+    m_bed_origin_x_input->GetTextCtrl()->GetValue().ToDouble(&dx);
+    double dy = 0;
+    m_bed_origin_y_input->GetTextCtrl()->GetValue().ToDouble(&dy);
+    // range check begin
+    if (x == 0 || y == 0) {
+        return false;
+    }
+    double x0 = 0.0;
+    double y0 = 0.0;
+    double x1 = x;
+    double y1 = y;
+    if (dx >= x || dy >= y) {
+        return false;
+    }
+    return true;
+}
+
 bool CreatePrinterPresetDialog::validate_input_valid()
 {
-    if (m_bed_size_x_input->GetTextCtrl()->GetValue().empty() || m_bed_size_y_input->GetTextCtrl()->GetValue().empty()) {
-        MessageDialog dlg(this, _L("You did not entered in the printable area of the printer."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
-                          wxYES | wxYES_DEFAULT | wxCENTRE);
-        dlg.ShowModal();
-        return false;
-    }
-
-    if (m_print_height_input->GetTextCtrl()->GetValue().empty()) {
-        MessageDialog dlg(this, _L("You have not entered the maximum printing height of the printer."),
-                          wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
-        dlg.ShowModal();
-        return false;
-    }
     std::string vender_name = into_u8(m_select_vendor->GetStringSelection());
     std::string model_name  = into_u8(m_select_model->GetStringSelection());
     if (vender_name.empty() || model_name.empty()) {
@@ -2178,7 +2189,7 @@ bool CreatePrinterPresetDialog::validate_input_valid()
         dlg.ShowModal();
         return false;
     }
-    if (save_printable_area_config(m_printer_preset) == false) {
+    if (check_printable_area() == false) {
         MessageDialog dlg(this, _L("Please check bed shape input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return false;
