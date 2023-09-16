@@ -9,6 +9,7 @@
 #include "MutablePolygon.hpp"
 #include "PrintConfig.hpp"
 #include "SupportMaterial.hpp"
+#include "SupportSpotsGenerator.hpp"
 #include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
@@ -499,6 +500,25 @@ void PrintObject::generate_support_material()
     }
 }
 
+void PrintObject::estimate_curled_extrusions()
+{
+    if (this->set_started(posEstimateCurledExtrusions)) {
+        if ( std::any_of(this->print()->m_print_regions.begin(), this->print()->m_print_regions.end(),
+                        [](const PrintRegion *region) { return region->config().enable_overhang_speed.getBool(); })) {
+
+            // Estimate curling of support material and add it to the malformaition lines of each layer
+            float support_flow_width = support_material_flow(this, this->config().layer_height).width();
+            SupportSpotsGenerator::Params params{this->print()->m_config.filament_type.values,
+                                                 float(this->print()->m_config.inner_wall_acceleration.getFloat()),
+                                                 this->config().raft_layers.getInt(), this->config().brim_type.value,
+                                                 float(this->config().brim_width.getFloat())};
+            SupportSpotsGenerator::estimate_malformations(this->layers(), params);
+            m_print->throw_if_canceled();
+        }
+        //this->set_done(posEstimateCurledExtrusions);
+    }
+}
+
 void PrintObject::simplify_extrusion_path()
 {
     if (this->set_started(posSimplifyPath)) {
@@ -756,6 +776,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
             || opt_key == "slicing_mode"
+            || opt_key == "slowdown_for_curled_perimeters"
             || opt_key == "make_overhang_printable"
             || opt_key == "make_overhang_printable_angle"
             || opt_key == "make_overhang_printable_hole_size") {
