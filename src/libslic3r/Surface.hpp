@@ -15,8 +15,6 @@ enum SurfaceType {
     stBottomBridge,
     // Normal sparse infill.
     stInternal,
-    // Normal sparse infill.
-    stInternalWithLoop,
     // Full infill, supporting the top surfaces and/or defining the verticall wall thickness.
     stInternalSolid,
     // 1st layer of dense infill over sparse infill, printed with a bridging extrusion flow.

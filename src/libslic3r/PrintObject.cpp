@@ -19,7 +19,6 @@
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
-#include "InternalBridgeDetector.hpp"
 #include "TreeSupport.hpp"
 
 #include <float.h>
@@ -883,7 +882,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
-            || opt_key == "internal_bridge_support_thickness"
             || opt_key == "bridge_density") {
             steps.emplace_back(posPrepareInfill);
         } else if (
@@ -1762,7 +1760,6 @@ void PrintObject::bridge_over_infill()
             const size_t region_id   = sparse_infill_regions[task_id % sparse_infill_regions.size()];
             Layer       *layer       = this->get_layer(layer_id);
             LayerRegion *layerm      = layer->m_regions[region_id];
-            const PrintObjectConfig& object_config = layer->object()->config();
             //BBS: enable thick bridge for internal bridge only
             Flow         bridge_flow = layerm->bridging_flow(frSolidInfill, true);
 
@@ -1821,50 +1818,10 @@ void PrintObject::bridge_over_infill()
             ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, ApplySafetyOffset::Yes);
             to_bridge = intersection_ex(to_bridge, internal_solid, ApplySafetyOffset::Yes);
             // build the new collection of fill_surfaces
-            for (ExPolygon &ex : to_bridge) {
+            for (ExPolygon &ex : to_bridge)
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalBridge, ex));
-                // BBS: detect angle for internal bridge infill
-                InternalBridgeDetector ibd(ex, layerm->fill_no_overlap_expolygons, bridge_flow.scaled_spacing());
-                if (ibd.detect_angle()) {
-                    (layerm->fill_surfaces.surfaces.end() - 1)->bridge_angle = ibd.angle;
-                }
-            }
-
             for (ExPolygon &ex : not_to_bridge)
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, ex));
-
-            //BBS: modify stInternal to be stInternalWithLoop to give better support to internal bridge
-            if (!to_bridge.empty()){
-                float internal_loop_thickness = object_config.internal_bridge_support_thickness.value;
-                double bottom_z = layer->print_z - layer->height - internal_loop_thickness + EPSILON;
-                //BBS: lighting infill doesn't support this feature. Don't need to add loop when infill density is high than 50%
-                if (layerm->region().config().sparse_infill_pattern != InfillPattern::ipLightning && layerm->region().config().sparse_infill_density.value < 50)
-                    for (int i = layer_id - 1; i >= 0; --i) {
-                        const Layer* lower_layer = m_layers[i];
-
-                        if (lower_layer->print_z < bottom_z) break;
-
-                        for (LayerRegion* lower_layerm : lower_layer->m_regions) {
-                            Polygons lower_internal;
-                            lower_layerm->fill_surfaces.filter_by_type(stInternal, &lower_internal);
-                            ExPolygons internal_with_loop = intersection_ex(lower_internal, to_bridge);
-                            ExPolygons internal = diff_ex(lower_internal, to_bridge);
-                            if (internal_with_loop.empty()) {
-                                //BBS: don't need to do anything
-                            }
-                            else if (internal.empty()) {
-                                lower_layerm->fill_surfaces.change_to_new_type(stInternal, stInternalWithLoop);
-                            }
-                            else {
-                                lower_layerm->fill_surfaces.remove_type(stInternal);
-                                for (ExPolygon& ex : internal_with_loop)
-                                    lower_layerm->fill_surfaces.surfaces.push_back(Surface(stInternalWithLoop, ex));
-                                for (ExPolygon& ex : internal)
-                                    lower_layerm->fill_surfaces.surfaces.push_back(Surface(stInternal, ex));
-                            }
-                        }
-                    }
-            }
 
             /*
             # exclude infill from the layers below if needed
