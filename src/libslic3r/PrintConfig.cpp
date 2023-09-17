@@ -1564,6 +1564,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("PVA");
     def->enum_values.push_back("HIPS");
     def->enum_values.push_back("PLA-AERO");
+    def->enum_values.push_back("PLA+");
+    def->enum_values.push_back("PLA Pro");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
 
