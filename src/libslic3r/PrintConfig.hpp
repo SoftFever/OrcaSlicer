@@ -884,8 +884,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionString,              layer_change_gcode))
 //#ifdef HAS_PRESSURE_EQUALIZER
-//    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_positive))
-//    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_negative))
+    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_positive))
+    ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope_negative))
 //#endif
     ((ConfigOptionPercents,            retract_before_wipe))
     ((ConfigOptionFloats,              retraction_length))

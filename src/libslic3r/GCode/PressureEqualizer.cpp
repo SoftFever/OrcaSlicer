@@ -26,7 +26,7 @@ static const std::string EXTERNAL_PERIMETER_TAG = ";_EXTERNAL_PERIMETER";
 
 // Maximum segment length to split a long segment if the initial and the final flow rate differ.
 // Smaller value means a smoother transition between two different flow rates.
-static constexpr float max_segment_length = 0.5f;
+static constexpr float max_segment_length = 1.f;
 
 // For how many GCode lines back will adjust a flow rate from the latest line.
 // Bigger values affect the GCode export speed a lot, and smaller values could
@@ -64,12 +64,10 @@ PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_
     // Volumetric rate of a 0.45mm x 0.2mm extrusion at 20mm/s XY movement: 0.45*0.2*20*60=1.8*60 = 108 mm^3/min
     // Slope of the volumetric rate, changing from 20mm/s to 60mm/s over 2 seconds: (5.4-1.8)*60*60/2=60*60*1.8 = 6480 mm^3/min^2 = 1.8 mm^3/s^2
     
-    //---IG
-    //m_max_volumetric_extrusion_rate_slope_positive = float(config.max_volumetric_extrusion_rate_slope_positive.value) * 60.f * 60.f;
-    //m_max_volumetric_extrusion_rate_slope_negative = float(config.max_volumetric_extrusion_rate_slope_negative.value) * 60.f * 60.f;
-
-    m_max_volumetric_extrusion_rate_slope_positive = float(320) * 60.f * 60.f;
-    m_max_volumetric_extrusion_rate_slope_negative = float(320) * 60.f * 60.f;
+    if(config.max_volumetric_extrusion_rate_slope_positive.value > 0 || config.max_volumetric_extrusion_rate_slope_negative.value > 0){
+		m_max_volumetric_extrusion_rate_slope_positive = float(config.max_volumetric_extrusion_rate_slope_positive.value) * 60.f * 60.f;
+    	m_max_volumetric_extrusion_rate_slope_negative = float(config.max_volumetric_extrusion_rate_slope_negative.value) * 60.f * 60.f;
+    }
 
     for (ExtrusionRateSlope &extrusion_rate_slope : m_max_volumetric_extrusion_rate_slopes) {
         extrusion_rate_slope.negative = m_max_volumetric_extrusion_rate_slope_negative;

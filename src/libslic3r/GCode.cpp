@@ -1873,15 +1873,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     if (print.config().spiral_mode.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
-//#ifdef HAS_PRESSURE_EQUALIZER
-    //if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 ||
-    //    print.config().max_volumetric_extrusion_rate_slope_negative.value > 0)
-    const GCodeConfig& tmp_config = print.config();
-        m_pressure_equalizer = make_unique<PressureEqualizer>(print.config());
-    m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
-//#else /* HAS_PRESSURE_EQUALIZER */
-//    m_enable_extrusion_role_markers = false;
-//#endif /* HAS_PRESSURE_EQUALIZER */
+
+    if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 || 
+    	print.config().max_volumetric_extrusion_rate_slope_negative.value > 0){
+    		m_pressure_equalizer = make_unique<PressureEqualizer>(print.config());
+    		m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
+    } else
+	    m_enable_extrusion_role_markers = false;
+
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -2389,10 +2388,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         file.write("M1003 S0\n");
                     }
                 }
-    #ifdef HAS_PRESSURE_EQUALIZER
-                if (m_pressure_equalizer)
-                    file.write(m_pressure_equalizer->process("", true));
-    #endif /* HAS_PRESSURE_EQUALIZER */
                 ++ finished_objects;
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
@@ -2460,10 +2455,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     file.write("M1003 S0\n");
                 }
             }
-    #ifdef HAS_PRESSURE_EQUALIZER
-            if (m_pressure_equalizer)
-                file.write(m_pressure_equalizer->process("", true));
-    #endif /* HAS_PRESSURE_EQUALIZER */
             if (m_wipe_tower)
                 // Purge the extruder, pull out the active filament.
                 file.write(m_wipe_tower->finalize(*this));
@@ -2666,10 +2657,14 @@ void GCode::process_layers(
     });
 
     // The pipeline elements are joined using const references, thus no copying is performed.
-    if (m_spiral_vase)
+    if (m_spiral_vase && m_pressure_equalizer)
         tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & output);
-    else
+    else if (m_spiral_vase)
+    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    else if	(m_pressure_equalizer)
         tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
+    else
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -3898,14 +3893,6 @@ LayerResult GCode::process_layer(
         gcode = m_cooling_buffer->process_layer(std::move(gcode), layer.id(),
             // Flush the cooling buffer at each object layer or possibly at the last layer, even if it contains just supports (This should not happen).
             object_layer || last_layer);
-
-#ifdef HAS_PRESSURE_EQUALIZER
-    // Apply pressure equalization if enabled;
-    // printf("G-code before filter:\n%s\n", gcode.c_str());
-    if (m_pressure_equalizer)
-        gcode = m_pressure_equalizer->process(gcode.c_str(), false);
-    // printf("G-code after filter:\n%s\n", out.c_str());
-#endif /* HAS_PRESSURE_EQUALIZER */
 
     file.write(gcode);
 #endif
