@@ -806,7 +806,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         m_need_update_text = true;
 
     ImGui::AlignTextToFramePadding();
-    m_imgui->text(_L("Embeded\ndepth"));
+    m_imgui->text(_L("Embeded\r\ndepth"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
     old_value = m_embeded_depth;
