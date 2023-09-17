@@ -25,12 +25,18 @@ static const std::string EXTERNAL_PERIMETER_TAG = ";_EXTERNAL_PERIMETER";
 
 // Maximum segment length to split a long segment if the initial and the final flow rate differ.
 // Smaller value means a smoother transition between two different flow rates.
-static constexpr float max_segment_length = 5.f;
+static constexpr float max_segment_length = 1.f;
 
 // For how many GCode lines back will adjust a flow rate from the latest line.
 // Bigger values affect the GCode export speed a lot, and smaller values could
 // affect how distant will be propagated a flow rate adjustment.
 static constexpr int max_look_back_limit = 128;
+
+// Max non-extruding XY distance (travel move) in mm between two continous extrusions where we pretend
+// its all one continous extruded line. Above this distance we assume extruder pressure hits 0
+// This exists because often there's tiny travel moves between stuff like infill 
+// lines where some extruder pressure will remain (so we should equalize between these small travels)
+static constexpr long max_ignored_gap_between_extruding_segments = 3;
 
 PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_relative_e_distances(config.use_relative_e_distances.value)
 {
@@ -58,8 +64,11 @@ PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_
     // Slope of the volumetric rate, changing from 20mm/s to 60mm/s over 2 seconds: (5.4-1.8)*60*60/2=60*60*1.8 = 6480 mm^3/min^2 = 1.8 mm^3/s^2
     
     //---IG
-    m_max_volumetric_extrusion_rate_slope_positive = 0.1;//float(config.max_volumetric_extrusion_rate_slope_positive.value) * 60.f * 60.f;
-    m_max_volumetric_extrusion_rate_slope_negative = 0.1;//float(config.max_volumetric_extrusion_rate_slope_negative.value) * 60.f * 60.f;
+    //m_max_volumetric_extrusion_rate_slope_positive = float(config.max_volumetric_extrusion_rate_slope_positive.value) * 60.f * 60.f;
+    //m_max_volumetric_extrusion_rate_slope_negative = float(config.max_volumetric_extrusion_rate_slope_negative.value) * 60.f * 60.f;
+
+    m_max_volumetric_extrusion_rate_slope_positive = float(10) * 60.f * 60.f;
+    m_max_volumetric_extrusion_rate_slope_negative = float(10) * 60.f * 60.f;
 
     for (ExtrusionRateSlope &extrusion_rate_slope : m_max_volumetric_extrusion_rate_slopes) {
         extrusion_rate_slope.negative = m_max_volumetric_extrusion_rate_slope_negative;
