@@ -147,7 +147,7 @@ struct LayerResult {
     bool        spiral_vase_enable { false };
     // Should the cooling buffer content be flushed at the end of this layer?
     bool        cooling_buffer_flush { false };
-    // Is indicating if this LayerResult should be processed, or it is just inserted artificial LayerResult.
+	// Is indicating if this LayerResult should be processed, or it is just inserted artificial LayerResult.
     // It is used for the pressure equalizer because it needs to buffer one layer back.
     bool        nop_layer_result { false };
 
@@ -301,14 +301,6 @@ private:
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
 
-    struct LayerResult {
-        std::string gcode;
-        size_t      layer_id;
-        // Is spiral vase post processing enabled for this layer?
-        bool        spiral_vase_enable { false };
-        // Should the cooling buffer content be flushed at the end of this layer?
-        bool        cooling_buffer_flush { false };
-    };
     LayerResult process_layer(
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
