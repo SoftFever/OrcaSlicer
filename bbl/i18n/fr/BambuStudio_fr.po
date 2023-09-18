@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-14 17:45+0800\n"
+"POT-Creation-Date: 2023-09-18 09:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -853,16 +853,16 @@ msgid "Disc"
 msgstr ""
 
 msgid "Bambu Cube"
-msgstr ""
+msgstr "Bambu Cube"
 
 msgid "Bambu Cube V2"
-msgstr ""
+msgstr "Cube Bambu V2"
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "3DBenchy"
 
 msgid "ksr FDMTest"
-msgstr ""
+msgstr "KSR Test FDM"
 
 msgid "Height range Modifier"
 msgstr "Modificateur de plage de hauteur"
@@ -959,10 +959,10 @@ msgid "Assemble the selected objects to an object with single part"
 msgstr "Assembler les objets sélectionnés à un objet en une seule pièce"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "Opération Booléenne"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "Opération Booléenne permet l'union et la différence de maillages"
 
 msgid "Along X axis"
 msgstr "Le long de l'axe X"
@@ -1096,7 +1096,7 @@ msgstr ""
 "Remplissez la zone restante du plateau avec des copies de l'objet sélectionné"
 
 msgid "Edit Plate Name"
-msgstr ""
+msgstr "Modifier le Nom de Plateau"
 
 msgid "Name"
 msgstr "Nom"
@@ -1160,7 +1160,7 @@ msgid "Error!"
 msgstr "Erreur!"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "Impossible d'obtenir les données du modèle dans le fichier actuel."
 
 msgid "Generic"
 msgstr "Générique"
@@ -1465,7 +1465,7 @@ msgid "Change filament at the beginning of this layer."
 msgstr "Changez le filament au début de cette couche."
 
 msgid "Delete Pause"
-msgstr ""
+msgstr "Retirer la Pause"
 
 msgid "Delete Custom Template"
 msgstr "Supprimer le modèle personnalisé"
@@ -1516,7 +1516,7 @@ msgid "?"
 msgstr "?"
 
 msgid "/"
-msgstr ""
+msgstr "/"
 
 msgid "Empty"
 msgstr "verser"
@@ -1525,7 +1525,7 @@ msgid "AMS"
 msgstr "AMS"
 
 msgid "Auto Refill"
-msgstr ""
+msgstr "Auto Refill"
 
 msgid "AMS not connected"
 msgstr "AMS non connecté"
@@ -1563,7 +1563,7 @@ msgid "Cancel calibration"
 msgstr "Annuler la calibration"
 
 msgid "Idling..."
-msgstr ""
+msgstr "Inactive..."
 
 msgid "Heat the nozzle"
 msgstr "Chauffer la buse"
@@ -1581,13 +1581,13 @@ msgid "Purge old filament"
 msgstr "Purger l'ancien filament"
 
 msgid "Feed Filament"
-msgstr ""
+msgstr "Alimenter Filament"
 
 msgid "Confirm extruded"
-msgstr ""
+msgstr "Confirmez l'extrusion du filament "
 
 msgid "Check filament location"
-msgstr ""
+msgstr "Vérifier la position du filament"
 
 msgid "Grab new filament"
 msgstr "Saisir un nouveau filament"
@@ -1775,7 +1775,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr ""
+msgstr "Transféré avec succès. Passage automatique à la page suivante en %ss"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "Une carte SD doit être insérée avant d'imprimer via le réseau local."
@@ -1973,10 +1973,10 @@ msgstr ""
 "l'impression n'est pas prise en charge."
 
 msgid "Factors of Flow Dynamics Calibration"
-msgstr ""
+msgstr "Calibration Dynamique du Facteur de Flux"
 
 msgid "PA Profile"
-msgstr ""
+msgstr "Profil PA"
 
 msgid "Factor K"
 msgstr "Facteur K"
@@ -2036,14 +2036,14 @@ msgstr "Température du lit"
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique maximale"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Température du plateau"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Démarrer"
@@ -2172,6 +2172,8 @@ msgid ""
 "When the current material run out, the printer will continue to print in the "
 "following order."
 msgstr ""
+"Lorsque le matériau actuel est épuisé, l'imprimante continue à imprimer dans "
+"l'ordre suivant."
 
 msgid "Group"
 msgstr "Groupe"
@@ -2182,6 +2184,10 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
+"Aucun matériau de rechange identique n'est disponible, de ce fait la "
+"réalimentation automatique n'est pas possible pour le moment.\n"
+"(Nous prenons actuellement en charge la réalimentation automatique de "
+"filament de même marque, du même type et de même couleur)."
 
 msgid "AMS Settings"
 msgstr "Paramètres AMS"
@@ -2449,29 +2455,6 @@ msgstr ""
 "La température de buse recommandée pour ce type de filament est de [%d, %d] "
 "degrés centigrades"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"La température du plateau des autres couches est inférieure à la température "
-"du plateau de la couche initiale de plus de %d degrés. Cela peut entraîner "
-"la séparation du modèle du plateau pendant l'impression"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"La température du lit est supérieure à la température de vitrification de ce "
-"filament.\n"
-"Cela peut provoquer un blocage de la buse et une défaillance de "
-"l'impression.\n"
-"Veuillez laisser l'imprimante ouverte pendant le processus d'impression afin "
-"de garantir la circulation de l'air ou de réduire la température du plateau."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
@@ -2555,6 +2538,14 @@ msgstr ""
 "Oui - Modifiez ces paramètres et activez automatiquement le mode spirale/"
 "vase\n"
 "Non - Annuler l'activation du mode spirale"
+
+msgid ""
+"When print by object, machines with I3 structure will not generate timelapse "
+"videos."
+msgstr ""
+
+msgid "Still print by object?"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2681,16 +2672,16 @@ msgstr ""
 "Pause en raison d'un dysfonctionnement de la température du plateau chauffant"
 
 msgid "Filament unloading"
-msgstr ""
+msgstr "Déchargement du filament"
 
 msgid "Skip step pause"
-msgstr ""
+msgstr "Sauter l'étape pause"
 
 msgid "Filament loading"
-msgstr ""
+msgstr "Chargement du filament"
 
 msgid "Motor noise calibration"
-msgstr ""
+msgstr "Calibration bruit moteur"
 
 msgid "Paused due to AMS lost"
 msgstr ""
@@ -2746,30 +2737,46 @@ msgstr "Échec de la vérification."
 msgid "Update failed."
 msgstr "Mise à jour a échoué."
 
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45\\u2103."
+msgstr ""
+
 msgid "Failed to start printing job"
 msgstr "Échec du lancement de la tâche d'impression"
 
 msgid "Invalid nozzle diameter"
-msgstr ""
+msgstr "Diamètre de buse invalide"
 
 msgid "Calibration error"
-msgstr ""
+msgstr "Erreur de calibration"
 
 msgid "TPU is not supported by AMS."
-msgstr ""
+msgstr "Le TPU n'est pas pris en charge par l'AMS."
 
 msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr ""
+msgstr "Le Bambu PET-CF/PA6-CF n'est pas pris en charge par l'AMS."
 
 msgid ""
 "Damp PVA will become flexible and get stuck inside AMS,please take care to "
 "dry it before use."
 msgstr ""
+"Le PVA humide deviendra souple et se coincera dans l'AMS, veillez à bien le "
+"sécher avant de l'utiliser."
 
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
 "AMS, please use with caution."
 msgstr ""
+"Les filaments CF/GF sont durs et fragiles, ils peuvent donc facilement se "
+"casser ou se coincer dans un AMS, veuillez les utiliser avec prudence."
 
 msgid "default"
 msgstr "défaut"
@@ -3144,7 +3151,7 @@ msgid "An object is layed over the boundary of plate."
 msgstr "Un objet est posé sur la limite du plateau."
 
 msgid "A G-code path goes beyond the max print height."
-msgstr ""
+msgstr "Une trajectoire de G-code dépasse la hauteur d'impression maximale."
 
 msgid "A G-code path goes beyond the boundary of plate."
 msgstr "Un chemin de code G va au-delà de la limite de la plaque"
@@ -3276,7 +3283,7 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "sera fermé avant de créer un nouveau modèle. Voulez-vous continuer ?"
 
 msgid "Upload"
-msgstr ""
+msgstr "Téléverser"
 
 msgid "Slice plate"
 msgstr "Trancher le plateau"
@@ -3537,46 +3544,46 @@ msgid "Help"
 msgstr "Aide"
 
 msgid "Temperature Calibration"
-msgstr ""
+msgstr "Calibration de Température"
 
 msgid "Pass 1"
-msgstr ""
+msgstr "Passe 1"
 
 msgid "Flow rate test - Pass 1"
-msgstr ""
+msgstr "Test de débit - Passe 1"
 
 msgid "Pass 2"
-msgstr ""
+msgstr "Passe 2"
 
 msgid "Flow rate test - Pass 2"
-msgstr ""
+msgstr "Test de débit - Passe 2"
 
 msgid "Flow rate"
-msgstr ""
+msgstr "Débit"
 
 msgid "Pressure advance"
-msgstr ""
+msgstr "Avance à la pression"
 
 msgid "Retraction test"
-msgstr ""
+msgstr "Test de Rétraction"
 
 msgid "Max flowrate"
-msgstr ""
+msgstr "Débit Maximal"
 
 msgid "VFA"
-msgstr ""
+msgstr "VFA"
 
 msgid "More..."
-msgstr ""
+msgstr "Plus..."
 
 msgid "Tutorial"
-msgstr ""
+msgstr "Tutoriel"
 
 msgid "Calibration help"
-msgstr ""
+msgstr "Aide à la Calibration"
 
 msgid "More calibrations"
-msgstr ""
+msgstr "Plus de calibrations"
 
 msgid "&Open G-code"
 msgstr "&Ouvrir G-code"
@@ -3708,6 +3715,8 @@ msgstr "Chargement..."
 
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
+"Échec de l'initialisation (non pris en charge par la version actuelle de "
+"l'imprimante) !"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "L'initialisation a échoué (Non accessible en mode LAN uniquement) !"
@@ -3868,6 +3877,8 @@ msgid ""
 "The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
 "and export a new .gcode.3mf file."
 msgstr ""
+"Le fichier .gcode /.3mf ne contient aucune donnée G-code. Découpez-le avec "
+"Bambu Studio et exportez un nouveau fichier .gcode /.3mf."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3890,10 +3901,10 @@ msgid "Downloading %d%%..."
 msgstr "Téléchargement %d%%..."
 
 msgid "Not supported on the current printer version."
-msgstr ""
+msgstr "Non pris en charge sur la version actuelle de l'imprimante."
 
 msgid "Storage unavailable, insert SD card."
-msgstr ""
+msgstr "Stockage indisponible, veuillez insérer une carte SD."
 
 msgid "Speed:"
 msgstr "Vitesse:"
@@ -4111,8 +4122,18 @@ msgid "obtaining instance_id failed\n"
 msgstr ""
 
 msgid ""
-"Your comment result cannot be uploaded due to some reasons. Would you like "
-"to redirect to the webpage for storing?"
+"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"\n"
+"  error code: "
+msgstr ""
+
+msgid "error message: "
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage for storing?"
 msgstr ""
 
 msgid ""
@@ -4258,7 +4279,7 @@ msgid "Model file downloaded."
 msgstr ""
 
 msgid "Serious warning:"
-msgstr ""
+msgstr "Alerte importante:"
 
 msgid " (Repair)"
 msgstr "(Réparation)"
@@ -4369,7 +4390,7 @@ msgstr "Paramètres de l'imprimante"
 
 #, boost-format
 msgid " plate %1%: "
-msgstr ""
+msgstr "plaque %1% :"
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "Nom invalide, les caractères suivants ne sont pas autorisés :"
@@ -4458,6 +4479,9 @@ msgid ""
 "Please update Bambu Studio or restart Bambu Studio to check if there is an "
 "update to system presets."
 msgstr ""
+"Certains filaments inconnus ou incompatibles sont associés à des préréglages "
+"génériques. Mettez à jour ou redémarrez Bambu Studio pour vérifier s'il "
+"existe une mise à jour des préréglages du système."
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -4834,7 +4858,7 @@ msgstr "Nombre de pièces actuellement sélectionnées : %1%\n"
 
 #, boost-format
 msgid "Number of currently selected objects: %1%\n"
-msgstr ""
+msgstr "Nombre d'objets sélectionnés : %1%\n"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5188,7 +5212,7 @@ msgid "Incompatible"
 msgstr "Incompatible"
 
 msgid "The selected preset is null!"
-msgstr ""
+msgstr "Le préréglage sélectionné est vide!"
 
 msgid "Same as Global Print Sequence"
 msgstr "Identique à la séquence d'impression globale"
@@ -5371,16 +5395,16 @@ msgstr "Plaque Bambu Cool Plate"
 msgid "PLA Plate"
 msgstr "Plaque PLA"
 
-msgid "Bamabu Engineering Plate"
-msgstr "Plaque Engineering Bambu"
+msgid "Bambu Engineering Plate"
+msgstr ""
 
-msgid "Bamabu Smooth PEI Plate"
+msgid "Bambu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr ""
 
-msgid "Bamabu Textured PEI Plate"
+msgid "Bambu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -5393,7 +5417,7 @@ msgid "Bed Leveling"
 msgstr "Mise à niveau du lit"
 
 msgid "Flow Dynamics Calibration"
-msgstr ""
+msgstr "Calibration Dynamique du Flux"
 
 msgid "Click here if you can't connect to the printer"
 msgstr ""
@@ -5498,6 +5522,8 @@ msgstr "Une carte SD doit être insérée avant l'impression."
 
 msgid "The selected printer is incompatible with the chosen printer presets."
 msgstr ""
+"L'imprimante sélectionnée est incompatible avec les préréglages d'imprimante "
+"choisis."
 
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "Une carte SD doit être insérée pour enregistrer un timelapse."
@@ -5515,6 +5541,11 @@ msgstr "Impossible d'envoyer une tâche d'impression d'un plateau vide."
 msgid "This printer does not support printing all plates"
 msgstr ""
 "Cette imprimante ne prend pas en charge l'impression de toutes les plaques"
+
+msgid ""
+"When enable spiral vase mode, machines with I3 structure will not generate "
+"timelapse videos."
+msgstr ""
 
 msgid "Errors"
 msgstr "Erreurs"
@@ -5552,6 +5583,8 @@ msgstr ""
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
 msgstr ""
+"Connexion à l'imprimante. Impossible d'annuler pendant le processus de "
+"connexion."
 
 msgid "Preparing print job"
 msgstr "Préparation du travail d'impression"
@@ -5567,9 +5600,11 @@ msgid ""
 "Caution to use! Flow calibration on Textured PEI Plate may fail due to the "
 "scattered surface."
 msgstr ""
+"Attention ! La calibration du débit sur les plaques PEI texturées peut "
+"échouer en raison de la surface rugueuse."
 
 msgid "Automatic flow calibration using Micro Lidar"
-msgstr ""
+msgstr "Automatic flow calibration using the Micro Lidar"
 
 msgid "Modifying the device name"
 msgstr "Modification du nom de l'appareil"
@@ -5640,8 +5675,8 @@ msgstr "Termes et conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Nous vous remercions d'avoir acheté un produit Bambu Lab. Avant d'utiliser "
@@ -5849,7 +5884,7 @@ msgid "Acceleration"
 msgstr "Accélération"
 
 msgid "Jerk(XY)"
-msgstr ""
+msgstr "Mouvement brusque (XY)"
 
 msgid "Raft"
 msgstr "Radeau"
@@ -5909,9 +5944,6 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "Plage de température de buse recommandée pour ce filament. 0 signifie pas "
 "d'ensemble"
-
-msgid "Recommended temperature range"
-msgstr "Plage de température recommandée"
 
 msgid "Print temperature"
 msgstr "Température d'impression"
@@ -6005,13 +6037,13 @@ msgid "Auxiliary part cooling fan"
 msgstr "Ventilateur de refroidissement de la partie auxiliaire"
 
 msgid "Exhaust fan"
-msgstr ""
+msgstr "Ventilateur d'extraction"
 
 msgid "During print"
-msgstr ""
+msgstr "Pendant l'impression"
 
 msgid "Complete print"
-msgstr ""
+msgstr "Impression terminée"
 
 msgid "Filament start G-code"
 msgstr "Code G de démarrage du filament"
@@ -7178,11 +7210,13 @@ msgstr ""
 "octopi-address/"
 
 msgid "Device UI"
-msgstr ""
+msgstr "Interface utilisateur de l'appareil"
 
 msgid ""
 "Specify the URL of your device user interface if it's not same as print_host"
 msgstr ""
+"Spécifiez l'URL de l'interface utilisateur de votre appareil si elle n'est "
+"pas identique à print_host"
 
 msgid "API Key / Password"
 msgstr "Clé API / Mot de passe"
@@ -7343,7 +7377,7 @@ msgid "Bed types supported by the printer"
 msgstr "Types de lit pris en charge par l'imprimante"
 
 msgid "First layer print sequence"
-msgstr ""
+msgstr "Séquence d'impression de la première couche"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ce G-code est inséré à chaque changement de couche avant de soulever z"
@@ -7441,18 +7475,21 @@ msgstr ""
 "de matériaux pour le pont, pour améliorer l'affaissement"
 
 msgid "Top surface flow ratio"
-msgstr ""
+msgstr "Débit sur la surface supérieure"
 
 msgid ""
 "This factor affects the amount of material for top solid infill. You can "
 "decrease it slightly to have smooth surface finish"
 msgstr ""
+"Ce facteur affecte la quantité de matériau pour le remplissage solide "
+"supérieur. Vous pouvez le diminuer légèrement pour obtenir une finition de "
+"surface lisse."
 
 msgid "Initial layer flow ratio"
-msgstr ""
+msgstr "Débit de la première couche"
 
 msgid "This factor affects the amount of material for the initial layer"
-msgstr ""
+msgstr "Ce facteur affecte la quantité de matériau pour la première couche."
 
 msgid "Only one wall on top surfaces"
 msgstr "Un seul mur sur les surfaces supérieures"
@@ -7461,9 +7498,12 @@ msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
 "pattern. Could be applyed on topmost surface or all top surface."
 msgstr ""
+"Utilisez un seul mur sur les surfaces supérieures plates pour donner plus "
+"d'espace au motif de remplissage supérieur. Peut être appliqué sur la "
+"dernière surface supérieure ou sur toutes les surfaces supérieures."
 
 msgid "Not apply"
-msgstr ""
+msgstr "Désactiver"
 
 msgid "Top surfaces"
 msgstr "Surfaces supérieures"
@@ -7584,7 +7624,7 @@ msgid "Default process profile when switch to this machine profile"
 msgstr "Profil de processus par défaut lors du passage à ce profil de machine"
 
 msgid "Activate air filtration"
-msgstr ""
+msgstr "Activate air filtration"
 
 msgid "Activate for better air filtration"
 msgstr ""
@@ -7596,9 +7636,11 @@ msgid ""
 "Speed of exhuast fan during printing.This speed will overwrite the speed in "
 "filament custom gcode"
 msgstr ""
+"Vitesse du ventilateur d'extraction pendant l'impression: cette vitesse "
+"remplacera la vitesse du G-code personnalisé du filament."
 
 msgid "Speed of exhuast fan after printing completes"
-msgstr ""
+msgstr "Vitesse du ventilateur d'extraction une fois l'impression terminée"
 
 msgid "No cooling for the first"
 msgstr "Pas de refroidissement pour"
@@ -7720,12 +7762,15 @@ msgstr ""
 "du pont"
 
 msgid "Internal solid infill pattern"
-msgstr ""
+msgstr "Motif de remplissage solide"
 
 msgid ""
 "Line pattern of internal solid infill. if the detect nattow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
+"Il s'agit du motif de ligne du remplissage interne. Si l'option Détecter le "
+"remplissage interne étroit est activée, le motif concentrique sera utilisé "
+"pour les petites zones."
 
 msgid "Line width of outer wall"
 msgstr "Largeur de ligne du mur extérieur"
@@ -7832,17 +7877,22 @@ msgstr ""
 "rapport de débit."
 
 msgid "Enable pressure advance"
-msgstr ""
+msgstr "Activer l'avance à la pression"
 
 msgid ""
 "Enable pressure advance, auto calibration result will be overwriten once "
 "enabled. Useless for Bambu Printer"
 msgstr ""
+"Activer l'avance à la pression? Les résultats de la calibration automatique "
+"seront remplacés une fois activés. Remarque: Ceci est inutile pour les "
+"imprimantes Bambu."
 
 msgid ""
 "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for "
 "Bambu Printer"
 msgstr ""
+"Avance à la pression (Klipper) ou Facteur d'avance linéaire (Marlin). "
+"Inutile pour les imprimantes Bambu"
 
 msgid "Default line width if some line width is set to be zero"
 msgstr ""
@@ -7909,6 +7959,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purge minimale sur la tour de nettoyage"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Temps de chargement du filament"
@@ -7983,10 +8036,10 @@ msgid "money/kg"
 msgstr "argent/kg"
 
 msgid "Vendor"
-msgstr ""
+msgstr "Fabricant"
 
 msgid "Vendor of filament. For show only"
-msgstr ""
+msgstr "Marque du filament (Juste pour rappel)"
 
 msgid "(Undefined)"
 msgstr "(Indéfini)"
@@ -8059,14 +8112,19 @@ msgstr ""
 
 msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr ""
+"Accélération des parois intérieures. 0 signifie une accélération normale de "
+"l'impression."
 
 msgid ""
 "Acceleration of sparse infill. If the value is expressed as a percentage (e."
 "g. 100%), it will be calculated based on the default acceleration."
 msgstr ""
+"Accélération d'un remplissage internet. Si la valeur est exprimée en "
+"pourcentage (par exemple 100 %), elle sera calculée en fonction de "
+"l'accélération par défaut."
 
 msgid "mm/s² or %"
-msgstr ""
+msgstr "mm/s² or %"
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -8076,41 +8134,47 @@ msgstr ""
 "peut améliorer l'adhérence sur le plateau"
 
 msgid "Enable accel_to_decel"
-msgstr ""
+msgstr "Activer accel_to_decel"
 
 msgid "Klipper's max_accel_to_decel will be adjusted automatically"
 msgstr ""
+"La valeur max_accel_to_decel de Klipper va être ajustée automatiquement"
 
 msgid "accel_to_decel"
+msgstr "accel_to_decel"
+
+#, c-format, boost-format
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this %% of acceleration"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid "%%"
 msgstr ""
 
 msgid "Default jerk"
-msgstr ""
+msgstr "Mouvement brusque par défaut"
 
 msgid "Jerk of outer walls"
-msgstr ""
+msgstr "Mouvements brusques murs extérieurs"
 
 msgid "Jerk of inner walls"
-msgstr ""
+msgstr "Mouvements brusques murs internes"
 
 msgid "Jerk of infill"
-msgstr ""
+msgstr "Mouvements brusques remplissage"
 
 msgid "Jerk of top surface"
-msgstr ""
+msgstr "Mouvements brusques surfaces supérieures"
 
 msgid "First layer"
-msgstr ""
+msgstr "Couche initiale"
 
 msgid "Jerk of first layer"
-msgstr ""
+msgstr "Mouvements brusques première couche"
 
 msgid "Jerk of travel"
-msgstr ""
+msgstr "Mouvements brusques déplacements"
 
 msgid "Line width of initial layer"
 msgstr "Largeur de ligne de la couche initiale"
@@ -8187,12 +8251,14 @@ msgstr ""
 "segment de ligne"
 
 msgid "Filter out tiny gaps"
-msgstr ""
+msgstr "Filtrez les petits trous"
 
 msgid ""
 "Filter out gaps smaller than the threshold specified. This setting won't "
 "affact top/bottom layers"
 msgstr ""
+"Filtrez les trous inférieurs au seuil spécifié. Ce paramètre n'affectera pas "
+"les couches supérieures/inférieures."
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -8281,14 +8347,14 @@ msgstr ""
 "refroidissement de pièce auxiliaire"
 
 msgid "Support control chamber temperature"
-msgstr ""
+msgstr "Supporte le contrôle de la température de chambre"
 
 msgid ""
 "This option is enabled if machine support controlling chamber temperature"
 msgstr ""
 
 msgid "Support air filtration"
-msgstr ""
+msgstr "Supporte de la filtration de l'air"
 
 msgid "Enable this if printer support air filtration"
 msgstr ""
@@ -8300,12 +8366,14 @@ msgid "What kind of gcode the printer is compatible with"
 msgstr "Avec quel type de gcode l'imprimante est-elle compatible"
 
 msgid "Exclude objects"
-msgstr ""
+msgstr "Exclure objets"
 
 msgid ""
 "Enable this option to add EXCLUDE OBJECT command in g-code for klipper "
 "firmware printer"
 msgstr ""
+"Activez cette option pour ajouter une commande EXCLUDE OBJECT dans le G-code "
+"pour les imprimantes exécutant le firmware Klipper."
 
 msgid "Infill combination"
 msgstr "Combinaison de remplissage"
@@ -8681,6 +8749,9 @@ msgid ""
 "Detect the overhang percentage relative to line width and use different "
 "speed to print. For 100 percent overhang, bridge speed is used."
 msgstr ""
+"Cela détecte le pourcentage de surplomb par rapport à la largeur de ligne et "
+"utilise une vitesse d'impression différente. Pour un surplomb de 100 %, la "
+"vitesse du pont est utilisée."
 
 msgid "Line width of inner wall"
 msgstr "Largeur de ligne du mur intérieur"
@@ -8830,10 +8901,10 @@ msgid "Spiral"
 msgstr "Spirale"
 
 msgid "Direct drive"
-msgstr ""
+msgstr "Direct drive"
 
 msgid "Bowden"
-msgstr ""
+msgstr "Bowden"
 
 msgid "Retraction Speed"
 msgstr "Vitesse de Rétractation"
@@ -8870,7 +8941,7 @@ msgid "Random"
 msgstr "Aléatoire"
 
 msgid "Seam gap"
-msgstr ""
+msgstr "Écart de couture"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, "
@@ -8878,9 +8949,13 @@ msgid ""
 "This amount as a percentage of the current extruder diameter. The default "
 "value for this parameter is 15"
 msgstr ""
+"Afin de réduire la visibilité de la couture dans une extrusion en boucle "
+"fermée, la boucle est interrompue et raccourcie d'une quantité spécifiée.\n"
+"Cette quantité est exprimée en pourcentage du diamètre de la buse actuelle. "
+"La valeur par défaut de ce paramètre est 15."
 
 msgid "Wipe speed"
-msgstr ""
+msgstr "Vitesse d'essuyage"
 
 msgid ""
 "The wipe speed is determined by the speed setting specified in this "
@@ -8888,6 +8963,10 @@ msgid ""
 "be calculated based on the travel speed setting above.The default value for "
 "this parameter is 80%"
 msgstr ""
+"La vitesse d'essuyage est déterminée par le paramètre de vitesse spécifié "
+"dans ce paramètre. Si la valeur est exprimée en pourcentage (par exemple "
+"80%), elle sera calculée sur la base du réglage de la vitesse de déplacement "
+"ci-dessus. La valeur par défaut de ce paramètre est 80%."
 
 msgid "Skirt distance"
 msgstr "Distance jupe"
@@ -9073,10 +9152,12 @@ msgstr ""
 "les surplombs, etc."
 
 msgid "Remove small overhangs"
-msgstr ""
+msgstr "Éliminer les petits surplombs"
 
 msgid "Remove small overhangs that possibly need no supports."
 msgstr ""
+"Cela permet d'éliminer les petits porte-à-faux qui peuvent ne pas nécessiter "
+"de support."
 
 msgid "Top Z distance"
 msgstr "Distance Z supérieure"
@@ -9286,33 +9367,20 @@ msgstr ""
 "La largeur de la bordure autour du support de l'arbre. 0 signifie auto."
 
 msgid "Chamber temperature"
-msgstr ""
+msgstr "Température de la chambre"
 
 msgid ""
-"By opening chamber_temperature compensation, the heating components will "
-"operate to elevate the chamber temperature.This can help suppress or reduce "
-"warping for high-temperature materials and potentially lead to higher "
-"interlayer bonding strength.While for PLA, PETG, TPU, PVA and other low "
-"temperature materials, the actual chamber temperature should not be high to "
-"avoid cloggings,so extra chamber temperature compensation is not needed, and "
-"0 is highly recommended"
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Température de la buse pour les couches après la première"
-
-msgid "Bed temperature difference"
-msgstr "Différence de température du lit"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"Il n'est pas recommandé que la température du plateau des autres couches "
-"soit inférieure à celle de la première couche d'un niveau supérieur à ce "
-"seuil. Une température de base trop basse de l'autre couche peut provoquer "
-"le détachement du modèle."
 
 msgid "Detect thin wall"
 msgstr "Détecter les parois minces"
@@ -9375,12 +9443,15 @@ msgid "Speed of travel which is faster and without extrusion"
 msgstr "Vitesse de déplacement plus rapide et sans extrusion"
 
 msgid "Use relative E distances"
-msgstr ""
+msgstr "Utiliser des distances E relatives"
 
 msgid ""
 "If your firmware requires relative E values, check this, otherwise leave it "
 "unchecked. Must use relative e distance for Bambu printer"
 msgstr ""
+"Si votre firmware nécessite des valeurs E relatives cochez cette case, sinon "
+"laissez-la décochée. Il faut utiliser la distance E relative pour les "
+"imprimantes Bambu."
 
 msgid "Wipe while retracting"
 msgstr "Nettoyer lors des rétractions"
@@ -9648,10 +9719,10 @@ msgid "Load cached slicing data from directory"
 msgstr "Charger les données de tranchage mises en cache à partir du répertoire"
 
 msgid "Export STL"
-msgstr ""
+msgstr "Exporter STL"
 
 msgid "Export the objects as multiple STL."
-msgstr ""
+msgstr "Exporter les objets sous forme de fichiers STL multiples."
 
 msgid "Slice"
 msgstr "Découper"
@@ -9670,10 +9741,11 @@ msgstr ""
 "Mettez à jour les valeurs de configuration 3mf à la version la plus récente."
 
 msgid "Load default filaments"
-msgstr ""
+msgstr "Charger les filaments par défaut"
 
 msgid "Load first filament as default for those not loaded"
 msgstr ""
+"Charger le premier filament comme défaut pour ceux qui ne sont pas chargés"
 
 msgid "Minimum save"
 msgstr ""
@@ -9732,10 +9804,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Options d'organisation : 0-désactiver, 1-activer, autres-auto"
 
 msgid "Repetions count"
-msgstr ""
+msgstr "Nombre de répétitions"
 
 msgid "Repetions count of the whole model"
-msgstr ""
+msgstr "Nombre de répétitions de l'ensemble du modèle"
 
 msgid "Ensure on bed"
 msgstr ""
@@ -9796,11 +9868,15 @@ msgstr "Ignorer certains objets de cette impression"
 
 msgid "load uptodate process/machine settings when using uptodate"
 msgstr ""
+"charger les paramètres actualisés du processus/de la machine lors de "
+"l'utilisation de la mise à jour automatique"
 
 msgid ""
 "load uptodate process/machine settings from the specified file when using "
 "uptodate"
 msgstr ""
+"charger les paramètres actualisés du processus/de la machine à partir du "
+"fichier spécifié lors de l'utilisation de la mise à jour"
 
 msgid "Output directory"
 msgstr "Répertoire de sortie"
@@ -9960,70 +10036,76 @@ msgid "This OBJ file couldn't be read because it's empty."
 msgstr "Ce fichier OBJ n'a pas pu être lu car il est vide."
 
 msgid "Flow Rate Calibration"
-msgstr ""
+msgstr "Calibration du débit"
 
 msgid "Max Volumetric Speed Calibration"
-msgstr ""
+msgstr "Calibration de la vitesse volumétrique maximale"
 
 msgid "Manage Result"
-msgstr ""
+msgstr "Traiter les résultats"
 
 msgid "Manual Calibration"
-msgstr ""
+msgstr "Calibration manuelle"
 
 msgid "Result can be read by human eyes."
-msgstr ""
+msgstr "Les résultats sont facilement lisibles et compréhensibles."
 
 msgid "Auto-Calibration"
-msgstr ""
+msgstr "Auto-Calibration"
 
 msgid "We would use Lidar to read the calibration result"
-msgstr ""
+msgstr "Nous utiliserons le Lidar pour lire les résultats de calibration."
 
 msgid "Prev"
-msgstr ""
+msgstr "Préc."
 
 msgid "Recalibration"
-msgstr ""
+msgstr "Recalibration"
 
 msgid "Calibrate"
-msgstr ""
+msgstr "Calibrer"
 
 msgid "Finish"
 msgstr "Terminer"
 
 msgid "Wiki"
-msgstr ""
+msgstr "Wiki"
 
 msgid "How to use calibration result?"
-msgstr ""
+msgstr "Comment puis-je utiliser les résultats de calibration?"
 
 msgid ""
 "You could change the Flow Dynamics Calibration Factor in material editing"
 msgstr ""
+"Vous pouvez modifier le facteur de calibration de Flux Dynamique lors de "
+"l'édition de matériaux"
 
 msgid ""
 "The current firmware version of the printer does not support calibration.\n"
 "Please upgrade the printer firmware."
 msgstr ""
+"La version actuelle du firmware de l'imprimante ne prend pas en charge le "
+"calibrage.\n"
+"Veuillez mettre à jour le firmware."
 
 msgid "Calibration not supported"
-msgstr ""
+msgstr "Calibration non prise en charge"
 
 msgid "Flow Dynamics"
-msgstr ""
+msgstr "Flux Dynamique"
 
 msgid "Flow Rate"
-msgstr ""
+msgstr "Débit"
 
 msgid "Max Volumetric Speed"
-msgstr ""
+msgstr "Vitesse volumétrique max"
 
 msgid "Please enter the name you want to save to printer."
 msgstr ""
+"Veuillez saisir le nom sous lequel vous souhaitez enregistrer l'imprimante."
 
 msgid "The name cannot exceed 40 characters."
-msgstr ""
+msgstr "Le nom ne peut pas dépasser 40 caractères."
 
 #, c-format, boost-format
 msgid ""
@@ -10035,60 +10117,67 @@ msgid ""
 msgstr ""
 
 msgid "The name cannot be empty."
-msgstr ""
+msgstr "Le nom ne peut pas être vide."
 
 #, boost-format
 msgid "The selected preset: %1% is not found."
-msgstr ""
+msgstr "Le préréglage sélectionné : %1% est introuvable."
 
 msgid "The name cannot be the same as the system preset name."
-msgstr ""
+msgstr "Le nom ne peut pas être identique au nom du préréglage du système."
 
 msgid "The name is the same as another existing preset name"
-msgstr ""
+msgstr "Le nom est le même que celui d'un autre préréglage existant."
 
 msgid "create new preset failed."
-msgstr ""
+msgstr "La création d'un nouveau préréglage a échoué."
 
 msgid ""
 "Are you sure to cancel the current calibration and return to the home page?"
 msgstr ""
+"Are you sure you want to cancel the current calibration and return to the "
+"home page?"
 
 msgid "No Printer Connected!"
-msgstr ""
+msgstr "Aucune Imprimante connectée !"
 
 msgid "Printer is not connected yet."
-msgstr ""
+msgstr "Aucune imprimante n'est encore connectée."
 
 msgid "Please select filament to calibrate."
-msgstr ""
+msgstr "Veuillez sélectionner le filament à calibrer."
 
 msgid "The input value size must be 3."
-msgstr ""
+msgstr "La taille de la valeur d'entrée doit être de 3."
 
 msgid "Connecting to printer..."
-msgstr ""
+msgstr "Connexion à l'imprimante..."
 
 msgid "The failed test result has been dropped."
 msgstr ""
 
 msgid "Flow Dynamics Calibration result has been saved to the printer"
 msgstr ""
+"Les résultats de la calibration du Flux Dynamique ont été enregistrés sur "
+"l'imprimante."
 
 msgid "Internal Error"
-msgstr ""
+msgstr "Erreur interne"
 
 msgid "Please select at least one filament for calibration"
-msgstr ""
+msgstr "Veuillez sélectionner au moins un filament pour le calibration"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr ""
+"Les résultats de calibration du débit ont été enregistrés dans un préréglage."
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr ""
+"Le résultat de la calibration de la vitesse volumétrique maximale a été "
+"enregistré dans le préréglage"
 
 msgid "When do you need Flow Dynamics Calibration"
-msgstr ""
+msgstr "Quand avez-vous besoin d'une calibration du Flux Dynamique?"
 
 msgid ""
 "We now have added the auto-calibration for different filaments, which is "
@@ -10100,9 +10189,18 @@ msgid ""
 "3. If the max volumetric speed or print temperature is changed in the "
 "filament setting."
 msgstr ""
+"Nous avons maintenant ajouté la calibration automatique pour les différents "
+"filaments de manière entièrement automatisé et dont le résultat sera "
+"enregistré sur l'imprimante pour une utilisation future. Vous ne devez "
+"effectuer le calibrage que dans les cas limités suivants :\n"
+"1. Si vous introduisez un nouveau filament de marques/modèles différents ou "
+"si le filament est humide\n"
+"2. Si la buse est usée ou remplacée par une neuve ;\n"
+"3. Si la vitesse volumétrique maximale ou la température d'impression sont "
+"modifiées dans le réglage du filament."
 
 msgid "About this calibration"
-msgstr ""
+msgstr "À propos de cette calibration"
 
 msgid ""
 "Please find the details of Flow Dynamics Calibration from our wiki.\n"
@@ -10123,9 +10221,30 @@ msgid ""
 "cause the result not exactly the same in each calibration. We are still "
 "investigating the root cause to do improvements with new updates."
 msgstr ""
+"Vous trouverez les détails de l'étalonnage du Flux Dynamique sur notre "
+"wiki.\n"
+"\n"
+"En général, la calibration n'est pas nécessaire. Lorsque vous lancez une "
+"impression couleur/matériau unique, avec l'option « calibration flux "
+"dynamique » cochée dans le menu de démarrage de l'impression, l'imprimante "
+"calibre le filament avant l'impression. Lorsque vous lancez une impression "
+"multicouleur/matériau, l'imprimante utilise le paramètre de compensation par "
+"défaut pour le filament à chaque changement de filament, ce qui donne un bon "
+"résultat dans la plupart des cas.\n"
+"\n"
+"Veuillez noter que dans certains cas, le résultat de la calibration peut ne "
+"pas être fiable, notamment lors d'utilisation d'une plaque de texture pour "
+"effectuer l'étalonnage ou utilisation d'une plaque de construction "
+"présentant une faible adhérence. (veuillez laver la plaque de construction "
+"ou appliquer de la colle !) Vous pouvez en savoir plus sur notre wiki.\n"
+"\n"
+"Les résultats d'étalonnage présentent une variation d'environ 10 % par "
+"rapport à notre test, ce qui peut entraîner des résultats différents pour "
+"chaque étalonnage. Nous étudions toujours la cause première afin d'améliorer "
+"encore ce calibrage dans les prochaines mises à jour."
 
 msgid "When to use Flow Rate Calibration"
-msgstr ""
+msgstr "Quand utiliser la calibration du débit"
 
 msgid ""
 "After using Flow Dynamics Calibration, there might still be some extrusion "
@@ -10138,12 +10257,25 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
 "they should be."
 msgstr ""
+"After using Flow Dynamics Calibration, there might still be some extrusion "
+"issues, such as:\n"
+"1. Over-Extrusion: Excess material on your printed object, forming blobs or "
+"zits, or the layers seem thicker than expected and not uniform.\n"
+"2. Under-Extrusion: Very thin layers, weak infill strength, or gaps in the "
+"top layer of the model, even when printing slowly.\n"
+"3. Poor Surface Quality: The surface of your prints seems rough or uneven.\n"
+"4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as "
+"they should be."
 
 msgid ""
 "In addition, Flow Rate Calibration is crucial for foaming materials like LW-"
 "PLA used in RC planes. These materials expand greatly when heated, and "
 "calibration provides a useful reference flow rate."
 msgstr ""
+"En outre, l'étalonnage du débit est crucial pour les matériaux expansifs "
+"tels que le LW-PLA utilisé dans le modélisme. Ces matériaux se dilatent "
+"considérablement lorsqu'ils sont chauffés et l'étalonnage fournit un débit "
+"de référence utile."
 
 msgid ""
 "Flow Rate Calibration measures the ratio of expected to actual extrusion "
@@ -10153,6 +10285,13 @@ msgid ""
 "you still see the listed defects after you have done other calibrations. For "
 "more details, please check out the wiki article."
 msgstr ""
+"L'étalonnage du débit mesure le rapport entre les volumes d'extrusion "
+"attendus et réels. Le réglage par défaut fonctionne bien avec les "
+"imprimantes Bambu Lab et les filaments officiels car ils ont été pré-"
+"étalonnés et affinés. Pour un filament ordinaire, vous n'avez généralement "
+"pas besoin d'effectuer un étalonnage du débit sauf si vous constatez "
+"toujours les défauts répertoriés après avoir effectué d'autres étalonnages. "
+"Pour plus de détails, veuillez consulter notre article wiki."
 
 msgid ""
 "Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
@@ -10172,24 +10311,45 @@ msgid ""
 "can lead to sub-par prints or printer damage. Please make sure to carefully "
 "read and understand the process before doing it."
 msgstr ""
+"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, "
+"directly measuring the calibration patterns. However, please be advised that "
+"the efficacy and accuracy of this method may be compromised with specific "
+"types of materials. Particularly, filaments that are transparent or semi-"
+"transparent, sparkling-particled, or have a high-reflective finish may not "
+"be suitable for this calibration and can produce less-than-desirable "
+"results.\n"
+"\n"
+"The calibration results may vary between each calibration or filament. We "
+"are still improving the accuracy and compatibility of this calibration "
+"through firmware updates over time.\n"
+"\n"
+"Caution: Flow Rate Calibration is an advanced process, to be attempted only "
+"by those who fully understand its purpose and implications. Incorrect usage "
+"can lead to sub-par prints or printer damage. Please make sure to carefully "
+"read and understand the process before performing it."
 
 msgid "When you need Max Volumetric Speed Calibration"
 msgstr ""
+"Quand devez-vous réaliser une calibration de la Vitesse Volumétrique Max"
 
 msgid "Over-extrusion or under extrusion"
-msgstr ""
+msgstr "Sur-extrusion ou sous-extrusion"
 
 msgid "Max Volumetric Speed calibration is recommended when you print with:"
 msgstr ""
+"L'étalonnage de la vitesse volumétrique maximale est recommandé lorsque vous "
+"imprimez avec :"
 
 msgid "material with significant thermal shrinkage/expansion, such as..."
 msgstr ""
+"matériau présentant un rétrécissement ou une dilatation thermiques "
+"importants, tel que..."
 
 msgid "materials with inaccurate filament diameter"
-msgstr ""
+msgstr "matériaux dont le diamètre de filament est erroné"
 
 msgid "We found the best Flow Dynamics Calibration Factor"
-msgstr ""
+msgstr "Nous avons trouvé le meilleur facteur d'étalonnage de Flux Dynamique."
 
 msgid ""
 "Part of the calibration failed! You may clean the plate and retry. The "
@@ -10200,6 +10360,8 @@ msgid ""
 "*We recommend you to add brand, materia, type, and even humidity level in "
 "the Name"
 msgstr ""
+"*Nous vous recommandons d'ajouter la marque, le matériau, le type et même le "
+"niveau d'humidité au nom"
 
 msgid "Failed"
 msgstr "Échoué"
@@ -10208,6 +10370,8 @@ msgid ""
 "Only one of the results with the same name will be saved. Are you sure you "
 "want to overrides the other results?"
 msgstr ""
+"Seul un des résultats portant le même nom sera enregistré. Êtes-vous sûr de "
+"vouloir annuler les autres résultats ?"
 
 #, c-format, boost-format
 msgid ""
@@ -10215,130 +10379,139 @@ msgid ""
 "Only one of the results with the same name is saved. Are you sure you want "
 "to overrides the historical result?"
 msgstr ""
+"Il existe déjà un résultat d'étalonnage historique portant le même nom : %s. "
+"Un seul ensemble de résultats portant le même nom est enregistré. Êtes-vous "
+"sûr de vouloir annuler les résultats précédents ?"
 
 msgid "Please find the best line on your plate"
-msgstr ""
+msgstr "Veuillez trouver la meilleure ligne sur votre plateau."
 
 msgid "Please find the cornor with perfect degree of extrusion"
 msgstr ""
 
 msgid "Input Value"
-msgstr ""
+msgstr "Valeur d’entrée"
 
 msgid "Save to Filament Preset"
-msgstr ""
+msgstr "Enregistrer dans les Préréglages de Filament"
 
 msgid "Preset"
-msgstr ""
+msgstr "Préréglage"
 
 msgid "Record Factor"
-msgstr ""
+msgstr "Enregistrer Facteur"
 
 msgid "We found the best flow ratio for you"
-msgstr ""
+msgstr "Nous avons trouvé le meilleur rapport de débit pour vous."
 
 msgid "Flow Ratio"
-msgstr ""
+msgstr "Rapport de débit"
 
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
-msgstr ""
+msgstr "Entrez une valeur valide (0,0 < rapport de débit < 2,0)"
 
 msgid "Please enter the name of the preset you want to save."
-msgstr ""
+msgstr "Entrez le nom du préréglage que vous souhaitez enregistrer."
 
 msgid "Calibration1"
-msgstr ""
+msgstr "Calibration 1"
 
 msgid "Calibration2"
-msgstr ""
+msgstr "Calibration 2"
 
 msgid "Please find the best object on your plate"
-msgstr ""
+msgstr "Trouvez le meilleur objet sur votre plateau."
 
 msgid "Fill in the value above the block with smoothest top surface"
-msgstr ""
+msgstr "Entrez la valeur du bloc dont la surface supérieure est la plus lisse"
 
 msgid "Skip Calibration2"
-msgstr ""
+msgstr "Ignorer Calibration 2"
 
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr ""
+msgstr "rapport de débit : %s "
 
 msgid "Please choose a block with smoothest top surface"
-msgstr ""
+msgstr "Choisissez le bloc dont la surface supérieure est la plus lisse."
 
 msgid "Please choose a block with smoothest top surface."
-msgstr ""
+msgstr "Choisissez le bloc dont la surface supérieure est la plus lisse."
 
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
-msgstr ""
+msgstr "Entrez une valeur valide (0 <= Vitesse Volumétrique Max <= 60)"
 
 msgid "Pattern"
 msgstr ""
 
 msgid "Calibration Type"
-msgstr ""
+msgstr "Calibration Type"
 
 msgid "Complete Calibration"
-msgstr ""
+msgstr "Complete Calibration"
 
 msgid "Fine Calibration based on flow ratio"
-msgstr ""
+msgstr "Fine Calibration based on flow ratio"
 
 msgid "Title"
-msgstr ""
+msgstr "Title"
 
 msgid ""
 "A test model will be printed. Please clear the build plate and place it back "
 "to the hot bed before calibration."
 msgstr ""
+"A test model will be printed. Please clear the build plate and place it back "
+"on the heatbed before calibration."
 
 msgid "Printing Parameters"
-msgstr ""
+msgstr "Printing Parameters"
 
-msgid "- ℃"
-msgstr ""
+msgid "- \\u2103"
+msgstr "- u2103"
 
-msgid " ℃"
-msgstr ""
+msgid " \\u2103"
+msgstr "u2103"
 
 msgid "Plate Type"
 msgstr "Type de plaque"
 
 msgid "filament position"
-msgstr ""
+msgstr "filament position"
 
 msgid "External Spool"
-msgstr ""
+msgstr "External Spool"
 
 msgid "Filament For Calibration"
-msgstr ""
+msgstr "Filament For Calibration"
 
 msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
+"Tips for calibration material: \n"
+"- Materials that can share same hot bed temperature\n"
+"- Different filament brand and family (Brand = Bambu, Family = Basic, Matte, "
+"etc.)"
 
 msgid "Error desc"
-msgstr ""
+msgstr "Error desc"
 
 msgid "Extra info"
-msgstr ""
+msgstr "Extra info"
 
 msgid "Method"
-msgstr ""
+msgstr "Method"
 
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
-msgstr ""
+msgstr "%s is not compatible with %s"
 
 msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
-msgstr ""
+msgstr "TPU is not supported by Flow Dynamics Auto-Calibration."
 
 msgid "Connecting to printer"
-msgstr ""
+msgstr "Connecting to printer"
 
 msgid "From k Value"
 msgstr ""
@@ -10359,19 +10532,22 @@ msgid "0.005"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
-msgstr ""
+msgstr "The nozzle diameter has been synchronized from the printer settings."
 
 msgid "From Volumetric Speed"
-msgstr ""
+msgstr "From Volumetric Speed"
 
 msgid "To Volumetric Speed"
-msgstr ""
+msgstr "To Volumetric Speed"
+
+msgid "mm\\u00B3/s"
+msgstr "mm\\u00B3/s"
 
 msgid "Flow Dynamics Calibration Result"
-msgstr ""
+msgstr "Flow Dynamics Calibration Result"
 
 msgid "No History Result"
-msgstr ""
+msgstr "No History Result"
 
 msgid "Success to get history result"
 msgstr ""
@@ -10380,34 +10556,34 @@ msgid "Refreshing the historical Flow Dynamics Calibration records"
 msgstr ""
 
 msgid "Action"
-msgstr ""
+msgstr "Action"
 
 msgid "Edit Flow Dynamics Calibration"
-msgstr ""
+msgstr "Edit Flow Dynamics Calibration"
 
 msgid "PA Calibration"
-msgstr ""
+msgstr "PA Calibration"
 
 msgid "PA Tower"
-msgstr ""
+msgstr "PA Tower"
 
 msgid "PA Line"
-msgstr ""
+msgstr "PA Line"
 
 msgid "PA Pattern"
 msgstr ""
 
 msgid "Start PA: "
-msgstr ""
+msgstr "Start PA:"
 
 msgid "End PA: "
-msgstr ""
+msgstr "End PA: "
 
 msgid "PA step: "
-msgstr ""
+msgstr "PA step:"
 
 msgid "Print numbers"
-msgstr ""
+msgstr "Print numbers"
 
 msgid ""
 "Please input valid values:\n"
@@ -10415,39 +10591,43 @@ msgid ""
 "End PA: > Start PA\n"
 "PA step: >= 0.001)"
 msgstr ""
+"Please input valid values:\n"
+"Start PA: >= 0.0\n"
+"End PA: > Start PA\n"
+"PA step: >= 0.001)"
 
 msgid "Temperature calibration"
-msgstr ""
+msgstr "Temperature calibration"
 
 msgid "PLA"
-msgstr ""
+msgstr "PLA"
 
 msgid "ABS/ASA"
-msgstr ""
+msgstr "ABS/ASA"
 
 msgid "PETG"
-msgstr ""
+msgstr "PETG"
 
 msgid "TPU"
-msgstr ""
+msgstr "TPU"
 
 msgid "PA-CF"
-msgstr ""
+msgstr "PA-CF"
 
 msgid "PET-CF"
-msgstr ""
+msgstr "PET-CF"
 
 msgid "Filament type"
-msgstr ""
+msgstr "Filament type"
 
 msgid "Start temp: "
-msgstr ""
+msgstr "Start temp:"
 
 msgid "End temp: "
-msgstr ""
+msgstr "End temp:"
 
 msgid "Temp step: "
-msgstr ""
+msgstr "Temp step:"
 
 msgid ""
 "Please input valid values:\n"
@@ -10455,164 +10635,174 @@ msgid ""
 "End temp: >= 180\n"
 "Start temp > End temp + 5)"
 msgstr ""
+"Please input valid values:\n"
+"Start temp: <= 350\n"
+"End temp: >= 180\n"
+"Start temp > End temp + 5)"
 
 msgid "Max volumetric speed test"
-msgstr ""
+msgstr "Max volumetric speed test"
 
 msgid "Start volumetric speed: "
-msgstr ""
+msgstr "Start volumetric speed:"
 
 msgid "End volumetric speed: "
-msgstr ""
+msgstr "End volumetric speed:"
 
 msgid "step: "
-msgstr ""
+msgstr "step:"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Please input valid values:\n"
+"start > 0 \\step >= 0\n"
+"end > start + step)"
 
 msgid "VFA test"
-msgstr ""
+msgstr "VFA test"
 
 msgid "Start speed: "
-msgstr ""
+msgstr "Start speed:"
 
 msgid "End speed: "
-msgstr ""
+msgstr "End speed:"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Please input valid values:\n"
+"start > 0 \\step >= 0\n"
+"end > start + step)"
 
 msgid "Start retraction length: "
-msgstr ""
+msgstr "Start retraction length:"
 
 msgid "End retraction length: "
-msgstr ""
+msgstr "End retraction length: "
 
 msgid "mm/mm"
-msgstr ""
+msgstr "mm/mm"
 
 msgid "Network lookup"
-msgstr ""
+msgstr "Network lookup"
 
 msgid "Address"
-msgstr ""
+msgstr "Address"
 
 msgid "Hostname"
-msgstr ""
+msgstr "Hostname"
 
 msgid "Service name"
-msgstr ""
+msgstr "Service name"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "OctoPrint version"
 
 msgid "Searching for devices"
-msgstr ""
+msgstr "Searching for devices"
 
 msgid "Finished"
 msgstr "Terminé"
 
 msgid "Send to print"
-msgstr ""
+msgstr "Send to print"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "Upload to Printer Host with the following filename:"
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
+msgstr "Use forward slashes ( / ) as a directory separator if needed."
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
+msgstr "Filename to upload doesn't end with \"%s\". Do you want to continue?"
 
 msgid "Simulate"
-msgstr ""
+msgstr "Simulate"
 
 msgid "Print host upload queue"
-msgstr ""
+msgstr "Print host upload queue"
 
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 msgid "Progress"
-msgstr ""
+msgstr "Progress"
 
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 msgctxt "OfFile"
 msgid "Size"
-msgstr ""
+msgstr "Size of file"
 
 msgid "Filename"
-msgstr ""
+msgstr "Filename"
 
 msgid "Error Message"
-msgstr ""
+msgstr "Error Message"
 
 msgid "Cancel selected"
-msgstr ""
+msgstr "Cancel selected"
 
 msgid "Show error message"
-msgstr ""
+msgstr "Show error message"
 
 msgid "Enqueued"
-msgstr ""
+msgstr "Queued"
 
 msgid "Uploading"
 msgstr "Téléversement"
 
 msgid "Cancelling"
-msgstr ""
+msgstr "Canceling"
 
 msgid "Error uploading to print host:"
-msgstr ""
+msgstr "Error uploading to print host:"
 
 msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
+msgstr "Unable to perform boolean operation on selected parts"
 
 msgid "Mesh Boolean"
-msgstr ""
+msgstr "Mesh Boolean"
 
 msgid "Union"
-msgstr ""
+msgstr "Union"
 
 msgid "Difference"
-msgstr ""
+msgstr "Difference"
 
 msgid "Intersection"
-msgstr ""
+msgstr "Intersection"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "Source Volume"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "Tool Volume"
 
 msgid "selected"
-msgstr ""
+msgstr "selected"
 
 msgid "Part 1"
-msgstr ""
+msgstr "Part 1"
 
 msgid "Subtract from"
-msgstr ""
+msgstr "Subtract from"
 
 msgid "Part 2"
-msgstr ""
+msgstr "Part 2"
 
 msgid "Subtract with"
-msgstr ""
+msgstr "Subtract with"
 
 msgid "Delete input"
-msgstr ""
+msgstr "Delete input"
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -10890,98 +11080,14 @@ msgstr ""
 "Saviez-vous que vous pouvez définir un plus grand nombre de périmètre et une "
 "densité de remplissage plus élevée pour améliorer la résistance du modèle ?"
 
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "Load shape from STL..."
-#~ msgstr "Charger une forme depuis un STL..."
-
-#~ msgid "Cali"
-#~ msgstr "Calib."
-
-#~ msgid "Calibration of extrusion"
-#~ msgstr "Calibration de l'extrusion"
-
-#~ msgid "Push new filament into the extruder"
-#~ msgstr "Poussez le nouveau filament dans l'extrudeur"
-
-#~ msgid "Resonance frequency identification"
-#~ msgstr "Identification de la fréquence de résonance"
-
-#~ msgid "Immediately score"
-#~ msgstr "Noter immédiatement"
-
-#~ msgid "Please give a score for your favorite Bambu Market model."
-#~ msgstr "Veuillez attribuer une note à votre modèle Bambu Market préféré."
-
-#~ msgid "Score"
-#~ msgstr "Note"
-
-#~ msgid "Bamabu High Temperature Plate"
-#~ msgstr "Plaque Haute Température Bambu"
-
-#~ msgid "Can't connect to the printer"
-#~ msgstr "Impossible de se connecter à l'imprimante"
-
-#~ msgid "High Temp Plate"
-#~ msgstr "Plaque haute température"
+#~ msgid "Bamabu Engineering Plate"
+#~ msgstr "Plaque Engineering Bambu"
 
 #~ msgid ""
-#~ "Bed temperature when high temperature plate is installed. Value 0 means "
-#~ "the filament does not support to print on the High Temp Plate"
+#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
 #~ msgstr ""
-#~ "Il s'agit de la température du plateau lorsque le plateau haute "
-#~ "température (\"Cool plate\") est installé. Une valeur à 0 signifie que ce "
-#~ "filament ne peut pas être imprimé sur le plateau haute température."
-
-#~ msgid "Orient the model"
-#~ msgstr "Orienter le modèle"
-
-#~ msgid ""
-#~ "Use only one wall on flat top surface, to give more space to the top "
-#~ "infill pattern"
-#~ msgstr ""
-#~ "N'utilisez qu'un seul mur sur les surfaces supérieures planes, afin de "
-#~ "donner plus d'espace au motif de remplissage supérieur."
-
-#~ msgid "Nozzle HRC"
-#~ msgstr "Dureté HRC buse"
-
-#~ msgid ""
-#~ "The nozzle's hardness. Zero means no checking for nozzle's hardness "
-#~ "during slicing."
-#~ msgstr ""
-#~ "La dureté de la buse. Zéro signifie qu'il n'est pas nécessaire de "
-#~ "vérifier la dureté de la buse pendant le tranchage."
-
-#~ msgid "HRC"
-#~ msgstr "HRC"
-
-#~ msgid ""
-#~ "Detect the overhang percentage relative to line width and use different "
-#~ "speed to print. For 100%% overhang, bridge speed is used."
-#~ msgstr ""
-#~ "Détectez le pourcentage de surplomb par rapport à la largeur de la ligne "
-#~ "et utilisez une vitesse différente pour imprimer. Pour un surplomb de 100%"
-#~ "% la vitesse du pont est utilisée."
-
-#~ msgid "Pause Print"
-#~ msgstr "Pause d'impression"
-
-#~ msgid "Edit Pause Print Message"
-#~ msgstr "Modifier le message de pause"
-
-#~ msgid "Delete Pause Print"
-#~ msgstr "Supprimer la Pause"
-
-#~ msgid "Factors of dynamic flow cali"
-#~ msgstr "Calibration des facteurs de flux dynamique"
-
-#~ msgid "Flow Calibration"
-#~ msgstr "Calibration du débit"
+#~ "La valeur max_accel_to_decel de Klipper va être ajustée à ce % de "
+#~ "l'accélération."
 
 #~ msgid ""
 #~ "\n"
@@ -11005,8 +11111,44 @@ msgstr ""
 #~ msgid "0%"
 #~ msgstr "0%"
 
+#~ msgid "1120x480"
+#~ msgstr "1120x480"
+
+#~ msgid "1120x540"
+#~ msgstr "1120x540"
+
+#~ msgid "1120x640"
+#~ msgstr "1120x640"
+
+#~ msgid "1120x720"
+#~ msgstr "1120x720"
+
+#~ msgid "1280x720"
+#~ msgstr "1280x720"
+
+#~ msgid "1680x1080"
+#~ msgstr "1680x1080"
+
+#~ msgid "1680x720"
+#~ msgstr "1680x720"
+
+#~ msgid "1680x840"
+#~ msgstr "1680x840"
+
+#~ msgid "1680x960"
+#~ msgstr "1680x960"
+
+#~ msgid "1920x1080"
+#~ msgstr "1920x1080"
+
 #~ msgid "3D Models"
 #~ msgstr "Modèles 3D"
+
+#~ msgid "640x480"
+#~ msgstr "640x480"
+
+#~ msgid "AMS-Extra"
+#~ msgstr "AMS-Extra"
 
 #~ msgid "AMSMaterialsSetting"
 #~ msgstr "Réglage des matériaux AMS"
@@ -11024,6 +11166,9 @@ msgstr ""
 
 #~ msgid "AWS host"
 #~ msgstr "Hôte AWS"
+
+#~ msgid "Acivate for better air filtration"
+#~ msgstr "Activez pour une meilleure filtration de l'air"
 
 #~ msgid "Actual Volume = Flushing Volume * Multiplier"
 #~ msgstr "Volume Réel = Volume de Rinçage * Multiplicateur"
@@ -11086,6 +11231,9 @@ msgstr ""
 #~ msgid "Aux Cooling"
 #~ msgstr "Refroidissement auxiliaire"
 
+#~ msgid "Auxiliary"
+#~ msgstr "Auxiliary"
+
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Évitez de traverser le mur lors des déplacements"
 
@@ -11094,6 +11242,12 @@ msgstr ""
 
 #~ msgid "Backup interval"
 #~ msgstr "Intervalle de sauvegarde"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Plaque Haute Température Bambu"
+
+#~ msgid "Bambu Network plug-in not detected."
+#~ msgstr "Le plug-in Bambu Network n'a pas été détecté."
 
 #~ msgid ""
 #~ "Bed exclude area that can't used as printable area in X-Y plane. For "
@@ -11107,6 +11261,9 @@ msgstr ""
 #~ "est exprimée sous forme de polygone par des points au format suivant : "
 #~ "\"XxY, XxY, …\""
 
+#~ msgid "Bed temperature difference"
+#~ msgstr "Différence de température du lit"
+
 #~ msgid ""
 #~ "Bed temperature is higher than vitrification temperature of this "
 #~ "filament.\n"
@@ -11116,11 +11273,49 @@ msgstr ""
 #~ "ce filament. Cela peut entraîner le blocage de la buse et l'échec de "
 #~ "l'impression"
 
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "La température du lit est supérieure à la température de vitrification de "
+#~ "ce filament.\n"
+#~ "Cela peut provoquer un blocage de la buse et une défaillance de "
+#~ "l'impression.\n"
+#~ "Veuillez laisser l'imprimante ouverte pendant le processus d'impression "
+#~ "afin de garantir la circulation de l'air ou de réduire la température du "
+#~ "plateau."
+
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "La température du plateau des autres couches est inférieure à la "
+#~ "température du plateau de la couche initiale de plus de %d degrés. Cela "
+#~ "peut entraîner la séparation du modèle du plateau pendant l'impression"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "Il s'agit de la température du plateau lorsque le plateau haute "
+#~ "température (\"Cool plate\") est installé. Une valeur à 0 signifie que ce "
+#~ "filament ne peut pas être imprimé sur le plateau haute température."
+
+#~ msgid "Between Object Gcode"
+#~ msgstr "G-code entre Objets"
+
 #~ msgid "Bottom Minimum Shell Thickness"
 #~ msgstr "Épaisseur minimale de la coque inférieure"
 
 #~ msgid "Bottom Solid Layers"
 #~ msgstr "Couches solides inférieures"
+
+#~ msgid "Cali"
+#~ msgstr "Calib."
 
 #~ msgid ""
 #~ "Calibration completed. Please select the factors according to the left "
@@ -11128,6 +11323,12 @@ msgstr ""
 #~ msgstr ""
 #~ "Calibration terminé. Sélectionnez les facteurs en fonction de la figure "
 #~ "de gauche et remplissez-les dans les zones de saisie."
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "Calibration de l'extrusion"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "Impossible de se connecter à l'imprimante"
 
 #~ msgid ""
 #~ "Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the "
@@ -11155,6 +11356,9 @@ msgstr ""
 #~ "Rayon de dégagement autour de l'extrudeuse. Utilisé comme entrée de "
 #~ "l'auto-arrangement pour éviter les collisions lors de l'impression objet "
 #~ "par objet"
+
+#~ msgid "Click here to download it."
+#~ msgstr "Cliquez ici pour le télécharger."
 
 #~ msgid "Click the pencil icon to edit the filament."
 #~ msgstr "Cliquez sur l'icône du crayon pour modifier le filament."
@@ -11189,6 +11393,12 @@ msgstr ""
 #~ msgid "Debug"
 #~ msgstr "Déboguer"
 
+#~ msgid "Decide whether support activating air filtration"
+#~ msgstr "Permet d'activer la prise en charge de la filtration de l’air"
+
+#~ msgid "Delete Pause Print"
+#~ msgstr "Supprimer la Pause"
+
 #~ msgid ""
 #~ "Desiccant status lower than two bars indicates that desiccant can be "
 #~ "inactive. Please change the desiccant.(Higher the better)"
@@ -11199,6 +11409,14 @@ msgstr ""
 
 #~ msgid "Designer"
 #~ msgstr "Concepteur"
+
+#~ msgid ""
+#~ "Detect the overhang percentage relative to line width and use different "
+#~ "speed to print. For 100%% overhang, bridge speed is used."
+#~ msgstr ""
+#~ "Détectez le pourcentage de surplomb par rapport à la largeur de la ligne "
+#~ "et utilisez une vitesse différente pour imprimer. Pour un surplomb de 100%"
+#~ "% la vitesse du pont est utilisée."
 
 #~ msgid "Device:"
 #~ msgstr "Appareil:"
@@ -11249,6 +11467,16 @@ msgstr ""
 #~ "de se détacher."
 
 #~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Il n'est pas recommandé que la température du plateau des autres couches "
+#~ "soit inférieure à celle de la première couche d'un niveau supérieur à ce "
+#~ "seuil. Une température de base trop basse de l'autre couche peut "
+#~ "provoquer le détachement du modèle."
+
+#~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
 #~ "Contains the following information:\n"
 #~ "1. The Process presets\n"
@@ -11289,8 +11517,17 @@ msgstr ""
 #~ msgid "Dump video"
 #~ msgstr "Vider la vidéo"
 
+#~ msgid "Edit Pause Print Message"
+#~ msgstr "Modifier le message de pause"
+
 #~ msgid "Edit plate setitngs"
 #~ msgstr "Modifier les réglages de la plaque"
+
+#~ msgid ""
+#~ "Enable this option if machine support controlling chamber temperature"
+#~ msgstr ""
+#~ "Activez cette option si votre machine prend en charge le contrôle de la "
+#~ "température de la chambre"
 
 #~ msgid ""
 #~ "Enabling this option means the height of every layer except the first "
@@ -11304,6 +11541,9 @@ msgstr ""
 #~ "de la surface du modèle.\n"
 #~ "Veuillez noter que cette option ne prend effet que s'il n'y a pas de tour "
 #~ "de nettoyage générée sur le plateau actuel."
+
+#~ msgid "End of print"
+#~ msgstr "Fin d'impression"
 
 #~ msgid "Engineering plate"
 #~ msgstr "Plaque Engineering"
@@ -11347,6 +11587,9 @@ msgstr ""
 #~ msgstr ""
 #~ "L'étalonnage de la compensation d'extrusion n'est pas pris en charge lors "
 #~ "de l'utilisation de la plaque PEI texturée."
+
+#~ msgid "Factors of dynamic flow cali"
+#~ msgstr "Calibration des facteurs de flux dynamique"
 
 #~ msgid ""
 #~ "Failed to connect to the printer through LAN. Please enter the correct "
@@ -11454,6 +11697,9 @@ msgstr ""
 #~ msgid "Fix model through cloud"
 #~ msgstr "Correction du modèle via le cloud"
 
+#~ msgid "Flow Calibration"
+#~ msgstr "Calibration du débit"
+
 #~ msgid "Flushed filament"
 #~ msgstr "Filament purgé"
 
@@ -11487,6 +11733,9 @@ msgstr ""
 #~ "l'orange et le rouge indiquent que l'humidité est trop élevée. (plus "
 #~ "c'est bas, mieux c'est)"
 
+#~ msgid "HRC"
+#~ msgstr "HRC"
+
 #~ msgid ""
 #~ "Heat the nozzle to target \n"
 #~ "temperature"
@@ -11506,6 +11755,9 @@ msgstr ""
 #~ "entrée de l'auto-arrangement pour éviter les collisions lors de "
 #~ "l'impression objet par objet"
 
+#~ msgid "High Temp Plate"
+#~ msgstr "Plaque haute température"
+
 #~ msgid ""
 #~ "If enabled, a timelapse video will be generated for each print. After "
 #~ "each layer is printed, the toolhead will move to the excess chute, and "
@@ -11521,6 +11773,9 @@ msgstr ""
 #~ "l'impression terminée. Étant donné que le filament fondu peut s'échapper "
 #~ "de la buse lors de la prise de vue, une tour de nettoyage est requise "
 #~ "pour essuyer la buse."
+
+#~ msgid "Immediately score"
+#~ msgstr "Noter immédiatement"
 
 #~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
 #~ msgstr "Importer 3MF/STL/STEP/OBJ/AMF"
@@ -11551,6 +11806,13 @@ msgstr ""
 
 #~ msgid "Inner wall speed"
 #~ msgstr "Vitesse de la paroi intérieure"
+
+#~ msgid ""
+#~ "Insert Gcode between objects. This parameter will only come into effect "
+#~ "when you print your models object by object"
+#~ msgstr ""
+#~ "Insérez le G-code entre les objets. Ce paramètre n'entre en vigueur que "
+#~ "lorsque vous imprimez vos modèles Objet par Objet."
 
 #~ msgid ""
 #~ "It seems object %s has completely floating regions. Please re-orient the "
@@ -11601,6 +11863,9 @@ msgstr ""
 
 #~ msgid "Line type"
 #~ msgstr "Type de ligne"
+
+#~ msgid "Load shape from STL..."
+#~ msgstr "Charger une forme depuis un STL..."
 
 #~ msgid "Loading user presets..."
 #~ msgstr "Chargement des préréglages utilisateur..."
@@ -11660,6 +11925,9 @@ msgstr ""
 #~ "Remarque : L'emplacement de l'IP et du code d'accès sur la machine est le "
 #~ "suivant :"
 
+#~ msgid "Nozzle HRC"
+#~ msgstr "Dureté HRC buse"
+
 #~ msgid ""
 #~ "One object has empty initial layer and can't be printed. Please Cut the "
 #~ "bottom or enable supports."
@@ -11672,6 +11940,12 @@ msgstr ""
 
 #~ msgid "Open PrusaSlicer"
 #~ msgstr "Ouvrir PrusaSlicer"
+
+#~ msgid "Orca Tolerance Test"
+#~ msgstr "Orca Tolerance Test"
+
+#~ msgid "Orient the model"
+#~ msgstr "Orienter le modèle"
 
 #~ msgid "Output file"
 #~ msgstr "Fichier de sortie"
@@ -11687,6 +11961,13 @@ msgstr ""
 #~ msgid "Part Cooling"
 #~ msgstr "Refroidissement des pièces"
 
+#~ msgid ""
+#~ "Part of the calibration failed! You may clean the plate and retry. The "
+#~ "failed test result would be dropped."
+#~ msgstr ""
+#~ "Une partie de l'étalonnage a échoué ! Il peut être nécessaire de nettoyer "
+#~ "la plaque et de réessayer. Le résultat du test échoué sera effacé."
+
 #~ msgid "Pause(heated bed temperature error)"
 #~ msgstr "Pause (erreur de température du plateau chauffant)"
 
@@ -11695,6 +11976,9 @@ msgstr ""
 
 #~ msgid "Pause(toolhead shell off)"
 #~ msgstr "Pause (Protection de la tête d'impression absente)"
+
+#~ msgid "Pause Print"
+#~ msgstr "Pause d'impression"
 
 #~ msgid "Per object edit"
 #~ msgstr "Modification par objet"
@@ -11736,6 +12020,9 @@ msgstr ""
 
 #~ msgid "Please fill report first."
 #~ msgstr "Veuillez d'abord remplir le rapport."
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Veuillez attribuer une note à votre modèle Bambu Market préféré."
 
 #~ msgid "Please log out and login to the printer again."
 #~ msgstr "Veuillez vous déconnecter et vous reconnecter à l'imprimante."
@@ -11790,6 +12077,9 @@ msgstr ""
 #~ msgid "Printing List"
 #~ msgstr "Liste d'impression"
 
+#~ msgid "Printing by object G-code"
+#~ msgstr "G-code en Impression par object"
+
 #~ msgid ""
 #~ "Purging after filament change will be done inside objects' infills. This "
 #~ "may lower the amount of waste and decrease the print time. If the walls "
@@ -11813,6 +12103,12 @@ msgstr ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr "Poussez le nouveau filament dans l'extruder"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Poussez le nouveau filament dans l'extrudeur"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Plage de température recommandée"
 
 #~ msgid ""
 #~ "Record timelapse video of printing without showing toolhead. In this mode "
@@ -11845,11 +12141,17 @@ msgstr ""
 #~ msgid "Report"
 #~ msgstr "Signaler"
 
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Identification de la fréquence de résonance"
+
 #~ msgid "Rotation:"
 #~ msgstr "Rotation :"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Enregistrer la configuration sous :"
+
+#~ msgid "Score"
+#~ msgstr "Note"
 
 #~ msgid "Select Bed Type"
 #~ msgstr "Sélectionnez le type de plateau"
@@ -11895,6 +12197,9 @@ msgstr ""
 
 #~ msgid "Spaghetti and Excess Chute Pileup Detection"
 #~ msgstr "Détection des Amas de goulotte d'évacuation et Spaghetti"
+
+#~ msgid "Speed of exhuast fan before printing completes"
+#~ msgstr "Vitesse du ventilateur d'extraction avant la fin de l'impression"
 
 #~ msgid "Spiral mode"
 #~ msgstr "Mode spirale"
@@ -11990,6 +12295,9 @@ msgstr ""
 #~ msgid "Sync material list from AMS"
 #~ msgstr "Synchroniser la liste des matériaux depuis AMS"
 
+#~ msgid "Target chamber temperature"
+#~ msgstr "Température cible de la chambre"
+
 #~ msgid "The %s filament is too soft to be used with the AMS"
 #~ msgstr "Le filament %s est trop souple pour être utilisé avec l'AMS"
 
@@ -12022,6 +12330,9 @@ msgstr ""
 #~ "L'imprimante P1P ne prend pas en charge le timelapse fluide, veuillez "
 #~ "plutôt utiliser le timelapse traditionnel."
 
+#~ msgid "The failed test result has been dropped."
+#~ msgstr "Le résultat du test ayant échoué a été supprimé."
+
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
 #~ "latest version before sending the print job"
@@ -12044,6 +12355,13 @@ msgstr ""
 #~ msgstr ""
 #~ "La vitesse d'impression minimale lors du ralentissement pour le "
 #~ "refroidissement"
+
+#~ msgid ""
+#~ "The nozzle's hardness. Zero means no checking for nozzle's hardness "
+#~ "during slicing."
+#~ msgstr ""
+#~ "La dureté de la buse. Zéro signifie qu'il n'est pas nécessaire de "
+#~ "vérifier la dureté de la buse pendant le tranchage."
 
 #~ msgid ""
 #~ "The print file exceeds the maximum allowable size (1GB). Please simplify "
@@ -12117,6 +12435,23 @@ msgstr ""
 #~ "volumétrique maximale, en cas de réglage de vitesse trop élevé et "
 #~ "déraisonnable. Zéro signifie pas de limite"
 
+#~ msgid ""
+#~ "This slicer file version %s is newer than %s's version.\n"
+#~ "\n"
+#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "functionality in this slicer file?"
+#~ msgstr ""
+#~ "La version %s de ce fichier tranché est plus récente que la version de "
+#~ "%s.\n"
+#~ "\n"
+#~ "Souhaitez-vous mettre à jour votre logiciel Bambu Studio pour activer "
+#~ "toutes les fonctionnalités de ce fichier?"
+
+#~ msgid "This slicer file version %s is newer than %s's version:"
+#~ msgstr ""
+#~ "La version %s de ce fichier tranché est plus récente que la version de "
+#~ "%s :"
+
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse tour de purge"
 
@@ -12146,6 +12481,13 @@ msgstr ""
 #~ msgstr ""
 #~ "La tâche de téléversement a expirée. Veuillez vérifier le réseau et "
 #~ "réessayer"
+
+#~ msgid ""
+#~ "Use only one wall on flat top surface, to give more space to the top "
+#~ "infill pattern"
+#~ msgstr ""
+#~ "N'utilisez qu'un seul mur sur les surfaces supérieures planes, afin de "
+#~ "donner plus d'espace au motif de remplissage supérieur."
 
 #~ msgid "User authorization timeout"
 #~ msgstr "Expiration de l’autorisation utilisateur"
@@ -12200,6 +12542,13 @@ msgstr ""
 #~ "supports nous recommandons les paramètres suivants :\n"
 #~ "0 distance supérieure à Z, 0 espacement entre les interfaces, motif "
 #~ "concentrique."
+
+#~ msgid ""
+#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "functionality in this slicer file?\n"
+#~ msgstr ""
+#~ "Souhaitez-vous mettre à jour votre logiciel Bambu Studio pour activer "
+#~ "toutes les fonctionnalités de ce fichier tranché?\n"
 
 #~ msgid "Wrong Access code"
 #~ msgstr "Code d'accès erroné"
@@ -12278,6 +12627,11 @@ msgstr ""
 #~ "générer automatiquement un support. Si l'option Normaux ou Arborescents "
 #~ "est sélectionné, seuls les générateurs de supports sont créés."
 
+#~ msgid "open exhuast fan x seconds before printing completes"
+#~ msgstr ""
+#~ "Allumez le ventilateur d'extraction x secondes avant la fin de "
+#~ "l'impression"
+
 #~ msgid "preparing, export 3mf failed!"
 #~ msgstr "préparation ; échec de l'exportation de 3mf!"
 
@@ -12288,3 +12642,11 @@ msgstr ""
 
 #~ msgid "tree"
 #~ msgstr "arborescent"
+
+#~ msgid ""
+#~ "you can always update Bambu Studio at your convenience. The slicer file "
+#~ "will now be loaded without full functionality."
+#~ msgstr ""
+#~ "Vous pouvez mettre à jour Bambu Studio quand vous le souhaitez. Le "
+#~ "fichier tranché sera cependant chargé sans toutes les fonctionnalités "
+#~ "existantes."
