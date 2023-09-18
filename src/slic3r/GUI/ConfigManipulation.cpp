@@ -475,6 +475,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    
+    if (config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0)
+    {
+        //toggle_field("enable_arc_fitting",false);
+        config->set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
