@@ -102,8 +102,17 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
+    double brim_max = 0;
+    bool plate_has_tree_support = false;
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
-        ap.inflation = params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2;
+        brim_max = std::max(brim_max, ap.brim_width);
+        if (ap.has_tree_support) plate_has_tree_support = true; });
+    std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
+        // 1. if user input a distance, use it
+        // 2. if there is an object with tree support, all objects use the max tree branch radius (brim_max=branch diameter)
+        // 3. otherwise, use each object's own brim width
+        ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
+            plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
         BoundingBox apbb = ap.poly.contour.bounding_box();
         auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
         auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
