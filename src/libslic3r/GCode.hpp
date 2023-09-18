@@ -29,10 +29,6 @@
 #include <set>
 #include <string>
 
-#ifdef HAS_PRESSURE_EQUALIZER
-#include "GCode/PressureEqualizer.hpp"
-#endif /* HAS_PRESSURE_EQUALIZER */
-
 namespace Slic3r {
 
 // Forward declarations.

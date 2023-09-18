@@ -1874,8 +1874,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.config().spiral_mode.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
 
-    if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 || 
-    	print.config().max_volumetric_extrusion_rate_slope_negative.value > 0){
+    if (print.config().max_volumetric_extrusion_rate_slope.value > 0){
     		m_pressure_equalizer = make_unique<PressureEqualizer>(print.config());
     		m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
     } else
@@ -2599,8 +2598,6 @@ void GCode::process_layers(
                     ++layer_to_print_idx;
                     return LayerResult::make_nop_layer_result();
                 }
-                //fc.stop();
-                //return {};
             } else {
                 const std::pair<coordf_t, std::vector<LayerToPrint>>& layer = layers_to_print[layer_to_print_idx++];
                 const LayerTools& layer_tools = tool_ordering.tools_for_layer(layer.first);

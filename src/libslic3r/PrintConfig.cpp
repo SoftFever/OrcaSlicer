@@ -2470,23 +2470,21 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
-    def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
-    def->label = L("Max volumetric slope positive");
-    def->tooltip = L("This experimental setting is used to limit the speed of change in extrusion rate. "
-                   "A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
-                   "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
-                   "to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds.");
-    def->sidetext = L("mm³/s²");
-    def->min = 0;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
-
-    def = this->add("max_volumetric_extrusion_rate_slope_negative", coFloat);
-    def->label = L("Max volumetric slope negative");
-    def->tooltip = L("This experimental setting is used to limit the speed of change in extrusion rate. "
-                   "A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
-                   "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
-                   "to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds.");
+    def = this->add("max_volumetric_extrusion_rate_slope", coFloat);
+    def->label = L("Extrusion rate smoothing");
+    def->tooltip = L("This parameter smooths out sudden extrusion rate changes that happen when " 
+    				 "the printer transitions from printing a high flow (high speed/larger width) "
+    				 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice versa.\n\n"
+    				 "It defines the maximum rate by which the extruded volumetric flow in mm3/sec can change over time. "
+    				 "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
+    				 "A value of 0 disables the feature. \n\n"
+    				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) a sensible value is around "
+    				 "5x to 10x the maximum volumetric flow rate the hot end is capable off under ideal conditions. This allows "
+    				 "for just enough smoothing to assist pressure advance in areas where sudden flow changes happen. A value of "
+    				 "250-300 is a good starting point.\n\n"
+    				 "For slower printers without pressure advance, the value should be set much lower. A value of 10-15 is a "
+    				 "good starting point for direct drive extruders and 2-3 for Bowden style. \n\n"
+    				 "Note: this parameter disables arc fitting.");
     def->sidetext = L("mm³/s²");
     def->min = 0;
     def->mode = comAdvanced;
@@ -4960,9 +4958,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
         "bed_size",
         "print_center", "g0", "wipe_tower_per_color_wipe"
-#ifndef HAS_PRESSURE_EQUALIZER
-        , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
-#endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_collision_resolution", "tree_support_with_infill",
