@@ -35,6 +35,7 @@ void ProjectDirtyStateManager::update_from_presets()
                 if (ConfigOption *color_option = wxGetApp().preset_bundle->project_config.option("filament_colour")) {
                     auto colors = static_cast<ConfigOptionStrings *>(color_option->clone());
                     m_presets_dirty |= m_initial_filament_presets_colors != colors->values;
+                    delete colors;
                 }
             } else {
                 m_presets_dirty |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
@@ -66,6 +67,7 @@ void ProjectDirtyStateManager::reset_initial_presets()
             if (ConfigOption *color_option = wxGetApp().preset_bundle->project_config.option("filament_colour")) {
                 auto colors = static_cast<ConfigOptionStrings *>(color_option->clone());
                 m_initial_filament_presets_colors = colors->values;
+                delete colors;
             }
         } else {
             m_initial_presets[type] = name;

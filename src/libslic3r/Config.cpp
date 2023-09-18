@@ -308,6 +308,7 @@ ConfigOption* ConfigOptionDef::create_default_option() const
                 opt->keys_map = this->enum_keys_map;
                 return opt;
             }
+            delete dft;
         }
 
         return this->default_value->clone();
