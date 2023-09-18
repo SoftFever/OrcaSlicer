@@ -100,7 +100,7 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
     return get_half_size(size) * DraggingScaleFactor;
 }
 
-const GLModel& GLGizmoBase::Grabber::get_cube() const
+GLModel& GLGizmoBase::Grabber::get_cube()
 {
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet

@@ -265,6 +265,27 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     return true;
 }
 
+void GLGizmoAdvancedCut::render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
+{
+    glPushMatrix();
+    GLShaderProgram *shader = nullptr;
+    if (for_picking)
+        shader = wxGetApp().get_shader("cali");
+    else
+        shader = wxGetApp().get_shader("gouraud_light");
+    if (shader) {
+        shader->start_using();
+
+        glsafe(::glMultMatrixd(view_model_matrix.data()));
+
+        model.set_color(-1, color);
+        model.render();
+
+        shader->stop_using();
+    }
+    glPopMatrix();
+}
+
 void GLGizmoAdvancedCut::update_plane_points()
 {
     Vec3d plane_center = get_plane_center();
@@ -565,7 +586,7 @@ void GLGizmoAdvancedCut::on_render_for_picking()
 
 
         std::array<float, 4> color = picking_color_component(i+1);
-        render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
+        render_glmodel(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
     }
 }
 
@@ -926,7 +947,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     else
         render_color = GrabberColor;
 
-    const GLModel &cube = m_move_grabber.get_cube();
+    GLModel& cube = m_move_grabber.get_cube();
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
     float fullsize = 8.0f;
@@ -934,18 +955,11 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
     }
 
-    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
-    glsafe(::glMultMatrixd(m_rotate_matrix.data()));
-
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
-    cube.render();
-    glsafe(::glPopMatrix());
+    Transform3d cube_mat = Geometry::translation_transform(m_move_grabber.center) * m_rotate_matrix * Geometry::scale_transform(fullsize); //
+    render_glmodel(cube, render_color, cube_mat);
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
-    set_center(m_cut_plane_center);
+    GLGizmoRotate3D::set_center(m_cut_plane_center);
     GLGizmoRotate3D::on_render();
 }
 
@@ -1009,7 +1023,7 @@ void GLGizmoAdvancedCut::render_connectors()
 
         const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        render_connector_model(m_shapes[connector.attribs], render_color, view_model_matrix);
+        render_glmodel(m_shapes[connector.attribs], render_color, view_model_matrix);
     }
 }
 
@@ -1034,27 +1048,6 @@ void GLGizmoAdvancedCut::render_cut_line()
     ::glVertex3dv(m_cut_line_end.data());
     glsafe(::glEnd());
     glDisable(GL_LINE_STIPPLE);
-}
-
-void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
-{
-    glPushMatrix();
-    GLShaderProgram *shader = nullptr;
-    if (for_picking)
-        shader = wxGetApp().get_shader("cali");
-    else
-        shader = wxGetApp().get_shader("gouraud_light");
-    if (shader) {
-        shader->start_using();
-
-        glsafe(::glMultMatrixd(view_model_matrix.data()));
-
-        model.set_color(-1, color);
-        model.render();
-
-        shader->stop_using();
-    }
-    glPopMatrix();
 }
 
 void GLGizmoAdvancedCut::clear_selection()

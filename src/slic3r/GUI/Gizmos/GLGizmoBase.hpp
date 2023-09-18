@@ -77,7 +77,7 @@ protected:
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
-        const GLModel& get_cube() const;
+        GLModel& get_cube();
 
     private:
         void render(float size, const std::array<float, 4>& render_color, bool picking) const;

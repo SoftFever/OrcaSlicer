@@ -135,9 +135,9 @@ public:
     bool is_looking_forward() const;
 
     bool unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &pos, Vec3d &pos_world);
-    
-    virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
+    virtual bool apply_clipping_plane() { return m_connectors_editing; }
+    static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false);
 protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive &ar) override;
@@ -204,7 +204,6 @@ private:
     void render_connectors();
     void render_clipper_cut();
     void render_cut_line();
-    void render_connector_model(GLModel &model, const std::array<float, 4>& color, Transform3d view_model_matrix, bool for_picking = false);
 
     void clear_selection();
     void init_connector_shapes();
