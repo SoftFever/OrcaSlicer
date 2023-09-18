@@ -188,9 +188,9 @@ void OrientJob::process(Ctl &ctl)
         << "Orientation: " << m_selected.back().orientation.transpose() << "; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle << "; euler: " << m_selected.back().euler_angles.transpose();
 
     // finalize just here.
-    //update_status(int(count),
-    //    was_canceled() ? _(L("Orienting canceled."))
-    //    : _(L(ss.str().c_str())));
+    ctl.update_status(100,
+        ctl.was_canceled() ? _u8L("Orienting canceled.")
+        : _u8L(ss.str().c_str()));
     wxGetApp().plater()->show_status_message(ctl.was_canceled() ? "Orienting canceled." : ss.str());
 }
 

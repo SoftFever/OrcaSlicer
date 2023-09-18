@@ -52,8 +52,8 @@ void RotoptimizeJob::prepare()
 void RotoptimizeJob::process(Ctl &ctl)
 {
     int prev_status = 0;
-    //auto statustxt = _u8L("Searching for optimal orientation");
-    //ctl.update_status(0, statustxt);
+    auto statustxt = _u8L("Searching for optimal orientation");
+    ctl.update_status(0, statustxt);
 
     auto params =
         sla::RotOptimizeParams{}
@@ -82,8 +82,8 @@ void RotoptimizeJob::process(Ctl &ctl)
         if (ctl.was_canceled()) break;
     }
 
-    // ctl.update_status(100, ctl.was_canceled() ? _(L("Orientation search canceled.")) :
-    //                                     _(L("Orientation found.")));
+    ctl.update_status(100, ctl.was_canceled() ? _u8L("Orientation search canceled.") :
+                                        _u8L("Orientation found."));
 }
 
 RotoptimizeJob::RotoptimizeJob() : m_plater{wxGetApp().plater()} { prepare(); }

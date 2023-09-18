@@ -231,7 +231,7 @@ void FillBedJob::process(Ctl &ctl)
 
     params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(int(m_status_range - st) * 100 / status_range(), statustxt);
+             ctl.update_status(st * 100 / status_range(), statustxt);
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
@@ -243,7 +243,7 @@ void FillBedJob::process(Ctl &ctl)
     arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 
     // finalize just here.
-    ctl.update_status(m_status_range, ctl.was_canceled() ?
+    ctl.update_status(100, ctl.was_canceled() ?
                                        _u8L("Bed filling canceled.") :
                                        _u8L("Bed filling done."));
 }
