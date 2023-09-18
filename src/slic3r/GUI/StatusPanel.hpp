@@ -178,6 +178,7 @@ private:
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
     wxStaticText*   m_staticText_layers;
+    wxStaticText *  m_has_rated_prompt;
     wxStaticBitmap* m_bitmap_thumbnail;
     wxStaticBitmap* m_bitmap_static_use_time;
     wxStaticBitmap* m_bitmap_static_use_weight;
@@ -229,6 +230,7 @@ public:
     std::vector<ScalableButton *> &get_score_star() { return m_score_star; }
     bool get_star_count_dirty() { return m_star_count_dirty; }
     void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
+    void                           set_has_reted_text(bool has_rated);
 
 };
 

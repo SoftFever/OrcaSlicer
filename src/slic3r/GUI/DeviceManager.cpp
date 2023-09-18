@@ -4381,7 +4381,7 @@ int MachineObject::parse_json(std::string payload)
                                 if (it->contains("confidence")) {
                                     flow_ratio_calib_result.confidence = (*it)["confidence"].get<int>();
                                 } else {
-                                    flow_ratio_calib_result.confidence = 0;
+                                    flow_ratio_calib_result.confidence = 0; 
                                 }
 
                                 flow_ratio_results.push_back(flow_ratio_calib_result);
