@@ -848,6 +848,7 @@ public:
     // It contains information about connetors
     struct CutInfo
     {
+        bool             is_from_upper{true};
         bool             is_connector{false};
         bool             is_processed{true};
         CutConnectorType connector_type{CutConnectorType::Plug};
@@ -864,10 +865,13 @@ public:
 
         void set_processed() { is_processed = true; }
         void invalidate() { is_connector = false; }
-
+        void reset_from_upper() { is_from_upper = true; }
         template<class Archive> inline void serialize(Archive &ar) { ar(is_connector, is_processed, connector_type, radius_tolerance, height_tolerance); }
     };
     CutInfo cut_info;
+
+    bool is_from_upper() const { return cut_info.is_from_upper; }
+    void reset_from_upper() { cut_info.reset_from_upper(); }
 
     bool is_cut_connector() const { return cut_info.is_processed && cut_info.is_connector; }
     void invalidate_cut_info() { cut_info.invalidate(); }
@@ -914,6 +918,7 @@ public:
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
     t_model_material_id material_id() const { return m_material_id; }
     void                set_material_id(t_model_material_id material_id);
+    void                reset_extra_facets();
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
     // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.

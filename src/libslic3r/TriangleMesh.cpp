@@ -8,6 +8,7 @@
 #include "Point.hpp"
 #include "Execution/ExecutionTBB.hpp"
 #include "Execution/ExecutionSeq.hpp"
+#include "CutUtils.hpp"
 #include "Utils.hpp"
 #include "Format/STL.hpp"
 #include <libqhullcpp/Qhull.h>
@@ -1230,6 +1231,325 @@ indexed_triangle_set its_make_snap(double r, double h, float space_proportion, f
 
     add_sub_mesh(mesh, -space_len, halfPI, 0);
     add_sub_mesh(mesh, space_len, 3 * halfPI, (int) mesh.vertices.size());
+
+    return mesh;
+}
+
+indexed_triangle_set its_make_groove_plane(const Groove &cur_groove, float rotate_radius, std::vector<Vec3d> &cur_groove_vertices) {
+    // values for calculation
+    const float side_width  = is_approx(cur_groove.flaps_angle, 0.f) ? cur_groove.depth : (cur_groove.depth / sin(cur_groove.flaps_angle));
+    const float flaps_width = 2.f * side_width * cos(cur_groove.flaps_angle);
+
+    const float groove_half_width_upper = 0.5f * (cur_groove.width);
+    const float groove_half_width_lower = 0.5f * (cur_groove.width + flaps_width);
+
+    const float cut_plane_radius = 1.5f * float(rotate_radius);
+    const float cut_plane_length = 1.5f * cut_plane_radius;
+
+    const float groove_half_depth = 0.5f * cur_groove.depth;
+
+    const float x       = 0.5f * cut_plane_radius;
+    const float y       = 0.5f * cut_plane_length;
+    float       z_upper = groove_half_depth;
+    float       z_lower = -groove_half_depth;
+
+    const float proj = y * tan(cur_groove.angle);
+
+    float ext_upper_x = groove_half_width_upper + proj; // upper_x extension
+    float ext_lower_x = groove_half_width_lower + proj; // lower_x extension
+
+    float nar_upper_x = groove_half_width_upper - proj; // upper_x narrowing
+    float nar_lower_x = groove_half_width_lower - proj; // lower_x narrowing
+
+    const float cut_plane_thiknes = 0.02f; // 0.02f * (float)get_grabber_mean_size(m_bounding_box);   // cut_plane_thiknes
+
+    // Vertices of the groove used to detection if groove is valid
+    // They are written as:
+    // {left_ext_lower, left_nar_lower, left_ext_upper, left_nar_upper,
+    //  right_ext_lower, right_nar_lower, right_ext_upper, right_nar_upper }
+    {
+        cur_groove_vertices.clear();
+        cur_groove_vertices.reserve(8);
+
+        cur_groove_vertices.emplace_back(Vec3f(-ext_lower_x, -y, z_lower).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(-nar_lower_x, y, z_lower).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(-ext_upper_x, -y, z_upper).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(-nar_upper_x, y, z_upper).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(ext_lower_x, -y, z_lower).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(nar_lower_x, y, z_lower).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(ext_upper_x, -y, z_upper).cast<double>());
+        cur_groove_vertices.emplace_back(Vec3f(nar_upper_x, y, z_upper).cast<double>());
+    }
+    // Different cases of groove plane:
+    // groove is open
+    if (groove_half_width_upper > proj && groove_half_width_lower > proj) {
+        indexed_triangle_set mesh;
+
+        auto get_vertices = [x, y](float z_upper, float z_lower, float nar_upper_x, float nar_lower_x, float ext_upper_x, float ext_lower_x) {
+            return std::vector<stl_vertex>({// upper left part vertices
+                                            {-x, -y, z_upper},
+                                            {-x, y, z_upper},
+                                            {-nar_upper_x, y, z_upper},
+                                            {-ext_upper_x, -y, z_upper},
+                                            // lower part vertices
+                                            {-ext_lower_x, -y, z_lower},
+                                            {-nar_lower_x, y, z_lower},
+                                            {nar_lower_x, y, z_lower},
+                                            {ext_lower_x, -y, z_lower},
+                                            // upper right part vertices
+                                            {ext_upper_x, -y, z_upper},
+                                            {nar_upper_x, y, z_upper},
+                                            {x, y, z_upper},
+                                            {x, -y, z_upper}});
+        };
+
+        mesh.vertices = get_vertices(z_upper, z_lower, nar_upper_x, nar_lower_x, ext_upper_x, ext_lower_x);
+        mesh.vertices.reserve(2 * mesh.vertices.size());
+
+        z_upper -= cut_plane_thiknes;
+        z_lower -= cut_plane_thiknes;
+
+        const float under_x_shift = cut_plane_thiknes / tan(0.5f * cur_groove.flaps_angle);
+
+        nar_upper_x += under_x_shift;
+        nar_lower_x += under_x_shift;
+        ext_upper_x += under_x_shift;
+        ext_lower_x += under_x_shift;
+
+        std::vector<stl_vertex> vertices = get_vertices(z_upper, z_lower, nar_upper_x, nar_lower_x, ext_upper_x, ext_lower_x);
+        mesh.vertices.insert(mesh.vertices.end(), vertices.begin(), vertices.end());
+
+        mesh.indices = {// above view
+                        {5, 4, 7},
+                        {5, 7, 6}, // lower part
+                        {3, 4, 5},
+                        {3, 5, 2}, // left side
+                        {9, 6, 8},
+                        {8, 6, 7}, // right side
+                        {1, 0, 2},
+                        {2, 0, 3}, // upper left part
+                        {9, 8, 10},
+                        {10, 8, 11}, // upper right part
+                                     // under view
+                        {20, 21, 22},
+                        {20, 22, 23}, // upper right part
+                        {12, 13, 14},
+                        {12, 14, 15}, // upper left part
+                        {18, 21, 20},
+                        {18, 20, 19}, // right side
+                        {16, 15, 14},
+                        {16, 14, 17}, // left side
+                        {16, 17, 18},
+                        {16, 18, 19}, // lower part
+                                      // left edge
+                        {1, 13, 0},
+                        {0, 13, 12},
+                        // front edge
+                        {0, 12, 3},
+                        {3, 12, 15},
+                        {3, 15, 4},
+                        {4, 15, 16},
+                        {4, 16, 7},
+                        {7, 16, 19},
+                        {7, 19, 20},
+                        {7, 20, 8},
+                        {8, 20, 11},
+                        {11, 20, 23},
+                        // right edge
+                        {11, 23, 10},
+                        {10, 23, 22},
+                        // back edge
+                        {1, 13, 2},
+                        {2, 13, 14},
+                        {2, 14, 17},
+                        {2, 17, 5},
+                        {5, 17, 6},
+                        {6, 17, 18},
+                        {6, 18, 9},
+                        {9, 18, 21},
+                        {9, 21, 10},
+                        {10, 21, 22}};
+        return mesh;
+    }
+
+    float cross_pt_upper_y = groove_half_width_upper / tan(cur_groove.angle);
+    // groove is closed
+
+    if (groove_half_width_upper < proj && groove_half_width_lower < proj) {
+        float cross_pt_lower_y = groove_half_width_lower / tan(cur_groove.angle);
+
+        indexed_triangle_set mesh;
+
+        auto get_vertices = [x, y](float z_upper, float z_lower, float cross_pt_upper_y, float cross_pt_lower_y, float ext_upper_x, float ext_lower_x) {
+            return std::vector<stl_vertex>({// upper part vertices
+                                            {-x, -y, z_upper},
+                                            {-x, y, z_upper},
+                                            {x, y, z_upper},
+                                            {x, -y, z_upper},
+                                            {ext_upper_x, -y, z_upper},
+                                            {0.f, cross_pt_upper_y, z_upper},
+                                            {-ext_upper_x, -y, z_upper},
+                                            // lower part vertices
+                                            {-ext_lower_x, -y, z_lower},
+                                            {0.f, cross_pt_lower_y, z_lower},
+                                            {ext_lower_x, -y, z_lower}});
+        };
+
+        mesh.vertices = get_vertices(z_upper, z_lower, cross_pt_upper_y, cross_pt_lower_y, ext_upper_x, ext_lower_x);
+        mesh.vertices.reserve(2 * mesh.vertices.size());
+
+        z_upper -= cut_plane_thiknes;
+        z_lower -= cut_plane_thiknes;
+
+        const float under_x_shift = cut_plane_thiknes / tan(0.5f * cur_groove.flaps_angle);
+
+        cross_pt_upper_y += cut_plane_thiknes;
+        cross_pt_lower_y += cut_plane_thiknes;
+        ext_upper_x += under_x_shift;
+        ext_lower_x += under_x_shift;
+
+        std::vector<stl_vertex> vertices = get_vertices(z_upper, z_lower, cross_pt_upper_y, cross_pt_lower_y, ext_upper_x, ext_lower_x);
+        mesh.vertices.insert(mesh.vertices.end(), vertices.begin(), vertices.end());
+
+        mesh.indices = {           // above view
+                        {8, 7, 9}, // lower part
+                        {5, 8, 6},
+                        {6, 8, 7}, // left side
+                        {4, 9, 8},
+                        {4, 8, 5}, // right side
+                        {1, 0, 6},
+                        {1, 6, 5},
+                        {1, 5, 2},
+                        {2, 5, 4},
+                        {2, 4, 3}, // upper part
+                                   // under view
+                        {10, 11, 16},
+                        {16, 11, 15},
+                        {15, 11, 12},
+                        {15, 12, 14},
+                        {14, 12, 13}, // upper part
+                        {18, 15, 14},
+                        {14, 18, 19}, // right side
+                        {17, 16, 15},
+                        {17, 15, 18}, // left side
+                        {17, 18, 19}, // lower part
+                                      // left edge
+                        {1, 11, 0},
+                        {0, 11, 10},
+                        // front edge
+                        {0, 10, 6},
+                        {6, 10, 16},
+                        {6, 17, 16},
+                        {6, 7, 17},
+                        {7, 17, 19},
+                        {7, 19, 9},
+                        {4, 14, 19},
+                        {4, 19, 9},
+                        {4, 14, 13},
+                        {4, 13, 3},
+                        // right edge
+                        {3, 13, 12},
+                        {3, 12, 2},
+                        // back edge
+                        {2, 12, 11},
+                        {2, 11, 1}};
+
+        return mesh;
+    }
+
+    // groove is closed from the roof
+    indexed_triangle_set mesh;
+    mesh.vertices = {// upper part vertices
+                     {-x, -y, z_upper},
+                     {-x, y, z_upper},
+                     {x, y, z_upper},
+                     {x, -y, z_upper},
+                     {ext_upper_x, -y, z_upper},
+                     {0.f, cross_pt_upper_y, z_upper},
+                     {-ext_upper_x, -y, z_upper},
+                     // lower part vertices
+                     {-ext_lower_x, -y, z_lower},
+                     {-nar_lower_x, y, z_lower},
+                     {nar_lower_x, y, z_lower},
+                     {ext_lower_x, -y, z_lower}};
+
+    mesh.vertices.reserve(2 * mesh.vertices.size() + 1);
+
+    z_upper -= cut_plane_thiknes;
+    z_lower -= cut_plane_thiknes;
+
+    const float under_x_shift = cut_plane_thiknes / tan(0.5f * cur_groove.flaps_angle);
+
+    nar_lower_x += under_x_shift;
+    ext_upper_x += under_x_shift;
+    ext_lower_x += under_x_shift;
+
+    std::vector<stl_vertex> vertices = {// upper part vertices
+                                        {-x, -y, z_upper},
+                                        {-x, y, z_upper},
+                                        {x, y, z_upper},
+                                        {x, -y, z_upper},
+                                        {ext_upper_x, -y, z_upper},
+                                        {under_x_shift, cross_pt_upper_y, z_upper},
+                                        {-under_x_shift, cross_pt_upper_y, z_upper},
+                                        {-ext_upper_x, -y, z_upper},
+                                        // lower part vertices
+                                        {-ext_lower_x, -y, z_lower},
+                                        {-nar_lower_x, y, z_lower},
+                                        {nar_lower_x, y, z_lower},
+                                        {ext_lower_x, -y, z_lower}};
+    mesh.vertices.insert(mesh.vertices.end(), vertices.begin(), vertices.end());
+    mesh.indices = {// above view
+                    {8, 7, 10},
+                    {8, 10, 9}, // lower part
+                    {5, 8, 7},
+                    {5, 7, 6}, // left side
+                    {4, 10, 9},
+                    {4, 9, 5}, // right side
+                    {1, 0, 6},
+                    {1, 6, 5},
+                    {1, 5, 2},
+                    {2, 5, 4},
+                    {2, 4, 3}, // upper part
+                               // under view
+                    {11, 12, 18},
+                    {18, 12, 17},
+                    {17, 12, 16},
+                    {16, 12, 13},
+                    {16, 13, 15},
+                    {15, 13, 14}, // upper part
+                    {21, 16, 15},
+                    {21, 15, 22}, // right side
+                    {19, 18, 17},
+                    {19, 17, 20}, // left side
+                    {19, 20, 21},
+                    {19, 21, 22}, // lower part
+                                  // left edge
+                    {1, 12, 11},
+                    {1, 11, 0},
+                    // front edge
+                    {0, 11, 18},
+                    {0, 18, 6},
+                    {7, 19, 18},
+                    {7, 18, 6},
+                    {7, 19, 22},
+                    {7, 22, 10},
+                    {10, 22, 15},
+                    {10, 15, 4},
+                    {4, 15, 14},
+                    {4, 14, 3},
+                    // right edge
+                    {3, 14, 13},
+                    {3, 14, 2},
+                    // back edge
+                    {2, 13, 12},
+                    {2, 12, 1},
+                    {5, 16, 21},
+                    {5, 21, 9},
+                    {9, 21, 20},
+                    {9, 20, 8},
+                    {5, 17, 20},
+                    {5, 20, 8}};
 
     return mesh;
 }

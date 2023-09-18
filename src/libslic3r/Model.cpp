@@ -2783,6 +2783,12 @@ void ModelVolume::set_material_id(t_model_material_id material_id)
         this->object->get_model()->add_material(material_id);
 }
 
+void ModelVolume::reset_extra_facets() {
+    this->supported_facets.reset();
+    this->seam_facets.reset();
+    this->mmu_segmentation_facets.reset();
+}
+
 ModelMaterial* ModelVolume::material() const
 {
     return this->object->get_model()->get_material(m_material_id);
