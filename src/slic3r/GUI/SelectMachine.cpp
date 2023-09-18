@@ -867,9 +867,9 @@ void SelectMachinePopup::OnLeftUp(wxMouseEvent &event)
 static wxString MACHINE_BED_TYPE_STRING[BED_TYPE_COUNT] = {
     //_L("Auto"),
     _L("Bambu Cool Plate") + " / " + _L("PLA Plate"),
-    _L("Bamabu Engineering Plate"),
-    _L("Bamabu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
-    _L("Bamabu Textured PEI Plate")};
+    _L("Bambu Engineering Plate"),
+    _L("Bambu Smooth PEI Plate") + "/" + _L("High temperature Plate"),
+    _L("Bambu Textured PEI Plate")};
 
 static std::string MachineBedTypeString[BED_TYPE_COUNT] = {
     //"auto",
