@@ -456,7 +456,10 @@ private:
 		// used this function instead of reading directly m_data.duration. Some notifications might need to return changing value.
 		virtual int  get_duration() { return m_data.duration; }
 
+		void ensure_ui_inited();
+
 		bool m_is_dark = false;
+        bool m_is_dark_inited = false;
 
 		const NotificationData m_data;
 		// For reusing ImGUI windows.
@@ -486,6 +489,7 @@ private:
 		ImVec4     m_CurrentColor;
 
         float      m_WindowRadius;
+        bool       m_WindowRadius_inited = false;
 
 		void use_bbl_theme();
         void restore_default_theme();
