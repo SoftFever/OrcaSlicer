@@ -145,17 +145,7 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
 
     // get brim width
     auto obj = instance->get_object();
-#if 0
-    ap.brim_width = instance->get_auto_brim_width();
-    auto brim_type_ptr = obj->get_config_value<ConfigOptionEnum<BrimType>>(config, "brim_type");
-    if (brim_type_ptr) {
-        auto brim_type = brim_type_ptr->getInt();
-        if (brim_type == btOuterOnly)
-            ap.brim_width = obj->get_config_value<ConfigOptionFloat>(config, "brim_width")->getFloat();
-        else if (brim_type == btNoBrim)
-            ap.brim_width = 0;
-    }        
-#else
+
     ap.brim_width = 1.0;
     // For by-layer printing, need to shrink bed a little, so the support won't go outside bed.
     // We set it to 5mm because that's how much a normal support will grow by default.
@@ -167,9 +157,10 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     int support_int = support_type_ptr->getInt();
 
     if (enable_support && (support_type == stNormalAuto || support_type == stNormal))
-        ap.brim_width = 5.0;
-    else if(enable_support) ap.brim_width = 11.0;
-#endif
+        ap.brim_width = 6.0;
+    else if (enable_support) {
+        ap.brim_width = 22.0;
+    }
     
     ap.height = obj->bounding_box().size().z();
     ap.name = obj->name;
