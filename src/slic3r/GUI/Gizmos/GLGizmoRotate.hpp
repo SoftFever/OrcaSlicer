@@ -6,7 +6,6 @@
 #define slic3r_GLGizmoRotate_hpp_
 
 #include "GLGizmoBase.hpp"
-#include "../Jobs/RotoptimizeJob.hpp"
 //BBS: add size adjust related
 #include "GizmoObjectManipulation.hpp"
 

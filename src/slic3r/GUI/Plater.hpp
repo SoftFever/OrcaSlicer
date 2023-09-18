@@ -32,6 +32,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Jobs/Job.hpp"
+#include "Jobs/Worker.hpp"
 #include "Search.hpp"
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
@@ -290,8 +291,41 @@ public:
     void update(bool conside_update_flag = false, bool force_background_processing_update = false);
     //BBS
     void object_list_changed();
-    void stop_jobs();
-    bool is_any_job_running() const;
+
+    // Get the worker handling the UI jobs (arrange, fill bed, etc...)
+    // Here is an example of starting up an ad-hoc job:
+    //    queue_job(
+    //        get_ui_job_worker(),
+    //        [](Job::Ctl &ctl) {
+    //            // Executed in the worker thread
+    //
+    //            CursorSetterRAII cursor_setter{ctl};
+    //            std::string msg = "Running";
+    //
+    //            ctl.update_status(0, msg);
+    //            for (int i = 0; i < 100; i++) {
+    //                usleep(100000);
+    //                if (ctl.was_canceled()) break;
+    //                ctl.update_status(i + 1, msg);
+    //            }
+    //            ctl.update_status(100, msg);
+    //        },
+    //        [](bool, std::exception_ptr &e) {
+    //            // Executed in UI thread after the work is done
+    //
+    //            try {
+    //                if (e) std::rethrow_exception(e);
+    //            } catch (std::exception &e) {
+    //                BOOST_LOG_TRIVIAL(error) << e.what();
+    //            }
+    //            e = nullptr;
+    //        });
+    // This would result in quick run of the progress indicator notification
+    // from 0 to 100. Use replace_job() instead of queue_job() to cancel all
+    // pending jobs.
+    Worker& get_ui_job_worker();
+    const Worker & get_ui_job_worker() const;
+
     void select_view(const std::string& direction);
     //BBS: add no_slice logic
     void select_view_3D(const std::string& name, bool no_slice = true);
