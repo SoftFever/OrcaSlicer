@@ -1169,6 +1169,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         m_timelapse_warning_code += (1 << 1);
     }
     m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
+    m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
@@ -3542,6 +3543,9 @@ GCode::LayerResult GCode::process_layer(
     log_memory_info();
 
     if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+        if (m_support_traditional_timelapse)
+            m_support_traditional_timelapse = false;
+
         gcode += this->retract(false, false, LiftType::NormalLift);
         m_writer.add_object_change_labels(gcode);
 

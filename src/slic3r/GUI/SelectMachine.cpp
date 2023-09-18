@@ -2160,12 +2160,17 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseWarning) {
-        int error_code = get_timelapse_warning_code();
-        wxString msg_text;
-        if (error_code & 1) {
-            msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
-        } else if ((error_code >> 1) & 1) {
-            msg_text = _L("When print by object, machines with I3 structure will not generate timelapse videos.");
+        wxString   msg_text;
+        PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
+        for (auto warning : plate->get_slice_result()->warnings) {
+            if (warning.msg == NOT_GENERATE_TIMELAPSE) {
+                if (warning.error_code == "1001C001") {
+                    msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
+                }
+                else if (warning.error_code == "1001C002") {
+                    msg_text = _L("When print by object, machines with I3 structure will not generate timelapse videos.");
+                }
+            }
         }
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
@@ -2290,6 +2295,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 confirm_text.push_back(Plater::get_slice_warning_string(warning) + "\n");
                 has_slice_warnings = true;
             }
+        }
+        else if (warning.msg == NOT_GENERATE_TIMELAPSE) {
+            continue;
         }
         else {
             wxString error_info = Plater::get_slice_warning_string(warning);
@@ -3197,7 +3205,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (get_timelapse_warning_code() != 0) {
+    if (has_timelapse_warning()) {
         show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
         return;
     }
@@ -3268,16 +3276,22 @@ void SelectMachineDialog::update_show_status()
     }
 }
 
-int SelectMachineDialog::get_timelapse_warning_code()
+bool SelectMachineDialog::has_timelapse_warning()
 {
     PartPlate *plate = m_plater->get_partplate_list().get_curr_plate();
-    return plate->timelapse_warning_code();
+    for (auto warning : plate->get_slice_result()->warnings) {
+        if (warning.msg == NOT_GENERATE_TIMELAPSE) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 void SelectMachineDialog::update_timelapse_enable_status()
 {
     AppConfig *config = wxGetApp().app_config;
-    if (get_timelapse_warning_code() == 0) {
+    if (!has_timelapse_warning()) {
         if (!config || config->get("print", "timelapse") == "0")
             m_checkbox_list["timelapse"]->SetValue(false);
         else

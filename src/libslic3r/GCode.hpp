@@ -492,6 +492,7 @@ private:
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
 
     int m_timelapse_warning_code = 0;
+    bool m_support_traditional_timelapse = true;
 
     bool m_silent_time_estimator_enabled;
 
