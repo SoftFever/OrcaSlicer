@@ -98,10 +98,13 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& prin
     }
 }
 
-void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params) {
+void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params) {
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     Points      bedpts = get_shrink_bedpts(print_cfg, params);
     BoundingBox bedbb = Polygon(bedpts).bounding_box();
+    // set obj distance for auto seq_print
+    if (params.min_obj_distance == 0 && params.is_seq_print)
+        params.min_obj_distance = scaled(params.cleareance_radius + 0.001);
     double brim_max = 0;
     bool plate_has_tree_support = false;
     std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
