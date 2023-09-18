@@ -3126,6 +3126,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     if(!dev) return;
     MachineObject* obj_ = dev->get_selected_machine();
     if(!obj_) return;
+
+    update_ams_check(obj_);
+    update_select_layout(obj_);
     if (!obj_
         || obj_->amsList.empty()
         || obj_->ams_exist_bits == 0
@@ -3295,7 +3298,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     reset_timeout();
-    update_ams_check(obj_);
+    //update_ams_check(obj_);
 
     if (!obj_->is_support_print_all && m_print_plate_idx == PLATE_ALL_IDX) {
         show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
@@ -3731,7 +3734,7 @@ void SelectMachineDialog::set_default()
     else if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
         set_default_from_sdcard();
     }
-
+    
     Layout();
     Fit();
 }

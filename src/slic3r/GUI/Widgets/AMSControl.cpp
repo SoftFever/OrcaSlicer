@@ -480,7 +480,7 @@ void AMSextruder::doRender(wxDC& dc)
 
         if (m_vams_loading) {
 
-            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxBLACK, 6, wxSOLID)); }
+            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
             else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
             dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
 
@@ -492,7 +492,7 @@ void AMSextruder::doRender(wxDC& dc)
         }
 
         if (m_ams_loading && !m_none_ams_mode) {
-            if (m_current_colur.Alpha() == 0) {dc.SetPen(wxPen(*wxBLACK, 6, wxSOLID));}
+            if (m_current_colur.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID));}
             else {dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));}
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
@@ -505,7 +505,7 @@ void AMSextruder::doRender(wxDC& dc)
     }
     else {
         if (m_ams_loading) {
-            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxBLACK, 6, wxSOLID)); }
+            if (m_current_colur.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
             else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
@@ -583,7 +583,7 @@ void AMSVirtualRoad::doRender(wxDC& dc)
 
     wxSize size = GetSize();
     if (m_vams_loading) {
-        if (m_current_color.Alpha() == 0) { dc.SetPen(wxPen(*wxBLACK, 6, wxSOLID)); }
+        if (m_current_color.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, 6, wxSOLID)); }
         else { dc.SetPen(wxPen(m_current_color, 6, wxSOLID)); }
     }
     else {
@@ -1413,7 +1413,7 @@ void AMSRoad::doRender(wxDC &dc)
     // mode none
     // if (m_pass_rode_mode.size() == 1 && m_pass_rode_mode[0] == AMSPassRoadMode::AMS_ROAD_MODE_NONE) return;
 
-    if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxBLACK, m_passroad_width, wxSOLID));}
+    if (m_road_color.Alpha() == 0) {dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxSOLID));}
     else {dc.SetPen(wxPen(m_road_color, m_passroad_width, wxSOLID));}
     
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
