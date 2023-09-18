@@ -7344,8 +7344,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "  <" << PLATE_TAG << ">\n";
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATE_IDX_ATTR        << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << int(config.opt_enum<TimelapseType>("timelapse_type")) << "\"/>\n";
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_ERROR_CODE_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->timelapse_warning_code << "\"/>\n";
+
+                int timelapse_type = int(config.opt_enum<TimelapseType>("timelapse_type"));
+                for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
+                    if (it->msg == NOT_GENERATE_TIMELAPSE) {
+                        timelapse_type = -1;
+                        break;
+                    }
+                }
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << timelapse_type << "\"/>\n";
+                //stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_ERROR_CODE_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->timelapse_warning_code << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";

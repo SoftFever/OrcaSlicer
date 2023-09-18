@@ -4388,10 +4388,24 @@ void GCodeProcessor::update_slice_warnings()
     // bbs:HRC checker
     warning.params.clear();
     warning.level = 1;
-    if (m_result.timelapse_warning_code != 0) {
+    if (!m_result.support_traditional_timelapse) {
         warning.msg        = NOT_SUPPORT_TRADITIONAL_TIMELAPSE;
         warning.error_code = "1000C003";
         m_result.warnings.push_back(warning);
+    }
+
+    if (m_result.timelapse_warning_code != 0) {
+        if (m_result.timelapse_warning_code & 1) {
+            warning.msg        = NOT_GENERATE_TIMELAPSE;
+            warning.error_code = "1001C001";
+            m_result.warnings.push_back(warning);
+        }
+
+        if ((m_result.timelapse_warning_code >> 1) & 1) {
+            warning.msg        = NOT_GENERATE_TIMELAPSE;
+            warning.error_code = "1001C002";
+            m_result.warnings.push_back(warning);
+        }
     }
 
     m_result.warnings.shrink_to_fit();

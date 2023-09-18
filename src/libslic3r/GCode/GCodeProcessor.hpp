@@ -21,6 +21,7 @@ namespace Slic3r {
 #define NOZZLE_HRC_CHECKER                                          "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 #define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
+#define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
 
     enum class EMoveType : unsigned char
     {
@@ -183,6 +184,7 @@ namespace Slic3r {
         //BBS: add object_label_enabled
         bool label_object_enabled;
         int timelapse_warning_code {0};
+        bool support_traditional_timelapse{true};
         float printable_height;
         SettingsIds settings_ids;
         size_t extruders_count;
