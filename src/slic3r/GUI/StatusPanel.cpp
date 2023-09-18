@@ -1908,7 +1908,15 @@ void StatusPanel::update(MachineObject *obj)
             m_tempCtrl_chamber->Enable();
         } else {
             m_tempCtrl_chamber->SetReadOnly(true);
-            m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
+
+            if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
+                m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
+            }if (obj->get_printer_series() == PrinterSeries::SERIES_P1P)
+            {
+                m_tempCtrl_chamber->SetLabel(TEMP_BLANK_STR);
+                m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+            }
+
             m_tempCtrl_chamber->Disable();
         }
 
