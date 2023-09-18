@@ -643,13 +643,9 @@ void CalibrationPresetPage::create_sending_panel(wxWindow* parent)
 
     m_send_progress_bar = std::shared_ptr<BBLStatusBarSend>(new BBLStatusBarSend(parent));
     m_send_progress_bar->set_cancel_callback_fina([this]() {
-            BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-            if (CalibUtils::print_job) {
-                if (CalibUtils::print_job->is_running()) {
-                    BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-                    CalibUtils::print_job->cancel();
-                }
-                CalibUtils::print_job->join();
+            BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_worker: enter canceled";
+            if (CalibUtils::print_worker) {
+                CalibUtils::print_worker->cancel_all();
             }
             show_status(CaliPresetStatusNormal);
         });

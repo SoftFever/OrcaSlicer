@@ -373,6 +373,8 @@ wxString get_fail_reason(int code)
 
      m_status_bar = std::make_shared<BBLStatusBarBind>(m_simplebook);
 
+     m_worker     = std::make_unique<BoostThreadWorker>(m_status_bar, "bind_worker");
+
      auto        button_panel   = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, BIND_DIALOG_BUTTON_PANEL_SIZE);
      button_panel->SetBackgroundColour(*wxWHITE);
      wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -532,10 +534,7 @@ wxString get_fail_reason(int code)
 
  void BindMachineDialog::on_destroy()
  {
-     if (m_bind_job) {
-         m_bind_job->cancel();
-         m_bind_job->join();
-     }
+     m_worker.get()->cancel_all();
 
      if (web_request.IsOk()) {
          web_request.Cancel();
@@ -595,7 +594,7 @@ wxString get_fail_reason(int code)
          agent->track_update_property("dev_ota_version", m_machine_info->get_ota_version());
 
      m_simplebook->SetSelection(0);
-     m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
+     auto m_bind_job = std::make_unique<BindJob>(m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
 
      if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
          m_bind_job->set_improved(false);
@@ -605,7 +604,7 @@ wxString get_fail_reason(int code)
      }
 
      m_bind_job->set_event_handle(this);
-     m_bind_job->start();
+     replace_job(*m_worker, std::move(m_bind_job));
  }
 
 void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)

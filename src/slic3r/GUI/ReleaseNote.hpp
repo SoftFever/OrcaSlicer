@@ -36,6 +36,8 @@
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
+#include "Jobs/BoostThreadWorker.hpp"
+
 namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
@@ -212,8 +214,8 @@ public:
     wxStaticBitmap* m_img_step2{ nullptr };
     bool   m_show_access_code{ false };
 
-    std::shared_ptr<SendJob> m_send_job{nullptr};
-    std::shared_ptr<BBLStatusBarSend> m_status_bar;
+    std::shared_ptr<BBLStatusBarSend>  m_status_bar;
+    std::unique_ptr<BoostThreadWorker> m_worker;
 
     void on_cancel();
     void update_title(wxString title);

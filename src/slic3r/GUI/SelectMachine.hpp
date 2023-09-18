@@ -41,6 +41,8 @@
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
+#include "Jobs/BoostThreadWorker.hpp"
+
 namespace Slic3r { namespace GUI {
 
 enum PrinterState {
@@ -311,6 +313,7 @@ private:
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
+    std::unique_ptr<BoostThreadWorker>  m_worker;
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model; 
@@ -374,7 +377,6 @@ protected:
     wxStaticText*                       m_statictext_finish{nullptr};
     TextInput*                          m_rename_input{nullptr};
     wxTimer*                            m_refresh_timer{ nullptr };
-    std::shared_ptr<PrintJob>           m_print_job;
     wxScrolledWindow*                   m_scrollable_view;
     wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
     wxHyperlinkCtrl*                    m_hyperlink{nullptr};
