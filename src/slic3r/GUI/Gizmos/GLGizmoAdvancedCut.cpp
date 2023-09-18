@@ -452,6 +452,10 @@ CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
 
 void GLGizmoAdvancedCut::on_start_dragging()
 {
+    if (m_connectors_editing && m_hover_id >= c_connectors_group_id) {
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
+        return;
+    }
     for (auto gizmo : m_gizmos) {
         if (m_hover_id == gizmo.get_group_id()) {
             gizmo.start_dragging();
@@ -467,9 +471,6 @@ void GLGizmoAdvancedCut::on_start_dragging()
     m_start_movement = m_movement;
     m_start_height = m_height;
     m_drag_pos = m_move_grabber.center;
-
-    if (m_hover_id >= c_connectors_group_id)
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
 }
 
 void GLGizmoAdvancedCut::on_stop_dragging()
