@@ -1130,11 +1130,9 @@ private:
             return;
         { // find a best position inside NFP of fixed items (excluded regions), so the center of pile is cloest to bed center
             RawShape objs_convex_hull = sl::convexHull(objs);
-            for (const Item &item : config_.m_excluded_regions) { excludes.push_back(item.transformedShape()); }
             for (const Item &item : items_) {
                 if (item.isFixed()) {
-                    if (!(item.is_wipe_tower && !need_wipe_tower))
-                        excludes.push_back(item.transformedShape());
+        		    excludes.push_back(item.transformedShape());
                 }
             }
 
