@@ -2484,6 +2484,7 @@ def = this->add("filament_loading_speed", coFloats);
     				 "250-300 is a good starting point.\n\n"
     				 "For slower printers without pressure advance, the value should be set much lower. A value of 10-15 is a "
     				 "good starting point for direct drive extruders and 2-3 for Bowden style. \n\n"
+    				 "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
     				 "Note: this parameter disables arc fitting.");
     def->sidetext = L("mm³/s²");
     def->min = 0;
