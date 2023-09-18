@@ -159,7 +159,8 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
     if (enable_support && (support_type == stNormalAuto || support_type == stNormal))
         ap.brim_width = 6.0;
     else if (enable_support) {
-        ap.brim_width = 22.0;
+        ap.brim_width = 24.0; // 2*MAX_BRANCH_RADIUS_FIRST_LAYER
+        ap.has_tree_support = true;
     }
     
     ap.height = obj->bounding_box().size().z();
