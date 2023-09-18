@@ -442,9 +442,14 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_score_subtask_info->SetBackgroundColour(*wxWHITE);
 
     wxBoxSizer *  static_score_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_score_text  = new wxStaticText(m_score_subtask_info, wxID_ANY, "How do you like this printing file?", wxDefaultPosition, wxDefaultSize, 0);
+    wxStaticText *static_score_text  = new wxStaticText(m_score_subtask_info, wxID_ANY, _L("How do you like this printing file?"), wxDefaultPosition, wxDefaultSize, 0);
     static_score_text->Wrap(-1);
     static_score_sizer->Add(static_score_text, 1, wxEXPAND | wxALL, FromDIP(10));
+    m_has_rated_prompt = new wxStaticText(m_score_subtask_info, wxID_ANY, _L("(The model has already been rated. Your rating will overwrite the previous rating.)"), wxDefaultPosition, wxDefaultSize, 0);
+    m_has_rated_prompt->Wrap(-1);
+    m_has_rated_prompt->SetForegroundColour(*wxRED);
+    m_has_rated_prompt->SetFont(::Label::Body_10);
+    m_has_rated_prompt->Hide();
 
     m_star_count                        = 0;
     wxBoxSizer *static_score_star_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -475,7 +480,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
                             std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
 
-    m_button_market_scoring = new Button(m_score_subtask_info, _L("Rating"));
+    m_button_market_scoring = new Button(m_score_subtask_info, _L("Rate"));
     m_button_market_scoring->SetBackgroundColor(btn_bg_green);
     m_button_market_scoring->SetBorderColor(btn_bd_green);
     m_button_market_scoring->SetTextColor(wxColour("#FFFFFE"));
@@ -487,6 +492,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     static_score_star_sizer->Add(0, 0, 1, wxEXPAND, 0);
     static_score_star_sizer->Add(m_button_market_scoring, 0, wxEXPAND | wxRIGHT, FromDIP(10));
     static_score_sizer->Add(static_score_star_sizer, 0, wxEXPAND, FromDIP(10));
+    static_score_sizer->Add(m_has_rated_prompt, 1, wxEXPAND | wxALL, FromDIP(10));
 
     m_score_subtask_info->SetSizer(static_score_sizer);
     m_score_subtask_info->Layout();
@@ -505,6 +511,17 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     parent->SetSizer(sizer);
     parent->Layout();
     parent->Fit();
+}
+
+void PrintingTaskPanel::set_has_reted_text(bool has_rated)
+{
+    if (has_rated) {
+        m_has_rated_prompt->Show();
+    } else {
+        m_has_rated_prompt->Hide();
+    }
+    Layout();
+    Fit();
 }
 
 void PrintingTaskPanel::msw_rescale()
@@ -1700,6 +1717,8 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
             
             if (ret == wxID_OK) { 
                 m_score_data->rating_id = -1;
+                m_project_task_panel->set_star_count_dirty(false);
+                m_print_finish = false;
                 return;
             }
             if (m_score_data != nullptr) {
@@ -1736,7 +1755,8 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
 
             if (ret == wxID_OK) {
                 m_score_data->rating_id = -1;
-
+                m_project_task_panel->set_star_count_dirty(false);
+                m_print_finish = false;
                 return;
             }
             if (m_score_data != nullptr) {
@@ -2817,7 +2837,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
                                                 BOOST_LOG_TRIVIAL(info) << "Initialize scores";
                                                 m_project_task_panel->set_star_count_dirty(true);
                                                 m_print_finish = true;
-                                                if (0 != star_count) { m_project_task_panel->get_market_scoring_button()->Enable(true); }
+                                                if (0 != star_count) {
+                                                    m_project_task_panel->get_market_scoring_button()->Enable(true);
+                                                    m_project_task_panel->set_has_reted_text(true);
+                                                } else {
+                                                    m_project_task_panel->set_has_reted_text(false);
+                                                }
                                             }
                                         }
                                     }
@@ -2888,7 +2913,10 @@ bool StatusPanel::model_score_is_update()
             m_last_result = m_rating_result;
             return true;
         } 
-    } catch (...) {}
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(info) << "m_last_result first initial";
+        m_last_result = m_rating_result;
+    }
     
     return false;
 }
@@ -4308,12 +4336,12 @@ wxBoxSizer* ScoreDialog::get_comment_text_sizer() {
 
 void ScoreDialog::create_comment_text(const wxString& comment) {
     m_comment_text = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(492), FromDIP(104)), wxTE_MULTILINE);
+    if (wxGetApp().dark_mode()) {
+        m_comment_text->SetForegroundColour(wxColor(*wxWHITE));
+    } else
+        m_comment_text->SetForegroundColour(wxColor(*wxBLACK));
     if (!comment.empty()) {
         m_comment_text->SetValue(comment);
-        if (wxGetApp().dark_mode()) {
-            m_comment_text->SetForegroundColour(wxColor(*wxWHITE));
-        } else
-            m_comment_text->SetForegroundColour(wxColor(*wxBLACK));
     }
     m_comment_text->SetHint(_L("Rate this print"));
     m_comment_text->SetBackgroundColour(*wxWHITE);
@@ -4332,18 +4360,18 @@ void ScoreDialog::create_comment_text(const wxString& comment) {
 
 wxBoxSizer *ScoreDialog::get_photo_btn_sizer() {
     wxBoxSizer *    m_photo_sizer    = new wxBoxSizer(wxHORIZONTAL);
-    ScalableBitmap  little_photo     = ScalableBitmap(this, "single_little_photo", 20);
-    wxStaticBitmap *little_photo_img = new wxStaticBitmap(this, wxID_ANY, little_photo.bmp(), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
+    ScalableBitmap little_photo  = wxGetApp().dark_mode() ? ScalableBitmap(this, "single_little_photo_dark", 20) : ScalableBitmap(this, "single_little_photo", 20);
+    wxStaticBitmap *little_photo_img   = new wxStaticBitmap(this, wxID_ANY, little_photo.bmp(), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
     m_photo_sizer->Add(little_photo_img, 0, wxEXPAND | wxLEFT, FromDIP(24));
     m_add_photo = new Label(this, _L("Add Photo"));
     m_add_photo->SetBackgroundColour(*wxWHITE);
-    m_add_photo->SetForegroundColour(wxColor("#898989"));
+    //m_add_photo->SetForegroundColour(wxColor("#898989"));
     m_add_photo->SetSize(wxSize(-1, FromDIP(20)));
     m_photo_sizer->Add(m_add_photo, 0, wxEXPAND | wxLEFT, FromDIP(12));
 
     m_delete_photo = new Label(this, _L("Delete Photo"));
     m_delete_photo->SetBackgroundColour(*wxWHITE);
-    m_delete_photo->SetForegroundColour(wxColor("#898989"));
+    //m_delete_photo->SetForegroundColour(wxColor("#898989"));
     m_delete_photo->SetSize(wxSize(-1, FromDIP(20)));
     m_photo_sizer->Add(m_delete_photo, 0, wxEXPAND | wxLEFT, FromDIP(12));
     m_delete_photo->Hide();
