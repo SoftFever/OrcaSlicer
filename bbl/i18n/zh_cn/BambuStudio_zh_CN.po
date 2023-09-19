@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 14:47+0800\n"
+"POT-Creation-Date: 2023-09-19 14:52+0800\n"
 "PO-Revision-Date: 2023-09-18 09:18+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -652,7 +652,7 @@ msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr ""
+msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf/usd*/abc/ply）："
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf）："
@@ -2537,19 +2537,19 @@ msgid "Motor noise calibration"
 msgstr "电机噪音标定"
 
 msgid "Paused due to AMS lost"
-msgstr ""
+msgstr "因为AMS连接丢失而暂停"
 
 msgid "Paused due to low speed of the heat break fan"
-msgstr ""
+msgstr "因热断路风扇速度过低而暂停"
 
 msgid "Paused due to chamber temperature control error"
-msgstr ""
+msgstr "因腔温错误而暂停"
 
 msgid "Cooling chamber"
 msgstr "正在降低腔温"
 
 msgid "Paused by the Gcode inserted by user"
-msgstr ""
+msgstr "由用户插入的Gcode指令导致暂停"
 
 msgid "Motor noise showoff"
 msgstr "电机噪音标定结果展示"
@@ -3782,7 +3782,15 @@ msgstr "层： N/A"
 msgid "Clear"
 msgstr "清除"
 
-msgid "Rating"
+msgid "How do you like this printing file?"
+msgstr "您喜欢这个打印文件吗？"
+
+msgid ""
+"(The model has already been rated. Your rating will overwrite the previous "
+"rating.)"
+msgstr "（该模型已经被评分。您的评分将覆盖先前的评分。）"
+
+msgid "Rate"
 msgstr "评分"
 
 msgid "Camera"
@@ -3890,98 +3898,103 @@ msgid "Can't start this without SD card."
 msgstr "没有SD卡无法开始任务"
 
 msgid "Rate the Print Profile"
-msgstr ""
-
-msgid "Rate"
-msgstr ""
+msgstr "评价打印配置文件"
 
 msgid "Comment"
-msgstr ""
+msgstr "评论"
 
 msgid "Rate this print"
-msgstr ""
+msgstr "为此次打印评分"
 
 msgid "Add Photo"
-msgstr ""
+msgstr "添加照片"
 
 msgid "Delete Photo"
-msgstr ""
+msgstr "删除照片"
 
 msgid "Submit"
 msgstr "提交"
 
 msgid "Please click on the star first."
-msgstr ""
+msgstr "请先点击星星。"
 
 msgid "InFo"
-msgstr ""
+msgstr "信息"
 
 msgid "Get oss config failed."
-msgstr ""
+msgstr "获取oss配置失败。"
 
 msgid "Upload Pictrues"
-msgstr ""
+msgstr "上传图片"
 
 msgid "Number of images successfully uploaded"
-msgstr ""
+msgstr "成功上传的图像数量"
 
 msgid " upload failed"
-msgstr ""
+msgstr "上传失败"
 
 msgid " upload config prase failed\n"
-msgstr ""
+msgstr "上传配置解析失败\n"
 
 msgid " No corresponding storage bucket\n"
-msgstr ""
+msgstr "没有匹配的存储桶\n"
 
 msgid " can not be opened\n"
-msgstr ""
+msgstr "不能被打开\n"
 
 msgid ""
 "The following issues occurred during the process of uploading images. Do you "
 "want to ignore them?\n"
 "\n"
 msgstr ""
+"在上传图像过程中出现了以下问题。您是否要忽略它们？\n"
+"\n"
 
 msgid "info"
 msgstr "信息"
 
 msgid "Synchronizing the printing results. Please retry a few seconds later."
-msgstr ""
+msgstr "正在同步打印结果。请稍后重试。"
 
 msgid "Upload failed\n"
-msgstr ""
+msgstr "上传失败\n"
 
 msgid "obtaining instance_id failed\n"
-msgstr ""
+msgstr "获取instance id失败\n"
 
 msgid ""
 "Your comment result cannot be uploaded due to some reasons. As follows:\n"
 "\n"
 "  error code: "
 msgstr ""
+"由于某些原因，无法上传您的评论结果。如下所示：\n"
+"\n"
+"  错误代码："
 
 msgid "error message: "
-msgstr ""
+msgstr "错误信息："
 
 msgid ""
 "\n"
 "\n"
-"Would you like to redirect to the webpage for storing?"
+"Would you like to redirect to the webpage for rating?"
 msgstr ""
+"\n"
+"\n"
+"您是否想要重定向到评分网页？"
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
-"webpage for storing?"
-msgstr ""
+"webpage for rating?"
+msgstr "您的一些图像上传失败。您是否想要重定向到评分网页？"
 
-msgid "You can select up to 5 images."
-msgstr ""
+msgid "You can select up to 16 images."
+msgstr "您最多能选择16张图片"
 
 msgid ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating(4 or 5stars)."
-msgstr ""
+msgstr "至少需要一个成功的打印记录，才能给出积极的评价（4星或5星）。"
 
 msgid "Status"
 msgstr "设备状态"
@@ -4080,13 +4093,13 @@ msgid_plural "%1$d objects were loaded as parts of cut object"
 msgstr[0] "%1$d对象加载为一个切割对象的子部件"
 
 msgid "ERROR"
-msgstr ""
+msgstr "错误"
 
 msgid "CANCELED"
-msgstr ""
+msgstr "已取消"
 
 msgid "COMPLETED"
-msgstr ""
+msgstr "已完成"
 
 msgid "Cancel upload"
 msgstr "取消上传"
@@ -5170,7 +5183,7 @@ msgid "Flow Dynamics Calibration"
 msgstr "动态流量校准"
 
 msgid "Click here if you can't connect to the printer"
-msgstr ""
+msgstr "如果无法连接到打印机，请单击此处"
 
 msgid "send completed"
 msgstr "发送完成"
@@ -5345,28 +5358,28 @@ msgid "The printer does not support sending to printer SD card."
 msgstr "该打印机不支持发送到打印机SD卡。"
 
 msgid "Failed to create socket"
-msgstr ""
+msgstr "创建socket失败"
 
 msgid "Failed to connect socket"
-msgstr ""
+msgstr "连接socket失败"
 
 msgid "Failed to publish login request"
-msgstr ""
+msgstr "发布登录请求失败"
 
 msgid "Get ticket from device timeout"
-msgstr ""
+msgstr "从设备获取ticket超时"
 
 msgid "Get ticket from server timeout"
-msgstr ""
+msgstr "从服务器获取ticket超时"
 
 msgid "Failed to post ticket to server"
-msgstr ""
+msgstr "将ticket发送到服务器失败"
 
 msgid "Failed to parse login report reason"
-msgstr ""
+msgstr "无法解析登录报告原因"
 
 msgid "Receive login report timeout"
-msgstr ""
+msgstr "接收登录报告超时"
 
 msgid "Unknown Failure"
 msgstr "发生错误"
@@ -5515,8 +5528,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -5699,13 +5712,13 @@ msgid "Auxiliary part cooling fan"
 msgstr "辅助部件冷却风扇"
 
 msgid "Exhaust fan"
-msgstr ""
+msgstr "排气扇"
 
 msgid "During print"
-msgstr ""
+msgstr "打印中"
 
 msgid "Complete print"
-msgstr ""
+msgstr "完成打印"
 
 msgid "Filament start G-code"
 msgstr "耗材丝起始G-code"
@@ -6909,7 +6922,7 @@ msgid "Bed types supported by the printer"
 msgstr "打印机所支持的打印板类型"
 
 msgid "First layer print sequence"
-msgstr ""
+msgstr "首层打印顺序"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
@@ -7563,7 +7576,7 @@ msgstr ""
 "算。"
 
 msgid "mm/s² or %"
-msgstr ""
+msgstr "mm/s² 或 %"
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -7711,10 +7724,10 @@ msgid ""
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
 msgid "Thumbnail size"
-msgstr ""
+msgstr "缩略图大小"
 
 msgid "Decides the size of thumbnail stored in gcode files"
-msgstr ""
+msgstr "决定存储在Gcode文件中的缩略图大小"
 
 msgid "Nozzle type"
 msgstr "喷嘴类型"
@@ -9013,10 +9026,10 @@ msgid "Load first filament as default for those not loaded"
 msgstr "加载第一个打印材料为默认材料"
 
 msgid "Minimum save"
-msgstr ""
+msgstr "最小保存"
 
 msgid "export 3mf with minimum size."
-msgstr ""
+msgstr "以最小大小导出3mf文件。"
 
 msgid "mtcpp"
 msgstr ""
@@ -9077,7 +9090,7 @@ msgstr ""
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
-msgstr ""
+msgstr "当对象部分位于床下时，将对象抬离床。默认情况下禁用。"
 
 msgid "Convert Unit"
 msgstr "转换单位"
@@ -9086,25 +9099,25 @@ msgid "Convert the units of model"
 msgstr "转换模型的单位"
 
 msgid "Orient Options"
-msgstr ""
+msgstr "方向选项"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
-msgstr ""
+msgstr "方向选项：0-禁用，1-启用，其他-自动"
 
 msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
+msgstr "绕Z轴的旋转角度，以度为单位。"
 
 msgid "Rotate around X"
-msgstr ""
+msgstr "绕X轴旋转"
 
 msgid "Rotation angle around the X axis in degrees."
-msgstr ""
+msgstr "绕X轴的旋转角度，以度为单位。"
 
 msgid "Rotate around Y"
-msgstr ""
+msgstr "绕Y轴旋转"
 
 msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
+msgstr "绕Y轴的旋转角度，以度为单位。"
 
 msgid "Scale the model by a float factor"
 msgstr "根据因子缩放模型"
@@ -9911,10 +9924,10 @@ msgid "Send to print"
 msgstr "发送打印"
 
 msgid "Upload to Printer Host with the following filename:"
-msgstr ""
+msgstr "使用以下文件名上传到打印机主机："
 
 msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
+msgstr "如有需要，请使用正斜杠（/）作为目录分隔符。"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
@@ -9930,7 +9943,7 @@ msgid "ID"
 msgstr ""
 
 msgid "Progress"
-msgstr ""
+msgstr "进度"
 
 msgid "Host"
 msgstr "主机"
@@ -10246,6 +10259,9 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Rating"
+#~ msgstr "评分"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
@@ -14459,8 +14475,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host "
-#~ "upload\""
+#~ "You have the following presets with saved options for \"Print Host upload"
+#~ "\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""

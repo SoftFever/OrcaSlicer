@@ -4537,7 +4537,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
 
                 dlg_info = new MessageDialog(this,
                                              _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
-                                                 "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for storing?"),
+                                                 "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for rating?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
                 if (dlg_info->ShowModal() == wxID_OK) {
                     market_model_scoring_page(m_design_id);
@@ -4547,7 +4547,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                 break;
             }
         } else if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
-            MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for storing?"),
+            MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for rating?"),
                                                         wxString(_L("info")), wxOK | wxNO | wxCENTER);
             if (dlg_info->ShowModal() == wxID_OK) {
                 market_model_scoring_page(m_design_id);
@@ -4597,7 +4597,7 @@ void ScoreDialog::load_photo(const std::vector<std::pair<wxString, std::string>>
             }
 
         } else {
-            MessageDialog *dlg_info_up_to_8 = new MessageDialog(this, _L("You can select up to 5 images."), wxString(_L("info")), wxOK | wxCENTER);
+            MessageDialog *dlg_info_up_to_8 = new MessageDialog(this, _L("You can select up to 16 images."), wxString(_L("info")), wxOK | wxCENTER);
             dlg_info_up_to_8->ShowModal();
             break;
         }
