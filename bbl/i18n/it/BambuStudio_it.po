@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-14 14:41+0800\n"
+"POT-Creation-Date: 2023-09-19 14:36+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -524,9 +524,9 @@ msgid "Angle"
 msgstr "Angolo"
 
 msgid ""
-"Embeded\n"
+"Embeded\r\n"
 "depth"
-msgstr "Profondità integrata"
+msgstr ""
 
 msgid "Surface"
 msgstr "Superficie"
@@ -707,6 +707,16 @@ msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr "Aggiornamento dell'informativa sulla privacy"
+
+#, c-format, boost-format
+msgid ""
+"An error occurred when uploading user presets, affecting the synchronization "
+"of user presets on other devices.\n"
+"Error message: %s"
+msgstr ""
+
+msgid "Sync user presets"
+msgstr ""
 
 msgid "Loading"
 msgstr "Caricamento"
@@ -2552,6 +2562,14 @@ msgstr ""
 "No - Annulla l'attivazione della modalità a spirale"
 
 msgid ""
+"When print by object, machines with I3 structure will not generate timelapse "
+"videos."
+msgstr ""
+
+msgid "Still print by object?"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2930,6 +2948,9 @@ msgstr "Layer Time (s)"
 
 msgid "Used filament"
 msgstr "Filamento usato"
+
+msgid "Tower"
+msgstr ""
 
 msgid "Travel"
 msgstr "Spostamento"
@@ -3992,7 +4013,15 @@ msgstr "Layer: N/A"
 msgid "Clear"
 msgstr "Cancella"
 
-msgid "Rating"
+msgid "How do you like this printing file?"
+msgstr ""
+
+msgid ""
+"(The model has already been rated. Your rating will overwrite the previous "
+"rating.)"
+msgstr ""
+
+msgid "Rate"
 msgstr ""
 
 msgid "Camera"
@@ -4103,9 +4132,6 @@ msgstr "Impossibile iniziare senza scheda MicroSD."
 msgid "Rate the Print Profile"
 msgstr ""
 
-msgid "Rate"
-msgstr ""
-
 msgid "Comment"
 msgstr ""
 
@@ -4167,16 +4193,26 @@ msgid "obtaining instance_id failed\n"
 msgstr ""
 
 msgid ""
-"Your comment result cannot be uploaded due to some reasons. Would you like "
-"to redirect to the webpage for storing?"
+"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"\n"
+"  error code: "
+msgstr ""
+
+msgid "error message: "
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage for rating?"
 msgstr ""
 
 msgid ""
 "Some of your images failed to upload. Would you like to redirect to the "
-"webpage for storing?"
+"webpage for rating?"
 msgstr ""
 
-msgid "You can select up to 5 images."
+msgid "You can select up to 16 images."
 msgstr ""
 
 msgid ""
@@ -4455,9 +4491,6 @@ msgstr "Tempo stimato"
 msgid "Filament changes"
 msgstr "Cambi filamento"
 
-msgid "Create Printer"
-msgstr ""
-
 msgid "Click to edit preset"
 msgstr "Clicca per modificare il preset"
 
@@ -4694,6 +4727,15 @@ msgstr "Esporta file STL:"
 
 msgid "Save file as:"
 msgstr "Salva come:"
+
+#, c-format, boost-format
+msgid ""
+"The file %s already exists\n"
+"Do you want to replace it?"
+msgstr ""
+
+msgid "Comfirm Save As"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Elimina l'oggetto che fa parte dell'oggetto tagliato"
@@ -5251,8 +5293,11 @@ msgstr "Aggiungi/rimuovi filamento"
 msgid "Add/Remove materials"
 msgstr "Aggiungi/rimuovi materiali"
 
-msgid "Add/Remove printers"
-msgstr "Aggiungi/Rimuovi stampanti"
+msgid "Select/Remove printers(system presets)"
+msgstr ""
+
+msgid "Create printer"
+msgstr ""
 
 msgid "Incompatible"
 msgstr "Non compatibile"
@@ -5281,8 +5326,8 @@ msgstr "Abilita"
 msgid "Disable"
 msgstr ""
 
-msgid "Spiral Vase"
-msgstr ""
+msgid "Spiral vase"
+msgstr "Vaso a spirale"
 
 msgid "Same as Global Plate Type"
 msgstr "Uguale al tipo di piano globale"
@@ -5587,6 +5632,11 @@ msgstr "Impossibile inviare un lavoro di stampa per una piatto vuoto."
 msgid "This printer does not support printing all plates"
 msgstr "Questa stampante non supporta la stampa di piatti multipla"
 
+msgid ""
+"When enable spiral vase mode, machines with I3 structure will not generate "
+"timelapse videos."
+msgstr ""
+
 msgid "Errors"
 msgstr "Errori"
 
@@ -5615,10 +5665,33 @@ msgstr ""
 "verificare se sono i filamenti necessari. Se sono a posto, fai clic su "
 "«Conferma» per iniziare a stampare."
 
+#, c-format, boost-format
+msgid "nozzle in preset: %s %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr ""
+
+msgid ""
+"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
+"change your nozzle lately ? "
+msgstr ""
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr ""
+
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 "Fai clic sul pulsante di conferma se desideri continuare con la stampa."
+
+msgid "Hardened Steel"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr ""
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -6709,6 +6782,9 @@ msgstr ""
 msgid "Done"
 msgstr "Fine"
 
+msgid "Confirm and Update Nozzle"
+msgstr ""
+
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "Connessione LAN fallita (invio del file di stampa)"
 
@@ -7429,6 +7505,9 @@ msgid "Bed types supported by the printer"
 msgstr "Tipi di piatti supportati dalla stampante"
 
 msgid "First layer print sequence"
+msgstr ""
+
+msgid "test"
 msgstr ""
 
 msgid "This G-code is inserted at every layer change before lifting z"
@@ -9059,9 +9138,6 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "E' la velocità del riempimento solido interno, esclusa la superficie "
 "superiore o inferiore."
-
-msgid "Spiral vase"
-msgstr "Vaso a spirale"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10794,6 +10870,304 @@ msgstr ""
 msgid "Log Info"
 msgstr ""
 
+msgid "Select filament preset"
+msgstr ""
+
+msgid "Creat Filament"
+msgstr ""
+
+msgid "Create based on current filamet"
+msgstr ""
+
+msgid "Copy current filament preset "
+msgstr ""
+
+msgid "No vendor I want"
+msgstr ""
+
+msgid "Select Vendor"
+msgstr ""
+
+msgid "Input custom vendor"
+msgstr ""
+
+msgid "Select Type"
+msgstr ""
+
+msgid "Select Filament Preset"
+msgstr ""
+
+msgid "Serial"
+msgstr ""
+
+msgid "e.g. Basic, Matte, Silk, Marble"
+msgstr ""
+
+msgid "Filament preset"
+msgstr ""
+
+msgid "We could create the filament presets for your following printer:"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Vendor is not selected, please reselect vendor."
+msgstr ""
+
+msgid "Custom vendor is not input, please input custom vendor."
+msgstr ""
+
+msgid "Filament type is not selected, please reselect type."
+msgstr ""
+
+msgid "Filament serial is not inputed, please input serial."
+msgstr ""
+
+msgid "Some existing presets have failed to be created, as follows:\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to rewrite it?"
+msgstr ""
+
+msgid "You have not selected a filament preset, please choose."
+msgstr ""
+
+msgid "Create Printer/Nozzle"
+msgstr ""
+
+msgid "Create from template"
+msgstr ""
+
+msgid "Create based on current printer"
+msgstr ""
+
+msgid "Create Printer"
+msgstr ""
+
+msgid "Create Nozzle for existing printer"
+msgstr ""
+
+msgid "wiki"
+msgstr ""
+
+msgid "Improt Presets"
+msgstr ""
+
+msgid "Create Type"
+msgstr ""
+
+msgid "The model is not fond, place reselect vendor."
+msgstr ""
+
+msgid "Select model"
+msgstr ""
+
+msgid "Select printer"
+msgstr ""
+
+msgid "Can't find my printer model"
+msgstr ""
+
+msgid "Input Printer Vendor and Model"
+msgstr ""
+
+msgid "Rectangle"
+msgstr ""
+
+msgid "Printable Space"
+msgstr ""
+
+msgid "X"
+msgstr ""
+
+msgid "Y"
+msgstr ""
+
+msgid "Hot Bed STL"
+msgstr ""
+
+msgid "Hot Bed SVG"
+msgstr ""
+
+msgid "Max print height"
+msgstr ""
+
+msgid "Printer preset"
+msgstr ""
+
+msgid "Select vendor"
+msgstr ""
+
+msgid "Filament preset template"
+msgstr ""
+
+msgid "Deselect All"
+msgstr ""
+
+msgid "Process preset template"
+msgstr ""
+
+msgid ""
+"The custom printer and model are not inputed, place return page 1 to input."
+msgstr ""
+
+msgid ""
+"You have not yet chosen which printer preset to create based on. Please "
+"choose the vendor and model of the printer"
+msgstr ""
+
+msgid ""
+"The preset you created already has a preset with the same name. Do you want "
+"to overwrite it?\n"
+"\tYes: Overwrite the printer preset with the same name, and filament and "
+"process presets with the same preset name will not be recreated.\n"
+"\tCancel: Do not create a preset, return to the creation interface."
+msgstr ""
+
+msgid "You need to select at least one filament preset."
+msgstr ""
+
+msgid "You need to select at least one process preset."
+msgstr ""
+
+msgid "Create filament presets failed. As follows:\n"
+msgstr ""
+
+msgid "Create process presets failed. As follows:\n"
+msgstr ""
+
+msgid "Vendor is not find, please reselect."
+msgstr ""
+
+msgid "Current vendor has no models, please reselect."
+msgstr ""
+
+msgid "Preset path is not find, please reselect vendor."
+msgstr ""
+
+msgid "The nozzle diameter is not fond, place reselect."
+msgstr ""
+
+msgid "The printer preset is not fond, place reselect."
+msgstr ""
+
+msgid ""
+"You have not selected the vendor and model or inputed the custom vendor and "
+"model."
+msgstr ""
+
+msgid "You have not upload bed texture."
+msgstr ""
+
+msgid "You have not upload bed model."
+msgstr ""
+
+msgid "Please check bed shape input."
+msgstr ""
+
+msgid "Create Printer/Filament Successful"
+msgstr ""
+
+msgid "Printer Created"
+msgstr ""
+
+msgid "Please go to printer settings to edit your presets"
+msgstr ""
+
+msgid "Filament Created"
+msgstr ""
+
+msgid "Please go to filament setting to edit your presets if you need"
+msgstr ""
+
+msgid "Printer Setting"
+msgstr ""
+
+msgid "Cancle"
+msgstr ""
+
+msgid "Export Configs"
+msgstr ""
+
+msgid "Printer config bundle(.bbscfg)"
+msgstr ""
+
+msgid "Filament bundle(.bbsflmt)"
+msgstr ""
+
+msgid "Printer presets(.zip)"
+msgstr ""
+
+msgid "Filament presets(.zip)"
+msgstr ""
+
+msgid "Process presets(.zip)"
+msgstr ""
+
+msgid "initialize fail"
+msgstr ""
+
+msgid "add file fail"
+msgstr ""
+
+msgid "add bundle structure file fail"
+msgstr ""
+
+msgid "finalize fail"
+msgstr ""
+
+msgid "open zip written fail"
+msgstr ""
+
+msgid "Export successful"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The '%s' folder already exists in the current directory. Do you want to "
+"clear it and rebuild it.\n"
+"If not, a time suffix will be added, and you can modify the name after "
+"creation."
+msgstr ""
+
+msgid ""
+"Printer and all the filament&process presets that belongs to the printer. \n"
+"Can be share in makerworld."
+msgstr ""
+
+msgid ""
+"Only display printer names with changes to printer, filament, and process "
+"presets for uploading to the model mall."
+msgstr ""
+
+msgid ""
+"Only display the filament names with changes to filament presets for "
+"uploading to the model mall."
+msgstr ""
+
+msgid ""
+"Only printer names with user printer presets will be displayed, and each "
+"preset you choose will be exported as a zip."
+msgstr ""
+
+msgid ""
+"Only the filament names with user filament presets will be displayed, \n"
+"and all user filament presets in each filament name you select will be "
+"exported as a zip."
+msgstr ""
+
+msgid ""
+"Only printer names with changed process presets will be displayed, \n"
+"and all user process presets in each printer name you select will be "
+"exported as a zip."
+msgstr ""
+
+msgid "Please select a type you want to export"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
 "3D Scene Operations\n"
@@ -11062,6 +11436,14 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#~ msgid ""
+#~ "Embeded\n"
+#~ "depth"
+#~ msgstr "Profondità integrata"
+
+#~ msgid "Add/Remove printers"
+#~ msgstr "Aggiungi/Rimuovi stampanti"
 
 #~ msgid "Load shape from STL..."
 #~ msgstr "Carica forma da STL..."

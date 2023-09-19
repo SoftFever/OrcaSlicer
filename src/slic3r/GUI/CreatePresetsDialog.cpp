@@ -1816,7 +1816,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                 }
             }
             if (selected_filament_presets.empty() && !filament_preset_is_exist) {
-                MessageDialog dlg(this, _L("You need to select at least one filling preset."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                MessageDialog dlg(this, _L("You need to select at least one filament preset."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                   wxYES | wxYES_DEFAULT | wxCENTRE);
                 dlg.ShowModal();
                 return;
@@ -2081,7 +2081,7 @@ void CreatePrinterPresetDialog::update_presets_list()
         varient = model_varient.substr(index_at + 3, index_nozzle - index_at - 4);
     }
     else {
-        MessageDialog dlg(this, _L("The nozzle_diameter is not fond, place reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
+        MessageDialog dlg(this, _L("The nozzle diameter is not fond, place reselect."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return;
     }
@@ -2382,9 +2382,9 @@ ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
 {
     m_exprot_type.preset_bundle   = _L("Printer config bundle(.bbscfg)");
     m_exprot_type.filament_bundle = _L("Filament bundle(.bbsflmt)");
-    m_exprot_type.printer_preset  = _L("Printer presets(.json)");
-    m_exprot_type.filament_preset = _L("Filament presets(.json)");
-    m_exprot_type.process_preset  = _L("Process presets(.json)");
+    m_exprot_type.printer_preset  = _L("Printer presets(.zip)");
+    m_exprot_type.filament_preset = _L("Filament presets(.zip)");
+    m_exprot_type.process_preset  = _L("Process presets(.zip)");
 
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(600), FromDIP(600)));
