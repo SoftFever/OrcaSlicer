@@ -129,6 +129,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "printable_height",
         "slow_down_min_speed",
         "max_volumetric_extrusion_rate_slope",
+        "max_volumetric_extrusion_rate_slope_segment_length",
         "reduce_infill_retraction",
         "filename_format",
         "retraction_minimum_travel",

@@ -86,6 +86,10 @@ private:
     bool                            m_retracted;
     bool                            m_use_relative_e_distances;
 
+	// Maximum segment length to split a long segment if the initial and the final flow rate differ.
+	// Smaller value means a smoother transition between two different flow rates.
+    float                           m_max_segment_length;
+
     // Indicate if extrude set speed block was opened using the tag ";_EXTRUDE_SET_SPEED"
     // or not (not opened, or it was closed using the tag ";_EXTRUDE_END").
     bool                            opened_extrude_set_speed_block = false;

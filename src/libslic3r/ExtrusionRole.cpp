@@ -12,37 +12,6 @@
 
 namespace Slic3r {
 
-
-/* IG For reference only. Defined in Extrusion Entity hpp. Do not uncomment:
-
-// Each ExtrusionRole value identifies a distinct set of { extruder, speed }
-enum ExtrusionRole : uint8_t {
-    erNone,
-    erPerimeter,
-    erExternalPerimeter,
-    erOverhangPerimeter,
-    erInternalInfill,
-    erSolidInfill,
-    erTopSolidInfill,
-    erBottomSurface,
-    erIroning,
-    erBridgeInfill,
-    erInternalBridgeInfill,
-    erGapFill,
-    erSkirt,
-    erBrim,
-    erSupportMaterial,
-    erSupportMaterialInterface,
-    erSupportTransition,
-    erWipeTower,
-    erCustom,
-    // Extrusion role for a collection with multiple extrusion roles.
-    erMixed,
-    erCount
-};
-
-*/
-
 // Convert a rich bitmask based ExtrusionRole to a less expressive ordinal GCodeExtrusionRole.
 // GCodeExtrusionRole is to be serialized into G-code and deserialized by G-code viewer,
 GCodeExtrusionRole extrusion_role_to_gcode_extrusion_role(ExtrusionRole role)

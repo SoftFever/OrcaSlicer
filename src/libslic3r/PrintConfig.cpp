@@ -2490,6 +2490,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+    
+    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
+    def->label = L("Smoothing segment length");
+    def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
+    				 "and more instructions for the printer to process. \n\n"
+    				 "Default value of 2 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
+    				 "Allowed values: 1-5");
+    def->min = 1;
+    def->max = 5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(2));
 
     def = this->add("fan_min_speed", coInts);
     def->label = L("Fan speed");
