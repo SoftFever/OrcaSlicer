@@ -231,7 +231,12 @@ private:
 
     bool render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx);
     bool render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in);
-    bool render_slider_double_input_show_percentage(const std::string &label, float &value_in, float value_min, float value_max);
+    enum DoubleShowType {
+        Normal, // origin data
+        PERCENTAGE,
+        DEGREE,
+    };
+    bool render_slider_double_input_by_format(const std::string &label, float &value_in, float value_min, float value_max, DoubleShowType show_type = DoubleShowType::Normal);
     bool cut_line_processing() const;
     void discard_cut_line_processing();
     bool process_cut_line(SLAGizmoEventType action, const Vec2d &mouse_position);

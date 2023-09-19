@@ -1623,11 +1623,11 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     if (m_connector_type == CutConnectorType::Snap) {
         const std::string format = "%.0f %%";
         bool is_changed = false;
-        if (render_slider_double_input_show_percentage(_u8L("Bulge"), m_snap_bulge_proportion, 5.f, 100.f * m_snap_space_proportion)) { 
+        if (render_slider_double_input_by_format(_u8L("Bulge"), m_snap_bulge_proportion, 5.f, 100.f * m_snap_space_proportion, DoubleShowType::PERCENTAGE)) {
             is_changed = true;
             apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].paras.snap_bulge_proportion = m_snap_bulge_proportion; });
         }
-        if (render_slider_double_input_show_percentage(_u8L("Gap"), m_snap_space_proportion, 10.f, 50.f)) {
+        if (render_slider_double_input_by_format(_u8L("Gap"), m_snap_space_proportion, 10.f, 50.f, DoubleShowType::PERCENTAGE)) {
             is_changed = true;
             apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].paras.snap_space_proportion = m_snap_space_proportion; });
         }
@@ -1821,42 +1821,52 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     return !is_approx(old_val, value) || !is_approx(old_tolerance, tolerance);
 }
 
-bool GLGizmoAdvancedCut::render_slider_double_input_show_percentage(const std::string &label, float &value_in, float value_min, float value_max)
+bool GLGizmoAdvancedCut::render_slider_double_input_by_format(const std::string &label, float &value_in, float value_min, float value_max, DoubleShowType show_type)
 {
-    // -------- [ ]
     // slider_with + item_in_gap + first_input_width + item_out_gap
-    double slider_with        = 0.24 * m_editing_window_width; // m_control_width * 0.35;
-    double item_in_gap        = 0.01 * m_editing_window_width;
-    double item_out_gap       = 0.01 * m_editing_window_width;
-    double first_input_width  = 0.29 * m_editing_window_width;
+    double slider_with       = 0.24 * m_editing_window_width; // m_control_width * 0.35;
+    double item_in_gap       = 0.01 * m_editing_window_width;
+    double item_out_gap      = 0.01 * m_editing_window_width;
+    double first_input_width = 0.29 * m_editing_window_width;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
     ImGui::SameLine(m_label_width);
     ImGui::PushItemWidth(slider_with);
 
-    double left_width = m_label_width + slider_with + item_in_gap;
+    double      left_width = m_label_width + slider_with + item_in_gap;
+    float       old_val    = value_in; // (show_type == DoubleShowType::Normal)
+    float       value      = value_in; // (show_type == DoubleShowType::Normal)
+    std::string format     = "%.0f";
+    if (show_type == DoubleShowType::PERCENTAGE) {
+        format  = "%.0f %%";
+        old_val = value_in;
+        value   = value_in * 100;
+    } else if (show_type == DoubleShowType::DEGREE) {
+        format  = "%.0f " + _u8L("°");
+        old_val = value_in;
+        value   = Geometry::rad2deg(value_in);
+    }
 
-    float old_val = value_in;
-    float value   = value_in *100;
-
-    const std::string format = "%.0f %%";
     if (m_imgui->bbl_slider_float_style(("##" + label).c_str(), &value, value_min, value_max, format.c_str())) {
-        value_in   = value * 0.01f;
+        if (show_type == DoubleShowType::PERCENTAGE) {
+            value_in = value * 0.01f;
+        } else if (show_type == DoubleShowType::DEGREE) {
+            value_in = Geometry::deg2rad(value);
+        } else { //(show_type == DoubleShowType::Normal)
+            value_in = value;
+        }
     }
 
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(first_input_width);
-    if (ImGui::BBLDragFloat(("##input_" + label).c_str(), &value, 0.05f, value_min, value_max, format.c_str())){
-        value_in = value * 0.01f;
+    if (ImGui::BBLDragFloat(("##input_" + label).c_str(), &value, 0.05f, value_min, value_max, format.c_str())) {
+        value_in = value * 0.01f; 
     }
     return !is_approx(old_val, value_in);
 }
 
-
-
-bool GLGizmoAdvancedCut::cut_line_processing() const
-{
+bool GLGizmoAdvancedCut::cut_line_processing() const {
     return m_cut_line_begin != Vec3d::Zero();
 }
 
