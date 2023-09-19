@@ -5,8 +5,8 @@
 #include "libslic3r/Print.hpp"
 
 namespace Slic3r { namespace GUI {
-static wxString PA_LINE = _L("Line");
-static wxString PA_PATTERN = _L("Pattern");
+static int PA_LINE = 0;
+static int PA_PATTERN = 1;
 
 CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
     wxWindow* parent,
@@ -164,6 +164,14 @@ CaliComboBox::CaliComboBox(wxWindow* parent,
     // bind call back function
     if (m_on_value_change_call_back)
         m_combo_box->Bind(wxEVT_COMBOBOX, m_on_value_change_call_back);
+}
+
+int CaliComboBox::get_selection() const
+{
+    if (m_combo_box)
+        return m_combo_box->GetSelection();
+
+    return 0;
 }
 
 wxString CaliComboBox::get_value() const
@@ -1964,7 +1972,7 @@ wxArrayString CalibrationPresetPage::get_custom_range_values()
 CalibMode CalibrationPresetPage::get_pa_cali_method()
 {
     if (m_pa_cali_method_combox) {
-        wxString selected_mode = m_pa_cali_method_combox->get_value();
+        int selected_mode = m_pa_cali_method_combox->get_selection();
         if (selected_mode == PA_LINE) {
             return CalibMode::Calib_PA_Line;
         }
