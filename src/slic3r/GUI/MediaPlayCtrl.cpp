@@ -161,7 +161,7 @@ void MediaPlayCtrl::Play()
             m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
         else if (m_lan_proto == 3)
             m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << m_url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << m_url.substr(0, 16);
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
@@ -207,7 +207,7 @@ void MediaPlayCtrl::Play()
                 url += "&device=" + m;
                 url += "&version=" + v;
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << url.substr(0, 16) << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
@@ -386,7 +386,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&device=" + m;
             url += "&version=" + v;
         }
-        BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << url.substr(0, 16);
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
