@@ -1928,13 +1928,10 @@ void StatusPanel::update(MachineObject *obj)
             || obj->is_function_supported(PrinterFunction::FUNC_BUILDPLATE_MARKER_DETECT)
             || obj->is_function_supported(PrinterFunction::FUNC_AUTO_RECOVERY_STEP_LOSS)) {
             m_options_btn->Show();
-            if (print_options_dlg == nullptr) {
-                print_options_dlg = new PrintOptionsDialog(this);
+            if (print_options_dlg) {
                 print_options_dlg->update_machine_obj(obj);
-            } else {
-                print_options_dlg->update_machine_obj(obj);
+                print_options_dlg->update_options(obj);
             }
-            print_options_dlg->update_options(obj);
         } else {
             m_options_btn->Hide();
         }
@@ -1962,33 +1959,11 @@ void StatusPanel::update(MachineObject *obj)
             if (iter_connect_type != m_print_connect_types.end()) {
                 if (iter_connect_type->second != obj->dev_connection_type) {
 
-                    //lan = > cloud
                     if (iter_connect_type->second == "lan" && obj->dev_connection_type == "cloud") {
-                        /*wxString txt = _L("Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the printer by logging in with your user account.");
-                        wxString msg = wxString::Format(txt, obj->dev_name);
-                        if (!m_show_mode_changed) {
-                            m_show_mode_changed = true;
-                            MessageDialog msg_wingow(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
-                            msg_wingow.SetSize(wxSize(FromDIP(600), FromDIP(200)));
-                            if (msg_wingow.ShowModal() == wxID_OK || msg_wingow.ShowModal() == wxID_CLOSE) {
-                                m_show_mode_changed = false;
-                            }
-                        }*/
                         m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
                     }
 
-                    //cloud = > lan
                     if (iter_connect_type->second == "cloud" && obj->dev_connection_type == "lan") {
-                        /*wxString txt = _L("Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the printer by inputting Access Code which can be gotten from printer screen.");
-                        wxString msg = wxString::Format(txt, obj->dev_name);
-                        if (!m_show_mode_changed) {
-                            m_show_mode_changed = true;
-                            MessageDialog msg_wingow(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
-                            msg_wingow.SetSize(wxSize(FromDIP(600), FromDIP(200)));
-                            if (msg_wingow.ShowModal() == wxID_OK || msg_wingow.ShowModal() == wxID_CLOSE) {
-                                m_show_mode_changed = false;
-                            }
-                        }*/
                         m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
                     }
                 }
@@ -2723,7 +2698,9 @@ void StatusPanel::update_basic_print_data(bool def)
 void StatusPanel::update_model_info()
 {
     auto get_subtask_fn = [this](BBLModelTask* subtask) {
-        obj->set_modeltask(subtask);
+        if (obj && obj->subtask_id_ == subtask->task_id) {
+            obj->set_modeltask(subtask);
+        }
     };
 
      
