@@ -2941,6 +2941,10 @@ int MachineObject::parse_json(std::string payload)
                                 wxString text = _L("Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\u2103.");
                                 GUI::wxGetApp().show_dialog(text);
                             }
+                            else if (jj["errno"].get<int>() == -4) {
+                                wxString text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0\u2103.");
+                                GUI::wxGetApp().show_dialog(text);
+                            }
                         }
                     }
                 }
