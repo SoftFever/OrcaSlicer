@@ -166,7 +166,7 @@ void MediaPlayCtrl::Play()
         m_url += "&device=" + m_machine;
         m_url += "&version=" + agent_version;
         m_url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << m_url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << m_url.substr(0, 16);
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
@@ -213,7 +213,7 @@ void MediaPlayCtrl::Play()
                 url += "&version=" + v;
                 url += "&dev_ver=" + dv;
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << url.substr(0, 16) << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
@@ -395,7 +395,7 @@ void MediaPlayCtrl::ToggleStream()
             url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
         url += "&device=" + m_machine;
         url += "&dev_ver=" + m_dev_ver;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream camera_url: " << url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << url.substr(0, 16);
         std::string             file_url = data_dir() + "/cameratools/url.txt";
         boost::nowide::ofstream file(file_url);
         auto                    url2 = encode_path(url.c_str());
@@ -411,7 +411,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&version=" + v;
             url += "&dev_ver=" + dv;
         }
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream camera_url: " << url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << url.substr(0, 16);
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
