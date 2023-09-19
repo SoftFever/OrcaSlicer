@@ -53,6 +53,7 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = wxTAB_TRAVERSAL);
 
+    int get_selection() const;
     wxString get_value() const;
     void set_values(const wxArrayString& values);
 
