@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "name": "0.36mm Draft @BBL P1P 0.6 nozzle",
+    "inherits": "fdm_process_bbl_0.36_nozzle_0.6",
+    "from": "system",
+    "setting_id": "GP070",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab P1P 0.6 nozzle"
+    ]
+}

@@ -5,6 +5,12 @@
     "from": "system",
     "setting_id": "GP019",
     "instantiation": "true",
+    "default_acceleration": "5000",
+    "inner_wall_speed": "150",
+    "internal_solid_infill_speed": "280",
+    "outer_wall_acceleration": "2500",
+    "outer_wall_speed": "80",
+    "sparse_infill_speed": "240",
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle"
     ]

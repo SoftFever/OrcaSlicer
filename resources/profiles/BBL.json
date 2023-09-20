@@ -176,6 +176,10 @@
             "sub_path": "process/0.30mm Strength @BBL A1M 0.6 nozzle.json"
         },
         {
+            "name": "0.30mm Strength @BBL P1P 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @BBL P1P 0.6 nozzle.json"
+        },
+        {
             "name": "0.12mm Fine @BBL X1C",
             "sub_path": "process/0.12mm Fine @BBL X1C.json"
         },
@@ -248,12 +252,20 @@
             "sub_path": "process/0.06mm Fine @BBL A1M 0.2 nozzle.json"
         },
         {
+            "name": "0.06mm Fine @BBL P1P 0.2 nozzle",
+            "sub_path": "process/0.06mm Fine @BBL P1P 0.2 nozzle.json"
+        },
+        {
             "name": "0.08mm Standard @BBL X1C 0.2 nozzle",
             "sub_path": "process/0.08mm Standard @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "0.08mm Optimal @BBL A1M 0.2 nozzle",
             "sub_path": "process/0.08mm Optimal @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm Optimal @BBL P1P 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @BBL P1P 0.2 nozzle.json"
         },
         {
             "name": "0.12mm Standard @BBL X1C 0.2 nozzle",
@@ -264,12 +276,20 @@
             "sub_path": "process/0.12mm Draft @BBL A1M 0.2 nozzle.json"
         },
         {
+            "name": "0.12mm Draft @BBL P1P 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @BBL P1P 0.2 nozzle.json"
+        },
+        {
             "name": "0.14mm Standard @BBL X1C 0.2 nozzle",
             "sub_path": "process/0.14mm Standard @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "0.14mm Extra Draft @BBL A1M 0.2 nozzle",
             "sub_path": "process/0.14mm Extra Draft @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @BBL P1P 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @BBL P1P 0.2 nozzle.json"
         },
         {
             "name": "0.18mm Standard @BBL X1C 0.6 nozzle",
@@ -280,12 +300,20 @@
             "sub_path": "process/0.18mm Fine @BBL A1M 0.6 nozzle.json"
         },
         {
+            "name": "0.18mm Fine @BBL P1P 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @BBL P1P 0.6 nozzle.json"
+        },
+        {
             "name": "0.24mm Standard @BBL X1C 0.6 nozzle",
             "sub_path": "process/0.24mm Standard @BBL X1C 0.6 nozzle.json"
         },
         {
             "name": "0.24mm Optimal @BBL A1M 0.6 nozzle",
             "sub_path": "process/0.24mm Optimal @BBL A1M 0.6 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @BBL P1P 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @BBL P1P 0.6 nozzle.json"
         },
         {
             "name": "0.36mm Standard @BBL X1C 0.6 nozzle",
@@ -296,12 +324,20 @@
             "sub_path": "process/0.36mm Draft @BBL A1M 0.6 nozzle.json"
         },
         {
+            "name": "0.36mm Draft @BBL P1P 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @BBL P1P 0.6 nozzle.json"
+        },
+        {
             "name": "0.42mm Standard @BBL X1C 0.6 nozzle",
             "sub_path": "process/0.42mm Standard @BBL X1C 0.6 nozzle.json"
         },
         {
             "name": "0.42mm Extra Draft @BBL A1M 0.6 nozzle",
             "sub_path": "process/0.42mm Extra Draft @BBL A1M 0.6 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @BBL P1P 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @BBL P1P 0.6 nozzle.json"
         },
         {
             "name": "0.24mm Standard @BBL X1C 0.8 nozzle",
@@ -312,12 +348,20 @@
             "sub_path": "process/0.24mm Fine @BBL A1M 0.8 nozzle.json"
         },
         {
+            "name": "0.24mm Fine @BBL P1P 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @BBL P1P 0.8 nozzle.json"
+        },
+        {
             "name": "0.32mm Standard @BBL X1C 0.8 nozzle",
             "sub_path": "process/0.32mm Standard @BBL X1C 0.8 nozzle.json"
         },
         {
             "name": "0.32mm Optimal @BBL A1M 0.8 nozzle",
             "sub_path": "process/0.32mm Optimal @BBL A1M 0.8 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @BBL P1P 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @BBL P1P 0.8 nozzle.json"
         },
         {
             "name": "0.48mm Standard @BBL X1C 0.8 nozzle",
@@ -328,12 +372,20 @@
             "sub_path": "process/0.48mm Draft @BBL A1M 0.8 nozzle.json"
         },
         {
+            "name": "0.48mm Draft @BBL P1P 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @BBL P1P 0.8 nozzle.json"
+        },
+        {
             "name": "0.56mm Standard @BBL X1C 0.8 nozzle",
             "sub_path": "process/0.56mm Standard @BBL X1C 0.8 nozzle.json"
         },
         {
             "name": "0.56mm Extra Draft @BBL A1M 0.8 nozzle",
             "sub_path": "process/0.56mm Extra Draft @BBL A1M 0.8 nozzle.json"
+        },
+        {
+            "name": "0.56mm Extra Draft @BBL P1P 0.8 nozzle",
+            "sub_path": "process/0.56mm Extra Draft @BBL P1P 0.8 nozzle.json"
         },
         {
             "name": "0.10mm Standard @BBL A1M 0.2 nozzle",
