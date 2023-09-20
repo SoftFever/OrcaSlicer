@@ -237,7 +237,7 @@ private:
     bool is_selection_changed(bool alt_down, bool shift_down);
     void select_connector(int idx, bool select);
 
-    double calc_projection(const Linef3& mouse_ray) const;
+    double calc_projection(const Vec3d &drag_pos, const Linef3 &mouse_ray, const Vec3d &project_dir) const;
     Vec3d calc_plane_normal(const std::array<Vec3d, 4>& plane_points) const;
     Vec3d calc_plane_center(const std::array<Vec3d, 4>& plane_points) const;
     Vec3d get_plane_normal() const;
@@ -280,7 +280,7 @@ private:
     bool render_reset_button(const std::string &label_id, const std::string &tooltip) const;
     bool render_connect_type_radio_button(CutConnectorType type);
 
-    bool render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx);
+    bool render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx, float label_width, float item_width);
     bool render_slider_double_input(const std::string &label, float &value_in, float &tolerance_in);
     enum DoubleShowType {
         Normal, // origin data

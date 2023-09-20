@@ -505,7 +505,7 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
     //m_move_grabber.angles = m_current_base_rotation + m_rotation;
 
     if (m_hover_id == get_group_id()) {
-        double move = calc_projection(data.mouse_ray);
+        double move = calc_projection(m_drag_pos,data.mouse_ray,get_plane_normal());
         set_movement(m_start_movement + move);
         Vec3d plane_normal = get_plane_normal();
         m_height = m_start_height + plane_normal(2) * move;
@@ -773,14 +773,12 @@ Vec3d GLGizmoAdvancedCut::calc_plane_center(const std::array<Vec3d, 4>& plane_po
     return plane_center / (float)m_cut_plane_points.size();
 }
 
-double GLGizmoAdvancedCut::calc_projection(const Linef3& mouse_ray) const
+double GLGizmoAdvancedCut::calc_projection(const Vec3d &drag_pos, const Linef3 &mouse_ray, const Vec3d &project_dir) const
 {
-    Vec3d mouse_dir = mouse_ray.unit_vector();
-    Vec3d inters = mouse_ray.a + (m_drag_pos - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
-    Vec3d inters_vec = inters - m_drag_pos;
-
-    Vec3d plane_normal = get_plane_normal();
-    return inters_vec.dot(plane_normal);
+    Vec3d mouse_dir  = mouse_ray.unit_vector();
+    Vec3d inters     = mouse_ray.a + (drag_pos - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+    Vec3d inters_vec = inters - drag_pos;
+    return inters_vec.dot(project_dir);
 }
 
 Vec3d GLGizmoAdvancedCut::get_plane_normal() const
@@ -1591,7 +1589,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     }
 
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    if (render_combo(_u8L("Style"), connector_styles, m_connector_style))
+    if (render_combo(_u8L("Style"), connector_styles, m_connector_style, m_label_width, m_editing_window_width))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
     ImGuiWrapper::pop_combo_style();
     m_imgui->disabled_end();
@@ -1602,7 +1600,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     }
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    if (render_combo(_u8L("Shape"), connector_shapes, m_connector_shape_id))
+    if (render_combo(_u8L("Shape"), connector_shapes, m_connector_shape_id, m_label_width, m_editing_window_width))
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     ImGuiWrapper::pop_combo_style();
     m_imgui->disabled_end();
@@ -1727,12 +1725,12 @@ bool GLGizmoAdvancedCut::render_connect_type_radio_button(CutConnectorType type)
     return false;
 }
 
-bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx)
+bool GLGizmoAdvancedCut::render_combo(const std::string &label, const std::vector<std::string> &lines, size_t &selection_idx, float label_width, float item_width)
 {
     ImGui::AlignTextToFramePadding();
     m_imgui->text(label);
-    ImGui::SameLine(m_label_width);
-    ImGui::PushItemWidth(m_editing_window_width);
+    ImGui::SameLine(label_width);
+    ImGui::PushItemWidth(item_width);
 
     size_t selection_out = selection_idx;
 
