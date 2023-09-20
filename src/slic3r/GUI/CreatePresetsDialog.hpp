@@ -151,8 +151,8 @@ private:
     Button *                                           m_button_page2_back              = nullptr;
     Button *                                           m_button_bed_stl                 = nullptr;
     Button *                                           m_button_bed_svg                 = nullptr;
-    wxWindow *                                         m_page1                          = nullptr;
-    wxWindow *                                         m_page2                          = nullptr;
+    wxScrolledWindow *                                 m_page1                          = nullptr;
+    wxScrolledWindow *                                 m_page2                          = nullptr;
     ComboBox *                                         m_select_vendor                  = nullptr;
     ComboBox *                                         m_select_model                   = nullptr;
     ComboBox *                                         m_select_printer                 = nullptr;
@@ -172,6 +172,7 @@ private:
     wxPanel *                                          m_filament_preset_panel          = nullptr;
     wxPanel *                                          m_process_preset_panel           = nullptr;
     wxPanel *                                          m_preset_template_panel          = nullptr;
+    wxBoxSizer *                                       m_page2_sizer                    = nullptr;
     std::string                                        m_custom_texture;
     std::string                                        m_custom_model;
 };

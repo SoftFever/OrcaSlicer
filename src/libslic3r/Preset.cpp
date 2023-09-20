@@ -1287,7 +1287,14 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
 
     //add other values
     key_values[BBL_JSON_KEY_VERSION] = preset.version.to_string();
-    key_values[BBL_JSON_KEY_BASE_ID] = preset.base_id;
+    if (!preset.base_id.empty()) {
+        key_values[BBL_JSON_KEY_BASE_ID] = preset.base_id;
+    } else {
+        key_values.erase(BBL_JSON_KEY_BASE_ID);
+        if (get_preset_base(preset) == &preset && !preset.filament_id.empty()) {
+            key_values[BBL_JSON_KEY_FILAMENT_ID] = preset.filament_id;
+        }
+    }
     key_values[BBL_JSON_KEY_UPDATE_TIME] = std::to_string(preset.updated_time);
     key_values[BBL_JSON_KEY_TYPE] = Preset::get_iot_type_string(preset.type);
     return 0;
@@ -2222,10 +2229,10 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             auto base = get_preset_base(curr_preset);
             inherits  = base ? base->name : "";
         }
-        preset.file        = this->path_for_preset(preset);
         preset.is_default  = false;
         preset.is_system   = false;
         preset.is_external = false;
+        preset.file        = this->path_for_preset(preset);
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible  = true;
         // Just system presets have aliases
