@@ -765,11 +765,9 @@ void update_arrange_params(arrangement::ArrangeParams &params, const Plater &p, 
     const GLCanvas3D::ArrangeSettings &settings       = static_cast<const GLCanvas3D *>(p.canvas3D())->get_arrange_settings();
     auto &                             print          = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
     double                             skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    double                             brim_max       = 0;
-    std::for_each(selected.begin(), selected.end(), [&](const ArrangePolygon &ap) { brim_max = std::max(brim_max, ap.brim_width); });
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
-    params.brim_skirt_distance = skirt_distance + brim_max;
+    params.brim_skirt_distance = skirt_distance;
     params.bed_shrink_x        = settings.bed_shrink_x + params.brim_skirt_distance;
     params.bed_shrink_y        = settings.bed_shrink_y + params.brim_skirt_distance;
     // for sequential print, we need to inflate the bed because cleareance_radius is so large
