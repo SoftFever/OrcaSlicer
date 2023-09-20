@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-19 14:36+0800\n"
+"POT-Creation-Date: 2023-09-20 11:57+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -363,10 +363,10 @@ msgid "Hexagon"
 msgstr "六边形"
 
 msgid "Bulge"
-msgstr ""
+msgstr "凸度"
 
 msgid "Gap"
-msgstr ""
+msgstr "间隙"
 
 msgid "Confirm connectors"
 msgstr "确认"
@@ -2639,6 +2639,12 @@ msgid ""
 msgstr ""
 "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许"
 "将腔温设置高于45℃。"
+
+msgid ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
+msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
@@ -9927,9 +9933,6 @@ msgstr "请选择顶部表面最光滑的块。"
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr "请输入一个有效值（0<=最大容积速度<=60）"
 
-msgid "Pattern"
-msgstr "图案"
-
 msgid "Calibration Type"
 msgstr "校准类型"
 
@@ -9982,6 +9985,9 @@ msgstr "错误描述"
 
 msgid "Extra info"
 msgstr "额外信息"
+
+msgid "Pattern"
+msgstr "图案"
 
 msgid "Method"
 msgstr "模式"
@@ -10340,6 +10346,12 @@ msgstr "测试存储下载"
 
 msgid "Test Storage Download:"
 msgstr "测试存储下载："
+
+msgid "Test plugin download"
+msgstr "测试插件下载"
+
+msgid "Test Plugin Download:"
+msgstr "测试插件下载:"
 
 msgid "Test Storage Upload"
 msgstr "测试存储上传"

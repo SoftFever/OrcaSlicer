@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-19 14:36+0800\n"
+"POT-Creation-Date: 2023-09-20 11:57+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2764,6 +2764,12 @@ msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
 "above 45℃."
+msgstr ""
+
+msgid ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -10467,9 +10473,6 @@ msgstr ""
 msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr ""
 
-msgid "Pattern"
-msgstr ""
-
 msgid "Calibration Type"
 msgstr ""
 
@@ -10518,6 +10521,9 @@ msgid "Error desc"
 msgstr ""
 
 msgid "Extra info"
+msgstr ""
+
+msgid "Pattern"
 msgstr ""
 
 msgid "Method"
@@ -10862,6 +10868,12 @@ msgid "Test storage download"
 msgstr ""
 
 msgid "Test Storage Download:"
+msgstr ""
+
+msgid "Test plugin download"
+msgstr ""
+
+msgid "Test Plugin Download:"
 msgstr ""
 
 msgid "Test Storage Upload"
