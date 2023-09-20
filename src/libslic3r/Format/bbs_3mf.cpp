@@ -4438,6 +4438,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 volume->supported_facets.shrink_to_fit();
                 volume->seam_facets.shrink_to_fit();
                 volume->mmu_segmentation_facets.shrink_to_fit();
+                volume->mmu_segmentation_facets.touch();
             }
 
             volume->set_type(volume_data->part_type);
