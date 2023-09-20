@@ -816,6 +816,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Orca
     ((ConfigOptionBool,                 make_overhang_printable))
     ((ConfigOptionBool,                 extra_perimeters_on_overhangs))
+    ((ConfigOptionBool,                 slowdown_for_curled_perimeters))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

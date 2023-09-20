@@ -671,12 +671,15 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
-
+     
     bool has_overhang_speed = config->opt_bool("enable_overhang_speed");
     for (auto el :
          {"overhang_speed_classic", "overhang_1_4_speed",
           "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed);
+    
+    bool has_overhang_speed_classic = config->opt_bool("overhang_speed_classic");
+    toggle_line("slowdown_for_curled_perimeters",!has_overhang_speed_classic && has_overhang_speed);
 
     toggle_line("flush_into_objects", !is_global_config);
 

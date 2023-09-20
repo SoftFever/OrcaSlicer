@@ -9,6 +9,7 @@
 #include "MutablePolygon.hpp"
 #include "PrintConfig.hpp"
 #include "SupportMaterial.hpp"
+#include "SupportSpotsGenerator.hpp"
 #include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
@@ -499,6 +500,25 @@ void PrintObject::generate_support_material()
     }
 }
 
+void PrintObject::estimate_curled_extrusions()
+{
+    if (this->set_started(posEstimateCurledExtrusions)) {
+        if ( std::any_of(this->print()->m_print_regions.begin(), this->print()->m_print_regions.end(),
+                        [](const PrintRegion *region) { return region->config().enable_overhang_speed.getBool(); })) {
+
+            // Estimate curling of support material and add it to the malformaition lines of each layer
+            float support_flow_width = support_material_flow(this, this->config().layer_height).width();
+            SupportSpotsGenerator::Params params{this->print()->m_config.filament_type.values,
+                                                 float(this->print()->m_config.inner_wall_acceleration.getFloat()),
+                                                 this->config().raft_layers.getInt(), this->config().brim_type.value,
+                                                 float(this->config().brim_width.getFloat())};
+            SupportSpotsGenerator::estimate_malformations(this->layers(), params);
+            m_print->throw_if_canceled();
+        }
+        //this->set_done(posEstimateCurledExtrusions);
+    }
+}
+
 void PrintObject::simplify_extrusion_path()
 {
     if (this->set_started(posSimplifyPath)) {
@@ -756,6 +776,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
             || opt_key == "slicing_mode"
+            || opt_key == "slowdown_for_curled_perimeters"
             || opt_key == "make_overhang_printable"
             || opt_key == "make_overhang_printable_angle"
             || opt_key == "make_overhang_printable_hole_size") {
@@ -1707,61 +1728,70 @@ void PrintObject::discover_vertical_shells()
 //    PROFILE_OUTPUT(debug_out_path("discover_vertical_shells-profile.txt").c_str());
 }
 
-/* This method applies bridge flow to the first internal solid layer above
-   sparse infill */
+// This method applies bridge flow to the first internal solid layer above sparse infill.
 void PrintObject::bridge_over_infill()
 {
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill..." << log_memory_info();
 
-    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
-        const PrintRegion &region = this->printing_region(region_id);
+    std::vector<int> sparse_infill_regions;
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id)
+        if (const PrintRegion &region = this->printing_region(region_id); region.config().sparse_infill_density.value < 100)
+            sparse_infill_regions.emplace_back(region_id);
+    if (this->layer_count() < 2 || sparse_infill_regions.empty())
+        return;
 
-        // skip bridging in case there are no voids
-        if (region.config().sparse_infill_density.value == 100)
-            continue;
+	// Collect sum of all internal (sparse infill) regions, because
+    //     1) layerm->fill_surfaces.will be modified in parallel.
+    //     2) the parallel loop works on a sum of surfaces over regions anyways, thus collecting the sparse infill surfaces
+    //        up front is an optimization.
+    std::vector<Polygons> internals;
+    internals.reserve(this->layer_count());
+    for (Layer *layer : m_layers) {
+        Polygons sum;
+        for (const LayerRegion *layerm : layer->m_regions)
+            layerm->fill_surfaces.filter_by_type(stInternal, &sum);
+        internals.emplace_back(std::move(sum));
+    }
 
-		for (LayerPtrs::iterator layer_it = m_layers.begin(); layer_it != m_layers.end(); ++ layer_it) {
-            // skip first layer
-			if (layer_it == m_layers.begin())
-                continue;
-
-            Layer       *layer       = *layer_it;
+    // Process all regions and layers in parallel.
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, sparse_infill_regions.size() * (this->layer_count() - 1), sparse_infill_regions.size()),
+        [this, &sparse_infill_regions, &internals]
+        (const tbb::blocked_range<size_t> &range) {
+        for (size_t task_id = range.begin(); task_id != range.end(); ++ task_id) {
+            const size_t layer_id    = (task_id / sparse_infill_regions.size()) + 1;
+            const size_t region_id   = sparse_infill_regions[task_id % sparse_infill_regions.size()];
+            Layer       *layer       = this->get_layer(layer_id);
             LayerRegion *layerm      = layer->m_regions[region_id];
             const PrintObjectConfig& object_config = layer->object()->config();
             //BBS: enable thick bridge for internal bridge only
             Flow         bridge_flow = layerm->bridging_flow(frSolidInfill, true);
 
-            // extract the stInternalSolid surfaces that might be transformed into bridges
-            Polygons internal_solid;
-            layerm->fill_surfaces.filter_by_type(stInternalSolid, &internal_solid);
+            // Extract the stInternalSolid surfaces that might be transformed into bridges.
+            ExPolygons internal_solid;
+            layerm->fill_surfaces.remove_type(stInternalSolid, &internal_solid);
+            if (internal_solid.empty())
+                // No internal solid -> no new bridges for this layer region.
+                continue;
 
             // check whether the lower area is deep enough for absorbing the extra flow
             // (for obvious physical reasons but also for preventing the bridge extrudates
             // from overflowing in 3D preview)
             ExPolygons to_bridge;
             {
-                Polygons to_bridge_pp = internal_solid;
-
-                // iterate through lower layers spanned by bridge_flow
+                Polygons to_bridge_pp = to_polygons(internal_solid);
+                // Iterate through lower layers spanned by bridge_flow.
                 double bottom_z = layer->print_z - bridge_flow.height() - EPSILON;
-                for (int i = int(layer_it - m_layers.begin()) - 1; i >= 0; --i) {
-                    const Layer* lower_layer = m_layers[i];
-
-                    // stop iterating if layer is lower than bottom_z
-                    if (lower_layer->print_z < bottom_z) break;
-
-                    // iterate through regions and collect internal surfaces
-                    Polygons lower_internal;
-                    for (LayerRegion *lower_layerm : lower_layer->m_regions)
-                        lower_layerm->fill_surfaces.filter_by_type(stInternal, &lower_internal);
-
-                    // intersect such lower internal surfaces with the candidate solid surfaces
-                    to_bridge_pp = intersection(to_bridge_pp, lower_internal);
+                for (auto i = int(layer_id) - 1; i >= 0; -- i) {
+                    // Stop iterating if layer is lower than bottom_z.
+                    if (m_layers[i]->print_z < bottom_z)
+                        break;
+                    // Intersect lower sparse infills with the candidate solid surfaces.
+                    to_bridge_pp = intersection(to_bridge_pp, internals[i]);
                 }
 
                 // BBS: expand to make avoid gap between bridge and inner wall
                 to_bridge_pp = expand(to_bridge_pp, bridge_flow.scaled_width());
-                to_bridge_pp = intersection(to_bridge_pp, internal_solid);
+                to_bridge_pp = intersection(to_bridge_pp, to_polygons(internal_solid));
 
                 // there's no point in bridging too thin/short regions
                 //FIXME Vojtech: The offset2 function is not a geometric offset,
@@ -1772,7 +1802,12 @@ void PrintObject::bridge_over_infill()
                     to_bridge_pp = opening(to_bridge_pp, min_width);
                 }
 
-                if (to_bridge_pp.empty()) continue;
+                if (to_bridge_pp.empty()) {
+                    // Restore internal_solid surfaces. 
+                    for (ExPolygon &ex : internal_solid)
+                        layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, std::move(ex)));
+                    continue;
+                }
 
                 // convert into ExPolygons
                 to_bridge = union_ex(to_bridge_pp);
@@ -1786,7 +1821,6 @@ void PrintObject::bridge_over_infill()
             ExPolygons not_to_bridge = diff_ex(internal_solid, to_bridge, ApplySafetyOffset::Yes);
             to_bridge = intersection_ex(to_bridge, internal_solid, ApplySafetyOffset::Yes);
             // build the new collection of fill_surfaces
-            layerm->fill_surfaces.remove_type(stInternalSolid);
             for (ExPolygon &ex : to_bridge) {
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalBridge, ex));
                 // BBS: detect angle for internal bridge infill
@@ -1804,8 +1838,8 @@ void PrintObject::bridge_over_infill()
                 float internal_loop_thickness = object_config.internal_bridge_support_thickness.value;
                 double bottom_z = layer->print_z - layer->height - internal_loop_thickness + EPSILON;
                 //BBS: lighting infill doesn't support this feature. Don't need to add loop when infill density is high than 50%
-                if (region.config().sparse_infill_pattern != InfillPattern::ipLightning && region.config().sparse_infill_density.value < 50)
-                    for (int i = int(layer_it - m_layers.begin()) - 1; i >= 0; --i) {
+                if (layerm->region().config().sparse_infill_pattern != InfillPattern::ipLightning && layerm->region().config().sparse_infill_density.value < 50)
+                    for (int i = layer_id - 1; i >= 0; --i) {
                         const Layer* lower_layer = m_layers[i];
 
                         if (lower_layer->print_z < bottom_z) break;
@@ -1872,7 +1906,7 @@ void PrintObject::bridge_over_infill()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
             m_print->throw_if_canceled();
         }
-    }
+    });
 }
 
 static void clamp_exturder_to_default(ConfigOptionInt &opt, size_t num_extruders)

@@ -209,6 +209,18 @@ public:
     double a_width, b_width;
 };
 
+class CurledLine : public Line
+{
+public:
+    CurledLine() : curled_height(0.0f) {}
+    CurledLine(const Point& a, const Point& b) : Line(a, b), curled_height(0.0f) {}
+    CurledLine(const Point& a, const Point& b, float curled_height) : Line(a, b), curled_height(curled_height) {}
+
+    float curled_height;
+};
+
+using CurledLines = std::vector<CurledLine>;
+
 class Line3
 {
 public:
