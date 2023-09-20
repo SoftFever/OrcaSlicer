@@ -1603,6 +1603,9 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         // BBS
         //m_internal_rotation += 180.f;
 
+        if (m_layer_info->depth < m_perimeter_width)
+            continue;
+
         if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width) {
             // align y shift to perimeter width
             float dy = m_extra_spacing * m_perimeter_width;
