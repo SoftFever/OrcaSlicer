@@ -229,7 +229,7 @@ private:
 #endif
 
 //import model from mall 
-    std::string     m_download_file_url;
+    wxString       m_download_file_url;
    
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
