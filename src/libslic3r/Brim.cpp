@@ -791,7 +791,7 @@ double configBrimWidthByVolumeGroups(double adhension, double maxSpeed, const st
     double thermalLengthRef = Model::getThermalLength(modelVolumePtrs);
 
     double height_to_area = std::max(height / Ixx * (bbox2.size()(1) * SCALING_FACTOR), height / Iyy * (bbox2.size()(0) * SCALING_FACTOR)) * height / 1920;
-    double brim_width = adhension * std::min(std::min(std::max(height_to_area * maxSpeed, thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
+    double brim_width = adhension * std::min(std::min(std::max(height_to_area * maxSpeed, 0. * thermalLength * 8. / thermalLengthRef * std::min(height, 30.) / 30.), 18.), 1.5 * thermalLength);
     // small brims are omitted
     if (brim_width < 5 && brim_width < 1.5 * thermalLength)
         brim_width = 0;
@@ -899,7 +899,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     for (const ExPolygon& ex_poly : volumeGroup.slices) {
                         // BBS: additional brim width will be added if part's adhension area is too small and brim is not generated
                         float brim_width_mod;
-                        if (brim_width < scale_(5.) && has_brim_auto && groupHeight > 10.) {
+                        if (0 && brim_width < scale_(5.) && has_brim_auto && groupHeight > 10.) {
                             brim_width_mod = ex_poly.area() / ex_poly.contour.length() < scaled_half_min_adh_length
                                 && brim_width < scaled_flow_width ? brim_width + scaled_additional_brim_width : brim_width;
                         }
