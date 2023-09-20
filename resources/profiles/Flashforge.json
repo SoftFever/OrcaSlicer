@@ -1,0 +1,87 @@
+{
+  "name": "Flashforge",
+  "url": "",
+  "version": "01.00.00.00",
+  "force_update": "0",
+  "description": "Flashforge configurations",
+  "machine_model_list": [
+    {
+      "name": "Flashforge Adventurer 5M",
+      "sub_path": "machine/Flashforge Adventurer 5M.json"
+    },
+    {
+      "name": "Flashforge Adventurer 5M Pro",
+      "sub_path": "machine/Flashforge Adventurer 5M Pro.json"
+    }
+  ],
+  "process_list": [
+    {
+      "name": "0.20mm Standard @Flashforge AD5M",
+      "sub_path": "process/0.20mm Standard @Flashforge AD5M.json"
+    },
+    {
+      "name": "0.20mm Standard @Flashforge AD5M Pro",
+      "sub_path": "process/0.20mm Standard @Flashforge AD5M Pro.json"
+    },
+    {
+      "name": "0.30mm Standard @Flashforge AD5M 0.6 Nozzle",
+      "sub_path": "process/0.30mm Standard @Flashforge AD5M 0.6 Nozzle.json"
+    }
+    {
+      "name": "0.30mm Standard @Flashforge AD5M Pro 0.6 Nozzle",
+      "sub_path": "process/0.30mm Standard @Flashforge AD5M Pro 0.6 Nozzle.json"
+    }
+  ],
+  "filament_list": [
+    {
+      "name": "Flashforge  ABS",
+      "sub_path": "filament/Flashforge  ABS.json"
+    },
+    {
+      "name": "Flashforge  ASA",
+      "sub_path": "filament/Flashforge  ASA.json"
+    },
+    {
+      "name": "Flashforge HS PLA",
+      "sub_path": "filament/Flashforge HS PLA.json"
+    },
+    {
+      "name": "Flashforge PETG",
+      "sub_path": "filament/Flashforge PETG.json"
+    },
+    {
+      "name": "Flashforge PETG-CF10",
+      "sub_path": "filament/Flashforge PETG-CF10.json"
+    },
+    {
+      "name": "Flashforge PLA",
+      "sub_path": "filament/Flashforge PLA.json"
+    },
+    {
+      "name": "Flashforge PLA-CF10",
+      "sub_path": "filament/Flashforge PLA-CF10.json"
+    },
+    {
+      "name": "Flashforge TPU",
+      "sub_path": "filament/Flashforge TPU.json"
+    }
+  ],
+  "machine_list": [
+    {
+      "name": "Flashforge Adventurer 5M 0.4 Nozzle",
+      "sub_path": "machine/Flashforge Adventurer 5M 0.4 Nozzle.json"
+    },
+    {
+      "name": "Flashforge Adventurer 5M 0.6 Nozzle",
+      "sub_path": "machine/Flashforge Adventurer 5M 0.6 Nozzle.json"
+    },
+    {
+      "name": "Flashforge Adventurer 5M Pro 0.4 Nozzle",
+      "sub_path": "machine/Flashforge Adventurer 5M Pro 0.4 Nozzle.json"
+    },
+    {
+      "name": "Flashforge Adventurer 5M Pro 0.6 Nozzle",
+      "sub_path": "machine/Flashforge Adventurer 5M Pro 0.6 Nozzle.json"
+    }
+  ]
+}
