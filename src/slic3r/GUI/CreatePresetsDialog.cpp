@@ -43,7 +43,7 @@ static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA 
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
-static const std::vector<std::string> system_filament_types = {"PLA",    "ABS",  "TPU", "PC","ASA",  "PA-CF","PET-CF",    "PETG",    "PETG-CF",        "PLA-AERO",   "PLA-CF",     "PA",
+static const std::vector<std::string> system_filament_types = {"PLA",    "ABS",  "TPU", "PC","ASA",  "PA-CF","PET-CF",    "PETG",    "PETG-CF",        "PLA Aero",   "PLA-CF",     "PA",
                                                         "HIPS",  "PPS",   "PVA"};
 
 static const std::vector<std::string> printer_vendors = {"AnkerMake", "Anycubic",  "Artillery", "BIBO",        "BIQU",    "Creality ENDER", "Creality CR", "Creality SERMOON",
@@ -165,7 +165,7 @@ static wxArrayString get_exist_vendor_choices(VendorMap& vendors)
 
 static std::string get_machine_name(const std::string &preset_name)
 {
-    size_t index_at = preset_name.find("@");
+    size_t index_at = preset_name.find_last_of("@");
     if (std::string::npos == index_at) {
         return "";
     } else {
@@ -175,7 +175,7 @@ static std::string get_machine_name(const std::string &preset_name)
 
 static std::string get_filament_name(std::string &preset_name)
 {
-    size_t index_at = preset_name.find("@");
+    size_t index_at = preset_name.find_last_of("@");
     if (std::string::npos == index_at) {
         return preset_name;
     } else {
@@ -186,7 +186,7 @@ static std::string get_filament_name(std::string &preset_name)
 static std::string get_vendor_name(std::string& preset_name)
 {
     if (preset_name.empty()) return "";
-    std::string vendor_name = preset_name.substr(preset_name.find_first_not_of(' '));
+    std::string vendor_name = preset_name.substr(preset_name.find_first_not_of(' ')); //remove the name prefix space
     size_t index_at = vendor_name.find(" ");
     if (std::string::npos == index_at) {
         return vendor_name;
@@ -492,7 +492,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxArrayString filament_type;
-    for (const wxString &filament : system_filament_types) { 
+    for (const wxString &filament : system_filament_types) {
         filament_type.Add(filament);
     }
 
@@ -710,7 +710,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                         failure_names += failure + "\n";
                     }
                     MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
-                                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+                                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                     if (dlg.ShowModal() == wxID_YES) {
                         res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, true);
                         BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  rewritten  is successful? "<< res;
@@ -718,12 +718,15 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                         std::vector<Preset const *> temp_filament_presets;
                         for (const Preset* preset : filament_presets) { 
                             for (const std::string &exist_name : failures) {
-                                if (exist_name == preset->name) { 
+                                size_t index_at = preset->name.find_last_of('@');
+                                if (std::string::npos == index_at) continue;
+                                if (exist_name == filament_preset_name + " " + preset->name.substr(index_at)) { 
                                     continue;
                                 }
                                 temp_filament_presets.push_back(preset);
                             }
                         }
+                        if (temp_filament_presets.empty()) return;
                         preset_bundle->filaments.clone_presets_for_filament(temp_filament_presets, failures, filament_preset_name, user_filament_id);
                         BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  not rewritten  is successful? " << res;
                     }
@@ -748,8 +751,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                 if (!res) {
                     std::string failure_names;
                     for (std::string &failure : failures) { failure_names += failure + "\n"; }
-                    MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names,
-                                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+                    MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
+                                      wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                     if (wxID_YES == dlg.ShowModal()) {
                         res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, true);
                         BOOST_LOG_TRIVIAL(info) << "clone filament presets  have failures  rewritten  is successful? " << res;
@@ -757,10 +760,15 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                         std::vector<Preset const *> temp_filament_presets;
                         for (const Preset *preset : filament_presets) {
                             for (const std::string &exist_name : failures) {
-                                if (exist_name == preset->name) { continue; }
+                                size_t index_at = preset->name.find_last_of('@');
+                                if (std::string::npos == index_at) continue;
+                                if (exist_name == filament_preset_name + " " + preset->name.substr(index_at)) { 
+                                    continue;
+                                }
                                 temp_filament_presets.push_back(preset);
                             }
                         }
+                        if (temp_filament_presets.empty()) return;
                         preset_bundle->filaments.clone_presets_for_filament(temp_filament_presets, failures, filament_preset_name, user_filament_id);
                         BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  not rewritten  is successful? " << res;
                     }
@@ -927,7 +935,7 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
         size_t index_at = preset_name.find("@");
         if (std::string::npos == index_at) continue;
         else {
-            std::string machine_name = preset_name.substr(index_at + 1);
+            std::string machine_name = get_machine_name(preset_name);
             machine_name_to_presets[machine_name].push_back(filament_preset.second);
         }
     }
@@ -2058,14 +2066,14 @@ void CreatePrinterPresetDialog::update_presets_list()
     }
 
     if (preset_path.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
         MessageDialog dlg(this, _L("Preset path is not find, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         dlg.ShowModal();
         return;
     }
-
     temp_preset_bundle.load_vendor_configs_from_json(preset_path, m_printer_preset_vendor_selected.id, PresetBundle::LoadConfigBundleAttribute::LoadSystem,
                                                      ForwardCompatibilitySubstitutionRule::EnableSilent);
-    
+
     std::string dir_user_presets = wxGetApp().app_config->get("preset_folder");
     if (dir_user_presets.empty()) {
         temp_preset_bundle.load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::EnableSilent);
@@ -2282,7 +2290,7 @@ wxString CreatePrinterPresetDialog::curr_create_printer_type()
 }
 
 CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, const SuccessType &create_success_type)
-    : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Printer/Filament Successful"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, PRINTER == create_success_type ? _L("Create Printer Successful") : _L("Create Filament Successful"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
