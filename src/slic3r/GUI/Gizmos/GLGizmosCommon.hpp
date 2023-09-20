@@ -268,6 +268,7 @@ public:
 
     void set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos);
 
+    std::vector<Vec3d> point_per_contour() const;
     bool is_projection_inside_cut(const Vec3d &point_in) const;
     bool has_valid_contour() const;
 

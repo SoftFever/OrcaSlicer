@@ -10,7 +10,7 @@
 #include <wx/sizer.h>
 
 #include <algorithm>
-
+#include "GLGizmosCommon.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
@@ -56,6 +56,13 @@ static const ColorRGBA SELECTED_DOWEL_COLOR = GRAY(); // DARK_GRAY();
 static const ColorRGBA CONNECTOR_DEF_COLOR  = {1.0f, 1.0f, 1.0f, 0.5f};
 static const ColorRGBA CONNECTOR_ERR_COLOR  = {1.0f, 0.3f, 0.3f, 0.5f};
 static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
+
+static const ColorRGBA CUT_PLANE_DEF_COLOR = {0.9f, 0.9f, 0.9f, 0.5f};
+static const ColorRGBA CUT_PLANE_ERR_COLOR = {1.0f, 0.8f, 0.8f, 0.5f};
+
+static const ColorRGBA UPPER_PART_COLOR = CYAN();
+static const ColorRGBA LOWER_PART_COLOR = MAGENTA();
+static const ColorRGBA MODIFIER_COLOR   = {0.75f, 0.75f, 0.75f, 0.5f};
 
 static Vec3d rotate_vec3d_around_vec3d_with_rotate_matrix(
     const Vec3d& rotate_point,
@@ -1929,6 +1936,209 @@ bool GLGizmoAdvancedCut::process_cut_line(SLAGizmoEventType action, const Vec2d 
         return true;
     }
     return false;
+}
+
+PartSelection::PartSelection(
+    const ModelObject *mo, const Transform3d &cut_matrix, int instance_idx_in, const Vec3d &center, const Vec3d &normal, const CommonGizmosDataObjects::ObjectClipper &oc)
+    : m_instance_idx(instance_idx_in)
+{
+    Cut cut(mo, instance_idx_in, cut_matrix);
+    add_object(cut.perform_with_plane().front());
+
+    const ModelVolumePtrs &volumes = model_object()->volumes;
+
+    // split to parts
+    for (int id = int(volumes.size()) - 1; id >= 0; id--)
+        if (volumes[id]->is_splittable()) volumes[id]->split(1);
+
+    const Vec3d inst_offset = model_object()->instances[m_instance_idx]->get_offset();
+    int         i           = 0;
+    m_cut_parts.resize(volumes.size());
+    for (const ModelVolume *volume : volumes) {
+        assert(volume != nullptr);
+        m_cut_parts[i].is_up_part = false;
+        if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
+        m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
+        m_cut_parts[i].glmodel.reset();
+        m_cut_parts[i].glmodel.init_from(volume->mesh_ptr()->its);
+        m_cut_parts[i].trans = Geometry::translation_transform(inst_offset) * model_object()->volumes[i]->get_matrix();
+        // Now check whether this part is below or above the plane.
+        Transform3d tr   = (model_object()->instances[m_instance_idx]->get_matrix() * volume->get_matrix()).inverse();
+        Vec3f       pos  = (tr * center).cast<float>();
+        Vec3f       norm = (tr.linear().inverse().transpose() * normal).cast<float>();
+
+        for (const Vec3f &v : volume->mesh().its.vertices) {
+            double p = (v - pos).dot(norm);
+            if (std::abs(p) > EPSILON) {
+                m_cut_parts[i].is_up_part = p > 0.;
+                break;
+            }
+        }
+        i++;
+    }
+
+    // Now go through the contours and create a map from contours to parts.
+    m_contour_points.clear();
+    m_contour_to_parts.clear();
+    m_debug_pts = std::vector<std::vector<Vec3d>>(m_cut_parts.size(), std::vector<Vec3d>());
+    if (std::vector<Vec3d> pts = oc.point_per_contour(); !pts.empty()) {
+        m_contour_to_parts.resize(pts.size());
+
+        for (size_t pt_idx = 0; pt_idx < pts.size(); ++pt_idx) {
+            const Vec3d &pt  = pts[pt_idx];
+            const Vec3d  dir = (center - pt).dot(normal) * normal;
+            m_contour_points.emplace_back(dir + pt); // the result is in world coordinates.
+
+            // Now, cast a ray from every contour point and see which volumes of the ones above
+            // the plane are hit from the inside.
+            for (size_t part_id = 0; part_id < m_cut_parts.size(); ++part_id) {
+                const sla::IndexedMesh &aabb = m_cut_parts[part_id].raycaster->get_aabb_mesh();
+                const Transform3d &     tr   = (Geometry::translation_transform(model_object()->instances[m_instance_idx]->get_offset()) *
+                                         Geometry::translation_transform(model_object()->volumes[part_id]->get_offset()))
+                                            .inverse();
+                for (double d : {-1., 1.}) {
+                    const Vec3d dir_mesh = d * tr.linear().inverse().transpose() * normal;
+                    const Vec3d src      = tr * (m_contour_points[pt_idx] + d * 0.01 * normal);
+                    auto        hit      = aabb.query_ray_hit(src, dir_mesh);
+
+                    m_debug_pts[part_id].emplace_back(src);
+
+                    if (hit.is_inside()) {
+                        // This part belongs to this point.
+                        if (d == 1.)
+                            m_contour_to_parts[pt_idx].first.emplace_back(part_id);
+                        else
+                            m_contour_to_parts[pt_idx].second.emplace_back(part_id);
+                    }
+                }
+            }
+        }
+    }
+
+    m_valid = true;
+}
+
+// In CutMode::cutTongueAndGroove we use PartSelection just for rendering
+PartSelection::PartSelection(const ModelObject *object, int instance_idx_in) : m_instance_idx(instance_idx_in)
+{
+    add_object(object);
+    const ModelVolumePtrs &volumes     = model_object()->volumes;
+    const Vec3d            inst_offset = model_object()->instances[m_instance_idx]->get_offset();
+    int                    i           = 0;
+    m_cut_parts.resize(volumes.size());
+    for (const ModelVolume *volume : volumes) {
+        assert(volume != nullptr);
+        if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
+        m_cut_parts[i].raycaster = new MeshRaycaster(volume->mesh());
+        m_cut_parts[i].glmodel.reset();
+        m_cut_parts[i].glmodel.init_from(volume->mesh_ptr()->its);
+        m_cut_parts[i].trans    = Geometry::translation_transform(inst_offset) * model_object()->volumes[i]->get_matrix();
+        m_cut_parts[i].is_up_part = volume->is_from_upper();
+        i++;
+    }
+
+    m_valid = true;
+}
+
+void PartSelection::part_render(const Vec3d *normal)
+{
+    if (!valid())
+        return;
+
+    const Camera &camera             = wxGetApp().plater()->get_camera();
+    const bool    is_looking_forward = normal && camera.get_dir_forward().dot(*normal) < 0.05;
+
+    glEnable(GL_DEPTH_TEST);
+    for (size_t id = 0; id < m_cut_parts.size(); ++id) { // m_parts.size() test
+        if (normal && ((is_looking_forward && m_cut_parts[id].is_up_part) || (!is_looking_forward && !m_cut_parts[id].is_up_part)))
+            continue;
+        GLGizmoAdvancedCut::render_glmodel(m_cut_parts[id].glmodel, m_cut_parts[id].is_up_part ? UPPER_PART_COLOR : LOWER_PART_COLOR, m_cut_parts[id].trans);
+    }
+}
+
+void PartSelection::add_object(const ModelObject *object)
+{
+    m_model = Model();
+    m_model.add_object(*object);
+
+    const double sla_shift_z = wxGetApp().plater()->canvas3D()->get_selection().get_first_volume()->get_sla_shift_z();
+    if (!is_approx(sla_shift_z, 0.)) {
+        Vec3d inst_offset = model_object()->instances[m_instance_idx]->get_offset();
+        inst_offset[Z] += sla_shift_z;
+        model_object()->instances[m_instance_idx]->set_offset(inst_offset);
+    }
+}
+
+bool PartSelection::is_one_object() const
+{
+    // In theory, the implementation could be just this:
+    // return m_contour_to_parts.size() == m_ignored_contours.size();
+    // However, this would require that the part-contour correspondence works
+    // flawlessly. Because it is currently not always so for self-intersecting
+    // objects, let's better check the parts itself:
+    if (m_cut_parts.size() < 2) return true;
+    return std::all_of(m_cut_parts.begin(), m_cut_parts.end(), [this](const PartPara &part) { return part.is_up_part == m_cut_parts.front().is_up_part; });
+}
+
+std::vector<Cut::Part> PartSelection::get_cut_parts()
+{
+    std::vector<Cut::Part> parts;
+    for (const auto &part : m_cut_parts) parts.push_back({part.is_up_part, false});
+    return parts;
+}
+
+void PartSelection::toggle_selection(const Vec2d &mouse_pos)
+{
+    const Camera &camera     = wxGetApp().plater()->get_camera();
+    const Vec3d & camera_pos = camera.get_position();
+
+    Vec3f pos;
+    Vec3f normal;
+
+    std::vector<std::pair<size_t, double>> hits_id_and_sqdist;
+
+    for (size_t id = 0; id < m_cut_parts.size(); ++id) {
+        //        const Vec3d volume_offset = model_object()->volumes[id]->get_offset();
+        Transform3d tr = Geometry::translation_transform(model_object()->instances[m_instance_idx]->get_offset()) *
+                         Geometry::translation_transform(model_object()->volumes[id]->get_offset());
+        if (m_cut_parts[id].raycaster->unproject_on_mesh(mouse_pos, tr, camera, pos, normal)) {
+            hits_id_and_sqdist.emplace_back(id, (camera_pos - tr * (pos.cast<double>())).squaredNorm());
+        }
+    }
+    if (!hits_id_and_sqdist.empty()) {
+        size_t id = std::min_element(hits_id_and_sqdist.begin(), hits_id_and_sqdist.end(), [](const std::pair<size_t, double> &a, const std::pair<size_t, double> &b) {
+                        return a.second < b.second;
+                    })->first;
+        toggle_selection(id);
+    }
+}
+
+void PartSelection::toggle_selection(int id)
+{
+    if (id >= 0) {
+        m_cut_parts[id].is_up_part = !m_cut_parts[id].is_up_part;
+
+        // And now recalculate the contours which should be ignored.
+        /* m_ignored_contours.clear();
+         size_t cont_id = 0;
+         for (const auto &[parts_above, parts_below] : m_contour_to_parts) {
+             for (size_t upper : parts_above) {
+                 bool upper_sel = m_cut_parts[upper].is_up_part;
+                 if (std::find_if(parts_below.begin(), parts_below.end(), [this, &upper_sel](const size_t &i) {
+                     return m_cut_parts[i].is_up_part == upper_sel; }) !=
+                     parts_below.end()) {
+                     m_ignored_contours.emplace_back(cont_id);
+                     break;
+                 }
+             }
+             ++cont_id;
+         }*/
+    }
+}
+
+void PartSelection::turn_over_selection()
+{
+    for (PartPara &part : m_cut_parts) part.is_up_part = !part.is_up_part;
 }
 
 } // namespace GUI

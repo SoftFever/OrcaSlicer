@@ -488,6 +488,18 @@ void ObjectClipper::set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset
     get_pool()->get_canvas()->set_as_dirty();
 }
 
+std::vector<Vec3d> CommonGizmosDataObjects::ObjectClipper::point_per_contour() const
+{
+    std::vector<Vec3d> pts;
+
+    for (const auto &clipper : m_clippers) {
+        const std::vector<Vec3d> pts_clipper = clipper->point_per_contour();
+        pts.insert(pts.end(), pts_clipper.begin(), pts_clipper.end());
+        ;
+    }
+    return pts;
+}
+
 bool ObjectClipper::is_projection_inside_cut(const Vec3d &point) const
 {
     return m_clp_ratio != 0. && std::any_of(m_clippers.begin(), m_clippers.end(), [point](const auto &cl) {

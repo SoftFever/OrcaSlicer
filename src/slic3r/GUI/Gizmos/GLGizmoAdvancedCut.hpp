@@ -4,7 +4,8 @@
 #include "GLGizmoBase.hpp"
 #include "GLGizmoRotate.hpp"
 #include "libslic3r/Model.hpp"
-
+#include "libslic3r/CutUtils.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 namespace Slic3r {
 enum class CutConnectorType : int;
 class ModelVolume;
@@ -12,6 +13,57 @@ struct CutConnectorAttributes;
 
 namespace GUI {
 enum class SLAGizmoEventType : unsigned char;
+
+namespace CommonGizmosDataObjects {
+class ObjectClipper;
+}
+class PartSelection
+{
+public:
+    PartSelection() = default;
+    PartSelection(
+        const ModelObject *mo, const Transform3d &cut_matrix, int instance_idx, const Vec3d &center, const Vec3d &normal, const CommonGizmosDataObjects::ObjectClipper &oc);
+    PartSelection(const ModelObject *mo, int instance_idx_in);
+    ~PartSelection()
+    {
+        m_model.clear_objects();
+        for (size_t i = 0; i < m_cut_parts.size(); i++) {
+            if (m_cut_parts[i].raycaster) { delete m_cut_parts[i].raycaster; }
+        }
+    }
+
+    struct PartPara
+    {
+        GLModel        glmodel;
+        MeshRaycaster* raycaster;
+        bool           is_up_part;
+        Transform3d    trans;
+    };
+    void         part_render(const Vec3d *normal);
+    void         toggle_selection(const Vec2d &mouse_pos);
+    void         toggle_selection(int id);
+    void         turn_over_selection();
+    ModelObject* model_object() { return m_model.objects.front(); }
+    bool         valid() const { return m_valid; }
+    bool         is_one_object() const;
+
+    const std::vector<size_t> *get_ignored_contours_ptr() const { return (valid() ? &m_ignored_contours : nullptr); }
+
+    std::vector<Cut::Part> get_cut_parts();
+    std::vector<PartPara> &get_parts() { return m_cut_parts; }
+
+private:
+    Model                                                            m_model;
+    int                                                              m_instance_idx;
+    std::vector<PartPara>                                            m_cut_parts;
+    bool                                                             m_valid = false;
+    std::vector<std::pair<std::vector<size_t>, std::vector<size_t>>> m_contour_to_parts; // for each contour, there is a vector of parts above and a vector of parts below
+    std::vector<size_t> m_ignored_contours; // contour that should not be rendered (the parts on both sides will both be parts of the same object)
+
+    std::vector<Vec3d>              m_contour_points; // Debugging
+    std::vector<std::vector<Vec3d>> m_debug_pts;      // Debugging
+    void                            add_object(const ModelObject *object);
+};
 
 class GLGizmoAdvancedCut : public GLGizmoRotate3D
 {

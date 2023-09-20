@@ -95,6 +95,47 @@ bool MeshClipper::has_valid_contour() const
     return m_result && std::any_of(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](const CutIsland &isl) { return !isl.expoly.empty(); });
 }
 
+std::vector<Vec3d> MeshClipper::point_per_contour() const {
+    assert(m_result);
+    std::vector<Vec3d> out;
+    if (m_result == std::nullopt) {
+        return out;
+    }
+    for (const CutIsland &isl : m_result->cut_islands) {
+        assert(isl.expoly.contour.size() > 2);
+        // Now return a point lying inside the contour but not in a hole.
+        // We do this by taking a point lying close to the edge, repeating
+        // this several times for different edges and distances from them.
+        // (We prefer point not extremely close to the border.
+        bool   done = false;
+        Vec2d  p;
+        size_t i = 1;
+        while (i < isl.expoly.contour.size()) {
+            const Vec2d &a = unscale(isl.expoly.contour.points[i - 1]);
+            const Vec2d &b = unscale(isl.expoly.contour.points[i]);
+            Vec2d        n = (b - a).normalized();
+            std::swap(n.x(), n.y());
+            n.x()    = -1 * n.x();
+            double f = 10.;
+            while (f > 0.05) {
+                p = (0.5 * (b + a)) + f * n;
+                if (isl.expoly.contains(Point::new_scale(p))) {
+                    done = true;
+                    break;
+                }
+                f = f / 10.;
+            }
+            if (done) break;
+            i += std::max(size_t(2), isl.expoly.contour.size() / 5);
+        }
+        // If the above failed, just return the centroid, regardless of whether
+        // it is inside the contour or in a hole (we must return something).
+        Vec2d c = done ? p : unscale(isl.expoly.contour.centroid());
+        out.emplace_back(m_result->trafo * Vec3d(c.x(), c.y(), 0.));
+    }
+    return out;
+}
+
 void MeshClipper::recalculate_triangles()
 {
     const Transform3f& instance_matrix_no_translation_no_scaling = m_trafo.get_matrix(true,false,true).cast<float>();
@@ -280,7 +321,22 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 }
 
 
-std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera, const std::vector<Vec3f>& points,
+bool MeshRaycaster::intersects_line(Vec3d point, Vec3d direction, const Transform3d &trafo) const
+{
+    Transform3d trafo_inv = trafo.inverse();
+    Vec3d       to        = trafo_inv * (point + direction);
+    point                 = trafo_inv * point;
+    direction             = (to - point).normalized();
+
+    std::vector<sla::IndexedMesh::hit_result> hits     = m_emesh.query_ray_hits(point, direction);
+    std::vector<sla::IndexedMesh::hit_result> neg_hits = m_emesh.query_ray_hits(point, -direction);
+
+    return !hits.empty() || !neg_hits.empty();
+}
+
+std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transformation &trafo,
+                                                         const Camera &                  camera,
+                                                         const std::vector<Vec3f> &      points,
                                                        const ClippingPlane* clipping_plane) const
 {
     std::vector<unsigned> out;
