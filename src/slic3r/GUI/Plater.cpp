@@ -37,6 +37,7 @@
 #include <wx/popupwin.h>
 #endif
 #include <wx/clrpicker.h>
+#include <wx/tokenzr.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -7984,26 +7985,25 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(wxString download_info)
 {
-    //std::string download_origin_url = wxGetApp().url_decode(download_info.ToStdString());
-
-    std::string download_origin_url = download_info.ToStdString();
-    std::string download_url;
-    std::string filename;
+    wxString download_origin_url = download_info;
+    wxString download_url;
+    wxString filename;
+    wxString separator = "&name=";
 
     try
     {
-        std::vector<std::string> origin_array = wxGetApp().split_str(download_origin_url, "&name=");
-        if (origin_array.size() >= 2) {
+        size_t namePos = download_info.Find(separator);
+        if (namePos != wxString::npos) {
+            download_url = download_info.Mid(0, namePos);
+            filename = download_info.Mid(namePos + separator.Length());
 
-            download_url = origin_array[0];
-            filename = origin_array[1];
         }
-        else if (!download_origin_url.empty()) {
-
-            fs::path download_path = fs::path(download_origin_url);
+        else {
+            fs::path download_path = fs::path(download_origin_url.wx_str());
             download_url = download_origin_url;
             filename = download_path.filename().string();
         }
+
     }
     catch (const std::exception& error)
     {
@@ -8061,7 +8061,7 @@ void Plater::import_model_id(wxString download_info)
         try
         {
             vecFiles.clear();
-            wxString extension = fs::path(filename).extension().c_str();
+            wxString extension = fs::path(filename.wx_str()).extension().c_str();
             auto name = filename.substr(0, filename.length() - extension.length() - 1);
 
             for (const auto& iter : boost::filesystem::directory_iterator(target_path))
@@ -8084,7 +8084,7 @@ void Plater::import_model_id(wxString download_info)
 
         //update filename
         if (is_already_exist && vecFiles.size() >= 1) {
-            wxString extension = fs::path(filename).extension().c_str();
+            wxString extension = fs::path(filename.wx_str()).extension().c_str();
             wxString name = filename.substr(0, filename.length() - extension.length());
             filename = wxString::Format("%s(%d)%s", name, vecFiles.size() + 1, extension).ToStdString();
         }
@@ -8104,13 +8104,13 @@ void Plater::import_model_id(wxString download_info)
         }
 
         //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
-        target_path /= fs::path(wxString(filename).wc_str());
+        target_path /= fs::path(filename.wc_str());
 
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
-        auto url = download_url;
-        auto http = Http::get(url);
+
+        auto http = Http::get(download_url.ToStdString());
 
         while (cont && retry_count < max_retries) {
             retry_count++;
@@ -8168,8 +8168,7 @@ void Plater::import_model_id(wxString download_info)
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
-        this->load_project(encode_path(target_path.string().c_str()));
-
+        this->load_project(target_path.wstring());
         /*BBS set project info after load project, project info is reset in load project */
         //p->project.project_model_id = model_id;
         //p->project.project_design_id = design_id;
@@ -8179,7 +8178,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
         // show save new project
-        p->set_project_filename(wxString(filename));
+        p->set_project_filename(filename);
         p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
