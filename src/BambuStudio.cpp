@@ -137,6 +137,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_FILAMENTS_DIFFERENT_TEMP, "The temperature difference of the filaments used is too large. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECT_COLLISION_IN_SEQ_PRINT, "Object conflicts were detected when using print-by-object mode. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Bambu Studio before uploading."},
+    {CLI_SPIRAL_MODE_CANNOT_DUPLICATE, "Objects can not be duplicated under Spiral Mode when not using By-Object print sequence."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
 };
@@ -293,11 +294,24 @@ typedef struct _cli_callback_mgr {
 
     bool start(std::string pipe_name)
     {
+        int retry_count = 0;
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start enter.";
         m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
-        if (m_pipe_fd < 0) {
-            BOOST_LOG_TRIVIAL(warning) << "could not create pipe for "<<pipe_name;
-            return false;
+        while (m_pipe_fd < 0) {
+            BOOST_LOG_TRIVIAL(warning) << boost::format("could not open pipe for %1%, errno %2%, retry_count = %3%")%pipe_name %errno %retry_count;
+            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+                retry_count ++;
+                if (retry_count >= 10) {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("reach max retry_count, failed to open pipe");
+                    return false;
+                }
+                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+                m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
+            }
+            else {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("Failed to open pipe, reason: %1%")%strerror(errno);
+                return false;
+            }
         }
         std::unique_lock<std::mutex> lck(m_mutex);
         m_thread = create_thread([this]{
@@ -2080,6 +2094,7 @@ int CLI::run(int argc, char **argv)
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
+
                 BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << std::endl;
 
                 need_arrange = true;
@@ -2336,11 +2351,41 @@ int CLI::run(int argc, char **argv)
     //BBS: clear the orient objects lists
     orients_requirement.clear();
 
+    bool is_seq_print_for_curr_plate = false;
     if ((plate_to_slice < 0) || (plate_to_slice > partplate_list.get_plate_count()))
     {
         BOOST_LOG_TRIVIAL(error) << boost::format("invalid plate id %1%, total %2%")%plate_to_slice %partplate_list.get_plate_count();
         record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
         flush_and_exit(CLI_INVALID_PARAMS);
+    }
+    else if (plate_to_slice > 0){
+        Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
+        PrintSequence curr_plate_seq = cur_plate->get_print_seq();
+
+        if (curr_plate_seq == PrintSequence::ByDefault) {
+            auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+            if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from global")%plate_to_slice;
+                is_seq_print_for_curr_plate = true;
+            }
+        }
+        else if (curr_plate_seq == PrintSequence::ByObject) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from plate self")%plate_to_slice;
+            is_seq_print_for_curr_plate = true;
+        }
+
+        if (duplicate_count > 0) {
+            const ConfigOptionBool* spiral_vase = m_print_config.option<ConfigOptionBool>("spiral_mode");
+            if ((spiral_vase != nullptr) && spiral_vase->value)
+            {
+                //spiral mode can only be duplicated with by-object
+                if (!is_seq_print_for_curr_plate) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Spiral mode can not be duplicated under by-object print!");
+                    record_exit_reson(outfile_dir, CLI_SPIRAL_MODE_CANNOT_DUPLICATE, 0, cli_errors[CLI_SPIRAL_MODE_CANNOT_DUPLICATE], sliced_info);
+                    flush_and_exit(CLI_SPIRAL_MODE_CANNOT_DUPLICATE);
+                }
+            }
+        }
     }
 
     if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0))
@@ -2349,21 +2394,7 @@ int CLI::run(int argc, char **argv)
             || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
             || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius)))
         {
-            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-            PrintSequence curr_plate_seq = cur_plate->get_print_seq();
-            bool is_seq_print = false;
-            if (curr_plate_seq == PrintSequence::ByDefault) {
-                auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-                if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from global")%plate_to_slice;
-                    is_seq_print = true;
-                }
-            }
-            else if (curr_plate_seq == PrintSequence::ByObject) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from plate self")%plate_to_slice;
-                is_seq_print = true;
-            }
-            if (is_seq_print) {
+            if (is_seq_print_for_curr_plate) {
                 need_arrange = true;
                 BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, current height_to_rod %4%, height_to_lid %5%, cleareance_radius %6%, need arrange!")
                     %old_height_to_rod %old_height_to_lid %old_max_radius %height_to_rod %height_to_lid %cleareance_radius;
@@ -3185,7 +3216,10 @@ int CLI::run(int argc, char **argv)
                                     validate_error = CLI_VALIDATE_ERROR;
                                     break;
                             }
-                            record_exit_reson(outfile_dir, validate_error, index+1, cli_errors[validate_error], sliced_info);
+                            if (no_check)
+                                record_exit_reson(outfile_dir, validate_error, index+1, err.string, sliced_info);
+                            else
+                                record_exit_reson(outfile_dir, validate_error, index+1, cli_errors[validate_error], sliced_info);
                             flush_and_exit(validate_error);
                         }
                         else if (!warning.string.empty()) {
