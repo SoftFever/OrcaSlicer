@@ -553,7 +553,7 @@ void PressureAdvanceWizard::on_cali_start()
         return;
     }
 
-    std::string error_message;
+    //std::string error_message;
     wxString wx_err_string;
     if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO && curr_obj->get_printer_series() == PrinterSeries::SERIES_X1) {
         X1CCalibInfos calib_infos;
@@ -577,8 +577,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.max_volumetric_speed = max_volumetric_speed;
             calib_infos.calib_datas.push_back(calib_info);
         }
-        CalibUtils::calib_PA(calib_infos, 0, error_message);    // mode = 0 for auto
-        wx_err_string = from_u8(error_message);
+        CalibUtils::calib_PA(calib_infos, 0, wx_err_string); // mode = 0 for auto
 
         if (!wx_err_string.empty()) {
             MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
@@ -640,8 +639,7 @@ void PressureAdvanceWizard::on_cali_start()
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->manual_pa_cali_method = pa_cali_method;
             
-            CalibUtils::calib_generic_PA(calib_info, error_message);
-            wx_err_string = from_u8(error_message);
+            CalibUtils::calib_generic_PA(calib_info, wx_err_string);
 
             if (!wx_err_string.empty()) {
                 MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
@@ -996,9 +994,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.filament_prest = temp_filament_preset;
 
             if (cali_stage > 0) {
-                std::string error_message;
-                CalibUtils::calib_flowrate(cali_stage, calib_info, error_message);
-                wx_err_string = from_u8(error_message);
+                CalibUtils::calib_flowrate(cali_stage, calib_info, wx_err_string);
             }
             else {
                 wx_err_string = _L("Internal Error") + wxString(": Invalid calibration stage");
@@ -1342,9 +1338,7 @@ void MaxVolumetricSpeedWizard::on_cali_start()
     calib_info.print_prest   = preset_page->get_print_preset();
 
     wxString wx_err_string;
-    std::string error_message;
-    CalibUtils::calib_max_vol_speed(calib_info, error_message);
-    wx_err_string = from_u8(error_message);
+    CalibUtils::calib_max_vol_speed(calib_info, wx_err_string);
     if (!wx_err_string.empty()) {
         MessageDialog msg_dlg(nullptr, wx_err_string, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();

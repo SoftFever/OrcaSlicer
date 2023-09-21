@@ -1,5 +1,5 @@
 #include "CalibUtils.hpp"
-
+#include "../GUI/I18N.hpp"
 #include "../GUI/GUI_App.hpp"
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
@@ -182,7 +182,7 @@ std::array<Vec3d, 4> get_cut_plane_points(const BoundingBoxf3 &bbox, const doubl
     return plane_pts;
 }
 
-void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, int mode, std::string& error_message)
+void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, int mode, wxString& error_message)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev)
@@ -360,7 +360,7 @@ bool CalibUtils::get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult>&
     return flow_ratio_calib_results.size() > 0;
 }
 
-void CalibUtils::calib_flowrate(int pass, const CalibInfo& calib_info, std::string& error_message)
+void CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message)
 {
     if (pass != 1 && pass != 2)
         return;
@@ -510,7 +510,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     model.calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
-void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &error_message)
+void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_message)
 {
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_PA_Line && params.mode != CalibMode::Calib_PA_Pattern)
@@ -547,7 +547,7 @@ void CalibUtils::calib_generic_PA(const CalibInfo &calib_info, std::string &erro
     send_to_print(calib_info, error_message);
 }
 
-void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_message)
+void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_message)
 {
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_Temp_Tower)
@@ -617,7 +617,7 @@ void CalibUtils::calib_temptue(const CalibInfo& calib_info, std::string& error_m
     send_to_print(calib_info, error_message);
 }
 
-void CalibUtils::calib_max_vol_speed(const CalibInfo& calib_info, std::string& error_message)
+void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &error_message)
 {
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_Vol_speed_Tower)
@@ -696,7 +696,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo& calib_info, std::string& e
     send_to_print(calib_info, error_message);
 }
 
-void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_message)
+void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
 {
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_VFA_Tower)
@@ -737,7 +737,7 @@ void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_messa
         cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
     }
     else {
-        error_message = L("The start, end or step is not valid value.");
+        error_message = _L("The start, end or step is not valid value.");
         return;
     }
 
@@ -754,7 +754,7 @@ void CalibUtils::calib_VFA(const CalibInfo& calib_info, std::string& error_messa
     send_to_print(calib_info, error_message);
 }
 
-void CalibUtils::calib_retraction(const CalibInfo &calib_info, std::string &error_message)
+void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_message)
 {
     const Calib_Params &params = calib_info.params;
     if (params.mode != CalibMode::Calib_Retraction_tower)
@@ -827,7 +827,7 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
     return false;
 }
 
-void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message)
+void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &full_config, const Calib_Params &params, wxString &error_message)
 {
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
     double  print_height  = full_config.opt_float("printable_height");
@@ -869,7 +869,7 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     BuildVolume build_volume(bedfs, print_height);
     unsigned int count = model->update_print_volume_state(build_volume);
     if (count == 0) {
-        error_message = L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
+        error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
         return;
     }
 
@@ -978,7 +978,7 @@ void CalibUtils::process_and_store_3mf(Model* model, const DynamicPrintConfig& f
     release_PlateData_list(plate_data_list);
 }
 
-void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_message, int flow_ratio_mode)
+void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_message, int flow_ratio_mode)
 {
     {  // before send
         json j;
@@ -1004,35 +1004,36 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, std::string &error_m
 
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
-        error_message = L("Need select printer");
+        error_message = _L("Need select printer");
         return;
     }
 
     MachineObject* obj_ = dev->get_selected_machine();
     if (obj_ == nullptr) {
-        error_message = L("Need select printer");
+        error_message = _L("Need select printer");
         return;
     }
 
     if (obj_->is_in_upgrading()) {
-        error_message = L("Cannot send the print job when the printer is updating firmware");
+        error_message = _L("Cannot send the print job when the printer is updating firmware");
         return;
     }
     else if (obj_->is_system_printing()) {
-        error_message = L("The printer is executing instructions. Please restart printing after it ends");
+        error_message = _L("The printer is executing instructions. Please restart printing after it ends");
         return;
     }
     else if (obj_->is_in_printing()) {
-        error_message = L("The printer is busy on other print job");
+        error_message = _L("The printer is busy on other print job");
         return;
     }
+
     else if (!obj_->is_support_print_without_sd && (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD)) {
-        error_message = L("An SD card needs to be inserted before printing.");
+        error_message = _L("An SD card needs to be inserted before printing.");
         return;
     }
     if (obj_->is_lan_mode_printer()) {
         if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
-            error_message = L("An SD card needs to be inserted before printing via LAN.");
+            error_message = _L("An SD card needs to be inserted before printing via LAN.");
             return;
         }
     }

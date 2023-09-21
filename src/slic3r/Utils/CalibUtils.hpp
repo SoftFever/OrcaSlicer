@@ -30,7 +30,7 @@ public:
 
     static CalibMode get_calib_mode_by_name(const std::string name, int &cali_stage);
 
-    static void calib_PA(const X1CCalibInfos& calib_infos, int mode, std::string& error_message);
+    static void calib_PA(const X1CCalibInfos& calib_infos, int mode, wxString& error_message);
     
     static void emit_get_PA_calib_results(float nozzle_diameter);
     static bool get_PA_calib_results(std::vector<PACalibResult> &pa_calib_results);
@@ -48,15 +48,15 @@ public:
     static void calib_flowrate_X1C(const X1CCalibInfos& calib_infos, std::string& error_message);
     static void emit_get_flow_ratio_calib_results(float nozzle_diameter);
     static bool get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult> &flow_ratio_calib_results);
-    static void calib_flowrate(int pass, const CalibInfo& calib_info, std::string& error_message);
+    static void calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message);
 
     static void calib_pa_pattern(const CalibInfo &calib_info, Model &model);
 
-    static void calib_generic_PA(const CalibInfo& calib_info, std::string &error_message);
-    static void calib_temptue(const CalibInfo& calib_info, std::string& error_message);
-    static void calib_max_vol_speed(const CalibInfo& calib_info, std::string& error_message);
-    static void calib_VFA(const CalibInfo& calib_info, std::string& error_message);
-    static void calib_retraction(const CalibInfo &calib_info, std::string &error_message);
+    static void calib_generic_PA(const CalibInfo &calib_info, wxString &error_message);
+    static void calib_temptue(const CalibInfo &calib_info, wxString &error_message);
+    static void calib_max_vol_speed(const CalibInfo &calib_info, wxString &error_message);
+    static void calib_VFA(const CalibInfo &calib_info, wxString &error_message);
+    static void calib_retraction(const CalibInfo &calib_info, wxString &error_message);
 
     //help function
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
@@ -66,8 +66,8 @@ public:
     static bool validate_input_flow_ratio(wxString flow_ratio, float* output_value);
 
 private:
-    static void process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, std::string& error_message);
-    static void send_to_print(const CalibInfo &calib_info, std::string& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
+    static void process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
+    static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
 }
