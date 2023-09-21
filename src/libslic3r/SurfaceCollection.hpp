@@ -32,7 +32,8 @@ public:
     void keep_types(const SurfaceType *types, int ntypes);
     void remove_type(const SurfaceType type);
     void remove_types(const SurfaceType *types, int ntypes);
-    void filter_by_type(SurfaceType type, Polygons* polygons);
+    void filter_by_type(SurfaceType type, Polygons* polygons) const;
+    void remove_type(const SurfaceType type, ExPolygons *polygons);
     void set_type(SurfaceType type) {
     	for (Surface &surface : this->surfaces)
     		surface.surface_type = type;

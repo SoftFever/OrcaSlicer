@@ -752,7 +752,7 @@ static std::vector<std::string> s_Preset_print_options {
      "tree_support_branch_diameter", "tree_support_branch_diameter_angle", "tree_support_branch_diameter_double_wall",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", /*"adaptive_layer_height",*/
-     "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
+     "support_bottom_interface_spacing", "enable_overhang_speed", "slowdown_for_curled_perimeters", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed", "only_one_wall_top", 
      "timelapse_type", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
@@ -767,7 +767,7 @@ static std::vector<std::string> s_Preset_print_options {
      "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max","initial_layer_min_bead_width",
      "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes",
      "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extruder", "wiping_volumes_extruders","wipe_tower_bridging", "single_extruder_multi_material_priming",
-     "wipe_tower_rotation_angle"
+     "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic"
 
 };
 
