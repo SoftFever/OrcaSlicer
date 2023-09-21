@@ -1378,8 +1378,8 @@ void PrintConfigDef::init_fff_params()
 
     // BBS
     def = this->add("temperature_vitrification", coInts);
-    def->label = L("Temperature of vitrificaiton");
-    def->tooltip = L("Material becomes soft at this temperature. Thus the heatbed cannot be hotter than this tempature");
+    def->label = L("Glass transition temperature");
+    def->tooltip = L("At this temperature,glass state transists to rubbery state. Thus the heatbed cannot be hotter than this temperature");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
