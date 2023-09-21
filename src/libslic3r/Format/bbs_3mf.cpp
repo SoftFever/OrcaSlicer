@@ -1685,7 +1685,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract %1%th file %2%, total=%3%\n")%(i+1)%name%num_entries;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract %1%th file %2%, total=%3%")%(i+1)%name%num_entries;
+
+                if (name.find("/../") != std::string::npos) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", find file path including /../, not valid, skip it\n");
+                    continue;
+                }
 
                 if (boost::algorithm::iequals(name, BBS_LAYER_HEIGHTS_PROFILE_FILE)) {
                     // extract slic3r layer heights profile file
@@ -1768,6 +1773,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 else if (!dont_load_config && boost::algorithm::istarts_with(name, METADATA_DIR) && boost::algorithm::iends_with(name, CALIBRATION_INFO_EXTENSION)) {
                     //BBS parsing pattern config files
                     _extract_file_from_archive(archive, stat);
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", %1% skipped, already parsed or a directory or not supported\n")%name;
                 }
             }
         }
@@ -2181,7 +2189,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
             }
             char error_buf[1024];
-            ::sprintf(error_buf, "File %s not found from archive", path.c_str());
+            ::snprintf(error_buf, 1024, "File %s not found from archive", path.c_str());
             add_error(error_buf);
             return false;
         }
@@ -2240,7 +2248,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         if (!XML_ParseBuffer(m_xml_parser, (int)stat.m_uncomp_size, 1)) {
             char error_buf[1024];
-            ::sprintf(error_buf, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
+            ::snprintf(error_buf, 1024, "Error (%s) while parsing xml file at line %d", XML_ErrorString(XML_GetErrorCode(m_xml_parser)), (int)XML_GetCurrentLineNumber(m_xml_parser));
             add_error(error_buf);
             return false;
         }
@@ -2286,7 +2294,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 CallbackData* data = (CallbackData*)pOpaque;
                 if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->importer.parse_error()) {
                     char error_buf[1024];
-                    ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->importer.parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
+                    ::snprintf(error_buf, 1024, "Error (%s) while parsing '%s' at line %d", data->importer.parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
                     throw Slic3r::FileIOError(error_buf);
                 }
                 return n;
@@ -2507,6 +2515,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     void _BBS_3MF_Importer::_extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
     {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", stat.m_uncomp_size is %1%")%stat.m_uncomp_size;
         if (stat.m_uncomp_size > 0) {
             std::string dest_file;
             if (stat.m_is_utf8) {
@@ -2524,6 +2533,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 dest_file = dest_file.substr(found + AUXILIARY_STR_LEN);
             else
                 return;
+
             if (dest_file.find('/') != std::string::npos) {
                 boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
@@ -4035,7 +4045,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         if (!m_curr_plater)
         {
-            add_error("don't find plater created before");
+            add_error("_handle_end_config_plater: don't find plate created before");
             return false;
         }
         m_plater_data.emplace(m_curr_plater->plate_index, m_curr_plater);
@@ -4047,7 +4057,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         if (!m_curr_plater)
         {
-            add_error("don't find plater created before");
+            add_error("_handle_start_config_plater_instance: don't find plate created before");
             return false;
         }
 
@@ -4059,7 +4069,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         if (!m_curr_plater)
         {
-            add_error("don't find plater created before");
+            add_error("_handle_end_config_plater_instance: don't find plate created before");
             return false;
         }
         if ((m_curr_instance.object_id == -1) || (m_curr_instance.instance_id == -1))
@@ -5108,7 +5118,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 CallbackData* data = (CallbackData*)pOpaque;
                 if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->importer.object_parse_error()) {
                     char error_buf[1024];
-                    ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->importer.object_parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
+                    ::snprintf(error_buf, 1024, "Error (%s) while parsing '%s' at line %d", data->importer.object_parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
                     throw Slic3r::FileIOError(error_buf);
                 }
                 return n;
@@ -6697,12 +6707,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             ++count;
             const std::vector<double>& layer_height_profile = object->layer_height_profile.get();
             if (layer_height_profile.size() >= 4 && layer_height_profile.size() % 2 == 0) {
-                sprintf(buffer, "object_id=%d|", count);
+                snprintf(buffer, 1024, "object_id=%d|", count);
                 out += buffer;
 
                 // Store the layer height profile as a single semicolon separated list.
                 for (size_t i = 0; i < layer_height_profile.size(); ++i) {
-                    sprintf(buffer, (i == 0) ? "%f" : ";%f", layer_height_profile[i]);
+                    snprintf(buffer, 1024, (i == 0) ? "%f" : ";%f", layer_height_profile[i]);
                     out += buffer;
                 }
 
@@ -6873,7 +6883,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         assert(is_decimal_separator_point());
         char buffer[1024];
-        sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
+        snprintf(buffer, 1024, "; %s\n\n", header_slic3r_generated().c_str());
         std::string out = buffer;
 
         for (const std::string &key : config.keys())
@@ -6904,7 +6914,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Exporter::_add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets)
     {
         char buffer[1024];
-        sprintf(buffer, "; %s\n\n", header_slic3r_generated().c_str());
+        snprintf(buffer, 1024, "; %s\n\n", header_slic3r_generated().c_str());
         std::string out = buffer;
         int print_count = 0, filament_count = 0, printer_count = 0;
         const std::string& temp_path = model.get_backup_path();

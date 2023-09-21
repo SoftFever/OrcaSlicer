@@ -219,7 +219,7 @@ typedef struct _cli_callback_mgr {
         //notify_message = "Plate "+ std::to_string(m_plate_index) + "/" +std::to_string(m_plate_count)+  ": Percent " + std::to_string(m_progress) + ": "+m_message;
 
         char pipe_message[PIPE_BUFFER_SIZE] = {0};
-        sprintf(pipe_message, "%s\n", notify_message.c_str());
+        snprintf(pipe_message, PIPE_BUFFER_SIZE, "%s\n", notify_message.c_str());
 
         int ret = write(m_pipe_fd, pipe_message, strlen(pipe_message));
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": write returns "<<ret;
