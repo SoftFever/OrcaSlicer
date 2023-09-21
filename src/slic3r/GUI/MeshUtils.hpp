@@ -54,7 +54,13 @@ public:
     }
     void set_offset(double offset) { m_data[3] = offset; }
     double get_offset() const { return m_data[3]; }
-    Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
+    Vec3d  get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
+    void   invert_normal(){
+        m_data[0] *= -1.0;
+        m_data[1] *= -1.0;
+        m_data[2] *= -1.0;
+    }
+    ClippingPlane    inverted_normal() const { return ClippingPlane(-get_normal(), get_offset()); }
     bool is_active() const { return m_data[3] != DBL_MAX; }
     static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
     const double* get_data() const { return m_data; }
@@ -71,6 +77,9 @@ public:
 // MeshClipper class cuts a mesh and is able to return a triangulated cut.
 class MeshClipper {
 public:
+    // Set whether the cut should be triangulated and whether a cut
+    // contour should be calculated and shown.
+    void set_behaviour(bool fill_cut, double contour_width);
     // Inform MeshClipper about which plane we want to use to cut the mesh
     // This is supposed to be in world coordinates.
     void set_plane(const ClippingPlane& plane);
@@ -92,35 +101,44 @@ public:
 
     // Render the triangulated cut. Transformation matrices should
     // be set in world coords.
-    void render_cut();
+    void render_cut(const ColorRGBA &color, const std::vector<size_t> *ignore_idxs = nullptr);
+    void render_contour(const ColorRGBA &color, const std::vector<size_t> *ignore_idxs = nullptr);
 
-    bool is_projection_inside_cut(const Vec3d &point) const;
-    bool has_valid_contour() const;
-
+    int                is_projection_inside_cut(const Vec3d &point) const;
+    bool               has_valid_contour() const;
+    int                get_number_of_contours() const { return m_result ? m_result->cut_islands.size() : 0; }
     std::vector<Vec3d> point_per_contour() const;
+
 private:
     void recalculate_triangles();
 
-    Geometry::Transformation m_trafo;
-    const TriangleMesh* m_mesh = nullptr;
-    const TriangleMesh* m_negative_mesh = nullptr;
+    Geometry::Transformation  m_trafo;
+    const TriangleMesh *      m_mesh          = nullptr;
+    const TriangleMesh *      m_negative_mesh = nullptr;
+
     ClippingPlane m_plane;
     ClippingPlane m_limiting_plane = ClippingPlane::ClipsNothing();
-    std::vector<Vec2f> m_triangles2d;
+    /*std::vector<Vec2f> m_triangles2d;
     GLIndexedVertexArray m_vertex_array;
-    bool m_triangles_valid = false;
+    bool m_triangles_valid = false;*/
 
     struct CutIsland
     {
         ExPolygon   expoly;
         BoundingBox expoly_bb;
+        GLModel     model;
+        GLModel     model_expanded;
+        bool        disabled = false;
+        size_t      hash;
     };
     struct ClipResult
     {
         std::vector<CutIsland> cut_islands;
         Transform3d            trafo; // this rotates the cut into world coords
     };
-    std::optional<ClipResult> m_result;  // the cut plane
+    std::optional<ClipResult> m_result; // the cut plane
+    bool                      m_fill_cut      = true;
+    double                    m_contour_width = 0.;
 };
 
 

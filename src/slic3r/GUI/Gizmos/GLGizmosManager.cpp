@@ -432,6 +432,8 @@ void GLGizmosManager::update_data()
             ? get_current()->get_requirements()
             : CommonGizmosDataID(0));
     }
+    if (m_current != Undefined)
+        m_gizmos[m_current]->data_changed(m_serializing);
 
     if (selection.is_single_full_instance())
     {

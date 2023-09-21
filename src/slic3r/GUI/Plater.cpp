@@ -10135,6 +10135,26 @@ void Plater::segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha
     }
 }
 
+void Plater::apply_cut_object_to_model(size_t obj_idx, const ModelObjectPtrs &cut_objects)
+{
+    model().delete_object(obj_idx);
+    sidebar().obj_list()->delete_object_from_list(obj_idx);
+
+    // suppress to call selection update for Object List to avoid call of early Gizmos on/off update
+    p->load_model_objects(cut_objects, false, false);
+
+    // now process all updates of the 3d scene
+    update();
+    // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
+    // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
+    for (size_t idx = 0; idx < p->model.objects.size(); idx++) wxGetApp().obj_list()->update_info_items(idx);
+
+    Selection &selection = p->get_selection();
+    size_t     last_id   = p->model.objects.size() - 1;
+    for (size_t i = 0; i < cut_objects.size(); ++i)
+        selection.add_object((unsigned int) (last_id - i), i == 0);
+}
+
 // BBS
 void Plater::merge(size_t obj_idx, std::vector<int>& vol_indeces)
 {

@@ -67,16 +67,25 @@ private:
 
 class GLGizmoAdvancedCut : public GLGizmoRotate3D
 {
-struct Rotate_data {
-    double  angle;
-    Axis    ax;
-
-    Rotate_data(double an, Axis a)
-        : angle(an), ax(a)
-    {
-    }
-};
 private:
+    double m_snap_step{1.0};
+    // archived values
+    Vec3d m_ar_plane_center{Vec3d::Zero()};
+
+    // plane_center and so on
+    Vec3d m_plane_center{Vec3d::Zero()};//old name:m_cut_plane_center
+    Vec3d m_plane_center_drag_start{Vec3d::Zero()};
+    Vec3d m_plane_drag_start{Vec3d::Zero()};
+    Vec3d m_bb_center{Vec3d::Zero()};//box center
+    Vec3d m_center_offset{Vec3d::Zero()};
+
+    Vec3d m_plane_normal{Vec3d::UnitZ()}; //old namce:Vec3d m_cut_normal//m_cut_plane_normal
+    Vec3d m_plane_x_direction{Vec3d::UnitY()};
+    Vec3d m_clp_normal{Vec3d::Ones()};
+    // data to check position of the cut palne center on gizmo activation
+    Vec3d m_min_pos{Vec3d::Zero()};
+    Vec3d m_max_pos{Vec3d::Zero()};
+
     static const double Offset;
     static const double Margin;
     static const std::array<float, 4> GrabberColor;
@@ -89,18 +98,16 @@ private:
     double m_start_height;
 
     Vec3d m_rotation;
-    //Vec3d m_current_base_rotation;
-    std::vector<Rotate_data> m_rotate_cmds;
 
     Vec3d m_buffered_rotation;
     double m_buffered_movement;
     double m_buffered_height;
 
-    Vec3d m_drag_pos;
+    Vec3d m_drag_pos_start;
 
     bool m_keep_upper;
     bool m_keep_lower;
-    bool m_cut_to_parts;
+    bool m_cut_to_parts{false};
     bool m_place_on_cut_upper{true};
     bool m_place_on_cut_lower{false};
     bool m_rotate_upper{false};
@@ -110,23 +117,50 @@ private:
     double m_segment_smoothing_alpha;
     int m_segment_number;
 
-    std::array<Vec3d, 4> m_cut_plane_points;
-
-    mutable Grabber m_move_grabber;
+    mutable Grabber m_move_z_grabber;
+    mutable Grabber m_move_x_grabber;
 
     unsigned int m_last_active_id;
 
     bool m_connectors_editing{false};
+    std::vector<size_t> m_invalid_connectors_idxs;
     bool m_show_shortcuts{false};
 
-    std::vector<std::pair<wxString, wxString>> m_shortcuts;
+    std::vector<std::pair<wxString, wxString>> m_connector_shortcuts;
+    std::vector<std::pair<wxString, wxString>> m_cut_plane_shortcuts;
+    std::vector<std::pair<wxString, wxString>> m_cut_groove_shortcuts;
     double m_label_width{150.0};
     double m_control_width{ 200.0 };
     double m_editing_window_width;
 
+    CutMode                  m_cut_mode{CutMode::cutPlanar};
     CutConnectorType         m_connector_type;
     size_t                   m_connector_style;
     size_t                   m_connector_shape_id;
+
+      // Dovetail para
+    Groove             m_groove;
+    bool               m_groove_editing{false};
+    float              m_contour_width{0.4f};
+    float              m_cut_plane_radius_koef{1.5f};
+    float              m_shortcut_label_width{-1.f};
+    bool               m_is_slider_editing_done{false};
+    bool               m_hide_cut_plane{false};
+    double             m_radius{0.0};
+    double             m_grabber_radius{0.0};
+    double             m_grabber_connection_len{0.0};
+    Vec3d              m_cut_plane_start_move_pos{Vec3d::Zero()};
+    bool               m_cut_plane_as_circle{false};
+    std::vector<Vec3d> m_groove_vertices;
+    bool               m_was_cut_plane_dragged{false};
+    bool               m_was_contour_selected{false};
+    bool               m_is_dragging{false};
+    PartSelection *    m_part_selection{nullptr};
+    // dragging angel in hovered axes
+    double             m_rotate_angle{0.0};
+    bool               m_imperial_units{false};
+    BoundingBoxf3      m_bounding_box;
+    BoundingBoxf3      m_transformed_bounding_box;
 
     float m_connector_depth_ratio{3.f};
     float m_connector_depth_ratio_tolerance{0.1f};
@@ -138,20 +172,18 @@ private:
     float        m_snap_bulge_proportion{0.15f};
 
     TriangleMesh m_connector_mesh;
-    bool         m_has_invalid_connector{false};
 
     // remember the connectors which is selected
     mutable std::vector<bool> m_selected;
     int                       m_selected_count{0};
 
-    Vec3d m_cut_plane_center{Vec3d::Zero()};
-    Vec3d m_cut_plane_normal{Vec3d::UnitZ()};
+    GLModel m_plane; // old name:PickingModel
 
     Vec3d m_cut_line_begin{Vec3d::Zero()};
     Vec3d m_cut_line_end{Vec3d::Zero()};
 
     Transform3d m_rotate_matrix{Transform3d::Identity()};
-
+    Transform3d m_start_dragging_m{Transform3d::Identity()};
     std::map<CutConnectorAttributes, GLModel> m_shapes;
 
     struct InvalidConnectorsStatistics
@@ -177,16 +209,15 @@ public:
     bool on_key(wxKeyEvent &evt);
 
     double get_movement() const { return m_movement; }
-    void set_movement(double movement) const;
     void finish_rotation();
     std::string get_tooltip() const override;
 
     BoundingBoxf3 bounding_box() const;
-    //BoundingBoxf3 transformed_bounding_box(const Vec3d &plane_center, bool revert_move = false) const;
+    BoundingBoxf3 transformed_bounding_box(const Vec3d &plane_center, const Transform3d &rotation_m = Transform3d::Identity()) const;
 
     bool is_looking_forward() const;
 
-    bool unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &pos, Vec3d &pos_world);
+    bool unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &pos, Vec3d &pos_world, bool respect_contours = true);
 
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
     static void  render_glmodel(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking = false);
@@ -194,12 +225,15 @@ protected:
     virtual bool on_init();
     virtual void on_load(cereal::BinaryInputArchive &ar) override;
     virtual void on_save(cereal::BinaryOutputArchive &ar) const override;
+    virtual void data_changed(bool is_serializing) override;
     virtual std::string on_get_name() const;
     virtual void on_set_state();
     virtual bool on_is_activable() const;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_start_dragging() override;
     virtual void on_stop_dragging() override;
+    virtual void update_plate_center(Axis axis_type, double projection, bool is_abs_move); // old name:dragging_grabber_move
+    virtual void update_plate_normal_boundingbox_clipper(Vec3d rotation);                  // old name:dragging_grabber_rotation
     virtual void on_update(const UpdateData& data);
     virtual void on_render();
     virtual void on_render_for_picking();
@@ -232,19 +266,16 @@ protected:
 private:
     void perform_cut(const Selection& selection);
     bool can_perform_cut() const;
-    void apply_connectors_in_model(ModelObject *mo, bool &create_dowels_as_separate_object);
+    void apply_connectors_in_model(ModelObject *mo, int &dowels_count);
 
     bool is_selection_changed(bool alt_down, bool shift_down);
     void select_connector(int idx, bool select);
 
     double calc_projection(const Vec3d &drag_pos, const Linef3 &mouse_ray, const Vec3d &project_dir) const;
-    Vec3d calc_plane_normal(const std::array<Vec3d, 4>& plane_points) const;
-    Vec3d calc_plane_center(const std::array<Vec3d, 4>& plane_points) const;
+
     Vec3d get_plane_normal() const;
     Vec3d get_plane_center() const;
-    void update_plane_points();
-    std::array<Vec3d, 4> get_plane_points() const;
-    std::array<Vec3d, 4> get_plane_points_world_coord() const;
+
     void reset_cut_plane();
     void reset_all();
 
@@ -270,9 +301,27 @@ private:
     bool delete_selected_connectors();
     bool is_outside_of_cut_contour(size_t idx, const CutConnectors &connectors, const Vec3d cur_pos);
     bool is_conflict_for_connector(size_t idx, const CutConnectors &connectors, const Vec3d cur_pos);
-    void check_conflict_for_all_connectors();
-
+    //deal groove
+    void switch_to_mode(CutMode new_mode);
+    void flip_cut_plane();
+    void update_plane_model();
+    void init_picking_models();
+    bool has_valid_groove() const;
+    bool has_valid_contour() const;
+    void reset_cut_by_contours();
+    void process_contours();
+    void toggle_model_objects_visibility(bool show_in_3d = false);
+    void delete_part_selection();
+    void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);
+    void update_bb();
+    void check_and_update_connectors_state();
+    void set_center(const Vec3d &center, bool update_tbb = false);
+    bool set_center_pos(const Vec3d &center_pos, bool update_tbb = false);
+    void invalidate_cut_plane();
+    void rotate_vec3d_around_plane_center(Vec3d &vec, const Transform3d &rotate_matrix, const Vec3d &center);
+    Transform3d get_cut_matrix(const Selection &selection);
     // render input window
+    bool render_cut_mode_combo(double label_width);
     void render_cut_plane_input_window(float x, float y, float bottom_limit);
     void init_connectors_input_window_data();
     void render_connectors_input_window(float x, float y, float bottom_limit);

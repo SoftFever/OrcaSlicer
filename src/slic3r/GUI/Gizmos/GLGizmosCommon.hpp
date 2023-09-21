@@ -162,7 +162,7 @@ public:
     ModelObject* model_object() const { return m_model_object; }
     int get_active_instance() const;
     float get_sla_shift() const { return m_z_shift; }
-
+    void  set_use_shift(bool use) { m_use_shift = use; }
 protected:
     void on_update() override;
     void on_release() override;
@@ -171,6 +171,7 @@ private:
     ModelObject* m_model_object = nullptr;
     // int m_active_inst = -1;
     float m_z_shift = 0.f;
+    bool  m_use_shift = false;
 };
 
 
@@ -264,12 +265,14 @@ public:
     void set_position(double pos, bool keep_normal);
     double get_position() const { return m_clp_ratio; }
     ClippingPlane* get_clipping_plane() const { return m_clp.get(); }
-    void render_cut() const;
+    void           render_cut(const std::vector<size_t> *ignore_idxs = nullptr) const;
+    void           set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos);
+    void           set_behaviour(bool hide_clipped, bool fill_cut, double contour_width);
 
-    void set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos);
-
+    int                get_number_of_contours() const;
     std::vector<Vec3d> point_per_contour() const;
-    bool is_projection_inside_cut(const Vec3d &point_in) const;
+
+    int  is_projection_inside_cut(const Vec3d &point_in) const;
     bool has_valid_contour() const;
 
 protected:
@@ -278,10 +281,11 @@ protected:
 
 private:
     std::vector<const TriangleMesh*> m_old_meshes;
-    std::vector<std::unique_ptr<MeshClipper>> m_clippers;
+    std::vector<std::pair<std::unique_ptr<MeshClipper>, Geometry::Transformation>> m_clippers;
     std::unique_ptr<ClippingPlane> m_clp;
     double m_clp_ratio = 0.;
     double m_active_inst_bb_radius = 0.;
+    bool   m_hide_clipped          = true;
 };
 
 

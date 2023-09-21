@@ -228,7 +228,7 @@ void InstancesHider::render_cut() const
         }
         glsafe(::glPushAttrib(GL_DEPTH_TEST));
         glsafe(::glDisable(GL_DEPTH_TEST));
-        clipper->render_cut();
+        clipper->render_cut(mv->is_model_part() ? ColorRGBA{0.8f, 0.3f, 0.0f, 1.0f} : color_from_model_volume(*mv));
         glsafe(::glPopAttrib());
         glsafe(::glPopMatrix());
 
@@ -365,33 +365,36 @@ std::vector<const MeshRaycaster*> Raycaster::raycasters() const
 
 void ObjectClipper::on_update()
 {
-    const ModelObject* mo = get_pool()->selection_info()->model_object();
-    if (! mo)
-        return;
+    const ModelObject *mo = get_pool()->selection_info()->model_object();
+    if (!mo) return;
 
     // which mesh should be cut?
-    std::vector<const TriangleMesh*> meshes;
-    bool has_hollowed = get_pool()->hollowed_mesh() && get_pool()->hollowed_mesh()->get_hollowed_mesh();
-    if (has_hollowed)
-        meshes.push_back(get_pool()->hollowed_mesh()->get_hollowed_mesh());
+    std::vector<const TriangleMesh *>     meshes;
+    std::vector<Geometry::Transformation> trafos;
+    bool                                  force_clipper_regeneration = false;
 
-    if (meshes.empty())
-        for (const ModelVolume* mv : mo->volumes)
-            meshes.push_back(&mv->mesh());
+    std::unique_ptr<MeshClipper> mc;
+    Geometry::Transformation     mc_tr;
 
-    if (meshes != m_old_meshes) {
-        m_clippers.clear();
-        for (const TriangleMesh* mesh : meshes) {
-            m_clippers.emplace_back(new MeshClipper);
-            m_clippers.back()->set_mesh(*mesh);
+    if (!mc && meshes.empty()) {
+        for (const ModelVolume *mv : mo->volumes) {
+            meshes.emplace_back(&mv->mesh());
+            trafos.emplace_back(mv->get_transformation());
         }
-        m_old_meshes = meshes;
+    }
 
-        if (has_hollowed)
-            m_clippers.front()->set_negative_mesh(*get_pool()->hollowed_mesh()->get_hollowed_interior());
+    if (mc || force_clipper_regeneration || meshes != m_old_meshes) {
+        m_clippers.clear();
+        for (size_t i = 0; i < meshes.size(); ++i) {
+            m_clippers.emplace_back(new MeshClipper, trafos[i]);
+            auto tri_mesh = new TriangleMesh(meshes[i]->its);
+            m_clippers.back().first->set_mesh(*tri_mesh);
+        }
+        m_old_meshes = std::move(meshes);
 
-        m_active_inst_bb_radius =
-            mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
+        if (mc) { m_clippers.emplace_back(std::move(mc), mc_tr); }
+
+        m_active_inst_bb_radius = mo->instance_bounding_box(get_pool()->selection_info()->get_active_instance()).radius();
     }
 }
 
@@ -405,80 +408,33 @@ void ObjectClipper::on_release()
 
 }
 
-void ObjectClipper::render_cut() const
+
+
+void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t> *ignore_idxs) const
 {
-    if (m_clp_ratio == 0.)
-        return;
-    const SelectionInfo* sel_info = get_pool()->selection_info();
-    const ModelObject* mo = sel_info->model_object();
-    Geometry::Transformation inst_trafo;
-    bool is_assem_cnv = get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
-    inst_trafo = is_assem_cnv ?
-        mo->instances[sel_info->get_active_instance()]->get_assemble_transformation() :
-        mo->instances[sel_info->get_active_instance()]->get_transformation();
-    auto offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
+    if (m_clp_ratio == 0.) return;
+    const SelectionInfo *          sel_info          = get_pool()->selection_info();
+    const Geometry::Transformation inst_trafo        = sel_info->model_object()->instances[sel_info->get_active_instance()]->get_transformation();
+    auto                           debug             = sel_info->get_sla_shift();
+    std::vector<size_t>            ignore_idxs_local = ignore_idxs ? *ignore_idxs : std::vector<size_t>();
 
-    size_t clipper_id = 0;
-    for (const ModelVolume* mv : mo->volumes) {
-        Geometry::Transformation vol_trafo  = mv->get_transformation();
-        Geometry::Transformation trafo = inst_trafo * vol_trafo;
-        if (is_assem_cnv) {
-            trafo.set_offset(trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0) + vol_trafo.get_offset() * (GLVolume::explosion_ratio - 1.0));
-        }
-        else {
-            trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
-        }
-        auto& clipper = m_clippers[clipper_id];
-        clipper->set_plane(*m_clp);
-        clipper->set_transformation(trafo);
-        if (is_assem_cnv)
-            clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), std::numeric_limits<double>::max()));
-        else
-            clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
-        glsafe(::glPushMatrix());
-        // BBS
-        glsafe(::glColor3f(0.25f, 0.25f, 0.25f));
-        clipper->render_cut();
-        glsafe(::glPopMatrix());
+    for (auto &clipper : m_clippers) {
+        Geometry::Transformation trafo = inst_trafo * clipper.second;
+        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+        clipper.first->set_plane(*m_clp);
+        clipper.first->set_transformation(trafo);
+        clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
+        clipper.first->render_cut({1.0f, 0.37f, 0.0f, 1.0f}, &ignore_idxs_local);
+        clipper.first->render_contour({1.f, 1.f, 1.f, 1.f}, &ignore_idxs_local);
 
-        ++clipper_id;
+        // Now update the ignore idxs. Find the first element belonging to the next clipper,
+        // and remove everything before it and decrement everything by current number of contours.
+        const int num_of_contours = clipper.first->get_number_of_contours();
+        ignore_idxs_local.erase(ignore_idxs_local.begin(),std::find_if(ignore_idxs_local.begin(), ignore_idxs_local.end(), [num_of_contours](size_t idx) {
+            return idx >= size_t(num_of_contours);
+            }));
+        for (size_t &idx : ignore_idxs_local) idx -= num_of_contours;
     }
-}
-
-
-void ObjectClipper::set_position(double pos, bool keep_normal)
-{
-    const ModelObject* mo = get_pool()->selection_info()->model_object();
-    int active_inst = get_pool()->selection_info()->get_active_instance();
-    double z_shift = get_pool()->selection_info()->get_sla_shift();
-
-    //Vec3d camera_dir = wxGetApp().plater()->get_camera().get_dir_forward();
-    //if (abs(camera_dir(0)) > EPSILON || abs(camera_dir(1)) > EPSILON)
-    //    camera_dir(2) = 0;
-
-    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : /*-camera_dir;*/ -wxGetApp().plater()->get_camera().get_dir_forward();
-    Vec3d center;
-
-    if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-        const SelectionInfo* sel_info = get_pool()->selection_info();
-        auto trafo = mo->instances[sel_info->get_active_instance()]->get_assemble_transformation();
-        auto offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
-        center = trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
-    }
-    else {
-        center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
-    }
-
-    float dist = normal.dot(center);
-
-    if (pos < 0.)
-        pos = m_clp_ratio;
-
-    m_clp_ratio = pos;
-
-    m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
-
-    get_pool()->get_canvas()->set_as_dirty();
 }
 
 void ObjectClipper::set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos)
@@ -488,29 +444,66 @@ void ObjectClipper::set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset
     get_pool()->get_canvas()->set_as_dirty();
 }
 
+void CommonGizmosDataObjects::ObjectClipper::set_behaviour(bool hide_clipped, bool fill_cut, double contour_width)
+{
+    m_hide_clipped = hide_clipped;
+    for (auto &clipper : m_clippers)
+        clipper.first->set_behaviour(fill_cut, contour_width);
+}
+
+void ObjectClipper::set_position(double pos, bool keep_normal)
+{
+    const ModelObject *mo          = get_pool()->selection_info()->model_object();
+    int                active_inst = get_pool()->selection_info()->get_active_instance();
+    double             z_shift     = get_pool()->selection_info()->get_sla_shift();
+
+    Vec3d        normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
+    const Vec3d &center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
+    float        dist   = normal.dot(center);
+
+    if (pos < 0.) pos = m_clp_ratio;
+
+    m_clp_ratio = pos;
+    m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
+    get_pool()->get_canvas()->set_as_dirty();
+}
+
+int CommonGizmosDataObjects::ObjectClipper::get_number_of_contours() const
+{
+    int sum = 0;
+    for (const auto &[clipper, trafo] : m_clippers)
+        sum += clipper->get_number_of_contours();
+    return sum;
+}
+
 std::vector<Vec3d> CommonGizmosDataObjects::ObjectClipper::point_per_contour() const
 {
     std::vector<Vec3d> pts;
 
     for (const auto &clipper : m_clippers) {
-        const std::vector<Vec3d> pts_clipper = clipper->point_per_contour();
+        const std::vector<Vec3d> pts_clipper = clipper.first->point_per_contour();
         pts.insert(pts.end(), pts_clipper.begin(), pts_clipper.end());
-        ;
     }
     return pts;
 }
 
-bool ObjectClipper::is_projection_inside_cut(const Vec3d &point) const
+int ObjectClipper::is_projection_inside_cut(const Vec3d &point) const
 {
-    return m_clp_ratio != 0. && std::any_of(m_clippers.begin(), m_clippers.end(), [point](const auto &cl) {
-        return cl->is_projection_inside_cut(point);
-    });
+    if (m_clp_ratio == 0.)
+        return -1;
+    int idx_offset = 0;
+    for (const auto &[clipper, trafo] : m_clippers) {
+        if (int idx = clipper->is_projection_inside_cut(point); idx != -1)
+            return idx_offset + idx;
+        idx_offset += clipper->get_number_of_contours();
+    }
+    return -1;
 }
 
 bool ObjectClipper::has_valid_contour() const
 {
     return m_clp_ratio != 0. && std::any_of(m_clippers.begin(), m_clippers.end(), [](const auto &cl) {
-        return cl->has_valid_contour();
+        return cl.first->has_valid_contour();
     });
 }
 
@@ -598,8 +591,7 @@ void SupportsClipper::render_cut() const
     m_clipper->set_transformation(supports_trafo);
 
     glsafe(::glPushMatrix());
-    glsafe(::glColor3f(1.0f, 0.f, 0.37f));
-    m_clipper->render_cut();
+    m_clipper->render_cut({1.0f, 0.f, 0.37f, 1.0f});
     glsafe(::glPopMatrix());
 }
 
@@ -748,8 +740,7 @@ void ModelObjectsClipper::render_cut() const
             clipper->set_transformation(trafo);
             glsafe(::glPushMatrix());
             // BBS
-            glsafe(::glColor3f(0.25f, 0.25f, 0.25f));
-            clipper->render_cut();
+            clipper->render_cut({0.25f, 0.25f, 0.25f, 1.0f});
             glsafe(::glPopMatrix());
 
             ++clipper_id;

@@ -234,6 +234,11 @@ private:
     friend class ModelObject;
 };
 
+enum class CutMode : int {
+    cutPlanar,
+    cutTongueAndGroove
+};
+
 enum class CutConnectorType : int {
     Plug,
     Dowel,

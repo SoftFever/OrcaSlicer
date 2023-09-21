@@ -1811,7 +1811,7 @@ void ModelObject::apply_cut_attributes(ModelObjectCutAttributes attributes)
 void ModelObject::clone_for_cut(ModelObject **obj)
 {
     (*obj) = ModelObject::new_clone(*this);
-    (*obj)->set_model(nullptr);
+    (*obj)->set_model(this->get_model());
     (*obj)->sla_support_points.clear();
     (*obj)->sla_drain_holes.clear();
     (*obj)->sla_points_status = sla::PointsStatus::NoPoints;

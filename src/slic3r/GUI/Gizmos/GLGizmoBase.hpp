@@ -121,7 +121,7 @@ protected:
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
     mutable std::string m_tooltip;
-    CommonGizmosDataPool* m_c;
+    CommonGizmosDataPool* m_c{nullptr};
     GLModel m_cone;
     GLModel m_cylinder;
     GLModel m_sphere;
@@ -190,7 +190,10 @@ public:
     virtual void on_change_color_mode(bool is_dark) {  m_is_dark_mode = is_dark; }
 
     virtual std::string get_tooltip() const { return ""; }
-
+    /// <summary>
+    /// Is called when data (Selection) is changed
+    /// </summary>
+    virtual void data_changed(bool is_serializing){};
     int get_count() { return ++count; }
     std::string get_gizmo_name() { return on_get_name(); }
 

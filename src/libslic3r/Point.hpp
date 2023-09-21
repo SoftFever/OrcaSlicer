@@ -70,6 +70,7 @@ using Transform2d    = Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAli
 using Transform3f    = Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign>;
 using Transform3d    = Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign>;
 
+using ColorRGBA      = std::array<float, 4>;
 // I don't know why Eigen::Transform::Identity() return a const object...
 template<int N, class T> Transform<N, T> identity() { return Transform<N, T>::Identity(); }
 inline const auto &identity3f = identity<3, float>;
