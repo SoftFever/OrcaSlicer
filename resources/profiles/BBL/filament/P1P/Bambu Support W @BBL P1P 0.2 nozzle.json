@@ -1,18 +1,18 @@
 {
     "type": "filament",
-    "setting_id": "GFSS00_10",
     "name": "Bambu Support W @BBL P1P 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu Support W @base",
+    "from": "system",
+    "setting_id": "GFSS00_10",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "filament_max_volumetric_speed": [
         "0.5"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "240"
-    ],
-    "nozzle_temperature": [
-        "240"
     ],
     "hot_plate_temp": [
         "65"
@@ -20,17 +20,17 @@
     "hot_plate_temp_initial_layer": [
         "65"
     ],
+    "nozzle_temperature": [
+        "240"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "240"
+    ],
     "textured_plate_temp": [
         "65"
     ],
     "textured_plate_temp_initial_layer": [
         "65"
-    ],
-    "fan_min_speed": [
-        "50"
-    ],
-    "fan_cooling_layer_time": [
-        "80"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.2 nozzle"

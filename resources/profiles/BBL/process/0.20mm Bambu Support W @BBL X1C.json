@@ -16,6 +16,8 @@
     "enable_prime_tower": "1",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",
-      "Bambu Lab X1 0.4 nozzle"
+      "Bambu Lab X1 0.4 nozzle",
+      "Bambu Lab P1S 0.4 nozzle",
+      "Bambu Lab X1E 0.4 nozzle"
     ]
 }

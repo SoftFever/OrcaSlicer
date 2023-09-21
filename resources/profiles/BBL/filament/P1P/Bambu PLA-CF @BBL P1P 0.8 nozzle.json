@@ -1,10 +1,16 @@
 {
     "type": "filament",
-    "setting_id": "GFSA50_11",
     "name": "Bambu PLA-CF @BBL P1P 0.8 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PLA-CF @base",
+    "from": "system",
+    "setting_id": "GFSA50_11",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "filament_max_volumetric_speed": [
         "18"
     ],
@@ -14,23 +20,17 @@
     "hot_plate_temp_initial_layer": [
         "65"
     ],
-    "textured_plate_temp": [
-        "65"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "65"
-    ],
-    "fan_min_speed": [
-        "50"
-    ],
-    "fan_cooling_layer_time": [
-        "80"
-    ],
     "nozzle_temperature": [
         "230"
     ],
     "nozzle_temperature_initial_layer": [
         "230"
+    ],
+    "textured_plate_temp": [
+        "65"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "65"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.6 nozzle",

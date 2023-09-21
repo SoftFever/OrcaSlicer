@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSU01",
     "name": "Bambu TPU 95A @BBL X1",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu TPU 95A @base",
+    "from": "system",
+    "setting_id": "GFSU01",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "3.6"
     ],

@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSL99_01",
     "name": "Generic PLA Silk",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PLA Silk @base",
+    "from": "system",
+    "setting_id": "GFSL99_01",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "7.5"
     ],
@@ -20,6 +20,9 @@
         "Bambu Lab X1 0.8 nozzle",
         "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab P1S 0.6 nozzle",
-        "Bambu Lab P1S 0.8 nozzle"
+        "Bambu Lab P1S 0.8 nozzle",
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
     ]
 }

@@ -1,17 +1,17 @@
 {
     "type": "filament",
-    "setting_id": "GFSA50_02",
     "name": "Bambu PLA-CF @BBL X1C 0.8 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PLA-CF @base",
+    "from": "system",
+    "setting_id": "GFSA50_02",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "18"
     ],
-    "nozzle_temperature_initial_layer": [
+    "nozzle_temperature": [
         "230"
     ],
-    "nozzle_temperature": [
+    "nozzle_temperature_initial_layer": [
         "230"
     ],
     "compatible_printers": [
@@ -20,6 +20,8 @@
         "Bambu Lab X1 0.6 nozzle",
         "Bambu Lab X1 0.8 nozzle",
         "Bambu Lab P1S 0.6 nozzle",
-        "Bambu Lab P1S 0.8 nozzle"
+        "Bambu Lab P1S 0.8 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
     ]
 }

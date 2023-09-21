@@ -1,11 +1,11 @@
 {
     "type": "process",
-    "setting_id": "GP018",
     "name": "0.08mm Extra Fine @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_process_bbl_0.08",
+    "from": "system",
+    "setting_id": "GP018",
+    "instantiation": "true",
     "compatible_printers": [
-      "Bambu Lab P1P 0.4 nozzle"
+        "Bambu Lab P1P 0.4 nozzle"
     ]
 }

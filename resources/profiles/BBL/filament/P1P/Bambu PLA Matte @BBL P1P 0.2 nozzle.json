@@ -1,10 +1,16 @@
 {
     "type": "filament",
-    "setting_id": "GFSA01_10",
     "name": "Bambu PLA Matte @BBL P1P 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PLA Matte @base",
+    "from": "system",
+    "setting_id": "GFSA01_10",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "filament_max_volumetric_speed": [
         "2"
     ],
@@ -19,12 +25,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "65"
-    ],
-    "fan_min_speed": [
-        "50"
-    ],
-    "fan_cooling_layer_time": [
-        "80"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.2 nozzle"

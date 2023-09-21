@@ -1,15 +1,15 @@
 {
     "type": "filament",
-    "setting_id": "GFSS99_10",
     "name": "Generic PVA @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PVA @base",
-    "textured_plate_temp": [
-        "65"
+    "from": "system",
+    "setting_id": "GFSS99_10",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
     ],
-    "textured_plate_temp_initial_layer": [
-        "65"
+    "fan_min_speed": [
+        "50"
     ],
     "hot_plate_temp": [
         "65"
@@ -17,11 +17,11 @@
     "hot_plate_temp_initial_layer": [
         "65"
     ],
-    "fan_min_speed": [
-        "50"
+    "textured_plate_temp": [
+        "65"
     ],
-    "fan_cooling_layer_time": [
-        "80"
+    "textured_plate_temp_initial_layer": [
+        "65"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",

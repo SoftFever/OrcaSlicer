@@ -1,13 +1,13 @@
 {
     "type": "filament",
+    "name": "Generic PA-CF",
+    "inherits": "fdm_filament_pa",
+    "from": "system",
     "filament_id": "GFN98",
     "setting_id": "GFSN99",
-    "name": "Generic PA-CF",
-    "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_pa",
-    "filament_type": [
-        "PA-CF"
+    "fan_cooling_layer_time": [
+        "5"
     ],
     "fan_max_speed": [
         "30"
@@ -15,17 +15,20 @@
     "fan_min_speed": [
         "10"
     ],
-    "overhang_fan_threshold": [
-        "0%"
+    "filament_type": [
+        "PA-CF"
+    ],
+    "full_fan_speed_layer": [
+        "2"
     ],
     "overhang_fan_speed": [
         "40"
     ],
-    "fan_cooling_layer_time": [
-        "5"
+    "overhang_fan_threshold": [
+        "0%"
     ],
-    "full_fan_speed_layer": [
-        "2"
+    "temperature_vitrification": [
+        "170"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

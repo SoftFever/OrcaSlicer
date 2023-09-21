@@ -128,7 +128,6 @@
             "name": "fdm_filament_asa",
             "sub_path": "filament/fdm_filament_asa.json"
         },
-        
         {
             "name": "fdm_filament_pa",
             "sub_path": "filament/fdm_filament_pa.json"

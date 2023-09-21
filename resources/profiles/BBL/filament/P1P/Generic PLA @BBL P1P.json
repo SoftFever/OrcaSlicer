@@ -1,10 +1,16 @@
 {
     "type": "filament",
-    "setting_id": "GFSL99_10",
     "name": "Generic PLA @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PLA @base",
+    "from": "system",
+    "setting_id": "GFSL99_10",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "50"
+    ],
     "hot_plate_temp": [
         "65"
     ],
@@ -16,12 +22,6 @@
     ],
     "textured_plate_temp_initial_layer": [
         "65"
-    ],
-    "fan_min_speed": [
-        "50"
-    ],
-    "fan_cooling_layer_time": [
-        "80"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",

@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB99_00",
     "name": "Generic ABS @0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic ABS @base",
+    "from": "system",
+    "setting_id": "GFSB99_00",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "2"
     ],

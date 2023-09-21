@@ -1,13 +1,14 @@
 {
-  "type": "process",
-  "setting_id": "GP035",
-  "name": "0.56mm Standard @BBL X1C 0.8 nozzle",
-  "from": "system",
-  "instantiation": "true",
-  "inherits": "fdm_process_bbl_0.56_nozzle_0.8",
-  "compatible_printers": [
-    "Bambu Lab X1 Carbon 0.8 nozzle",
-    "Bambu Lab X1 0.8 nozzle",
-    "Bambu Lab P1S 0.8 nozzle"
-  ]
+    "type": "process",
+    "name": "0.56mm Standard @BBL X1C 0.8 nozzle",
+    "inherits": "fdm_process_bbl_0.56_nozzle_0.8",
+    "from": "system",
+    "setting_id": "GP035",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab X1 0.8 nozzle",
+        "Bambu Lab P1S 0.8 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
+    ]
 }

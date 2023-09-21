@@ -1,10 +1,10 @@
 {
     "type": "process",
-    "setting_id": "GP019",
     "name": "0.12mm Fine @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "fdm_process_bbl_0.12",
+    "from": "system",
+    "setting_id": "GP019",
+    "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle"
     ]

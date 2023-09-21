@@ -1,9 +1,9 @@
 {
     "type": "machine_model",
     "name": "Bambu Lab P1P",
+    "nozzle_diameter": "0.4;0.2;0.6;0.8",
     "model_id": "C11",
     "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
-    "nozzle_diameter": "0.4;0.2;0.6;0.8",
     "machine_tech": "FFF",
     "family": "BBL-3DP",
     "bed_model": "bbl-3dp-X1.stl",

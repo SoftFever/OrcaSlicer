@@ -1,18 +1,18 @@
 {
     "type": "filament",
-    "setting_id": "GFSA05_12",
     "name": "Bambu PLA Silk @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PLA Silk @base",
-    "slow_down_layer_time": [
-        "8"
-    ],
+    "from": "system",
+    "setting_id": "GFSA05_12",
+    "instantiation": "true",
     "hot_plate_temp": [
         "65"
     ],
     "hot_plate_temp_initial_layer": [
         "65"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "textured_plate_temp": [
         "65"
