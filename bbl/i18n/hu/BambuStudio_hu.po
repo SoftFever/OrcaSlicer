@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-19 14:52+0800\n"
+"POT-Creation-Date: 2023-09-21 10:27+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2025,14 +2025,14 @@ msgstr "Asztalhőmérséklet"
 msgid "Max volumetric speed"
 msgstr "Max. volumetrikus sebesség"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Asztalhőmérséklet"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2722,14 +2722,20 @@ msgstr "A frissítés sikertelen."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
+msgstr ""
+
+msgid ""
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -4729,6 +4735,11 @@ msgstr "projekt letöltése ..."
 msgid "Project downloaded %d%%"
 msgstr "Projekt letöltve %d%%"
 
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
+
 msgid "The selected file"
 msgstr "A kiválasztott fájl"
 
@@ -5624,8 +5635,8 @@ msgstr "Felhasználási feltételek"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Köszönjük, hogy Bambu Lab készüléket vásároltál. Mielőtt használnád az új "
@@ -7861,6 +7872,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Filament betöltési idő"
@@ -10299,9 +10313,6 @@ msgid "Please input a valid value (0 <= Max Volumetric Speed <= 60)"
 msgstr ""
 "Kérjük, adj meg egy érvényes értéket (0 <= Max. volumetrikus sebesség <= 60)"
 
-msgid "Pattern"
-msgstr ""
-
 msgid "Calibration Type"
 msgstr "Kalibrálás típusa"
 
@@ -10324,11 +10335,11 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Nyomtatási paraméterek"
 
-msgid "- ℃"
-msgstr ""
+msgid "- \\u2103"
+msgstr "- u2103"
 
-msgid " ℃"
-msgstr ""
+msgid " \\u2103"
+msgstr "u2103"
 
 msgid "Plate Type"
 msgstr "Tálcatípus"
@@ -10357,6 +10368,9 @@ msgstr "Hibaleírás"
 
 msgid "Extra info"
 msgstr "Extra infó"
+
+msgid "Pattern"
+msgstr ""
 
 msgid "Method"
 msgstr "Módszer"
@@ -10397,6 +10411,9 @@ msgstr "Ettől a volumetrikus sebességtől"
 
 msgid "To Volumetric Speed"
 msgstr "Eddig a volumetrikus sebességig"
+
+msgid "mm\\u00B3/s"
+msgstr "mm\\u00B3/s"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Áramlásdinamikai kalibrációs eredmény"
@@ -10509,9 +10526,12 @@ msgstr "lépcső:"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Kérjük, adj meg érvényes értékeket:\n"
+"\\lépcső>= 0\n"
+"befejező > kezdő + lépcső)"
 
 msgid "VFA test"
 msgstr "VFA teszt"
@@ -10524,9 +10544,12 @@ msgstr "Befejező sebesség:"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Kérjük, adj meg érvényes értékeket:\n"
+"kezdő > 0 \\lépcső >= 0\n"
+"befejező > kezdő + lépcső)"
 
 msgid "Start retraction length: "
 msgstr "Kezdő visszahúzás hossza:"
@@ -10652,6 +10675,17 @@ msgstr "Kivonás ezzel"
 
 msgid "Delete input"
 msgstr "Bemenet törlése"
+
+msgid "The start, end or step is not valid value."
+msgstr ""
+
+msgid ""
+"Unable to calibrate: maybe because the set calibration value range is too "
+"large, or the step is too small"
+msgstr ""
+
+msgid "Need select printer"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -10920,39 +10954,6 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
-
-#~ msgid "- \\u2103"
-#~ msgstr "- u2103"
-
-#~ msgid " \\u2103"
-#~ msgstr "u2103"
-
-#~ msgid "mm\\u00B3/s"
-#~ msgstr "mm\\u00B3/s"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 0 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Kérjük, adj meg érvényes értékeket:\n"
-#~ "\\lépcső>= 0\n"
-#~ "befejező > kezdő + lépcső)"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 10 \\step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Kérjük, adj meg érvényes értékeket:\n"
-#~ "kezdő > 0 \\lépcső >= 0\n"
-#~ "befejező > kezdő + lépcső)"
 
 #~ msgid "Bamabu Engineering Plate"
 #~ msgstr "Bambu Engineering Plate"
