@@ -1886,7 +1886,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("min_feature_size");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("wall_infill_order");
+        optgroup->append_single_option_line("wall_sequence");
+        optgroup->append_single_option_line("is_infill_first");
         optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");

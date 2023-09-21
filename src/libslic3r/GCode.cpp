@@ -3449,8 +3449,7 @@ GCode::LayerResult GCode::process_layer(
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(offset));
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
-                    bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
-                                           print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
+                    bool is_infill_first =print.config().is_infill_first;
 
                     auto has_infill = [](const std::vector<ObjectByExtruder::Island::Region> &by_region) {
                         for (auto region : by_region) {
@@ -3735,8 +3734,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     Point last_pos = this->last_pos();
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
-        bool is_outer_wall_first = m_config.wall_infill_order == WallInfillOrder::OuterInnerInfill
-                                || m_config.wall_infill_order == WallInfillOrder::InfillOuterInner;
+        bool is_outer_wall_first = m_config.wall_sequence == WallSequence::OuterInner;
         m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos());
     } else
         loop.split_at(last_pos, false);

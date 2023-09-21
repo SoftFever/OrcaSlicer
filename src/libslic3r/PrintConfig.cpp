@@ -164,6 +164,15 @@ static t_config_enum_values s_keys_map_WallInfillOrder {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallInfillOrder)
 
 //BBS
+static t_config_enum_values s_keys_map_WallSequence {
+    { "inner wall/outer wall",     int(WallSequence::InnerOuter) },
+    { "outer wall/inner wall",     int(WallSequence::OuterInner) },
+    { "inner-outer-inner wall",    int(WallSequence::InnerOuterInner)}
+
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WallSequence)
+
+//BBS
 static t_config_enum_values s_keys_map_PrintSequence {
     { "by layer",     int(PrintSequence::ByLayer) },
     { "by object",    int(PrintSequence::ByObject) }
@@ -1160,23 +1169,26 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
-    def = this->add("wall_infill_order", coEnum);
-    def->label = L("Order of inner wall/outer wall/infil");
+    def = this->add("wall_sequence", coEnum);
+    def->label = L("Order of walls");
     def->category = L("Quality");
-    def->tooltip = L("Print sequence of inner wall, outer wall and infill. ");
-    def->enum_keys_map = &ConfigOptionEnum<WallInfillOrder>::get_enum_values();
-    def->enum_values.push_back("inner wall/outer wall/infill");
-    def->enum_values.push_back("outer wall/inner wall/infill");
-    def->enum_values.push_back("infill/inner wall/outer wall");
-    def->enum_values.push_back("infill/outer wall/inner wall");
-    def->enum_values.push_back("inner-outer-inner wall/infill");
-    def->enum_labels.push_back(L("inner/outer/infill"));
-    def->enum_labels.push_back(L("outer/inner/infill"));
-    def->enum_labels.push_back(L("infill/inner/outer"));
-    def->enum_labels.push_back(L("infill/outer/inner"));
-    def->enum_labels.push_back(L("inner-outer-inner/infill"));
+    def->tooltip = L("Print sequence of inner wall and outer wall. ");
+    def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
+    def->enum_values.push_back("inner wall/outer wall");
+    def->enum_values.push_back("outer wall/inner wall");
+    def->enum_values.push_back("inner-outer-inner wall");
+    def->enum_labels.push_back(L("inner/outer"));
+    def->enum_labels.push_back(L("outer/inner"));
+    def->enum_labels.push_back(L("inner wall/outer wall/inner wall"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<WallInfillOrder>(WallInfillOrder::InnerOuterInfill));
+    def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
+
+    def = this->add("is_infill_first",coBool);
+    def->label    = L("Print infill first");
+    def->tooltip  = L("Order of wall/infill. false means print wall first. ");
+    def->category = L("Quality");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool{false});
 
     def = this->add("extruder", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
@@ -4413,6 +4425,19 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         }
     } else if (opt_key == "overhang_fan_threshold" && value == "5%") {
         value = "10%";
+    } else if( opt_key == "wall_infill_order" ) {
+        if (value == "inner wall/outer wall/infill" || value == "infill/inner wall/outer wall") {
+            opt_key = "wall_sequence";
+            value = "inner wall/outer wall";
+        } else if (value == "outer wall/inner wall/infill" || value == "infill/outer wall/inner wall") {
+            opt_key = "wall_sequence";
+            value = "outer wall/inner wall";
+        } else if (value == "inner-outer-inner wall/infill") {
+            opt_key = "wall_sequence";
+            value = "inner-outer-inner wall";
+        } else {
+            opt_key = "wall_sequence";
+        }
     }
 
     // Ignore the following obsolete configuration keys:

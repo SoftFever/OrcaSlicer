@@ -175,7 +175,6 @@ void Layer::make_perimeters()
 		                && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
 		                && config.detect_thin_wall                  == other_config.detect_thin_wall
-		                //&& config.wall_infill_order   == other_config.wall_infill_order
 		                && config.infill_wall_overlap              == other_config.infill_wall_overlap
                         && config.fuzzy_skin                  == other_config.fuzzy_skin
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness

@@ -154,6 +154,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "chamber_temperatures",
         "required_nozzle_HRC",
         "upward_compatible_machine",
+        "is_infill_first",
         //OrcaSlicer
         "seam_gap",
         "wipe_speed"
@@ -252,7 +253,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //|| opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
-            || opt_key == "wall_infill_order") {
+            || opt_key == "wall_sequence") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
