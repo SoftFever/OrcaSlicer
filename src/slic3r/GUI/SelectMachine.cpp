@@ -3442,18 +3442,17 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
     return NULL;
 }
 
-void SelectMachineDialog::set_flow_calibration_state(bool state)
+void SelectMachineDialog::set_flow_calibration_state(bool state, bool show_tips)
 {
     if (!state) {
         m_checkbox_list["flow_cali"]->SetValue(state);
         auto tool_tip = _L("Caution to use! Flow calibration on Textured PEI Plate may fail due to the scattered surface.");
         m_checkbox_list["flow_cali"]->SetToolTip(tool_tip);
         m_checkbox_list["flow_cali"]->Enable();
-        //m_checkbox_state_list["flow_cali"] = state;
         for (auto win : select_flow->GetWindowChildren()) {
             win->SetToolTip(tool_tip);
         }
-        select_flow->SetToolTip(tool_tip);
+        //select_flow->SetToolTip(tool_tip);
     }
     else {
 
@@ -3466,9 +3465,14 @@ void SelectMachineDialog::set_flow_calibration_state(bool state)
         }
 
         m_checkbox_list["flow_cali"]->Enable();
-        //m_checkbox_state_list["flow_cali"] = state;
         for (auto win : select_flow->GetWindowChildren()) {
             win->SetToolTip( _L("Automatic flow calibration using Micro Lidar"));
+        }
+    }
+
+    if (!show_tips) {
+        for (auto win : select_flow->GetWindowChildren()) {
+            win->SetToolTip(wxEmptyString);
         }
     }
 }
@@ -3633,6 +3637,10 @@ void SelectMachineDialog::set_default_normal()
     m_materialList.clear();
     m_filaments.clear();
 
+    DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev_manager) return;
+    MachineObject* obj_ = dev_manager->get_selected_machine();
+
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
         auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
@@ -3647,7 +3655,7 @@ void SelectMachineDialog::set_default_normal()
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent& e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent& e) {
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder, obj_](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id = iter->first;
@@ -3664,10 +3672,7 @@ void SelectMachineDialog::set_default_normal()
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
             // update ams data
-            DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject* obj_ = dev_manager->get_selected_machine();
-
+           
             if (obj_ && obj_->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
@@ -3720,11 +3725,15 @@ void SelectMachineDialog::set_default_normal()
 
     //disable pei bed
     auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
+    auto show_cali_tips = true;
+
+    if (obj_ && obj_->printer_type == "N1") { show_cali_tips = false; }
+
     if (bed_type == BedType::btPTE) {
-        set_flow_calibration_state(false);
+        set_flow_calibration_state(false, show_cali_tips);
     }
     else {
-        set_flow_calibration_state(true);
+        set_flow_calibration_state(true, show_cali_tips);
     }
 
     wxSize screenSize = wxGetDisplaySize();
