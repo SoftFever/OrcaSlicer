@@ -282,6 +282,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "enable_arc_fitting"
             || opt_key == "wall_infill_order") {
             osteps.emplace_back(posPerimeters);
+            osteps.emplace_back(posEstimateCurledExtrusions);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
 			osteps.emplace_back(posSimplifyPath);
@@ -1203,10 +1204,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         support_material_interface_flow(object).width());
                     if (object->config().tree_support_tip_diameter < extrusion_width - EPSILON)
                         return { L("Organic support tree tip diameter must not be smaller than support material extrusion width."), object, "tree_support_tip_diameter" };
-                    if (object->config().tree_support_branch_diameter < 2. * extrusion_width - EPSILON)
-                        return { L("Organic support branch diameter must not be smaller than 2x support material extrusion width."), object, "tree_support_branch_diameter" };
-                    if (object->config().tree_support_branch_diameter < object->config().tree_support_tip_diameter)
-                        return { L("Organic support branch diameter must not be smaller than support tree tip diameter."), object, "tree_support_branch_diameter" };
+                    if (object->config().tree_support_branch_diameter_organic < 2. * extrusion_width - EPSILON)
+                        return { L("Organic support branch diameter must not be smaller than 2x support material extrusion width."), object, "tree_support_branch_diameter_organic" };
+                    if (object->config().tree_support_branch_diameter_organic < object->config().tree_support_tip_diameter)
+                        return { L("Organic support branch diameter must not be smaller than support tree tip diameter."), object, "tree_support_branch_diameter_organic" };
                 }
             }
 
@@ -1668,6 +1669,15 @@ void Print::process(bool use_cache)
         }
         for (PrintObject *obj : m_objects) {
             if (need_slicing_objects.count(obj) != 0) {
+                obj->estimate_curled_extrusions();
+            }
+            else {
+                if (obj->set_started(posEstimateCurledExtrusions))
+                    obj->set_done(posEstimateCurledExtrusions);
+            }
+        }
+        for (PrintObject *obj : m_objects) {
+            if (need_slicing_objects.count(obj) != 0) {
                 obj->infill();
             }
             else {
@@ -1723,6 +1733,7 @@ void Print::process(bool use_cache)
                 obj->infill();
                 obj->ironing();
                 obj->generate_support_material();
+                obj->estimate_curled_extrusions();
             }
         }
     }
