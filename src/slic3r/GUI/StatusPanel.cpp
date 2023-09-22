@@ -2793,7 +2793,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                     bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
                     if (is_market_task) {
                         NetworkAgent *agent = wxGetApp().getAgent();
-                        if (agent && IsShownOnScreen()) {
+                        if (agent && IsShownOnScreen() && !m_print_finish) {
 
                             int job_id = obj->get_modeltask()->job_id;
                             boost::thread([this, agent, job_id] {
