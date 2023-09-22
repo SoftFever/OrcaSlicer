@@ -2551,7 +2551,9 @@ void PrintObject::_generate_support_material()
     support_material.generate(*this);
 
     if (this->config().enable_support.value && is_tree(this->config().support_type.value)) {
-        if (this->config().support_style.value == smsOrganic || this->config().support_style.value == smsDefault) {
+        if (this->config().support_style.value == smsOrganic ||
+            // Orca: use organic as default
+            this->config().support_style.value == smsDefault) {
             fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
         } else {
             TreeSupport tree_support(*this, m_slicing_params);
