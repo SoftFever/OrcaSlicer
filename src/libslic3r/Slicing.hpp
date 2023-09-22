@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 // Based on implementation by @platsch
 
 #ifndef slic3r_Slicing_hpp_
@@ -133,11 +137,11 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
 typedef std::pair<coordf_t,coordf_t> t_layer_height_range;
 typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 
-extern std::vector<coordf_t> layer_height_profile_from_ranges(
+std::vector<coordf_t> layer_height_profile_from_ranges(
     const SlicingParameters     &slicing_params,
     const t_layer_config_ranges &layer_config_ranges);
 
-extern std::vector<double> layer_height_profile_adaptive(
+std::vector<double> layer_height_profile_adaptive(
     const SlicingParameters& slicing_params,
     const ModelObject& object, float quality_factor);
 
@@ -150,7 +154,7 @@ struct HeightProfileSmoothingParams
     HeightProfileSmoothingParams(unsigned int radius, bool keep_min) : radius(radius), keep_min(keep_min) {}
 };
 
-extern std::vector<double> smooth_height_profile(
+std::vector<double> smooth_height_profile(
     const std::vector<double>& profile, const SlicingParameters& slicing_params,
     const HeightProfileSmoothingParams& smoothing_params);
 
@@ -161,7 +165,7 @@ enum LayerHeightEditActionType : unsigned int {
     LAYER_HEIGHT_EDIT_ACTION_SMOOTH   = 3
 };
 
-extern void adjust_layer_height_profile(
+void adjust_layer_height_profile(
     const SlicingParameters     &slicing_params,
     std::vector<coordf_t>       &layer_height_profile,
     coordf_t                     z,
@@ -171,14 +175,19 @@ extern void adjust_layer_height_profile(
 
 // Produce object layers as pairs of low / high layer boundaries, stored into a linear vector.
 // The object layers are based at z=0, ignoring the raft layers.
-extern std::vector<coordf_t> generate_object_layers(
+std::vector<coordf_t> generate_object_layers(
+    const SlicingParameters     &slicing_params,
+    const std::vector<coordf_t> &layer_height_profile);
+
+// Check whether the layer height profile describes a fixed layer height profile.
+bool check_object_layers_fixed(
     const SlicingParameters     &slicing_params,
     const std::vector<coordf_t> &layer_height_profile);
 
 // Produce a 1D texture packed into a 2D texture describing in the RGBA format
 // the planned object layers.
 // Returns number of cells used by the texture of the 0th LOD level.
-extern int generate_layer_height_texture(
+int generate_layer_height_texture(
     const SlicingParameters     &slicing_params,
     const std::vector<coordf_t> &layers,
     void *data, int rows, int cols, bool level_of_detail_2nd_level);
