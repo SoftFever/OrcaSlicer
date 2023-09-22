@@ -607,8 +607,10 @@ public:
             }
 
             void update_buffer();
+            void reset();
         };
         std::vector<TexturePart> parts;
+        void                     reset();
     };
 
     static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
