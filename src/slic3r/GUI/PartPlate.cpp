@@ -5146,6 +5146,20 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	}
 }
 
+void PartPlateList::BedTextureInfo::TexturePart::reset()
+{
+    if (texture)
+        texture->reset();
+    if (buffer)
+        delete buffer;
+}
+
+void PartPlateList::BedTextureInfo::reset()
+{
+    for (size_t i = 0; i < parts.size(); i++)
+        parts[i].reset();
+}
+
 void PartPlateList::init_bed_type_info()
 {
 	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
@@ -5157,6 +5171,7 @@ void PartPlateList::init_bed_type_info()
 	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
 	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
 	for (size_t i = 0; i < btCount; i++) {
+		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
