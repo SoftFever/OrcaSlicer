@@ -186,7 +186,7 @@ void MaterialItem::doRender(wxDC &dc)
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
 
-    if (mcolor.Alpha() == 0) {
+    if (mcolor.Alpha() == 0 || acolor.Alpha() == 0) {
         dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
     }
 
