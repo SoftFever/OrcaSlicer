@@ -5,14 +5,8 @@
     "from": "system",
     "setting_id": "GP049",
     "instantiation": "true",
-    "default_acceleration": "4000",
-    "gap_infill_speed": "240",
-    "inner_wall_speed": "120",
-    "internal_solid_infill_speed": "220",
-    "outer_wall_acceleration": "2000",
-    "outer_wall_speed": "60",
-    "sparse_infill_speed": "200",
-    "top_surface_speed": "150",
+    "default_acceleration": "6000",
+    "travel_speed": "700",
     "compatible_printers": [
         "Bambu Lab A1 mini 0.4 nozzle"
     ]

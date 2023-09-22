@@ -5,8 +5,8 @@
     "from": "system",
     "setting_id": "GP051",
     "instantiation": "true",
-    "default_acceleration": "4000",
-    "outer_wall_acceleration": "2000",
+    "default_acceleration": "6000",
+    "travel_speed": "700",
     "compatible_printers": [
         "Bambu Lab A1 mini 0.2 nozzle"
     ]
