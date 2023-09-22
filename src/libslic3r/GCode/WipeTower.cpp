@@ -1187,6 +1187,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 		.set_initial_tool(m_current_tool)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
 
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
 
 	// Slow down on the 1st layer.
     bool first_layer = is_first_layer();
@@ -1326,6 +1327,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
     writer.add_wipe_point(writer.pos())
           .add_wipe_point(target);
 
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
@@ -1692,7 +1694,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
     // BBS: Delete some unnecessary travel
     //if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
     //if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
-
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_Start) + "\n");
     // outer perimeter (always):
     // BBS
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
@@ -1702,6 +1704,8 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
     // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
     Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
     writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+
+    writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
