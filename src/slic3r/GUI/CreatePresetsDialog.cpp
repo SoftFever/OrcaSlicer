@@ -214,10 +214,10 @@ static wxBoxSizer *create_select_filament_preset_checkbox(wxWindow *            
     combobox->SetLabel(_L("Select filament preset"));
     combobox->Bind(wxEVT_COMBOBOX, [combobox, checkbox, presets, &machine_filament_preset](wxCommandEvent &e) {
         combobox->SetLabelColor(*wxBLACK);
-        std::string preset_name = into_u8(combobox->GetLabel());
+        wxString preset_name = combobox->GetStringSelection();
         checkbox->SetValue(true);
         for (Preset *preset : presets) {
-            if (preset_name == preset->name) {
+            if (preset_name == wxString::FromUTF8(preset->name)) {
                 machine_filament_preset[checkbox] = preset;
             }
         }
@@ -228,7 +228,7 @@ static wxBoxSizer *create_select_filament_preset_checkbox(wxWindow *            
 
     wxArrayString choices;
     for (Preset *preset : presets) { 
-        choices.Add(preset->name);
+        choices.Add(wxString::FromUTF8(preset->name));
     }
     combobox->Set(choices);
 
@@ -371,8 +371,9 @@ static char* read_json_file(const std::string &preset_path)
     return json_contents;
 }
 
-CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
-	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX) {
+CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent, bool modify_filament) 
+	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_modify_filament(modify_filament)
+{
 	
     m_create_type.base_filament = _L("Create based on current filamet");
     m_create_type.base_filament_preset = _L("Copy current filament preset ");
@@ -468,6 +469,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
         Layout();
         Fit();
     });
+    m_filament_vendor_combobox->Enable(!m_modify_filament);
+
     horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *textInputSizer = new wxBoxSizer(wxVERTICAL);
@@ -504,6 +507,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     m_filament_type_combobox->Set(filament_type);
     comboBoxSizer->Add(m_filament_type_combobox, 0, wxEXPAND | wxALL, 0);
     horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    m_filament_type_combobox->Enable(!m_modify_filament);
 
     m_filament_type_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) { 
         m_filament_type_combobox->SetLabelColor(*wxBLACK);
@@ -539,6 +543,16 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
+    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+        int key = event.GetKeyCode();
+        if (key == 64) {
+            event.Skip(false);
+            return;
+        }
+        event.Skip();
+        });
+    m_filament_serial_input->Enable(!m_modify_filament);
+
     wxStaticText *static_eg_text = new wxStaticText(this, wxID_ANY, _L("e.g. Basic, Matte, Silk, Marble"), wxDefaultPosition, wxDefaultSize);
     static_eg_text->SetForegroundColour(wxColour("#6B6B6B"));
     static_eg_text->SetFont(::Label::Body_12);
@@ -568,15 +582,15 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
     
     m_filament_preset_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         m_filament_preset_combobox->SetLabelColor(*wxBLACK);
-        std::string filament_type = into_u8(m_filament_preset_combobox->GetStringSelection());
-        std::unordered_map<std::string, std::vector<Preset *>>::iterator iter          = m_filament_choice_map.find(m_public_name_to_filament_id_map[filament_type]);
+        wxString filament_type = m_filament_preset_combobox->GetStringSelection();
+        std::unordered_map<std::string, std::vector<Preset *>>::iterator iter = m_filament_choice_map.find(m_public_name_to_filament_id_map[filament_type]);
         
         m_filament_preset_panel->Freeze();
         m_filament_presets_sizer->Clear(true);
         m_filament_preset.clear();
         if (iter != m_filament_choice_map.end()) {
             for (Preset* preset : iter->second) { 
-                std::string preset_name = wxString::FromUTF8(preset->name).ToStdString();
+                std::string preset_name = preset->name;
                 size_t      index_at    = preset_name.find("@");
                 if (std::string::npos != index_at) {
                     std::string machine_name = preset_name.substr(index_at + 1);
@@ -704,7 +718,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             }
             if (!filament_presets.empty()) {
                 std::vector<std::string> failures;
-                bool                     res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id);
+                bool res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, vendor_name);
                 if (!res) {
                     std::string   failure_names;
                     for (std::string &failure : failures) {
@@ -713,7 +727,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                     MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
                                       wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                     if (dlg.ShowModal() == wxID_YES) {
-                        res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, true);
+                        res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, vendor_name, true);
                         BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  rewritten  is successful? "<< res;
                     } else {
                         std::vector<Preset const *> temp_filament_presets;
@@ -728,7 +742,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                             }
                         }
                         if (temp_filament_presets.empty()) return;
-                        preset_bundle->filaments.clone_presets_for_filament(temp_filament_presets, failures, filament_preset_name, user_filament_id);
+                        preset_bundle->filaments.clone_presets_for_filament(temp_filament_presets, failures, filament_preset_name, user_filament_id, vendor_name);
                         BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  not rewritten  is successful? " << res;
                     }
                 }
@@ -748,14 +762,14 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             }
             if (!filament_presets.empty()) {
                 std::vector<std::string> failures;
-                bool                     res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id);
+                bool res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, vendor_name);
                 if (!res) {
                     std::string failure_names;
                     for (std::string &failure : failures) { failure_names += failure + "\n"; }
                     MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
                                       wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                     if (wxID_YES == dlg.ShowModal()) {
-                        res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, true);
+                        res = preset_bundle->filaments.clone_presets_for_filament(filament_presets, failures, filament_preset_name, user_filament_id, vendor_name, true);
                         BOOST_LOG_TRIVIAL(info) << "clone filament presets  have failures  rewritten  is successful? " << res;
                     } else {
                         std::vector<Preset const *> temp_filament_presets;
@@ -770,7 +784,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                             }
                         }
                         if (temp_filament_presets.empty()) return;
-                        preset_bundle->filaments.clone_presets_for_filament(temp_filament_presets, failures, filament_preset_name, user_filament_id);
+                        preset_bundle->filaments.clone_presets_for_filament(temp_filament_presets, failures, filament_preset_name, user_filament_id, vendor_name);
                         BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  not rewritten  is successful? " << res;
                     }
                 }
@@ -828,17 +842,17 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
     int suffix = 0;
     for (const pair<std::string, std::vector<Preset *>> &preset : m_filament_choice_map) { 
         if (preset.second.empty()) continue;
-        std::set<std::string> preset_name_set;
+        std::set<wxString> preset_name_set;
         for (Preset* filament_preset : preset.second) { 
             std::string preset_name = filament_preset->name;
             size_t      index_at    = preset_name.find("@");
             if (std::string::npos != index_at) {
                 std::string cur_preset_name = preset_name.substr(0, index_at - 1);
-                preset_name_set.insert(cur_preset_name);
+                preset_name_set.insert(wxString::FromUTF8(cur_preset_name));
             }
         }
         assert(1 == preset_name_set.size());
-        for (const std::string& public_name : preset_name_set) {
+        for (const wxString& public_name : preset_name_set) {
             if (m_public_name_to_filament_id_map.find(public_name) != m_public_name_to_filament_id_map.end()) {
                 suffix++;
                 m_public_name_to_filament_id_map[public_name + "_" + std::to_string(suffix)] = preset.first;
@@ -968,7 +982,7 @@ void CreateFilamentPresetDialog::get_all_filament_presets()
 
     for (const Preset &preset : filament_presets) {
         if (preset.filament_id.empty() || "null" == preset.filament_id) continue;
-        std::string filament_preset_name        = wxString::FromUTF8(preset.name).ToStdString();
+        std::string filament_preset_name = preset.name;
         Preset *filament_preset = new Preset(preset);
         m_all_presets_map[filament_preset_name] = filament_preset;
     }
@@ -979,7 +993,7 @@ void CreateFilamentPresetDialog::get_all_filament_presets()
         if (filament_id_to_presets.first.empty()) continue;
         for (const Preset *preset : filament_id_to_presets.second) {
             if (preset->filament_id.empty() || "null" == preset->filament_id) continue;
-            std::string filament_preset_name = wxString::FromUTF8(preset->name).ToStdString();
+            std::string filament_preset_name = preset->name;
             if (!preset->is_visible) continue;
             Preset *filament_preset = new Preset(*preset);
             m_all_presets_map[filament_preset_name] = filament_preset;
@@ -1022,7 +1036,7 @@ CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)
 
     m_page1 = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_page1->SetBackgroundColour(*wxWHITE);
-    m_page1->SetScrollRate(0, 5);
+    m_page1->SetScrollRate(5, 5);
     m_page2 = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_page2->SetScrollRate(5, 5);
     m_page2->SetBackgroundColour(*wxWHITE);
@@ -1093,20 +1107,20 @@ void CreatePrinterPresetDialog::create_printer_page1(wxWindow *parent)
 { 
     this->SetBackgroundColour(*wxWHITE);
 
-    wxBoxSizer *page1_sizer = new wxBoxSizer(wxVERTICAL); 
+    m_page1_sizer = new wxBoxSizer(wxVERTICAL); 
 
-    page1_sizer->Add(create_type_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_printer_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_nozzle_diameter_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_bed_shape_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_bed_size_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_origin_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_hot_bed_stl_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_hot_bed_svg_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_max_print_height_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    page1_sizer->Add(create_page1_btns_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_type_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_printer_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_nozzle_diameter_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_bed_shape_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_bed_size_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_origin_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_hot_bed_stl_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_hot_bed_svg_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_max_print_height_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_page1_sizer->Add(create_page1_btns_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
 
-    parent->SetSizerAndFit(page1_sizer);
+    parent->SetSizerAndFit(m_page1_sizer);
     Layout();
 
     wxGetApp().UpdateDlgDarkUI(this);
@@ -1215,6 +1229,14 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_vendor_model->SetHint(_L("Input Printer Vendor and Model"));
     checkbox_sizer->Add(m_custom_vendor_model, 0, wxLEFT | wxALIGN_CENTER, FromDIP(13));
     m_custom_vendor_model->Hide();
+    m_custom_vendor_model->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+        int key = event.GetKeyCode();
+        if (key == 64) { // "@" can not be inputed
+            event.Skip(false);
+            return;
+        }
+        event.Skip();
+    });
 
     m_can_not_find_vendor_combox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
         bool value = m_can_not_find_vendor_combox->GetValue();
@@ -1231,6 +1253,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
         }
         Refresh();
         Layout();
+        m_page1->SetSizerAndFit(m_page1_sizer);
         Fit();
     });
 
@@ -1468,7 +1491,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page1_btns_item(wxWindow *parent)
     bSizer_button->Add(m_button_OK, 0, wxRIGHT, FromDIP(10));
 
     m_button_OK->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        //if (!validate_input_valid()) return;
+        if (!validate_input_valid()) return;
         data_init();
         show_page2();
         });
@@ -1559,6 +1582,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
                 m_filament_preset.clear();
                 m_process_preset_template_sizer->Clear(true);
                 m_process_preset.clear();
+                m_page2->SetSizerAndFit(m_page2_sizer);
             } else if (curr_selected_type == m_create_presets_type[1]) {
                 if (into_u8(m_printer_model->GetLabel()) == _L("Select model")) {
                     m_filament_preset_template_sizer->Clear(true);
@@ -1568,6 +1592,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
                 } else {
                     update_presets_list();
                 }
+                m_page2->SetSizerAndFit(m_page2_sizer);
             } else if (curr_selected_type == m_create_printer_type[0]) {
                 m_select_printer->Hide();
                 m_select_vendor->Show();
@@ -1577,6 +1602,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
                 if (m_can_not_find_vendor_combox->GetValue()) { 
                     m_custom_vendor_model->Show();
                 }
+                m_page1->SetSizerAndFit(m_page1_sizer);
             } else if (curr_selected_type == m_create_printer_type[1]) {
                 m_select_vendor->Hide();
                 m_select_model->Hide();
@@ -1584,13 +1610,15 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
                 m_can_not_find_vendor_text->Hide();
                 m_custom_vendor_model->Hide();
                 m_select_printer->Show();
+                m_page1->SetSizerAndFit(m_page1_sizer);
             }
         } else {
             radiobox_list[i].first->SetValue(false);
         }
     }
     Layout();
-    m_page2->SetSizerAndFit(m_page2_sizer);
+    //m_page1->SetSizerAndFit(m_page1_sizer);
+    //m_page2->SetSizerAndFit(m_page2_sizer);
     Fit();
     int screen_height = (int) wxGetDisplaySize().GetHeight() * 4 / 5;
     if (this->GetSize().GetHeight() > screen_height) {

@@ -4959,7 +4959,6 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 {
     const std::string path = new_path.string();
     wxBusyCursor wait;
-    wxBusyInfo info(_devL("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
     Model new_model;
     try {
@@ -4979,6 +4978,8 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
         dlg.ShowModal();
         return false;
     }
+
+    wxBusyInfo info(_devL("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
     if (!snapshot.empty())
         q->take_snapshot(snapshot);

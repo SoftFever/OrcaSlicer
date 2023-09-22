@@ -18,7 +18,7 @@ namespace GUI {
 class CreateFilamentPresetDialog : public DPIDialog
 {
 public:
-    CreateFilamentPresetDialog(wxWindow *parent);
+    CreateFilamentPresetDialog(wxWindow *parent, bool modify_filament = false);
     ~CreateFilamentPresetDialog();
 
 protected:
@@ -62,8 +62,9 @@ private:
     std::vector<std::pair<CheckBox *, Preset *>>              m_filament_preset;
     std::unordered_map<CheckBox *, Preset *>                  m_machint_filament_preset;
     std::unordered_map<std::string, std::vector<Preset *>>    m_filament_choice_map;
-    std::unordered_map<std::string, std::string>              m_public_name_to_filament_id_map;
+    std::unordered_map<wxString, std::string>                 m_public_name_to_filament_id_map;
     std::unordered_map<std::string, Preset *>                 m_all_presets_map;
+    bool                                                      m_modify_filament;
     CreateType                                                m_create_type;
     Button *                                                  m_button_create                = nullptr;
     Button *                                                  m_button_cancel                = nullptr;
@@ -172,6 +173,7 @@ private:
     wxPanel *                                          m_filament_preset_panel          = nullptr;
     wxPanel *                                          m_process_preset_panel           = nullptr;
     wxPanel *                                          m_preset_template_panel          = nullptr;
+    wxBoxSizer *                                       m_page1_sizer                    = nullptr;
     wxBoxSizer *                                       m_page2_sizer                    = nullptr;
     std::string                                        m_custom_texture;
     std::string                                        m_custom_model;

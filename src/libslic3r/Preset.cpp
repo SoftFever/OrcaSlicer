@@ -2080,7 +2080,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return preset;
 }
 
-bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &)> modifier, bool force_rewritten)
+bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &, Preset::Type &)> modifier, bool force_rewritten)
 {
     std::vector<Preset> new_presets;
     for (auto curr_preset : presets) {
@@ -2095,13 +2095,12 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         preset.is_external = false;
         preset.is_visible = true;
         preset.is_project_embedded = false;
-        modifier(preset);
+        modifier(preset, m_type);
         if (find_preset(preset.name)) {
             failures.push_back(preset.name);
             continue;
         }
         preset.file                = this->path_for_preset(preset);
-        preset.alias.clear();
         if (m_type == Preset::TYPE_PRINT)
             preset.config.option<ConfigOptionString>("print_settings_id", true)->value = preset.name;
         else if (m_type == Preset::TYPE_FILAMENT)
@@ -2114,6 +2113,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         return false;
     lock();
     for (auto preset : new_presets) {
+        preset.alias.clear();
         auto it = this->find_preset_internal(preset.name);
         assert((it == m_presets.end() || it->name != preset.name) || force_rewritten);
         if (it == m_presets.end() || it->name != preset.name) {
@@ -2130,7 +2130,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
 
 bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten)
 {
-    return clone_presets(presets, failures, [printer](Preset &preset) {
+    return clone_presets(presets, failures, [printer](Preset &preset, Preset::Type &type) {
         preset.name = preset.name.substr(0, preset.name.find("@")) + " @" + printer;
         //preset.alias                = "";
         auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
@@ -2147,11 +2147,13 @@ bool PresetCollection::clone_presets_for_filament(std::vector<Preset const *> co
                                                   std::vector<std::string> &         failures,
                                                   std::string const &                filament_name,
                                                   std::string const &                filament_id,
-                                                  bool force_rewritten)
+                                                  const std::string &                vendor_name,
+                                                  bool                               force_rewritten)
 {
-    return clone_presets(presets, failures, [filament_name, filament_id](Preset &preset) {
+    return clone_presets(presets, failures, [filament_name, filament_id, vendor_name](Preset &preset, Preset::Type &type) {
         preset.name        = filament_name + " " + preset.name.substr(preset.name.find_last_of('@'));
-        //preset.alias       = "";
+            if (type == Preset::TYPE_FILAMENT) 
+                preset.config.option<ConfigOptionStrings>("filament_vendor", true)->values[0] = vendor_name;
         preset.filament_id = filament_id;
         },
         force_rewritten);
