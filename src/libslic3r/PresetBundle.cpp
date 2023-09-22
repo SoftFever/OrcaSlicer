@@ -2729,6 +2729,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_from_json(
     const std::string &path, const std::string &vendor_name, LoadConfigBundleAttributes flags, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    CNumericLocalesSetter locales_setter;
     // Enable substitutions for user config bundle, throw an exception when loading a system profile.
     ConfigSubstitutionContext  substitution_context { compatibility_rule };
     PresetsConfigSubstitutions substitutions;
