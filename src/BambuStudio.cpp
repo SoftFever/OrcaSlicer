@@ -137,7 +137,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_FILAMENTS_DIFFERENT_TEMP, "The temperature difference of the filaments used is too large. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECT_COLLISION_IN_SEQ_PRINT, "Object conflicts were detected when using print-by-object mode. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Bambu Studio before uploading."},
-    {CLI_SPIRAL_MODE_CANNOT_DUPLICATE, "Objects can not be duplicated under Spiral Mode when not using By-Object print sequence."},
+    {CLI_SPIRAL_MODE_INVALID_PARAMS, "Invalid params found when using Spiral Mode."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
 };
@@ -513,7 +513,7 @@ int CLI::run(int argc, char **argv)
         boost::nowide::cerr << text.c_str() << std::endl;
         return CLI_ENVIRONMENT_ERROR;
     }
-    BOOST_LOG_TRIVIAL(info) << "Current BambuStudio Version "<< SLIC3R_VERSION << std::endl;
+    BOOST_LOG_TRIVIAL(warning) << "Current BambuStudio Version "<< SLIC3R_VERSION << std::endl;
 
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
@@ -2097,7 +2097,6 @@ int CLI::run(int argc, char **argv)
 
                 BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << std::endl;
 
-                need_arrange = true;
                 duplicate_count = repetitions_count - 1;
             }
         }
@@ -2380,12 +2379,14 @@ int CLI::run(int argc, char **argv)
             {
                 //spiral mode can only be duplicated with by-object
                 if (!is_seq_print_for_curr_plate) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Spiral mode can not be duplicated under by-object print!");
-                    record_exit_reson(outfile_dir, CLI_SPIRAL_MODE_CANNOT_DUPLICATE, 0, cli_errors[CLI_SPIRAL_MODE_CANNOT_DUPLICATE], sliced_info);
-                    flush_and_exit(CLI_SPIRAL_MODE_CANNOT_DUPLICATE);
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("Spiral mode can not be duplicated under by-object print, skip duplicate");
+                    duplicate_count = 0;
                 }
             }
         }
+
+        if (duplicate_count > 0)
+            need_arrange = true;
     }
 
     if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0))
@@ -3327,9 +3328,16 @@ int CLI::run(int argc, char **argv)
                                                 }
                                                 else {
                                                     BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": found slicing error: "<<status.text <<std::endl;
-                                                    sliced_info.sliced_plates.push_back(sliced_plate_info);
-                                                    record_exit_reson(outfile_dir, CLI_SLICING_ERROR, index+1, cli_errors[CLI_SLICING_ERROR], sliced_info);
-                                                    flush_and_exit(CLI_SLICING_ERROR);
+                                                    if (!no_check) {
+                                                        //only following message will be reported under import mode
+                                                        if (status.message_type == PrintStateBase::SlicingEmptyGcodeLayers
+                                                            || status.message_type == PrintStateBase::SlicingGcodeOverlap)
+                                                        {
+                                                            sliced_info.sliced_plates.push_back(sliced_plate_info);
+                                                            record_exit_reson(outfile_dir, CLI_SLICING_ERROR, index+1, cli_errors[CLI_SLICING_ERROR], sliced_info);
+                                                            flush_and_exit(CLI_SLICING_ERROR);
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
