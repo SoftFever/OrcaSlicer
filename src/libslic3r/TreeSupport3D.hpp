@@ -145,7 +145,9 @@ struct SupportElementStateBits {
 
 struct SupportElementState : public SupportElementStateBits
 {
-    int type;
+    int type=0;
+    coordf_t radius=0;
+    float print_z=0;
 
     /*!
      * \brief The layer this support elements wants reach
@@ -586,9 +588,13 @@ void create_layer_pathing(const TreeModelVolumes& volumes, const TreeSupportSett
 
 void create_nodes_from_area(const TreeModelVolumes& volumes, const TreeSupportSettings& config, std::vector<SupportElements>& move_bounds, std::function<void()> throw_on_cancel);
 
+void organic_smooth_branches_avoid_collisions(const PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, const std::vector<std::pair<SupportElement*, int>>& elements_with_link_down, const std::vector<size_t>& linear_data_layers, std::function<void()> throw_on_cancel);
+
 indexed_triangle_set draw_branches(PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, std::vector<SupportElements>& move_bounds, std::function<void()> throw_on_cancel);
 
 void slice_branches(PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, const std::vector<Polygons>& overhangs, std::vector<SupportElements>& move_bounds, const indexed_triangle_set& cummulative_mesh, SupportGeneratorLayersPtr& bottom_contacts, SupportGeneratorLayersPtr& top_contacts, SupportGeneratorLayersPtr& intermediate_layers, SupportGeneratorLayerStorage& layer_storage, std::function<void()> throw_on_cancel);
+
+void generate_initial_areas(const PrintObject& print_object, const TreeModelVolumes& volumes, const TreeSupportSettings& config, const std::vector<Polygons>& overhangs, std::vector<SupportElements>& move_bounds, SupportGeneratorLayersPtr& top_contacts, SupportGeneratorLayerStorage& layer_storage, std::function<void()> throw_on_cancel);
 
 } // namespace TreeSupport3D
 

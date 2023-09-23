@@ -321,9 +321,6 @@ void tree_supports_show_error(std::string_view message, bool critical)
 
 /*!
  * \brief Precalculates all avoidances, that could be required.
- *
- * \param storage[in] Background storage to access meshes.
- * \param currently_processing_meshes[in] Indexes of all meshes that are processed in this iteration
  */
 [[nodiscard]] static LayerIndex precalculate(const Print &print, const std::vector<Polygons> &overhangs, const TreeSupportSettings &config, const std::vector<size_t> &object_ids, TreeModelVolumes &volumes, std::function<void()> throw_on_cancel)
 {
@@ -833,7 +830,7 @@ inline SupportGeneratorLayer& layer_allocate(
  * \param move_bounds[out] Storage for the influence areas.
  * \param storage[in] Background storage, required for adding roofs.
  */
-static void generate_initial_areas(
+void generate_initial_areas(
     const PrintObject               &print_object,
     const TreeModelVolumes          &volumes,
     const TreeSupportSettings       &config,
@@ -3438,11 +3435,10 @@ static void extrude_branch(
 
 #ifdef TREE_SUPPORT_ORGANIC_NUDGE_NEW
 // New version using per layer AABB trees of lines for nudging spheres away from an object.
-static void organic_smooth_branches_avoid_collisions(
+void organic_smooth_branches_avoid_collisions(
     const PrintObject                                   &print_object,
     const TreeModelVolumes                              &volumes,
     const TreeSupportSettings                           &config,
-    std::vector<SupportElements>                        &move_bounds,
     const std::vector<std::pair<SupportElement*, int>>  &elements_with_link_down,
     const std::vector<size_t>                           &linear_data_layers,
     std::function<void()>                                throw_on_cancel)
@@ -3520,9 +3516,9 @@ static void organic_smooth_branches_avoid_collisions(
             link_down,
             // locked
             element.parents.empty() || (link_down == -1 && element.state.layer_idx > 0),
-            unscaled<float>(config.getRadius(element.state)),
+            element.state.radius<EPSILON? unscaled<float>(config.getRadius(element.state)):float(element.state.radius),
             // 3D position
-            to_3d(unscaled<float>(element.state.result_on_layer), float(layer_z(slicing_params, element.state.layer_idx)))
+            to_3d(unscaled<float>(element.state.result_on_layer), element.state.print_z<EPSILON? float(layer_z(slicing_params, element.state.layer_idx)):element.state.print_z)
         });
         // Update min_z coordinate to min_z of the tree below.
         CollisionSphere &collision_sphere = collision_spheres.back();
@@ -3569,12 +3565,14 @@ static void organic_smooth_branches_avoid_collisions(
             collision_sphere.prev_position = collision_sphere.position;
         std::atomic<size_t> num_moved{ 0 };
         tbb::parallel_for(tbb::blocked_range<size_t>(0, collision_spheres.size()),
-            [&collision_spheres, &layer_collision_cache, &slicing_params, &move_bounds, &linear_data_layers, &num_moved, &throw_on_cancel](const tbb::blocked_range<size_t> range) {
+            [&collision_spheres, &layer_collision_cache, &slicing_params, &linear_data_layers, &num_moved, &throw_on_cancel](const tbb::blocked_range<size_t> range) {
             for (size_t collision_sphere_id = range.begin(); collision_sphere_id < range.end(); ++ collision_sphere_id)
                 if (CollisionSphere &collision_sphere = collision_spheres[collision_sphere_id]; ! collision_sphere.locked) {
                     // Calculate collision of multiple 2D layers against a collision sphere.
                     collision_sphere.last_collision_depth = - std::numeric_limits<double>::max();
                     for (uint32_t layer_id = collision_sphere.layer_begin; layer_id != collision_sphere.layer_end; ++ layer_id) {
+                        if(layer_id>= layer_collision_cache.size())
+                            continue;
                         double dz = (layer_id - collision_sphere.element.state.layer_idx) * slicing_params.layer_height;
                         if (double r2 = sqr(collision_sphere.radius) - sqr(dz); r2 > 0) {
                             if (const LayerCollisionCache &layer_collision_cache_item = layer_collision_cache[layer_id]; ! layer_collision_cache_item.empty()) {
@@ -3605,7 +3603,6 @@ static void organic_smooth_branches_avoid_collisions(
                     }
                     // Laplacian smoothing
                     Vec2d avg{ 0, 0 };
-                    const SupportElements &above = move_bounds[collision_sphere.element.state.layer_idx + 1];
                     const size_t           offset_above = linear_data_layers[collision_sphere.element.state.layer_idx + 1];
                     double weight = 0.;
                     for (auto iparent : collision_sphere.element.parents) {
@@ -3615,7 +3612,7 @@ static void organic_smooth_branches_avoid_collisions(
                     }
                     if (collision_sphere.element_below_id != -1) {
                         const size_t offset_below = linear_data_layers[collision_sphere.element.state.layer_idx - 1];
-                        const double w = weight; //  config.getRadius(move_bounds[element.state.layer_idx - 1][below].state);
+                        const double w = weight;
                         avg += w * to_2d(collision_spheres[offset_below + collision_sphere.element_below_id].prev_position.cast<double>());
                         weight += w;
                     }
@@ -3802,7 +3799,7 @@ indexed_triangle_set draw_branches(
 
     throw_on_cancel();
 
-    organic_smooth_branches_avoid_collisions(print_object, volumes, config, move_bounds, elements_with_link_down, linear_data_layers, throw_on_cancel);
+    organic_smooth_branches_avoid_collisions(print_object, volumes, config, elements_with_link_down, linear_data_layers, throw_on_cancel);
 
     // Unmark all nodes.
     for (SupportElements &elements : move_bounds)
@@ -4010,13 +4007,17 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             generate_initial_areas(*print.get_object(mesh_idx), volumes, config, overhangs, move_bounds, top_contacts, layer_storage, throw_on_cancel);
         auto t_gen = std::chrono::high_resolution_clock::now();
 
+        // save num of points to log
+        for (size_t i = 0; i < move_bounds.size(); i++)
+            BOOST_LOG_TRIVIAL(info) << "Number of points in move_bound: " << move_bounds[i].size() << " in layer " << i;
+
 #ifdef TREESUPPORT_DEBUG_SVG
         for (size_t layer_idx = 0; layer_idx < move_bounds.size(); ++layer_idx) {
             Polygons polys;
             for (auto& area : move_bounds[layer_idx])
                 append(polys, area.influence_area);
             if (auto begin = move_bounds[layer_idx].begin(); begin != move_bounds[layer_idx].end())
-                SVG::export_expolygons(debug_out_path("treesupport-initial_areas-%d.svg", layer_idx),
+                SVG::export_expolygons(debug_out_path("initial_areas-%d.svg", layer_idx),
                     { { { union_ex(volumes.getWallRestriction(config.getCollisionRadius(begin->state), layer_idx, begin->state.use_min_xy_dist)) },
                         { "wall_restricrictions", "gray", 0.5f } },
                       { { union_ex(polys) }, { "parent", "red",  "black", "", scaled<coord_t>(0.1f), 0.5f } } });
@@ -4076,10 +4077,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         support_params.support_density = 0;
         SupportGeneratorLayersPtr interface_layers, base_interface_layers;
         SupportGeneratorLayersPtr raft_layers = generate_raft_base(print_object, support_params, print_object.slicing_parameters(), top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
-#if 1 //#ifdef SLIC3R_DEBUG
-        SupportGeneratorLayersPtr layers_sorted =
-#endif // SLIC3R_DEBUG
-            generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+        SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Support: generate toolpath"));

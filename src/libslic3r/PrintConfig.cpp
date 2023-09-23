@@ -3246,7 +3246,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("This setting specify the count of walls around tree support");
     def->min = 0;
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("tree_support_brim_width", coFloat);
