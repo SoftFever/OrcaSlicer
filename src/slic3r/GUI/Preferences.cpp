@@ -154,6 +154,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
             language_name = wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA");
+	}
+	else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
+            language_name = wxString::FromUTF8("Ukrainian");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
             language_name = wxString::FromUTF8("Ukrainian");
