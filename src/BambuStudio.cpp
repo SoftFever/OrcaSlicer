@@ -3324,10 +3324,10 @@ int CLI::run(int argc, char **argv)
                                                 sliced_plate_info.warning_message = status.text;
 
                                                 if (status.warning_level == PrintStateBase::WarningLevel::NON_CRITICAL) {
-                                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": found slicing warnings: "<<status.text <<std::endl;
+                                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": found NON_CRITICAL slicing warnings: "<<status.text <<std::endl;
                                                 }
                                                 else {
-                                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": found slicing error: "<<status.text <<std::endl;
+                                                    BOOST_LOG_TRIVIAL(warning) << boost::format("plate %1%: found slicing warnings: %2%, no_check=%3%")%(index+1) %status.text %no_check;
                                                     if (!no_check) {
                                                         //only following message will be reported under import mode
                                                         if (status.message_type == PrintStateBase::SlicingEmptyGcodeLayers
