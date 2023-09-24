@@ -1094,7 +1094,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     // Custom layering is not allowed for tree supports as of now.
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx)
         if (const PrintObject &print_object = *m_objects[print_object_idx];
-            print_object.has_support_material() && (print_object.config().support_style.value == smsOrganic || 
+            print_object.has_support_material() && is_tree(print_object.config().support_type.value) && (print_object.config().support_style.value == smsOrganic || 
                 // Orca: use organic as default
                 print_object.config().support_style.value == smsDefault) &&
             print_object.model_object()->has_custom_layering()) {
@@ -1257,9 +1257,9 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
                 // Prusa: Fixing crashes with invalid tip diameter or branch diameter
                 // https://github.com/prusa3d/PrusaSlicer/commit/96b3ae85013ac363cd1c3e98ec6b7938aeacf46d
-                if (object->config().support_style == smsOrganic ||
+                if (is_tree(object->config().support_type.value) && (object->config().support_style == smsOrganic ||
                     // Orca: use organic as default
-                    object->config().support_style == smsDefault) {
+                    object->config().support_style == smsDefault)) {
                     float extrusion_width = std::min(
                         support_material_flow(object).width(),
                         support_material_interface_flow(object).width());
