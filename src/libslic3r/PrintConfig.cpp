@@ -2478,9 +2478,10 @@ def = this->add("filament_loading_speed", coFloats);
     				 "It defines the maximum rate by which the extruded volumetric flow in mm3/sec can change over time. "
     				 "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
     				 "A value of 0 disables the feature. \n\n"
-    				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) a sensible value is around"
-    				 "300-400mm3/s2. This allows for just enough smoothing to assist pressure advance in "
-    				 "areas where sudden flow changes happen. \n\n"
+    				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) this value is usually not needed. "
+    				 "However it can provide some marginal benefit in certain cases where feature speeds vary greatly. For example, "
+    				 "when there are aggressive slowdowns due to overhangs. In these cases a high value of around 300-350mm3/s2 is "
+    				 "recommended as this allows for just enough smoothing to assist pressure advance achieve a smoother flow transition.\n\n"
     				 "For slower printers without pressure advance, the value should be set much lower. A value of 10-15mm3/s2 is a "
     				 "good starting point for direct drive extruders and 5-10mm3/s2 for Bowden style. \n\n"
     				 "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
@@ -2494,12 +2495,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Smoothing segment length");
     def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
     				 "and more instructions for the printer to process. \n\n"
-    				 "Default value of 1 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
+    				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
     				 "Allowed values: 1-5");
     def->min = 1;
     def->max = 5;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("fan_min_speed", coInts);
     def->label = L("Fan speed");
