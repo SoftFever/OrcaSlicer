@@ -2478,12 +2478,11 @@ def = this->add("filament_loading_speed", coFloats);
     				 "It defines the maximum rate by which the extruded volumetric flow in mm3/sec can change over time. "
     				 "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
     				 "A value of 0 disables the feature. \n\n"
-    				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) a sensible value is around "
-    				 "5x to 10x the maximum volumetric flow rate the hot end is capable off under ideal conditions. This allows "
-    				 "for just enough smoothing to assist pressure advance in areas where sudden flow changes happen. A value of "
-    				 "250-300 is a good starting point.\n\n"
-    				 "For slower printers without pressure advance, the value should be set much lower. A value of 10-15 is a "
-    				 "good starting point for direct drive extruders and 2-3 for Bowden style. \n\n"
+    				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) a sensible value is around"
+    				 "300-400mm3/s2. This allows for just enough smoothing to assist pressure advance in "
+    				 "areas where sudden flow changes happen. \n\n"
+    				 "For slower printers without pressure advance, the value should be set much lower. A value of 10-15mm3/s2 is a "
+    				 "good starting point for direct drive extruders and 5-10mm3/s2 for Bowden style. \n\n"
     				 "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
     				 "Note: this parameter disables arc fitting.");
     def->sidetext = L("mm³/s²");

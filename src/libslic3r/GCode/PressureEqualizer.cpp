@@ -33,7 +33,7 @@ static constexpr int max_look_back_limit = 128;
 // its all one continous extruded line. Above this distance we assume extruder pressure hits 0
 // This exists because often there's tiny travel moves between stuff like infill 
 // lines where some extruder pressure will remain (so we should equalize between these small travels)
-static constexpr long max_ignored_gap_between_extruding_segments = 10;
+static constexpr long max_ignored_gap_between_extruding_segments = 3;
 
 PressureEqualizer::PressureEqualizer(const Slic3r::GCodeConfig &config) : m_use_relative_e_distances(config.use_relative_e_distances.value)
 {
