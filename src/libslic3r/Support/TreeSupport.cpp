@@ -3530,8 +3530,10 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
             auto t_place = std::chrono::high_resolution_clock::now();
 
             // ### draw these points as circles
-            
-            if (print_object.config().support_style.value != smsOrganic)
+
+            if (print_object.config().support_style.value != smsOrganic &&
+                // Orca: use organic as default
+                print_object.config().support_style.value != smsDefault)
                 draw_areas(*print.get_object(processing.second.front()), volumes, config, overhangs, move_bounds, 
                     bottom_contacts, top_contacts, intermediate_layers, layer_storage, throw_on_cancel);
             else {
