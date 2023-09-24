@@ -596,7 +596,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    bool support_is_normal_tree = support_is_tree && support_style != smsOrganic && support_style != smsDefault;
+    bool support_is_normal_tree = support_is_tree && support_style != smsOrganic &&
+        // Orca: use organic as default
+        support_style != smsDefault;
     bool support_is_organic = support_is_tree && !support_is_normal_tree;
     // settings shared by normal and organic trees
     for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter" })
@@ -612,6 +614,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // non-organic tree support use max_bridge_length instead of bridge_no_support
     toggle_line("max_bridge_length", support_is_normal_tree);
     toggle_line("bridge_no_support", !support_is_normal_tree);
+
+    // This is only supported for auto normal tree
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_normal_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
                      "support_interface_loop_pattern", "support_bottom_interface_spacing" })
