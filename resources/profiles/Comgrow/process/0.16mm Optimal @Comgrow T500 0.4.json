@@ -1,10 +1,10 @@
 {
     "type": "process",
     "setting_id": "GP004",
-    "name": "0.16mm Optimal @Creality CR-6 0.4",
+    "name": "0.16mm Optimal @Comgrow T500 0.4",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_process_creality_common",
+    "inherits": "fdm_process_comgrow_common",
     "adaptive_layer_height": "1",
     "brim_object_gap": "0",
     "brim_width": "0",
@@ -46,7 +46,6 @@
     "tree_support_branch_angle": "40",
     "wall_loops": "2",
     "compatible_printers": [
-        "Creality CR-6 SE 0.4 nozzle",
-        "Creality CR-6 Max 0.4 nozzle"
+        "Comgrow T500 0.4 nozzle"
     ]
 }

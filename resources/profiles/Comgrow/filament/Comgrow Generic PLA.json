@@ -12,8 +12,7 @@
 	"compatible_printers": [
 		"Comgrow T500 0.4 nozzle",
 		"Comgrow T500 0.6 nozzle",
-		"Comgrow T500 0.8 nozzle",
-		"Comgrow T500 1.0 nozzle"
+		"Comgrow T500 0.8 nozzle"
 		
 	]
 }

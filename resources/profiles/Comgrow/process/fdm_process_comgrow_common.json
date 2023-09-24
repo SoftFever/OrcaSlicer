@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "name": "fdm_process_creality_common",
+    "name": "fdm_process_comgrow_common",
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_process_common",
