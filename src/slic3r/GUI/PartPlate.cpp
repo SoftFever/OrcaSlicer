@@ -1579,7 +1579,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double d) const
     auto timelapse_type    = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-	double depth = d;
+    double depth = plate_extruders.size() == 1 ? 0 : d;
     if (timelapse_enabled || depth > EPSILON) {
 		float min_wipe_tower_depth = 0.f;
 		auto iter = WipeTower::min_depth_per_height.begin();

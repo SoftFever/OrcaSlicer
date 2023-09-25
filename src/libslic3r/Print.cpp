@@ -2256,10 +2256,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
     if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
         double width        = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
-        double wipe_volume  = m_config.prime_volume;
-        if (m_config.purge_in_prime_tower || (filaments_cnt == 1 && enable_timelapse_print())) {
-            const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
-        } else {
+        if (m_config.purge_in_prime_tower) {
             // Calculating depth should take into account currently set wiping volumes.
             // For a long time, the initial preview would just use 900/width per toolchange (15mm on a 60mm wide tower)
             // and it worked well enough. Let's try to do slightly better by accounting for the purging volumes.
@@ -2269,8 +2266,17 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
                 max_wipe_volumes.emplace_back(*std::max_element(v.begin(), v.end()));
             float maximum = std::accumulate(max_wipe_volumes.begin(), max_wipe_volumes.end(), 0.f);
             maximum       = maximum * filaments_cnt / max_wipe_volumes.size();
-
+            
+            // Orca: it's overshooting a bit, so let's reduce it a bit
+            maximum *= 0.6; 
             const_cast<Print *>(this)->m_wipe_tower_data.depth = maximum / (layer_height * width);
+        } else {
+            double wipe_volume = m_config.prime_volume;
+            if (filaments_cnt == 1 && enable_timelapse_print()) {
+                const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
+            } else {
+                const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
+            }
         }
         const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
     }
