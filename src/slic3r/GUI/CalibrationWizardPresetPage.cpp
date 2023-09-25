@@ -1541,13 +1541,13 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                     extruder_type = ExtruderType(printer_preset->config.opt_enum("extruder_type", 0));
                 }
                 if (extruder_type == ExtruderType::etBowden) {
-                    values.push_back(_L("0"));
-                    values.push_back(_L("0.5"));
-                    values.push_back(_L("0.05"));
+                    values.push_back(wxString::Format(wxT("%.0f"), 0));
+                    values.push_back(wxString::Format(wxT("%.1f"), 0.5));
+                    values.push_back(wxString::Format(wxT("%.2f"), 0.05));
                 } else {
-                    values.push_back(_L("0"));
-                    values.push_back(_L("0.05"));
-                    values.push_back(_L("0.005"));
+                    values.push_back(wxString::Format(wxT("%.0f"), 0));
+                    values.push_back(wxString::Format(wxT("%.2f"), 0.05));
+                    values.push_back(wxString::Format(wxT("%.3f"), 0.005));
                 }
                 m_custom_range_panel->set_values(values);
 
