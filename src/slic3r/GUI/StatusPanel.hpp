@@ -180,6 +180,7 @@ private:
     wxStaticText*   m_staticText_progress_left;
     wxStaticText*   m_staticText_layers;
     wxStaticText *  m_has_rated_prompt;
+    wxStaticText *  m_request_failed_info;
     wxStaticBitmap* m_bitmap_thumbnail;
     wxStaticBitmap* m_bitmap_static_use_time;
     wxStaticBitmap* m_bitmap_static_use_weight;
@@ -226,11 +227,11 @@ public:
     Button* get_market_scoring_button() {return m_button_market_scoring;};
     Button* get_clean_button() {return m_button_clean;};
     wxStaticBitmap* get_bitmap_thumbnail() {return m_bitmap_thumbnail;};
+    wxStaticText *  get_request_rating_failed_info() { return m_request_failed_info; }
     int get_star_count() { return m_star_count; }
     void set_star_count(int star_count);
     std::vector<ScalableButton *> &get_score_star() { return m_score_star; }
     bool get_star_count_dirty() { return m_star_count_dirty; }
-    void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
 
 };
@@ -466,7 +467,6 @@ protected:
     bool         m_is_load_with_temp = false;
     bool         m_print_finish            = false;
     json         m_rating_result;
-    json         m_last_result;
 
     wxWebRequest web_request;
     bool bed_temp_input    = false;
@@ -576,9 +576,6 @@ protected:
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
     bool is_task_changed(MachineObject* obj);
-
-    /* model mall score */
-    bool model_score_is_update();
 
     /* camera */
     void update_camera_state(MachineObject* obj);
