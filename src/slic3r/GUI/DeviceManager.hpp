@@ -699,8 +699,10 @@ public:
     int  xcam_buildplate_marker_hold_count = 0;
     bool xcam_auto_recovery_step_loss{ false };
     bool xcam_allow_prompt_sound{ false };
+    bool xcam_filament_tangle_detect{ false };
     int  xcam_auto_recovery_hold_count = 0;
     int  xcam_prompt_sound_hold_count = 0;
+    int  xcam_filament_tangle_detect_count = 0;
     int  ams_print_option_count = 0;
 
     //supported features
@@ -724,6 +726,7 @@ public:
     bool is_support_auto_recovery_step_loss{false};
     bool is_support_ams_humidity {false};
     bool is_support_prompt_sound{false};
+    bool is_support_filament_tangle_detect{false};
     bool is_support_1080dpi {false};
     bool is_support_cloud_print_only {false};
     bool is_support_command_ams_switch{false};
@@ -835,8 +838,12 @@ public:
     // set printing speed
     int command_set_printing_speed(PrintingSpeedLevel lvl);
 
-    //set pormpt sound
+    //set prompt sound
     int command_set_prompt_sound(bool prompt_sound);
+
+    //set fliament tangle detect
+    int command_set_filament_tangle_detect(bool fliament_tangle_detect);
+
 
     // set print option
     int command_set_printing_option(bool auto_recovery);
@@ -872,6 +879,7 @@ public:
     int command_xcam_control_buildplate_marker_detector(bool on_off);
     int command_xcam_control_auto_recovery_step_loss(bool on_off);
     int command_xcam_control_allow_prompt_sound(bool on_off);
+    int command_xcam_control_filament_tangle_detect(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }

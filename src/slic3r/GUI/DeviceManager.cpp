@@ -1350,6 +1350,14 @@ void MachineObject::parse_status(int flag)
         xcam_allow_prompt_sound = ((flag >> 17) & 0x1) != 0;
     }
 
+    is_support_filament_tangle_detect = ((flag >> 19) & 0x1) != 0;
+
+    if (xcam_filament_tangle_detect_count > 0)
+        xcam_filament_tangle_detect_count--;
+    else {
+        xcam_filament_tangle_detect = ((flag >> 20) & 0x1) != 0;
+    }
+
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
 
     network_wired = ((flag >> 18) & 0x1) != 0;
@@ -1973,6 +1981,15 @@ int MachineObject::command_set_prompt_sound(bool prompt_sound){
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_set_filament_tangle_detect(bool filament_tangle_detect) {
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["filament_tangle_detect"] = filament_tangle_detect;
+
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_ams_switch_filament(bool switch_filament)
 {
     json j;
@@ -2347,6 +2364,13 @@ int MachineObject::command_xcam_control_allow_prompt_sound(bool on_off)
     xcam_allow_prompt_sound = on_off;
     xcam_prompt_sound_hold_count = HOLD_COUNT_MAX;
     return command_set_prompt_sound(on_off);
+}
+
+int MachineObject::command_xcam_control_filament_tangle_detect(bool on_off)
+{
+    xcam_filament_tangle_detect = on_off;
+    xcam_filament_tangle_detect_count = HOLD_COUNT_MAX;
+    return command_set_filament_tangle_detect(on_off);
 }
 
 void MachineObject::set_bind_status(std::string status)
@@ -2882,6 +2906,12 @@ int MachineObject::parse_json(std::string payload)
                 }
             } 
             
+            //if (jj.contains("support_filament_tangle_detect")) {
+            //    if (jj["support_filament_tangle_detect"].is_boolean()) {
+            //        is_support_filament_tangle_detect = jj["support_filament_tangle_detect"].get<bool>();
+            //    }
+            //}
+
             if (jj.contains("support_1080dpi")) {
                 if (jj["support_1080dpi"].is_boolean()) {
                     is_support_1080dpi = jj["support_1080dpi"].get<bool>();

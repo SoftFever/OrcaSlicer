@@ -61,6 +61,12 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+    m_cb_filament_tangle->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->command_xcam_control_filament_tangle_detect(m_cb_filament_tangle->GetValue());
+        }
+        evt.Skip();
+    });
 
     wxGetApp().UpdateDlgDarkUI(this);
 }
@@ -147,6 +153,16 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_sup_sound->Hide();
         line5->Hide();
     }
+    if (obj_->is_support_filament_tangle_detect) {
+        text_filament_tangle->Show();
+        m_cb_filament_tangle->Show();
+        line6->Show();
+    }
+    else {
+        text_filament_tangle->Hide();
+        m_cb_filament_tangle->Hide();
+        line6->Hide();
+    }
 
     this->Freeze();
     
@@ -154,6 +170,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_plate_mark->SetValue(obj_->xcam_buildplate_marker_detector);
     m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
     m_cb_sup_sound->SetValue(obj_->xcam_allow_prompt_sound);
+    m_cb_filament_tangle->SetValue(obj_->xcam_filament_tangle_detect);
 
     m_cb_ai_monitoring->SetValue(obj_->xcam_ai_monitoring);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
@@ -286,6 +303,23 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line5 = new StaticLine(parent, false);
     line5->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line5, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+
+    //filament tangle detect
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_filament_tangle = new CheckBox(parent);
+    text_filament_tangle = new wxStaticText(parent, wxID_ANY, _L("Fliament Tangle Detect"));
+    text_filament_tangle->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_filament_tangle, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_filament_tangle, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+
+    line6 = new StaticLine(parent, false);
+    line6->SetLineColour(STATIC_BOX_LINE_COL);
+    sizer->Add(line6, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     ai_monitoring_level_list->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this );
 
