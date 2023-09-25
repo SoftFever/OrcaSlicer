@@ -1585,6 +1585,8 @@ void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
     field->SetColour(wxTransparentColour);
 
     wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
+    if (!btn->GetBitmap().IsOk()) return;
+
     wxImage image(btn->GetBitmap().GetSize());
     image.InitAlpha();
     memset(image.GetAlpha(), 0, image.GetWidth() * image.GetHeight());
