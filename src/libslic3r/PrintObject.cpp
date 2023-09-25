@@ -1,3 +1,12 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Hejl @hejllukas, Pavel Mikuš @Godrak, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, David Kocík @kocikdav, Roman Beránek @zavorka
+///|/ Copyright (c) 2021 Justin Schuh @jschuh
+///|/ Copyright (c) 2021 Ilya @xorza
+///|/ Copyright (c) 2016 Joseph Lenox @lordofhyphens
+///|/ Copyright (c) Slic3r 2014 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "Exception.hpp"
 #include "Print.hpp"
 #include "BoundingBox.hpp"
@@ -2086,6 +2095,8 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
         // use the constructor because the assignement is crashing on ASAN OsX
         layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile.get());
 //        layer_height_profile = model_object.layer_height_profile;
+        // The layer height returned is sampled with high density for the UI layer height painting
+        // and smoothing tool to work.
         updated = true;
     }
 
@@ -2100,6 +2111,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
     if (layer_height_profile.empty() || layer_height_profile[1] != slicing_parameters.first_object_layer_height) {
         //layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_config_ranges, model_object.volumes);
         layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);
+        // The layer height profile is already compressed.
         updated = true;
     }
 
@@ -2539,7 +2551,9 @@ void PrintObject::_generate_support_material()
     support_material.generate(*this);
 
     if (this->config().enable_support.value && is_tree(this->config().support_type.value)) {
-        if (this->config().support_style.value == smsOrganic || this->config().support_style.value == smsDefault) {
+        if (this->config().support_style.value == smsOrganic ||
+            // Orca: use organic as default
+            this->config().support_style.value == smsDefault) {
             fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
         } else {
             TreeSupport tree_support(*this, m_slicing_params);
