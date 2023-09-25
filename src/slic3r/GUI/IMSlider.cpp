@@ -617,6 +617,44 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     }
 }
 
+void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type)
+{
+    std::string label;
+    switch (type)
+    {
+    case ColorChange:
+        label = "Color";
+        break;
+    case PausePrint:
+        label = "Pause";
+        break;
+    case ToolChange:
+        label = "Color";
+        break;
+    case Template:
+        label = "Template";
+        break;
+    case Custom:
+        label = "Custom";
+        break;
+    case Unknown:
+        break;
+    default:
+        break;
+    }
+
+    const ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
+    const ImVec2 padding = ImVec2(4, 2) * m_scale;
+    const ImU32  clr = IM_COL32(255, 111, 0, 255);
+    const float  rounding = 2.0f * m_scale;
+    ImVec2 block_pos = { anchor.x - text_size.x - padding.x * 2, anchor.y - text_size.y / 2 - padding.y };
+    ImVec2 block_size = { text_size.x + padding.x * 2, text_size.y + padding.y * 2 };
+    ImGui::RenderFrame(block_pos, block_pos + block_size, clr, false, rounding);
+    ImGui::PushStyleColor(ImGuiCol_Text, { 1,1,1,1 });
+    ImGui::RenderText(block_pos + padding, label.c_str());
+    ImGui::PopStyleColor();
+}
+
 void IMSlider::draw_ticks(const ImRect& slideable_region) {
     //if(m_draw_mode != dmRegular)
     //    return;
@@ -692,6 +730,11 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
             ImVec2      icon_pos = ImVec2(slideable_region.GetCenter().x + icon_offset.x, tick_pos - icon_offset.y);
             button_with_pos(custom_icon_id, icon_size, icon_pos);
         }
+
+        //draw label block
+        ImVec2 label_block_anchor = ImVec2(slideable_region.GetCenter().x - tick_offset.y, tick_pos);
+        draw_custom_label_block(label_block_anchor, tick_it->type);
+
         ++tick_it;
     }
 
@@ -699,6 +742,10 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
               GetSelection() == ssLower  ? m_ticks.ticks.find(TickCode{this->GetLowerValue()}) :
                                            m_ticks.ticks.end();
     if (tick_it != m_ticks.ticks.end()) {
+        //draw label block again, to keep it in front
+        ImVec2 label_block_anchor = ImVec2(slideable_region.GetCenter().x - tick_offset.y, get_tick_pos(tick_it->tick));
+        draw_custom_label_block(label_block_anchor, tick_it->type);
+
         // draw delete icon
         ImVec2      icon_pos       = ImVec2(slideable_region.GetCenter().x + icon_offset.x, get_tick_pos(tick_it->tick) - icon_offset.y);
         button_with_pos(m_delete_icon_id, icon_size, icon_pos);

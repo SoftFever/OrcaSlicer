@@ -145,6 +145,7 @@ protected:
     void render_edit_menu(const TickCode& tick); //menu
     void draw_background_and_groove(const ImRect& bg_rect, const ImRect& groove);
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
+    void draw_custom_label_block(const ImVec2 anchor, Type type);
     void draw_ticks(const ImRect& slideable_region);
     void show_tooltip(const TickCode& tick); //menu
     void show_tooltip(const std::string tooltip); //menu
