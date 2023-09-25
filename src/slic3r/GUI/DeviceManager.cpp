@@ -2714,7 +2714,7 @@ int MachineObject::parse_json(std::string payload)
             j = j_pre;
         }
 
-        uint64_t t_utc = j.value("t_utc", 0);
+        uint64_t t_utc = j.value("t_utc", 0ULL);
         if (t_utc > 0) 
             last_update_time = std::chrono::system_clock::time_point(t_utc * 1ms);
 
