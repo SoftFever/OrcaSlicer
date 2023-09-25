@@ -5257,8 +5257,10 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 
 void PartPlateList::BedTextureInfo::TexturePart::reset()
 {
-    if (texture)
+    if (texture) {
         texture->reset();
+        delete texture;
+    }
     if (buffer)
         delete buffer;
 }
