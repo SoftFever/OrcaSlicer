@@ -441,6 +441,12 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_score_staticline->Hide();
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     sizer->Add(m_score_staticline, 0, wxEXPAND | wxALL, FromDIP(10));
+    m_request_failed_info = new wxStaticText(parent, wxID_ANY, _L("You have completed printing the mall model, but the synchronization of rating information has failed. \nIf you need to resynchronize, please reselect the printer."), wxDefaultPosition, wxDefaultSize, 0);
+    m_request_failed_info->Wrap(-1);
+    sizer->Add(m_request_failed_info, 0, wxEXPAND | wxALL, FromDIP(10));
+    m_request_failed_info->SetForegroundColour(*wxRED);
+    m_request_failed_info->SetFont(::Label::Body_10);
+    m_request_failed_info->Hide();
 
     m_score_subtask_info = new wxPanel(parent, wxID_ANY);
     m_score_subtask_info->SetBackgroundColour(*wxWHITE);
@@ -1709,7 +1715,6 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
             
             if (ret == wxID_OK) { 
                 m_score_data->rating_id = -1;
-                m_project_task_panel->set_star_count_dirty(false);
                 m_print_finish = false;
                 return;
             }
@@ -1747,7 +1752,6 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
 
             if (ret == wxID_OK) {
                 m_score_data->rating_id = -1;
-                m_project_task_panel->set_star_count_dirty(false);
                 m_print_finish = false;
                 return;
             }
@@ -2784,35 +2788,45 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_project_task_panel->enable_abort_button(false);
                 m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
                 if (wxGetApp().has_model_mall()) {
-                    //determine whether the model is mall model
                     bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
                     if (is_market_task) {
                         NetworkAgent *agent = wxGetApp().getAgent();
                         if (agent && IsShownOnScreen() && !m_print_finish) {
-
-                            int job_id = obj->get_modeltask()->job_id;
-                            boost::thread([this, agent, job_id] {
+                            m_project_task_panel->get_request_rating_failed_info()->Hide();
+                            int instance_id = obj->get_modeltask()->instance_id;
+                            m_print_finish  = true;
+                            std::string dev_id = obj->dev_id;
+                            boost::thread([this, agent, instance_id, dev_id] {
                                 try {
                                     std::string  rating_result;
-                                    unsigned int http_code = 0;
+                                    unsigned int http_code = 404;
                                     std::string  http_error;
                                     int          rating_id = -1;
-                                    int          res       = agent->get_model_mall_rating_result(job_id, rating_result, http_code, http_error);
+                                    int          res       = -1;
+                                    int          request_times = 0;
+                                    do {
+                                        if (!this || !(this->obj) || this->obj->dev_id != dev_id || request_times > 3) return;
+                                        if (request_times) {
+                                            std::chrono::seconds sleepDuration(3);
+                                        }
+                                        res = agent->get_model_mall_rating_result(instance_id, rating_result, http_code, http_error);
+                                        BOOST_LOG_TRIVIAL(info) << "request times: "<< request_times;
+                                        request_times++;
+                                    } while (res != 0 && 404 == http_code);
+
                                     if (0 == res) {
                                         m_rating_result = json::parse(rating_result);
                                         if (m_rating_result.contains("id")) {
                                             rating_id = m_rating_result["id"].get<unsigned int>();
+                                            if (!this || !(this->obj) || this->obj->dev_id != dev_id) return;
                                             m_project_task_panel->market_scoring_show();
                                             BOOST_LOG_TRIVIAL(info) << "show scoring page";
-                                            bool is_update = model_score_is_update();
                                             // this mall model has score, user do not click star, Initialize scores only once per print startup program
-                                            if (is_update ||
-                                                (!m_project_task_panel->get_star_count_dirty() && !m_print_finish && IsShownOnScreen() && m_rating_result.contains("score"))) {
+                                            if ((m_rating_result.contains("score"))) {
                                                 int star_count = m_rating_result["score"].get<int>();
                                                 m_project_task_panel->set_star_count(star_count);
                                                 BOOST_LOG_TRIVIAL(info) << "Initialize scores";
-                                                m_project_task_panel->set_star_count_dirty(true);
-                                                m_print_finish = true;
+
                                                 if (0 != star_count) {
                                                     m_project_task_panel->get_market_scoring_button()->Enable(true);
                                                     m_project_task_panel->set_has_reted_text(true);
@@ -2821,6 +2835,10 @@ void StatusPanel::update_subtask(MachineObject *obj)
                                                 }
                                             }
                                         }
+                                    } else {
+                                        m_project_task_panel->get_request_rating_failed_info()->Show();
+                                        BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
+                                        return;
                                     }
                                 } catch (...) {
                                     m_project_task_panel->market_scoring_hide();
@@ -2829,7 +2847,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                             });
                         }
                         BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
-                        
+
                     } else { // model is not mall model. hide scoring page
                         m_project_task_panel->market_scoring_hide();
                     }
@@ -2839,6 +2857,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);
                 m_project_task_panel->market_scoring_hide();
+                m_project_task_panel->get_request_rating_failed_info()->Hide();
                 if (m_print_finish) { 
                     m_print_finish = false;
                 }
@@ -2880,21 +2899,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
     }
 
     this->Layout();
-}
-
-bool StatusPanel::model_score_is_update()
-{ 
-    try {
-        if (m_last_result["id"] != m_rating_result["id"] || m_last_result["content"] != m_rating_result["content"] || m_last_result["images"] != m_rating_result["images"]) {
-            m_last_result = m_rating_result;
-            return true;
-        } 
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(info) << "m_last_result first initial";
-        m_last_result = m_rating_result;
-    }
-    
-    return false;
 }
 
 void StatusPanel::update_cloud_subtask(MachineObject *obj)
