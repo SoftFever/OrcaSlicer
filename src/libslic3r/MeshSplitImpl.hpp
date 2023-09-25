@@ -1,6 +1,12 @@
 #ifndef MESHSPLITIMPL_HPP
 #define MESHSPLITIMPL_HPP
 
+// Disable meaningless boost warning on MSVC
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4805 )
+#endif
+
 #include "TriangleMesh.hpp"
 #include "libnest2d/tools/benchmark.h"
 #include "Execution/ExecutionTBB.hpp"
@@ -267,5 +273,9 @@ std::vector<Vec3i> create_face_neighbors_index(ExPolicy &&ex, const indexed_tria
 }
 
 } // namespace Slic3r
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 #endif // MESHSPLITIMPL_HPP
