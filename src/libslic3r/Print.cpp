@@ -1637,6 +1637,16 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 }
             }
         );
+
+        for (PrintObject* obj : m_objects) {
+            if (need_slicing_objects.count(obj) != 0) {
+                obj->detect_overhangs_for_lift();
+            }
+            else {
+                if (obj->set_started(posDetectOverhangsForLift))
+                    obj->set_done(posDetectOverhangsForLift);
+            }
+        }
     }
     else {
         for (PrintObject *obj : m_objects) {
@@ -1653,20 +1663,25 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                     obj->set_done(posIroning);
                 if (obj->set_started(posSupportMaterial))
                     obj->set_done(posSupportMaterial);
+                if (obj->set_started(posDetectOverhangsForLift))
+                    obj->set_done(posDetectOverhangsForLift);
             }
             else {
                 obj->make_perimeters();
                 obj->infill();
                 obj->ironing();
                 obj->generate_support_material();
+                obj->detect_overhangs_for_lift();
             }
         }
     }
 
     for (PrintObject *obj : m_objects)
     {
-        if (need_slicing_objects.count(obj) == 0)
+        if (need_slicing_objects.count(obj) == 0) {
             obj->copy_layers_from_shared_object();
+            obj->copy_layers_overhang_from_shared_object();
+        }
     }
 
     if (this->set_started(psWipeTower)) {
@@ -1791,18 +1806,6 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 obj->set_done(posSimplifyInfill);
             if (obj->set_started(posSimplifySupportPath))
                 obj->set_done(posSimplifySupportPath);
-        }
-    }
-
-    // BBS
-    for (PrintObject* obj : m_objects) {
-        if (need_slicing_objects.count(obj) != 0) {
-            obj->detect_overhangs_for_lift();
-        }
-        else {
-            obj->copy_layers_overhang_from_shared_object();
-            if (obj->set_started(posDetectOverhangsForLift))
-                obj->set_done(posDetectOverhangsForLift);
         }
     }
 
@@ -2418,6 +2421,8 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
 #define JSON_LAYER_ID                  "layer_id"
 #define JSON_LAYER_SLICED_POLYGONS    "sliced_polygons"
 #define JSON_LAYER_SLLICED_BBOXES      "sliced_bboxes"
+#define JSON_LAYER_OVERHANG_POLYGONS    "overhang_polygons"
+#define JSON_LAYER_OVERHANG_BBOX       "overhang_bbox"
 
 #define JSON_SUPPORT_LAYER_ISLANDS                  "support_islands"
 #define JSON_SUPPORT_LAYER_FILLS                    "support_fills"
@@ -3054,6 +3059,19 @@ void extract_layer(const json& layer_json, Layer& layer) {
         layer.lslices_bboxes.push_back(std::move(bbox));
     }
 
+    //overhang_polygons
+    int overhang_polygons_count = layer_json[JSON_LAYER_OVERHANG_POLYGONS].size();
+    for (int polygon_index = 0; polygon_index < overhang_polygons_count; polygon_index++)
+    {
+        ExPolygon polygon;
+
+        polygon = layer_json[JSON_LAYER_OVERHANG_POLYGONS][polygon_index];
+        layer.loverhangs.push_back(std::move(polygon));
+    }
+
+    //overhang_box
+    layer.loverhangs_bbox = layer_json[JSON_LAYER_OVERHANG_BBOX];
+
     //layer_regions
     int layer_region_count = layer.region_count();
     for (int layer_region_index = 0; layer_region_index < layer_region_count; layer_region_index++)
@@ -3129,7 +3147,7 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     boost::filesystem::path directory_path(directory);
 
     auto convert_layer_to_json = [](json& layer_json, const Layer* layer) {
-        json slice_polygons_json = json::array(), slice_bboxs_json = json::array(), layer_regions_json = json::array();
+        json slice_polygons_json = json::array(), slice_bboxs_json = json::array(), overhang_polygons_json = json::array(), layer_regions_json = json::array();
         layer_json[JSON_LAYER_PRINT_Z] = layer->print_z;
         layer_json[JSON_LAYER_HEIGHT] = layer->height;
         layer_json[JSON_LAYER_SLICE_Z] = layer->slice_z;
@@ -3151,6 +3169,16 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             slice_bboxs_json.push_back(std::move(bbox_json));
         }
         layer_json[JSON_LAYER_SLLICED_BBOXES] = std::move(slice_bboxs_json);
+
+        //overhang_polygons
+        for (const ExPolygon& overhang_polygon : layer->loverhangs) {
+            json overhang_polygon_json = overhang_polygon;
+            overhang_polygons_json.push_back(std::move(overhang_polygon_json));
+        }
+        layer_json[JSON_LAYER_OVERHANG_POLYGONS] = std::move(overhang_polygons_json);
+
+        //overhang_box
+        layer_json[JSON_LAYER_OVERHANG_BBOX] = layer->loverhangs_bbox;
 
         for (const LayerRegion *layer_region : layer->regions()) {
             json region_json = *layer_region;
