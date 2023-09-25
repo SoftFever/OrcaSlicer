@@ -27,6 +27,7 @@ set(lisbslic3r_sources
     AABBMesh.hpp
     AABBMesh.cpp
     AnyPtr.hpp
+    AStar.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -177,6 +178,8 @@ set(lisbslic3r_sources
     Int128.hpp
     InternalBridgeDetector.cpp
     InternalBridgeDetector.hpp
+    JumpPointSearch.hpp
+    JumpPointSearch.cpp
     KDTreeIndirect.hpp
     Layer.cpp
     Layer.hpp
