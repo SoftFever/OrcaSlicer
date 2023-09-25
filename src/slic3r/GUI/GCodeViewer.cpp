@@ -4828,10 +4828,34 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[2]}});
         }
         if (displayed_columns == (ColumnData::Model | ColumnData::Flushed)) {
+            // add protection
+            assert(flushed_filaments_m.size() == model_used_filaments_m.size());
+            if (flushed_filaments_m.size() < model_used_filaments_m.size()) {
+                for (int i = 0; i < model_used_filaments_m.size() - flushed_filaments_m.size(); i++) {
+                    flushed_filaments_m.push_back(std::nan("1"));
+                    flushed_filaments_g.push_back(std::nan("1"));
+                }
+            }
+
             offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
             append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {_u8L("Total"), offsets[3]} });
         }
         if (displayed_columns == (ColumnData::Model | ColumnData::Flushed | ColumnData::WipeTower)) {
+            // add protection
+            assert(flushed_filaments_m.size() == model_used_filaments_m.size() == wipe_tower_used_filaments_m.size());
+            if (flushed_filaments_m.size() < model_used_filaments_m.size()) {
+                for (int i = 0; i < model_used_filaments_m.size() - flushed_filaments_m.size(); i++) {
+                    flushed_filaments_m.push_back(std::nan("1"));
+                    flushed_filaments_g.push_back(std::nan("1"));
+                }
+            }
+            if (wipe_tower_used_filaments_m.size() < model_used_filaments_m.size()) {
+                for (int i = 0; i < model_used_filaments_m.size() - wipe_tower_used_filaments_m.size(); i++) {
+                    wipe_tower_used_filaments_m.push_back(std::nan("1"));
+                    wipe_tower_used_filaments_g.push_back(std::nan("1"));
+                }
+            }
+
             offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Tower"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
             append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {_u8L("Tower"), offsets[3]}, {_u8L("Total"), offsets[4]} });
         }
