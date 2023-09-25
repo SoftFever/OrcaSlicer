@@ -623,11 +623,15 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
         }
         // Draw buttons on hovered item
         wxRect rect{pt.x, pt.y + m_content_rect.GetBottom() - m_buttons_background.GetHeight(), m_content_rect.GetWidth(), m_buttons_background.GetHeight()};
+        wxArrayString texts;
         if (hit) {
-            renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
-                          m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
+            texts.Add(_L("Delete"));
+            texts.Add(secondAction);
+            texts.Add(thirdAction);
+            renderButtons(dc, texts, rect, m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
         } else if (!nonHoverText.IsEmpty()) {
-            renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
+            texts.Add(nonHoverText);
+            renderButtons(dc, texts, rect, -1, states);
         }
     } else {
         dc.SetTextForeground(*wxWHITE); // time text color
@@ -673,7 +677,7 @@ void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int ind
     renderIconText(dc, m_model_weight_icon, file.Metadata("Weight", "0g"), rect);
 }
 
-void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect2, size_t hit, int states)
+void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxArrayString const &texts, wxRect const &rect2, size_t hit, int states)
 {
     // Draw background
     {
