@@ -1139,6 +1139,9 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
 {
     if (!obj) return;
 
+    if (!obj->is_info_ready())
+        return;
+
     //step 1: update combobox filament list
     float nozzle_value = get_nozzle_value();
     obj->cali_selected_nozzle_dia = nozzle_value;
