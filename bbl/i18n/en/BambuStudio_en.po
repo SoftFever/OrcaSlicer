@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 11:09+0800\n"
+"POT-Creation-Date: 2023-09-26 18:29+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3897,6 +3897,12 @@ msgstr "Layer: N/A"
 msgid "Clear"
 msgstr "Clear"
 
+msgid ""
+"You have completed printing the mall model, but the synchronization of "
+"rating information has failed. \n"
+"If you need to resynchronize, please reselect the printer."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4615,17 +4621,23 @@ msgstr "The selected object couldn't be split."
 msgid "Another export job is running."
 msgstr "Another export job is running."
 
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Error during replacement"
+
 msgid "Select a new file"
 msgstr "Select a new file"
 
 msgid "File for the replace wasn't selected"
 msgstr "File for the replacement wasn't selected"
 
-msgid "Error during replace"
-msgstr "Error during replacement"
-
 msgid "Please select a file"
 msgstr "Please select a file"
+
+msgid "Do you want to replace it"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Slicing"
