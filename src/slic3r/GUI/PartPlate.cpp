@@ -1627,21 +1627,26 @@ std::vector<int> PartPlate::get_used_extruders()
 	return used_extruders;
 }
 
-Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volume) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size) const
 {
 	Vec3d wipe_tower_size;
-	std::vector<int> plate_extruders = get_extruders(true);
+
 	double layer_height = 0.08f; // hard code layer height
 	double max_height = 0.f;
 	wipe_tower_size.setZero();
 	wipe_tower_size(0) = w;
 
-	ConfigOption* layer_height_opt = wxGetApp().preset_bundle->prints.get_edited_preset().config.option("layer_height");
+	const ConfigOption* layer_height_opt = config.option("layer_height");
 	if (layer_height_opt)
 		layer_height = layer_height_opt->getFloat();
 
 	// empty plate
-	if (plate_extruders.empty())
+	if (plate_extruder_size == 0)
+    {
+        std::vector<int> plate_extruders = get_extruders(true);
+        plate_extruder_size = plate_extruders.size();
+    }
+	if (plate_extruder_size == 0)
 		return wipe_tower_size;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
@@ -1653,11 +1658,11 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	}
 	wipe_tower_size(2) = max_height;
 
-	const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    auto timelapse_type    = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+	//const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
+	double depth = wipe_volume * (plate_extruder_size - 1) / (layer_height * w);
     if (timelapse_enabled || depth > EPSILON) {
 		float min_wipe_tower_depth = 0.f;
 		auto iter = WipeTower::min_depth_per_height.begin();
