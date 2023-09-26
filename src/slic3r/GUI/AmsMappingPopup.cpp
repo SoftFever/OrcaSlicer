@@ -1333,6 +1333,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     } else {
         if (label_txt)
             label_txt->SetLabelText(_L("There are currently no identical spare consumables available, and automatic replenishment is currently not possible. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+            label_txt->Wrap(FromDIP(380));
     }
    
     m_scrollview_groups->Layout();
