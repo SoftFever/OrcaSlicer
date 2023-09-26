@@ -111,7 +111,7 @@
 		"40"
 	],
 	"single_extruder_multi_material": "0",
-	"change_filament_gcode": "M600",
+	"change_filament_gcode": "M601",
 	"machine_pause_gcode": "M601",
 	"default_filament_profile": [
 		"Generic PLA @Anycubic"
