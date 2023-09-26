@@ -1764,6 +1764,16 @@ bool GLGizmoAdvancedCut::render_cut_mode_combo(double label_width)
     return is_changed;
 }
 
+void GLGizmoAdvancedCut::render_color_marker(float size, const ColorRGBA &color)
+{
+    auto to_ImU32 = [](const ColorRGBA &color) -> ImU32 { return ImGui::GetColorU32({color[0], color[1], color[1], color[2]}); };
+    ImGui::SameLine();
+    const float radius = 0.5f * size;
+    ImVec2      pos    = ImGui::GetCurrentWindow()->DC.CursorPos;
+    pos.y += 1.7f * radius;
+    ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, to_ImU32(color), 6);
+}
+
 void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float bottom_limit)
 {
     // float unit_size = m_imgui->get_style_scaling() * 48.0f;
@@ -1931,8 +1941,10 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     auto render_part_action_line = [this, label_width, &connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
         bool keep = true;
         ImGui::AlignTextToFramePadding();
-        m_imgui->text(label);
+        m_imgui->text(m_cut_to_parts ? _L("Part") : _L("Object") +label);
 
+        float marker_size = 12;
+        render_color_marker(marker_size, suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR);
         ImGui::SameLine(label_width);
 
         m_imgui->disabled_begin(!keep_part || m_cut_to_parts);
@@ -1955,8 +1967,8 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     };
 
     m_imgui->text(_L("After cut") + ": ");
-    render_part_action_line( _L("Upper part"), "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
-    render_part_action_line( _L("Lower part"), "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
+    render_part_action_line( _L("A"), "##upper", m_keep_upper, m_place_on_cut_upper, m_rotate_upper);
+    render_part_action_line( _L("B"), "##lower", m_keep_lower, m_place_on_cut_lower, m_rotate_lower);
 
     m_imgui->disabled_begin(has_connectors || m_cut_mode == CutMode::cutTongueAndGroove);
     m_imgui->bbl_checkbox(_L("Cut to parts"), m_cut_to_parts);
