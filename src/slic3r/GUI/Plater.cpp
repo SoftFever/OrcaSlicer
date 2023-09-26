@@ -175,6 +175,10 @@ wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
 //BBS: print
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
+wxDEFINE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
+
+wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
+
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -790,31 +794,7 @@ Sidebar::Sidebar(Plater *parent)
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
-    auto create_filament_preset_btn = new Button(p->m_panel_filament_title, _L("Create Filament"));
-    create_filament_preset_btn->SetFont(Label::Body_10);
-    create_filament_preset_btn->SetPaddingSize(wxSize(FromDIP(8), FromDIP(3)));
-    create_filament_preset_btn->SetCornerRadius(FromDIP(8));
-    create_filament_preset_btn->SetBackgroundColor(flush_bg_col);
-    create_filament_preset_btn->SetBorderColor(flush_bd_col);
-    create_filament_preset_btn->SetTextColor(flush_fg_col);
-    create_filament_preset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        CreateFilamentPresetDialog dlg(p->m_panel_filament_title);
-        //CreatePrinterPresetDialog dlg(p->m_panel_filament_title);
-        int res = dlg.ShowModal();
-        if (wxID_OK == res) {
-            wxGetApp().mainframe->update_side_preset_ui();
-            update_ui_from_settings();
-            update_all_preset_comboboxes();
-            CreatePresetSuccessfulDialog success_dlg(p->m_panel_filament_title, SuccessType::FILAMENT);
-            int res = success_dlg.ShowModal();
-            /*if (res == wxID_OK) {
-                p->editing_filament = 0;
-                p->combos_filament[0]->switch_to_tab();
-            }*/
-        }
-    });
-
-    bSizer39->Add(create_filament_preset_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
+    
     bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     bSizer39->Hide(p->m_flushing_volume_btn);
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
@@ -1008,7 +988,7 @@ Sidebar::~Sidebar() {}
 
 void Sidebar::create_printer_preset()
 {
-    CreatePrinterPresetDialog dlg(p->m_panel_printer_title);
+    CreatePrinterPresetDialog dlg(wxGetApp().mainframe);
     int                       res = dlg.ShowModal();
     if (wxID_OK == res) {
         wxGetApp().mainframe->update_side_preset_ui();
@@ -2317,6 +2297,8 @@ struct Plater::priv
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
+    void on_create_filament(SimpleEvent &);
+    void on_modify_filament(SimpleEvent &);
 
     void on_object_select(SimpleEvent&);
     void on_plate_name_change(SimpleEvent &);
@@ -2545,6 +2527,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
     this->q->Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, &priv::on_change_color_mode, this);
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
+    this->q->Bind(EVT_CREATE_FILAMENT, &priv::on_create_filament, this);
+    this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -7517,6 +7501,33 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
     view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
     notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
+}
+
+void Plater::priv::on_create_filament(SimpleEvent &)
+{
+    CreateFilamentPresetDialog dlg(wxGetApp().mainframe);
+    int res = dlg.ShowModal();
+    if (wxID_OK == res) {
+        wxGetApp().mainframe->update_side_preset_ui();
+        update_ui_from_settings();
+        sidebar->update_all_preset_comboboxes();
+        CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::FILAMENT);
+        int                          res = success_dlg.ShowModal();
+    }
+}
+
+void Plater::priv::on_modify_filament(SimpleEvent &evt)
+{
+    FilamentInfomation *       filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
+    EditFilamentPresetDialog dlg(wxGetApp().mainframe, filament_info);
+    int                        res = dlg.ShowModal();
+    if (wxID_OK == res) {
+        wxGetApp().mainframe->update_side_preset_ui();
+        update_ui_from_settings();
+        sidebar->update_all_preset_comboboxes();
+        /*CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::FILAMENT);
+        int                          res = success_dlg.ShowModal();*/
+    }
 }
 
 void Plater::priv::enter_gizmos_stack()

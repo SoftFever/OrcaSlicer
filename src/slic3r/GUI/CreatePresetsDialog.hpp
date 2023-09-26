@@ -15,10 +15,17 @@
 namespace Slic3r { 
 namespace GUI {
 
+class FilamentInfomation : public wxObject
+{
+public:
+    std::string filament_id;
+    std::string filament_name;
+};
+
 class CreateFilamentPresetDialog : public DPIDialog
 {
 public:
-    CreateFilamentPresetDialog(wxWindow *parent, bool modify_filament = false);
+    CreateFilamentPresetDialog(wxWindow *parent);
     ~CreateFilamentPresetDialog();
 
 protected:
@@ -58,24 +65,23 @@ private:
     };
 
 private:
-    std::vector<std::pair<RadioBox *, wxString>>              m_create_type_btns;
-    std::vector<std::pair<CheckBox *, Preset *>>              m_filament_preset;
-    std::unordered_map<CheckBox *, Preset *>                  m_machint_filament_preset;
-    std::unordered_map<std::string, std::vector<Preset *>>    m_filament_choice_map;
-    std::unordered_map<wxString, std::string>                 m_public_name_to_filament_id_map;
-    std::unordered_map<std::string, Preset *>                 m_all_presets_map;
-    bool                                                      m_modify_filament;
-    CreateType                                                m_create_type;
-    Button *                                                  m_button_create                = nullptr;
-    Button *                                                  m_button_cancel                = nullptr;
-    ComboBox *                                                m_filament_vendor_combobox     = nullptr;
-    ComboBox *                                                m_filament_type_combobox       = nullptr;
-    ComboBox *                                                m_exist_vendor_combobox        = nullptr;
-    ComboBox *                                                m_filament_preset_combobox     = nullptr;
-    TextInput *                                               m_filament_custom_vendor_input = nullptr;
-    wxGridSizer *                                             m_filament_presets_sizer       = nullptr;
-    wxPanel *                                                 m_filament_preset_panel        = nullptr;
-    TextInput *                                               m_filament_serial_input        = nullptr;
+    std::vector<std::pair<RadioBox *, wxString>>                     m_create_type_btns;
+    std::unordered_map<CheckBox *, std::pair<std::string, Preset *>> m_filament_preset;
+    std::unordered_map<CheckBox *, std::pair<std::string, Preset *>> m_machint_filament_preset;
+    std::unordered_map<std::string, std::vector<Preset *>>           m_filament_choice_map;
+    std::unordered_map<wxString, std::string>                        m_public_name_to_filament_id_map;
+    std::unordered_map<std::string, Preset *>                        m_all_presets_map;
+    CreateType                                                       m_create_type;
+    Button *                                                         m_button_create                = nullptr;
+    Button *                                                         m_button_cancel                = nullptr;
+    ComboBox *                                                       m_filament_vendor_combobox     = nullptr;
+    ComboBox *                                                       m_filament_type_combobox       = nullptr;
+    ComboBox *                                                       m_exist_vendor_combobox        = nullptr;
+    ComboBox *                                                       m_filament_preset_combobox     = nullptr;
+    TextInput *                                                      m_filament_custom_vendor_input = nullptr;
+    wxGridSizer *                                                    m_filament_presets_sizer       = nullptr;
+    wxPanel *                                                        m_filament_preset_panel        = nullptr;
+    TextInput *                                                      m_filament_serial_input        = nullptr;
 
 };
 
@@ -117,7 +123,7 @@ protected:
     void          select_curr_radiobox(std::vector<std::pair<RadioBox *, wxString>> &radiobox_list, int btn_idx);
     void          select_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates);
     void          deselect_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates);
-    void          update_presets_list();
+    void          update_presets_list(bool jast_template = false);
     void          on_preset_model_value_change(wxCommandEvent &e);
     void          clear_preset_combobox();
     bool          save_printable_area_config(Preset *preset);
@@ -125,6 +131,7 @@ protected:
     bool          validate_input_valid();
     void          load_texture();
     void          load_model_stl();
+    bool          load_system_and_user_presets_with_curr_model(PresetBundle &temp_preset_bundle, bool just_template = false);
     wxArrayString printer_preset_sort_with_nozzle_diameter(const VendorProfile &vendor_profile, float nozzle_diameter);
 
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
@@ -133,12 +140,19 @@ protected:
     wxString    curr_create_printer_type();
 
 private:
+    struct CreatePrinterType
+    {
+        wxString create_printer;
+        wxString create_nozzle;
+        wxString base_template;
+        wxString base_curr_printer;
+    };
+
+    CreatePrinterType                                  m_create_type;
     std::vector<std::pair<RadioBox *, wxString>>       m_create_type_btns;
     std::vector<std::pair<RadioBox *, wxString>>       m_create_presets_btns;
     std::vector<std::pair<CheckBox *, Preset *>>       m_filament_preset;
     std::vector<std::pair<CheckBox *, Preset *>>       m_process_preset;
-    std::vector<wxString>                              m_create_printer_type;
-    std::vector<wxString>                              m_create_presets_type;
     VendorProfile                                      m_printer_preset_vendor_selected;
     Slic3r::VendorProfile::PrinterModel                m_printer_preset_model_selected;
     bool                                               rewritten                        = false;
@@ -260,6 +274,67 @@ private:
     Button *                                               m_button_ok      = nullptr;
     Button *                                               m_button_cancel  = nullptr;
     wxStaticText *                                         m_serial_text    = nullptr;
+};
+
+class CreatePresetForPrinterDialog : public DPIDialog
+{
+public:
+    CreatePresetForPrinterDialog(wxWindow *parent, std::string filament_type, std::string filament_id, std::string filament_vendor, std::string filament_name);
+    ~CreatePresetForPrinterDialog();
+
+private:
+    void        on_dpi_changed(const wxRect &suggested_rect) override;
+    void        get_visible_printer_and_compatible_filament_presets();
+    wxBoxSizer *create_selected_printer_preset_sizer();
+    wxBoxSizer *create_selected_filament_preset_sizer();
+    wxBoxSizer *create_button_sizer();
+
+private:
+    std::string                                                                       m_filament_id;
+    std::string                                                                       m_filament_name;
+    std::string                                                                       m_filament_vendor;
+    std::string                                                                       m_filament_type;
+    std::shared_ptr<PresetBundle>                                                     m_preset_bundle;
+    std::string                                                                       m_filamnt_type;
+    ComboBox *                                                                        m_selected_printer  = nullptr;
+    ComboBox *                                                                        m_selected_filament = nullptr;
+    Button *                                                                          m_ok_btn            = nullptr;
+    Button *                                                                          m_cancel_btn        = nullptr;
+    std::unordered_map<wxString, std::shared_ptr<Preset>>                             printer_choice_to_printer_preset;
+    std::unordered_map<wxString, std::shared_ptr<Preset>>                             filament_choice_to_filament_preset;
+    std::unordered_map<std::shared_ptr<Preset>, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_filament_presets;//need be used when add presets
+
+};
+
+class EditFilamentPresetDialog : public DPIDialog
+{
+public:
+    EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info);
+    ~EditFilamentPresetDialog();
+
+private:
+    void        on_dpi_changed(const wxRect &suggested_rect) override;
+    bool        get_same_filament_id_presets(std::string filament_id);
+    void        update_preset_tree();
+    wxBoxSizer *create_filament_basic_info();
+    wxBoxSizer *create_add_filament_btn();
+    wxBoxSizer *create_preset_tree_sizer();
+    wxBoxSizer *create_button_sizer();
+
+private:
+    std::string                          m_filament_id;
+    std::string                          m_filament_name;
+    std::string                          m_vendor_name;
+    std::string                          m_filament_type;
+    std::string                          m_filament_serial;
+    Button *                             m_add_filament_btn  = nullptr;
+    Button *                             m_del_filament_btn  = nullptr;
+    Button *                             m_ok_btn            = nullptr;
+    Button *                             m_cancel_btn        = nullptr;
+    wxGridSizer *                        m_preset_tree_sizer = nullptr;
+    wxScrolledWindow *                   m_preset_tree_window = nullptr;
+    std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_presets;
+
 };
 
 }

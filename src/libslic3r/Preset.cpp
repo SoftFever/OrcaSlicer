@@ -2143,23 +2143,47 @@ bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> con
     }, force_rewritten);
 }
 
-bool PresetCollection::create_presets_from_template_for_printer(std::vector<std::string> const &templates, std::vector<std::string> &failures, std::string const &printer)
+bool PresetCollection::create_presets_from_template_for_printer(std::vector<Preset const *> const &     templates,
+                                                                std::vector<std::string> &              failures,
+                                                                std::string const &                     printer,
+                                                                std::function<std::string(std::string)> create_filament_id,
+                                                                bool                                    force_rewritten)
 {
-    return false;
+    return clone_presets(templates, failures, [printer, create_filament_id](Preset &preset, Preset::Type &type) {
+            preset.name = preset.name.substr(0, preset.name.find("@")) + " @" + printer;
+        auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
+        compatible_printers->values = std::vector<std::string>{ printer };
+        preset.is_visible           = true;
+        if (type == Preset::TYPE_FILAMENT) 
+            preset.filament_id      = create_filament_id(preset.name);
+    }, force_rewritten);
 }
 
-bool PresetCollection::clone_presets_for_filament(std::vector<Preset const *> const &presets,
+bool PresetCollection::clone_presets_for_filament(Preset const * const &preset,
                                                   std::vector<std::string> &         failures,
                                                   std::string const &                filament_name,
                                                   std::string const &                filament_id,
                                                   const std::string &                vendor_name,
+                                                  const std::string &                compatible_printers,
                                                   bool                               force_rewritten)
 {
-    return clone_presets(presets, failures, [filament_name, filament_id, vendor_name](Preset &preset, Preset::Type &type) {
-        preset.name        = filament_name + " " + preset.name.substr(preset.name.find_last_of('@'));
-            if (type == Preset::TYPE_FILAMENT)
-                preset.config.option<ConfigOptionStrings>("filament_vendor", true)->values[0] = vendor_name;
-        preset.filament_id = filament_id;
+    std::vector<Preset const *> const presets = {preset};
+    return clone_presets(presets, failures, [&filament_name, &filament_id, &vendor_name, &compatible_printers](Preset &preset, Preset::Type &type) {
+        preset.name        = filament_name + " @" + compatible_printers;
+        if (type == Preset::TYPE_FILAMENT) {
+            auto filament_vendor = preset.config.option<ConfigOptionStrings>("filament_vendor", true);
+            if (filament_vendor->values.empty()) {
+                filament_vendor->values.push_back(vendor_name);
+            } else {
+                filament_vendor->values = {vendor_name};
+            }
+            auto compatible_printers_option = preset.config.option<ConfigOptionStrings>("compatible_printers", true);
+            if (compatible_printers_option->values.empty()) { compatible_printers_option->values.push_back(compatible_printers);
+            } else {
+                compatible_printers_option->values = {compatible_printers};
+                }
+            preset.filament_id = filament_id;
+         }    
         },
         force_rewritten);
 }

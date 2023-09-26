@@ -20,6 +20,8 @@
 #define PRESET_PRINTER_NAME     "machine"
 #define PRESET_SLA_PRINT_NAME  "sla_print"
 #define PRESET_SLA_MATERIALS_NAME "sla_materials"
+#define PRESET_PROFILES_DIR "profiles"
+#define PRESET_TEMPLATE_DIR "Template"
 
 //BBS: iot preset type strings
 #define PRESET_IOT_PRINTER_TYPE     "printer"
@@ -56,6 +58,9 @@
 #define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
+
+//BBL: json path
+
 
 namespace Slic3r {
 
@@ -452,8 +457,10 @@ public:
 
     bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &, Preset::Type &)> modifier, bool force_rewritten = false);
     bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten = false);
-    bool create_presets_from_template_for_printer(std::vector<std::string> const &templates, std::vector<std::string> &failures, std::string const &printer);
-    bool clone_presets_for_filament(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &filament_name, std::string const &filament_id, const std::string& vendor, bool force_rewritten = false);
+    bool create_presets_from_template_for_printer(
+        std::vector<Preset const *> const &templates, std::vector<std::string> &failures, std::string const &printer, std::function <std::string(std::string)> create_filament_id, bool force_rewritten = false);
+    bool clone_presets_for_filament(Preset const * const &preset, std::vector<std::string> &failures, std::string const &filament_name, std::string const &filament_id, const std::string& vendor,
+                                                  const std::string& compatible_printers, bool force_rewritten = false);
 
     std::map<std::string, std::vector<Preset const *>> get_filament_presets() const;
 
