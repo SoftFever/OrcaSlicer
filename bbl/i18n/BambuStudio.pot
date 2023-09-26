@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 12:25+0800\n"
+"POT-Creation-Date: 2023-09-26 18:57+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3824,6 +3824,12 @@ msgstr ""
 msgid "Clear"
 msgstr ""
 
+msgid ""
+"You have completed printing the mall model, but the synchronization of "
+"rating information has failed. \n"
+"If you need to resynchronize, please reselect the printer."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4524,16 +4530,22 @@ msgstr ""
 msgid "Another export job is running."
 msgstr ""
 
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr ""
+
 msgid "Select a new file"
 msgstr ""
 
 msgid "File for the replace wasn't selected"
 msgstr ""
 
-msgid "Error during replace"
+msgid "Please select a file"
 msgstr ""
 
-msgid "Please select a file"
+msgid "Do you want to replace it"
 msgstr ""
 
 msgid "Slicing"

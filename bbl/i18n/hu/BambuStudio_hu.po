@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 12:25+0800\n"
+"POT-Creation-Date: 2023-09-26 18:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4049,6 +4049,12 @@ msgstr "Layer: N/A"
 msgid "Clear"
 msgstr "Törlés"
 
+msgid ""
+"You have completed printing the mall model, but the synchronization of "
+"rating information has failed. \n"
+"If you need to resynchronize, please reselect the printer."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4786,17 +4792,23 @@ msgstr "A kijelölt objektumot nem lehet feldarabolni."
 msgid "Another export job is running."
 msgstr "Egy másik exportálási feladat is fut."
 
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Hiba a csere során"
+
 msgid "Select a new file"
 msgstr "Válassz egy új fájlt"
 
 msgid "File for the replace wasn't selected"
 msgstr "A cserefájl nem lett kiválasztva"
 
-msgid "Error during replace"
-msgstr "Hiba a csere során"
-
 msgid "Please select a file"
 msgstr "Kérjük, válassz egy fájlt"
+
+msgid "Do you want to replace it"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Szeletelés"

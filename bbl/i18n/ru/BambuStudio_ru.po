@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 12:25+0800\n"
+"POT-Creation-Date: 2023-09-26 18:57+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4063,6 +4063,12 @@ msgstr "Слой: нет данных"
 msgid "Clear"
 msgstr "Очистка"
 
+msgid ""
+"You have completed printing the mall model, but the synchronization of "
+"rating information has failed. \n"
+"If you need to resynchronize, please reselect the printer."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4804,17 +4810,23 @@ msgstr "Выбранный объект не может быть разделе�
 msgid "Another export job is running."
 msgstr "Выполняется другое задание экспорта."
 
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Ошибка при замене"
+
 msgid "Select a new file"
 msgstr "Выберите новый файл"
 
 msgid "File for the replace wasn't selected"
 msgstr "Не выбран файл для замены"
 
-msgid "Error during replace"
-msgstr "Ошибка при замене"
-
 msgid "Please select a file"
 msgstr "Пожалуйста, выберите файл"
+
+msgid "Do you want to replace it"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Нарезка"

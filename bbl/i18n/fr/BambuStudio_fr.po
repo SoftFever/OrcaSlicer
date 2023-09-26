@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 12:25+0800\n"
+"POT-Creation-Date: 2023-09-26 18:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4079,6 +4079,12 @@ msgstr "Couche : N/A"
 msgid "Clear"
 msgstr "Nettoyer"
 
+msgid ""
+"You have completed printing the mall model, but the synchronization of "
+"rating information has failed. \n"
+"If you need to resynchronize, please reselect the printer."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4823,17 +4829,23 @@ msgstr "L'objet sélectionné n'a pas pu être divisé."
 msgid "Another export job is running."
 msgstr "Une autre tâche d'exportation est en cours d'exécution."
 
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Erreur lors du remplacement"
+
 msgid "Select a new file"
 msgstr "Sélectionnez un nouveau fichier"
 
 msgid "File for the replace wasn't selected"
 msgstr "Le fichier de remplacement n'a pas été sélectionné"
 
-msgid "Error during replace"
-msgstr "Erreur lors du remplacement"
-
 msgid "Please select a file"
 msgstr "Veuillez sélectionner un fichier"
+
+msgid "Do you want to replace it"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Découpe"
