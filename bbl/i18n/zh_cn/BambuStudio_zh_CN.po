@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-25 11:04+0800\n"
+"POT-Creation-Date: 2023-09-26 12:25+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -254,6 +254,20 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "等比例缩放"
 
+msgid "Part"
+msgstr "零件"
+
+msgid "Object"
+msgstr "对象"
+
+msgid "Drag to move the cut plane"
+msgstr "拖动切割平面可移动"
+
+msgid ""
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr "拖动切割平面可移动；在零件上单击鼠标右键以将其指定给另一侧"
+
 msgid "Left click"
 msgstr "左击"
 
@@ -281,11 +295,29 @@ msgstr "取消选择连接件"
 msgid "Select all connectors"
 msgstr "选择所有连接件"
 
+msgid "Plot cut plane"
+msgstr "绘制切割平面"
+
+msgid "right click"
+msgstr "单击右键"
+
+msgid "Assign the part to the other side"
+msgstr "将零件指定给另一侧"
+
 msgid "Cut"
 msgstr "剪切"
 
 msgid "Connector"
 msgstr "连接件"
+
+msgid "Planar"
+msgstr "平面"
+
+msgid "Dovetail"
+msgstr "燕尾榫"
+
+msgid "Mode"
+msgstr "模式"
 
 msgid "Movement:"
 msgstr "移动："
@@ -301,6 +333,21 @@ msgstr "编辑连接件"
 
 msgid "Add connectors"
 msgstr "添加连接件"
+
+msgid "Groove"
+msgstr "凹槽"
+
+msgid "Depth"
+msgstr "深度"
+
+msgid "Width"
+msgstr "宽度"
+
+msgid "Flap Angle"
+msgstr "翼偏角"
+
+msgid "Groove Angle"
+msgstr "凹槽角"
 
 msgid "Upper part"
 msgstr "上半部分"
@@ -409,7 +456,7 @@ msgid "Dowel"
 msgstr "销钉"
 
 msgid "Snap"
-msgstr ""
+msgstr "按扣"
 
 msgid "Tolerance"
 msgstr "容差"
@@ -1239,12 +1286,6 @@ msgstr "高度范围"
 msgid "Settings for height range"
 msgstr "高度范围设置"
 
-msgid "Object"
-msgstr "对象"
-
-msgid "Part"
-msgstr "零件"
-
 msgid "Layer"
 msgstr "层"
 
@@ -1972,14 +2013,14 @@ msgstr "热床温度"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2629,26 +2670,25 @@ msgstr "更新失败。"
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
-"当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材料"
+"当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料"
 "（如PLA/PETG/TPU）"
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许"
-"将腔温设置高于45度。"
+"将腔温设置高于45℃。"
 
 msgid ""
-"When you set the chamber temperature below 40\\u2103, the chamber "
-"temperature control will not be activated. And the target chamber "
-"temperature will automatically be set to 0\\u2103."
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
-"当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
@@ -5586,8 +5626,8 @@ msgstr "用户使用协议"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您"
@@ -7695,9 +7735,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -9090,9 +9127,6 @@ msgstr "清理量"
 msgid "The volume of material to prime extruder on tower."
 msgstr "擦拭塔上的清理量"
 
-msgid "Width"
-msgstr "宽度"
-
 msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
@@ -9960,10 +9994,10 @@ msgstr "将打印一份测试模型。在校准之前，请清理打印平台并
 msgid "Printing Parameters"
 msgstr "打印参数"
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -10018,15 +10052,6 @@ msgstr "结束k值"
 msgid "Value step"
 msgstr "值步长"
 
-msgid "0.5"
-msgstr ""
-
-msgid "0.05"
-msgstr ""
-
-msgid "0.005"
-msgstr ""
-
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr "喷嘴直径已从打印机设置同步"
 
@@ -10035,9 +10060,6 @@ msgstr "从体积速度"
 
 msgid "To Volumetric Speed"
 msgstr "至体积速度"
-
-msgid "mm\\u00B3/s"
-msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
@@ -10150,12 +10172,12 @@ msgstr "值步长"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值:\n"
-"起始值 > 0 \\值步长 >= 0\n"
-"结束值 > 起始值 + 值步长)"
+"请输入有效值：\n"
+"起始值 > 0 且 步长 >= 0\n"
+"终止值 > 起始值 + 步长）"
 
 msgid "VFA test"
 msgstr "VFA测试"
@@ -10168,12 +10190,12 @@ msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
-"请输入有效值:\n"
-"起始值 > 0 \\值步长 >= 0\n"
-"结束值 > 起始值 + 值步长)"
+"请输入有效值：\n"
+"起始值 > 10 且 步长 >= 0\n"
+"终止值 > 起始值 + 步长）"
 
 msgid "Start retraction length: "
 msgstr "起始回抽长度"
@@ -10945,37 +10967,44 @@ msgstr ""
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
-#~ "45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-#~ "TPU) is not allowed to be loaded."
+#~ "45\\u2103.In order to avoid extruder clogging,low temperature "
+#~ "filament(PLA/PETG/TPU) is not allowed to be loaded."
 #~ msgstr ""
-#~ "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材"
+#~ "当前腔温或目标腔温超过了45度。为了避免挤出机堵塞，不允许加载低温度的打印材"
 #~ "料（如PLA/PETG/TPU）"
 
 #~ msgid ""
 #~ "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order "
 #~ "to avoid extruder clogging,it is not allowed to set the chamber "
-#~ "temperature above 45℃."
+#~ "temperature above 45\\u2103."
 #~ msgstr ""
 #~ "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允"
-#~ "许将腔温设置高于45℃。"
+#~ "许将腔温设置高于45度。"
+
+#~ msgid ""
+#~ "When you set the chamber temperature below 40\\u2103, the chamber "
+#~ "temperature control will not be activated. And the target chamber "
+#~ "temperature will automatically be set to 0\\u2103."
+#~ msgstr ""
+#~ "当您设置的腔温低于40度时，腔温控制将不会启动。并且目标腔温将自动设置为0度"
 
 #~ msgid ""
 #~ "Please input valid values:\n"
-#~ "start > 0 step >= 0\n"
+#~ "start > 0 \\step >= 0\n"
 #~ "end > start + step)"
 #~ msgstr ""
-#~ "请输入有效值：\n"
-#~ "起始值 > 0 且 步长 >= 0\n"
-#~ "终止值 > 起始值 + 步长）"
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
 
 #~ msgid ""
 #~ "Please input valid values:\n"
-#~ "start > 10 step >= 0\n"
+#~ "start > 10 \\step >= 0\n"
 #~ "end > start + step)"
 #~ msgstr ""
-#~ "请输入有效值：\n"
-#~ "起始值 > 10 且 步长 >= 0\n"
-#~ "终止值 > 起始值 + 步长）"
+#~ "请输入有效值:\n"
+#~ "起始值 > 0 \\值步长 >= 0\n"
+#~ "结束值 > 起始值 + 值步长)"
 
 #~ msgid "Create Printer/Filament Successful"
 #~ msgstr "创建打印机/材料成功"
@@ -13763,9 +13792,6 @@ msgstr ""
 
 #~ msgid "Advanced Mode"
 #~ msgstr "高级模式"
-
-#~ msgid "Mode"
-#~ msgstr "模式"
 
 #~ msgid "%s Mode"
 #~ msgstr "%s模式"

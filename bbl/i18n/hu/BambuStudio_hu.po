@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-25 11:04+0800\n"
+"POT-Creation-Date: 2023-09-26 12:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -251,6 +251,20 @@ msgstr "%"
 msgid "uniform scale"
 msgstr "egységes méretarány"
 
+msgid "Part"
+msgstr "Tárgy"
+
+msgid "Object"
+msgstr "Objektum"
+
+msgid "Drag to move the cut plane"
+msgstr ""
+
+msgid ""
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr ""
+
 msgid "Left click"
 msgstr "Left click"
 
@@ -278,11 +292,29 @@ msgstr "Remove connector from selection"
 msgid "Select all connectors"
 msgstr "Select all connectors"
 
+msgid "Plot cut plane"
+msgstr ""
+
+msgid "right click"
+msgstr ""
+
+msgid "Assign the part to the other side"
+msgstr ""
+
 msgid "Cut"
 msgstr "Vágás"
 
 msgid "Connector"
 msgstr "Connector"
+
+msgid "Planar"
+msgstr ""
+
+msgid "Dovetail"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
 
 msgid "Movement:"
 msgstr "Mozgatás:"
@@ -298,6 +330,21 @@ msgstr "Edit connectors"
 
 msgid "Add connectors"
 msgstr "Add connectors"
+
+msgid "Groove"
+msgstr ""
+
+msgid "Depth"
+msgstr ""
+
+msgid "Width"
+msgstr "Szélesség"
+
+msgid "Flap Angle"
+msgstr ""
+
+msgid "Groove Angle"
+msgstr ""
 
 msgid "Upper part"
 msgstr "Upper part"
@@ -1271,12 +1318,6 @@ msgstr "Height ranges"
 msgid "Settings for height range"
 msgstr "Settings for height range"
 
-msgid "Object"
-msgstr "Objektum"
-
-msgid "Part"
-msgstr "Tárgy"
-
 msgid "Layer"
 msgstr "Réteg"
 
@@ -2048,14 +2089,14 @@ msgstr "Asztalhőmérséklet"
 msgid "Max volumetric speed"
 msgstr "Max. volumetrikus sebesség"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Asztalhőmérséklet"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -2745,20 +2786,20 @@ msgstr "A frissítés sikertelen."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40\\u2103, the chamber "
-"temperature control will not be activated. And the target chamber "
-"temperature will automatically be set to 0\\u2103."
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -5769,8 +5810,8 @@ msgstr "Terms and Conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab "
@@ -8055,9 +8096,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimális tisztítás a törlőtoronyban"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "Filament betöltési idő"
 
@@ -9579,9 +9617,6 @@ msgstr "Tisztítási mennyiség"
 msgid "The volume of material to prime extruder on tower."
 msgstr "Ez az az anyagmennyiség, amelyet az extruder a toronyban ürít."
 
-msgid "Width"
-msgstr "Szélesség"
-
 msgid "Width of prime tower"
 msgstr "Ez a törlő torony szélessége."
 
@@ -10428,10 +10463,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -10483,15 +10518,6 @@ msgstr ""
 msgid "Value step"
 msgstr ""
 
-msgid "0.5"
-msgstr ""
-
-msgid "0.05"
-msgstr ""
-
-msgid "0.005"
-msgstr ""
-
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr ""
 
@@ -10499,9 +10525,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10607,7 +10630,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10622,7 +10645,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11399,6 +11422,12 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "Embeded\n"
