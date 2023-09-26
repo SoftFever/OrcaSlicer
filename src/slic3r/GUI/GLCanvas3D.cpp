@@ -1748,7 +1748,8 @@ Points GLCanvas3D::estimate_wipe_tower_points(int plate_index, bool global) cons
     if (plate_index >= plate_count) { plate_index = 0; }
     float w               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_tower_width"))->value;
     float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
-    Vec3d         wipe_tower_size = ppl.get_plate(plate_index)->estimate_wipe_tower_size(w, v);
+    const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    Vec3d         wipe_tower_size = ppl.get_plate(plate_index)->estimate_wipe_tower_size(print_cfg, w, v);
 
     if (wipe_tower_size(1) == 0) {
         // when depth is unavailable (no items on this plate), we have to estimate the depth using the extruder number of all plates
@@ -2630,7 +2631,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
                 const Print* print = m_process->fff_print();
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
-                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, v);
+                const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, v);
 
                 const float margin = 15.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();

@@ -2604,20 +2604,39 @@ int CLI::run(int argc, char **argv)
                             if (layer_height_opt)
                                 layer_height = layer_height_opt->getFloat();
 
-                            float depth = v * (filaments_cnt - 1) / (layer_height * w);
+                            //float depth = v * (filaments_cnt - 1) / (layer_height * w);
 
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%")
-                                %x %y %w %depth %a %v %filaments_cnt %layer_height;
-
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, v, filaments_cnt);
                             Vec3d plate_origin = cur_plate->get_origin();
+                            int plate_width, plate_depth, plate_height;
+                            partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
+                            float depth = wipe_tower_size(1);
+                            float margin = 15.f, wp_brim_width = 0.f;
+                            ConfigOption *wipe_tower_brim_width_opt = m_print_config.option("prime_tower_brim_width");
+                            if (wipe_tower_brim_width_opt ) {
+                                wp_brim_width = wipe_tower_brim_width_opt->getFloat();
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: wp_brim_width %1%")%wp_brim_width;
+                            }
+
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%")
+                                                            %x %y %w %depth %a %v %filaments_cnt %layer_height %plate_width %plate_depth;
+                            if ((y + depth + margin + wp_brim_width) > (float)plate_depth) {
+                                y = (float)plate_depth - depth - margin - wp_brim_width;
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: exceeds the border, change y to %1%, plate_depth=%2%")%y %plate_depth;
+                            }
+
+                            if ((x + w + margin + wp_brim_width) > (float)plate_width) {
+                                x = (float)plate_width - w - margin - wp_brim_width;
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: exceeds the border, change x to %1%, plate_width=%2%")%y %plate_width;
+                            }
 
                             ArrangePolygon wipe_tower_ap;
 
                             Polygon ap({
-                                {scaled(x), scaled(y)},
-                                {scaled(x + w), scaled(y)},
-                                {scaled(x + w), scaled(y + depth)},
-                                {scaled(x), scaled(y + depth)}
+                                {scaled(x - wp_brim_width), scaled(y - wp_brim_width)},
+                                {scaled(x + w + wp_brim_width), scaled(y - wp_brim_width)},
+                                {scaled(x + w + wp_brim_width), scaled(y + depth + wp_brim_width)},
+                                {scaled(x - wp_brim_width), scaled(y + depth + wp_brim_width)}
                                 });
                             wipe_tower_ap.bed_idx = 0;
                             wipe_tower_ap.setter = NULL; // do not move wipe tower
