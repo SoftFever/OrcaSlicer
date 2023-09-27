@@ -696,6 +696,9 @@ public:
         case smsTreeSlim:
         case smsTreeStrong:
         case smsTreeHybrid:
+
+        // Orca: use organic as default
+        case smsDefault:
         case smsOrganic:
 //            assert(false);
             [[fallthrough]];

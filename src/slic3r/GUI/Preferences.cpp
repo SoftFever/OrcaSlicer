@@ -1307,31 +1307,31 @@ wxWindow* PreferencesDialog::create_debug_page()
 
 void PreferencesDialog::on_select_radio(std::string param)
 {
-    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_param_name == param) groupid = rs->m_groupid;
-        node = node->GetNext();
+        it = it->GetNext();
     }
 
-    node = m_radio_group.GetFirst();
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    it = m_radio_group.GetFirst();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_groupid == groupid && rs->m_param_name == param) rs->m_radiobox->SetValue(true);
         if (rs->m_groupid == groupid && rs->m_param_name != param) rs->m_radiobox->SetValue(false);
-        node = node->GetNext();
+        it = it->GetNext();
     }
 }
 
 wxString PreferencesDialog::get_select_radio(int groupid)
 {
-    RadioSelectorList::Node *node = m_radio_group.GetFirst();
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_groupid == groupid && rs->m_radiobox->GetValue()) { return rs->m_param_name; }
-        node = node->GetNext();
+        it = it->GetNext();
     }
 
     return wxEmptyString;
@@ -1339,21 +1339,21 @@ wxString PreferencesDialog::get_select_radio(int groupid)
 
 void PreferencesDialog::OnSelectRadio(wxMouseEvent &event)
 {
-    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_radiobox->GetId() == event.GetId()) groupid = rs->m_groupid;
-        node = node->GetNext();
+        it = it->GetNext();
     }
 
-    node = m_radio_group.GetFirst();
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    it = m_radio_group.GetFirst();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_groupid == groupid && rs->m_radiobox->GetId() == event.GetId()) rs->m_radiobox->SetValue(true);
         if (rs->m_groupid == groupid && rs->m_radiobox->GetId() != event.GetId()) rs->m_radiobox->SetValue(false);
-        node = node->GetNext();
+        it = it->GetNext();
     }
 }
 
