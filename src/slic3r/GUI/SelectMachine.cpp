@@ -3046,11 +3046,28 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 
     //reset print status
+    update_flow_cali_check(obj);
+
     show_status(PrintDialogStatus::PrintStatusInit);
 
     reset_ams_material();
 
     update_show_status();
+}
+
+void SelectMachineDialog::update_flow_cali_check(MachineObject* obj)
+{
+    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
+    auto show_cali_tips = true;
+
+    if (obj && obj->printer_type == "N1") { show_cali_tips = false; }
+
+    if (bed_type == BedType::btPTE) {
+        set_flow_calibration_state(false, show_cali_tips);
+    }
+    else {
+        set_flow_calibration_state(true, show_cali_tips);
+    }
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
@@ -3724,17 +3741,7 @@ void SelectMachineDialog::set_default_normal()
     m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
 
     //disable pei bed
-    auto bed_type = m_plater->get_partplate_list().get_curr_plate()->get_bed_type(true);
-    auto show_cali_tips = true;
-
-    if (obj_ && obj_->printer_type == "N1") { show_cali_tips = false; }
-
-    if (bed_type == BedType::btPTE) {
-        set_flow_calibration_state(false, show_cali_tips);
-    }
-    else {
-        set_flow_calibration_state(true, show_cali_tips);
-    }
+    update_flow_cali_check(obj_);
 
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();

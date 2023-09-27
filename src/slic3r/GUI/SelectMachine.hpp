@@ -432,6 +432,7 @@ public:
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
     void on_selection_changed(wxCommandEvent& event);
+    void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
     void Enable_Send_Button(bool en);
     void on_dpi_changed(const wxRect& suggested_rect) override;
