@@ -7,7 +7,6 @@
 <link rel="stylesheet" type="text/css" href="../css/common.css" />	
 <link rel="stylesheet" type="text/css" href="23.css" />
 <link rel="stylesheet" type="text/css" href="../css/dark.css" />	
-<script type="text/javascript" src="test.js"></script>
 <script type="text/javascript" src="../js/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>	
 <script type="text/javascript" src="../../data/text.js"></script>	
@@ -17,10 +16,12 @@
 </head>
 <body onLoad="OnInit()">
 <div id="Title">
-	<div class="trans" tid="t14">Filament Selection</div>
+	<div id="SystemFilamentBtn" class="TitleSelected trans" tid="t109" onClick="OnSelectMenu(1)">System Filaments</div>
+	<div id="CustomFilamentBtn" class="TitleUnselected trans" tid="t110" onClick="OnSelectMenu(2)">Custom Filaments</div>
 </div>
 <div id="Content" class="ZScrol">
-
+	
+<div id="SystemFilamentsArea">
 <div id="MachineList" class="ChooseBlock">
 	<div class="CName"><span class="trans" tid="t15">printer</span>：</div>
 	<div class="CValues">
@@ -32,8 +33,7 @@
 	<div><input type="checkbox" />Bambulab BBL-3DP-001-V5-normal</div>
 	<div><input type="checkbox" />Bambulab BBL-3DP-001-V4-normal</div>	
 	<div><input type="checkbox" />Bambulab BBL-3DP-001-V4-normal</div>
-	<div><input type="checkbox" />Bambulab BBL-3DP-001-V5-normal</div>
-	<div><input type="checkbox" />Bambulab BBL-3DP-001-V4-normal</div>-->			
+	<div><input type="checkbox" />Bambulab BBL-3DP-001-V5-normal</div>	-->		
 	</div>
 </div>	
 	
@@ -46,7 +46,7 @@
 	<div><input type="checkbox" />ABS</div>
 	<div><input type="checkbox" />TPU</div>	
 	<div><input type="checkbox" />PA6+CF</div>
-	<div><input type="checkbox" />N/A</div>-->		
+	<div><input type="checkbox" />N/A</div>	-->			
 	</div>
 </div>
 	
@@ -58,7 +58,8 @@
 	<div><input type="checkbox" />BBL</div>	
 	<div><input type="checkbox" />eSUN</div>
 	<div><input type="checkbox" />Kexcelled</div>	
-	<div><input type="checkbox" />Polymaker</div>-->
+	<div><input type="checkbox" />Polymaker</div>
+	<div><input type="checkbox" vendor="Unknow" />Unknown</div>	-->
     </div>
 </div>
 
@@ -125,6 +126,148 @@
 	<div class="MItem"><input type="checkbox" />Geneic TPU</div>
 	<div class="MItem"><input type="checkbox" />Geneic TPU83</div>	
 	<div class="MItem"><input type="checkbox" />Geneic TPU87</div>	-->
+</div>
+</div>
+	
+	
+<div id="CustomFilamentsArea">
+	<div id="CFilament_Btn_Area">
+		<div class="SmallBtn_Green trans" tid="t111" onClick="OnClickCustomFilamentAdd()">Create New</div>
+	</div>
+    <div id="CFilament_List" class="ZScrol">
+<!--		<div class="CFilament_Item">
+			<a  class="CFilament_Name" title="New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img onClick="CFEdit()" class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>		
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	
+		<div class="CFilament_Item">
+			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+		</div>	-->	
+	</div>
 </div>
 	
 </div>

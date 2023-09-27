@@ -47,7 +47,6 @@ input
 
 #ItemBlockArea
 {
-	flex: 1 0 236px;
 	display:flex;
 	overflow-x:auto;
 	flex-wrap:wrap;
@@ -56,6 +55,8 @@ input
 	align-items: flex-start;
 	align-content:flex-start;
 	line-height: 32px;
+	height: 100%;
+	flex:1 0 236px;
 }
 
 .MItem
@@ -111,4 +112,97 @@ input
 	margin-top: 4mm;
 	display: flex;
 	justify-content:space-around;
+}
+
+#SystemFilamentsArea
+{
+	display: none;
+	flex-direction: column;
+}
+
+#CFilament_Btn_Area
+{
+	display: flex;
+	align-items: center;
+	height: 30px;
+}
+
+#Title
+{
+	margin: 0px 40px;
+	border-bottom: 1px solid #000;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+#Title div
+{
+	cursor: pointer;
+	font-size: 24px;
+}
+
+#Title div.TitleSelected
+{
+	height: calc(100% - 6px);
+	display: flex;
+	align-items: center;
+	border-bottom: 6px solid #00AE42;
+}
+
+#Title div.TitleUnselected
+{
+	height: 100%;
+	display: flex;
+	align-items: center;
+	color: #000;
+}
+
+#CustomFilamentsArea
+{
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+#CFilament_List
+{
+	display:flex;
+	overflow-x:auto;
+	flex-wrap:wrap;
+	flex-direction: column;
+	justify-content:flex-start;
+	align-items: flex-start;
+	align-content:flex-start;
+	line-height: 32px;
+
+	height: 100%;
+}
+
+.CFilament_Item
+{
+	display: flex;
+	align-items: center;
+	margin-right: 30px;
+}
+
+.CFilament_Name
+{
+	width: 220px;
+	overflow: hidden;
+    white-space: nowrap; /* 防止文字换行 */
+    text-overflow: ellipsis; /* 超出部分显示省略号 */
+}
+
+.CFilament_EditBtn
+{
+	cursor: pointer;
+	width: 20px;
+	height: 20px;
+}
+
+.CFilament_EditBtn:hover
+{
+	
 }
