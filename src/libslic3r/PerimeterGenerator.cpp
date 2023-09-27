@@ -1417,7 +1417,7 @@ void PerimeterGenerator::process_arachne()
             //BBS: get real top surface
             infill_contour = intersection_ex(infill_contour, the_layer_surface);
             Polygons surface_not_export_to_top_p = to_polygons(surface_not_export_to_top);
-            Arachne::WallToolPaths innerWallToolPaths(surface_not_export_to_top_p, ext_perimeter_spacing, perimeter_spacing, coord_t(remain_loops + 1), 0, layer_height, input_params);
+            Arachne::WallToolPaths innerWallToolPaths(surface_not_export_to_top_p, perimeter_spacing, perimeter_spacing, coord_t(remain_loops + 1), 0, layer_height, input_params);
 
             std::vector<Arachne::VariableWidthLines> perimeters_inner = innerWallToolPaths.getToolPaths();
             remain_loops = int(perimeters_inner.size()) - 1;
