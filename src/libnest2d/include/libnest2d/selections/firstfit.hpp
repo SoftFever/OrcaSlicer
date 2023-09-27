@@ -163,7 +163,8 @@ public:
 
                 if (was_packed && it->get().has_tried_with_excluded) {
                     placers[j].clearItems([](const Item &itm) { return itm.isFixed() && !itm.is_wipe_tower; });
-                    placers[j].preload(fixed_bins[placers.size() - 1]);
+                    if (fixed_bins.size() >= placers.size())
+                        placers[j].preload(fixed_bins[placers.size() - 1]);
                 }
                 bool placer_not_packed = !was_packed && !placers.empty() && j == placers.size() && placers[j - 1].getPackedSize() == 0; // large item is not placed into the bin
                 if (placer_not_packed) {
