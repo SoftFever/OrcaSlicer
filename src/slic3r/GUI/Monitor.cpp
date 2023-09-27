@@ -274,7 +274,6 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
         return;
 
     set_default();
-    m_status_info_panel->set_print_finish_status(false);
     update_all();
 
     MachineObject *obj_ = dev->get_selected_machine();

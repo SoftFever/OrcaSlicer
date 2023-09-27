@@ -1731,9 +1731,10 @@ void StatusPanel::init_scaled_buttons()
 }
 
 void StatusPanel::on_market_scoring(wxCommandEvent &event) { 
-    if (obj && obj->get_modeltask() && obj->get_modeltask()->design_id > 0 && m_rating_result.contains("id")) { // model is mall model and has rating_id
+    if (obj && obj->is_makeworld_subtask() && obj->rating_info && obj->rating_info->request_successful) { // model is mall model and has rating_id
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_market_scoring" ;
-        if (m_score_data && m_score_data->rating_id == m_rating_result["id"].get<unsigned int>()) { // current score data for model is same as mall model
+        if (m_score_data && m_score_data->rating_id == obj->rating_info->rating_id) { // current score data for model is same as mall model
+            if (m_score_data->star_count != m_project_task_panel->get_star_count()) m_score_data->star_count = m_project_task_panel->get_star_count();
             ScoreDialog m_score_dlg(this, m_score_data);
             int ret = m_score_dlg.ShowModal();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": old data";
@@ -1742,8 +1743,7 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": old data is upload";
                 m_score_data->rating_id = -1;
                 m_project_task_panel->set_star_count_dirty(false);
-                requested_rating_map.clear();
-                m_print_finish = false;
+                if (obj) obj->get_model_mall_result_need_retry = true;
                 return;
             }
             if (m_score_data != nullptr) {
@@ -1753,29 +1753,18 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
             m_score_data = new ScoreData(m_score_dlg.get_score_data()); // when user do not submit score, store the data for next opening the score dialog
             m_project_task_panel->set_star_count(m_score_data->star_count);
         } else {
-            //to do: if user has rated the model, show the comment on the dialog
-            int star_count = 0;
-            if (m_rating_result.contains("content")) 
-                star_count = m_project_task_panel->get_star_count_dirty() ? m_project_task_panel->get_star_count() : m_rating_result["score"].get<int>();
-            bool success_print = true;
-            if (m_rating_result.contains("successPrinted"))
-                success_print = m_rating_result["successPrinted"].get<bool>();
-            ScoreDialog m_score_dlg(this, obj->get_modeltask()->design_id, obj->get_modeltask()->model_id, obj->get_modeltask()->profile_id,
-                                    m_rating_result["id"].get<unsigned int>(), success_print, star_count);
+            int star_count      = m_project_task_panel->get_star_count_dirty() ? m_project_task_panel->get_star_count() : obj->rating_info->start_count;
+            bool        success_print = obj->rating_info->success_printed;
+            ScoreDialog m_score_dlg(this, obj->get_modeltask()->design_id, obj->get_modeltask()->model_id, obj->get_modeltask()->profile_id, obj->rating_info->rating_id,
+                                    success_print, star_count);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": new data";
 
-            if (m_rating_result.contains("content")) {
-                std::string comment = m_rating_result["content"].get<std::string>();
-                if (!comment.empty()) {
-                    m_score_dlg.set_comment(comment);
-                }
-            }
+            std::string comment = obj->rating_info->content;
+            if (!comment.empty()) { m_score_dlg.set_comment(comment); }
             
-            if (m_rating_result.contains("images")) {
-                std::vector<std::string> images_json_array;
-                images_json_array = m_rating_result["images"].get<std::vector<std::string>>();
-                m_score_dlg.set_cloud_bitmap(images_json_array);
-            }
+            std::vector<std::string> images_json_array;
+            images_json_array = obj->rating_info->image_url_paths;
+            if (!images_json_array.empty()) m_score_dlg.set_cloud_bitmap(images_json_array);
             
             int ret = m_score_dlg.ShowModal();
 
@@ -1783,8 +1772,7 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": new data is upload";
                 m_score_data->rating_id = -1;
                 m_project_task_panel->set_star_count_dirty(false);
-                requested_rating_map.clear();
-                m_print_finish = false;
+                if (obj) obj->get_model_mall_result_need_retry = true;
                 return;
             }
             if (m_score_data != nullptr) {
@@ -1799,8 +1787,11 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
 
 void StatusPanel::on_market_retry(wxCommandEvent &event)
 {
-    m_print_finish = false;
-    requested_rating_map.clear();
+    if (obj) {
+    obj->get_model_mall_result_need_retry = true;
+    } else {
+        BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << "retury failed";
+    }
 }
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
@@ -1900,11 +1891,11 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
         || last_profile_id != obj->profile_id_
         || last_task_id != obj->task_id_
         ) {
-        requested_rating_map.erase(last_task_id);
         last_subtask = obj->subtask_;
         last_profile_id = obj->profile_id_;
         last_task_id = obj->task_id_;
         request_model_info_flag = false;
+        m_project_task_panel->set_star_count_dirty(false);
         return true;
     }
     return false;
@@ -2739,7 +2730,6 @@ void StatusPanel::update_model_info()
 
      
     if (wxGetApp().getAgent() && obj) {
-
         BBLSubTask* curr_task = obj->get_subtask();
         if (curr_task) {
             BBLModelTask* curr_model_task = obj->get_modeltask();
@@ -2808,90 +2798,51 @@ void StatusPanel::update_subtask(MachineObject *obj)
             else {
                 m_project_task_panel->show_profile_info(false);
             }
-
             update_basic_print_data(false);
         } else {
             if (obj->can_resume()) {
                 m_project_task_panel->enable_pause_resume_button(true, "resume");
-               
             } else {
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
-            if (obj->print_status == "FINISH") {
+            if (obj->is_printing_finished()) {
+                obj->update_model_task();
                 m_project_task_panel->enable_abort_button(false);
                 m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
-                if (wxGetApp().has_model_mall()) {
-                    bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
-                    if (is_market_task) {
-                        NetworkAgent *agent = wxGetApp().getAgent();
-                        if (agent && IsShownOnScreen()) {
-                            if (requested_rating_map.find(obj->subtask_id_) == requested_rating_map.end()) {
-                                requested_rating_map[obj->subtask_id_] = true;
-                                m_project_task_panel->get_request_failed_panel()->Hide();
-                                int instance_id = obj->get_modeltask()->instance_id;
-                                std::string dev_id = obj->dev_id;
-                                boost::thread([this, agent, instance_id, dev_id] {
-                                    try {
-                                        std::string  rating_result;
-                                        unsigned int http_code = 404;
-                                        std::string  http_error;
-                                        int          rating_id = -1;
-                                        int          res       = -1;
-                                        if (!this || !(this->obj) || this->obj->dev_id != dev_id) return;
-                                        if (m_model_mall_request_count > 20) return;
-                                        res = agent->get_model_mall_rating_result(instance_id, rating_result, http_code, http_error);
-                                        m_model_mall_request_count++;
-                                        BOOST_LOG_TRIVIAL(info) << "request times :" << m_model_mall_request_count;
-                                        if (0 == res) {
-                                            m_rating_result = json::parse(rating_result);
-                                            if (m_rating_result.contains("id")) {
-                                                rating_id = m_rating_result["id"].get<unsigned int>();
-                                                if (!this || !(this->obj) || this->obj->dev_id != dev_id) return;
-                                                m_project_task_panel->market_scoring_show();
-                                                BOOST_LOG_TRIVIAL(info) << "show scoring page";
-                                                // this mall model has score, user do not click star, Initialize scores only once per print startup program
-                                                if ((m_rating_result.contains("score"))) {
-                                                    int star_count = m_rating_result["score"].get<int>();
-                                                    m_project_task_panel->set_star_count(star_count);
-                                                    m_project_task_panel->set_star_count_dirty(true);
-                                                    BOOST_LOG_TRIVIAL(info) << "Initialize scores";
-
-                                                    if (0 != star_count) {
-                                                        m_project_task_panel->get_market_scoring_button()->Enable(true);
-                                                        m_project_task_panel->set_has_reted_text(true);
-                                                    } else {
-                                                        m_project_task_panel->set_has_reted_text(false);
-                                                    }
-                                                }
-                                            }
-                                            m_model_mall_request_count = 0;
-                                        } else {
-                                                m_project_task_panel->get_request_failed_panel()->Show();
-                                            BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
-                                            return;
-                                        }
-                                    } catch (...) {
-                                        m_project_task_panel->market_scoring_hide();
-                                        BOOST_LOG_TRIVIAL(info) << "get mall model rating id failed and hide scoring page";
-                                    }
-                                });
+                // is makeworld subtask
+                if (wxGetApp().has_model_mall() && obj->is_makeworld_subtask()) {
+                    // has model mall rating result
+                    if (obj && obj->rating_info && obj->rating_info->request_successful) {
+                        m_project_task_panel->get_request_failed_panel()->Hide();
+                        BOOST_LOG_TRIVIAL(info) << "model mall result request successful";
+                        // has start count
+                        if (!m_project_task_panel->get_star_count_dirty()) {
+                            if (obj->rating_info->start_count > 0) {
+                                m_project_task_panel->set_star_count(obj->rating_info->start_count);
+                                m_project_task_panel->set_star_count_dirty(true);
+                                BOOST_LOG_TRIVIAL(info) << "Initialize scores";
+                                m_project_task_panel->get_market_scoring_button()->Enable(true);
+                                m_project_task_panel->set_has_reted_text(true);
+                            } else {
+                                m_project_task_panel->set_star_count(0);
+                                m_project_task_panel->set_star_count_dirty(false);
+                                m_project_task_panel->get_market_scoring_button()->Enable(false);
+                                m_project_task_panel->set_has_reted_text(false);
                             }
                         }
-                        BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
-
-                    } else { // model is not mall model. hide scoring page
-                        m_project_task_panel->market_scoring_hide();
+                        m_project_task_panel->market_scoring_show();
+                    } else if (obj && obj->rating_info && !obj->rating_info->request_successful) {
+                        BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
+                        m_project_task_panel->get_market_retry_buttom()->Enable(!obj->get_model_mall_result_need_retry);
+                        m_project_task_panel->get_request_failed_panel()->Show();
                     }
-                } else { // have no model mall, hide scoring page
+                } else {
                     m_project_task_panel->market_scoring_hide();
                 }
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);
                 m_project_task_panel->market_scoring_hide();
                 m_project_task_panel->get_request_failed_panel()->Hide();
-                if (m_print_finish) { 
-                    m_print_finish = false;
-                }
             }
             // update printing stage
             
@@ -3930,10 +3881,6 @@ void StatusPanel::show_status(int status)
         m_panel_monitoring_title->Enable();
         m_media_play_ctrl->Enable();
     }
-}
-
-void StatusPanel::set_print_finish_status(bool is_finish) { 
-    m_print_finish = is_finish; 
 }
 
 void StatusPanel::set_hold_count(int& count)

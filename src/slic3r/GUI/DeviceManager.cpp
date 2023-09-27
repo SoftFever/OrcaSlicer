@@ -1414,6 +1414,15 @@ int MachineObject::get_bed_temperature_limit()
     return BED_TEMP_LIMIT;
 }
 
+bool MachineObject::is_makeworld_subtask()
+{
+    if (model_task && model_task->design_id > 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " model task id: " << model_task->task_id << " is makeworld model";
+        return true;
+    }
+    return false;
+}
+
 bool MachineObject::is_sdcard_printing()
 {
     if (can_abort()
@@ -2508,6 +2517,7 @@ bool MachineObject::is_in_printing_status(std::string status)
     }
     return false;
 }
+
 
 bool MachineObject::is_in_printing()
 {
@@ -4499,6 +4509,92 @@ BBLModelTask* MachineObject::get_modeltask()
 void MachineObject::set_modeltask(BBLModelTask* task)
 {
     model_task = task;
+}
+
+void MachineObject::update_model_task()
+{
+    if (request_model_result > 10) return;
+    if (!m_agent) return;
+    if (!model_task) return;
+    if (!subtask_) return;
+    if (model_task->task_id != subtask_->task_id) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " times: " << request_model_result << " model_task_id !=subtask_id";
+        return;
+    }
+    if (model_task->instance_id <= 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " times: " << request_model_result << " instance_id <= 0";
+        return;
+    }
+
+    if ((!subtask_id_.empty() && last_subtask_id_ != subtask_id_) || get_model_mall_result_need_retry) {
+        if (!subtask_id_.empty() && last_subtask_id_ != subtask_id_) {
+            BOOST_LOG_TRIVIAL(info) << "update_model_task: last=" << last_subtask_id_ << ", curr=" << subtask_id_;
+            last_subtask_id_     = subtask_id_;
+            request_model_result = 0;
+        }
+        if (get_model_mall_result_need_retry) {
+            BOOST_LOG_TRIVIAL(info) << "need retry";
+            get_model_mall_result_need_retry = false;
+        }
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "subtask_id_ no change and do not need retry";
+        return;
+    }
+
+    int curr_instance_id = model_task->instance_id;
+    if (rating_info) {
+        delete rating_info;
+        rating_info = nullptr;
+    }
+    get_model_task_thread = new boost::thread([this, curr_instance_id]{
+        try {
+            std::string  rating_result;
+            unsigned int http_code = 404;
+            std::string  http_error;
+            int          res = -1;
+            res = m_agent->get_model_mall_rating_result(curr_instance_id, rating_result, http_code, http_error);
+            request_model_result++;
+            BOOST_LOG_TRIVIAL(info) << "request times: " << request_model_result << " http code: " << http_code;
+            rating_info = new RatingInfo();
+            if (0 == res && 200 == http_code) {
+                try {
+                    json rating_json = json::parse(rating_result);
+                    if (rating_json.contains("id")) {
+                        rating_info->rating_id = rating_json["id"].get<unsigned int>();
+                        //rating id is necessary info, so rating id must have
+                        request_model_result            = 0;
+                        rating_info->request_successful = true;
+                        BOOST_LOG_TRIVIAL(info) << "get rating id";
+                    } else {
+                        rating_info->request_successful = false;
+                        BOOST_LOG_TRIVIAL(info) << "can not get rating id";
+                        return;
+                    }
+                    if (rating_json.contains("score")) {
+                            rating_info->start_count = rating_json["score"].get<int>();
+                        }
+                    if (rating_json.contains("content"))
+                        rating_info->content = rating_json["content"].get<std::string>();
+                    if (rating_json.contains("successPrinted"))
+                        rating_info->success_printed = rating_json["successPrinted"].get<bool>();
+                    if (rating_json.contains("images")) {
+                        rating_info->image_url_paths = rating_json["images"].get<std::vector<std::string>>();
+                    }
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(info) << "parse model mall result json failed";
+                }
+            }
+            else {
+                rating_info->request_successful = false;
+                BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " http_code: " << http_code
+                                        << " error msg: " << http_error;
+                return;
+            }
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(info) << "get mall model rating id failed and hide scoring page";
+        }
+    });
 }
 
 void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx)

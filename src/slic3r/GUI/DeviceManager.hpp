@@ -179,6 +179,15 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+struct RatingInfo {
+    bool        request_successful;
+    int         rating_id;
+    int         start_count;
+    bool        success_printed;
+    std::string content;
+    std::vector<std::string>  image_url_paths;
+};
+
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
@@ -761,15 +770,23 @@ public:
     std::string  profile_id_;
     std::string  task_id_;
     std::string  subtask_id_;
+    std::string  last_subtask_id_;
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
+    boost::thread* get_model_task_thread { nullptr };
+
+    bool is_makeworld_subtask();
 
 
     int plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
     BBLSubTask* subtask_;
-    BBLModelTask* model_task;
+    BBLModelTask *model_task { nullptr };
+    RatingInfo*  rating_info { nullptr };
+    int           request_model_result             = 0;
+    bool          get_model_mall_result_need_retry = false;
+    
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
@@ -909,6 +926,7 @@ public:
     BBLSubTask* get_subtask();
     BBLModelTask* get_modeltask();
     void set_modeltask(BBLModelTask* task);
+    void update_model_task();
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };

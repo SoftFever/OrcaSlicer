@@ -470,7 +470,6 @@ protected:
     int          m_last_vcamera   = -1;
     int          m_model_mall_request_count = 0;
     bool         m_is_load_with_temp = false;
-    bool         m_print_finish            = false;
     json         m_rating_result;
 
     wxWebRequest web_request;
@@ -478,7 +477,6 @@ protected:
     bool nozzle_temp_input = false;
     bool cham_temp_input   = false;
     bool request_model_info_flag = false;
-    std::map<std::string, bool> requested_rating_map;
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
@@ -627,7 +625,6 @@ public:
 
     void set_default();
     void show_status(int status);
-    void set_print_finish_status(bool is_finish);
     void set_hold_count(int& count);
 
     void rescale_camera_icons();
