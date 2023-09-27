@@ -113,8 +113,8 @@ void wxMediaCtrl2::Load(wxURI url)
                         SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", quoted_dll_path.c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
                         fs::remove(reg_path);
-     
                     }
+                    return true;
                 });
             } else {
                 CallAfter([] {

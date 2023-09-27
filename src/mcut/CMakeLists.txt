@@ -148,7 +148,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" ST
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 	list(APPEND compilation_flags w3 -diag-disable:remark)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-	list(APPEND compilation_flags /W4 /wd26812 /bigobj)
+	list(APPEND compilation_flags /W4 /wd26812 /wd4131 /wd4704 /wd4245 /wd4297 /wd4505 /wd4701 /bigobj)
 	list(APPEND preprocessor_defs -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
