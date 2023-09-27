@@ -1,0 +1,36 @@
+{
+    "filament_cost": [
+        "20"
+    ],
+    "filament_flow_ratio": [
+        "0.933333"
+    ],
+    "filament_settings_id": [
+        "XFILAMENTS PLA"
+    ],
+    "from": "User",
+    "hot_plate_temp": [
+        "60"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "60"
+    ],
+    "inherits": "Kingroon Generic PLA",
+    "name": "XFILAMENTS PLA",
+    "nozzle_temperature": [
+        "195"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "205"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
+    ],
+    "slow_down_layer_time": [
+        "4"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "version": "1.6.0.66"
+}

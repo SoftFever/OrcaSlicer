@@ -65,7 +65,7 @@ SurfacesPtr SurfaceCollection::filter_by_types(const SurfaceType *types, int nty
     return ss;
 }
 
-void SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons)
+void SurfaceCollection::filter_by_type(SurfaceType type, Polygons* polygons) const
 {
     for (const Surface &surface : this->surfaces)
         if (surface.surface_type == type)
@@ -112,6 +112,22 @@ void SurfaceCollection::remove_type(const SurfaceType type)
     size_t j = 0;
     for (size_t i = 0; i < surfaces.size(); ++ i) {
         if (surfaces[i].surface_type != type) {
+            if (j < i)
+                std::swap(surfaces[i], surfaces[j]);
+            ++ j;
+        }
+    }
+    if (j < surfaces.size())
+        surfaces.erase(surfaces.begin() + j, surfaces.end());
+}
+
+void SurfaceCollection::remove_type(const SurfaceType type, ExPolygons *polygons)
+{
+    size_t j = 0;
+    for (size_t i = 0; i < surfaces.size(); ++ i) {
+        if (Surface &surface = surfaces[i]; surface.surface_type == type) {
+            polygons->emplace_back(std::move(surface.expolygon));
+        } else {
             if (j < i)
                 std::swap(surfaces[i], surfaces[j]);
             ++ j;
