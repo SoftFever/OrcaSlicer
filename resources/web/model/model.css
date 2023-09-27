@@ -82,7 +82,7 @@ body
 {
 	font-size: 16px;
 	font-weight: 700;
-	color: black;
+	color: black;	
 }
 
 .Text_Value
@@ -104,8 +104,30 @@ body
 .Text_TitleArea div
 {
 	height: 32px;
-	line-height: 32px	
+	line-height: 32px;
 }
+
+#Model_Name_Line
+{
+	width: 800px;
+}
+
+#ModelNameBar
+{
+	width: 100%;
+	display: flex;
+	overflow:hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+#ModelName
+{
+	overflow:hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;	
+}
+
 
 .Block_BKGA
 {
