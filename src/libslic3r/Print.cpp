@@ -150,10 +150,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "fan_max_speed",
         "printable_height",
         "slow_down_min_speed",
-#ifdef HAS_PRESSURE_EQUALIZER
-        "max_volumetric_extrusion_rate_slope_positive",
-        "max_volumetric_extrusion_rate_slope_negative",
-#endif /* HAS_PRESSURE_EQUALIZER */
+        "max_volumetric_extrusion_rate_slope",
+        "max_volumetric_extrusion_rate_slope_segment_length",
         "reduce_infill_retraction",
         "filename_format",
         "retraction_minimum_travel",
@@ -2256,10 +2254,7 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
     if (!is_step_done(psWipeTower) && filaments_cnt != 0) {
         double width        = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
-        double wipe_volume  = m_config.prime_volume;
-        if (m_config.purge_in_prime_tower || (filaments_cnt == 1 && enable_timelapse_print())) {
-            const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
-        } else {
+        if (m_config.purge_in_prime_tower) {
             // Calculating depth should take into account currently set wiping volumes.
             // For a long time, the initial preview would just use 900/width per toolchange (15mm on a 60mm wide tower)
             // and it worked well enough. Let's try to do slightly better by accounting for the purging volumes.
@@ -2269,8 +2264,17 @@ const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
                 max_wipe_volumes.emplace_back(*std::max_element(v.begin(), v.end()));
             float maximum = std::accumulate(max_wipe_volumes.begin(), max_wipe_volumes.end(), 0.f);
             maximum       = maximum * filaments_cnt / max_wipe_volumes.size();
-
+            
+            // Orca: it's overshooting a bit, so let's reduce it a bit
+            maximum *= 0.6; 
             const_cast<Print *>(this)->m_wipe_tower_data.depth = maximum / (layer_height * width);
+        } else {
+            double wipe_volume = m_config.prime_volume;
+            if (filaments_cnt == 1 && enable_timelapse_print()) {
+                const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
+            } else {
+                const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
+            }
         }
         const_cast<Print *>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
     }
@@ -3183,7 +3187,7 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         if (!ret) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":error parsing thin_fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing thin_fills at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
+            ::sprintf(error_buf, "Error while parsing thin_fills at layer %zd, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -3238,7 +3242,7 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         if (!ret) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing perimeters found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing perimeters at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
+            ::sprintf(error_buf, "Error while parsing perimeters at layer %zd, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -3253,7 +3257,7 @@ static void convert_layer_region_from_json(const json& j, LayerRegion& layer_reg
         if (!ret) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at layer %1%, print_z %2%") %layer_region.layer()->id() %layer_region.layer()->print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing fills at layer %d, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
+            ::sprintf(error_buf, "Error while parsing fills at layer %zd, print_z %f", layer_region.layer()->id(), layer_region.layer()->print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }
@@ -3321,7 +3325,7 @@ void extract_support_layer(const json& support_layer_json, SupportLayer& support
         if (!ret) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": error parsing fills found at support_layer %1%, print_z %2%")%support_layer.id() %support_layer.print_z;
             char error_buf[1024];
-            ::sprintf(error_buf, "Error while parsing fills at support_layer %d, print_z %f", support_layer.id(), support_layer.print_z);
+            ::sprintf(error_buf, "Error while parsing fills at support_layer %zd, print_z %f", support_layer.id(), support_layer.print_z);
             throw Slic3r::FileIOError(error_buf);
         }
     }

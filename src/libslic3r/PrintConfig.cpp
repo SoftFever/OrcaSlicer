@@ -2470,29 +2470,37 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
-#ifdef HAS_PRESSURE_EQUALIZER
-    //def = this->add("max_volumetric_extrusion_rate_slope_positive", coFloat);
-    //def->label = L("Max volumetric slope positive");
-    //def->tooltip = L("This experimental setting is used to limit the speed of change in extrusion rate. "
-    //               "A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
-    //               "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
-    //               "to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds.");
-    //def->sidetext = L("mm³/s²");
-    //def->min = 0;
-    //def->mode = comAdvanced;
-    //def->set_default_value(new ConfigOptionFloat(0));
-
-    //def = this->add("max_volumetric_extrusion_rate_slope_negative", coFloat);
-    //def->label = L("Max volumetric slope negative");
-    //def->tooltip = L("This experimental setting is used to limit the speed of change in extrusion rate. "
-    //               "A value of 1.8 mm³/s² ensures, that a change from the extrusion rate "
-    //               "of 1.8 mm³/s (0.45mm extrusion width, 0.2mm extrusion height, feedrate 20 mm/s) "
-    //               "to 5.4 mm³/s (feedrate 60 mm/s) will take at least 2 seconds.");
-    //def->sidetext = L("mm³/s²");
-    //def->min = 0;
-    //def->mode = comAdvanced;
-    //def->set_default_value(new ConfigOptionFloat(0));
-#endif /* HAS_PRESSURE_EQUALIZER */
+    def = this->add("max_volumetric_extrusion_rate_slope", coFloat);
+    def->label = L("Extrusion rate smoothing");
+    def->tooltip = L("This parameter smooths out sudden extrusion rate changes that happen when " 
+    				 "the printer transitions from printing a high flow (high speed/larger width) "
+    				 "extrusion to a lower flow (lower speed/smaller width) extrusion and vice versa.\n\n"
+    				 "It defines the maximum rate by which the extruded volumetric flow in mm3/sec can change over time. "
+    				 "Higher values mean higher extrusion rate changes are allowed, resulting in faster speed transitions.\n\n" 
+    				 "A value of 0 disables the feature. \n\n"
+    				 "For a high speed, high flow direct drive printer (like the Bambu lab or Voron) this value is usually not needed. "
+    				 "However it can provide some marginal benefit in certain cases where feature speeds vary greatly. For example, "
+    				 "when there are aggressive slowdowns due to overhangs. In these cases a high value of around 300-350mm3/s2 is "
+    				 "recommended as this allows for just enough smoothing to assist pressure advance achieve a smoother flow transition.\n\n"
+    				 "For slower printers without pressure advance, the value should be set much lower. A value of 10-15mm3/s2 is a "
+    				 "good starting point for direct drive extruders and 5-10mm3/s2 for Bowden style. \n\n"
+    				 "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
+    				 "Note: this parameter disables arc fitting.");
+    def->sidetext = L("mm³/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+    
+    def = this->add("max_volumetric_extrusion_rate_slope_segment_length", coInt);
+    def->label = L("Smoothing segment length");
+    def->tooltip = L("A lower value results in smoother extrusion rate transitions. However, this results in a significantly larger gcode file "
+    				 "and more instructions for the printer to process. \n\n"
+    				 "Default value of 3 works well for most cases. If your printer is stuttering, increase this value to reduce the number of adjustments made\n\n"
+    				 "Allowed values: 1-5");
+    def->min = 1;
+    def->max = 5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("fan_min_speed", coInts);
     def->label = L("Fan speed");
@@ -4962,9 +4970,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
         "bed_size",
         "print_center", "g0", "wipe_tower_per_color_wipe"
-#ifndef HAS_PRESSURE_EQUALIZER
-        , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
-#endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_collision_resolution", "tree_support_with_infill",
