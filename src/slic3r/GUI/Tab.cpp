@@ -1995,11 +1995,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_jerk");
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
-
-#ifdef HAS_PRESSURE_EQUALIZER
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
-#endif /* HAS_PRESSURE_EQUALIZER */
+        
+        optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
