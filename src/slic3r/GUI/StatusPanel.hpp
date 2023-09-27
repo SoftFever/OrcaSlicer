@@ -187,8 +187,10 @@ private:
     ScalableButton* m_button_abort;
     Button*         m_button_market_scoring;
     Button*         m_button_clean;
+    Button *                      m_button_market_retry;
     wxPanel *                     m_score_subtask_info;
     wxPanel *                     m_score_staticline;
+    wxPanel *                     m_request_failed_panel;
     // score page
     int                           m_star_count;
     std::vector<ScalableButton *> m_score_star;
@@ -224,13 +226,15 @@ public:
     ScalableButton* get_abort_button() {return m_button_abort;};
     ScalableButton* get_pause_resume_button() {return m_button_pause_resume;};
     Button* get_market_scoring_button() {return m_button_market_scoring;};
+    Button * get_market_retry_buttom() { return m_button_market_retry; };
     Button* get_clean_button() {return m_button_clean;};
     wxStaticBitmap* get_bitmap_thumbnail() {return m_bitmap_thumbnail;};
-    wxStaticText *  get_request_rating_failed_info() { return m_request_failed_info; }
+    wxPanel *  get_request_failed_panel() { return m_request_failed_panel; }
     int get_star_count() { return m_star_count; }
     void set_star_count(int star_count);
     std::vector<ScalableButton *> &get_score_star() { return m_score_star; }
     bool get_star_count_dirty() { return m_star_count_dirty; }
+    void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
 
 };
@@ -463,6 +467,7 @@ protected:
     int          m_last_timelapse = -1;
     int          m_last_extrusion = -1;
     int          m_last_vcamera   = -1;
+    int          m_model_mall_request_count = 0;
     bool         m_is_load_with_temp = false;
     bool         m_print_finish            = false;
     json         m_rating_result;
@@ -472,6 +477,7 @@ protected:
     bool nozzle_temp_input = false;
     bool cham_temp_input   = false;
     bool request_model_info_flag = false;
+    std::map<std::string, bool> requested_rating_map;
     int speed_lvl = 1; // 0 - 3
     int speed_lvl_timeout {0};
     boost::posix_time::ptime speed_dismiss_time;
@@ -489,6 +495,7 @@ protected:
     void update_tasklist_info();
 
     void on_market_scoring(wxCommandEvent &event);
+    void on_market_retry(wxCommandEvent &event);
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
