@@ -31,14 +31,25 @@ public:
     constexpr enum_bitmask(option_type o) : m_bits(mask_value(o)) {}
 
     // Set the bit corresponding to the given option.
-    constexpr enum_bitmask operator|(option_type t) { return enum_bitmask(m_bits | mask_value(t)); }
+    constexpr enum_bitmask operator|(option_type t) const { return enum_bitmask(m_bits | mask_value(t)); }
 
     // Combine with another enum_bitmask of the same type.
-    constexpr enum_bitmask operator|(enum_bitmask<option_type> t) { return enum_bitmask(m_bits | t.m_bits); }
+    constexpr enum_bitmask operator|(enum_bitmask<option_type> t) const { return enum_bitmask(m_bits | t.m_bits); }
+    
+    // Set the bit corresponding to the given option.
+    constexpr void operator|=(option_type t) { m_bits = enum_bitmask(m_bits | mask_value(t)); }
+
+    // Combine with another enum_bitmask of the same type.
+    constexpr void operator|=(enum_bitmask<option_type> t) { m_bits = enum_bitmask(m_bits | t.m_bits); }
 
     // Get the value of the bit corresponding to the given option.
-    constexpr bool operator&(option_type t) { return m_bits & mask_value(t); }
-    constexpr bool has(option_type t) { return m_bits & mask_value(t); }
+    constexpr bool operator&(option_type t) const { return m_bits & mask_value(t); }
+    constexpr bool has(option_type t) const { return m_bits & mask_value(t); }
+    
+    constexpr bool operator==(const enum_bitmask r) const { return m_bits == r.m_bits; }
+    constexpr bool operator!=(const enum_bitmask r) const { return m_bits != r.m_bits; }
+    // For sorting by the enum values.
+    constexpr bool lower(const enum_bitmask r) const { return m_bits < r.m_bits; }
 
 private:
     underlying_type m_bits = 0;

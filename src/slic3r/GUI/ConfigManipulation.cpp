@@ -475,6 +475,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
@@ -507,6 +508,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
     //SoftFever
     auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+    
+    bool have_volumetric_extrusion_rate_slope = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0;
+    int have_volumetric_extrusion_rate_slope_segment_length = config->option<ConfigOptionInt>("max_volumetric_extrusion_rate_slope_segment_length")->value;
+    toggle_field("enable_arc_fitting", !have_volumetric_extrusion_rate_slope);
+    toggle_line("max_volumetric_extrusion_rate_slope_segment_length", have_volumetric_extrusion_rate_slope);
+    if(have_volumetric_extrusion_rate_slope) config->set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+    if(have_volumetric_extrusion_rate_slope_segment_length==0) {
+    	DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("max_volumetric_extrusion_rate_slope_segment_length", new ConfigOptionInt(1));
+        apply(config, &new_conf);    
+    }
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",

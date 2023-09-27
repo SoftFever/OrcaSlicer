@@ -1873,14 +1873,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     if (print.config().spiral_mode.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
-#ifdef HAS_PRESSURE_EQUALIZER
-    if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 ||
-        print.config().max_volumetric_extrusion_rate_slope_negative.value > 0)
-        m_pressure_equalizer = make_unique<PressureEqualizer>(&print.config());
-    m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
-#else /* HAS_PRESSURE_EQUALIZER */
-    m_enable_extrusion_role_markers = false;
-#endif /* HAS_PRESSURE_EQUALIZER */
+
+    if (print.config().max_volumetric_extrusion_rate_slope.value > 0){
+    		m_pressure_equalizer = make_unique<PressureEqualizer>(print.config());
+    		m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
+    } else
+	    m_enable_extrusion_role_markers = false;
+
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -2388,10 +2387,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         file.write("M1003 S0\n");
                     }
                 }
-    #ifdef HAS_PRESSURE_EQUALIZER
-                if (m_pressure_equalizer)
-                    file.write(m_pressure_equalizer->process("", true));
-    #endif /* HAS_PRESSURE_EQUALIZER */
                 ++ finished_objects;
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
@@ -2459,10 +2454,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     file.write("M1003 S0\n");
                 }
             }
-    #ifdef HAS_PRESSURE_EQUALIZER
-            if (m_pressure_equalizer)
-                file.write(m_pressure_equalizer->process("", true));
-    #endif /* HAS_PRESSURE_EQUALIZER */
             if (m_wipe_tower)
                 // Purge the extruder, pull out the active filament.
                 file.write(m_wipe_tower->finalize(*this));
@@ -2595,11 +2586,18 @@ void GCode::process_layers(
 {
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
-    const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> GCode::LayerResult {
-            if (layer_to_print_idx == layers_to_print.size()) {
-                fc.stop();
-                return {};
+    const auto generator = tbb::make_filter<void, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> LayerResult {
+            if (layer_to_print_idx >= layers_to_print.size()) {
+            	if ((!m_pressure_equalizer && layer_to_print_idx == layers_to_print.size()) || (m_pressure_equalizer && layer_to_print_idx == (layers_to_print.size() + 1))) {
+                    fc.stop();
+                    return {};
+                } else {
+                    // Pressure equalizer need insert empty input. Because it returns one layer back.
+                    // Insert NOP (no operation) layer;
+                    ++layer_to_print_idx;
+                    return LayerResult::make_nop_layer_result();
+                }
             } else {
                 const std::pair<coordf_t, std::vector<LayerToPrint>>& layer = layers_to_print[layer_to_print_idx++];
                 const LayerTools& layer_tools = tool_ordering.tools_for_layer(layer.first);
@@ -2612,13 +2610,23 @@ void GCode::process_layers(
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
         });
-    const auto spiral_mode = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](GCode::LayerResult in) -> GCode::LayerResult {
+   
+    const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in) -> LayerResult {
+        	if (in.nop_layer_result)
+                return in;
+                
             spiral_mode.enable(in.spiral_vase_enable);
             return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
         });
-    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in) -> std::string {
+    const auto pressure_equalizer = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [pressure_equalizer = this->m_pressure_equalizer.get()](LayerResult in) -> LayerResult {
+            return pressure_equalizer->process_layer(std::move(in));
+        });
+    const auto cooling = tbb::make_filter<LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&cooling_buffer = *this->m_cooling_buffer.get()](LayerResult in) -> std::string {
+        	if (in.nop_layer_result)
+                return in.gcode;
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
@@ -2627,6 +2635,7 @@ void GCode::process_layers(
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
             [&fan_mover = this->m_fan_mover, &config = this->config(), &writer = this->m_writer](std::string in)->std::string {
+
         CNumericLocalesSetter locales_setter;
 
         if (config.fan_speedup_time.value != 0 || config.fan_kickstart.value > 0) {
@@ -2645,10 +2654,14 @@ void GCode::process_layers(
     });
 
     // The pipeline elements are joined using const references, thus no copying is performed.
-    if (m_spiral_vase)
-        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    if (m_spiral_vase && m_pressure_equalizer)
+        tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & output);
+    else if (m_spiral_vase)
+    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    else if	(m_pressure_equalizer)
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
     else
-        tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -2665,8 +2678,8 @@ void GCode::process_layers(
 {
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
-    const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx, prime_extruder](tbb::flow_control& fc) -> GCode::LayerResult {
+    const auto generator = tbb::make_filter<void, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx, prime_extruder](tbb::flow_control& fc) -> LayerResult {
             if (layer_to_print_idx == layers_to_print.size()) {
                 fc.stop();
                 return {};
@@ -2679,13 +2692,13 @@ void GCode::process_layers(
                 return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
         });
-    const auto spiral_mode = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](GCode::LayerResult in)->GCode::LayerResult {
+    const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in)->LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
             return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
         });
-    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in)->std::string {
+    const auto cooling = tbb::make_filter<LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&cooling_buffer = *this->m_cooling_buffer.get()](LayerResult in)->std::string {
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
@@ -3216,7 +3229,7 @@ inline std::string get_instance_name(const PrintObject *object, const PrintInsta
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
 // For multi-material prints, this routine minimizes extruder switches by gathering extruder specific extrusion paths
 // and performing the extruder specific extrusions together.
-GCode::LayerResult GCode::process_layer(
+LayerResult GCode::process_layer(
     const Print                    			&print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> 		&layers,
@@ -3255,7 +3268,7 @@ GCode::LayerResult GCode::process_layer(
     else if (support_layer != nullptr)
         layer_ptr = support_layer;
     const Layer& layer = *layer_ptr;
-    GCode::LayerResult   result { {}, layer.id(), false, last_layer };
+    LayerResult   result { {}, layer.id(), false, last_layer };
     if (layer_tools.extruders.empty())
         // Nothing to extrude.
         return result;
@@ -3877,14 +3890,6 @@ GCode::LayerResult GCode::process_layer(
         gcode = m_cooling_buffer->process_layer(std::move(gcode), layer.id(),
             // Flush the cooling buffer at each object layer or possibly at the last layer, even if it contains just supports (This should not happen).
             object_layer || last_layer);
-
-#ifdef HAS_PRESSURE_EQUALIZER
-    // Apply pressure equalization if enabled;
-    // printf("G-code before filter:\n%s\n", gcode.c_str());
-    if (m_pressure_equalizer)
-        gcode = m_pressure_equalizer->process(gcode.c_str(), false);
-    // printf("G-code after filter:\n%s\n", out.c_str());
-#endif /* HAS_PRESSURE_EQUALIZER */
 
     file.write(gcode);
 #endif
