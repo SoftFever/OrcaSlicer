@@ -437,12 +437,30 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_score_staticline->Hide();
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
     sizer->Add(m_score_staticline, 0, wxEXPAND | wxALL, FromDIP(10));
-    m_request_failed_info = new wxStaticText(parent, wxID_ANY, _L("You have completed printing the mall model, but the synchronization of rating information has failed. \nIf you need to resynchronize, please reselect the printer."), wxDefaultPosition, wxDefaultSize, 0);
+    m_request_failed_panel    = new wxPanel(parent, wxID_ANY);
+    m_request_failed_panel->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *static_request_failed_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_request_failed_info = new wxStaticText(m_request_failed_panel, wxID_ANY, _L("You have completed printing the mall model, \nbut the synchronization of rating information has failed."), wxDefaultPosition, wxDefaultSize, 0);
     m_request_failed_info->Wrap(-1);
-    sizer->Add(m_request_failed_info, 0, wxEXPAND | wxALL, FromDIP(10));
     m_request_failed_info->SetForegroundColour(*wxRED);
     m_request_failed_info->SetFont(::Label::Body_10);
-    m_request_failed_info->Hide();
+    static_request_failed_panel_sizer->Add(m_request_failed_info, 0, wxEXPAND | wxALL, FromDIP(10));
+    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
+    m_button_market_retry = new Button(m_request_failed_panel, _L("Retry"));
+    m_button_market_retry->SetBackgroundColor(btn_bg_green);
+    m_button_market_retry->SetBorderColor(btn_bd_green);
+    m_button_market_retry->SetTextColor(wxColour("#FFFFFE"));
+    m_button_market_retry->SetSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_button_market_retry->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_button_market_retry->SetCornerRadius(FromDIP(13));
+    static_request_failed_panel_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    static_request_failed_panel_sizer->Add(m_button_market_retry, 0, wxEXPAND | wxALL, FromDIP(10));
+    m_request_failed_panel->SetSizer(static_request_failed_panel_sizer);
+    m_request_failed_panel->Hide();
+    sizer->Add(m_request_failed_panel, 0, wxEXPAND | wxALL, FromDIP(10));
+
 
     m_score_subtask_info = new wxPanel(parent, wxID_ANY);
     m_score_subtask_info->SetBackgroundColour(*wxWHITE);
@@ -481,10 +499,6 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         });
         static_score_star_sizer->Add(m_score_star[i], 0, wxEXPAND | wxLEFT, FromDIP(10));
     }
-
-    StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-    StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
 
     m_button_market_scoring = new Button(m_score_subtask_info, _L("Rate"));
     m_button_market_scoring->SetBackgroundColor(btn_bg_green);
@@ -1605,6 +1619,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_project_task_panel->get_pause_resume_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_project_task_panel->get_abort_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_project_task_panel->get_market_scoring_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
+    m_project_task_panel->get_market_retry_buttom()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_retry), NULL, this); 
     m_project_task_panel->get_clean_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
 
     m_setting_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
@@ -1653,6 +1668,7 @@ StatusPanel::~StatusPanel()
     m_project_task_panel->get_pause_resume_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_project_task_panel->get_abort_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_project_task_panel->get_market_scoring_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
+    m_project_task_panel->get_market_retry_buttom()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_retry), NULL, this); 
     m_project_task_panel->get_clean_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
 
     m_setting_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
@@ -1716,13 +1732,17 @@ void StatusPanel::init_scaled_buttons()
 
 void StatusPanel::on_market_scoring(wxCommandEvent &event) { 
     if (obj && obj->get_modeltask() && obj->get_modeltask()->design_id > 0 && m_rating_result.contains("id")) { // model is mall model and has rating_id
-
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_market_scoring" ;
         if (m_score_data && m_score_data->rating_id == m_rating_result["id"].get<unsigned int>()) { // current score data for model is same as mall model
             ScoreDialog m_score_dlg(this, m_score_data);
             int ret = m_score_dlg.ShowModal();
-            
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": old data";
+
             if (ret == wxID_OK) { 
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": old data is upload";
                 m_score_data->rating_id = -1;
+                m_project_task_panel->set_star_count_dirty(false);
+                requested_rating_map.clear();
                 m_print_finish = false;
                 return;
             }
@@ -1742,7 +1762,8 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
                 success_print = m_rating_result["successPrinted"].get<bool>();
             ScoreDialog m_score_dlg(this, obj->get_modeltask()->design_id, obj->get_modeltask()->model_id, obj->get_modeltask()->profile_id,
                                     m_rating_result["id"].get<unsigned int>(), success_print, star_count);
-            
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": new data";
+
             if (m_rating_result.contains("content")) {
                 std::string comment = m_rating_result["content"].get<std::string>();
                 if (!comment.empty()) {
@@ -1759,7 +1780,10 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
             int ret = m_score_dlg.ShowModal();
 
             if (ret == wxID_OK) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": new data is upload";
                 m_score_data->rating_id = -1;
+                m_project_task_panel->set_star_count_dirty(false);
+                requested_rating_map.clear();
                 m_print_finish = false;
                 return;
             }
@@ -1770,9 +1794,13 @@ void StatusPanel::on_market_scoring(wxCommandEvent &event) {
             m_score_data = new ScoreData(m_score_dlg.get_score_data());
             m_project_task_panel->set_star_count(m_score_data->star_count);
         }
-        
-        
     }
+}
+
+void StatusPanel::on_market_retry(wxCommandEvent &event)
+{
+    m_print_finish = false;
+    requested_rating_map.clear();
 }
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
@@ -1872,6 +1900,7 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
         || last_profile_id != obj->profile_id_
         || last_task_id != obj->task_id_
         ) {
+        requested_rating_map.erase(last_task_id);
         last_subtask = obj->subtask_;
         last_profile_id = obj->profile_id_;
         last_task_id = obj->task_id_;
@@ -2789,67 +2818,64 @@ void StatusPanel::update_subtask(MachineObject *obj)
                  m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
             if (obj->print_status == "FINISH") {
-
                 m_project_task_panel->enable_abort_button(false);
                 m_project_task_panel->enable_pause_resume_button(false, "resume_disable");
                 if (wxGetApp().has_model_mall()) {
                     bool is_market_task = obj->get_modeltask() && obj->get_modeltask()->design_id > 0;
                     if (is_market_task) {
                         NetworkAgent *agent = wxGetApp().getAgent();
-                        if (agent && IsShownOnScreen() && !m_print_finish) {
-                            m_project_task_panel->get_request_rating_failed_info()->Hide();
-                            int instance_id = obj->get_modeltask()->instance_id;
-                            m_print_finish  = true;
-                            std::string dev_id = obj->dev_id;
-                            boost::thread([this, agent, instance_id, dev_id] {
-                                try {
-                                    std::string  rating_result;
-                                    unsigned int http_code = 404;
-                                    std::string  http_error;
-                                    int          rating_id = -1;
-                                    int          res       = -1;
-                                    int          request_times = 0;
-                                    do {
-                                        if (!this || !(this->obj) || this->obj->dev_id != dev_id || request_times > 3) return;
-                                        if (request_times) {
-                                            std::chrono::seconds sleepDuration(3);
-                                        }
+                        if (agent && IsShownOnScreen()) {
+                            if (requested_rating_map.find(obj->subtask_id_) == requested_rating_map.end()) {
+                                requested_rating_map[obj->subtask_id_] = true;
+                                m_project_task_panel->get_request_failed_panel()->Hide();
+                                int instance_id = obj->get_modeltask()->instance_id;
+                                std::string dev_id = obj->dev_id;
+                                boost::thread([this, agent, instance_id, dev_id] {
+                                    try {
+                                        std::string  rating_result;
+                                        unsigned int http_code = 404;
+                                        std::string  http_error;
+                                        int          rating_id = -1;
+                                        int          res       = -1;
+                                        if (!this || !(this->obj) || this->obj->dev_id != dev_id) return;
+                                        if (m_model_mall_request_count > 20) return;
                                         res = agent->get_model_mall_rating_result(instance_id, rating_result, http_code, http_error);
-                                        BOOST_LOG_TRIVIAL(info) << "request times: "<< request_times;
-                                        request_times++;
-                                    } while (res != 0 && 404 == http_code);
+                                        m_model_mall_request_count++;
+                                        BOOST_LOG_TRIVIAL(info) << "request times :" << m_model_mall_request_count;
+                                        if (0 == res) {
+                                            m_rating_result = json::parse(rating_result);
+                                            if (m_rating_result.contains("id")) {
+                                                rating_id = m_rating_result["id"].get<unsigned int>();
+                                                if (!this || !(this->obj) || this->obj->dev_id != dev_id) return;
+                                                m_project_task_panel->market_scoring_show();
+                                                BOOST_LOG_TRIVIAL(info) << "show scoring page";
+                                                // this mall model has score, user do not click star, Initialize scores only once per print startup program
+                                                if ((m_rating_result.contains("score"))) {
+                                                    int star_count = m_rating_result["score"].get<int>();
+                                                    m_project_task_panel->set_star_count(star_count);
+                                                    m_project_task_panel->set_star_count_dirty(true);
+                                                    BOOST_LOG_TRIVIAL(info) << "Initialize scores";
 
-                                    if (0 == res) {
-                                        m_rating_result = json::parse(rating_result);
-                                        if (m_rating_result.contains("id")) {
-                                            rating_id = m_rating_result["id"].get<unsigned int>();
-                                            if (!this || !(this->obj) || this->obj->dev_id != dev_id) return;
-                                            m_project_task_panel->market_scoring_show();
-                                            BOOST_LOG_TRIVIAL(info) << "show scoring page";
-                                            // this mall model has score, user do not click star, Initialize scores only once per print startup program
-                                            if ((m_rating_result.contains("score"))) {
-                                                int star_count = m_rating_result["score"].get<int>();
-                                                m_project_task_panel->set_star_count(star_count);
-                                                BOOST_LOG_TRIVIAL(info) << "Initialize scores";
-
-                                                if (0 != star_count) {
-                                                    m_project_task_panel->get_market_scoring_button()->Enable(true);
-                                                    m_project_task_panel->set_has_reted_text(true);
-                                                } else {
-                                                    m_project_task_panel->set_has_reted_text(false);
+                                                    if (0 != star_count) {
+                                                        m_project_task_panel->get_market_scoring_button()->Enable(true);
+                                                        m_project_task_panel->set_has_reted_text(true);
+                                                    } else {
+                                                        m_project_task_panel->set_has_reted_text(false);
+                                                    }
                                                 }
                                             }
+                                            m_model_mall_request_count = 0;
+                                        } else {
+                                                m_project_task_panel->get_request_failed_panel()->Show();
+                                            BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
+                                            return;
                                         }
-                                    } else {
-                                        m_project_task_panel->get_request_rating_failed_info()->Show();
-                                        BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
-                                        return;
+                                    } catch (...) {
+                                        m_project_task_panel->market_scoring_hide();
+                                        BOOST_LOG_TRIVIAL(info) << "get mall model rating id failed and hide scoring page";
                                     }
-                                } catch (...) {
-                                    m_project_task_panel->market_scoring_hide();
-                                    BOOST_LOG_TRIVIAL(info) << "get mall model rating id failed and hide scoring page";
-                                }
-                            });
+                                });
+                            }
                         }
                         BOOST_LOG_TRIVIAL(info) << "SHOW_SCORE_BTU: design_id [" << obj->get_modeltask()->design_id << "] print_finish [" << m_print_finish << "]";
 
@@ -2862,7 +2888,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);
                 m_project_task_panel->market_scoring_hide();
-                m_project_task_panel->get_request_rating_failed_info()->Hide();
+                m_project_task_panel->get_request_failed_panel()->Hide();
                 if (m_print_finish) { 
                     m_print_finish = false;
                 }
@@ -4150,7 +4176,7 @@ std::pair<wxStaticBitmap *, ScoreDialog::ImageMsg> ScoreDialog::create_local_thu
 
     bitmap_to_image_msg.first = imageCtrl;
     bitmap_to_image_msg.second = cur_image_msg;
-
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": local picture is download";
     return bitmap_to_image_msg;
 }
 
@@ -4193,7 +4219,7 @@ std::pair<wxStaticBitmap *, ScoreDialog::ImageMsg> ScoreDialog::create_oss_thumb
 
     bitmap_to_image_msg.first  = imageCtrl;
     bitmap_to_image_msg.second = cur_image_msg;
-
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": oss picture is download";
     return bitmap_to_image_msg;
 }
 
@@ -4364,7 +4390,7 @@ wxBoxSizer *ScoreDialog::get_photo_btn_sizer() {
 
     m_add_photo->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
         // add photo logic
-        wxFileDialog openFileDialog(this, "Select Images", "", "", "Image files (*.png;*.jpg)|*.png;*.jpg", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+        wxFileDialog openFileDialog(this, "Select Images", "", "", "Image files (*.png;*.jpg;*jpeg)|*.png;*.jpg;*.jpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
 
         if (openFileDialog.ShowModal() == wxID_CANCEL) return;
 
@@ -4449,6 +4475,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         }
 
         std::set<std::pair<wxStaticBitmap *, wxString>> need_upload_images = add_need_upload_imgs();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": get need upload picture count: " << need_upload_images.size();
 
         std::string  comment = into_u8(m_comment_text->GetValue());
         unsigned int http_code;
@@ -4460,6 +4487,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
             int         ret = wxGetApp().getAgent()->get_oss_config(config, wxGetApp().app_config->get_country_code(), http_code, http_error);
             if (ret == -1) {
                 error_info += into_u8(_L("Get oss config failed.")) + "\n\thttp code: " + std::to_string(http_code) + "\n\thttp error: " + http_error;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": get oss config filed and http_error: " << http_error;
                 m_upload_status_code = StatusCode::UPLOAD_EXIST_ISSUE;
             }
             if (m_upload_status_code == StatusCode::UPLOAD_PROGRESS) {
@@ -4547,6 +4575,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
                                              _L("Your comment result cannot be uploaded due to some reasons. As follows:\n\n  error code: ") + std::to_string(http_code) +
                                                  "\n  " + _L("error message: ") + http_error + _L("\n\nWould you like to redirect to the webpage for rating?"),
                                              wxString(_L("info")), wxOK | wxNO | wxCENTER);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed and http error" << http_error;
                 if (dlg_info->ShowModal() == wxID_OK) {
                     market_model_scoring_page(m_design_id);
                     EndModal(wxID_OK);
@@ -4557,6 +4586,7 @@ wxBoxSizer *ScoreDialog::get_button_sizer()
         } else if (m_upload_status_code == StatusCode::UPLOAD_IMG_FAILED) {
             MessageDialog *dlg_info = new MessageDialog(this, _L("Some of your images failed to upload. Would you like to redirect to the webpage for rating?"),
                                                         wxString(_L("info")), wxOK | wxNO | wxCENTER);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": upload rating picture failed or get oss config failed";
             if (dlg_info->ShowModal() == wxID_OK) {
                 market_model_scoring_page(m_design_id);
                 EndModal(wxID_OK);
