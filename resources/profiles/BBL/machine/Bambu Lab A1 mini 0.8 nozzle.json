@@ -10,9 +10,6 @@
     ],
     "printer_model": "Bambu Lab A1 mini",
     "printer_variant": "0.8",
-    "default_filament_profile": [
-        "Bambu PLA Basic @BBL A1M"
-    ],
     "default_print_profile": "0.40mm Standard @BBL A1M 0.8 nozzle",
     "max_layer_height": [
         "0.56"
@@ -31,7 +28,6 @@
         "Bambu Lab P1S 0.8 nozzle",
         "Bambu Lab P1P 0.8 nozzle",
         "Bambu Lab X1 0.8 nozzle",
-        "Bambu Lab X1 Carbon 0.8 nozzle",
-        "Bambu Lab X1E 0.8 nozzle"
+        "Bambu Lab X1 Carbon 0.8 nozzle"
     ]
 }
