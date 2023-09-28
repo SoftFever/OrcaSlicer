@@ -64,7 +64,7 @@
     "support_on_build_plate_only": "0",
     "support_top_z_distance": "0.2",
     "support_filament": "0",
-    "support_line_width": "0.4",
+    "support_line_width": "0.42",
     "support_interface_loop_pattern": "0",
     "support_interface_filament": "0",
     "support_interface_top_layers": "2",
@@ -72,12 +72,9 @@
     "support_interface_spacing": "0.5",
     "support_interface_speed": "80",
     "support_base_pattern": "rectilinear",
-    "support_base_pattern_spacing": "2.5",
     "support_speed": "150",
     "support_threshold_angle": "30",
     "support_object_xy_distance": "0.35",
-    "tree_support_branch_angle": "45",
-    "tree_support_wall_count": "0",
     "detect_thin_wall": "0",
     "top_surface_pattern": "monotonic",
     "top_surface_line_width": "0.4",
@@ -97,7 +94,7 @@
     "prime_tower_width": "60",
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
-    "compatible_printers": [ 
-	"Tronxy X5SA 400 0.4 nozzle"
+    "compatible_printers": [
+        "Tronxy X5SA 400 0.4 nozzle"
     ]
 }

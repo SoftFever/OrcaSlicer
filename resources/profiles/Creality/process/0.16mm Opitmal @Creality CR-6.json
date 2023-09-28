@@ -14,7 +14,6 @@
     "line_width": "0.6",
     "outer_wall_line_width": "0.6",
     "sparse_infill_line_width": "0.6",
-    "support_line_width": "0.6",
     "top_shell_layers": "7",
     "top_surface_line_width": "0.6",
     "compatible_printers": [
