@@ -1,12 +1,12 @@
 {
   "type": "machine_model",
   "name": "Flashforge Adventurer 5M",
-  "model_id": "Flashforge Adventurer 5M",
+  "model_id": "Adventurer-5M",
   "nozzle_diameter": "0.4",
   "machine_tech": "FFF",
   "family": "Flashforge",
-  "bed_model": "Flashfoge_Adventurer 5M series_buildplate_model.STL",
-  "bed_texture": "Flashforge_Adventurer 5M _buildplate_texture.png",
-  "hotend_model": "Flashfoge_Adventurer 5M series_hotend.STL",
-  "default_materials": "Flashforge  ABS;Flashforge  ASA;Flashforge HS PLA;Flashforge PETG;Flashforge PETG-CF10;Flashforge PLA;Flashforge PLA-CF10;Flashforge TPU"
+  "bed_model": "flashfoge_adventurer_5m_series_buildplate_model.stl",
+  "bed_texture": "flashforge_adventurer_5m_buildplate_texture.png",
+  "hotend_model": "flashfoge_adventurer_5m_series_hotend.stl",
+  "default_materials": "Flashforge ABS;Flashforge ASA;Flashforge HS PLA;Flashforge PETG;Flashforge PETG-CF10;Flashforge PLA;Flashforge PLA-CF10;Flashforge TPU"
 }

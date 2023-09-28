@@ -1,7 +1,7 @@
 {
   "name": "Flashforge",
   "url": "",
-  "version": "01.00.00.00",
+  "version": "01.01.00.00",
   "force_update": "0",
   "description": "Flashforge configurations",
   "machine_model_list": [
@@ -15,6 +15,10 @@
     }
   ],
   "process_list": [
+    {
+      "name": "fdm_process_common",
+      "sub_path": "process/fdm_process_common.json"
+    },
     {
       "name": "0.20mm Standard @Flashforge AD5M",
       "sub_path": "process/0.20mm Standard @Flashforge AD5M.json"
@@ -34,39 +38,67 @@
   ],
   "filament_list": [
     {
-      "name": "Flashforge  ABS",
-      "sub_path": "filament/Flashforge  ABS.json"
+      "name": "fdm_filament_common",
+      "sub_path": "filament/fdm_filament_common.json"
     },
     {
-      "name": "Flashforge  ASA",
-      "sub_path": "filament/Flashforge  ASA.json"
+      "name": "fdm_filament_pla",
+      "sub_path": "filament/fdm_filament_pla.json"
     },
     {
-      "name": "Flashforge HS PLA",
-      "sub_path": "filament/Flashforge HS PLA.json"
+      "name": "fdm_filament_tpu",
+      "sub_path": "filament/fdm_filament_tpu.json"
     },
     {
-      "name": "Flashforge PETG",
-      "sub_path": "filament/Flashforge PETG.json"
+      "name": "fdm_filament_pet",
+      "sub_path": "filament/fdm_filament_pet.json"
     },
     {
-      "name": "Flashforge PETG-CF10",
-      "sub_path": "filament/Flashforge PETG-CF10.json"
+      "name": "fdm_filament_abs",
+      "sub_path": "filament/fdm_filament_abs.json"
     },
     {
-      "name": "Flashforge PLA",
-      "sub_path": "filament/Flashforge PLA.json"
+      "name": "fdm_filament_asa",
+      "sub_path": "filament/fdm_filament_asa.json"
     },
     {
-      "name": "Flashforge PLA-CF10",
-      "sub_path": "filament/Flashforge PLA-CF10.json"
+      "name": "Flashforge Generic ABS",
+      "sub_path": "filament/Flashforge Generic ABS.json"
     },
     {
-      "name": "Flashforge TPU",
-      "sub_path": "filament/Flashforge TPU.json"
+      "name": "Flashforge Generic ASA",
+      "sub_path": "filament/Flashforge Generic ASA.json"
+    },
+    {
+      "name": "Flashforge Generic HS PLA",
+      "sub_path": "filament/Flashforge Generic HS PLA.json"
+    },
+    {
+      "name": "Flashforge Generic PETG",
+      "sub_path": "filament/Flashforge Generic PETG.json"
+    },
+    {
+      "name": "Flashforge Generic PETG-CF10",
+      "sub_path": "filament/Flashforge Generic PETG-CF10.json"
+    },
+    {
+      "name": "Flashforge Generic PLA",
+      "sub_path": "filament/Flashforge Generic PLA.json"
+    },
+    {
+      "name": "Flashforge Generic PLA-CF10",
+      "sub_path": "filament/Flashforge Generic PLA-CF10.json"
+    },
+    {
+      "name": "Flashforge Generic TPU",
+      "sub_path": "filament/Flashforge Generic TPU"
     }
   ],
   "machine_list": [
+    {
+      "name": "fdm_machine_common",
+      "sub_path": "machine/fdm_machine_common.json"
+    },
     {
       "name": "Flashforge Adventurer 5M 0.4 Nozzle",
       "sub_path": "machine/Flashforge Adventurer 5M 0.4 Nozzle.json"
