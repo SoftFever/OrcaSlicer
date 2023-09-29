@@ -500,6 +500,8 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
                 file_name = "ksr_fdmtest_v4.stl";
               else if (file_name == L("Voron Cube"))
                 file_name = "Voron_Design_Cube_v7.stl";
+              else if (file_name == "Disc")
+                file_name ="Disc.stl";
               else
                 return;
               input_files.push_back(

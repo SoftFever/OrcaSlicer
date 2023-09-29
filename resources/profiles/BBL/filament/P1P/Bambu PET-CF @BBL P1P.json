@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFST01_10",
     "name": "Bambu PET-CF @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PET-CF @base",
+    "from": "system",
+    "setting_id": "GFST01_10",
+    "instantiation": "true",
     "reduce_fan_stop_start_freq": [
         "0"
     ],

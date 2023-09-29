@@ -22,6 +22,7 @@ enum WifiSignal {
     WEAK,
     MIDDLE,
     STRONG,
+    WIRED,
 };
 
 enum MonitorStatus {
@@ -58,6 +59,7 @@ private:
     ScalableBitmap  m_wifi_weak_img;
     ScalableBitmap  m_wifi_middle_img;
     ScalableBitmap  m_wifi_strong_img;
+    ScalableBitmap  m_network_wired_img;
 
 protected:
     wxStaticBitmap *m_bitmap_info;

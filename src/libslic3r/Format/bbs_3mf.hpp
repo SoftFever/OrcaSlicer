@@ -14,6 +14,10 @@ class Preset;
 struct FilamentInfo;
 struct ThumbnailData;
 
+
+#define PLATE_THUMBNAIL_SMALL_WIDTH     128
+#define PLATE_THUMBNAIL_SMALL_HEIGHT    128
+
 #define GCODE_FILE_FORMAT               "Metadata/plate_%1%.gcode"
 #define THUMBNAIL_FILE_FORMAT           "Metadata/plate_%1%.png"
 #define TOP_FILE_FORMAT                 "Metadata/top_%1%.png"
@@ -84,6 +88,7 @@ struct PlateData
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
     bool            is_label_object_enabled {false};
+    int             timelapse_warning_code = 0; // 1<<0 sprial vase, 1<<1 by object
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
 

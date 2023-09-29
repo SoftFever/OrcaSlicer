@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSC00_02",
     "name": "Bambu PC @BBL X1C 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PC @base",
+    "from": "system",
+    "setting_id": "GFSC00_02",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1"
     ],

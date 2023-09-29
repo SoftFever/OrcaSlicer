@@ -1,24 +1,24 @@
 {
     "type": "filament",
-    "setting_id": "GFSB99_02",
     "name": "Generic ABS @BBL P1P 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic ABS @base",
-    "filament_max_volumetric_speed": [
-        "2"
-    ],
+    "from": "system",
+    "setting_id": "GFSB99_02",
+    "instantiation": "true",
     "fan_max_speed": [
         "20"
     ],
-    "reduce_fan_stop_start_freq": [
-        "0"
+    "filament_max_volumetric_speed": [
+        "2"
     ],
     "hot_plate_temp": [
         "100"
     ],
     "hot_plate_temp_initial_layer": [
         "100"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
     ],
     "textured_plate_temp": [
         "100"

@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSL99_12",
     "name": "Generic PLA Silk @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PLA Silk @base",
+    "from": "system",
+    "setting_id": "GFSL99_12",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "7.5"
     ],

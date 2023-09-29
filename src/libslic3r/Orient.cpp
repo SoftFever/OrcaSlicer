@@ -115,7 +115,7 @@ public:
 
         area_cumulation_accurate(face_normals, normals_quantize, areas, 10);
 
-        area_cumulation_accurate(face_normals_hull, normals_hull_quantize, areas_hull, 10);
+        area_cumulation_accurate(face_normals_hull, normals_hull_quantize, areas_hull, 14);
 
         add_supplements();
 

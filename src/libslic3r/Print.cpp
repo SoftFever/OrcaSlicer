@@ -100,6 +100,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
+        "thumbnail_size",
         "before_layer_change_gcode",
         "enable_pressure_advance",
         "pressure_advance",
@@ -146,6 +147,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "textured_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
+        "time_lapse_gcode",
         "fan_min_speed",
         "fan_max_speed",
         "printable_height",
@@ -196,7 +198,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "gcode_label_objects", 
         "exclude_object",
         "support_material_interface_fan_speed",
-        "single_extruder_multi_material_priming"
+        "single_extruder_multi_material_priming",
+        "activate_air_filtration",
+        "during_print_exhaust_fan_speed",
+        "complete_print_exhaust_fan_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;

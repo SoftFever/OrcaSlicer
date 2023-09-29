@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSA02_02",
     "name": "Bambu PLA Metal @BBL X1",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PLA Metal @base",
+    "from": "system",
+    "setting_id": "GFSA02_02",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "21"
     ],

@@ -1,30 +1,30 @@
 {
-    "name": "Bambu PLA Aero @BBL P1P",
     "type": "filament",
-    "instantiation": "true",
-    "from": "system",
+    "name": "Bambu PLA Aero @BBL P1P",
     "inherits": "Bambu PLA Aero @base",
+    "from": "system",
     "setting_id": "GFSA11_02",
-    "hot_plate_temp_initial_layer": [
-        "65"
-    ],
-    "hot_plate_temp": [
-        "65"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "65"
-    ],
-    "textured_plate_temp": [
-        "65"
-    ],
-    "fan_min_speed": [
-        "50"
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "0"
     ],
     "fan_cooling_layer_time": [
         "80"
     ],
+    "hot_plate_temp": [
+        "65"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "65"
+    ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "textured_plate_temp": [
+        "65"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "65"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",

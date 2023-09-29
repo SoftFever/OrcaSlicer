@@ -2106,11 +2106,36 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
                 ModelObject* newObj = m_model->add_object(*object);
                 newObj->name = object->name +"_"+ std::to_string(index+1);
                 int new_obj_id = m_model->objects.size() - 1;
-                for ( size_t new_instance_id = 0; new_instance_id < object->instances.size(); new_instance_id++ )
+                for ( size_t new_instance_id = 0; new_instance_id < newObj->instances.size(); new_instance_id++ )
                 {
                     obj_to_instance_set.emplace(std::pair(new_obj_id, new_instance_id));
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicate object into plate: index_pair [%1%,%2%], obj_id %3%") % new_obj_id % new_instance_id % newObj->id().id;
                 }
+            }
+        }
+    }
+
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
+    {
+        int obj_id = it->first;
+        int instance_id = it->second;
+
+        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        {
+            ModelObject* object = m_model->objects[obj_id];
+            ModelInstance* instance = object->instances[instance_id];
+
+            if (instance->printable)
+            {
+                instance->loaded_id = instance->id().id;
+                if (need_skip) {
+                    while (skip_objects.find(instance->loaded_id) != skip_objects.end())
+                    {
+                        instance->loaded_id ++;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": duplicated id %1% with skip, try new one %2%") %instance->id().id  % instance->loaded_id;
+                    }
+                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": set obj %1% instance %2%'s loaded_id to its id %3%, name %4%") % obj_id %instance_id %instance->loaded_id  % object->name;
             }
         }
     }
@@ -4518,7 +4543,7 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 		pos = compute_shape_position(i, m_plate_cols);
 		plate->set_shape(shape, exclude_areas, pos, height_to_lid, height_to_rod);
 	}
-
+	is_load_bedtype_textures = false;//reload textures
 	calc_bounding_boxes();
 
 	auto check_texture = [](const std::string& texture) {
@@ -4851,6 +4876,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					plate_data_item->gcode_prediction = std::to_string(
 						(int) m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
 					plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
+                    plate_data_item->timelapse_warning_code = m_plate_list[i]->m_gcode_result->timelapse_warning_code;
+                    m_plate_list[i]->set_timelapse_warning_code(plate_data_item->timelapse_warning_code);
 					plate_data_item->is_label_object_enabled = m_plate_list[i]->m_gcode_result->label_object_enabled;
 					Print *print                      = nullptr;
 					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
@@ -4923,6 +4950,8 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 		gcode_result->label_object_enabled = plate_data_list[i]->is_label_object_enabled;
+        gcode_result->timelapse_warning_code = plate_data_list[i]->timelapse_warning_code;
+        m_plate_list[index]->set_timelapse_warning_code(plate_data_list[i]->timelapse_warning_code);
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
@@ -5054,15 +5083,17 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 
 void PartPlateList::init_bed_type_info()
 {
-	BedTextureInfo::TexturePart pc_part1(  5, 130,  10, 110, "bbl_bed_pc_left.svg");
-	BedTextureInfo::TexturePart pc_part2( 74, -12, 150,  12, "bbl_bed_pc_bottom.svg");
-	BedTextureInfo::TexturePart ep_part1(  4,  87,  12, 153, "bbl_bed_ep_left.svg");
-	BedTextureInfo::TexturePart ep_part2( 72, -11, 150,  12, "bbl_bed_ep_bottom.svg");
-	BedTextureInfo::TexturePart pei_part1( 6,  50,  12, 190, "bbl_bed_pei_left.svg");
-	BedTextureInfo::TexturePart pei_part2(72, -11, 150,  12, "bbl_bed_pei_bottom.svg");
-	BedTextureInfo::TexturePart pte_part1( 6,  40,  12, 200, "bbl_bed_pte_left.svg");
-	BedTextureInfo::TexturePart pte_part2(72, -11, 150,  12, "bbl_bed_pte_bottom.svg");
-
+	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
+	BedTextureInfo::TexturePart pc_part2(74, -10, 148, 12, "bbl_bed_pc_bottom.svg");
+	BedTextureInfo::TexturePart ep_part1(7.5, 90, 12.5, 150, "bbl_bed_ep_left.svg");
+	BedTextureInfo::TexturePart ep_part2(74, -10, 148, 12, "bbl_bed_ep_bottom.svg");
+	BedTextureInfo::TexturePart pei_part1(7.5, 50, 12.5, 190, "bbl_bed_pei_left.svg");
+	BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
+	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
+	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
+	for (size_t i = 0; i < btCount; i++) {
+		bed_texture_info[i].parts.clear();
+	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);
 	bed_texture_info[btPC].parts.push_back(pc_part2);
 	bed_texture_info[btEP].parts.push_back(ep_part1);
@@ -5072,8 +5103,19 @@ void PartPlateList::init_bed_type_info()
 	bed_texture_info[btPTE].parts.push_back(pte_part1);
 	bed_texture_info[btPTE].parts.push_back(pte_part2);
 
+	auto  bed_ext     = get_extents(m_shape);
+	int   bed_width   = bed_ext.size()(0);
+	int   bed_height  = bed_ext.size()(1);
+	float base_width  = 256;
+	float base_height = 256;
+	float x_rate      = bed_width / base_width;
+	float y_rate      = bed_height / base_height;
 	for (int i = 0; i < btCount; i++) {
 		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
+			bed_texture_info[i].parts[j].x *= x_rate;
+			bed_texture_info[i].parts[j].y *= y_rate;
+			bed_texture_info[i].parts[j].w *= x_rate;
+			bed_texture_info[i].parts[j].h *= y_rate;
 			bed_texture_info[i].parts[j].update_buffer();
 		}
 	}

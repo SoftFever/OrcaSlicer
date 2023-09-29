@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFB60",
     "name": "PolyLite ABS @base",
-    "from": "system",
-    "instantiation": "false",
     "inherits": "fdm_filament_abs",
+    "from": "system",
+    "filament_id": "GFB60",
+    "instantiation": "false",
     "filament_cost": [
         "26.9"
     ],

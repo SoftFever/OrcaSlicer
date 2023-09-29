@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSC00_08",
     "name": "Bambu PC @BBL P1S 0.6 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu PC @BBL X1C 0.6 nozzle",
+    "from": "system",
+    "setting_id": "GFSC00_08",
+    "instantiation": "true",
     "eng_plate_temp": [
         "100"
     ],

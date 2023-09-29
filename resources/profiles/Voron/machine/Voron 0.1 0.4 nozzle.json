@@ -17,6 +17,9 @@
     "0x120"
   ],
   "printable_height": "120",
+  "retract_lift_below":[
+    "119"
+  ],
   "nozzle_type": "undefine",
   "auxiliary_fan": "0"
 }

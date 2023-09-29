@@ -1,17 +1,17 @@
 {
     "type": "filament",
-    "setting_id": "GFSS00_00",
     "name": "Bambu Support W @BBL X1C 0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Bambu Support W @base",
+    "from": "system",
+    "setting_id": "GFSS00_00",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "0.5"
     ],
-    "nozzle_temperature_initial_layer": [
+    "nozzle_temperature": [
         "240"
     ],
-    "nozzle_temperature": [
+    "nozzle_temperature_initial_layer": [
         "240"
     ],
     "compatible_printers": [

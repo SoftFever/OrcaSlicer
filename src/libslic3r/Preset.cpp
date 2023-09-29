@@ -783,6 +783,8 @@ static std::vector<std::string> s_Preset_filament_options {
     "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed",
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "overhang_fan_threshold", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
+    //exhaust fan control
+    "activate_air_filtration","during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed",
     // Retract overrides
     "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retract_lift_above", "filament_retract_lift_below", "filament_retract_lift_enforce", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
     "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
@@ -790,7 +792,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
     //BBS
     "filament_wipe_distance", "additional_cooling_fan_speed",
-    "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high",
+    "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
     "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
     "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
@@ -811,7 +813,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
     "printable_area", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
     "fan_kickstart", "fan_speedup_time", "fan_speedup_overhangs",
-    "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "change_filament_gcode",
+    "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "time_lapse_gcode", "change_filament_gcode",
     "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "default_print_profile", "inherits",
     "silent_mode",

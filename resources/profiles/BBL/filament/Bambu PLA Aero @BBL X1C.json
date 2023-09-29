@@ -1,12 +1,15 @@
 {
-    "name": "Bambu PLA Aero @BBL X1C",
     "type": "filament",
-    "instantiation": "true",
-    "from": "system",
+    "name": "Bambu PLA Aero @BBL X1C",
     "inherits": "Bambu PLA Aero @base",
+    "from": "system",
     "setting_id": "GFSA11_01",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
     "slow_down_layer_time": [
-        "4"
+        "8"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

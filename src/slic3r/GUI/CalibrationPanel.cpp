@@ -526,6 +526,14 @@ void CalibrationPanel::update_all() {
     if (!dev) return;
     obj = dev->get_selected_machine();
 
+    // check valid machine
+    if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
+        dev->set_selected_machine("");
+        if (m_agent) m_agent->set_user_selected_machine("");
+        show_status((int) MONITOR_NO_PRINTER);
+        return;
+    }
+
     // update current wizard only
     int curr_selected = m_tabpanel->GetSelection();
 
@@ -541,15 +549,6 @@ void CalibrationPanel::update_all() {
             }
             last_obj = obj;
         }
-    }
-
-    // check valid machine
-    if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
-        dev->set_selected_machine("");
-        if (m_agent)
-            m_agent->set_user_selected_machine("");
-        show_status((int)MONITOR_NO_PRINTER);
-        return;
     }
 
     if (wxGetApp().is_user_login()) {

@@ -179,11 +179,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     set_miniaturizable(GetHandle());
 #endif
 
-    //reset developer_mode to false  and user_mode to comAdvanced
-    wxGetApp().app_config->set_bool("developer_mode", false);
-    if (wxGetApp().app_config->get("user_mode") == "develop") {
-        wxGetApp().app_config->set("user_mode", "advanced");
-     }
+    if (!wxGetApp().app_config->has("user_mode")) { 
+        wxGetApp().app_config->set("user_mode", "simple");
+        wxGetApp().app_config->set_bool("developer_mode", false);
+        wxGetApp().app_config->save();
+    }
 
     wxGetApp().app_config->set_bool("internal_developer_mode", false);
 
@@ -1500,7 +1500,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             //this->m_plater->select_view_3D("Preview");
-            m_plater->update();
+            m_plater->update(false, true);
             if (m_slice_select == eSliceAll)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
             else

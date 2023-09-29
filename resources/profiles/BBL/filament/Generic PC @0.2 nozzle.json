@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSC99_00",
     "name": "Generic PC @0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PC @base",
+    "from": "system",
+    "setting_id": "GFSC99_00",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1"
     ],
