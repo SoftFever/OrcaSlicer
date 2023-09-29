@@ -2133,14 +2133,14 @@ void PrintObject::bridge_over_infill()
             if (window_start_angle < 0.5 * PI) {
                 for (auto dirs_window = counted_directions.lower_bound(1.5 * PI - (0.5 * PI - window_start_angle));
                      dirs_window != counted_directions.end(); dirs_window++) {
-                    dir_acc += dirs_window->first * dirs_window->second;
+                    dir_acc += (dirs_window->first - PI) * dirs_window->second;
                     score_acc += dirs_window->second;
                 }
             }
             if (window_start_angle > 1.5 * PI) {
                 for (auto dirs_window = counted_directions.begin();
                      dirs_window != counted_directions.upper_bound(window_start_angle - 1.5 * PI); dirs_window++) {
-                    dir_acc += dirs_window->first * dirs_window->second;
+                    dir_acc += (dirs_window->first + PI) * dirs_window->second;
                     score_acc += dirs_window->second;
                 }
             }
