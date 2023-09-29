@@ -214,6 +214,37 @@ public:
     Preset::Type        type()      const { return m_type; }
 };
 
+// ---------------------------------
+// ***  CalibrateFilamentComboBox  ***
+// ---------------------------------
+
+class CalibrateFilamentComboBox : public PlaterPresetComboBox
+{
+public:
+    CalibrateFilamentComboBox(wxWindow *parent);
+    ~CalibrateFilamentComboBox();
+
+    void load_tray(DynamicPrintConfig & config);
+
+    void update() override;
+    void OnSelect(wxCommandEvent &evt) override;
+    const Preset* get_selected_preset() { return m_selected_preset; }
+    std::string get_tray_name() { return m_tray_name; }
+    std::string get_tag_uid() { return m_tag_uid; }
+    bool is_tray_exist() { return m_filament_exist; }
+    bool is_compatible_with_printer() { return m_is_compatible; }
+
+private:
+    std::string m_tray_name;
+    std::string m_filament_id;
+    std::string m_tag_uid;
+    std::string m_filament_type;
+    std::string m_filament_color;
+    bool m_filament_exist{false};
+    bool m_is_compatible{true};
+    const Preset* m_selected_preset = nullptr;
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

@@ -30,7 +30,11 @@ class BBLStatusBarSend : public ProgressIndicator
 {
     wxPanel *     m_self; // we cheat! It should be the base class but: perl!
     wxGauge *     m_prog;
-    Label *       m_hyperlink;
+    Label *       m_link_show_error;
+    wxBoxSizer*   m_sizer_status_text;
+    wxStaticBitmap* m_static_bitmap_show_error;
+    wxBitmap      m_bitmap_show_error_close;
+    wxBitmap      m_bitmap_show_error_open;
     Button *      m_cancelbutton;
     wxStaticText *m_status_text;
     wxStaticText *m_stext_percent;
@@ -51,7 +55,7 @@ public:
     int         get_range() const override;
     void        set_range(int = 100) override;
     void        clear_percent() override;
-    void        show_networking_test(wxString msg) override;
+    void        show_error_info(wxString msg, int code, wxString description, wxString extra) override;
     void        show_progress(bool);
     void        start_busy(int = 100);
     void        stop_busy();
@@ -80,7 +84,10 @@ public:
     void hide_cancel_button();
     void change_button_label(wxString name);
 
+    void disable_cancel_button();
+    void enable_cancel_button();
 private:
+    bool     m_show_error_info_state = false;
     bool     m_busy = false;
     bool     m_was_cancelled = false;
     CancelFn m_cancel_cb;
@@ -90,6 +97,8 @@ private:
 namespace GUI {
 using Slic3r::BBLStatusBarSend;
 }
+
+wxDECLARE_EVENT(EVT_SHOW_ERROR_INFO, wxCommandEvent);
 
 } // namespace Slic3r
 

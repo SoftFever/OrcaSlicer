@@ -12,7 +12,7 @@ else()
     set(_glfw_use_wayland "-DGLFW_USE_WAYLAND=FF")
 endif()
 
-bambustudio_add_cmake_project(GLFW
+orcaslicer_add_cmake_project(GLFW
     URL https://github.com/glfw/glfw/archive/refs/tags/3.3.7.zip
     URL_HASH SHA256=e02d956935e5b9fb4abf90e2c2e07c9a0526d7eacae8ee5353484c69a2a76cd0
     #DEPENDS dep_Boost

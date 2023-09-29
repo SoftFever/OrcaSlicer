@@ -1,7 +1,10 @@
 #include "wxMediaCtrl2.h"
+#include "libslic3r/Time.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include <boost/filesystem/operations.hpp>
 #ifdef __WIN32__
+#include <winuser.h>
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
 #include <shellapi.h>
@@ -9,6 +12,13 @@
 
 #ifdef __LINUX__
 #include "Printer/gstbambusrc.h"
+#include <gst/gst.h> // main gstreamer header
+class WXDLLIMPEXP_MEDIA
+    wxGStreamerMediaBackend : public wxMediaBackendCommonBase
+{
+public:
+    GstElement *m_playbin; // GStreamer media element
+};
 #endif
 
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
@@ -30,6 +40,10 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
     wxMediaCtrl::Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
 #ifdef __LINUX__
     /* Register only after we have created the wxMediaCtrl, since only then are we guaranteed to have fired up Gstreamer's plugin registry. */
+    auto playbin = reinterpret_cast<wxGStreamerMediaBackend *>(m_imp)->m_playbin;
+    g_object_set (G_OBJECT (playbin),
+                  "audio-sink", NULL,
+                   NULL);
     gstbambusrc_register();
     Bind(wxEVT_MEDIA_LOADED, [this](auto & e) {
         m_loaded = true;
@@ -72,15 +86,35 @@ void wxMediaCtrl2::Load(wxURI url)
             std::string             data_dir_str = Slic3r::data_dir();
             boost::filesystem::path data_dir_path(data_dir_str);
             auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
+
             if (boost::filesystem::exists(dll_path)) {
                 CallAfter(
                     [dll_path] {
-                    int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO);
+                    int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it. You will be promoted twice"), _L("Error"), wxYES_NO);
                     if (res == wxYES) {
-                        wstring quoted_dll_path = L"\"" + dll_path.wstring() + "\"";
+                        std::string regContent = R"(Windows Registry Editor Version 5.00
+                                                    [HKEY_CLASSES_ROOT\bambu]
+                                                    "Source Filter"="{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}"
+                                                    )";
+
+                        auto reg_path = (fs::temp_directory_path() / fs::unique_path()).replace_extension(".reg");
+                        std::ofstream temp_reg_file(reg_path.c_str());
+                        if (!temp_reg_file) {
+                            return false;
+                        }
+                        temp_reg_file << regContent;
+                        temp_reg_file.close();
+                        auto sei_params = L"/q /s " + reg_path.wstring();
+                        SHELLEXECUTEINFO sei{sizeof(sei), SEE_MASK_NOCLOSEPROCESS, NULL,   L"open",
+                                             L"regedit",  sei_params.c_str(),SW_HIDE,SW_HIDE};
+                        ::ShellExecuteEx(&sei);
+
+                        wstring quoted_dll_path = L"\"" + dll_path.wstring() + L"\"";
                         SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", quoted_dll_path.c_str(), SW_HIDE };
                         ::ShellExecuteEx(&info);
+                        fs::remove(reg_path);
                     }
+                    return true;
                 });
             } else {
                 CallAfter([] {
@@ -104,8 +138,8 @@ void wxMediaCtrl2::Load(wxURI url)
             keyWmp.SetValue("Permissions", permissions);
         }
     }
-    url = wxURI(url.BuildURI().append("&hwnd=").append(
-        boost::lexical_cast<std::string>(GetHandle())));
+    url = wxURI(url.BuildURI().append("&hwnd=").append(boost::lexical_cast<std::string>(GetHandle())).append("&tid=").append(
+        boost::lexical_cast<std::string>(GetCurrentThreadId())));
 #endif
 #ifdef __WXGTK3__
     GstElementFactory *factory;
@@ -133,7 +167,7 @@ void wxMediaCtrl2::Load(wxURI url)
     
     if (!hasplugins) {
         CallAfter([] {
-            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"), _L("Error"), wxOK);
+            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Orca Slicer?)"), _L("Error"), wxOK);
         });
         m_error = 101;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
@@ -160,15 +194,11 @@ void wxMediaCtrl2::Play() { wxMediaCtrl::Play(); }
 
 void wxMediaCtrl2::Stop()
 {
-#ifdef __WIN32__
-    wxMediaCtrl::Load(wxURI());
-#else
     wxMediaCtrl::Stop();
-#endif
 }
 
 #ifdef __LINUX__
-extern int gst_bambu_last_error;
+extern "C" int gst_bambu_last_error;
 #endif
 
 int wxMediaCtrl2::GetLastError() const

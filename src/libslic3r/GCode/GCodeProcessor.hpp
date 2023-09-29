@@ -177,6 +177,8 @@ namespace Slic3r {
         Pointfs bed_exclude_area;
         //BBS: add toolpath_outside
         bool toolpath_outside;
+        //BBS: add object_label_enabled
+        bool label_object_enabled;
         float printable_height;
         SettingsIds settings_ids;
         size_t extruders_count;
@@ -191,7 +193,8 @@ namespace Slic3r {
         //BBS
         std::vector<SliceWarning> warnings;
         int nozzle_hrc;
-
+        NozzleType nozzle_type;
+        BedType bed_type = BedType::btCount;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -208,6 +211,7 @@ namespace Slic3r {
             printable_area = other.printable_area;
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
+            label_object_enabled = other.label_object_enabled;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             extruders_count = other.extruders_count;
@@ -218,6 +222,7 @@ namespace Slic3r {
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
             spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
+            bed_type = other.bed_type;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
@@ -234,7 +239,7 @@ namespace Slic3r {
         static const std::vector<std::string> Reserved_Tags_compatible;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
-
+        static const std::map<NozzleType, int>Nozzle_Type_To_HRC;
     public:
         enum class ETags : unsigned char
         {
@@ -668,7 +673,7 @@ namespace Slic3r {
         enum class EProducer
         {
             Unknown,
-            BambuStudio,
+            OrcaSlicer,
             Slic3rPE,
             Slic3r,
             SuperSlicer,

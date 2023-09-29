@@ -23,6 +23,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
 
 #include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
@@ -54,9 +55,16 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
 std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
 {
     std::vector<size_t> out;
-    for (size_t i=0; i<m_gizmos.size(); ++i)
-        if (m_gizmos[i]->is_selectable())
-            out.push_back(i);
+    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        for (size_t i = 0; i < m_gizmos.size(); ++i)
+            if (m_gizmos[i]->get_sprite_id() == (unsigned int)MmuSegmentation)
+                out.push_back(i);
+    }
+    else {
+        for (size_t i = 0; i < m_gizmos.size(); ++i)
+            if (m_gizmos[i]->is_selectable())
+                out.push_back(i);
+    }
     return out;
 }
 
@@ -78,6 +86,8 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
 #if BBS_TOOLBAR_ON_TOP
     //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
     float top_x = std::max(m_parent.get_main_toolbar_width() + border, 0.5f * (cnv_w - width + m_parent.get_main_toolbar_width() + m_parent.get_collapse_toolbar_width() - m_parent.get_assemble_view_toolbar_width()) + border);
+    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView)
+        top_x = 0.5f * cnv_w + 0.5f * (m_parent.get_assembly_paint_toolbar_width());
     float top_y = 0;
     float stride_x = m_layout.scaled_stride_x();
 
@@ -161,7 +171,11 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case(EType::MmuSegmentation):
             gizmo->set_icon_filename(m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg");
             break;
+        case(EType::MeshBoolean):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg");
+            break;
         }
+
     }
 }
 
@@ -191,6 +205,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, m_is_dark ? "toolbar_scale_dark.svg" : "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, m_is_dark ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg", EType::Flatten));
     m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, m_is_dark ? "toolbar_cut_dark.svg" : "toolbar_cut.svg", EType::Cut));
+    m_gizmos.emplace_back(new GLGizmoMeshBoolean(m_parent, m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg", EType::MeshBoolean));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
     m_gizmos.emplace_back(new GLGizmoText(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
@@ -629,6 +644,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoText*>(m_gizmos[Text].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Cut)
         return dynamic_cast<GLGizmoAdvancedCut *>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == MeshBoolean)
+        return dynamic_cast<GLGizmoMeshBoolean*>(m_gizmos[MeshBoolean].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else
         return false;
 }
@@ -875,7 +892,7 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 
         if (evt.LeftDown() && (!control_down || grabber_contains_mouse())) {
             if ((m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports ||
-                m_current == Seam || m_current == MmuSegmentation || m_current == Text || m_current == Cut)
+                m_current == Seam || m_current == MmuSegmentation || m_current == Text || m_current == Cut || m_current == MeshBoolean)
                 && gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, evt.ShiftDown(), evt.AltDown()))
                 // the gizmo got the event and took some action, there is no need to do anything more
                 processed = true;
@@ -965,6 +982,17 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
                 update_on_off_state(mouse_pos);
                 update_data();
                 m_parent.set_as_dirty();
+                try {
+                    if ((int)m_hover >= 0 && (int)m_hover < m_gizmos.size()) {
+                        std::string name = get_name_from_gizmo_etype(m_hover);
+                        int count = m_gizmos[m_hover]->get_count();
+                        NetworkAgent* agent = GUI::wxGetApp().getAgent();
+                        if (agent) {
+                            agent->track_update_property(name, std::to_string(count));
+                        }
+                    }
+                }
+                catch (...) {}
             }
         }
         else if (evt.MiddleDown()) {
@@ -1372,17 +1400,23 @@ void GLGizmosManager::do_render_overlay() const
     float width = get_scaled_total_width();
     float zoomed_border = m_layout.scaled_border() * inv_zoom;
 
-    //BBS: GUI refactor: GLToolbar&&Gizmo adjust
+    float zoomed_top_x;
+    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        zoomed_top_x = 0.5f * m_parent.get_assembly_paint_toolbar_width() * inv_zoom;
+    }
+    else {
+        //BBS: GUI refactor: GLToolbar&&Gizmo adjust
 #if BBS_TOOLBAR_ON_TOP
-    float main_toolbar_width =  (float)m_parent.get_main_toolbar_width();
-    float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
-    float collapse_width = (float)m_parent.get_collapse_toolbar_width();
-    //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
-    //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
+        float main_toolbar_width = (float)m_parent.get_main_toolbar_width();
+        float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
+        float collapse_width = (float)m_parent.get_collapse_toolbar_width();
+        //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
+        //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
 
-    float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width - collapse_width)) * inv_zoom;
-    //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
-    float zoomed_top_x = main_toolbar_left + (main_toolbar_width) *inv_zoom;
+        float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width - collapse_width)) * inv_zoom;
+        //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
+        zoomed_top_x = main_toolbar_left + (main_toolbar_width)*inv_zoom;
+    }
     float zoomed_top_y = 0.5f * cnv_h * inv_zoom;
 #else
     //float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
@@ -1651,6 +1685,29 @@ bool GLGizmosManager::is_hiding_instances() const
 int GLGizmosManager::get_shortcut_key(GLGizmosManager::EType type) const
 {
     return m_gizmos[type]->get_shortcut_key();
+}
+
+std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
+{
+    switch (type) {
+    case GLGizmosManager::EType::Move:
+        return "Move";
+    case GLGizmosManager::EType::Rotate:
+        return "Rotate";
+    case GLGizmosManager::EType::Scale:
+        return "Scale";
+    case GLGizmosManager::EType::Flatten:
+        return "Flatten";
+    case GLGizmosManager::EType::FdmSupports:
+        return "FdmSupports";
+    case GLGizmosManager::EType::Seam:
+        return "Seam";
+    case GLGizmosManager::EType::Text:
+        return "Text";
+    default:
+        return "";
+    }
+    return "";
 }
 
 } // namespace GUI

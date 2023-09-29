@@ -4,23 +4,23 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
-    "cool_plate_temp" : [
+    "cool_plate_temp": [
         "0"
     ],
-    "eng_plate_temp" : [
-        "100"
+    "eng_plate_temp": [
+        "95"
     ],
-    "hot_plate_temp" : [
-        "100"
+    "hot_plate_temp": [
+        "95"
     ],
-    "cool_plate_temp_initial_layer" : [
+    "cool_plate_temp_initial_layer": [
         "0"
     ],
-    "eng_plate_temp_initial_layer" : [
-        "100"
+    "eng_plate_temp_initial_layer": [
+        "95"
     ],
-    "hot_plate_temp_initial_layer" : [
-        "100"
+    "hot_plate_temp_initial_layer": [
+        "95"
     ],
     "slow_down_for_layer_cooling": [
         "1"

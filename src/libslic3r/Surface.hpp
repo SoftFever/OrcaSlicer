@@ -15,8 +15,6 @@ enum SurfaceType {
     stBottomBridge,
     // Normal sparse infill.
     stInternal,
-    // Normal sparse infill.
-    stInternalWithLoop,
     // Full infill, supporting the top surfaces and/or defining the verticall wall thickness.
     stInternalSolid,
     // 1st layer of dense infill over sparse infill, printed with a bridging extrusion flow.
@@ -104,13 +102,15 @@ public:
 	bool   is_top()      const { return this->surface_type == stTop; }
 	bool   is_bottom()   const { return this->surface_type == stBottom || this->surface_type == stBottomBridge; }
 	bool   is_bridge()   const { return this->surface_type == stBottomBridge || this->surface_type == stInternalBridge; }
+    bool   is_internal_bridge() const { return this->surface_type == stInternalBridge; }
 	bool   is_external() const { return this->is_top() || this->is_bottom(); }
 	bool   is_internal() const { return ! this->is_external(); }
 	bool   is_solid()    const { return this->is_external() || this->surface_type == stInternalSolid || this->surface_type == stInternalBridge; }
+	bool   is_solid_infill() const { return this->surface_type == stInternalSolid; }
 };
 
 typedef std::vector<Surface> Surfaces;
-typedef std::vector<Surface*> SurfacesPtr;
+typedef std::vector<const Surface*> SurfacesPtr;
 
 inline Polygons to_polygons(const Surface &surface)
 {
@@ -227,6 +227,7 @@ inline void polygons_append(Polygons &dst, const SurfacesPtr &src)
     }
 }
 
+/*
 inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
 {
     dst.reserve(dst.size() + number_polygons(src));
@@ -236,6 +237,7 @@ inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
         (*it)->expolygon.holes.clear();
     }
 }
+*/
 
 // Append a vector of Surfaces at the end of another vector of polygons.
 inline void surfaces_append(Surfaces &dst, const ExPolygons &src, SurfaceType surfaceType)

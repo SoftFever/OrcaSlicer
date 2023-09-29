@@ -67,8 +67,6 @@ struct FillParams
     bool        use_arachne{ false };
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
-    //BBS
-    bool        with_loop       { false };
 
     // BBS
     Flow            flow;
@@ -78,6 +76,7 @@ struct FillParams
     float           no_extrusion_overlap{ 0.0 };
     const           PrintRegionConfig* config{ nullptr };
     bool            dont_sort{ false }; // do not sort the lines, just simply connect them
+    bool            can_reverse{true};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

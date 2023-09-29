@@ -25,6 +25,7 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 	void on_show(wxShowEvent& event);
 protected:
+    void reset_params();
 	virtual void on_start(wxCommandEvent& event);
 	virtual void on_extruder_type_changed(wxCommandEvent& event);
 	virtual void on_method_changed(wxCommandEvent& event);

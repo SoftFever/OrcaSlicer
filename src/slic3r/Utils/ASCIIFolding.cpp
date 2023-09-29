@@ -4,6 +4,8 @@
 #include <string.h>
 #include <locale>
 #include <boost/locale/encoding_utf.hpp>
+#include <codecvt>
+#include <regex>
 
 namespace Slic3r {
 
@@ -1942,7 +1944,7 @@ static void fold_to_ascii(wchar_t c, std::back_insert_iterator<std::wstring>& ou
         *out = *it;
 }
 
-std::string fold_utf8_to_ascii(const std::string &src)
+std::string fold_utf8_to_ascii(const std::string &src, bool is_convert_for_filename)
 {
 	std::wstring wstr = boost::locale::conv::utf_to_utf<wchar_t>(src.c_str(), src.c_str() + src.size());
 	std::wstring dst;
@@ -1950,6 +1952,21 @@ std::string fold_utf8_to_ascii(const std::string &src)
 	auto out = std::back_insert_iterator<std::wstring>(dst);
 	for (wchar_t c : wstr)
 		fold_to_ascii(c, out);
+	if (is_convert_for_filename) {
+		std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+		auto   dstStr = converter.to_bytes(dst);
+
+		std::size_t found = dstStr.find_last_of("/\\");
+		if (found != std::string::npos) {
+			std::string dir      = dstStr.substr(0, found);
+			std::string filename = dstStr.substr(found + 1);
+			std::regex reg("[\\\\/:*?\"<>|\\0]");
+			std::string newFileName = regex_replace(filename, reg, "");
+			dstStr  = dir + "\\" + newFileName;
+        }
+		dst = converter.from_bytes(dstStr);
+	}
+
 	return boost::locale::conv::utf_to_utf<char>(dst.c_str(), dst.c_str() + dst.size());
 }
 

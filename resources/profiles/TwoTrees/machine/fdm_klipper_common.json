@@ -19,8 +19,8 @@
     "5000"
   ],
   "machine_max_acceleration_travel": [
-    "9000",
-    "9000"
+    "20000",
+    "20000"
   ],
   "machine_max_acceleration_x": [
     "9000",
@@ -75,7 +75,7 @@
     "0"
   ],
   "max_layer_height": [
-    "0.28"
+    "0.32"
   ],
   "min_layer_height": [
     "0.08"

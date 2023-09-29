@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "setting_id": "GFSB61_01",
+    "name": "PolyLite ASA @BBL X1C 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "PolyLite ASA @BBL X1C",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 0.2 nozzle",
+        "Bambu Lab X1 Carbon 0.2 nozzle",
+        "Bambu Lab P1S 0.2 nozzle"
+    ],
+    "version": "01.07.00.18"
+}

@@ -57,6 +57,11 @@ enum PrinterBindState {
     ALLOW_UNBIND
 };
 
+enum PrintFromType {
+    FROM_NORMAL,
+    FROM_SDCARD_VIEW,
+};
+
 class Material
 {
 public:
@@ -112,6 +117,7 @@ private:
     bool        m_show_edit{false};
     bool        m_show_bind{false};
     bool        m_hover {false};
+    bool        m_is_macos_special_version{false};
 
 
     PrinterBindState   m_bind_state;
@@ -140,17 +146,14 @@ public:
                        const wxSize &  size  = wxDefaultSize,
                        long            style = wxTAB_TRAVERSAL,
                        const wxString &name  = wxEmptyString);
+    
     ~MachineObjectPanel();
 
     void show_bind_dialog();
- 
     void set_printer_state(PrinterState state);
-
     void show_printer_bind(bool show, PrinterBindState state);
     void show_edit_printer_name(bool show);
-
     void update_machine_info(MachineObject *info, bool is_my_devices = false);
-
 protected:
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
@@ -160,9 +163,9 @@ protected:
     void on_mouse_left_up(wxMouseEvent &evt);
 };
 
-#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(214), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(210), FromDIP(360))  
-#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(180), FromDIP(35))
+#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(216), FromDIP(364))
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(212), FromDIP(360))  
+#define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(182), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
 #define SELECT_MACHINE_GREY400 wxColour(206, 206, 206)
@@ -229,9 +232,15 @@ private:
     wxWindow *create_title_panel(wxString text);
 };
 
-#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(24))
-#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(360), FromDIP(70))
+#define SELECT_MACHINE_DIALOG_BUTTON_SIZE wxSize(FromDIP(68), FromDIP(23))
+#define SELECT_MACHINE_DIALOG_SIMBOOK_SIZE wxSize(FromDIP(370), FromDIP(64))
 
+
+enum PrintPageMode {
+    PrintPageModePrepare = 0,
+    PrintPageModeSending,
+    PrintPageModeFinish
+};
 
 enum PrintDialogStatus {
     PrintStatusInit = 0,
@@ -262,7 +271,8 @@ enum PrintDialogStatus {
     PrintStatusNeedConsistencyUpgrading,
     PrintStatusNotSupportedSendToSDCard,
     PrintStatusNotSupportedPrintAll,
-    PrintStatusBlankPlate
+    PrintStatusBlankPlate,
+    PrintStatusUnsupportedPrinter
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -270,176 +280,185 @@ std::string get_print_status_info(PrintDialogStatus status);
 class SelectMachineDialog : public DPIDialog
 {
 private:
-    void init_model();
-    void init_bind();
-    void init_timer();
-
-    int m_print_plate_idx;
-
-    std::string m_printer_last_select;
-    PrintDialogStatus m_print_status { PrintStatusInit };
-
+    int                                 m_current_filament_id{0};
+    int                                 m_print_plate_idx{0};
+    int                                 m_print_plate_total{0};
+    int                                 m_timeout_count{0};
+    int                                 m_print_error_code;
+    bool                                m_is_in_sending_mode{ false };
+    bool                                m_ams_mapping_res{ false };
+    bool                                m_ams_mapping_valid{ false };
+    bool                                m_need_adaptation_screen{ false };
+    bool                                m_export_3mf_cancel{ false };
+    bool                                m_is_canceled{ false };
+    bool                                m_is_rename_mode{ false };
+    PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
+    std::string                         m_print_error_msg;
+    std::string                         m_print_error_extra;
+    std::string                         m_printer_last_select;
+    std::string                         m_print_info;
+    wxString                            m_current_project_name;
+    PrintDialogStatus                   m_print_status { PrintStatusInit };
+    wxColour                            m_colour_def_color{wxColour(255, 255, 255)};
+    wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
+    StateColor                          m_btn_bg_enable;
+    
+    std::map<std::string, CheckBox *>   m_checkbox_list;
+    //std::map<std::string, bool>         m_checkbox_state_list;
     std::vector<wxString>               m_bedtype_list;
-    std::map<std::string, ::CheckBox *> m_checkbox_list;
+    std::vector<MachineObject*>         m_list;
+    std::vector<FilamentInfo>           m_filaments;
+    std::vector<FilamentInfo>           m_ams_mapping_result;
+    std::shared_ptr<BBLStatusBarSend>   m_status_bar;
 
-    wxColour m_colour_def_color{wxColour(255, 255, 255)};
-    wxColour m_colour_bold_color{wxColour(38, 46, 48)};
-
-    //SecondaryCheckDialog* confirm_dlg = nullptr;
+    Slic3r::DynamicPrintConfig          m_required_data_config;
+    Slic3r::Model                       m_required_data_model; 
+    Slic3r::PlateDataPtrs               m_required_data_plate_data_list;
+    std::string                         m_required_data_file_name;
+    std::string                         m_required_data_file_path;
 
 protected:
-    MaterialHash  m_materialList;
-    std::vector<FilamentInfo> m_filaments;
-    std::vector<FilamentInfo> m_ams_mapping_result;     /* ams mapping data  */
-    bool m_ams_mapping_res { false };                   /* ams mapping result */
-    bool ams_mapping_valid { false };
-    Plater *      m_plater{nullptr};
-    wxPanel *     m_line_top{nullptr};
-    wxPanel *     m_panel_image{nullptr};
-    wxStaticText *m_stext_time{nullptr};
-    wxStaticText *m_stext_weight{nullptr};
-    wxPanel *     m_line_materia{nullptr};
-    wxStaticText *m_stext_printer_title{nullptr};
-
-    wxBoxSizer* rename_sizer_v{ nullptr };
-    wxBoxSizer* rename_sizer_h{ nullptr };
-    wxStaticText* m_rename_text{nullptr};
-    TextInput* m_rename_input{nullptr};
-    Button* m_rename_button{nullptr};
-    wxPanel* m_rename_normal_panel{nullptr};
-    wxSimplebook* m_rename_switch_panel{nullptr};
-
-    wxStaticText *m_statictext_ams_msg{nullptr};
-    wxStaticText * m_statictext_printer_msg{nullptr};
-    wxStaticBitmap* m_staticbitmap {nullptr};
-    ThumbnailPanel *m_thumbnailPanel {nullptr};
-
-    ::ComboBox *  m_comboBox_printer{nullptr};
-    ::ComboBox *  m_comboBox_bed{nullptr};
-    wxStaticText *m_staticText_bed_title{nullptr};
-    wxPanel *     m_line_schedule{nullptr};
-    wxPanel *     m_panel_sending{nullptr};
-    wxStaticText *m_stext_sending{nullptr};
-    wxPanel *     m_panel_prepare{nullptr};
-    Button *      m_button_refresh{nullptr};
-    Button *      m_button_ensure{nullptr};
-    wxPanel *     m_panel_finish{nullptr};
-    wxSimplebook *m_simplebook{nullptr};
-    wxStaticText *m_statictext_finish{nullptr};
-
-    StateColor btn_bg_enable;
-    int        m_current_filament_id;
-    bool       m_is_in_sending_mode { false };
-
-    //wxGridSizer *m_sizer_select;
-    wxWrapSizer *m_sizer_select;
-    wxBoxSizer * sizer_thumbnail;
-    wxGridSizer *m_sizer_material;
-    wxBoxSizer * m_sizer_main;
-    wxBoxSizer * m_sizer_bottom;
-
-    bool              m_need_adaptation_screen {false};
-    wxScrolledWindow *   m_scrollable_view;
-    wxBoxSizer *      m_sizer_scrollable_view; 
-
-    wxPanel* m_scrollable_region;
-    wxBoxSizer* m_sizer_scrollable_region; 
-
-    wxWindow *select_bed{nullptr};
-    wxWindow *select_flow{nullptr};
-    wxWindow *select_timelapse { nullptr };
-    wxWindow *select_use_ams{nullptr};
-    CheckBox *ams_check{nullptr};
-
-
-    void stripWhiteSpace(std::string& str);
-    wxString format_text(wxString &m_msg);
-    void        update_ams_status_msg(wxString msg, bool is_warning = false);
-    void update_priner_status_msg(wxString msg, bool is_warning = false);
-    void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
+    PrintFromType                       m_print_type{FROM_NORMAL};
+    AmsMapingPopup                      m_mapping_popup{ nullptr };
+    AmsMapingTipPopup                   m_mapping_tip_popup{ nullptr };
+    AmsTutorialPopup                    m_mapping_tutorial_popup{ nullptr };
+    MaterialHash                        m_materialList;
+    Plater *                            m_plater{nullptr};
+    wxWrapSizer*                        m_sizer_select{ nullptr };
+    wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
+    wxGridSizer*                        m_sizer_material{ nullptr };
+    wxBoxSizer*                         m_sizer_main{ nullptr };
+    wxBoxSizer*                         m_sizer_scrollable_view{ nullptr };
+    wxBoxSizer*                         m_sizer_scrollable_region{ nullptr };
+    wxBoxSizer*                         rename_sizer_v{ nullptr };
+    wxBoxSizer*                         rename_sizer_h{ nullptr };
+    wxBoxSizer*                         m_sizer_backup{ nullptr };
+    Button*                             m_button_refresh{ nullptr };
+    Button*                             m_button_ensure{ nullptr };
+    ScalableButton *                    m_rename_button{nullptr};
+    ComboBox*                           m_comboBox_printer{ nullptr };
+    wxStaticBitmap*                     m_staticbitmap{ nullptr };
+    wxStaticBitmap*                     m_bitmap_last_plate{ nullptr };
+    wxStaticBitmap*                     m_bitmap_next_plate{ nullptr };
+    ThumbnailPanel*                     m_thumbnailPanel{ nullptr };
+    wxWindow*                           select_bed{ nullptr };
+    wxWindow*                           select_flow{ nullptr };
+    wxWindow*                           select_timelapse{ nullptr };
+    wxWindow*                           select_use_ams{ nullptr };
+    wxPanel*                            m_panel_status{ nullptr };
+    wxPanel*                            m_scrollable_region;
+    wxPanel*                            m_rename_normal_panel{nullptr};
+    wxPanel*                            m_line_schedule{nullptr};
+    wxPanel*                            m_panel_sending{nullptr};
+    wxPanel*                            m_panel_prepare{nullptr};
+    wxPanel*                            m_panel_finish{nullptr};
+    wxPanel*                            m_line_top{ nullptr };
+    wxPanel*                            m_panel_image{ nullptr };
+    wxPanel*                            m_line_materia{ nullptr };
+    Label*                              m_st_txt_error_code{nullptr};
+    Label*                              m_st_txt_error_desc{nullptr};
+    Label*                              m_st_txt_extra_info{nullptr};
+    Label *                             m_link_network_state;
+    Label*                              m_ams_backup_tip{nullptr};
+    wxSimplebook*                       m_rename_switch_panel{nullptr};
+    wxSimplebook*                       m_simplebook{nullptr};
+    wxStaticText*                       m_rename_text{nullptr};
+    wxStaticText*                       m_stext_printer_title{nullptr};
+    wxStaticText*                       m_stext_time{ nullptr };
+    wxStaticText*                       m_stext_weight{ nullptr };
+    wxStaticText*                       m_statictext_ams_msg{ nullptr };
+    wxStaticText*                       m_statictext_printer_msg{ nullptr };
+    wxStaticText*                       m_staticText_bed_title{ nullptr };
+    wxStaticText*                       m_stext_sending{ nullptr };
+    wxStaticText*                       m_statictext_finish{nullptr};
+    TextInput*                          m_rename_input{nullptr};
+    wxTimer*                            m_refresh_timer{ nullptr };
+    std::shared_ptr<PrintJob>           m_print_job;
+    wxScrolledWindow*                   m_scrollable_view;
+    wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
+    wxHyperlinkCtrl*                    m_hyperlink{nullptr};
+    ScalableBitmap *                    ams_editable{nullptr};
+    ScalableBitmap *                    ams_editable_light{nullptr};
+    wxStaticBitmap *                    timeimg{nullptr};
+    ScalableBitmap *                    print_time{nullptr};
+    wxStaticBitmap *                    weightimg{nullptr};
+    ScalableBitmap *                    print_weight{nullptr};
+    wxStaticBitmap *                    amsmapping_tip{nullptr};
+    ScalableBitmap *                    enable_ams_mapping{nullptr};
+    wxStaticBitmap *                    ams_tip{nullptr};
+    wxStaticBitmap *                    img_ams_backup{nullptr};
+    ScalableBitmap *                    enable_ams{nullptr};
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
     ~SelectMachineDialog();
 
-
+    void init_bind();
+    void init_timer();
     void check_focus(wxWindow* window);
+    void show_print_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();
-    wxWindow* create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
-    wxWindow* create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
-    void      update_select_layout(MachineObject *obj);
-    void      prepare_mode();
-    void      sending_mode();
-    void      finish_mode();
+    void update_select_layout(MachineObject *obj);
+    void prepare_mode();
+    void sending_mode();
+    void finish_mode();
+	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);
+    void prepare(int print_plate_idx);
+    void show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
+    void sys_color_changed();
+    void reset_timeout();
+    void update_user_printer();
+    void reset_ams_material();
+    void update_show_status();
+    void update_ams_check(MachineObject* obj);
+    void on_rename_click(wxCommandEvent& event);
+    void on_rename_enter();
+    void update_printer_combobox(wxCommandEvent& event);
+    void on_cancel(wxCloseEvent& event);
+    void show_errors(wxString& info);
+    void on_ok_btn(wxCommandEvent& event);
+    void Enable_Auto_Refill(bool enable);
+    void connect_printer_mqtt();
+    void on_send_print();
+    void clear_ip_address_config(wxCommandEvent& e);
+    void on_refresh(wxCommandEvent& event);
+    void on_set_finish_mapping(wxCommandEvent& evt);
+    void on_print_job_cancel(wxCommandEvent& evt);
+    void set_default();
+    void set_default_normal();
+    void set_default_from_sdcard();
+    void update_page_turn_state(bool show);
+    void on_timer(wxTimerEvent& event);
+    void on_selection_changed(wxCommandEvent& event);
+    void Enable_Refresh_Button(bool en);
+    void Enable_Send_Button(bool en);
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void update_user_machine_list();
+    void update_lan_machine_list();
+    void stripWhiteSpace(std::string& str);
+    void update_ams_status_msg(wxString msg, bool is_warning = false);
+    void update_priner_status_msg(wxString msg, bool is_warning = false);
+    void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
+    void update_print_error_info(int code, std::string msg, std::string extra);
+    void set_flow_calibration_state(bool state);
+    bool is_show_timelapse();
+    bool is_same_printer_model();
+    bool is_blocking_printing();
+    bool has_tips(MachineObject* obj);
+    bool is_timeout();
+    int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
+    void set_print_type(PrintFromType type) {m_print_type = type;};
+    bool Show(bool show);
+    bool do_ams_mapping(MachineObject* obj_);
+    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& ams_mapping_info);
 
-	void      sync_ams_mapping_result(std::vector<FilamentInfo>& result);
-    bool      do_ams_mapping(MachineObject *obj_);
-    bool      get_ams_mapping_result(std::string &mapping_array_str, std::string &ams_mapping_info);
-    void      prepare(int print_plate_idx);
-    bool      has_tips(MachineObject* obj);
-    void      show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
+    PrintFromType get_print_type() {return m_print_type;};
+    wxString    format_text(wxString &m_msg);
+    wxWindow*   create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
+    wxWindow*   create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
+    wxImage *   LoadImageFromBlob(const unsigned char *data, int size);
     PrintDialogStatus  get_status() { return m_print_status; }
-
-    bool      is_same_printer_model();
-    void      sys_color_changed();
-    bool      Show(bool show);
-
-    /* model */
-    wxObjectDataPtr<MachineListModel> machine_model;
-    std::shared_ptr<BBLStatusBarSend> m_status_bar;
-    bool                              m_export_3mf_cancel{false};
-    bool                              m_is_canceled { false };
-
-protected:
-    std::vector<MachineObject *> m_list;
-    wxDataViewCtrl *             m_dataViewListCtrl_machines{nullptr};
-    wxStaticText *               m_staticText_left{nullptr};
-    wxHyperlinkCtrl *            m_hyperlink_add_machine{nullptr};
-    wxGauge *                    m_gauge_job_progress{nullptr};
-    wxPanel *                    m_panel_status{nullptr};
-    wxButton *                   m_button_cancel{nullptr};
-    AmsMapingPopup               m_mapping_popup{nullptr};
-    AmsMapingTipPopup            m_mapping_tip_popup{nullptr};
-    AmsTutorialPopup             m_mapping_tutorial_popup{nullptr};
-    wxString                     m_current_project_name;
-    std::string                  m_print_info;
-    int                          timeout_count = 0;
-    bool                         m_is_rename_mode{false};
-    bool                         is_timeout();
-    void                         reset_timeout();
-    void                         update_user_printer();
-    void                         reset_ams_material();
-    void                         update_show_status();
-    void                         update_ams_check(MachineObject* obj);
-    bool                         is_show_timelapse();
-
-    wxTimer *m_refresh_timer { nullptr };
-
-    std::shared_ptr<PrintJob> m_print_job;
-
-    // Virtual event handlers, overide them in your derived class
-    void                     on_rename_click(wxCommandEvent &event);
-    void                     on_rename_enter();
-
-    void                     update_printer_combobox(wxCommandEvent &event);
-    void                     on_cancel(wxCloseEvent &event);
-    void                     show_errors(wxString &info);
-    void                     on_ok_btn(wxCommandEvent &event);
-    void                     on_ok();
-    void                     clear_ip_address_config(wxCommandEvent& e);
-    void                     on_refresh(wxCommandEvent& event);
-    void                     on_set_finish_mapping(wxCommandEvent &evt);
-    void                     on_print_job_cancel(wxCommandEvent &evt);
-    void                     set_default();
-    void                     on_timer(wxTimerEvent& event);
-    void                     on_selection_changed(wxCommandEvent &event);
-    void                     Enable_Refresh_Button(bool en);
-    void                     Enable_Send_Button(bool en);
-    void                     on_dpi_changed(const wxRect &suggested_rect) override;
-    void                     update_user_machine_list();
-    void                     update_lan_machine_list();
-    wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
 
@@ -463,10 +482,10 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_edit_name(wxCommandEvent &e);
 
-    MachineObject *m_info {nullptr};
-    wxStaticText* m_static_valid {nullptr};
-    ::TextInput* m_textCtr   {nullptr};
-    Button* m_button_confirm {nullptr};
+    Button*             m_button_confirm{nullptr};
+    TextInput*          m_textCtr{nullptr};
+    wxStaticText*       m_static_valid{nullptr};
+    MachineObject*      m_info{nullptr};
 };
 
 
@@ -480,11 +499,13 @@ public:
                    wxWindowID      winid = wxID_ANY,
                    const wxPoint & pos   = wxDefaultPosition,
                    const wxSize &  size  = wxDefaultSize);
+    ~ThumbnailPanel();
+
     void OnPaint(wxPaintEvent &event);
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
     void set_thumbnail(wxImage img);
-    ~ThumbnailPanel();
+    
 };
 
 }} // namespace Slic3r::GUI

@@ -1,6 +1,7 @@
 #include "libslic3r/Utils.hpp"
 #include "Label.hpp"
 #include "StaticBox.hpp"
+#include <wx/intl.h> // For wxLocale
 
 wxFont Label::sysFont(int size, bool bold)
 {
@@ -11,11 +12,17 @@ wxFont Label::sysFont(int size, bool bold)
     size = size * 4 / 5;
 #endif
 
-    auto   face = wxString::FromUTF8("HarmonyOS Sans SC");
+    wxString face = "HarmonyOS Sans SC";
+
+    // Check if the current locale is Korean
+    if (wxLocale::GetSystemLanguage() == wxLANGUAGE_KOREAN) {
+        face = "NanumGothic";
+    }
+
     wxFont font{size, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, bold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL, false, face};
     font.SetFaceName(face);
     if (!font.IsOk()) {
-      BOOST_LOG_TRIVIAL(warning) << boost::format("Cann't find HarmonyOS Sans SC font");
+      BOOST_LOG_TRIVIAL(warning) << boost::format("Can't find %1% font") % face;
       font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
       BOOST_LOG_TRIVIAL(warning) << boost::format("Use system font instead: %1%") % font.GetFaceName();
       if (bold)
@@ -49,17 +56,25 @@ wxFont Label::Body_9;
 void Label::initSysFont()
 {
 #if defined(__linux__) || defined(_WIN32)
-    const std::string& resource_path = Slic3r::resources_dir();
-    wxString font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Bold.ttf");
+    const std::string &resource_path = Slic3r::resources_dir();
+    wxString font_path = wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Bold.ttf");
     bool result = wxFont::AddPrivateFont(font_path);
-    //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
+    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
     printf("add font of HarmonyOS_Sans_SC_Bold returns %d\n", result);
-    font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Regular.ttf");
+    font_path = wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Regular.ttf");
     result = wxFont::AddPrivateFont(font_path);
-    //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
+    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
     printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
+    // Adding NanumGothic Regular and Bold
+    font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Regular.ttf");
+    result = wxFont::AddPrivateFont(font_path);
+    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Regular returns %1%")%result;
+    printf("add font of NanumGothic-Regular returns %d\n", result);
+    font_path = wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf");
+    result = wxFont::AddPrivateFont(font_path);
+    // BOOST_LOG_TRIVIAL(info) << boost::format("add font of NanumGothic-Bold returns %1%")%result;
+    printf("add font of NanumGothic-Bold returns %d\n", result);
 #endif
-
     Head_48 = Label::sysFont(48, true);
     Head_32 = Label::sysFont(32, true);
     Head_24 = Label::sysFont(24, true);
@@ -112,6 +127,11 @@ public:
             for (bool newLine = false; !line.empty(); newLine = true) {
                 if (newLine) OnNewLine();
 
+                if (1 == line.length()) {
+                    DoOutputLine(line);
+                    break;
+                }
+
                 wxArrayInt widths;
                 dc.GetPartialTextExtents(line, widths);
 
@@ -139,6 +159,10 @@ public:
                 if (lastSpace == 0) {
                     // No spaces, so can't wrap.
                     lastSpace = posEnd;
+                }
+                if (lastSpace == 0) {
+                    // Break at least one char
+                    lastSpace = 1;
                 }
 
                 // Output the part that fits.
@@ -188,12 +212,13 @@ private:
 class wxLabelWrapper2 : public wxTextWrapper2
 {
 public:
-    void WrapLabel(wxWindow *text, int widthMax)
+    void WrapLabel(wxWindow *text, wxString const & label, int widthMax)
     {
         m_text.clear();
-        Wrap(text, text->GetLabel(), widthMax);
-        text->SetLabel(m_text);
+        Wrap(text, label, widthMax);
     }
+
+    wxString GetText() const { return m_text; }
 
 protected:
     virtual void OnOutputLine(const wxString &line) wxOVERRIDE { m_text += line; }
@@ -236,23 +261,32 @@ Label::Label(wxWindow *parent, wxString const &text, long style) : Label(parent,
 Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long style)
     : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, style)
 {
-    this->font = font;
+    this->m_font = font;
+    this->m_text = text;
     SetFont(font);
-    SetForegroundColour(wxColour("#262E30"));
+    SetForegroundColour(*wxBLACK);
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     SetForegroundColour("#262E30");
     if (style & LB_PROPAGATE_MOUSE_EVENT) {
-        for (auto evt : {
-            wxEVT_LEFT_UP, wxEVT_LEFT_DOWN})
+        for (auto evt : { wxEVT_LEFT_UP, wxEVT_LEFT_DOWN })
             Bind(evt, [this] (auto & e) { GetParent()->GetEventHandler()->ProcessEventLocally(e); });
-        };
+    };
+    if (style & LB_AUTO_WRAP) {
+        Bind(wxEVT_SIZE, &Label::OnSize, this);
+        Wrap(GetSize().x);
     }
+}
 
 void Label::SetLabel(const wxString& label)
 {
-    if (GetLabel() == label)
+    if (m_text == label)
         return;
-    wxStaticText::SetLabel(label);
+    m_text = label;
+    if ((GetWindowStyle() & LB_AUTO_WRAP)) {
+        Wrap(GetSize().x);
+    } else {
+        wxStaticText::SetLabel(label);
+    }
 #ifdef __WXOSX__
     if ((GetWindowStyle() & LB_HYPERLINK)) {
         SetLabelMarkup(label);
@@ -267,22 +301,21 @@ void Label::SetWindowStyleFlag(long style)
         return;
     wxStaticText::SetWindowStyleFlag(style);
     if (style & LB_HYPERLINK) {
-        this->color = GetForegroundColour();
+        this->m_color = GetForegroundColour();
         static wxColor clr_url("#009688");
-        SetFont(this->font.Underlined());
+        SetFont(this->m_font.Underlined());
         SetForegroundColour(clr_url);
         SetCursor(wxCURSOR_HAND);
 #ifdef __WXOSX__
-        SetLabelMarkup(GetLabel());
+        SetLabelMarkup(m_text);
 #endif
     } else {
-        SetForegroundColour(this->color);
-        SetFont(this->font);
+        SetForegroundColour(this->m_color);
+        SetFont(this->m_font);
         SetCursor(wxCURSOR_ARROW);
 #ifdef __WXOSX__
-        auto label = GetLabel();
         wxStaticText::SetLabel({});
-        wxStaticText::SetLabel(label);
+        SetLabel(m_text);
 #endif
     }
     Refresh();
@@ -291,5 +324,15 @@ void Label::SetWindowStyleFlag(long style)
 void Label::Wrap(int width)
 {
     wxLabelWrapper2 wrapper;
-    wrapper.WrapLabel(this, width);
+    wrapper.Wrap(this, m_text, width);
+    m_skip_size_evt = true;
+    wxStaticText::SetLabel(wrapper.GetText());
+    m_skip_size_evt = false;
+}
+
+void Label::OnSize(wxSizeEvent &evt)
+{
+    evt.Skip();
+    if (m_skip_size_evt) return;
+    Wrap(evt.GetSize().x);
 }

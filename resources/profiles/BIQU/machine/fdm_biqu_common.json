@@ -124,9 +124,8 @@
     "1"
   ],
   "default_filament_profile": [
-    "Generic PLA @BIQU"
+    "BIQU Generic PLA"
   ],
-  "default_print_profile": "0.20mm Standard @BIQU",
   "bed_exclude_area": [
     "0x0"
   ],

@@ -1,6 +1,8 @@
 #ifndef slic3r_Print_hpp_
 #define slic3r_Print_hpp_
 
+#include "Fill/FillAdaptive.hpp"
+#include "Fill/FillLightning.hpp"
 #include "PrintBase.hpp"
 
 #include "BoundingBox.hpp"
@@ -11,6 +13,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "GCode/WipeTower.hpp"
+#include "GCode/WipeTower2.hpp"
 #include "GCode/ThumbnailData.hpp"
 #include "GCode/GCodeProcessor.hpp"
 #include "MultiMaterialSegmentation.hpp"
@@ -86,9 +89,10 @@ enum PrintStep {
 };
 
 enum PrintObjectStep {
-    posSlice, posPerimeters, posPrepareInfill,
+    posSlice, posPerimeters,posEstimateCurledExtrusions, posPrepareInfill,
     posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
     // BBS
+    posSimplifyInfill,
     posDetectOverhangsForLift,
     posCount,
 };
@@ -200,6 +204,9 @@ struct PrintInstance
     // 
     // instance id
     size_t               id;
+
+    //BBS: instance_shift is too large because of multi-plate, apply without plate offset.
+    Point shift_without_plate_offset() const;
 };
 
 typedef std::vector<PrintInstance> PrintInstances;
@@ -419,11 +426,13 @@ public:
 
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
-
+    void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
+    std::vector<Point> get_instances_shift_without_plate_offset();
     PrintObject* get_shared_object() const { return m_shared_object; }
     void         set_shared_object(PrintObject *object);
     void         clear_shared_object();
     void         copy_layers_from_shared_object();
+    void         copy_layers_overhang_from_shared_object();
 
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
@@ -461,6 +470,7 @@ private:
     void infill();
     void ironing();
     void generate_support_material();
+    void estimate_curled_extrusions();
     void simplify_extrusion_path();
 
     void slice_volumes();
@@ -479,7 +489,8 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
-    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data(
+        const std::vector<std::pair<const Surface*, float>>& surfaces_w_bottom_z) const;
     FillLightning::GeneratorPtr prepare_lightning_infill_data();
 
     // BBS
@@ -509,6 +520,10 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
+
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> m_adaptive_fill_octrees;
+    FillLightning::GeneratorPtr m_lightning_generator;
+
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
     // BBS: per object skirt
@@ -521,6 +536,7 @@ private:
     // 
     // object id
     size_t               m_id;
+    void apply_conical_overhang();
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.
@@ -538,7 +554,10 @@ struct FakeWipeTower
     float height;
     float layer_height;
     float depth;
+    std::vector<std::pair<float, float>> z_and_depth_pairs;
     float brim_width;
+    float rotation_angle;
+    float cone_angle;
     Vec2d plate_origin;
 
     void set_fake_extrusion_data(Vec2f p, float w, float h, float lh, float d, float bd, Vec2d o)
@@ -551,8 +570,21 @@ struct FakeWipeTower
         brim_width   = bd;
         plate_origin = o;
     }
-
+    void set_fake_extrusion_data(const Vec2f& p, float w, float h, float lh, float d, const std::vector<std::pair<float, float>>& zad, float bd, float ra, float ca, const Vec2d& o)
+    {
+        pos = p;
+        width = w;
+        height = h;
+        layer_height = lh;
+        depth = d;
+        z_and_depth_pairs = zad;
+        brim_width = bd;
+        rotation_angle = ra;
+        cone_angle = ca;
+        plate_origin = o;
+    }
     void set_pos(Vec2f p) { pos = p; }
+    void set_pos_and_rotation(const Vec2f& p, float rotation) { pos = p; rotation_angle = rotation; }
 
     std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower() const
     {
@@ -580,6 +612,82 @@ struct FakeWipeTower
         }
         return paths;
     }
+
+    std::vector<ExtrusionPaths> getFakeExtrusionPathsFromWipeTower2() const
+    {
+        float h = height;
+        float lh = layer_height;
+        int   d = scale_(depth);
+        int   w = scale_(width);
+        int   bd = scale_(brim_width);
+        Point minCorner = { -bd, -bd };
+        Point maxCorner = { minCorner.x() + w + bd, minCorner.y() + d + bd };
+
+        const auto [cone_base_R, cone_scale_x] = WipeTower2::get_wipe_tower_cone_base(width, height, depth, cone_angle);
+
+        std::vector<ExtrusionPaths> paths;
+        for (float hh = 0.f; hh < h; hh += lh) {
+            
+            if (hh != 0.f) {
+                // The wipe tower may be getting smaller. Find the depth for this layer.
+                size_t i = 0;
+                for (i=0; i<z_and_depth_pairs.size()-1; ++i)
+                    if (hh >= z_and_depth_pairs[i].first && hh < z_and_depth_pairs[i+1].first)
+                        break;
+                d = scale_(z_and_depth_pairs[i].second);
+                minCorner = {0.f, -d/2 + scale_(z_and_depth_pairs.front().second/2.f)};
+                maxCorner = { minCorner.x() + w, minCorner.y() + d };
+            }
+
+
+            ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, lh);
+            path.polyline = { minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner };
+            paths.push_back({ path });
+
+            // We added the border, now add several parallel lines so we can detect an object that is fully inside the tower.
+            // For now, simply use fixed spacing of 3mm.
+            for (coord_t y=minCorner.y()+scale_(3.); y<maxCorner.y(); y+=scale_(3.)) {
+                path.polyline = { {minCorner.x(), y}, {maxCorner.x(), y} };
+                paths.back().emplace_back(path);
+            }
+
+            // And of course the stabilization cone and its base...
+            if (cone_base_R > 0.) {
+                path.polyline.clear();
+                double r = cone_base_R * (1 - hh/height);
+                for (double alpha=0; alpha<2.01*M_PI; alpha+=2*M_PI/20.)
+                    path.polyline.points.emplace_back(Point::new_scale(width/2. + r * std::cos(alpha)/cone_scale_x, depth/2. + r * std::sin(alpha)));
+                paths.back().emplace_back(path);
+                if (hh == 0.f) { // Cone brim.
+                    for (float bw=brim_width; bw>0.f; bw-=3.f) {
+                        path.polyline.clear();
+                        for (double alpha=0; alpha<2.01*M_PI; alpha+=2*M_PI/20.) // see load_wipe_tower_preview, where the same is a bit clearer
+                            path.polyline.points.emplace_back(Point::new_scale(
+                                width/2. + cone_base_R * std::cos(alpha)/cone_scale_x * (1. + cone_scale_x*bw/cone_base_R),
+                                depth/2. + cone_base_R * std::sin(alpha) * (1. + bw/cone_base_R))
+                            );
+                        paths.back().emplace_back(path);
+                    }
+                }
+            }
+
+            // Only the first layer has brim.
+            if (hh == 0.f) {
+                minCorner = minCorner + Point(bd, bd);
+                maxCorner = maxCorner - Point(bd, bd);
+            }
+        }
+
+        // Rotate and translate the tower into the final position.
+        for (ExtrusionPaths& ps : paths) {
+            for (ExtrusionPath& p : ps) {
+                p.polyline.rotate(Geometry::deg2rad(rotation_angle));
+                p.polyline.translate(scale_(pos.x()), scale_(pos.y()));
+            }
+        }
+
+        return paths;
+    }
 };
 
 struct WipeTowerData
@@ -597,7 +705,9 @@ struct WipeTowerData
 
     // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
     float                                                 depth;
+    std::vector<std::pair<float, float>>                  z_and_depth_pairs;
     float                                                 brim_width;
+    float                                                 height;
 
     void clear() {
         priming.reset(nullptr);
@@ -610,7 +720,7 @@ struct WipeTowerData
     }
 
 private:
-	// Only allow the WipeTowerData to be instantiated internally by Print,
+	// Only allow the WipeTowerData to be instantiated internally by Print, 
 	// as this WipeTowerData shares reference to Print::m_tool_ordering.
 	friend class Print;
 	WipeTowerData(ToolOrdering &tool_ordering) : tool_ordering(tool_ordering) { clear(); }
@@ -754,7 +864,7 @@ public:
     // For Perl bindings.
     PrintObjectPtrs&            objects_mutable() { return m_objects; }
     PrintRegionPtrs&            print_regions_mutable() { return m_print_regions; }
-
+    std::vector<size_t>         layers_sorted_for_object(float start, float end, std::vector<LayerPtrs> &layers_of_objects, std::vector<BoundingBox> &boundingBox_for_objects, std::vector<Points>& objects_instances_shift);
     const ExtrusionEntityCollection& skirt() const { return m_skirt; }
     // Convex hull of the 1st layer extrusions, for bed leveling and placing the initial purge line.
     // It encompasses the object extrusions, support extrusions, skirt, brim, wipe tower.
@@ -817,6 +927,9 @@ public:
     Vec2d translate_to_print_space(const Vec2d &point) const;
     // scaled point
     Vec2d translate_to_print_space(const Point &point) const;
+
+    static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
+
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);

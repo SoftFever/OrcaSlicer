@@ -30,7 +30,7 @@
     "interface_shells": "0",
     "detect_overhang_wall": "0",
     "reduce_infill_retraction": "0",
-    "filename_format": "{input_filename_base}.gcode",
+    "filename_format": "{input_filename_base}_{filament_type[0]}_{print_time}.gcode",
     "wall_loops": "3",
     "inner_wall_line_width": "0.45",
     "inner_wall_speed": "40",

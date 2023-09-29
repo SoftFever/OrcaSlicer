@@ -6,12 +6,14 @@ function OnInit()
 	//-----Test-----
 	//Set_RecentFile_MouseRightBtn_Event();
 	
-	
 	//-----Official-----
     TranslatePage();
 
 	SendMsg_GetLoginInfo();
 	SendMsg_GetRecentFile();
+	SendMsg_GetStaffPick();
+	
+	//InitStaffPick();
 }
 
 //------最佳打开文件的右键菜单功能----------
@@ -19,10 +21,11 @@ var RightBtnFilePath='';
 
 var MousePosX=0;
 var MousePosY=0;
+var sImages = {};
 
 function Set_RecentFile_MouseRightBtn_Event()
 {
-	$("#FileList .FileItem").mousedown(
+	$(".FileItem").mousedown(
 		function(e)
 		{			
 			//FilePath
@@ -80,7 +83,6 @@ function Set_RecentFile_MouseRightBtn_Event()
 function HandleStudio( pVal )
 {
 	let strCmd = pVal['command'];
-	//alert(strCmd);
 	
 	if(strCmd=='get_recent_projects')
 	{
@@ -118,6 +120,11 @@ function HandleStudio( pVal )
 			$("#NoPluginTip").hide();
 		}
 	}
+	else if( strCmd=="modelmall_model_advise_get")
+	{
+		//alert('hot');
+		ShowStaffPick( pVal['hits'] );
+	}
 }
 
 function GotoMenu( strMenu )
@@ -145,8 +152,15 @@ function SetLoginInfo( strAvatar, strName )
 {
 	$("#Login1").hide();
 	
-	$("#UserAvatarIcon").prop("src",strAvatar);
 	$("#UserName").text(strName);
+	
+    let OriginAvatar=$("#UserAvatarIcon").prop("src");
+	if(strAvatar!=OriginAvatar)
+		$("#UserAvatarIcon").prop("src",strAvatar);
+	else
+	{
+		//alert('Avatar is Same');
+	}
 	
 	$("#Login2").show();
 	$("#Login2").css("display","flex");
@@ -177,10 +191,11 @@ function ShowRecentFileList( pList )
 	{
 		let OneFile=pList[n];
 		
-		let sImg=OneFile["image"];
 		let sPath=OneFile['path'];
+		let sImg=OneFile["image"] || sImages[sPath];
 		let sTime=OneFile['time'];
 		let sName=OneFile['project_name'];
+		sImages[sPath] = sImg;
 		
 		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
 		//let sShortName=sPath.substring(index+1,sPath.length);
@@ -396,6 +411,99 @@ function OpenWikiUrl( strUrl )
 	tSend['data']['url']=strUrl;
 	
 	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+//--------------Staff Pick-------
+var StaffPickSwiper=null;
+function InitStaffPick()
+{
+	if( StaffPickSwiper!=null )
+	{
+		StaffPickSwiper.destroy(true,true);
+		StaffPickSwiper=null;
+	}	
+	
+	StaffPickSwiper = new Swiper('#HotModel_Swiper.swiper', {
+            slidesPerView : 'auto',
+		    spaceBetween: 16,
+			navigation: {
+				nextEl: '.swiper-button-next',
+				prevEl: '.swiper-button-prev',
+			},
+		    slidesPerView : 'auto',
+		    slidesPerGroup : 3
+//			autoplay: {
+//				delay: 3000,
+//				stopOnLastSlide: false,
+//				disableOnInteraction: true,
+//				disableOnInteraction: false
+//			},
+//			pagination: {
+//				el: '.swiper-pagination',
+//			},
+//		    scrollbar: {
+//                el: '.swiper-scrollbar',
+//				draggable: true
+//            }
+			});
+}
+
+function SendMsg_GetStaffPick()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="modelmall_model_advise_get";
+	
+	SendWXMessage( JSON.stringify(tSend) );
+	
+	setTimeout("SendMsg_GetStaffPick()",3600*1000*1);
+}
+
+function ShowStaffPick( ModelList )
+{
+	let PickTotal=ModelList.length;
+	if(PickTotal==0)
+	{
+		$('#HotModelList').html('');
+		$('#HotModelArea').hide();
+		
+		return;
+	}
+	
+	let strPickHtml='';
+	for(let a=0;a<PickTotal;a++)
+	{
+		let OnePickModel=ModelList[a];
+		
+		let ModelID=OnePickModel['design']['id'];
+		let ModelName=OnePickModel['design']['title'];
+		let ModelCover=OnePickModel['design']['cover'];
+		
+		let DesignerName=OnePickModel['design']['designCreator']['name'];
+		let DesignerAvatar=OnePickModel['design']['designCreator']['avatar'];
+		
+		strPickHtml+='<div class="HotModelPiece swiper-slide"  onClick="OpenOneStaffPickModel('+ModelID+')" >'+
+			    '<div class="HotModel_Designer_Info"><img src="'+DesignerAvatar+'" /><span class="TextS2">'+DesignerName+'</span></div>'+
+				'	<div class="HotModel_PrevBlock"><img class="HotModel_PrevImg" src="'+ModelCover+'" /></div>'+
+				'	<div  class="HotModel_NameText TextS1">'+ModelName+'</div>'+
+				'</div>';
+	}
+	
+	$('#HotModelList').html(strPickHtml);
+	InitStaffPick();
+	$('#HotModelArea').show();
+}
+
+function OpenOneStaffPickModel( ModelID )
+{
+	//alert(ModelID);
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="modelmall_model_open";
+	tSend['data']={};
+	tSend['data']['id']=ModelID;
+	
+	SendWXMessage( JSON.stringify(tSend) );		
 }
 
 

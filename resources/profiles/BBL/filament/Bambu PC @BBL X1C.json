@@ -6,7 +6,8 @@
     "instantiation": "true",
     "inherits": "Bambu PC @base",
     "compatible_printers": [
-      "Bambu Lab X1 Carbon 0.4 nozzle",
-      "Bambu Lab X1 0.4 nozzle"
-    ]
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle"
+    ],
+    "version": "01.07.00.18"
 }

@@ -26,6 +26,7 @@
 namespace Slic3r {
 namespace GUI {
 
+static const double PI = 3.141592653589793238;
 static const wxColour FONT_TEXTURE_BG = wxColour(0, 0, 0, 0);
 static const wxColour FONT_TEXTURE_FG = *wxWHITE;
 static const int FONT_SIZE = 12;
@@ -560,7 +561,7 @@ void GLGizmoText::push_button_style(bool pressed) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 150 / 255.f, 136 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 174 / 255.f, 66 / 255.f, 1.f));
         }
         else {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
@@ -574,7 +575,7 @@ void GLGizmoText::push_button_style(bool pressed) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 150 / 255.f, 136 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 174 / 255.f, 66 / 255.f, 1.f));
         }
         else {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.f, 1.f, 1.f, 1.f));
@@ -595,10 +596,10 @@ void GLGizmoText::push_combo_style(const float scale) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
     }
@@ -606,10 +607,10 @@ void GLGizmoText::push_combo_style(const float scale) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
     }
@@ -771,10 +772,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Thickness"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
-    if(ImGui::InputFloat("###text_thickness", &m_thickness,0.0f, 0.0f, "%.2f"))
-        m_need_update_text = true;
+    float old_value = m_thickness;
+    ImGui::InputFloat("###text_thickness", &m_thickness, 0.0f, 0.0f, "%.2f");
     if (m_thickness < 0.1f)
         m_thickness = 0.1f;
+    if (old_value != m_thickness)
+        m_need_update_text = true;
 
     const float slider_icon_width = m_imgui->get_slider_icon_size().x;
     const float slider_width      = list_width - 1.5 * slider_icon_width - space_size;
@@ -806,10 +809,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Embeded\ndepth"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(list_width);
-    if (ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f"))
-        m_need_update_text = true;
+    old_value = m_embeded_depth;
+    ImGui::InputFloat("###text_embeded_depth", &m_embeded_depth, 0.0f, 0.0f, "%.2f");
     if (m_embeded_depth < 0.f)
         m_embeded_depth = 0.f;
+    if (old_value != m_embeded_depth)
+        m_need_update_text = true;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Input text"));
@@ -1067,6 +1072,11 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     Vec3d    rotation_axis;
     Matrix3d rotation_matrix;
     Geometry::rotation_from_two_vectors(m_cut_plane_dir, Vec3d::UnitZ(), rotation_axis, phi, &rotation_matrix);
+    if (abs(phi - PI) < 1e-6) {
+        Transform3d transform = Transform3d::Identity();
+        transform.rotate(Eigen::AngleAxisd(phi, m_mouse_normal_world));
+        rotation_matrix = transform.matrix().block<3, 3>(0, 0);
+    }
 
     Transform3d transfo1;
     transfo1.setIdentity();
@@ -1308,7 +1318,7 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     }
 
     TriangleMesh mesh       = slice_meshs;
-    std::vector<double> mesh_values(m_position_points.size(), 1'000'000'000);
+    std::vector<double> mesh_values(m_position_points.size(), 1e9);
     m_normal_points.resize(m_position_points.size());
     auto point_in_triangle_delete_area = [](const Vec3d &point, const Vec3d &point0, const Vec3d &point1, const Vec3d &point2) {
         Vec3d p0_p  = point - point0;
@@ -1379,7 +1389,6 @@ TriangleMesh GLGizmoText::get_text_mesh(const char* text_str, const Vec3d &posit
     new_text_dir.normalize();
     Geometry::rotation_from_two_vectors(old_text_dir, new_text_dir, rotation_axis, phi, &rotation_matrix);
 
-    static double const PI = 3.141592653589793238;
     if (abs(phi - PI) < EPSILON)
         rotation_axis = normal;
 
@@ -1462,12 +1471,20 @@ void GLGizmoText::generate_text_volume(bool is_temp)
         mesh.merge(sub_mesh);
     }
 
+    if (mesh.empty())
+        return;
+
     Plater *plater = wxGetApp().plater();
     if (!plater)
         return;
 
     TextInfo text_info = get_text_info();
     if (m_is_modify && m_need_update_text) {
+        if (m_object_idx == -1 || m_volume_idx == -1) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Text: selected object_idx = %1%, volume_idx = %2%") % m_object_idx % m_volume_idx;
+            return;
+        }
+
         plater->take_snapshot("Modify Text");
         const Selection &selection        = m_parent.get_selection();
         ModelObject *    model_object     = selection.get_model()->objects[m_object_idx];

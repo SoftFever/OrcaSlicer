@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "filament_id": "GFL05",
+    "name": "Overture Matte PLA @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_pla",
+    "filament_cost": [
+        "24.52"
+    ],
+    "filament_density": [
+        "1.22"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "filament_vendor": [
+        "Overture"
+    ],
+    "slow_down_layer_time": [
+        "6"
+    ]
+}

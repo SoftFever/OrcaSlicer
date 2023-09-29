@@ -105,13 +105,14 @@
     "retraction_speed": [
         "50"
     ],
-    "single_extruder_multi_material": "0",
+    "single_extruder_multi_material": "1",
     "change_filament_gcode": "",
     "wipe": [
         "1"
     ],
     "z_lift_type": "NormalLift",
     "default_print_profile": "",
+    "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "machine_start_gcode": "",
     "machine_end_gcode": ""
 }

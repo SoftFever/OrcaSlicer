@@ -19,7 +19,7 @@ public:
     GCodeWriter() : 
         multiple_extruders(false), m_extruder(nullptr),
         m_single_extruder_multi_material(false),
-        m_last_acceleration(0), m_max_acceleration(0),
+        m_last_acceleration(0), m_max_acceleration(0),m_last_travel_acceleration(0), m_max_travel_acceleration(0),
         m_last_jerk(0), m_max_jerk(0),
         /*m_last_bed_temperature(0), */m_last_bed_temperature_reached(true),
         m_lifted(0),
@@ -45,7 +45,8 @@ public:
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
     std::string set_bed_temperature(int temperature, bool wait = false);
-    std::string set_acceleration(unsigned int acceleration);
+    std::string set_print_acceleration(unsigned int acceleration)   { return set_acceleration_internal(Acceleration::Print, acceleration); }
+    std::string set_travel_acceleration(unsigned int acceleration)  { return set_acceleration_internal(Acceleration::Travel, acceleration); }
     std::string set_jerk_xy(double jerk);
     std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
@@ -73,10 +74,11 @@ public:
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
-    std::string lift(LiftType lift_type = LiftType::NormalLift);
+    std::string lift(LiftType lift_type = LiftType::NormalLift, bool spiral_vase = false);
     std::string unlift();
     Vec3d       get_position() const { return m_pos; }
-    void       set_position(Vec3d& in) { m_pos = in; }
+    void       set_position(const Vec3d& in) { m_pos = in; }
+    double      get_zhop() const { return m_lifted; }
 
     //BBS: set offset for gcode writer
     void set_xy_offset(double x, double y) { m_x_offset = x; m_y_offset = y; }
@@ -88,6 +90,14 @@ public:
     std::string set_fan(unsigned int speed) const;
     //BBS: set additional fan speed for BBS machine only
     static std::string set_additional_fan(unsigned int speed);
+    //BBS
+    void set_object_start_str(std::string start_string) { m_gcode_label_objects_start = start_string; }
+    bool is_object_start_str_empty() { return m_gcode_label_objects_start.empty(); }
+    void set_object_end_str(std::string end_string) { m_gcode_label_objects_end = end_string; }
+    bool is_object_end_str_empty() { return m_gcode_label_objects_end.empty(); }
+    void add_object_start_labels(std::string &gcode);
+    void add_object_end_labels(std::string &gcode);
+    void add_object_change_labels(std::string& gcode);
 
     //BBS:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
@@ -101,12 +111,15 @@ public:
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
     void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
 
-private:
+  private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_extruders;
     bool            m_single_extruder_multi_material;
     Extruder*       m_extruder;
     unsigned int    m_last_acceleration;
+    unsigned int    m_last_travel_acceleration;
+    unsigned int    m_max_travel_acceleration;
+
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
     unsigned int    m_max_acceleration;
@@ -136,15 +149,25 @@ private:
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
+    
+    std::string m_gcode_label_objects_start;
+    std::string m_gcode_label_objects_end;
 
     //SoftFever
     bool            m_is_bbl_printers = false;
     double          m_current_speed;
     bool            m_is_first_layer = true;
-    
+
+    enum class Acceleration {
+        Travel,
+        Print
+    };
+
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
+    std::string set_acceleration_internal(Acceleration type, unsigned int acceleration);
+
 };
 
 class GCodeFormatter {

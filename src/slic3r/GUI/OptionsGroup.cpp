@@ -212,10 +212,12 @@ void OptionsGroup::append_line(const Line& line)
 //BBS: get line for opt_key
 Line* OptionsGroup::get_line(const std::string& opt_key)
 {
-    for (int index = 0; index < m_lines.size(); index++)
+    for (auto& l : m_lines)
     {
-        if (m_lines[index].get_first_option_key() == opt_key)
-            return &(m_lines[index]);
+        if(l.is_separator())
+            continue;
+        if (l.get_first_option_key() == opt_key)
+            return &l;
     }
 
     return nullptr;
@@ -792,8 +794,14 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode)
     int coef = 0;
     int hidden_row_cnt = 0;
     const int cols = m_grid_sizer->GetCols();
+    Line * line = &m_lines.front();
+    size_t line_opt_end = line->get_options().size();
     for (auto opt_mode : m_options_mode) {
-		const bool show = opt_mode <= mode;
+        const bool show = opt_mode <= mode && line->toggle_visible;
+        if (--line_opt_end == 0) {
+            ++line;
+            line_opt_end = line->get_options().size();
+        }
         if (!show) {
             hidden_row_cnt++;
             for (int i = 0; i < cols; ++i)

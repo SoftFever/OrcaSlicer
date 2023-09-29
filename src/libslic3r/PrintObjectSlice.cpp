@@ -140,7 +140,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     params_base.trafo          = object_trafo;
     //BBS: 0.0025mm is safe enough to simplify the data to speed slicing up for high-resolution model.
     //Also has on influence on arc fitting which has default resolution 0.0125mm.
-    params_base.resolution     = 0.0025;
+    params_base.resolution = print_config.resolution <= 0.001 ? 0.0f : 0.0025;
     switch (print_object_config.slicing_mode.value) {
     case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
     case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
@@ -504,13 +504,27 @@ bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<gro
     std::vector<int> groupIndex(objSliceByVolume.size(), -1);
     double offsetValue = 0.05 / SCALING_FACTOR;
 
+    std::vector<std::vector<int>> osvIndex;
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {
-            objSliceByVolume[i].slices[j] = offset_ex(objSliceByVolume[i].slices[j], offsetValue);
-            for (ExPolygon& poly_ex : objSliceByVolume[i].slices[j])
-                poly_ex.douglas_peucker(resolution);
+            osvIndex.push_back({ i,j });
         }
     }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
+        [&osvIndex, &objSliceByVolume, &offsetValue, &resolution](const tbb::blocked_range<int>& range) {
+            for (auto k = range.begin(); k != range.end(); ++k) {
+                for (ExPolygon& poly_ex : objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]])
+                    poly_ex.douglas_peucker(resolution);
+            }
+        });
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, osvIndex.size()),
+        [&osvIndex, &objSliceByVolume,&offsetValue, &resolution](const tbb::blocked_range<int>& range) {
+            for (auto k = range.begin(); k != range.end(); ++k) {
+                objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]] = offset_ex(objSliceByVolume[osvIndex[k][0]].slices[osvIndex[k][1]], offsetValue);
+            }
+        });
 
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         if (groupIndex[i] < 0) {
@@ -596,26 +610,42 @@ void applyNegtiveVolumes(ModelVolumePtrs model_volumes, const std::vector<Volume
     }
 }
 
-void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons eps)
+void reGroupingLayerPolygons(std::vector<groupedVolumeSlices>& gvss, ExPolygons &eps, double resolution)
 {
     std::vector<int> epsIndex;
     epsIndex.resize(eps.size(), -1);
-    for (int ie = 0; ie != eps.size(); ie++) {
-        if (eps[ie].area() <= 0)
-            continue;
-        double minArea = eps[ie].area();
-        for (int iv = 0; iv != gvss.size(); iv++) {
-            auto clipedExPolys = diff_ex(eps[ie], gvss[iv].slices);
-            double area = 0;
-            for (const auto& ce : clipedExPolys) {
-                area += ce.area();
-            }
-            if (area < minArea) {
-                minArea = area;
-                epsIndex[ie] = iv;
-            }
-        }
+
+    auto gvssc = gvss;
+    auto epsc = eps;
+
+    for (ExPolygon& poly_ex : epsc)
+        poly_ex.douglas_peucker(resolution);
+
+    for (int i = 0; i != gvssc.size(); ++i) {
+        for (ExPolygon& poly_ex : gvssc[i].slices)
+            poly_ex.douglas_peucker(resolution);
     }
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, epsc.size()),
+        [&epsc, &gvssc, &epsIndex](const tbb::blocked_range<int>& range) {
+            for (auto ie = range.begin(); ie != range.end(); ++ie) {
+                if (epsc[ie].area() <= 0)
+                    continue;
+
+                double minArea = epsc[ie].area();
+                for (int iv = 0; iv != gvssc.size(); iv++) {
+                    auto clipedExPolys = diff_ex(epsc[ie], gvssc[iv].slices);
+                    double area = 0;
+                    for (const auto& ce : clipedExPolys) {
+                        area += ce.area();
+                    }
+                    if (area < minArea) {
+                        minArea = area;
+                        epsIndex[ie] = iv;
+                    }
+                }
+            }
+        });
 
     for (int iv = 0; iv != gvss.size(); iv++)
         gvss[iv].slices.clear();
@@ -663,9 +693,10 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
+    std::atomic<bool> is_replaced = false;
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
-        [&layers, &throw_if_canceled, &buggy_layers, &error_msg](const tbb::blocked_range<size_t>& range) {
+        [&layers, &throw_if_canceled, &buggy_layers, &is_replaced](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
                 throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
@@ -712,7 +743,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
                         }
                     if (!expolys.empty()) {
                         //BBS
-                        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
+                        is_replaced = true;
                         layerm->slices.set(union_ex(expolys), stInternal);
                     }
                 }
@@ -722,6 +753,9 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
         });
     throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - end";
+
+    if(is_replaced)
+        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
 
     // remove empty layers from bottom
     while (! layers.empty() && (layers.front()->lslices.empty() || layers.front()->empty())) {
@@ -752,7 +786,7 @@ void groupingVolumesForBrim(PrintObject* object, LayerPtrs& layers, int firstLay
     applyNegtiveVolumes(object->model_object()->volumes, object->firstLayerObjSliceMod(), object->firstLayerObjGroupsMod(), scaled_resolution);
 
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
-    reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices);
+    reGroupingLayerPolygons(object->firstLayerObjGroupsMod(), layers.front()->lslices, scaled_resolution);
 }
 
 // Called by make_perimeters()
@@ -1028,6 +1062,8 @@ void PrintObject::slice_volumes()
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
+    this->apply_conical_overhang();
+    m_print->throw_if_canceled();
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - begin";
     {
@@ -1134,8 +1170,12 @@ void PrintObject::slice_volumes()
                                                                  std::min(0.f, xy_hole_scaled),
                                                                  trimming);
                             //BBS: trim surfaces
-                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id)
-                                layer->regions()[region_id]->trim_surfaces(to_polygons(trimming));
+                            for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
+                                // BBS: split trimming result by region
+                                ExPolygons contour_exp = to_expolygons(std::move(layer->regions()[region_id]->slices.surfaces));
+
+                                layer->regions()[region_id]->slices.set(intersection_ex(contour_exp, to_polygons(trimming)), stInternal);
+                            }
                         }
 	                }
 	                // Merge all regions' slices to get islands, chain them by a shortest path.
@@ -1164,6 +1204,107 @@ void PrintObject::slice_volumes()
 
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - end";
+}
+
+void PrintObject::apply_conical_overhang() {
+    BOOST_LOG_TRIVIAL(info) << "Make overhang printable...";
+
+    if (m_layers.empty()) {
+        return;
+    }
+    
+    const double conical_overhang_angle = this->config().make_overhang_printable_angle;
+    if (conical_overhang_angle == 90.0) {
+        return;
+    }
+    const double angle_radians = conical_overhang_angle * M_PI / 180.;
+    const double max_hole_area = this->config().make_overhang_printable_hole_size; // in MM^2
+    const double tan_angle = tan(angle_radians); // the XY-component of the angle
+    BOOST_LOG_TRIVIAL(info) << "angle " << angle_radians << " maxHoleArea " << max_hole_area << " tan_angle "
+                            << tan_angle;
+    const coordf_t layer_thickness = m_config.layer_height.value;
+    const coordf_t max_dist_from_lower_layer = tan_angle * layer_thickness; // max dist which can be bridged, in MM
+    BOOST_LOG_TRIVIAL(info) << "layer_thickness " << layer_thickness << " max_dist_from_lower_layer "
+                            << max_dist_from_lower_layer;
+
+    // Pre-scale config
+    const coordf_t scaled_max_dist_from_lower_layer = -float(scale_(max_dist_from_lower_layer));
+    const coordf_t scaled_max_hole_area = float(scale_(scale_(max_hole_area)));
+
+
+    for (auto i = m_layers.rbegin() + 1; i != m_layers.rend(); ++i) {
+        m_print->throw_if_canceled();
+        Layer *layer = *i;
+        Layer *upper_layer = layer->upper_layer;
+
+        if (upper_layer->empty()) {
+          continue;
+        }
+
+        // Skip if entire layer has this disabled
+        if (std::all_of(layer->m_regions.begin(), layer->m_regions.end(),
+                        [](const LayerRegion *r) { return  r->slices.empty() || !r->region().config().make_overhang_printable; })) {
+            continue;
+        }
+
+        //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
+        //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
+
+
+        // Merge the upper layer because we want to offset the entire layer uniformly, otherwise
+        // the model could break at the region boundary.
+        auto upper_poly = upper_layer->merged(float(SCALED_EPSILON));
+        upper_poly = union_ex(upper_poly);
+
+        // Avoid closing up of recessed holes in the base of a model.
+        // Detects when a hole is completely covered by the layer above and removes the hole from the layer above before
+        // adding it in.
+        // This should have no effect any time a hole in a layer interacts with any polygon in the layer above
+        if (scaled_max_hole_area > 0.0) {
+            // Merge layer for the same reason
+            auto current_poly = layer->merged(float(SCALED_EPSILON));
+            current_poly = union_ex(current_poly);
+
+            // Now go through all the holes in the current layer and check if they intersect anything in the layer above
+            // If not, then they're the top of a hole and should be cut from the layer above before the union
+            for (auto layer_polygon : current_poly) {
+                for (auto hole : layer_polygon.holes) {
+                    if (std::abs(hole.area()) < scaled_max_hole_area) {
+                        ExPolygon hole_poly(hole);
+                        auto hole_with_above = intersection_ex(upper_poly, hole_poly);
+                        if (!hole_with_above.empty()) {
+                            // The hole had some intersection with the above layer, check if it's a complete overlap
+                            auto hole_difference = xor_ex(hole_with_above, hole_poly);
+                            if (hole_difference.empty()) {
+                                // The layer above completely cover it, remove it from the layer above
+                                upper_poly = diff_ex(upper_poly, hole_poly);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Now offset the upper layer to be added into current layer
+        upper_poly = offset_ex(upper_poly, scaled_max_dist_from_lower_layer);
+
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            // export_to_svg(debug_out_path("Surface-obj-%d-layer-%d-region-%d.svg", id().id, layer->id(), region_id).c_str(),
+            //               layer->m_regions[region_id]->slices.surfaces);
+
+            // Disable on given region
+            if (!upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
+                continue;
+            }
+
+            // Calculate the scaled upper poly that belongs to current region
+            auto p = intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper_poly);
+            // And now union it
+            ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
+            layer->m_regions[region_id]->slices.set(union_ex(layer_polygons, p), stInternal);
+        }
+        //layer->export_region_slices_to_svg_debug("layer_after_conical_overhang");
+    }
 }
 
 //BBS: this function is used to offset contour and holes of expolygons seperately by different value

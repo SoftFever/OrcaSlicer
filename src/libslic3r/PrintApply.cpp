@@ -581,7 +581,7 @@ static void transformed_its_bboxes_in_z_ranges(
                 if (p2->z() <= z_range.first || p1->z() >= z_range.second) {
                     // Out of this slab.
                 } else if (p1->z() < z_range.first) {
-                    if (p1->z() > z_range.second) {
+                    if (p2->z() > z_range.second) {
                         // Two intersections.
                         float zspan = p2->z() - p1->z();
                         float t1 = (z_range.first - p1->z())  / zspan;

@@ -300,6 +300,7 @@ public:
     void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
+    void                boolean();    // BBS: Boolean Operation of parts
     wxDataViewItem      add_layer_root_item(const wxDataViewItem obj_item);
     wxDataViewItem      add_settings_item(wxDataViewItem parent_item, const DynamicPrintConfig* config);
 
@@ -310,6 +311,7 @@ public:
     bool                can_split_instances();
     bool                can_merge_to_multipart_object() const;
     bool                can_merge_to_single_object() const;
+    bool                can_mesh_boolean() const;
 
     bool                has_selected_cut_object() const;
     void                invalidate_cut_info_for_selection();
@@ -325,7 +327,9 @@ public:
     void                part_selection_changed();
 
     // Add object to the list
-    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true, bool notify_partplate = true);
+    // @param do_info_update: [Arthur] this function becomes slow as more functions are added, but I only need a fast version in FillBedJob, and I don't care about any info updates, so I pass a do_info_update param to skip all the uneccessary steps.
+    void add_objects_to_list(std::vector<size_t> obj_idxs, bool call_selection_changed = true, bool notify_partplate = true, bool do_info_update = true);
+    void add_object_to_list(size_t obj_idx, bool call_selection_changed = true, bool notify_partplate = true, bool do_info_update = true);
     // Add object's volumes to the list
     // Return selected items, if add_to_selection is defined
     wxDataViewItemArray add_volumes_to_object_in_list(size_t obj_idx, std::function<bool(const ModelVolume *)> add_to_selection = nullptr);
@@ -475,6 +479,7 @@ private:
     void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object, bool need_update_assemble_matrix = true);
 
     std::vector<int> m_columns_width;
+    wxSize           m_last_size;
 };
 
 

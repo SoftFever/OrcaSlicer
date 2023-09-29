@@ -18,9 +18,12 @@ local-lib
 /src/TAGS
 /.vscode/
 build-linux/*
-deps/build-linux/*
+deps/build*/*
 **/.DS_Store
 install_*
 build_*/
 SVG
 src/OrcaSlicer-doc/
+.idea/
+/.cache/
+*.mo

@@ -25,7 +25,7 @@ KBShortcutsDialog::KBShortcutsDialog()
     const wxFont& bold_font = wxGetApp().bold_font();
     SetFont(font);
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
@@ -175,7 +175,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "N", L("New Project") },
             { ctrl + "O", L("Open Project") },
             { ctrl + "S", L("Save Project") },
-            { ctrl + alt + "S", L("Save Project as") },
+            { ctrl + "Shift+S", L("Save Project as")},
             // File>Import
             { ctrl + "I", L("Import geometry data from STL/STEP/3MF/OBJ/AMF files") },
             // File>Export

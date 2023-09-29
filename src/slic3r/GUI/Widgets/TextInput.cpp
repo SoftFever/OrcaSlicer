@@ -1,6 +1,7 @@
 #include "TextInput.hpp"
 #include "Label.hpp"
 #include "TextCtrl.h"
+#include "slic3r/GUI/Widgets/Label.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -50,7 +51,7 @@ void TextInput::Create(wxWindow *     parent,
                        const wxSize & size,
                        long           style)
 {
-    text_ctrl = nullptr;
+        text_ctrl = nullptr;
     StaticBox::Create(parent, wxID_ANY, pos, size, style);
     wxWindow::SetLabel(label);
     style &= ~wxRIGHT;
@@ -95,6 +96,7 @@ void TextInput::SetLabel(const wxString& label)
 
 void TextInput::SetIcon(const wxBitmap &icon)
 {
+    this->icon = ScalableBitmap();
     this->icon.bmp() = icon;
     Rescale();
 }
@@ -209,7 +211,10 @@ void TextInput::render(wxDC& dc)
             pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         }
         dc.SetTextForeground(label_color.colorForStates(states));
-        dc.SetFont(GetFont());
+        if(align_right)
+            dc.SetFont(GetFont());
+        else
+            dc.SetFont(Label::Body_12);
         dc.DrawText(text, pt);
     }
 }
@@ -218,6 +223,11 @@ void TextInput::messureSize()
 {
     wxSize size = GetSize();
     wxClientDC dc(this);
+    bool   align_right = GetWindowStyle() & wxRIGHT;
+    if (align_right)
+        dc.SetFont(GetFont());
+    else
+        dc.SetFont(Label::Body_12);
     labelSize = dc.GetTextExtent(wxWindow::GetLabel());
     wxSize textSize = text_ctrl->GetSize();
     int h = textSize.y + 8;

@@ -477,7 +477,7 @@ void Preview::update_layers_slider_mode()
     // BBS
     if (wxGetApp().filaments_cnt() > 1) {
         //const ModelObjectPtrs& objects = wxGetApp().plater()->model().objects;
-        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
+        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders_without_support();
         for (auto extruder : plate_extruders) {
             if (extruder != plate_extruders[0])
                 can_change_color = false;
@@ -486,23 +486,23 @@ void Preview::update_layers_slider_mode()
         if (!plate_extruders.empty()) {
             //const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
             only_extruder = plate_extruders[0];
-        //    auto is_one_extruder_printed_model = [objects, extruder]() {
-        //        for (ModelObject *object : objects) {
-        //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;
+            //    auto is_one_extruder_printed_model = [objects, extruder]() {
+            //        for (ModelObject *object : objects) {
+            //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;
 
-        //            for (ModelVolume *volume : object->volumes)
-        //                if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
+            //            for (ModelVolume *volume : object->volumes)
+            //                if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
 
-        //            for (const auto &range : object->layer_config_ranges)
-        //                if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
-        //        }
-        //        return true;
-        //    };
+            //            for (const auto &range : object->layer_config_ranges)
+            //                if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
+            //        }
+            //        return true;
+            //    };
 
-        //    if (is_one_extruder_printed_model())
-        //        only_extruder = extruder;
-        //    else
-        //        one_extruder_printed_model = false;
+            //    if (is_one_extruder_printed_model())
+            //        only_extruder = extruder;
+            //    else
+            //        one_extruder_printed_model = false;
         }
     }
 
@@ -708,7 +708,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
     if (IsShown()) {
         m_canvas->set_selected_extruder(0);
         bool is_slice_result_valid = wxGetApp().plater()->get_partplate_list().get_curr_plate()->is_slice_result_valid();
-        if (gcode_preview_data_valid && (is_slice_result_valid || m_only_gcode)) {
+        if (gcode_preview_data_valid && (is_slice_result_valid || only_gcode)) {
             // Load the real G-code preview.
             //BBS: add more log
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": will load gcode_preview from result, moves count %1%") % m_gcode_result->moves.size();
@@ -717,8 +717,9 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             //BBS show sliders
             show_moves_sliders();
 
-            //BBS: turn off shells for preview
-            m_canvas->set_shells_on_previewing(false);
+            //Orca: keep shell preview on but make it more transparent
+            m_canvas->set_shells_on_previewing(true);
+            m_canvas->set_shell_transparence();
             Refresh();
             zs = m_canvas->get_gcode_layers_zs();
             //BBS: add m_loaded_print logic
@@ -738,7 +739,7 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
             unsigned int number_extruders = wxGetApp().is_editor() ?
                 (unsigned int)print->extruders().size() :
                 m_canvas->get_gcode_extruders_count();
-            std::vector<Item> gcodes = wxGetApp().is_editor() ?
+            std::vector<CustomGCode::Item> gcodes = wxGetApp().is_editor() ?
                 //BBS
                 wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
                 m_canvas->get_custom_gcode_per_print_z();

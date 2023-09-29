@@ -24,18 +24,8 @@ BBLStatusBarBind::BBLStatusBarBind(wxWindow *parent, int id)
     m_self->SetBackgroundColour(wxColour(255,255,255));
     m_self->SetMinSize(wxSize(m_self->FromDIP(450), m_self->FromDIP(30)));
 
-
-    //wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-
-   /* m_status_text = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
-    m_status_text->SetForegroundColour(wxColour(107, 107, 107));
-    m_status_text->SetFont(::Label::Body_13);
-    m_status_text->Wrap(-1);
-    m_sizer_body->Add(m_status_text, 0, 0, 0);*/
-
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(m_self->FromDIP(400), m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
-
 
     m_stext_percent = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_stext_percent->SetForegroundColour(wxColour(107, 107, 107));
@@ -46,13 +36,9 @@ BBLStatusBarBind::BBLStatusBarBind(wxWindow *parent, int id)
     m_sizer->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer->Add(m_stext_percent, 1, wxALIGN_CENTER, 0);
 
-
-    //m_sizer->Add(m_sizer_bottom, 1, wxALIGN_CENTER, 0);
-
     m_self->SetSizer(m_sizer);
     m_self->Layout();
     m_sizer->Fit(m_self);
-    //set_prog_block();
 }
 
 void BBLStatusBarBind::set_prog_block()
@@ -97,7 +83,7 @@ void BBLStatusBarBind::clear_percent()
 
 }
 
-void BBLStatusBarBind::show_networking_test(wxString msg)
+void BBLStatusBarBind::show_error_info(wxString msg, int code, wxString description, wxString extra)
 {
 
 }

@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "01.00.00.03",
+    "version": "01.07.00.00",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -37,6 +37,10 @@
         {
             "name": "fdm_process_qidi_common",
             "sub_path": "process/fdm_process_qidi_common.json"
+        },
+        {
+            "name": "fdm_process_qidi_x3_common",
+            "sub_path": "process/fdm_process_qidi_x3_common.json"
         },
 		{
             "name": "0.12mm Fine @Qidi XMPlus",
@@ -241,9 +245,42 @@
             "sub_path": "filament/Qidi Generic PVA.json"
         },
         {
-            "name": "Qidi Generic TPU",
-            "sub_path": "filament/Qidi Generic TPU.json"
+            "name": "Qidi Generic TPU 95A",
+            "sub_path": "filament/Qidi Generic TPU 95A.json"
+        },
+        {
+            "name": "QIDI ABS Rapido",
+            "sub_path": "filament/QIDI ABS Rapido.json"
+        },
+        {
+            "name": "QIDI PLA Rapido",
+            "sub_path": "filament/QIDI PLA Rapido.json"
+        },
+        {
+            "name": "QIDI PETG Tough",
+            "sub_path": "filament/QIDI PETG Tough.json"
+        },
+        {
+            "name": "QIDI PET-CF",
+            "sub_path": "filament/QIDI PET-CF.json"
+        },
+        {
+            "name": "QIDI PA12-CF",
+            "sub_path": "filament/QIDI PA12-CF.json"
+        },
+        {
+            "name": "QIDI PAHT-CF",
+            "sub_path": "filament/QIDI PAHT-CF.json"
+        },
+        {
+            "name": "QIDI ABS-GF25",
+            "sub_path": "filament/QIDI ABS-GF25.json"
+        },
+        {
+            "name": "QIDI PA-Ultra",
+            "sub_path": "filament/QIDI PA-Ultra.json"
         }
+
     ],
     "machine_list": [
         {
@@ -253,6 +290,10 @@
         {
             "name": "fdm_qidi_common",
             "sub_path": "machine/fdm_qidi_common.json"
+        },
+        {
+            "name": "fdm_qidi_x3_common",
+            "sub_path": "machine/fdm_qidi_x3_common.json"
         },
 		{
             "name": "Qidi X-Plus 0.4 nozzle",

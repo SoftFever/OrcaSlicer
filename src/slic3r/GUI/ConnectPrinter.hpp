@@ -25,6 +25,7 @@ class ConnectPrinterDialog : public DPIDialog
 {
 private:
 protected:
+    bool            m_need_connect{true};
     wxStaticText *  m_staticText_connection_code;
     TextInput *     m_textCtrl_code;
     Button *        m_button_confirm;
@@ -45,6 +46,7 @@ public:
 
     ~ConnectPrinterDialog();
 
+    void go_connect_printer(bool need) {m_need_connect = need;};
     void end_modal(wxStandardID id);
     void init_bitmap();
     void set_machine_object(MachineObject* obj);

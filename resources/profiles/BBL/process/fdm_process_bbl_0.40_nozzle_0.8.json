@@ -6,7 +6,7 @@
     "inherits": "fdm_process_bbl_common",
     "layer_height": "0.4",
     "initial_layer_print_height": "0.4",
-    "wall_loops": "3",
+    "wall_loops": "2",
     "bottom_shell_layers": "3",
     "top_shell_layers": "3",
     "bridge_flow": "1",

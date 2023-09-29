@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include "Config.hpp"
 #include "Exception.hpp"
 #include "Preset.hpp"
 #include "PresetBundle.hpp"
@@ -684,51 +685,58 @@ bool Preset::is_custom_defined()
     return false;
 }
 
-bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
+BedType Preset::get_default_bed_type(PresetBundle* preset_bundle)
 {
-    bool is_bbl_vendor_preset = true;
-    if (preset_bundle) {
-        auto config = &preset_bundle->printers.get_edited_preset().config;
-        std::string vendor_name;
-        for (auto vendor_profile : preset_bundle->vendors) {
-            for (auto vendor_model : vendor_profile.second.models)
-                if (vendor_model.name == config->opt_string("printer_model"))
-                {
-                    vendor_name = vendor_profile.first;
-                    break;
-                }
+    if (config.has("default_bed_type") && !config.opt_string("default_bed_type").empty()) {
+        try {
+            std::string str_bed_type = config.opt_string("default_bed_type");
+            int bed_type_value = atoi(str_bed_type.c_str());
+            return BedType(bed_type_value);
+        } catch(...) {
+            ;
         }
-        if (!vendor_name.empty())
-            is_bbl_vendor_preset = vendor_name.compare("BBL") == 0 ? true : false;
     }
-    return is_bbl_vendor_preset;
+
+    std::string model_id = this->get_printer_type(preset_bundle);
+    if (model_id == "BL-P001" || model_id == "BL-P002") {
+        return BedType::btPC;
+    } else if (model_id == "C11") {
+        return BedType::btPEI;
+    }
+    return BedType::btPEI;
+}
+
+bool Preset::has_cali_lines(PresetBundle* preset_bundle)
+{
+    std::string model_id = this->get_printer_type(preset_bundle);
+    if (model_id == "BL-P001" || model_id == "BL-P002") {
+        return true;
+    }
+    return false;
 }
 
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
-    "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
-    "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
+    "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
+    "seam_position", "staggered_inner_seams", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
     "infill_direction",
-    "minimum_sparse_infill_area", "reduce_infill_retraction",
-    "ironing_type", "ironing_flow", "ironing_speed", "ironing_spacing",
+    "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern",
+    "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing",
     "max_travel_detour_distance",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
-#ifdef HAS_PRESSURE_EQUALIZER
-    "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
-#endif /* HAS_PRESSURE_EQUALIZER */
+    "max_volumetric_extrusion_rate_slope", "max_volumetric_extrusion_rate_slope_segment_length",
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
-    "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
-    "outer_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
-    "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
+    "bridge_speed", "internal_bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
+    "outer_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_speed", "skirt_distance", "skirt_height", "draft_shield",
+    "brim_width", "brim_object_gap", "brim_type", "brim_ears_max_angle", "brim_ears_detection_length", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
-    // BBS
     "independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",
     "support_interface_pattern", "support_interface_spacing", "support_interface_loop_pattern",
-    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence",
+    "support_top_z_distance", "support_on_build_plate_only","support_critical_regions_only", "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence", "support_remove_small_overhang",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament",
     "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
@@ -738,25 +746,26 @@ static std::vector<std::string> s_Preset_print_options {
     "prime_tower_width", "prime_tower_brim_width", "prime_volume",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support",
-    // BBS
-     "tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance",
-     "tree_support_branch_diameter",
+     "tree_support_branch_angle", "tree_support_angle_slow", "tree_support_wall_count", "tree_support_top_rate", "tree_support_branch_distance", "tree_support_tip_diameter",
+     "tree_support_branch_diameter", "tree_support_branch_diameter_angle", "tree_support_branch_diameter_double_wall",
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", /*"adaptive_layer_height",*/
-     "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
+     "support_bottom_interface_spacing", "enable_overhang_speed", "slowdown_for_curled_perimeters", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed", "only_one_wall_top", 
-     "timelapse_type", "internal_bridge_support_thickness",
+     "timelapse_type",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
-     // SoftFever
-     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration",
+     "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration", "min_width_top_surface",
      "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
      "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer", "print_flow_ratio", "seam_gap",
      "role_based_wipe_speed", "wipe_speed", "accel_to_decel_enable", "accel_to_decel_factor", "wipe_on_loops",
      "bridge_density", "precise_outer_wall", "overhang_speed_classic", "bridge_acceleration",
      "sparse_infill_acceleration", "internal_solid_infill_acceleration", "tree_support_adaptive_layer_height", "tree_support_auto_brim", 
      "tree_support_brim_width", "gcode_comments", "gcode_label_objects",
-     "initial_layer_travel_speed", "exclude_object", "slow_down_layers"
+     "initial_layer_travel_speed", "exclude_object", "slow_down_layers", "infill_anchor", "infill_anchor_max","initial_layer_min_bead_width",
+     "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size" ,"notes",
+     "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extruder", "wiping_volumes_extruders","wipe_tower_bridging", "single_extruder_multi_material_priming",
+     "wipe_tower_rotation_angle", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_branch_angle_organic"
 
 };
 
@@ -773,7 +782,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "overhang_fan_threshold", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
-    "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
+    "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retract_lift_above", "filament_retract_lift_below", "filament_retract_lift_enforce", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
     "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
@@ -781,7 +790,11 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
-    "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed" /*,"filament_seam_gap"*/
+    "enable_pressure_advance", "pressure_advance","chamber_temperature", "filament_shrink", "support_material_interface_fan_speed", "filament_notes" /*,"filament_seam_gap"*/,
+    "filament_loading_speed", "filament_loading_speed_start", "filament_load_time",
+    "filament_unloading_speed", "filament_unloading_speed_start", "filament_unload_time", "filament_toolchange_delay", "filament_cooling_moves",
+    "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters",
+    "filament_multitool_ramming", "filament_multitool_ramming_volume", "filament_multitool_ramming_flow", 
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -801,14 +814,16 @@ static std::vector<std::string> s_Preset_printer_options {
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types",
+    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time","time_cost", "machine_pause_gcode", "template_custom_gcode",
+    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types", "retract_lift_enforce",
     //SoftFever
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails",
-    "use_firmware_retraction", "use_relative_e_distances", "bbl_calib_mark_logo"};
+    "use_firmware_retraction", "use_relative_e_distances", "printer_notes",
+    "cooling_tube_retraction",
+    "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming"};
 
 static std::vector<std::string> s_Preset_sla_print_options {
     "layer_height",
@@ -1697,11 +1712,13 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
     // SoftFever: ignore print connection info from project
-    cfg.erase("print_host");
-    cfg.erase("print_host_webui");
-    cfg.erase("printhost_apikey");
-    cfg.erase("printhost_cafile");
-    const auto        &keys = cfg.keys();
+    auto        keys = cfg.keys();
+    keys.erase(std::remove_if(keys.begin(), keys.end(),
+                              [](std::string &val) {
+                                return val == "print_host" || val == "print_host_webui" || val == "printhost_apikey" ||
+                                       val == "printhost_cafile";
+                              }),
+               keys.end());
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
 
@@ -1956,8 +1973,9 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 }
 
 //BBS: add project embedded preset logic
-void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project)
+void PresetCollection::save_current_preset(const std::string &new_name, bool detach, bool save_to_project, Preset* _curr_preset)
 {
+    Preset curr_preset = _curr_preset ? *_curr_preset : m_edited_preset;
     //BBS: add lock logic for sync preset in background
     std::string final_inherits;
     lock();
@@ -1976,7 +1994,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             return;
         }
         // Overwriting an existing preset.
-        preset.config = std::move(m_edited_preset.config);
+        preset.config = std::move(curr_preset.config);
         // The newly saved preset will be activated -> make it visible.
         preset.is_visible = true;
         //TODO: remove the detach logic
@@ -1993,7 +2011,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         unlock();
     } else {
         // Creating a new preset.
-        Preset       &preset   = *m_presets.insert(it, m_edited_preset);
+        Preset       &preset   = *m_presets.insert(it, curr_preset);
         std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;

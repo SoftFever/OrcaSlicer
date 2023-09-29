@@ -511,10 +511,11 @@ void TextCtrl::BUILD() {
     m_combine_side_text = !m_opt.multiline;
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) text_ctrl->GetSize().GetHeight() / m_em_unit;
-    temp->SetFont(m_opt.is_code ?
-                    Slic3r::GUI::wxGetApp().code_font() :
-                    Slic3r::GUI::wxGetApp().normal_font());
+    if (m_opt.is_code)
+        temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
+
+    temp->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 	wxGetApp().UpdateDarkUI(temp);
 
     if (! m_opt.multiline && !wxOSX)
@@ -1295,7 +1296,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
         if (m_opt_id.compare("host_type") == 0 && val != 0 &&
 			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
 			val--;
-        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style")
+        if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style")
 		{
 			std::string key;
 			const t_config_enum_values& map_names = *m_opt.enum_keys_map;
@@ -1382,7 +1383,7 @@ boost::any& Choice::get_value()
 	{
         if (m_opt.nullable && field->GetSelection() == -1)
             m_value = ConfigOptionEnumsGenericNullable::nil_value();
-        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style") {
+        else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "internal_solid_infill_pattern" || m_opt_id == "sparse_infill_pattern" || m_opt_id == "support_style") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(m_opt.enum_keys_map->at(key));
 		}
@@ -1538,6 +1539,8 @@ void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
     field->SetColour(wxTransparentColour);
 
     wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
+    if (!btn->GetBitmap().IsOk()) return;
+
     wxImage image(btn->GetBitmap().GetSize());
     image.InitAlpha();
     memset(image.GetAlpha(), 0, image.GetWidth() * image.GetHeight());

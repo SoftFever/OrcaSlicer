@@ -1,4 +1,5 @@
 #include "UpgradePanel.hpp"
+#include <slic3r/GUI/Widgets/SideTools.hpp>
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include <slic3r/GUI/I18N.hpp>
 #include "GUI.hpp"
@@ -32,7 +33,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_printer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
    
-    m_printer_img->SetBitmap(m_img_printer);
+    m_printer_img->SetBitmap(m_img_printer.bmp());
     m_ota_sizer->Add(m_printer_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
     wxBoxSizer *m_ota_content_sizer = new wxBoxSizer(wxVERTICAL);
@@ -67,7 +68,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ota_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     m_ota_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)));
-    m_ota_new_version_img->SetBitmap(upgrade_green_icon);
+    m_ota_new_version_img->SetBitmap(upgrade_green_icon.bmp());
     m_ota_ver_sizer->Add(m_ota_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_staticText_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -99,7 +100,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
    
 
-    m_ams_img->SetBitmap(m_img_monitor_ams);
+    m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
     m_ams_sizer->Add(m_ams_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
 
     wxBoxSizer *m_ams_content_sizer = new wxBoxSizer(wxVERTICAL);
@@ -143,7 +144,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ext_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_ext_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
-    m_ext_img->SetBitmap(m_img_ext);
+    m_ext_img->SetBitmap(m_img_ext.bmp());
 
     m_ext_sizer->Add(m_ext_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
 
@@ -250,7 +251,7 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
     m_caption_sizer->Add(17, 0, 0, wxEXPAND, 0);
 
     m_upgrade_status_img = new wxStaticBitmap(caption_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)));
-    m_upgrade_status_img->SetBitmap(upgrade_gray_icon);
+    m_upgrade_status_img->SetBitmap(upgrade_gray_icon.bmp());
     m_upgrade_status_img->Hide();
     m_caption_sizer->Add(m_upgrade_status_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
@@ -268,25 +269,42 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
 
 void MachineInfoPanel::msw_rescale() 
 {
-    init_bitmaps();
+    rescale_bitmaps();
     m_button_upgrade_firmware->SetSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetMaxSize(wxSize(FromDIP(-1), FromDIP(24)));
-    m_printer_img->SetBitmap(m_img_printer);
-    m_ams_img->SetBitmap(m_img_monitor_ams);
-    m_ext_img->SetBitmap(m_img_ext);
+    m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
+    m_ahb_panel->msw_rescale();
+    for (auto &amspanel : m_amspanel_list) { 
+        amspanel->msw_rescale();
+    }
+    m_ext_panel->msw_rescale();
     Layout();
     Fit();
 }
 
 void MachineInfoPanel::init_bitmaps()
 {
-    m_img_printer        = create_scaled_bitmap("printer_thumbnail", nullptr, 160);
-    m_img_monitor_ams    = create_scaled_bitmap("monitor_upgrade_ams", nullptr, 200);
-    m_img_ext            = create_scaled_bitmap("monitor_upgrade_ext", nullptr, 200);
-    upgrade_green_icon   = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
-    upgrade_gray_icon    = create_scaled_bitmap("monitor_upgrade_offline", nullptr, 5);
-    upgrade_yellow_icon  = create_scaled_bitmap("monitor_upgrade_busy", nullptr, 5);
+    m_img_printer        = ScalableBitmap(this, "printer_thumbnail", 160);
+    m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams", 200);
+    m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 200);
+    upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
+    upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
+    upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);
+}
+
+void MachineInfoPanel::rescale_bitmaps()
+{
+    m_img_printer.msw_rescale();
+    m_printer_img->SetBitmap(m_img_printer.bmp());
+    m_img_monitor_ams.msw_rescale();
+    m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
+    m_img_ext.msw_rescale();
+    m_ext_img->SetBitmap(m_img_ext.bmp());
+    upgrade_green_icon.msw_rescale();
+    upgrade_gray_icon.msw_rescale();
+    upgrade_yellow_icon.msw_rescale();
+    m_ota_new_version_img->SetBitmap(upgrade_green_icon.bmp());
 }
 
 MachineInfoPanel::~MachineInfoPanel()
@@ -303,8 +321,8 @@ void MachineInfoPanel::Update_printer_img(MachineObject* obj)
     if (!obj) {return;}
     auto img = obj->get_printer_thumbnail_img_str();
     if (wxGetApp().dark_mode()) {img += "_dark";}
-    m_img_printer = create_scaled_bitmap(img, nullptr, 160);
-    m_printer_img->SetBitmap(m_img_printer);
+    m_img_printer = ScalableBitmap(this, img, 160);
+    m_printer_img->SetBitmap(m_img_printer.bmp());
     m_printer_img->Refresh();
 }
 
@@ -319,7 +337,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         //update online status img
         m_panel_caption->Freeze();
         if (!obj->is_connected()) {
-            m_upgrade_status_img->SetBitmap(upgrade_gray_icon);
+            m_upgrade_status_img->SetBitmap(upgrade_gray_icon.bmp());
             wxString caption_text = wxString::Format("%s(%s)", from_u8(obj->dev_name), _L("Offline"));
             m_caption_text->SetLabelText(caption_text);
             show_status(MachineObject::UpgradingDisplayState::UpgradingUnavaliable);
@@ -333,11 +351,11 @@ void MachineInfoPanel::update(MachineObject* obj)
                     wxString caption_text = wxString::Format("%s", from_u8(obj->dev_name));
                     m_caption_text->SetLabelText(caption_text);
                 }
-                m_upgrade_status_img->SetBitmap(upgrade_yellow_icon);
+                m_upgrade_status_img->SetBitmap(upgrade_yellow_icon.bmp());
             } else {
                 wxString caption_text = wxString::Format("%s(%s)", from_u8(obj->dev_name), _L("Idle"));
                 m_caption_text->SetLabelText(caption_text);
-                m_upgrade_status_img->SetBitmap(upgrade_green_icon);
+                m_upgrade_status_img->SetBitmap(upgrade_green_icon.bmp());
             }
         }
         m_panel_caption->Layout();
@@ -1000,7 +1018,7 @@ bool UpgradePanel::Show(bool show)
                    const wxString &name /*= wxEmptyString*/)
     : wxPanel(parent,id,pos,size,style)
 {
-     auto upgrade_green_icon = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
+     upgrade_green_icon = ScalableBitmap(this, "monitor_upgrade_online", 5);
 
      auto ams_sizer = new wxFlexGridSizer(0, 2, 0, 0);
      ams_sizer->AddGrowableCol(1);
@@ -1026,7 +1044,7 @@ bool UpgradePanel::Show(bool show)
      m_ams_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
      m_ams_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)));
-     m_ams_new_version_img->SetBitmap(upgrade_green_icon);
+     m_ams_new_version_img->SetBitmap(upgrade_green_icon.bmp());
      m_ams_ver_sizer->Add(m_ams_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
      m_ams_new_version_img->Hide();
 
@@ -1057,6 +1075,11 @@ bool UpgradePanel::Show(bool show)
 
  }
 
+ void AmsPanel::msw_rescale() { 
+     upgrade_green_icon.msw_rescale();
+     m_ams_new_version_img->SetBitmap(upgrade_green_icon.bmp());
+ }
+
  ExtensionPanel::ExtensionPanel(wxWindow* parent,
      wxWindowID      id /*= wxID_ANY*/,
      const wxPoint& pos /*= wxDefaultPosition*/,
@@ -1065,7 +1088,8 @@ bool UpgradePanel::Show(bool show)
      const wxString& name /*= wxEmptyString*/)
      : wxPanel(parent, id, pos, size, style)
  {
-     auto upgrade_green_icon = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
+     
+     upgrade_green_icon = ScalableBitmap(this, "monitor_upgrade_online", 5);
 
      auto top_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -1093,7 +1117,7 @@ bool UpgradePanel::Show(bool show)
      wxBoxSizer* m_ext_ver_sizer = new wxBoxSizer(wxHORIZONTAL);
      m_ext_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
      m_ext_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)));
-     m_ext_new_version_img->SetBitmap(upgrade_green_icon);
+     m_ext_new_version_img->SetBitmap(upgrade_green_icon.bmp());
      m_ext_ver_sizer->Add(m_ext_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
      m_ext_new_version_img->Hide();
 
@@ -1122,6 +1146,12 @@ bool UpgradePanel::Show(bool show)
  ExtensionPanel::~ExtensionPanel()
  {
 
+ }
+
+ void ExtensionPanel::msw_rescale() 
+ { 
+     upgrade_green_icon.msw_rescale();
+     m_ext_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
 
 }

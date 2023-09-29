@@ -22,14 +22,12 @@
 #include "libslic3r/ObjectID.hpp"
 #include "GCode/ExtrusionProcessor.hpp"
 
+#include "GCode/PressureEqualizer.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
 #include <string>
-
-#ifdef HAS_PRESSURE_EQUALIZER
-#include "GCode/PressureEqualizer.hpp"
-#endif /* HAS_PRESSURE_EQUALIZER */
 
 namespace Slic3r {
 
@@ -104,10 +102,10 @@ public:
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
     std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
+    std::string append_tcr2(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
 
     // Postprocesses gcode: rotates and moves G1 extrusions and returns result
     std::string post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const;
-
     // Left / right edges of the wipe tower, for the planning of wipe moves.
     const float                                                  m_left;
     const float                                                  m_right;
@@ -136,6 +134,20 @@ class ColorPrintColors
     static const std::vector<std::string> Colors;
 public:
     static const std::vector<std::string>& get() { return Colors; }
+};
+
+struct LayerResult {
+    std::string gcode;
+    size_t      layer_id;
+    // Is spiral vase post processing enabled for this layer?
+    bool        spiral_vase_enable { false };
+    // Should the cooling buffer content be flushed at the end of this layer?
+    bool        cooling_buffer_flush { false };
+	// Is indicating if this LayerResult should be processed, or it is just inserted artificial LayerResult.
+    // It is used for the pressure equalizer because it needs to buffer one layer back.
+    bool        nop_layer_result { false };
+
+    static LayerResult make_nop_layer_result() { return {"", std::numeric_limits<coord_t>::max(), false, false, true}; }
 };
 
 class GCode {
@@ -186,8 +198,8 @@ public:
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
     const GCodeWriter& writer() const { return m_writer; }
-    PlaceholderParser& placeholder_parser() { return m_placeholder_parser; }
-    const PlaceholderParser& placeholder_parser() const { return m_placeholder_parser; }
+    PlaceholderParser& placeholder_parser() { return m_placeholder_parser_integration.parser; }
+    const PlaceholderParser& placeholder_parser() const { return m_placeholder_parser_integration.parser; }
     // Process a template through the placeholder parser, collect error messages to be reported
     // inside the generated string and after the G-code export finishes.
     std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);
@@ -203,6 +215,7 @@ public:
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);
     std::string     unretract() { return m_writer.unlift() + m_writer.unretract(); }
     std::string     set_extruder(unsigned int extruder_id, double print_z);
+    bool is_BBL_Printer();
 
     // SoftFever
     std::string set_object_info(Print* print);
@@ -284,14 +297,6 @@ private:
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
 
-    struct LayerResult {
-        std::string gcode;
-        size_t      layer_id;
-        // Is spiral vase post processing enabled for this layer?
-        bool        spiral_vase_enable { false };
-        // Should the cooling buffer content be flushed at the end of this layer?
-        bool        cooling_buffer_flush { false };
-    };
     LayerResult process_layer(
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
@@ -334,7 +339,7 @@ private:
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string     preamble();
     // BBS
-    std::string     change_layer(coordf_t print_z, bool lazy_raise = false);
+    std::string     change_layer(coordf_t print_z);
     std::string     extrude_entity(const ExtrusionEntity &entity, std::string description = "", double speed = -1.);
     std::string     extrude_loop(ExtrusionLoop loop, std::string description, double speed = -1.);
     std::string     extrude_multi_path(ExtrusionMultiPath multipath, std::string description = "", double speed = -1.);
@@ -382,8 +387,8 @@ private:
 
 	struct InstanceToPrint
 	{
-		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id) :
-			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id) {}
+		InstanceToPrint(ObjectByExtruder &object_by_extruder, size_t layer_id, const PrintObject &print_object, size_t instance_id, size_t label_object_id) :
+			object_by_extruder(object_by_extruder), layer_id(layer_id), print_object(print_object), instance_id(instance_id), label_object_id(label_object_id) {}
 
 		// Repository
 		ObjectByExtruder		&object_by_extruder;
@@ -392,6 +397,8 @@ private:
 		const PrintObject 		&print_object;
 		// Instance idx of the copy of a print object.
 		const size_t			 instance_id;
+        //BBS: Unique id to label object to support skiping during printing
+        const size_t             label_object_id;
 	};
 
 	std::vector<InstanceToPrint> sort_print_object_instances(
@@ -427,11 +434,37 @@ private:
     // scaled G-code resolution
     double                              m_scaled_resolution;
     GCodeWriter                         m_writer;
-    PlaceholderParser                   m_placeholder_parser;
-    // For random number generator etc.
-    PlaceholderParser::ContextData      m_placeholder_parser_context;
-    // Collection of templates, on which the placeholder substitution failed.
-    std::map<std::string, std::string>  m_placeholder_parser_failed_templates;
+
+    struct PlaceholderParserIntegration {
+        void reset();
+        void init(const GCodeWriter &config);
+        void update_from_gcodewriter(const GCodeWriter &writer);
+        void validate_output_vector_variables();
+
+        PlaceholderParser                   parser;
+        // For random number generator etc.
+        PlaceholderParser::ContextData      context;
+        // Collection of templates, on which the placeholder substitution failed.
+        std::map<std::string, std::string>  failed_templates;
+        // Input/output from/to custom G-code block, for returning position, retraction etc.
+        DynamicConfig                       output_config;
+        ConfigOptionFloats                 *opt_position { nullptr };
+        ConfigOptionFloat                  *opt_zhop { nullptr };
+        ConfigOptionFloats                 *opt_e_position { nullptr };
+        ConfigOptionFloats                 *opt_e_retracted { nullptr };
+        ConfigOptionFloats                 *opt_e_restart_extra { nullptr };
+        ConfigOptionFloats                 *opt_extruded_volume { nullptr };
+        ConfigOptionFloats                 *opt_extruded_weight { nullptr };
+        ConfigOptionFloat                  *opt_extruded_volume_total { nullptr };
+        ConfigOptionFloat                  *opt_extruded_weight_total { nullptr };
+        // Caches of the data passed to the script.
+        size_t                              num_extruders;
+        std::vector<double>                 position;
+        std::vector<double>                 e_position;
+        std::vector<double>                 e_retracted;
+        std::vector<double>                 e_restart_extra;
+    } m_placeholder_parser_integration;
+
     OozePrevention                      m_ooze_prevention;
     Wipe                                m_wipe;
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
@@ -441,6 +474,13 @@ private:
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
     bool                                m_enable_cooling_markers;
+    
+    bool m_enable_exclude_object;
+    std::vector<size_t> m_label_objects_ids;
+    std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
+    // Orca
+    bool m_is_overhang_fan_on;
+    bool m_is_supp_interface_fan_on;
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool                                m_enable_extrusion_role_markers;
@@ -459,6 +499,8 @@ private:
     //double                              m_volumetric_speed;
     // Support for the extrusion role markers. Which marker is active?
     ExtrusionRole                       m_last_extrusion_role;
+    // To ignore gapfill role for retract_lift_enforce
+    ExtrusionRole                       m_last_notgapfill_extrusion_role;
     // Support for G-Code Processor
     float                               m_last_height{ 0.0f };
     float                               m_last_layer_z{ 0.0f };
@@ -473,9 +515,9 @@ private:
 
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
-#ifdef HAS_PRESSURE_EQUALIZER
+
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
-#endif /* HAS_PRESSURE_EQUALIZER */
+
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     // Heights (print_z) at which the skirt has already been extruded.
@@ -534,6 +576,7 @@ private:
 
     friend class Wipe;
     friend class WipeTowerIntegration;
+    friend class PressureEqualizer;
     friend class Print;
 };
 
