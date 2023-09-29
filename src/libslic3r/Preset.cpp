@@ -752,7 +752,7 @@ static std::vector<std::string> s_Preset_print_options {
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", /*"adaptive_layer_height",*/
      "support_bottom_interface_spacing", "enable_overhang_speed", "slowdown_for_curled_perimeters", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed", "only_one_wall_top", 
-     "timelapse_type", "internal_bridge_support_thickness",
+     "timelapse_type",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
      "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "travel_acceleration","inner_wall_acceleration", "min_width_top_surface",

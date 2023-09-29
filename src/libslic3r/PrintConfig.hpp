@@ -711,7 +711,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
-    ((ConfigOptionFloat,              internal_bridge_support_thickness))
     ((ConfigOptionEnum<PerimeterGeneratorType>, wall_generator))
     ((ConfigOptionPercent,            wall_transition_length))
     ((ConfigOptionPercent,            wall_transition_filter_deviation))
