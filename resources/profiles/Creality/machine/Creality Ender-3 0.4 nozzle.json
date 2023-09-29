@@ -18,6 +18,8 @@
 		"0x220"
 	],
 	"printable_height": "250",
+	"extruder_clearance_height_to_rod": "25",
+	"extruder_clearance_height_to_lid": "25",
 	"nozzle_type": "undefine",
 	"auxiliary_fan": "0",
 	"machine_max_acceleration_extruding": [
