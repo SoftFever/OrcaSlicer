@@ -67,8 +67,6 @@ struct FillParams
     bool        use_arachne{ false };
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
-    //BBS
-    bool        with_loop       { false };
 
     // BBS
     Flow            flow;
