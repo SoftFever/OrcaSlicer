@@ -2493,7 +2493,9 @@ void PrintObject::bridge_over_infill()
                         }
                     }
 
-                    bridging_area          = opening(bridging_area, flow.scaled_spacing());
+                    // Orca: Keep fine details for better anchoring
+                    // bridging_area         = opening(bridging_area, flow.scaled_spacing());
+                    bridging_area          = opening(bridging_area, flow.scaled_spacing() * 0.75);
                     bridging_area          = closing(bridging_area, flow.scaled_spacing());
                     bridging_area          = intersection(bridging_area, limiting_area);
                     bridging_area          = intersection(bridging_area, total_fill_area);
