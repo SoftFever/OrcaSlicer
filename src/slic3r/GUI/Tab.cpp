@@ -3001,8 +3001,8 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
-        bool support_chamber_temp_control = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
-        toggle_option("chamber_temperature", !is_BBL_printer || support_chamber_temp_control);
+        // bool support_chamber_temp_control = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
+        // toggle_option("chamber_temperature", !is_BBL_printer || support_chamber_temp_control);
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page();
