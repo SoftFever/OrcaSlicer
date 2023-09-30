@@ -786,7 +786,7 @@ void Layer::make_ironing()
 					// Check whether there is any non-solid hole in the regions.
 					bool internal_infill_solid = region_config.sparse_infill_density.value > 95.;
 					for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
-						if ((!internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid || surface.surface_type==stInternalWithLoop) {
+						if ((!internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid) {
 							// Some fill region is not quite solid. Don't iron over the whole surface.
 							iron_completely = false;
 							break;

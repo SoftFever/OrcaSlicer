@@ -2061,13 +2061,6 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    // BBS
-    def = this->add("thumbnail_size", coPoints);
-    def->label = L("Thumbnail size");
-    def->tooltip = L("Decides the size of thumbnail stored in gcode files");
-    def->mode = comDevelop;
-    def->gui_type = ConfigOptionDef::GUIType::one_string;
-    def->set_default_value(new ConfigOptionPoints{ Vec2d(50,50) });
 
     //BBS
     // def = this->add("spaghetti_detector", coBool);
@@ -5061,6 +5054,22 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "overhang_fan_threshold" && value == "5%") {
         value = "10%";
     } else if(opt_key == "single_extruder_multi_material") {
+        value = "1";
+    }
+    else if (opt_key == "sparse_infill_anchor") {
+        opt_key = "infill_anchor";
+    } 
+    else if (opt_key == "sparse_infill_anchor_max") {
+        opt_key = "infill_anchor_max";
+    }
+    else if (opt_key == "chamber_temperatures") {
+        opt_key = "chamber_temperature";
+    }
+    else if (opt_key == "thumbnail_size") {
+        opt_key = "thumbnails";
+    }
+    else if (opt_key == "top_one_wall_type" && value != "none") {
+        opt_key = "only_one_wall_top";
         value = "1";
     }
 

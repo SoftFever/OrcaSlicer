@@ -100,7 +100,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
-        "thumbnail_size",
         "before_layer_change_gcode",
         "enable_pressure_advance",
         "pressure_advance",
@@ -179,12 +178,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
-        "chamber_temperature",
-        "thumbnails",
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine",
         // SoftFever
+        "chamber_temperature",
+        "thumbnails",
         "seam_gap",
         "role_based_wipe_speed",
         "wipe_speed",
