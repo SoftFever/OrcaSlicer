@@ -505,7 +505,7 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, const bool is_global_config)
 {
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
-    //SoftFever
+
     auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
     
     bool have_volumetric_extrusion_rate_slope = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0;
@@ -557,7 +557,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, has_top_solid_infill || (has_spiral_vase && has_bottom_solid_infill));
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
-    //BBS
+
     for (auto el : {"outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration",
           "top_surface_acceleration", "travel_acceleration", "bridge_acceleration", "sparse_infill_acceleration", "internal_solid_infill_acceleration"})
         toggle_field(el, have_default_acceleration);
@@ -588,9 +588,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("brim_ears_max_angle", have_brim_ear);
     toggle_line("brim_ears_detection_length", have_brim_ear);
 
+    // Hide Elephant foot compensation layers if elefant_foot_compensation is not enabled
+    toggle_line("elefant_foot_compensation_layers", config->opt_float("elefant_foot_compensation") > 0);
+
     bool have_raft = config->opt_int("raft_layers") > 0;
     bool have_support_material = config->opt_bool("enable_support") || have_raft;
-    // BBS
+
     SupportType support_type = config->opt_enum<SupportType>("support_type");
     bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
     bool have_support_soluble = have_support_material && config->opt_float("support_top_z_distance") == 0;
@@ -633,7 +636,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                      "support_interface_loop_pattern", "support_bottom_interface_spacing" })
         toggle_field(el, have_support_material && have_support_interface);
 
-    //BBS
     bool have_skirt_height = have_skirt &&
                              (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
     toggle_line("support_speed", have_support_material || have_skirt_height);
@@ -661,12 +663,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
     toggle_field("standby_temperature_delta", have_ooze_prevention);
-
-    // Orca todo: enable/disable wipe tower parameters
-    // for (auto el :
-    //      {"wipe_tower_x", "wipe_tower_y", , "wipe_tower_rotation_angle", "wipe_tower_brim_width", "wipe_tower_cone_angle",
-    //       "wipe_tower_extra_spacing", "wipe_tower_bridging", "wipe_tower_no_sparse_layers", "single_extruder_multi_material_priming"})
-    //     toggle_field(el, have_wipe_tower);
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el : { "prime_tower_width", "prime_tower_brim_width"})
