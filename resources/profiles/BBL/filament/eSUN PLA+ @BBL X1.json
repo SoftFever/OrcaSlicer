@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSL03_02",
     "name": "eSUN PLA+ @BBL X1",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "eSUN PLA+ @base",
+    "from": "system",
+    "setting_id": "GFSL03_02",
+    "instantiation": "true",
     "slow_down_layer_time": [
         "10"
     ],
@@ -12,6 +12,5 @@
         "Bambu Lab X1 0.4 nozzle",
         "Bambu Lab X1 0.6 nozzle",
         "Bambu Lab X1 0.8 nozzle"
-    ],
-    "version": "01.07.00.18"
+    ]
 }

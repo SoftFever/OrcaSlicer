@@ -1561,6 +1561,9 @@ public:
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
     static Polygon getBedPolygon() { return Model::printSpeedMap.bed_poly; }
+    //BBS static functions that update extruder params and speed table
+    static void setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConfig& print_config);
+    static void setExtruderParams(const DynamicPrintConfig& config, int extruders_count);
 
     // BBS: backup
     static Model read_from_archive(

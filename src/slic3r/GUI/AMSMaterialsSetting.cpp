@@ -747,16 +747,6 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
 
-        /*if (obj && (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI) || obj->is_high_printer_type())) {
-            m_ratio_text->Show();
-            m_k_param->Show();
-            m_input_k_val->Show();
-        }
-        else {
-            m_ratio_text->Hide();
-            m_k_param->Hide();
-            m_input_k_val->Hide();
-        }*/
         m_ratio_text->Show();
         m_k_param->Show();
         m_input_k_val->Show();

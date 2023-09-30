@@ -139,7 +139,7 @@ void SendJob::process()
     params.filename = job_data._temp_path.string();
     params.connection_type = this->connection_type;
 
-    result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+    result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr, nullptr);
     if (result != 0) {
         BOOST_LOG_TRIVIAL(error) << "access code is invalid";
         m_enter_ip_address_fun_fail();
@@ -317,7 +317,7 @@ void SendJob::process()
             // try to send local with record
             BOOST_LOG_TRIVIAL(info) << "send_job: try to send gcode to printer";
             this->update_status(curr_percent, _L("Sending gcode file over LAN"));
-            result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn);
+            result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
             if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
                 params.comments = "upload_failed";
             } else {
@@ -335,7 +335,7 @@ void SendJob::process()
     } else {
         if (this->has_sdcard) {
             this->update_status(curr_percent, _L("Sending gcode file over LAN"));
-            result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn);
+            result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn, nullptr);
         } else {
             this->update_status(curr_percent, _L("An SD card needs to be inserted before sending to printer."));
             return;

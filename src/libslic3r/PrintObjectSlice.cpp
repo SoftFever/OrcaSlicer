@@ -1085,7 +1085,9 @@ void PrintObject::slice_volumes()
 	                m_print->throw_if_canceled();
 	                Layer *layer = m_layers[layer_id];
 	                // Apply size compensation and perform clipping of multi-part objects.
-	                float elfoot = (layer_id == 0) ? elephant_foot_compensation_scaled : 0.f;
+	                float elfoot = elephant_foot_compensation_scaled > 0 && layer_id < m_config.elefant_foot_compensation_layers.value ? 
+                        elephant_foot_compensation_scaled - (elephant_foot_compensation_scaled / m_config.elefant_foot_compensation_layers.value) * layer_id : 
+                        0.f;
 	                if (layer->m_regions.size() == 1) {
 	                    // Optimized version for a single region layer.
 	                    // Single region, growing or shrinking.

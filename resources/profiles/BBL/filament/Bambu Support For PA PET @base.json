@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFS03",
     "name": "Bambu Support For PA/PET @base",
-    "from": "system",
-    "instantiation": "false",
     "inherits": "fdm_filament_pa",
+    "from": "system",
+    "filament_id": "GFS03",
+    "instantiation": "false",
     "required_nozzle_HRC": [
         "3"
     ],

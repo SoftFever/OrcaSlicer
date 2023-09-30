@@ -179,11 +179,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     set_miniaturizable(GetHandle());
 #endif
 
-    //reset developer_mode to false  and user_mode to comAdvanced
-    wxGetApp().app_config->set_bool("developer_mode", false);
-    if (wxGetApp().app_config->get("user_mode") == "develop") {
-        wxGetApp().app_config->set("user_mode", "advanced");
-     }
+    if (!wxGetApp().app_config->has("user_mode")) { 
+        wxGetApp().app_config->set("user_mode", "simple");
+        wxGetApp().app_config->set_bool("developer_mode", false);
+        wxGetApp().app_config->save();
+    }
 
     wxGetApp().app_config->set_bool("internal_developer_mode", false);
 
@@ -876,23 +876,23 @@ void MainFrame::update_title()
 
 void MainFrame::show_publish_button(bool show)
 {
-    m_publish_btn->Show(show);
-    Layout();
+    // m_publish_btn->Show(show);
+    // Layout();
 }
 
 void MainFrame::show_calibration_button(bool show)
 {
-#ifdef __APPLE__
-    bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
-    if (shown == show)
-        ;
-    else if (show)
-        m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
-    else
-        m_menubar->Remove(3);
-#else
-    topbar()->ShowCalibrationButton(show);
-#endif
+// #ifdef __APPLE__
+//     bool shown = m_menubar->FindMenu(_L("Calibration")) != wxNOT_FOUND;
+//     if (shown == show)
+//         ;
+//     else if (show)
+//         m_menubar->Insert(3, m_calib_menu, wxString::Format("&%s", _L("Calibration")));
+//     else
+//         m_menubar->Remove(3);
+// #else
+//     topbar()->ShowCalibrationButton(show);
+// #endif
     show = !show;
     auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
     if (shown2 == show)
@@ -1461,18 +1461,18 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
+    // m_publish_btn = new Button(this, _L("Upload"), "bar_publish", 0, FromDIP(16));
     m_slice_btn = new SideButton(this, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print plate"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
-    m_publish_btn->Hide();
+    // m_publish_btn->Hide();
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
-    sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    // sizer->Add(m_publish_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
+    // sizer->Add(FromDIP(15), 0, 0, 0, 0);
     sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(m_slice_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
@@ -1482,25 +1482,25 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     sizer->Layout();
 
-    m_publish_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
-        CallAfter([this] {
-            wxGetApp().open_publish_page_dialog();
+    // m_publish_btn->Bind(wxEVT_BUTTON, [this](auto& e) {
+    //     CallAfter([this] {
+    //         wxGetApp().open_publish_page_dialog();
 
-            if (!wxGetApp().getAgent()) {
-                BOOST_LOG_TRIVIAL(info) << "publish: no agent";
-                return;
-            }
+    //         if (!wxGetApp().getAgent()) {
+    //             BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+    //             return;
+    //         }
 
-            // record
-            json j;
-            NetworkAgent* agent = GUI::wxGetApp().getAgent();
-        });
-    });
+    //         // record
+    //         json j;
+    //         NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    //     });
+    // });
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             //this->m_plater->select_view_3D("Preview");
-            m_plater->update();
+            m_plater->update(false, true);
             if (m_slice_select == eSliceAll)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
             else
@@ -1858,12 +1858,12 @@ void MainFrame::update_side_button_style()
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
     );
 
-    m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
-    m_publish_btn->SetCornerRadius(FromDIP(12));
-    m_publish_btn->SetBackgroundColor(m_btn_bg_enable);
-    m_publish_btn->SetBorderColor(m_btn_bg_enable);
-    m_publish_btn->SetBackgroundColour(wxColour(59,68,70));
-    m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
+    // m_publish_btn->SetMinSize(wxSize(FromDIP(125), FromDIP(24)));
+    // m_publish_btn->SetCornerRadius(FromDIP(12));
+    // m_publish_btn->SetBackgroundColor(m_btn_bg_enable);
+    // m_publish_btn->SetBorderColor(m_btn_bg_enable);
+    // m_publish_btn->SetBackgroundColour(wxColour(59,68,70));
+    // m_publish_btn->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
 
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
     m_slice_btn->SetCornerRadius(FromDIP(12));

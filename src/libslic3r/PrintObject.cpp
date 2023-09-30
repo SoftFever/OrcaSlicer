@@ -507,7 +507,7 @@ void PrintObject::generate_support_material()
                     {LargeOverhang,L("large overhangs")} };
                 std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
                     this->model_object()->name, reasons[sntype]);
-                this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
 
 #if 0
@@ -805,6 +805,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
+            || opt_key == "elefant_foot_compensation_layers"
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
@@ -874,7 +875,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers") {
-            
+
             steps.emplace_back(posPrepareInfill);
 
             const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
@@ -886,7 +887,7 @@ bool PrintObject::invalidate_state_by_config_options(
 
             if (value_changed && this->object_extruders().size() > 1) {
                 steps.emplace_back(posSlice);
-            }               
+            }
             else if (m_print->config().spiral_mode && opt_key == "bottom_shell_layers") {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.

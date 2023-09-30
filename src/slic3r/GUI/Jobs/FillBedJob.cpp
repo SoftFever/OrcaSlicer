@@ -206,7 +206,7 @@ void FillBedJob::process()
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
 
     update_arrange_params(params, *m_plater, m_selected);
-    m_bedpts = get_shrink_bedpts(*m_plater, params);
+    m_bedpts = get_shrink_bedpts(m_plater->config(), params);
 
     auto &partplate_list               = m_plater->get_partplate_list();
     auto &print                        = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
@@ -216,8 +216,8 @@ void FillBedJob::process()
     if (is_bbl && params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
     
-    update_selected_items_inflation(m_selected, *m_plater, params);
-    update_unselected_items_inflation(m_unselected, *m_plater, params);
+    update_selected_items_inflation(m_selected, m_plater->config(), params);
+    update_unselected_items_inflation(m_unselected, m_plater->config(), params);
 
     bool do_stop = false;
     params.stopcondition = [this, &do_stop]() {
