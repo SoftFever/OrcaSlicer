@@ -32,12 +32,17 @@ public:
     ExtrusionEntitiesPtr entities;     // we own these entities
     bool no_sort;
     ExtrusionEntityCollection(): no_sort(false) {}
-    ExtrusionEntityCollection(const ExtrusionEntityCollection &other) : no_sort(other.no_sort) { this->append(other.entities); }
-    ExtrusionEntityCollection(ExtrusionEntityCollection &&other) : entities(std::move(other.entities)), no_sort(other.no_sort) {}
+    ExtrusionEntityCollection(const ExtrusionEntityCollection &other) : no_sort(other.no_sort), is_reverse(other.is_reverse) { this->append(other.entities); }
+    ExtrusionEntityCollection(ExtrusionEntityCollection &&other) : entities(std::move(other.entities)), no_sort(other.no_sort), is_reverse(other.is_reverse) {}
     explicit ExtrusionEntityCollection(const ExtrusionPaths &paths);
     ExtrusionEntityCollection& operator=(const ExtrusionEntityCollection &other);
     ExtrusionEntityCollection& operator=(ExtrusionEntityCollection &&other)
-        { this->entities = std::move(other.entities); this->no_sort = other.no_sort; return *this; }
+    {
+        this->entities = std::move(other.entities);
+        this->no_sort  = other.no_sort;
+        is_reverse     = other.is_reverse;
+        return *this;
+    }
     ~ExtrusionEntityCollection() { clear(); }
     explicit operator ExtrusionPaths() const;
     
@@ -50,7 +55,15 @@ public:
         }
         return out;
     }
-    bool can_reverse() const override { return !this->no_sort; }
+    bool can_sort() const override { return !this->no_sort; }
+    bool can_reverse() const override
+    {
+        if (this->no_sort)
+            return false;
+        else
+            return is_reverse;
+    }
+    void set_reverse() override { is_reverse = false; }
     bool empty() const { return this->entities.empty(); }
     void clear();
     void swap (ExtrusionEntityCollection &c);
@@ -126,6 +139,9 @@ public:
         throw Slic3r::RuntimeError("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }
+
+private:
+    bool is_reverse{true};
 };
 
 } // namespace Slic3r

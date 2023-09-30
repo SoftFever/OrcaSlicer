@@ -223,9 +223,11 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     maximum /= m_factor;
 #endif
 
-    m_gauge = new wxGauge(this, wxID_ANY, maximum, wxDefaultPosition, PROGRESSDIALOG_GAUGE_SIZE, gauge_style);
-    m_gauge->SetValue(0);
-    m_sizer_main->Add(m_gauge, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
+    if (!HasPDFlag(wxPD_NO_PROGRESS)) {
+        m_gauge = new wxGauge(this, wxID_ANY, maximum, wxDefaultPosition, PROGRESSDIALOG_GAUGE_SIZE, gauge_style);
+        m_gauge->SetValue(0);
+        m_sizer_main->Add(m_gauge, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
+    }
 
 #ifdef __WXMSW__
     //m_block_left = new wxWindow(m_gauge, wxID_ANY, wxPoint(0, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
@@ -250,6 +252,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
                 DisableAbort();
                 m_button_cancel->Enable(false);
                 DisableSkip();
+                OnCancel();
                 m_timeStop = wxGetCurrentTime();
             }
         });
@@ -509,14 +512,15 @@ bool ProgressDialog::Update(int value, const wxString &newmsg, bool *skip)
 {
     if (!DoBeforeUpdate(skip)) return false;
 
-    wxCHECK_MSG(m_gauge, false, "dialog should be fully created");
+    wxCHECK_MSG(m_msg || m_gauge, false, "dialog should be fully created");
 
 #ifdef __WXMSW__
     value /= m_factor;
 #endif // __WXMSW__
 
     wxASSERT_MSG(value <= m_maximum, wxT("invalid progress value"));
-    m_gauge->SetValue(value);
+    if (m_gauge)
+        m_gauge->SetValue(value);
 
     UpdateMessage(newmsg);
 
@@ -588,10 +592,10 @@ bool ProgressDialog::Pulse(const wxString &newmsg, bool *skip)
 {
     if (!DoBeforeUpdate(skip)) return false;
 
-    wxCHECK_MSG(m_gauge, false, "dialog should be fully created");
+    wxCHECK_MSG(m_msg || m_gauge, false, "dialog should be fully created");
 
     // show a bit of progress
-    m_gauge->Pulse();
+    if (m_gauge) m_gauge->Pulse();
 
     UpdateMessage(newmsg);
 
@@ -732,6 +736,8 @@ void ProgressDialog::OnCancel(wxCommandEvent &event)
         DisableAbort();
         DisableSkip();
 
+        OnCancel();
+
         // save the time when the dialog was stopped
         m_timeStop = wxGetCurrentTime();
     }
@@ -756,6 +762,7 @@ void ProgressDialog::OnClose(wxCloseEvent &event)
         m_state = Canceled;
         DisableAbort();
         DisableSkip();
+        OnCancel();
 
         m_timeStop = wxGetCurrentTime();
     }

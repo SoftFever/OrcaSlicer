@@ -137,6 +137,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoSeam.hpp
     GUI/Gizmos/GLGizmoText.cpp
     GUI/Gizmos/GLGizmoText.hpp
+    GUI/Gizmos/GLGizmoMeshBoolean.cpp
+    GUI/Gizmos/GLGizmoMeshBoolean.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
@@ -276,7 +278,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp
-    GUI/WipeTowerDialog.hpp
+    GUI/RammingChart.cpp
+    GUI/RammingChart.hpp
     GUI/RemovableDriveManager.cpp
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
@@ -370,6 +373,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
     GUI/DesktopIntegrationDialog.hpp
+    GUI/DragCanvas.cpp
+    GUI/DragCanvas.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
 	GUI/RecenterDialog.cpp
@@ -390,6 +395,24 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/SingleChoiceDialog.hpp
+    GUI/SingleChoiceDialog.cpp
+    GUI/CaliHistoryDialog.hpp
+    GUI/CaliHistoryDialog.cpp
+    GUI/CalibrationPanel.hpp
+    GUI/CalibrationPanel.cpp
+    GUI/CalibrationWizard.hpp
+    GUI/CalibrationWizard.cpp
+    GUI/CalibrationWizardPage.cpp
+    GUI/CalibrationWizardPage.hpp
+	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.hpp
+	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.hpp
+	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.hpp
+	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.hpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
@@ -447,6 +470,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/Repetier.hpp
     GUI/calib_dlg.hpp
     GUI/calib_dlg.cpp
+    Utils/CalibUtils.cpp
+    Utils/CalibUtils.hpp
 )
 
 if (WIN32)
@@ -496,7 +521,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
@@ -524,6 +549,10 @@ if (SLIC3R_STATIC)
     target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
 endif()
 
+if (HAVE_SPNAV)
+    target_link_libraries(libslic3r_gui spnav)
+endif()
+
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL AND UNIX AND NOT APPLE)
     target_compile_definitions(libslic3r_gui PRIVATE OPENSSL_CERT_OVERRIDE)
 endif ()
@@ -546,3 +575,6 @@ if (UNIX AND NOT APPLE)
     target_link_libraries(libslic3r_gui ${GSTREAMER_LIBRARIES} ${GST_BASE_LIBRARIES})
     target_include_directories(libslic3r_gui PRIVATE ${GSTREAMER_INCLUDE_DIRS} ${GST_BASE_INCLUDE_DIRS})
 endif ()
+
+# Add a definition so that we can tell we are compiling slic3r.
+target_compile_definitions(libslic3r_gui PRIVATE SLIC3R_CURRENTLY_COMPILING_GUI_MODULE)

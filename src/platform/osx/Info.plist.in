@@ -7,7 +7,7 @@
   <key>CFBundleGetInfoString</key>
   <string>@SLIC3R_APP_NAME@ Copyright(C) 2021-2023 Lunkuo All Rights Reserved</string>
   <key>CFBundleIconFile</key>
-  <string>BambuStudio.icns</string>
+  <string>OrcaSlicer.icns</string>
   <key>CFBundleName</key>
   <string>@SLIC3R_APP_KEY@</string>
   <key>CFBundleShortVersionString</key>
@@ -48,7 +48,7 @@
         <string>OBJ</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>BambuStudio.icns</string>
+      <string>OrcaSlicer.icns</string>
       <key>CFBundleTypeName</key>
       <string>STL</string>
       <key>CFBundleTypeRole</key>
@@ -65,7 +65,7 @@
         <string>AMF</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>BambuStudio.icns</string>
+      <string>OrcaSlicer.icns</string>
       <key>CFBundleTypeName</key>
       <string>AMF</string>
       <key>CFBundleTypeRole</key>
@@ -82,7 +82,7 @@
         <string>3MF</string>
       </array>
       <key>CFBundleTypeIconFile</key>
-      <string>BambuStudio.icns</string>
+      <string>OrcaSlicer.icns</string>
       <key>CFBundleTypeName</key>
       <string>3MF</string>
       <key>CFBundleTypeRole</key>

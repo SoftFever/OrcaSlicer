@@ -556,9 +556,9 @@ class clipperException : public std::exception
 //------------------------------------------------------------------------------
 
 template<typename PathsProvider>
-inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd) {
+inline Paths SimplifyPolygons(PathsProvider &&in_polys, PolyFillType fillType = pftEvenOdd, bool strictly_simple = true) {
     Clipper c;
-    c.StrictlySimple(true);
+    c.StrictlySimple(strictly_simple);
     c.AddPaths(std::forward<PathsProvider>(in_polys), ptSubject, true);
     Paths out;
     c.Execute(ctUnion, out, fillType, fillType);

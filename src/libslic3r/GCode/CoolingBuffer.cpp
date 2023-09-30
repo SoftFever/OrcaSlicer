@@ -5,6 +5,8 @@
 #include <boost/log/trivial.hpp>
 #include <iostream>
 #include <float.h>
+#include <system_error>
+#include <unordered_map>
 
 #if 0
     #define DEBUG
@@ -461,22 +463,24 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             line.type = CoolingLine::TYPE_EXTRUDE_END;
             active_speed_modifier = size_t(-1);
         } else if (boost::starts_with(sline, m_toolchange_prefix)) {
-            unsigned int new_extruder = (unsigned int)atoi(sline.c_str() + m_toolchange_prefix.size());
-            // Only change extruder in case the number is meaningful. User could provide an out-of-range index through custom gcodes - those shall be ignored.
-            if (new_extruder < map_extruder_to_per_extruder_adjustment.size()) {
-                if (new_extruder != current_extruder) {
-                    // Switch the tool.
-                    line.type = CoolingLine::TYPE_SET_TOOL;
-                    current_extruder = new_extruder;
-                    adjustment         = &per_extruder_adjustments[map_extruder_to_per_extruder_adjustment[current_extruder]];
+            unsigned int new_extruder = 0;
+            auto ret = std::from_chars(sline.data() + m_toolchange_prefix.size(), sline.data() + sline.size(), new_extruder);
+            if (std::errc::invalid_argument != ret.ec) {
+                // Only change extruder in case the number is meaningful. User could provide an out-of-range index through custom gcodes -
+                // those shall be ignored.
+                if (new_extruder < map_extruder_to_per_extruder_adjustment.size()) {
+                    if (new_extruder != current_extruder) {
+                        // Switch the tool.
+                        line.type        = CoolingLine::TYPE_SET_TOOL;
+                        current_extruder = new_extruder;
+                        adjustment       = &per_extruder_adjustments[map_extruder_to_per_extruder_adjustment[current_extruder]];
+                    }
+                } else {
+                    // Only log the error in case of MM printer. Single extruder printers likely ignore any T anyway.
+                    if (map_extruder_to_per_extruder_adjustment.size() > 1)
+                        BOOST_LOG_TRIVIAL(error) << "CoolingBuffer encountered an invalid toolchange, maybe from a custom gcode: " << sline;
                 }
             }
-            else {
-                // Only log the error in case of MM printer. Single extruder printers likely ignore any T anyway.
-                if (map_extruder_to_per_extruder_adjustment.size() > 1)
-                    BOOST_LOG_TRIVIAL(error) << "CoolingBuffer encountered an invalid toolchange, maybe from a custom gcode: " << sline;
-            }
-
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_START")) {
             line.type = CoolingLine::TYPE_OVERHANG_FAN_START;
         } else if (boost::starts_with(sline, ";_OVERHANG_FAN_END")) {
@@ -784,7 +788,6 @@ std::string CoolingBuffer::apply_layer_cooldown(
         }
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;
-            //BBS
             m_current_fan_speed = fan_speed_new;
             if (immediately_apply)
                 new_gcode  += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
@@ -800,44 +803,55 @@ std::string CoolingBuffer::apply_layer_cooldown(
     const char         *pos               = gcode.c_str();
     int                 current_feedrate  = 0;
     change_extruder_set_fan(true);
+
+    // Orca: Reduce set fan commands by deferring the GCodeWriter::set_fan calls. Inspired by SuperSlicer
+    // define fan_speed_change_requests and initialize it with all possible types fan speed change requests
+    std::unordered_map<int, bool> fan_speed_change_requests = {{CoolingLine::TYPE_OVERHANG_FAN_START, false},
+                                                               {CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START, false},
+                                                               {CoolingLine::TYPE_FORCE_RESUME_FAN, false}};
+    bool need_set_fan = false;
+
     for (const CoolingLine *line : lines) {
         const char *line_start  = gcode.c_str() + line->line_start;
         const char *line_end    = gcode.c_str() + line->line_end;
         if (line_start > pos)
             new_gcode.append(pos, line_start - pos);
         if (line->type & CoolingLine::TYPE_SET_TOOL) {
-            unsigned int new_extruder = (unsigned int)atoi(line_start + m_toolchange_prefix.size());
-            if (new_extruder != m_current_extruder) {
-                m_current_extruder = new_extruder;
-                change_extruder_set_fan(false); //BBS: will force to resume fan speed when filament change is finished
+            unsigned int new_extruder = 0;
+            auto ret = std::from_chars(line_start + m_toolchange_prefix.size(), line_end, new_extruder);
+            if (std::errc::invalid_argument != ret.ec) {
+                if (new_extruder != m_current_extruder) {
+                    m_current_extruder = new_extruder;
+                    change_extruder_set_fan(true);
+                }
             }
             new_gcode.append(line_start, line_end - line_start);
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_START) {
-            if (overhang_fan_control) {
-                //BBS
-                m_current_fan_speed = overhang_fan_speed;
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
-            }
+            if (overhang_fan_control && !fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
+                need_set_fan = true;
+                fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START] = true;
+           }
         } else if (line->type & CoolingLine::TYPE_OVERHANG_FAN_END) {
-            if (overhang_fan_control) {
-                //BBS
-                m_current_fan_speed = m_fan_speed;
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            if (overhang_fan_control && fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]) {
+                fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START] = false;
             }
+            need_set_fan = true;
         } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START) {
-            if (supp_interface_fan_control) {
-                m_current_fan_speed = supp_interface_fan_speed;
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, supp_interface_fan_speed);
+            if (supp_interface_fan_control && !fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]) {
+                fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START] = true;
+                need_set_fan = true;
             }
-        } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_END) {
+        } else if (line->type & CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_END && fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]) {
             if (supp_interface_fan_control) {
-                m_current_fan_speed = m_fan_speed;
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+                fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START] = false;
             }
+            need_set_fan = true;
         } else if (line->type & CoolingLine::TYPE_FORCE_RESUME_FAN) {
-            //BBS: force to write a fan speed command again
-            if (m_current_fan_speed != -1)
-                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+            // check if any fan speed change request is active
+            if (m_fan_speed != -1 && !std::any_of(fan_speed_change_requests.begin(), fan_speed_change_requests.end(), [](const std::pair<int, bool>& p) { return p.second; })){
+                fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] = true;
+                need_set_fan = true;
+            }
             if (m_additional_fan_speed != -1 && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
         }
@@ -924,6 +938,24 @@ std::string CoolingBuffer::apply_layer_cooldown(
             }
         } else {
             new_gcode.append(line_start, line_end - line_start);
+        }
+
+        if (need_set_fan) {
+            if (fan_speed_change_requests[CoolingLine::TYPE_OVERHANG_FAN_START]){
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, overhang_fan_speed);
+                m_current_fan_speed = overhang_fan_speed;
+            }
+            else if (fan_speed_change_requests[CoolingLine::TYPE_SUPPORT_INTERFACE_FAN_START]){
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, supp_interface_fan_speed);
+                m_current_fan_speed = supp_interface_fan_speed;
+            }
+            else if(fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] && m_current_fan_speed != -1){
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+                fan_speed_change_requests[CoolingLine::TYPE_FORCE_RESUME_FAN] = false;
+            }
+            else
+                new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_fan_speed);
+            need_set_fan = false;
         }
         pos = line_end;
     }

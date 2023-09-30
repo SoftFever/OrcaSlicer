@@ -12,7 +12,7 @@ while getopts ":a:sdphn" opt; do
         export ARCH="$OPTARG"
         ;;
     s )
-        export BUILD_TARGET="studio"
+        export BUILD_TARGET="slicer"
         ;;
     n )
         export NIGHTLY_BUILD="1"
@@ -20,7 +20,7 @@ while getopts ":a:sdphn" opt; do
     h ) echo "Usage: ./build_release_macos.sh [-d]"
         echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
-        echo "   -s: Build studio only"
+        echo "   -s: Build slicer only"
         echo "   -n: Nightly build"
         exit 0
         ;;
@@ -54,12 +54,12 @@ mkdir -p build_$ARCH
 cd build_$ARCH
 DEPS=$PWD/OrcaSlicer_dep_$ARCH
 mkdir -p $DEPS
-if [ "studio." != $BUILD_TARGET. ]; 
+if [ "slicer." != $BUILD_TARGET. ]; 
 then
     echo "building deps..."
     echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}"
     cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}
-    cmake --build . --config Release --target all 
+    cmake --build . --config Release --target deps 
     if [ "1." == "$PACK_DEPS". ];
     then
         tar -zcvf OrcaSlicer_dep_mac_${ARCH}_$(date +"%d-%m-%Y").tar.gz OrcaSlicer_dep_$ARCH
@@ -75,9 +75,12 @@ fi
 cd $WD
 mkdir -p build_$ARCH
 cd build_$ARCH
-echo "building studio..."
+echo "building slicer..."
 cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/OrcaSlicer" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
 cmake --build . --config Release --target ALL_BUILD 
+cd ..
+./run_gettext.sh
+cd build_$ARCH
 mkdir -p OrcaSlicer
 cd OrcaSlicer
 rm -r ./OrcaSlicer.app

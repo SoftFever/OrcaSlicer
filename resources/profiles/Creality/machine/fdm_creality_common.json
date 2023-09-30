@@ -124,7 +124,7 @@
     "1"
   ],
   "default_filament_profile": [
-    "Generic PLA @Creality"
+    "Creality Generic PLA"
   ],
   "default_print_profile": "0.20mm Standard @Creality",
   "bed_exclude_area": [

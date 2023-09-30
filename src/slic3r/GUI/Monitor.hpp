@@ -83,8 +83,6 @@ private:
     MediaFilePanel*     m_media_file_panel;
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
-    Button *            m_connection_info{nullptr};
-    wxHyperlinkCtrl* m_hyperlink{nullptr};
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};
@@ -93,8 +91,6 @@ private:
     wxStaticText*   m_staticText_printer_name;
     wxStaticBitmap* m_bitmap_wifi_signal;
     wxBoxSizer *    m_side_tools_sizer;
-
-
     SelectMachinePopup m_select_machine;
 
 	/* images */
@@ -106,9 +102,9 @@ private:
     wxBitmap m_arrow_img;
 
     int last_wifi_signal = -1;
-    wxTimer* m_refresh_timer = nullptr;
     int last_status;
     bool m_initialized { false };
+    wxTimer* m_refresh_timer = nullptr;
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -133,6 +129,7 @@ public:
     void on_sys_color_changed();
     void msw_rescale();
 
+    StatusPanel* get_status_panel() {return m_status_info_panel;};
 	void select_machine(std::string machine_sn);
     void on_update_all(wxMouseEvent &event);
     void on_timer(wxTimerEvent& event);
@@ -141,7 +138,6 @@ public:
     void on_size(wxSizeEvent &event);
 
     /* update apis */
-    void update_status(MachineObject* obj);
     //void update_ams(MachineObject* obj);
     void update_all();
 
@@ -153,6 +149,7 @@ public:
     MachineObject *obj { nullptr };
     std::string last_conn_type = "undedefined";
 };
+
 
 } // GUI
 } // Slic3r

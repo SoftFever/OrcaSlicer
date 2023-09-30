@@ -91,7 +91,7 @@ void MsgDialog::show_dsa_button(wxString const &title)
     m_text_dsa->SetFont(::Label::Body_13);
     m_text_dsa->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
     btn_sizer->Layout();
-    //Fit();
+    Fit();
 }
 
 bool MsgDialog::get_checkbox_state() 
@@ -226,7 +226,7 @@ void MsgDialog::apply_style(long style)
     logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
                                           style & wxICON_WARNING        ? "obj_warning" :
                                           style & wxICON_INFORMATION    ? "info"        :
-                                          style & wxICON_QUESTION       ? "question"    : "BambuStudio", this, 64, style & wxICON_ERROR));
+                                          style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", this, 64, style & wxICON_ERROR));
 }
 
 void MsgDialog::finalize()
@@ -316,7 +316,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         // Code formatting will be preserved. This is useful for reporting errors from the placeholder parser.
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
-    content_sizer->Add(html, 1, wxEXPAND);
+    content_sizer->Add(html, 1, wxEXPAND|wxRIGHT, 8);
     wxGetApp().UpdateDarkUIWin(html);
 }
 
@@ -330,7 +330,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
     add_msg_content(this, content_sizer, msg, monospaced_font);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
-	logo->SetBitmap(create_scaled_bitmap("BambuStudio_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
+	logo->SetBitmap(create_scaled_bitmap("OrcaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 

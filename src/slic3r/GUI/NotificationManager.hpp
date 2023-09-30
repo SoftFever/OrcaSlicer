@@ -73,6 +73,8 @@ enum class NotificationType
 	// Slicing error produced by BackgroundSlicingProcess::validate() or by the BackgroundSlicingProcess background
 	// thread thowing a SlicingError exception.
 	SlicingError,
+	//Gcode conflict generates slicing severe warning
+    SlicingSeriousWarning,
 	// Slicing warnings, issued by the slicing process.
 	// Slicing warnings are registered for a particular Print milestone or a PrintObject and its milestone.
 	SlicingWarning,
@@ -162,6 +164,8 @@ public:
 		ImportantNotificationLevel,
 		// Warning, no fade-out.
 		WarningNotificationLevel,
+		// Serious warning, bold reminder
+        SeriousWarningNotificationLevel,
 		// Error, no fade-out. Top most position.
 		ErrorNotificationLevel,
 	};
@@ -191,8 +195,10 @@ public:
 	void set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage);
 	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
+    void push_slicing_serious_warning_notification(const std::string &text, std::vector<ModelObject const *> objs);
+    void close_slicing_serious_warning_notification(const std::string &text);
 	// Creates Slicing Error notification with a custom text and no fade out.
-    void push_slicing_error_notification(const std::string &text, ModelObject const *obj);
+    void push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs);
 	// Creates Slicing Warning notification with a custom text and no fade out.
     void push_slicing_warning_notification(const std::string &text, bool gray, ModelObject const *obj, ObjectID oid, int warning_step, int warning_msg_id);
 	// marks slicing errors as gray
@@ -375,6 +381,7 @@ private:
 		PopNotification(const NotificationData &n, NotificationIDProvider &id_provider, wxEvtHandler* evt_handler);
 		virtual ~PopNotification() { if (m_id) m_id_provider.release_id(m_id); }
 		virtual void           render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin);
+        virtual void bbl_render_block_notification(GLCanvas3D &canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin);
 		// close will dissapear notification on next render
 		virtual void           close() { m_state = EState::ClosePending; wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);}
 		// data from newer notification of same type
@@ -384,6 +391,8 @@ private:
         void                   reinit() { m_state = EState::Unknown; }
 		// returns top after movement
 		float                  get_top() const { return m_top_y; }
+		// returns bottom after movement
+		float                  get_bottom() const { return m_bottom_y; }
 		//returns top in actual frame
 		float                  get_current_top() const { return m_top_y; }
 		const NotificationType get_type() const { return m_data.type; }
@@ -420,6 +429,13 @@ private:
 			                          const float text_x, const float text_y,
 		                              const std::string text,
 		                              bool more = false);
+		virtual void bbl_render_block_notif_text(ImGuiWrapper& imgui,
+			const float win_size_x, const float win_size_y,
+			const float win_pos_x, const float win_pos_y);
+		virtual void bbl_render_block_notif_buttons(ImGuiWrapper& imgui,
+			ImVec2 win_size,
+			ImVec2 win_pos);
+        virtual void bbl_render_block_notif_left_sign(ImGuiWrapper &imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y);
 		// Left sign could be error or warning sign
         virtual void bbl_render_left_sign(ImGuiWrapper &imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y);
 
@@ -511,6 +527,8 @@ private:
 		float            m_window_width         { 450.0f };
 		//Distance from bottom of notifications to top of this notification
 		float            m_top_y                { 0.0f };
+		//Distance from top of block notifications to bottom of this notification
+		float            m_bottom_y				{ 0.0f };
 		// Height of text - Used as basic scaling unit!
 		float            m_line_height;
 		// endlines for text1, hypertext excluded

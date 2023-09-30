@@ -128,9 +128,9 @@ public:
     }
 
     WipeTowerWriter&            disable_linear_advance() {
-        if(m_gcode_flavor == gcfKlipper)
+        if (m_gcode_flavor == gcfKlipper)
             m_gcode += "SET_PRESSURE_ADVANCE ADVANCE=0\n";
-        else if(m_gcode_flavor == gcfRepRapFirmware)
+        else if (m_gcode_flavor == gcfRepRapFirmware)
             m_gcode += std::string("M572 D") + std::to_string(m_current_tool) + " S0\n";
         else
             m_gcode += "M900 K0\n";

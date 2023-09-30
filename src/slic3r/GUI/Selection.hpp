@@ -362,6 +362,11 @@ public:
 
     bool requires_local_axes() const;
 
+    void render_bounding_box(const BoundingBoxf3& box, float* color, float scale) {
+        m_scale_factor = scale;
+        render_bounding_box(box, color);
+    }
+
     //BBS
     void cut_to_clipboard();
     void copy_to_clipboard();

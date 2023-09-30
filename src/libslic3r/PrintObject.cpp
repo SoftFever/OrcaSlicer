@@ -7,7 +7,9 @@
 #include "I18N.hpp"
 #include "Layer.hpp"
 #include "MutablePolygon.hpp"
+#include "PrintConfig.hpp"
 #include "SupportMaterial.hpp"
+#include "Support/TreeSupport.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
@@ -423,7 +425,10 @@ static const float g_min_overhang_percent_for_lift = 0.3f;
 void PrintObject::detect_overhangs_for_lift()
 {
     if (this->set_started(posDetectOverhangsForLift)) {
-        const float min_overlap = m_config.line_width * g_min_overhang_percent_for_lift;
+        const double nozzle_diameter = m_print->config().nozzle_diameter.get_at(0);
+        const coordf_t line_width = this->config().get_abs_value("line_width", nozzle_diameter);
+
+        const float min_overlap = line_width * g_min_overhang_percent_for_lift;
         size_t num_layers = this->layer_count();
         size_t num_raft_layers = m_slicing_params.raft_layers();
 
@@ -433,14 +438,15 @@ void PrintObject::detect_overhangs_for_lift()
 
         tbb::spin_mutex layer_storage_mutex;
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
-            [this, min_overlap](const tbb::blocked_range<size_t>& range)
+            [this, min_overlap, line_width](const tbb::blocked_range<size_t>& range)
             {
                 for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
                     Layer& layer = *m_layers[layer_id];
                     Layer& lower_layer = *layer.lower_layer;
 
                     ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
-                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
+                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(line_width), 0.1f * scale_(line_width)));
+                    layer.loverhangs_bbox = get_extents(layer.loverhangs);
                 }
             });
 
@@ -504,13 +510,31 @@ void PrintObject::simplify_extrusion_path()
             [this](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->simplify_extrusion_path();
+                    m_layers[layer_idx]->simplify_wall_extrusion_path();
                 }
             }
         );
         m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Simplify extrusion path of object in parallel - end";
+        BOOST_LOG_TRIVIAL(debug) << "Simplify wall extrusion path of object in parallel - end";
         this->set_done(posSimplifyPath);
+    }
+
+    if (this->set_started(posSimplifyInfill)) {
+        m_print->set_status(75, L("Optimizing toolpath"));
+        BOOST_LOG_TRIVIAL(debug) << "Simplify infill extrusion path of object in parallel - start";
+        //BBS: infills
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_layers.size()),
+            [this](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+                    m_print->throw_if_canceled();
+                    m_layers[layer_idx]->simplify_infill_extrusion_path();
+                }
+            }
+        );
+        m_print->throw_if_canceled();
+        BOOST_LOG_TRIVIAL(debug) << "Simplify infill extrusion path of object in parallel - end";
+        this->set_done(posSimplifyInfill);
     }
 
     if (this->set_started(posSimplifySupportPath)) {
@@ -672,6 +696,8 @@ bool PrintObject::invalidate_state_by_config_options(
         if (   opt_key == "brim_width"
             || opt_key == "brim_object_gap"
             || opt_key == "brim_type"
+            || opt_key == "brim_ears_max_angle"
+            || opt_key == "brim_ears_detection_length"
             // BBS: brim generation depends on printing speed
             || opt_key == "outer_wall_speed"
             || opt_key == "small_perimeter_speed"
@@ -695,6 +721,7 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "wall_loops"
             || opt_key == "only_one_wall_top"
             || opt_key == "only_one_wall_first_layer"
+            || opt_key == "extra_perimeters_on_overhangs"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap"
@@ -728,7 +755,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
-            || opt_key == "slicing_mode") {
+            || opt_key == "slicing_mode"
+            || opt_key == "make_overhang_printable"
+            || opt_key == "make_overhang_printable_angle"
+            || opt_key == "make_overhang_printable_hole_size") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
@@ -758,6 +788,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_angle"
             || opt_key == "support_on_build_plate_only"
             || opt_key == "support_critical_regions_only"
+            || opt_key == "support_remove_small_overhang"
             || opt_key == "enforce_support_layers"
             || opt_key == "support_filament"
             || opt_key == "support_line_width"
@@ -784,9 +815,17 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_adaptive_layer_height"
             || opt_key == "tree_support_auto_brim"
             || opt_key == "tree_support_brim_width"
+            || opt_key == "tree_support_top_rate"
             || opt_key == "tree_support_branch_distance"
+            || opt_key == "tree_support_branch_distance_organic"
+            || opt_key == "tree_support_tip_diameter"
             || opt_key == "tree_support_branch_diameter"
+            || opt_key == "tree_support_branch_diameter_organic"
+            || opt_key == "tree_support_branch_diameter_angle"
+            || opt_key == "tree_support_branch_diameter_double_wall"
             || opt_key == "tree_support_branch_angle"
+            || opt_key == "tree_support_branch_angle_organic"
+            || opt_key == "tree_support_angle_slow"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (
@@ -829,6 +868,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "bottom_surface_pattern"
+            || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_pattern"
             || opt_key == "infill_anchor"
@@ -900,6 +940,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_3_4_speed"
             || opt_key == "overhang_4_4_speed"
             || opt_key == "bridge_speed"
+            || opt_key == "internal_bridge_speed"
             || opt_key == "outer_wall_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "small_perimeter_threshold"
@@ -933,15 +974,15 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
 
     // propagate to dependent steps
     if (step == posPerimeters) {
-		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyPath });
+		invalidated |= this->invalidate_steps({ posPrepareInfill, posInfill, posIroning, posSimplifyPath, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posPrepareInfill) {
-        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyPath });
+        invalidated |= this->invalidate_steps({ posInfill, posIroning, posSimplifyPath, posSimplifyInfill });
     } else if (step == posInfill) {
-        invalidated |= this->invalidate_steps({ posIroning, posSimplifyPath });
+        invalidated |= this->invalidate_steps({ posIroning, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
     } else if (step == posSlice) {
-		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyPath });
+		invalidated |= this->invalidate_steps({ posPerimeters, posPrepareInfill, posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifyInfill });
         invalidated |= m_print->invalidate_steps({ psSkirtBrim });
         m_slicing_params.valid = false;
     } else if (step == posSupportMaterial) {
@@ -2030,6 +2071,31 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 
     return updated;
 }
+//BBS:
+void PrintObject::get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects)
+{
+    BoundingBox temp;
+    LayerPtrs   out_temp;
+    for (const auto &layer : layers()) {
+        if (layer->print_z < start) continue;
+
+        if (layer->print_z > end + EPSILON) break;
+        temp.merge(layer->loverhangs_bbox);
+        out_temp.emplace_back(layer);
+    }
+    boundingbox_objects.emplace_back(std::move(temp));
+    out.emplace_back(std::move(out_temp));
+};
+
+std::vector<Point> PrintObject::get_instances_shift_without_plate_offset()
+{
+    std::vector<Point> out;
+    out.reserve(m_instances.size());
+    for (const auto& instance : m_instances)
+        out.push_back(instance.shift_without_plate_offset());
+
+    return out;
+}
 
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,
 // so it acts as an internal support. It maintains all other infill types intact.
@@ -2438,8 +2504,14 @@ void PrintObject::_generate_support_material()
     PrintObjectSupportMaterial support_material(this, m_slicing_params);
     support_material.generate(*this);
 
-    TreeSupport tree_support(*this, m_slicing_params);
-    tree_support.generate();
+    if (this->config().enable_support.value && is_tree(this->config().support_type.value)) {
+        if (this->config().support_style.value == smsOrganic || this->config().support_style.value == smsDefault) {
+            fff_tree_support_generate(*this, std::function<void()>([this]() { this->throw_if_canceled(); }));
+        } else {
+            TreeSupport tree_support(*this, m_slicing_params);
+            tree_support.generate();
+        }
+    }
 }
 
 // BBS
@@ -2591,6 +2663,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
 #if 0
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
     int enforce_support_layers = m_config.enforce_support_layers;
+    // not fixing in extrusion width % PR b/c never called 
     const coordf_t extrusion_width = m_config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     float max_bridge_length = scale_(m_config.max_bridge_length.value);

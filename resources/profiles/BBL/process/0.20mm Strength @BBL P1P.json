@@ -9,6 +9,7 @@
     "wall_loops": "6",
     "sparse_infill_density": "25%",
     "compatible_printers": [
-      "Bambu Lab P1P 0.4 nozzle"
-    ]
+        "Bambu Lab P1P 0.4 nozzle"
+    ],
+    "version": "01.07.00.18"
 }

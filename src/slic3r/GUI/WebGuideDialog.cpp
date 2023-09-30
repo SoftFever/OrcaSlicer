@@ -171,8 +171,8 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     }
 
-    std::string strlang = wxGetApp().app_config->get("language");
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%")%strlang;
+    wxString strlang = wxGetApp().current_language_code_safe();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%") % into_u8(strlang);
     if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 
@@ -1010,8 +1010,9 @@ int GuideFrame::LoadProfile()
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
                 strVendor          = strVendor.AfterLast('\/');
+                wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE)
+                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0)
                     LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }
@@ -1028,8 +1029,9 @@ int GuideFrame::LoadProfile()
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
                 strVendor          = strVendor.AfterLast('\/');
+                wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE)
+                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json")==0)
                     LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
         }

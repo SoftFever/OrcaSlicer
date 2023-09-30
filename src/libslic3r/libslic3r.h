@@ -3,8 +3,8 @@
 
 #include "libslic3r_version.h"
 #define SLIC3R_APP_FULL_NAME "Orca Slicer"
-#define GCODEVIEWER_APP_NAME "BambuStudio G-code Viewer"
-#define GCODEVIEWER_APP_KEY  "BambuStudioGcodeViewer"
+#define GCODEVIEWER_APP_NAME "OrcaSlicer G-code Viewer"
+#define GCODEVIEWER_APP_KEY  "OrcaSlicerGcodeViewer"
 #define GCODEVIEWER_BUILD_ID std::string("OrcaSlicer G-code Viewer-") + std::string(SLIC3R_VERSION) + std::string("-RC")
 
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
@@ -23,6 +23,7 @@
 #include <cassert>
 #include <cmath>
 #include <type_traits>
+#include <optional>
 
 #ifdef _WIN32
 // On MSVC, std::deque degenerates to a list of pointers, which defeats its purpose of reducing allocator load and memory fragmentation.
@@ -55,6 +56,8 @@ static constexpr double EPSILON = 1e-4;
 // int32_t fits an interval of (-2147.48mm, +2147.48mm)
 // with int64_t we don't have to worry anymore about the size of the int.
 static constexpr double SCALING_FACTOR = 0.000001;
+// for creating circles (for brim_ear)
+#define POLY_SIDES 24
 static constexpr double PI = 3.141592653589793238;
 // When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam.
 // SoftFever: replaced by seam_gap now
@@ -145,6 +148,15 @@ inline void append(std::vector<T>& dest, std::vector<T>&& src)
     }
     src.clear();
     src.shrink_to_fit();
+}
+
+template<class T, class... Args> // Arbitrary allocator can be used
+void clear_and_shrink(std::vector<T, Args...>& vec)
+{
+    // shrink_to_fit does not garantee the release of memory nor does it clear()
+    std::vector<T, Args...> tmp;
+    vec.swap(tmp);
+    assert(vec.capacity() == 0);
 }
 
 // Append the source in reverse.
@@ -274,9 +286,17 @@ constexpr inline T lerp(const T& a, const T& b, Number t)
 }
 
 template <typename Number>
-constexpr inline bool is_approx(Number value, Number test_value)
+constexpr inline bool is_approx(Number value, Number test_value, Number precision = EPSILON)
 {
-    return std::fabs(double(value) - double(test_value)) < double(EPSILON);
+    return std::fabs(double(value) - double(test_value)) < double(precision);
+}
+
+template<typename Number>
+constexpr inline bool is_approx(const std::optional<Number> &value,
+                                const std::optional<Number> &test_value)
+{
+    return (!value.has_value() && !test_value.has_value()) ||
+        (value.has_value() && test_value.has_value() && is_approx<Number>(*value, *test_value));
 }
 
 // A meta-predicate which is true for integers wider than or equal to coord_t
@@ -347,15 +367,41 @@ public:
     Range(It b, It e) : from(std::move(b)), to(std::move(e)) {}
 
     // Some useful container-like methods...
-    inline size_t size() const { return end() - begin(); }
-    inline bool   empty() const { return size() == 0; }
+    inline size_t size() const { return std::distance(from, to); }
+    inline bool   empty() const { return from == to; }
 };
+
+template<class Cont> auto range(Cont &&cont)
+{
+    return Range{std::begin(cont), std::end(cont)};
+}
 
 template<class T, class = FloatingOnly<T>>
 constexpr T NaN = std::numeric_limits<T>::quiet_NaN();
 
 constexpr float  NaNf = NaN<float>;
 constexpr double NaNd = NaN<double>;
+
+// Rounding up.
+// 1.5 is rounded to 2
+// 1.49 is rounded to 1
+// 0.5 is rounded to 1,
+// 0.49 is rounded to 0
+// -0.5 is rounded to 0,
+// -0.51 is rounded to -1,
+// -1.5 is rounded to -1.
+// -1.51 is rounded to -2.
+// If input is not a valid float (it is infinity NaN or if it does not fit)
+// the float to int conversion produces a max int on Intel and +-max int on ARM.
+template<typename I>
+inline IntegerOnly<I, I> fast_round_up(double a)
+{
+    // Why does Java Math.round(0.49999999999999994) return 1?
+    // https://stackoverflow.com/questions/9902968/why-does-math-round0-49999999999999994-return-1
+    return a == 0.49999999999999994 ? I(0) : I(floor(a + 0.5));
+}
+
+template<class T> using SamePair = std::pair<T, T>;
 
 } // namespace Slic3r
 

@@ -1390,7 +1390,7 @@ void PageDiameters::apply_custom_config(DynamicPrintConfig &config)
     auto set_extrusion_width = [&config, opt_nozzle](const char *key, double dmr) {
         char buf[64]; // locales don't matter here (sprintf/atof)
         sprintf(buf, "%.2lf", dmr * opt_nozzle->values.front() / 0.4);
-        config.set_key_value(key, new ConfigOptionFloat(atof(buf)));
+        config.set_key_value(key, new ConfigOptionFloatOrPercent(atof(buf),false));
     };
 
     set_extrusion_width("support_line_width", 0.35);
@@ -1487,7 +1487,7 @@ void PageTemperatures::apply_custom_config(DynamicPrintConfig& config)
 
 ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
     : wxPanel(parent)
-    , bg(ScalableBitmap(parent, "BambuStudio_192px_transparent.png", 192))
+    , bg(ScalableBitmap(parent, "OrcaSlicer_192px_transparent.png", 192))
     , bullet_black(ScalableBitmap(parent, "bullet_black.png"))
     , bullet_blue(ScalableBitmap(parent, "bullet_blue.png"))
     , bullet_white(ScalableBitmap(parent, "bullet_white.png"))
@@ -2734,6 +2734,16 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     on_window_geometry(this, [this]() {
         p->init_dialog_size();
     });
+
+    p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&)
+        {
+            ConfigWizardPage* active_page = this->p->index->active_page();
+            if ((active_page == p->page_filaments || active_page == p->page_sla_materials) &&
+                !p->check_and_install_missing_materials(dynamic_cast<PageMaterials*>(active_page)->materials->technology))
+                // In that case don't leave the page and the function above queried the user whether to install default materials.
+                return;
+            this->p->index->go_prev();
+        });
 
     p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &)
     {

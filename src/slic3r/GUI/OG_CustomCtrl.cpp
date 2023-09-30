@@ -351,8 +351,6 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     wxString tooltip;
     std::string markdowntip;
 
-    wxString language = wxGetApp().app_config->get("language");
-
     // BBS: markdown tip
     CtrlLine* focusedLine = nullptr;
     // BBS
@@ -496,7 +494,7 @@ bool OG_CustomCtrl::update_visibility(ConfigOptionMode mode)
 // BBS: call by Tab/Page
 void OG_CustomCtrl::fixup_items_positions()
 {
-    if (GetParent() == nullptr || GetPosition().y < GetParent()->GetSize().y)
+    if (GetParent() == nullptr || GetPosition().y + GetSize().y < GetParent()->GetSize().y)
         return;
     for (CtrlLine& line : ctrl_lines) {
         line.correct_items_positions();
@@ -728,9 +726,9 @@ void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
     wxPoint begin(ctrl->m_h_gap, v_pos);
     wxPoint end(ctrl->GetSize().GetWidth() - ctrl->m_h_gap, v_pos);
 
-    wxPen pen, old_pen = pen = dc.GetPen();
-    pen.SetColour(*wxLIGHT_GREY);
-    dc.SetPen(pen);
+    wxPen old_pen = dc.GetPen();
+    // pen.SetColour(*wxLIGHT_GREY);
+    dc.SetPen(*wxTRANSPARENT_PEN);
     dc.DrawLine(begin, end);
     dc.SetPen(old_pen);
 }
@@ -826,7 +824,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             draw_buttons(field);
         // update width for full_width fields
         if (option_set.front().opt.full_width && field && field->getWindow())
-            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos2 + h_pos3 - h_pos, -1);
+            field->getWindow()->SetSize(ctrl->GetSize().x - h_pos2 + h_pos3 - h_pos - ctrl->m_em_unit * 3, -1);
         return;
     }
 

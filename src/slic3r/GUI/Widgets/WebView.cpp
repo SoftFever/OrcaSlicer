@@ -16,6 +16,8 @@
 
 #ifdef __WIN32__
 #include <WebView2.h>
+#include <Shellapi.h>
+#include <slic3r/Utils/Http.hpp>
 #elif defined __linux__
 #include <gtk/gtk.h>
 #define WEBKIT_API
@@ -38,12 +40,70 @@ webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
 #endif
 
 #ifdef __WIN32__
+// Run Download and Install in another thread so we don't block the UI thread
+DWORD DownloadAndInstallWV2RT() {
+
+  int returnCode = 2; // Download failed
+  // Use fwlink to download WebView2 Bootstrapper at runtime and invoke installation
+  // Broken/Invalid Https Certificate will fail to download
+  // Use of the download link below is governed by the below terms. You may acquire the link
+  // for your use at https://developer.microsoft.com/microsoft-edge/webview2/. Microsoft owns
+  // all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper
+  // ("Software") and related documentation, including any intellectual property in the
+  // Software. You must acquire all code, including any code obtained from a Microsoft URL,
+  // under a separate license directly from Microsoft, including a Microsoft download site
+  // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
+  // HRESULT hr = URLDownloadToFileW(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703",
+  //                               L".\\plugin\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+  fs::path target_file_path = (fs::temp_directory_path() / "MicrosoftEdgeWebview2Setup.exe");
+  bool downloaded = false;
+  Slic3r::Http::get("https://go.microsoft.com/fwlink/p/?LinkId=2124703")
+      .on_error([](std::string body, std::string error, unsigned http_status) {
+
+      })
+      .on_complete([&downloaded, target_file_path](std::string body, unsigned http_status) {
+        fs::fstream file(target_file_path, std::ios::out | std::ios::binary | std::ios::trunc);
+        file.write(body.c_str(), body.size());
+        file.flush();
+        file.close();
+
+        downloaded = true;
+      })
+      .perform_sync();
+  // Sleep for 1 second to wait for the buffer writen into disk
+  std::this_thread::sleep_for(1000ms);
+  if (downloaded) {
+    // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
+    // Then invoke install at Runtime.
+    SHELLEXECUTEINFOW shExInfo = {0};
+    shExInfo.cbSize = sizeof(shExInfo);
+    shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+    shExInfo.hwnd = 0;
+    shExInfo.lpVerb = L"runas";
+    shExInfo.lpFile = target_file_path.generic_wstring().c_str();
+    shExInfo.lpParameters = L" /install";
+    shExInfo.lpDirectory = 0;
+    shExInfo.nShow = 0;
+    shExInfo.hInstApp = 0;
+
+    if (ShellExecuteExW(&shExInfo)) {
+      WaitForSingleObject(shExInfo.hProcess, INFINITE);
+      returnCode = 0; // Install successfull
+    } else {
+      returnCode = 1; // Install failed
+    }
+  }
+  return returnCode;
+}
 
 class WebViewEdge : public wxWebViewEdge
 {
 public:
     bool SetUserAgent(const wxString &userAgent)
     {
+        bool dark = userAgent.Contains("dark");
+        SetColorScheme(dark ? COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK : COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT);
+
         ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
         if (webView2) {
             ICoreWebView2Settings *settings;
@@ -57,9 +117,32 @@ public:
                     return true;
                 }
             }
+            settings->Release();
             return false;
         }
         pendingUserAgent = userAgent;
+        return true;
+    }
+
+    bool SetColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME colorScheme)
+    {
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (webView2) {
+            ICoreWebView2_13 * webView2_13;
+            HRESULT           hr = webView2->QueryInterface(&webView2_13);
+            if (hr == S_OK) {
+                ICoreWebView2Profile *profile;
+                hr = webView2_13->get_Profile(&profile);
+                if (hr == S_OK) {
+                    profile->put_PreferredColorScheme(colorScheme);
+                    profile->Release();
+                    return true;
+                }
+                webView2_13->Release();
+            }
+            return false;
+        }
+        pendingColorScheme = colorScheme;
         return true;
     }
 
@@ -71,10 +154,17 @@ public:
             thiz->pendingUserAgent.clear();
             thiz->SetUserAgent(userAgent);
         }
+        if (pendingColorScheme) {
+            auto thiz      = const_cast<WebViewEdge *>(this);
+            auto colorScheme = pendingColorScheme;
+            thiz->pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
+            thiz->SetColorScheme(colorScheme);
+        }
         wxWebViewEdge::DoGetClientSize(x, y);
     };
 private:
     wxString pendingUserAgent;
+    COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
 };
 
 #elif defined __WXOSX__
@@ -227,7 +317,19 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     g_webviews.push_back(webView);
     return webView;
 }
+#if wxUSE_WEBVIEW_EDGE
+bool WebView::CheckWebViewRuntime()
+{
+    wxWebViewFactoryEdge factory;
+    auto wxVersion = factory.GetVersionInfo();
+    return wxVersion.GetMajor() != 0;
+}
 
+bool WebView::DownloadAndInstallWebViewRuntime()
+{
+    return DownloadAndInstallWV2RT() == 0;
+}
+#endif
 void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 {
     auto url2  = url;
@@ -241,7 +343,8 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 
 bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 {
-    if (Slic3r::GUI::wxGetApp().get_mode() == Slic3r::comDevelop)
+    if (Slic3r::GUI::wxGetApp().app_config->get("internal_developer_mode") == "true"
+            && javascript.find("studio_userlogin") == wxString::npos)
         wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     try {
@@ -249,14 +352,10 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         ICoreWebView2 *   webView2 = (ICoreWebView2 *) webView->GetNativeBackend();
         if (webView2 == nullptr)
             return false;
-        int               count   = 0;
-        wxJSScriptWrapper wrapJS(javascript, &count);
-        return webView2->ExecuteScript(wrapJS.GetWrappedCode(), NULL) == 0;
+        return webView2->ExecuteScript(javascript, NULL) == 0;
 #elif defined __WXMAC__
         WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
-        int               count   = 0;
-        wxJSScriptWrapper wrapJS(javascript, &count);
-        Slic3r::GUI::WKWebView_evaluateJavaScript(wkWebView, wrapJS.GetWrappedCode(), nullptr);
+        Slic3r::GUI::WKWebView_evaluateJavaScript(wkWebView, javascript, nullptr);
         return true;
 #else
         WebKitWebView *wkWebView = (WebKitWebView *) webView->GetNativeBackend();
@@ -279,9 +378,10 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 
 void WebView::RecreateAll()
 {
+    auto dark = Slic3r::GUI::wxGetApp().dark_mode();
     for (auto webView : g_webviews) {
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)", SLIC3R_VERSION,
-                                               Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
+                                               dark ? "dark" : "light"));
         webView->Reload();
     }
 }

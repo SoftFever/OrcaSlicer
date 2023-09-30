@@ -335,7 +335,7 @@ public:
         
         bool is_play = parser.Found("play", &m_fname);
         
-        m_frame = new MyFrame("BambuStudio OpenCSG Demo", wxDefaultPosition, wxSize(1024, 768), parser);
+        m_frame = new MyFrame("OrcaSlicer OpenCSG Demo", wxDefaultPosition, wxSize(1024, 768), parser);
 
         if (is_play) {
             Bind(wxEVT_IDLE, &App::Play, this);

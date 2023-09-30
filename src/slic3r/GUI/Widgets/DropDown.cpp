@@ -89,6 +89,10 @@ void DropDown::SetSelection(int n)
         n = -1;
     if (selection == n) return;
     selection = n;
+    if (need_sync) { // for icon Size
+        messureSize();
+        need_sync = true;
+    }
     paintNow();
 }
 
@@ -299,6 +303,8 @@ void DropDown::render(wxDC &dc)
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
+                if (i == hover_item)
+                    SetToolTip(text);
                 text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
                                             rcContent.GetRight() - pt.x);
             }
@@ -443,8 +449,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         if (hover >= (int) texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
-        if (hover >= 0)
-            SetToolTip(texts[hover]);
+        SetToolTip("");
     }
     paintNow();
 }
@@ -475,11 +480,10 @@ void DropDown::mouseWheelMoved(wxMouseEvent &event)
 // currently unused events
 void DropDown::sendDropDownEvent()
 {
-    selection = hover_item;
     wxCommandEvent event(wxEVT_COMBOBOX, GetId());
     event.SetEventObject(this);
-    event.SetInt(selection);
-    event.SetString(GetValue());
+    event.SetInt(hover_item);
+    event.SetString(texts[hover_item]);
     GetEventHandler()->ProcessEvent(event);
 }
 

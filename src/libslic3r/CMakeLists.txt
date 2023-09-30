@@ -24,6 +24,9 @@ set(lisbslic3r_sources
     pchheader.hpp
     AABBTreeIndirect.hpp
     AABBTreeLines.hpp
+    AABBMesh.hpp
+    AABBMesh.cpp
+    AnyPtr.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -98,6 +101,8 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Flow.cpp
     Flow.hpp
+    FlushVolCalc.cpp
+    FlushVolCalc.hpp
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
@@ -139,6 +144,8 @@ set(lisbslic3r_sources
     GCode/ToolOrdering.hpp
     GCode/WipeTower.cpp
     GCode/WipeTower.hpp
+    GCode/WipeTower2.cpp
+    GCode/WipeTower2.hpp
     GCode/GCodeProcessor.cpp
     GCode/GCodeProcessor.hpp
     GCode/AvoidCrossingPerimeters.cpp
@@ -258,6 +265,23 @@ set(lisbslic3r_sources
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
+    Support/SupportCommon.cpp
+    Support/SupportCommon.hpp
+    Support/SupportDebug.cpp
+    Support/SupportDebug.hpp
+    Support/SupportLayer.hpp
+    # Support/SupportMaterial.cpp
+    # Support/SupportMaterial.hpp
+    Support/SupportParameters.cpp
+    Support/SupportParameters.hpp
+    Support/OrganicSupport.cpp
+    Support/OrganicSupport.hpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport.hpp
+    Support/TreeSupportCommon.cpp
+    Support/TreeSupportCommon.hpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeModelVolumes.hpp
     SupportMaterial.cpp
     SupportMaterial.hpp
     PrincipalComponents2D.cpp
@@ -432,7 +456,7 @@ if (_opts)
     target_compile_options(libslic3r_cgal PRIVATE "${_opts_bad}")
 endif()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl)
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
@@ -482,7 +506,7 @@ set(OCCT_LIBS
 target_link_libraries(libslic3r
     libnest2d
     admesh
-    cereal
+    cereal::cereal
     libigl
     miniz
     boost_libs
@@ -493,12 +517,14 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
+    TBB::tbbmalloc
     libslic3r_cgal
     ${CMAKE_DL_LIBS}
     PNG::PNG
     ZLIB::ZLIB
     ${OCCT_LIBS}
     Clipper2
+    mcut
     )
 
 if(NOT WIN32)

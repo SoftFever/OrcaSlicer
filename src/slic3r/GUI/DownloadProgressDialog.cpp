@@ -38,7 +38,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     wxString install_failed_msg = _L("Failed to install the plug-in. Please check whether it is blocked or deleted by anti-virus software.");
 
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
@@ -98,8 +98,8 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     sizer_install_failed->Add(m_install_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
 
 
-    m_panel_download_failed->SetSizer(sizer_install_failed);
-    m_panel_download_failed->Layout();
+    m_panel_install_failed->SetSizer(sizer_install_failed);
+    m_panel_install_failed->Layout();
     sizer_install_failed->Fit(m_panel_install_failed);
 
     m_sizer_main->Add(m_simplebook_status, 0, wxALL, FromDIP(20));

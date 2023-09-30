@@ -239,7 +239,10 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
             int extruder_id = layerm->region().config().option("wall_filament")->getInt();
             
             for (auto expoly : layerm->raw_slices) {
-                if (offset_ex(expoly, -0.2 * scale_(print.config().initial_layer_line_width)).empty())
+                const double nozzle_diameter = print.config().nozzle_diameter.get_at(0);
+                const coordf_t initial_layer_line_width = print.config().get_abs_value("initial_layer_line_width", nozzle_diameter);
+
+                if (offset_ex(expoly, -0.2 * scale_(initial_layer_line_width)).empty())
                     continue;
 
                 double contour_area = expoly.contour.area();
@@ -267,6 +270,22 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         tool_order.insert(iter, ape.first);
     }
 
+    const ConfigOptionInts* first_layer_print_sequence_op = print.full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
+    if (first_layer_print_sequence_op) {
+        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
+        if (print_sequence_1st.size() >= tool_order.size()) {
+            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
+                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
+                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
+
+                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
+                    return false;
+
+                return lh_it < rh_it;
+            });
+        }
+    }
+
     return tool_order;
 }
 
@@ -279,7 +298,10 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     for (auto layerm : first_layer->regions()) {
         int extruder_id = layerm->region().config().option("wall_filament")->getInt();
         for (auto expoly : layerm->raw_slices) {
-            if (offset_ex(expoly, -0.2 * scale_(object.config().line_width)).empty())
+            const double nozzle_diameter = object.print()->config().nozzle_diameter.get_at(0);
+            const coordf_t line_width = object.config().get_abs_value("line_width", nozzle_diameter);
+
+            if (offset_ex(expoly, -0.2 * scale_(line_width)).empty())
                 continue;
 
             double contour_area = expoly.contour.area();
@@ -304,6 +326,22 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
         }
 
         tool_order.insert(iter, ape.first);
+    }
+
+    const ConfigOptionInts* first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
+    if (first_layer_print_sequence_op) {
+        const std::vector<int>& print_sequence_1st = first_layer_print_sequence_op->values;
+        if (print_sequence_1st.size() >= tool_order.size()) {
+            std::sort(tool_order.begin(), tool_order.end(), [&print_sequence_1st](int lh, int rh) {
+                auto lh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), lh);
+                auto rh_it = std::find(print_sequence_1st.begin(), print_sequence_1st.end(), rh);
+
+                if (lh_it == print_sequence_1st.end() || rh_it == print_sequence_1st.end())
+                    return false;
+
+                return lh_it < rh_it;
+            });
+        }
     }
 
     return tool_order;

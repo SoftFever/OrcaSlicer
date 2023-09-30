@@ -88,6 +88,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::ExpandBtn                  , "expand_btn"                 },
     {ImGui::CollapseBtn                , "collapse_btn"               },
     {ImGui::RevertBtn                  , "revert_btn"                 },
+
+    {ImGui::CloseBlockNotifButton      , "block_notification_close"           },
+    {ImGui::CloseBlockNotifHoverButton , "block_notification_close_hover"     },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -113,6 +116,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifHoverDarkButton   , "notification_close_hover_dark"        },
     {ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
     {ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
+    {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
@@ -1478,7 +1482,13 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
             float icon_pos_y = selectable_pos_y + (label_size.y + style.ItemSpacing.y - icon_size.y) / 2;
             float icon_pos_x = pos.x + window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f;
             ImVec2 icon_pos = ImVec2(icon_pos_x, icon_pos_y);
-            ImGui::RenderFrame(icon_pos, icon_pos + icon_size, icon_color);
+            if (icon_color != 0)
+                ImGui::RenderFrame(icon_pos, icon_pos + icon_size, icon_color);
+            else {
+                static ImTextureID transparent;
+                IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/transparent.svg", icon_size.x, icon_size.y, transparent);
+                window->DrawList->AddImage(transparent, icon_pos, icon_pos + icon_size, { 0,0 }, { 1,1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+            }
         }
 
         if (shortcut_w > 0.0f) {
@@ -2067,6 +2077,7 @@ void ImGuiWrapper::init_font(bool compress)
     ImVector<ImWchar> basic_ranges;
     ImFontAtlas::GlyphRangesBuilder builder;
     builder.AddRanges(m_glyph_ranges);
+    builder.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesDefault());
 #ifdef __APPLE__
     if (m_font_cjk)
         // Apple keyboard shortcuts are only contained in the CJK fonts.
@@ -2079,7 +2090,15 @@ void ImGuiWrapper::init_font(bool compress)
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, m_font_cjk ? ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() : ranges.Data);
+
+    // Orca: temp fix for Korean font
+    auto font_name_regular = "HarmonyOS_Sans_SC_Regular.ttf";
+    auto font_name_bold = "HarmonyOS_Sans_SC_Bold.ttf";
+    if(m_glyph_ranges == ImGui::GetIO().Fonts->GetGlyphRangesKorean()) {
+        font_name_regular = "NanumGothic-Regular.ttf";
+        font_name_bold = "NanumGothic-Bold.ttf";
+    }
+    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + font_name_regular).c_str(), m_font_size, &cfg, ranges.Data);
     if (default_font == nullptr) {
         default_font = io.Fonts->AddFontDefault();
         if (default_font == nullptr) {
@@ -2087,7 +2106,7 @@ void ImGuiWrapper::init_font(bool compress)
         }
     }
 
-    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
+    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + font_name_bold).c_str(), m_font_size, &cfg, ranges.Data);
     if (bold_font == nullptr) {
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }

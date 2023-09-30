@@ -6,8 +6,9 @@
     "instantiation": "true",
     "inherits": "Bambu Support G @base",
     "compatible_printers": [
-      "Bambu Lab P1P 0.4 nozzle",
-      "Bambu Lab P1P 0.6 nozzle",
-      "Bambu Lab P1P 0.8 nozzle"
-    ]
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab P1P 0.6 nozzle",
+        "Bambu Lab P1P 0.8 nozzle"
+    ],
+    "version": "01.07.00.18"
 }
