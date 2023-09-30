@@ -652,6 +652,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               brim_ears_max_angle))
     ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
+    ((ConfigOptionInt,                 elefant_foot_compensation_layers))
     ((ConfigOptionFloat,               max_bridge_length))
     ((ConfigOptionFloatOrPercent,      line_width))
     // Force the generation of solid shells between adjacent materials/volumes.

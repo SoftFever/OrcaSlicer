@@ -1868,6 +1868,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("xy_hole_compensation");
         optgroup->append_single_option_line("xy_contour_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation_layers");
         optgroup->append_single_option_line("precise_outer_wall");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");

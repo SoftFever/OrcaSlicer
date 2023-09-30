@@ -805,6 +805,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
+            || opt_key == "elefant_foot_compensation_layers"
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"

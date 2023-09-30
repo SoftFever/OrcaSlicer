@@ -392,6 +392,17 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def           = this->add("elefant_foot_compensation_layers", coInt);
+    def->label    = L("Elephant foot compensation layers");
+    def->category = L("Quality");
+    def->tooltip  = L("The number of layers on which the elephant foot compensation will be active. "
+                       "The first layer will be shrunk by the elephant foot compensation value, then "
+                       "the next layers will be linearly shrunk less, up to the layer indicated by this value.");
+    def->sidetext = L("layers");
+    def->min      = 1;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));	
+
     def = this->add("layer_height", coFloat);
     def->label = L("Layer height");
     def->category = L("Quality");
