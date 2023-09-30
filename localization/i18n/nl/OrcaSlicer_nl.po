@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 20:34+0800\n"
+"POT-Creation-Date: 2023-09-30 10:27+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -650,6 +650,9 @@ msgstr "Een modusweergave laden"
 
 msgid "Choose one file (3mf):"
 msgstr "Kies een bestand (3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Kies een of meer bestanden (3mf/step/stl/svg/obj/amf):"
@@ -1514,6 +1517,9 @@ msgstr "Verbinden..."
 msgid "?"
 msgstr " ?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "Leeg"
 
@@ -1525,12 +1531,6 @@ msgstr ""
 
 msgid "AMS not connected"
 msgstr "AMS niet aangesloten"
-
-msgid "Cali"
-msgstr "Cali"
-
-msgid "Calibration of extrusion"
-msgstr "Kalibratie van de extrusie"
 
 msgid "Load Filament"
 msgstr "Filament laden"
@@ -1564,6 +1564,9 @@ msgstr "Opnieuw kalibreren"
 msgid "Cancel calibration"
 msgstr "Kalibreren afbreken"
 
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Verwarm de nozzle"
 
@@ -1579,8 +1582,14 @@ msgstr "Nieuw filament in de extruder laden"
 msgid "Purge old filament"
 msgstr "Oud filament verwijderen"
 
-msgid "Push new filament into the extruder"
-msgstr "Push new filament into the extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "Grab new filament"
@@ -2428,33 +2437,19 @@ msgstr ""
 "De geadviseerde nozzle temperatuur voor dit type filament is [%d, %d] graden "
 "Celcius"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"De printbed temperatuur voor de overige lagen is %d graden celcius lager dan "
-"de temperatuur voor de eerste laag.\n"
-"Hierdoor kan de print loskomen van het printbed gedurende de printtaak"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"De bedtemperatuur is hoger dan de vitrificatietemperatuur van dit filament.\n"
-"Dit kan leiden tot verstopping van de nozzle en tot print fouten.\n"
-"Houd de printer open tijdens het printproces om te zorgen voor "
-"luchtcirculatie, of om de temperatuur van het warmwaterbed te verlagen."
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
 msgstr ""
 "Te kleine maximale volumetrische snelheid.\n"
 "De waarde is teruggezet naar 0,5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -2515,6 +2510,9 @@ msgid ""
 msgstr ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2644,6 +2642,36 @@ msgstr "Onderbroken vanwege storing in de nozzle temperatuur"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "Onderbroken vanwege storing in de temperatuur van het printbed"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -2679,6 +2707,24 @@ msgstr "Verificatie mislukt."
 
 msgid "Update failed."
 msgstr "Updaten mislukt."
+
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
+msgid ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
+msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "Het starten van de printopdracht is mislukt"
@@ -2808,11 +2854,14 @@ msgstr "Flushed"
 msgid "Total"
 msgstr "Totaal"
 
-msgid "Total Time Estimation"
-msgstr "Total Time Estimation"
+msgid "Total Estimation"
+msgstr "Schatting totaal"
 
 msgid "Total time"
 msgstr "Totale tijd"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "tot"
@@ -2900,9 +2949,6 @@ msgstr "Printer"
 
 msgid "Print settings"
 msgstr "Print instellingen"
-
-msgid "Total Estimation"
-msgstr "Schatting totaal"
 
 msgid "Time Estimation"
 msgstr "Geschatte duur"
@@ -3012,6 +3058,9 @@ msgstr "Sta verschillende materiaalsoorten op hetzelfde printbed toe"
 msgid "Avoid extrusion calibration region"
 msgstr "Vermijd het extrusie kalibratie gebied"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "Toevoegen"
 
@@ -3106,8 +3155,11 @@ msgstr "Micro Lidar Kalibratie"
 msgid "Bed leveling"
 msgstr "Bed leveling"
 
-msgid "Resonance frequency identification"
-msgstr "Identificatie van de resonantiefrequentie"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibratie programma"
@@ -3126,6 +3178,9 @@ msgstr "Flow kalibratie"
 
 msgid "Start Calibration"
 msgstr "Start kalibreren"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Voltooid"
@@ -3202,9 +3257,6 @@ msgstr "Nee"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "will be closed before creating a new model. Do you want to continue?"
-
-msgid "Upload"
-msgstr ""
 
 msgid "Slice plate"
 msgstr "Slice printbed"
@@ -3868,11 +3920,19 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Layer: N/A"
 
-msgid "Immediately score"
-msgstr "Immediately score"
-
 msgid "Clear"
 msgstr "Wissen"
+
+msgid "How do you like this printing file?"
+msgstr ""
+
+msgid ""
+"(The model has already been rated. Your rating will overwrite the previous "
+"rating.)"
+msgstr ""
+
+msgid "Rate"
+msgstr ""
 
 msgid "Camera"
 msgstr "Camera"
@@ -3939,12 +3999,6 @@ msgstr "In Cloud Slicing Queue, there are %s tasks ahead of you."
 msgid "Layer: %s"
 msgstr "Layer: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "Please give a score for your favorite Bambu Market model."
-
-msgid "Score"
-msgstr "Score"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Layer: %d/%d"
@@ -3986,6 +4040,97 @@ msgstr "Ludicrous"
 
 msgid "Can't start this without SD card."
 msgstr "Kan niet starten zonder microSD-kaart."
+
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid " upload config prase failed\n"
+msgstr ""
+
+msgid " No corresponding storage bucket\n"
+msgstr ""
+
+msgid " can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "Informatie"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"\n"
+"  error code: "
+msgstr ""
+
+msgid "error message: "
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage for rating?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for rating?"
+msgstr ""
+
+msgid "You can select up to 16 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
+msgstr ""
 
 msgid "Status"
 msgstr "Status"
@@ -4121,6 +4266,9 @@ msgstr "Waarschuwing:"
 msgid "Export successfully."
 msgstr "Succesvol geëxporteerd"
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4208,6 +4356,9 @@ msgstr "Inspectie van de eerste laag"
 
 msgid "Auto-recovery from step loss"
 msgstr "Automatisch herstel na stapverlies"
+
+msgid "Allow Prompt Sound"
+msgstr ""
 
 msgid "Global"
 msgstr "Globale"
@@ -4364,6 +4515,11 @@ msgstr ""
 "De door het filament vereiste hardheid van de nozzle is hoger dan de "
 "standaard hardheid van de nozzle van de printer. Vervang de geharde nozzle "
 "of het filament, anders raakt de nozzle versleten of beschadigd."
+
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -4588,6 +4744,11 @@ msgstr "project downloaden..."
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Project %d%% gedownload"
+
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
 
 msgid "The selected file"
 msgstr "Het geselecteerde bestand"
@@ -4985,9 +5146,6 @@ msgstr "Fout"
 msgid "warning"
 msgstr "waarschuwing"
 
-msgid "info"
-msgstr "Informatie"
-
 msgid "debug"
 msgstr "Debuggen"
 
@@ -5245,11 +5403,17 @@ msgstr "Bambu Cool (koude) Plate"
 msgid "PLA Plate"
 msgstr "PLA Plate"
 
-msgid "Bamabu Engineering Plate"
-msgstr "Bambu Engineering (technische) plate"
+msgid "Bambu Engineering Plate"
+msgstr ""
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Bambu High Temperature (hoge temperatuur) Plate"
+msgid "Bambu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bambu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Stuur de printtaak naar"
@@ -5263,8 +5427,8 @@ msgstr "Bed leveling"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
-msgstr "Kan geen verbinding maken met de printer"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "Versturen gelukt"
@@ -5378,6 +5542,16 @@ msgstr "Kan geen afdruktaak verzenden voor een lege plaat."
 msgid "This printer does not support printing all plates"
 msgstr ""
 "Deze printer biedt geen ondersteuning voor het afdrukken van alle platen"
+
+msgid ""
+"When enable spiral vase mode, machines with I3 structure will not generate "
+"timelapse videos."
+msgstr ""
+
+msgid ""
+"When print by object, machines with I3 structure will not generate timelapse "
+"videos."
+msgstr ""
 
 msgid "Errors"
 msgstr "Fouten"
@@ -5710,6 +5884,9 @@ msgstr "Vlot"
 msgid "Support filament"
 msgstr "Support filament"
 
+msgid "Tree supports"
+msgstr ""
+
 msgid "Prime tower"
 msgstr "Prime toren"
 
@@ -5766,9 +5943,6 @@ msgstr ""
 "De geadviseerde nozzle temperatuur voor dit filament. 0 betekend dat er geen "
 "voorgestelde waarde is "
 
-msgid "Recommended temperature range"
-msgstr "Geadviseerde temperatuurbereik"
-
 msgid "Print temperature"
 msgstr "Print temperatuur"
 
@@ -5799,16 +5973,14 @@ msgstr ""
 "waarde van 0 betekent dat het filament afdrukken op de Engineering Plate "
 "niet ondersteunt."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate (hoge temperatuur printbed)"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"Dit is de bedtemperatuur wanneer de hogetemperatuurplaat is geïnstalleerd. "
-"Een waarde van 0 betekent dat het filament printen op de High Temp Plate "
-"niet ondersteunt."
 
 msgid "Textured PEI Plate"
 msgstr "PEI plaat met structuur"
@@ -5861,6 +6033,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Extra koel ventilator"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "Filament start G-code"
 
@@ -5911,6 +6092,9 @@ msgstr "G-Code voor de laag wijziging"
 
 msgid "Layer change G-code"
 msgstr "G-code laag wijzigen"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Filament G-code aanpassen"
@@ -6789,6 +6973,11 @@ msgstr ""
 "Kan de lijndikte van %1% niet berekenen omdat de waarde van \"%2%\" niet "
 "opgehaald kan worden"
 
+msgid ""
+"Invalid spacing supplied to Flow::with_spacing(), check your layer height "
+"and extrusion width"
+msgstr ""
+
 msgid "undefined error"
 msgstr "Onbekende fout"
 
@@ -6951,6 +7140,24 @@ msgid ""
 "materials."
 msgstr ""
 "Spiraal (vaas) modus werkt niet als een object meer dan 1 filament bevalt."
+
+#, boost-format
+msgid "The object %1% exceeds the maximum build volume height."
+msgstr ""
+
+#, boost-format
+msgid ""
+"While the object %1% itself fits the build volume, its last layer exceeds "
+"the maximum build volume height."
+msgstr ""
+
+msgid ""
+"You might want to reduce the size of your model or change current print "
+"settings and retry."
+msgstr ""
+
+msgid "Variable layer height is not supported with Organic supports."
+msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Een prime-toren wordt niet ondersteund bij het \"per object\" printen."
@@ -7471,6 +7678,14 @@ msgstr ""
 "Schakel deze optie in om de snelheid omlaag te brengen voor verschillende "
 "overhangende hoeken"
 
+msgid "Slow down for curled perimeters"
+msgstr ""
+
+msgid ""
+"Enable this option to slow printing down in areas where potential curled "
+"perimeters may exist"
+msgstr ""
+
 msgid "mm/s or %"
 msgstr ""
 
@@ -7607,6 +7822,23 @@ msgstr "Standaard proces profiel"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Standaard procesprofiel bij het overschakelen naar dit machineprofiel"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Activate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Ventilator snelheid"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Geen koeling voor de eerste"
 
@@ -7676,17 +7908,6 @@ msgid ""
 msgstr ""
 "Voeg dichte vulling toe in de buurt van hellende oppervlakken om de "
 "verticale schaaldikte te garanderen (boven+onder vaste lagen)."
-
-msgid "Internal bridge support thickness"
-msgstr "Dikte interne brugondersteuning"
-
-msgid ""
-"If enabled, support loops will be generated under the contours of internal "
-"bridges.These support loops could prevent internal bridges from extruding "
-"over the air and improve the top surface quality, especially when the sparse "
-"infill density is low.This value determines the thickness of the support "
-"loops. 0 means disable this feature"
-msgstr ""
 
 msgid "Top surface pattern"
 msgstr "Patroon bovenvlak"
@@ -8269,7 +8490,12 @@ msgid "accel_to_decel"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this %% of acceleration"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%%"
 msgstr ""
 
 msgid "Jerk of outer walls"
@@ -8480,6 +8706,30 @@ msgstr ""
 msgid "HRC"
 msgstr "HRC"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 "Schakel deze optie in als de machine een ventilator voor de enclosure heeft"
@@ -8511,6 +8761,28 @@ msgid ""
 "This is useful for fans where a low PWM/power may be insufficient to get the "
 "fan started spinning from a stop, or to get the fan up to speed faster.\n"
 "Set to 0 to deactivate."
+msgstr ""
+
+msgid "Time cost"
+msgstr ""
+
+msgid "The printer cost per hour"
+msgstr ""
+
+msgid "money/h"
+msgstr ""
+
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Enable this if printer support air filtration"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8768,9 +9040,6 @@ msgstr "Maximale versnelling voor verplaatsen"
 msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
 msgstr ""
 
-msgid "Fan speed"
-msgstr "Ventilator snelheid"
-
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed limitation of part cooling fan"
@@ -8788,6 +9057,55 @@ msgid ""
 msgstr ""
 "De hoogste printbare laaghoogte voor de extruder: dit wordt gebruikt om de "
 "maximale laaghoogte te beperken wanneer adaptieve laaghoogte is ingeschakeld."
+
+msgid "Extrusion rate smoothing"
+msgstr ""
+
+msgid ""
+"This parameter smooths out sudden extrusion rate changes that happen when "
+"the printer transitions from printing a high flow (high speed/larger width) "
+"extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
+"versa.\n"
+"\n"
+"It defines the maximum rate by which the extruded volumetric flow in mm3/sec "
+"can change over time. Higher values mean higher extrusion rate changes are "
+"allowed, resulting in faster speed transitions.\n"
+"\n"
+"A value of 0 disables the feature. \n"
+"\n"
+"For a high speed, high flow direct drive printer (like the Bambu lab or "
+"Voron) this value is usually not needed. However it can provide some "
+"marginal benefit in certain cases where feature speeds vary greatly. For "
+"example, when there are aggressive slowdowns due to overhangs. In these "
+"cases a high value of around 300-350mm3/s2 is recommended as this allows for "
+"just enough smoothing to assist pressure advance achieve a smoother flow "
+"transition.\n"
+"\n"
+"For slower printers without pressure advance, the value should be set much "
+"lower. A value of 10-15mm3/s2 is a good starting point for direct drive "
+"extruders and 5-10mm3/s2 for Bowden style. \n"
+"\n"
+"This feature is known as Pressure Equalizer in Prusa slicer.\n"
+"\n"
+"Note: this parameter disables arc fitting."
+msgstr ""
+
+msgid "mm³/s²"
+msgstr ""
+
+msgid "Smoothing segment length"
+msgstr ""
+
+msgid ""
+"A lower value results in smoother extrusion rate transitions. However, this "
+"results in a significantly larger gcode file and more instructions for the "
+"printer to process. \n"
+"\n"
+"Default value of 3 works well for most cases. If your printer is stuttering, "
+"increase this value to reduce the number of adjustments made\n"
+"\n"
+"Allowed values: 1-5"
+msgstr ""
 
 msgid "Minimum speed for part cooling fan"
 msgstr "Minimale snelheid voor de printkop ventilator"
@@ -9082,6 +9400,22 @@ msgstr ""
 "opgetild om ruimte te creëren tussen de nozzle en de print. Dit voorkomt dat "
 "de nozzle de print raakt bij veplaatsen. Het gebruik van spiraallijnen om Z "
 "op te tillen kan stringing voorkomen."
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z hop type"
 msgstr ""
@@ -9585,17 +9919,11 @@ msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
 "support towers will save material and reduce object scarring.\n"
-"For tree support, slim style will merge branches more aggressively and save "
-"a lot of material (default), while hybrid style will create similar "
-"structure to normal support under large flat overhangs."
+"For tree support, slim and organic style will merge branches more "
+"aggressively and save a lot of material (default organic), while hybrid "
+"style will create similar structure to normal support under large flat "
+"overhangs."
 msgstr ""
-"Stijl en vorm van de ondersteuning. Voor normale ondersteuning zal grit "
-"stabielere steunen creëren (standaard), terwijl snug materiaal bespaart en "
-"littekens op het object zal verminderen.\n"
-"Voor tree ondersteuning zal de slanke stijl takken agressiever samenvoegen "
-"en veel materiaal besparen (standaard), terwijl de hybride stijl een "
-"soortgelijke structuur creëert als de normale ondersteuning onder grote "
-"platte overhangen."
 
 msgid "Snug"
 msgstr "Nauwsluitend"
@@ -9753,24 +10081,18 @@ msgstr ""
 msgid "Chamber temperature"
 msgstr ""
 
-msgid "Target chamber temperature"
+msgid ""
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
 msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Nozzle temperatuur voor de lagen na de eerstse laag"
-
-msgid "Bed temperature difference"
-msgstr "Printbed temperatuurverschil"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"Het wordt niet aanbevolen om de bedtemperatuur van andere lagen meer dan "
-"deze drempelwaarde te verlagen dan de eerste laag. Een te lage "
-"bedtemperatuur van een andere laag kan ertoe leiden dat het model loskomt "
-"van de bouwplaat."
 
 msgid "Detect thin wall"
 msgstr "Detecteer dunne wanden"
@@ -10197,6 +10519,12 @@ msgstr ""
 msgid "Load first filament as default for those not loaded"
 msgstr ""
 
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -10251,14 +10579,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Eenheid converteren"
 
 msgid "Convert the units of model"
 msgstr "Converteer de eenheden van het model"
 
-msgid "Orient the model"
-msgstr "Oriënteer het model"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "Schaal het model met een float-factor"
@@ -10313,6 +10666,12 @@ msgid ""
 msgstr ""
 "Sets debug logging level. 0:fataal, 1:error, 2:waarschuwing, 3:info, 4:"
 "debug, 5:trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Fout in het zip archief"
@@ -10512,6 +10871,15 @@ msgstr ""
 msgid "The name cannot exceed 40 characters."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
@@ -10541,6 +10909,9 @@ msgstr ""
 msgid "Please select filament to calibrate."
 msgstr ""
 
+msgid "The input value size must be 3."
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr ""
 
@@ -10557,9 +10928,6 @@ msgid "Please select at least one filament for calibration"
 msgstr ""
 
 msgid "Flow rate calibration result has been saved to preset"
-msgstr ""
-
-msgid "The input value size must be 3."
 msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
@@ -10697,6 +11065,9 @@ msgstr ""
 msgid "Please find the best line on your plate"
 msgstr ""
 
+msgid "Please find the cornor with perfect degree of extrusion"
+msgstr ""
+
 msgid "Input Value"
 msgstr ""
 
@@ -10799,6 +11170,12 @@ msgstr ""
 msgid "Extra info"
 msgstr ""
 
+msgid "Pattern"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr ""
@@ -10807,6 +11184,21 @@ msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr ""
 
 msgid "Connecting to printer"
+msgstr ""
+
+msgid "From k Value"
+msgstr ""
+
+msgid "To k Value"
+msgstr ""
+
+msgid "Step value"
+msgstr ""
+
+msgid "0.5"
+msgstr ""
+
+msgid "0.005"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
@@ -10921,6 +11313,9 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 
+msgid "Upload"
+msgstr ""
+
 msgid "Print host upload queue"
 msgstr ""
 
@@ -10980,9 +11375,6 @@ msgid "PA Line"
 msgstr ""
 
 msgid "PA Pattern"
-msgstr ""
-
-msgid "Method"
 msgstr ""
 
 msgid "Start PA: "
@@ -11058,7 +11450,8 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \n"
+"step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11073,7 +11466,8 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \n"
+"step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11127,6 +11521,17 @@ msgid ""
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
+msgid "The start, end or step is not valid value."
+msgstr ""
+
+msgid ""
+"Unable to calibrate: maybe because the set calibration value range is too "
+"large, or the step is too small"
+msgstr ""
+
+msgid "Need select printer"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -11386,3 +11791,108 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Cali"
+#~ msgstr "Cali"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "Kalibratie van de extrusie"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "Push new filament into the extruder"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "De printbed temperatuur voor de overige lagen is %d graden celcius lager "
+#~ "dan de temperatuur voor de eerste laag.\n"
+#~ "Hierdoor kan de print loskomen van het printbed gedurende de printtaak"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "De bedtemperatuur is hoger dan de vitrificatietemperatuur van dit "
+#~ "filament.\n"
+#~ "Dit kan leiden tot verstopping van de nozzle en tot print fouten.\n"
+#~ "Houd de printer open tijdens het printproces om te zorgen voor "
+#~ "luchtcirculatie, of om de temperatuur van het warmwaterbed te verlagen."
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Total Time Estimation"
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Identificatie van de resonantiefrequentie"
+
+#~ msgid "Immediately score"
+#~ msgstr "Immediately score"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "Please give a score for your favorite Bambu Market model."
+
+#~ msgid "Score"
+#~ msgstr "Score"
+
+#~ msgid "Bamabu Engineering Plate"
+#~ msgstr "Bambu Engineering (technische) plate"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Bambu High Temperature (hoge temperatuur) Plate"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "Kan geen verbinding maken met de printer"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Geadviseerde temperatuurbereik"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "High Temp Plate (hoge temperatuur printbed)"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "Dit is de bedtemperatuur wanneer de hogetemperatuurplaat is "
+#~ "geïnstalleerd. Een waarde van 0 betekent dat het filament printen op de "
+#~ "High Temp Plate niet ondersteunt."
+
+#~ msgid "Internal bridge support thickness"
+#~ msgstr "Dikte interne brugondersteuning"
+
+#~ msgid ""
+#~ "Style and shape of the support. For normal support, projecting the "
+#~ "supports into a regular grid will create more stable supports (default), "
+#~ "while snug support towers will save material and reduce object scarring.\n"
+#~ "For tree support, slim style will merge branches more aggressively and "
+#~ "save a lot of material (default), while hybrid style will create similar "
+#~ "structure to normal support under large flat overhangs."
+#~ msgstr ""
+#~ "Stijl en vorm van de ondersteuning. Voor normale ondersteuning zal grit "
+#~ "stabielere steunen creëren (standaard), terwijl snug materiaal bespaart "
+#~ "en littekens op het object zal verminderen.\n"
+#~ "Voor tree ondersteuning zal de slanke stijl takken agressiever "
+#~ "samenvoegen en veel materiaal besparen (standaard), terwijl de hybride "
+#~ "stijl een soortgelijke structuur creëert als de normale ondersteuning "
+#~ "onder grote platte overhangen."
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Printbed temperatuurverschil"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Het wordt niet aanbevolen om de bedtemperatuur van andere lagen meer dan "
+#~ "deze drempelwaarde te verlagen dan de eerste laag. Een te lage "
+#~ "bedtemperatuur van een andere laag kan ertoe leiden dat het model loskomt "
+#~ "van de bouwplaat."
+
+#~ msgid "Orient the model"
+#~ msgstr "Oriënteer het model"

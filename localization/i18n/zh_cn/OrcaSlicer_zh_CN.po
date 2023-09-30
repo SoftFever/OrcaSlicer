@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 20:34+0800\n"
+"POT-Creation-Date: 2023-09-30 10:27+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -650,6 +650,9 @@ msgstr "加载模式视图"
 
 msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf）："
@@ -1475,6 +1478,9 @@ msgstr "连接中..."
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "空"
 
@@ -1486,12 +1492,6 @@ msgstr "自动补给"
 
 msgid "AMS not connected"
 msgstr "AMS 未连接"
-
-msgid "Cali"
-msgstr "标定"
-
-msgid "Calibration of extrusion"
-msgstr "挤出标定"
 
 msgid "Load Filament"
 msgstr "进料"
@@ -1523,6 +1523,9 @@ msgstr "重新校准"
 msgid "Cancel calibration"
 msgstr "取消校准"
 
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "加热喷嘴"
 
@@ -1538,8 +1541,14 @@ msgstr "送出新的耗材丝到挤出机"
 msgid "Purge old filament"
 msgstr "冲刷旧耗材丝"
 
-msgid "Push new filament into the extruder"
-msgstr "将新的耗材丝推入挤出机"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
+msgstr ""
 
 msgid "Grab new filament"
 msgstr "咬入耗材丝"
@@ -2315,30 +2324,19 @@ msgid ""
 "centigrade"
 msgstr "该耗材的推荐喷嘴温度是[%d, %d]摄氏度"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
-"这可能导致打印中模型从热床脱落"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"热床温度超过了耗材丝的软化温度，材料软化可能造成喷头堵塞。\n"
-"请保持打印机在打印过程中敞开，保证空气流通或降低热床温度"
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
 msgstr ""
 "最大体积流量设置过小\n"
 "重置为0.5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -2391,6 +2389,9 @@ msgid ""
 msgstr ""
 "旋转模式只能在外墙层数为1，关闭支撑，顶层层数为0，稀疏填充密度为0，传统延时摄"
 "影时有效。"
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2516,6 +2517,36 @@ msgstr "热端温控异常暂停"
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "热床温控异常暂停"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr ""
 
@@ -2551,6 +2582,24 @@ msgstr "验证失败。"
 
 msgid "Update failed."
 msgstr "更新失败。"
+
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
+msgid ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
+msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
@@ -2680,11 +2729,14 @@ msgstr "冲刷"
 msgid "Total"
 msgstr "总计"
 
-msgid "Total Time Estimation"
-msgstr "总时间预估"
+msgid "Total Estimation"
+msgstr "总预估"
 
 msgid "Total time"
 msgstr "总时间"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "达到"
@@ -2772,9 +2824,6 @@ msgstr "打印机"
 
 msgid "Print settings"
 msgstr "打印设置"
-
-msgid "Total Estimation"
-msgstr "总预估"
 
 msgid "Time Estimation"
 msgstr "时间预估"
@@ -2885,6 +2934,9 @@ msgstr "允许同一盘中包含多种材料"
 msgid "Avoid extrusion calibration region"
 msgstr "避开挤出标定区域"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "添加"
 
@@ -2979,8 +3031,11 @@ msgstr "微激光雷达校准"
 msgid "Bed leveling"
 msgstr "热床调平"
 
-msgid "Resonance frequency identification"
-msgstr "共振频率辨识"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -2998,6 +3053,9 @@ msgstr "校准流程"
 
 msgid "Start Calibration"
 msgstr "开始校准"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "已完成"
@@ -3074,9 +3132,6 @@ msgstr "否"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
-
-msgid "Upload"
-msgstr "上传"
 
 msgid "Slice plate"
 msgstr "切片单盘"
@@ -3737,11 +3792,19 @@ msgstr ""
 msgid "Layer: N/A"
 msgstr "层： N/A"
 
-msgid "Immediately score"
-msgstr "立即打分"
-
 msgid "Clear"
 msgstr "清除"
+
+msgid "How do you like this printing file?"
+msgstr ""
+
+msgid ""
+"(The model has already been rated. Your rating will overwrite the previous "
+"rating.)"
+msgstr ""
+
+msgid "Rate"
+msgstr ""
 
 msgid "Camera"
 msgstr "摄像机"
@@ -3808,12 +3871,6 @@ msgstr "前面还有%s个任务在云端切片队列中"
 msgid "Layer: %s"
 msgstr "层： %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr "请为您喜欢的 Bambu 商城模型打分。"
-
-msgid "Score"
-msgstr "打分"
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "层： %d/%d"
@@ -3852,6 +3909,97 @@ msgstr "狂暴"
 
 msgid "Can't start this without SD card."
 msgstr "没有SD卡无法开始任务"
+
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid " upload config prase failed\n"
+msgstr ""
+
+msgid " No corresponding storage bucket\n"
+msgstr ""
+
+msgid " can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "信息"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"\n"
+"  error code: "
+msgstr ""
+
+msgid "error message: "
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage for rating?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for rating?"
+msgstr ""
+
+msgid "You can select up to 16 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
+msgstr ""
 
 msgid "Status"
 msgstr "设备状态"
@@ -3976,6 +4124,9 @@ msgstr "警告："
 msgid "Export successfully."
 msgstr "导出成功."
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr "严重警告："
 
@@ -4056,6 +4207,9 @@ msgstr "首层扫描"
 
 msgid "Auto-recovery from step loss"
 msgstr "自动从丢步中恢复"
+
+msgid "Allow Prompt Sound"
+msgstr ""
 
 msgid "Global"
 msgstr "全局"
@@ -4199,6 +4353,11 @@ msgid ""
 msgstr ""
 "打印丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或打印丝，否"
 "则喷嘴可能被磨损或损坏。"
+
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -4399,6 +4558,11 @@ msgstr "项目下载中..."
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "项目已下载%d%%"
+
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
 
 msgid "The selected file"
 msgstr "已选择的文件"
@@ -4772,9 +4936,6 @@ msgstr "错误"
 msgid "warning"
 msgstr "警告"
 
-msgid "info"
-msgstr "信息"
-
 msgid "debug"
 msgstr "调试"
 
@@ -5024,11 +5185,17 @@ msgstr "低温打印热床"
 msgid "PLA Plate"
 msgstr "PLA打印板"
 
-msgid "Bamabu Engineering Plate"
-msgstr "工程打印热床"
+msgid "Bambu Engineering Plate"
+msgstr ""
 
-msgid "Bamabu High Temperature Plate"
-msgstr "高温打印热床"
+msgid "Bambu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bambu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "发送打印任务至"
@@ -5042,8 +5209,8 @@ msgstr "热床调平"
 msgid "Flow Dynamics Calibration"
 msgstr "动态流量校准"
 
-msgid "Can't connect to the printer"
-msgstr "无法连接打印机"
+msgid "Click here if you can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "发送完成"
@@ -5142,6 +5309,16 @@ msgstr "无法为空盘发送打印任务"
 
 msgid "This printer does not support printing all plates"
 msgstr "此打印机类型不支持打印所有盘"
+
+msgid ""
+"When enable spiral vase mode, machines with I3 structure will not generate "
+"timelapse videos."
+msgstr ""
+
+msgid ""
+"When print by object, machines with I3 structure will not generate timelapse "
+"videos."
+msgstr ""
 
 msgid "Errors"
 msgstr "错误"
@@ -5445,6 +5622,9 @@ msgstr "筏层"
 msgid "Support filament"
 msgstr "支撑耗材"
 
+msgid "Tree supports"
+msgstr ""
+
 msgid "Prime tower"
 msgstr "擦拭塔"
 
@@ -5494,9 +5674,6 @@ msgstr "建议喷嘴温度"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "该材料的建议喷嘴温度范围。0表示未设置"
 
-msgid "Recommended temperature range"
-msgstr "建议温度范围"
-
 msgid "Print temperature"
 msgstr "打印温度"
 
@@ -5522,13 +5699,14 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr "安装工程材料热床时的热床温度。0值表示这个耗材丝不支持工程材料热床"
 
-msgid "High Temp Plate"
-msgstr "高温打印热床"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
-msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
+msgstr ""
 
 msgid "Textured PEI Plate"
 msgstr "纹理PEI热床"
@@ -5572,6 +5750,15 @@ msgstr "当预计的层打印时间比设置值要短时，部件冷却风扇转
 
 msgid "Auxiliary part cooling fan"
 msgstr "辅助部件冷却风扇"
+
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
 
 msgid "Filament start G-code"
 msgstr "耗材丝起始G-code"
@@ -5623,6 +5810,9 @@ msgstr "换层前G-code"
 
 msgid "Layer change G-code"
 msgstr "换层G-code"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
@@ -6451,6 +6641,11 @@ msgstr "多个"
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
 msgstr "计算 %1%的线宽失败。无法获得 \"%2%\" 的值"
 
+msgid ""
+"Invalid spacing supplied to Flow::with_spacing(), check your layer height "
+"and extrusion width"
+msgstr ""
+
 msgid "undefined error"
 msgstr "未定义错误"
 
@@ -6596,6 +6791,24 @@ msgid ""
 "The spiral vase mode does not work when an object contains more than one "
 "materials."
 msgstr "不支持在包含多个材料的打印中使用旋转花瓶模式。"
+
+#, boost-format
+msgid "The object %1% exceeds the maximum build volume height."
+msgstr ""
+
+#, boost-format
+msgid ""
+"While the object %1% itself fits the build volume, its last layer exceeds "
+"the maximum build volume height."
+msgstr ""
+
+msgid ""
+"You might want to reduce the size of your model or change current print "
+"settings and retry."
+msgstr ""
+
+msgid "Variable layer height is not supported with Organic supports."
+msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "擦拭塔不支持在逐件打印模式下使用。"
@@ -7050,6 +7263,14 @@ msgstr "悬垂降速"
 msgid "Enable this option to slow printing down for different overhang degree"
 msgstr "打开这个选项将降低不同悬垂程度的走线的打印速度"
 
+msgid "Slow down for curled perimeters"
+msgstr ""
+
+msgid ""
+"Enable this option to slow printing down in areas where potential curled "
+"perimeters may exist"
+msgstr ""
+
 msgid "mm/s or %"
 msgstr "mm/s 或 %"
 
@@ -7182,6 +7403,23 @@ msgstr "默认切片配置"
 msgid "Default process profile when switch to this machine profile"
 msgstr "该机器的默认切片配置"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Activate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "风扇速度"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "关闭冷却对前"
 
@@ -7242,20 +7480,6 @@ msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
-
-msgid "Internal bridge support thickness"
-msgstr "内部桥接支撑厚度"
-
-msgid ""
-"If enabled, support loops will be generated under the contours of internal "
-"bridges.These support loops could prevent internal bridges from extruding "
-"over the air and improve the top surface quality, especially when the sparse "
-"infill density is low.This value determines the thickness of the support "
-"loops. 0 means disable this feature"
-msgstr ""
-"如果开启，逆戟鲸切片会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓可"
-"以防止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设"
-"置用于调整支撑轮廓的厚度，0表示关闭此特性。"
 
 msgid "Top surface pattern"
 msgstr "顶面图案"
@@ -7812,7 +8036,12 @@ msgid "accel_to_decel"
 msgstr "制动速度"
 
 #, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this %% of acceleration"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%%"
 msgstr ""
 
 msgid "Jerk of outer walls"
@@ -8002,6 +8231,30 @@ msgstr "喷嘴硬度。零值表示在切片时不检查喷嘴硬度。"
 msgid "HRC"
 msgstr "洛氏硬度"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
@@ -8037,6 +8290,28 @@ msgid ""
 msgstr ""
 "让风扇满速运行指定时间以帮助风扇顺利启动\n"
 "设为0禁用此选项"
+
+msgid "Time cost"
+msgstr ""
+
+msgid "The printer cost per hour"
+msgstr ""
+
+msgid "money/h"
+msgstr ""
+
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Enable this if printer support air filtration"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -8280,9 +8555,6 @@ msgstr "空驶最大加速度"
 msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
 msgstr ""
 
-msgid "Fan speed"
-msgstr "风扇速度"
-
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed limitation of part cooling fan"
@@ -8296,6 +8568,55 @@ msgid ""
 "The largest printable layer height for extruder. Used tp limits the maximum "
 "layer hight when enable adaptive layer height"
 msgstr "挤出头最大可打印的层高。用于限制开启自适应层高时的最大层高。"
+
+msgid "Extrusion rate smoothing"
+msgstr ""
+
+msgid ""
+"This parameter smooths out sudden extrusion rate changes that happen when "
+"the printer transitions from printing a high flow (high speed/larger width) "
+"extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
+"versa.\n"
+"\n"
+"It defines the maximum rate by which the extruded volumetric flow in mm3/sec "
+"can change over time. Higher values mean higher extrusion rate changes are "
+"allowed, resulting in faster speed transitions.\n"
+"\n"
+"A value of 0 disables the feature. \n"
+"\n"
+"For a high speed, high flow direct drive printer (like the Bambu lab or "
+"Voron) this value is usually not needed. However it can provide some "
+"marginal benefit in certain cases where feature speeds vary greatly. For "
+"example, when there are aggressive slowdowns due to overhangs. In these "
+"cases a high value of around 300-350mm3/s2 is recommended as this allows for "
+"just enough smoothing to assist pressure advance achieve a smoother flow "
+"transition.\n"
+"\n"
+"For slower printers without pressure advance, the value should be set much "
+"lower. A value of 10-15mm3/s2 is a good starting point for direct drive "
+"extruders and 5-10mm3/s2 for Bowden style. \n"
+"\n"
+"This feature is known as Pressure Equalizer in Prusa slicer.\n"
+"\n"
+"Note: this parameter disables arc fitting."
+msgstr ""
+
+msgid "mm³/s²"
+msgstr ""
+
+msgid "Smoothing segment length"
+msgstr ""
+
+msgid ""
+"A lower value results in smoother extrusion rate transitions. However, this "
+"results in a significantly larger gcode file and more instructions for the "
+"printer to process. \n"
+"\n"
+"Default value of 3 works well for most cases. If your printer is stuttering, "
+"increase this value to reduce the number of adjustments made\n"
+"\n"
+"Allowed values: 1-5"
+msgstr ""
 
 msgid "Minimum speed for part cooling fan"
 msgstr "部件冷却风扇的最小转速"
@@ -8565,6 +8886,22 @@ msgid ""
 msgstr ""
 "回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免空驶时喷嘴和"
 "打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝。"
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "抬Z类型"
@@ -9031,14 +9368,11 @@ msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
 "support towers will save material and reduce object scarring.\n"
-"For tree support, slim style will merge branches more aggressively and save "
-"a lot of material (default), while hybrid style will create similar "
-"structure to normal support under large flat overhangs."
+"For tree support, slim and organic style will merge branches more "
+"aggressively and save a lot of material (default organic), while hybrid "
+"style will create similar structure to normal support under large flat "
+"overhangs."
 msgstr ""
-"支撑物的样式和形状。对于普通支撑，将支撑投射到一个规则的网格中，将创建更稳定"
-"的支撑（默认），而紧贴的支撑塔将节省材料并减少物体的瑕疵。\n"
-"对于树形支撑，苗条板的风格将更积极地合并树枝，并节省大量的材料（默认），而混"
-"合风格将在大的平面悬垂下创建与正常支撑类似的结构。"
 
 msgid "Snug"
 msgstr "紧贴"
@@ -9188,22 +9522,18 @@ msgstr "这个设置决定是否为树状支撑内部的空腔生成填充。"
 msgid "Chamber temperature"
 msgstr "机箱温度"
 
-msgid "Target chamber temperature"
-msgstr "目标腔体温度"
+msgid ""
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
-
-msgid "Bed temperature difference"
-msgstr "热床温差"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"不建议其它层热床温度比首层的热床温度低于这个值。太低的其它层热床温度可能导致"
-"打印过程中模型从打印板脱落。"
 
 msgid "Detect thin wall"
 msgstr "检查薄壁"
@@ -9588,6 +9918,12 @@ msgstr "加载默认打印材料"
 msgid "Load first filament as default for those not loaded"
 msgstr "加载第一个打印材料为默认材料"
 
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
+msgstr ""
+
 msgid "mtcpp"
 msgstr ""
 
@@ -9642,14 +9978,39 @@ msgstr "重复次数"
 msgid "Repetions count of the whole model"
 msgstr "整个模型的重复次数"
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "转换单位"
 
 msgid "Convert the units of model"
 msgstr "转换模型的单位"
 
-msgid "Orient the model"
-msgstr "旋转模型"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "根据因子缩放模型"
@@ -9704,6 +10065,12 @@ msgid ""
 msgstr ""
 "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
 "trace\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "zip文件中存在错误"
@@ -9897,6 +10264,15 @@ msgstr "请输入要保存到打印机的名称。"
 msgid "The name cannot exceed 40 characters."
 msgstr "名称不能超过40个字符。"
 
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr "名称不能为空。"
 
@@ -9926,6 +10302,9 @@ msgstr "打印机尚未连接。"
 msgid "Please select filament to calibrate."
 msgstr "请选择要校准的耗材丝。"
 
+msgid "The input value size must be 3."
+msgstr "输入值大小必须为3。"
+
 msgid "Connecting to printer..."
 msgstr "正在连接打印机..."
 
@@ -9943,9 +10322,6 @@ msgstr "请至少选择一种材料进行校准。"
 
 msgid "Flow rate calibration result has been saved to preset"
 msgstr "流量比例校准结果已保存到预设"
-
-msgid "The input value size must be 3."
-msgstr "输入值大小必须为3。"
 
 msgid "Max volumetric speed calibration result has been saved to preset"
 msgstr "最大体积速度校准结果已保存到预设值"
@@ -10124,6 +10500,9 @@ msgstr ""
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
 
+msgid "Please find the cornor with perfect degree of extrusion"
+msgstr ""
+
 msgid "Input Value"
 msgstr "输入值"
 
@@ -10229,6 +10608,12 @@ msgstr "错误描述"
 msgid "Extra info"
 msgstr "额外信息"
 
+msgid "Pattern"
+msgstr ""
+
+msgid "Method"
+msgstr "方法"
+
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr "%s 与 %s 不兼容"
@@ -10238,6 +10623,21 @@ msgstr "不支持TPU进行流量动态自动校准。"
 
 msgid "Connecting to printer"
 msgstr "正在连接打印机"
+
+msgid "From k Value"
+msgstr ""
+
+msgid "To k Value"
+msgstr ""
+
+msgid "Step value"
+msgstr ""
+
+msgid "0.5"
+msgstr ""
+
+msgid "0.005"
+msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
 msgstr "喷嘴直径已从打印机设置同步"
@@ -10351,6 +10751,9 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 
+msgid "Upload"
+msgstr "上传"
+
 msgid "Print host upload queue"
 msgstr "打印主机上传队列"
 
@@ -10411,9 +10814,6 @@ msgstr "划线模式"
 
 msgid "PA Pattern"
 msgstr "V形模式"
-
-msgid "Method"
-msgstr "方法"
 
 msgid "Start PA: "
 msgstr "起始值"
@@ -10488,7 +10888,8 @@ msgstr "步距"
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \n"
+"step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10503,7 +10904,8 @@ msgstr "结束速度"
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \n"
+"step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10557,6 +10959,17 @@ msgid ""
 msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
+msgid "The start, end or step is not valid value."
+msgstr ""
+
+msgid ""
+"Unable to calibrate: maybe because the set calibration value range is too "
+"large, or the step is too small"
+msgstr ""
+
+msgid "Need select printer"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
@@ -10803,3 +11216,110 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Cali"
+#~ msgstr "标定"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "挤出标定"
+
+#~ msgid "Push new filament into the extruder"
+#~ msgstr "将新的耗材丝推入挤出机"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "其它层的热床温度比首层热床温度低太多，超过了%d 摄氏度。\n"
+#~ "这可能导致打印中模型从热床脱落"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "热床温度超过了耗材丝的软化温度，材料软化可能造成喷头堵塞。\n"
+#~ "请保持打印机在打印过程中敞开，保证空气流通或降低热床温度"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "总时间预估"
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "共振频率辨识"
+
+#~ msgid "Immediately score"
+#~ msgstr "立即打分"
+
+#~ msgid "Please give a score for your favorite Bambu Market model."
+#~ msgstr "请为您喜欢的 Bambu 商城模型打分。"
+
+#~ msgid "Score"
+#~ msgstr "打分"
+
+#~ msgid "Bamabu Engineering Plate"
+#~ msgstr "工程打印热床"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "高温打印热床"
+
+#~ msgid "Can't connect to the printer"
+#~ msgstr "无法连接打印机"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "建议温度范围"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "高温打印热床"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
+
+#~ msgid "Internal bridge support thickness"
+#~ msgstr "内部桥接支撑厚度"
+
+#~ msgid ""
+#~ "If enabled, support loops will be generated under the contours of "
+#~ "internal bridges.These support loops could prevent internal bridges from "
+#~ "extruding over the air and improve the top surface quality, especially "
+#~ "when the sparse infill density is low.This value determines the thickness "
+#~ "of the support loops. 0 means disable this feature"
+#~ msgstr ""
+#~ "如果开启，逆戟鲸切片会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓"
+#~ "可以防止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这"
+#~ "个设置用于调整支撑轮廓的厚度，0表示关闭此特性。"
+
+#~ msgid ""
+#~ "Style and shape of the support. For normal support, projecting the "
+#~ "supports into a regular grid will create more stable supports (default), "
+#~ "while snug support towers will save material and reduce object scarring.\n"
+#~ "For tree support, slim style will merge branches more aggressively and "
+#~ "save a lot of material (default), while hybrid style will create similar "
+#~ "structure to normal support under large flat overhangs."
+#~ msgstr ""
+#~ "支撑物的样式和形状。对于普通支撑，将支撑投射到一个规则的网格中，将创建更稳"
+#~ "定的支撑（默认），而紧贴的支撑塔将节省材料并减少物体的瑕疵。\n"
+#~ "对于树形支撑，苗条板的风格将更积极地合并树枝，并节省大量的材料（默认），而"
+#~ "混合风格将在大的平面悬垂下创建与正常支撑类似的结构。"
+
+#~ msgid "Target chamber temperature"
+#~ msgstr "目标腔体温度"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "热床温差"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "不建议其它层热床温度比首层的热床温度低于这个值。太低的其它层热床温度可能导"
+#~ "致打印过程中模型从打印板脱落。"
+
+#~ msgid "Orient the model"
+#~ msgstr "旋转模型"
