@@ -1,0 +1,13 @@
+{
+    "type": "process",
+    "name": "0.20mm Strength @BBL A1M",
+    "inherits": "0.20mm Strength @BBL P1P",
+    "from": "system",
+    "setting_id": "GP046",
+    "instantiation": "true",
+    "default_acceleration": "6000",
+    "travel_speed": "700",
+    "compatible_printers": [
+        "Bambu Lab A1 mini 0.4 nozzle"
+    ]
+}

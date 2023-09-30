@@ -535,7 +535,7 @@ FanControlPopup::FanControlPopup(wxWindow* parent)
     SetBackgroundColour(*wxWHITE);
 }
 
-void FanControlPopup::update_show_mode(bool support_cham_fun)
+void FanControlPopup::show_cham_fan(bool support_cham_fun)
 {
     
     if (support_cham_fun && !m_is_suppt_cham_fun) {
@@ -554,10 +554,30 @@ void FanControlPopup::update_show_mode(bool support_cham_fun)
     m_is_suppt_cham_fun = support_cham_fun;
 }
 
+void FanControlPopup::show_aux_fan(bool support_aux_fun)
+{
+
+    if (support_aux_fun && !m_is_suppt_aux_fun) {
+        m_aux_fan->Show();
+        m_line_bottom->Show();
+        Layout();
+        Fit();
+    }
+
+    if (!support_aux_fun && m_is_suppt_aux_fun) {
+        m_aux_fan->Hide();
+        m_line_bottom->Hide();
+        Layout();
+        Fit();
+    }
+    m_is_suppt_aux_fun = support_aux_fun;
+}
+
+
 void FanControlPopup::update_fan_data(MachineObject::FanType type, MachineObject* obj)
 {
     m_is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
-    update_show_mode(m_is_suppt_cham_fun);
+    show_cham_fan(m_is_suppt_cham_fun);
 
     if (type ==  MachineObject::FanType::COOLING_FAN && obj->cooling_fan_speed >= 0) {
         m_part_fan->set_fan_speed(obj->cooling_fan_speed);

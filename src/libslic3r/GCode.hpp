@@ -91,6 +91,7 @@ public:
     std::string prime(GCode &gcodegen);
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
+    bool is_empty_wipe_tower_gcode(GCode &gcodegen, int extruder_id, bool finish_layer);
     std::string finalize(GCode &gcodegen);
     std::vector<float> used_filament_length() const;
 
@@ -528,6 +529,9 @@ private:
     bool                                m_second_layer_things_done;
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
+
+    int m_timelapse_warning_code = 0;
+    bool m_support_traditional_timelapse = true;
 
     bool m_silent_time_estimator_enabled;
 

@@ -198,6 +198,10 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				config.option<ConfigOptionEnumsGeneric>(opt_key)->set_at(vec_new, opt_index, 0);
 			}
 			break;
+		case coPoint:{
+			config.set_key_value(opt_key, new ConfigOptionPoint(boost::any_cast<Vec2d>(value)));
+			}
+			break;
 		case coPoints:{
 			if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "thumbnails") {
 				config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Vec2d>>(value);

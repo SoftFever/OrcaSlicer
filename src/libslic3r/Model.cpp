@@ -40,6 +40,11 @@
 // Transtltion
 #include "I18N.hpp"
 
+// ModelIO support
+#ifdef __APPLE__
+#include "Format/ModelIO.hpp"
+#endif
+
 #define _L(s) Slic3r::I18N::translate(s)
 
 namespace Slic3r {
@@ -204,6 +209,18 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         //FIXME options & LoadStrategy::CheckVersion ?
         //BBS: is_xxx is used for is_bbs_3mf when load 3mf
         result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
+#ifdef __APPLE__
+    else if (boost::algorithm::iends_with(input_file, ".usd") || boost::algorithm::iends_with(input_file, ".usda") ||
+             boost::algorithm::iends_with(input_file, ".usdc") || boost::algorithm::iends_with(input_file, ".usdz") ||
+             boost::algorithm::iends_with(input_file, ".abc") || boost::algorithm::iends_with(input_file, ".ply")) {
+        std::string temp_stl = make_temp_stl_with_modelio(input_file);
+        if (temp_stl.empty()) {
+            throw Slic3r::RuntimeError("Failed to convert asset to STL via ModelIO.");
+        }
+        result = load_stl(temp_stl.c_str(), &model);
+        delete_temp_file(temp_stl);
+    }
+#endif
     else
         throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."));
 
@@ -2048,6 +2065,9 @@ static void reset_instance_transformation(ModelObject* object, size_t src_instan
         const Transform3d &assemble_matrix = obj_instance->get_assemble_transformation().get_matrix();
         const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
         Transform3d new_instance_inverse_matrix = instance_inverse_matrix * obj_instance->get_transformation().get_matrix(true).inverse();
+        if (place_on_cut) { // reset the rotation of cut plane
+            new_instance_inverse_matrix = new_instance_inverse_matrix * Transformation(cut_matrix).get_matrix(true, false, true, true).inverse();
+        }
         Transform3d new_assemble_transform = assemble_matrix * new_instance_inverse_matrix;
         obj_instance->set_assemble_from_transform(new_assemble_transform);
     }
@@ -2097,7 +2117,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     // Displacement (in instance coordinates) to be applied to place the upper parts
     Vec3d local_displace = Vec3d::Zero();
     Vec3d local_dowels_displace = Vec3d::Zero();
-    
+
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
 
@@ -2122,7 +2142,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     }
 
     ModelObjectPtrs res;
-    
+
     if (attributes.has(ModelObjectCutAttribute::CutToParts) && !upper->volumes.empty()) {
         reset_instance_transformation(upper, instance, cut_matrix);
         res.push_back(upper);
@@ -2356,7 +2376,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
             {
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
-                
+
                 //BBS: add assemble_view related logic
                 Geometry::Transformation instance_transformation_copy = model_instance->get_transformation();
                 instance_transformation_copy.set_offset(-new_vol->get_offset());
@@ -2365,6 +2385,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
                 Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
                 model_instance->set_assemble_from_transform(new_assemble_transform);
+                model_instance->set_offset_to_assembly(new_vol->get_offset());
             }
 
             new_vol->set_offset(Vec3d::Zero());
@@ -3234,6 +3255,91 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 //BBS
+// BBS set print speed table and find maximum speed
+void Model::setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConfig& print_config) {
+    //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    printSpeedMap.maxSpeed = 0;
+    if (config.has("inner_wall_speed")) {
+        printSpeedMap.perimeterSpeed = config.opt_float("inner_wall_speed");
+        if (printSpeedMap.perimeterSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
+    }
+    if (config.has("outer_wall_speed")) {
+        printSpeedMap.externalPerimeterSpeed = config.opt_float("outer_wall_speed");
+        printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
+    }
+    if (config.has("sparse_infill_speed")) {
+        printSpeedMap.infillSpeed = config.opt_float("sparse_infill_speed");
+        if (printSpeedMap.infillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
+    }
+    if (config.has("internal_solid_infill_speed")) {
+        printSpeedMap.solidInfillSpeed = config.opt_float("internal_solid_infill_speed");
+        if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
+    }
+    if (config.has("top_surface_speed")) {
+        printSpeedMap.topSolidInfillSpeed = config.opt_float("top_surface_speed");
+        if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
+    }
+    if (config.has("support_speed")) {
+        printSpeedMap.supportSpeed = config.opt_float("support_speed");
+
+        if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
+    }
+
+
+    //auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    //auto print_config = print.config();
+    //printSpeedMap.bed_poly.points = get_bed_shape(*(wxGetApp().plater()->config()));
+    printSpeedMap.bed_poly.points = get_bed_shape(config);
+    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
+}
+
+// find temperature of heatend and bed and matierial of an given extruder
+void Model::setExtruderParams(const DynamicPrintConfig& config, int extruders_count) {
+    extruderParamsMap.clear();
+    //Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    // BBS
+    //int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+    for (unsigned int i = 0; i != extruders_count; ++i) {
+        std::string matName = "";
+        // BBS
+        int bedTemp = 35;
+        double endTemp = 0.f;
+        if (config.has("filament_type")) {
+            matName = config.opt_string("filament_type", i);
+        }
+        if (config.has("nozzle_temperature")) {
+            endTemp = config.opt_int("nozzle_temperature", i);
+        }
+
+        // FIXME: curr_bed_type is now a plate config rather than a global config.
+        // Currently bed temp is not used for brim generation, so just comment it for now.
+#if 0
+        if (config.has("curr_bed_type")) {
+            BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
+            bedTemp = config.opt_int(get_bed_temp_key(curr_bed_type), i);
+        }
+#endif
+        if (i == 0) extruderParamsMap.insert({ i,{matName, bedTemp, endTemp} });
+        extruderParamsMap.insert({ i + 1,{matName, bedTemp, endTemp} });
+    }
+}
+
 // update the maxSpeed of an object if it is different from the global configuration
 double Model::findMaxSpeed(const ModelObject* object) {
     auto objectKeys = object->config.keys();

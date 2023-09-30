@@ -472,7 +472,7 @@ public:
 
     struct ArrangeSettings
     {
-        float distance           = 5.;
+        float distance           = 0.f;
 //        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
         bool  enable_rotation    = false;
@@ -482,6 +482,7 @@ public:
         bool is_seq_print        = false;
         float bed_shrink_x       = 0.f;
         float bed_shrink_y       = 0.f;
+        bool  align_to_y_axis    = false;
     };
 
     struct OrientSettings
@@ -624,7 +625,6 @@ private:
         return *ptr;
     }
 
-    ArrangeSettings &get_arrange_settings() { return get_arrange_settings(this); }
 
 
     //BBS:record key botton frequency
@@ -650,6 +650,7 @@ public:
     }
 
     void load_arrange_settings();
+    ArrangeSettings& get_arrange_settings() { return get_arrange_settings(this); }
 
     class SequentialPrintClearance
     {

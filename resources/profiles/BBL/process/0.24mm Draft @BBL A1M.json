@@ -1,0 +1,13 @@
+{
+    "type": "process",
+    "name": "0.24mm Draft @BBL A1M",
+    "inherits": "fdm_process_bbl_0.24",
+    "from": "system",
+    "setting_id": "GP047",
+    "instantiation": "true",
+    "default_acceleration": "6000",
+    "travel_speed": "700",
+    "compatible_printers": [
+        "Bambu Lab A1 mini 0.4 nozzle"
+    ]
+}

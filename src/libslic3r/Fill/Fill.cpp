@@ -1,3 +1,12 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas
+///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
+///|/ Copyright (c) 2016 Sakari Kapanen @Flannelhead
+///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2013 Mark Hindess
+///|/ Copyright (c) 2011 Michael Moon
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include <assert.h>
 #include <stdio.h>
 #include <memory>
@@ -46,8 +55,6 @@ struct SurfaceFillParams
     // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
     float 			anchor_length     = 1000.f;
     float 			anchor_length_max = 1000.f;
-    //BBS
-    bool            with_loop = false;
 
     // width, height of extrusion, nozzle diameter, is bridge
     // For the output, for fill generator.
@@ -79,7 +86,6 @@ struct SurfaceFillParams
 //		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, dont_adjust);
 		RETURN_COMPARE_NON_EQUAL(anchor_length);
 		RETURN_COMPARE_NON_EQUAL(anchor_length_max);
-		RETURN_COMPARE_NON_EQUAL(with_loop);
 		RETURN_COMPARE_NON_EQUAL(flow.width());
 		RETURN_COMPARE_NON_EQUAL(flow.height());
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter());
@@ -100,7 +106,6 @@ struct SurfaceFillParams
 //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&
 				this->anchor_length_max == rhs.anchor_length_max &&
-				this->with_loop         == rhs.with_loop       &&
 				this->flow 				== rhs.flow 			&&
 				this->extrusion_role	== rhs.extrusion_role;
 	}
@@ -151,8 +156,6 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
-				//BBS
-				params.with_loop     = surface.surface_type == stInternalWithLoop;
 
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -501,7 +504,6 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.extrusion_role = surface_fill.params.extrusion_role;
 		params.using_internal_flow = using_internal_flow;
 		params.no_extrusion_overlap = surface_fill.params.overlap;
-		params.with_loop = surface_fill.params.with_loop;
 		params.config = &layerm->region().config();
 		if (surface_fill.params.pattern == ipGrid)
 			params.can_reverse = false;
@@ -538,6 +540,101 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 	    for (size_t i = 0; i < layerm->fills.entities.size(); ++ i)
     	    assert(dynamic_cast<ExtrusionEntityCollection*>(layerm->fills.entities[i]) != nullptr);
 #endif
+}
+
+Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree,  FillLightning::Generator* lightning_generator) const
+{
+    std::vector<SurfaceFill>  surface_fills = group_fills(*this);
+    const Slic3r::BoundingBox bbox          = this->object()->bounding_box();
+    const auto                resolution    = this->object()->print()->config().resolution.value;
+
+    Polylines sparse_infill_polylines{};
+
+    for (SurfaceFill &surface_fill : surface_fills) {
+		if (surface_fill.surface.surface_type != stInternal) {
+			continue;
+		}
+
+        switch (surface_fill.params.pattern) {
+        case ipCount: continue; break;
+        case ipSupportBase: continue; break;
+        //TODO: case ipEnsuring: continue; break;
+        case ipLightning:
+		case ipAdaptiveCubic:
+        case ipSupportCubic:
+        case ipRectilinear:
+        case ipMonotonic:
+        case ipMonotonicLine:
+        case ipAlignedRectilinear:
+        case ipGrid:
+        case ipTriangles:
+        case ipStars:
+        case ipCubic:
+        case ipLine:
+        case ipConcentric:
+		case ipConcentricInternal:
+        case ipHoneycomb:
+        case ip3DHoneycomb:
+        case ipGyroid:
+        case ipHilbertCurve:
+        case ipArchimedeanChords:
+        case ipOctagramSpiral: break;
+        }
+
+        // Create the filler object.
+        std::unique_ptr<Fill> f = std::unique_ptr<Fill>(Fill::new_from_type(surface_fill.params.pattern));
+        f->set_bounding_box(bbox);
+        f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
+        f->z        = this->print_z;
+        f->angle    = surface_fill.params.angle;
+        // f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+        // TODO: f->print_config        = &this->object()->print()->config();
+        // TODO: f->print_object_config = &this->object()->config();
+
+        if (surface_fill.params.pattern == ipLightning)
+            dynamic_cast<FillLightning::Filler *>(f.get())->generator = lightning_generator;
+
+        // calculate flow spacing for infill pattern generation
+        double link_max_length = 0.;
+        if (!surface_fill.params.bridge) {
+#if 0
+            link_max_length = layerm.region()->config().get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
+//            printf("flow spacing: %f,  is_external: %d, link_max_length: %lf\n", flow.spacing(), int(surface.is_external()), link_max_length);
+#else
+            if (surface_fill.params.density > 80.) // 80%
+                link_max_length = 3. * f->spacing;
+#endif
+        }
+
+        LayerRegion &layerm = *m_regions[surface_fill.region_id];
+
+        // Maximum length of the perimeter segment linking two infill lines.
+        f->link_max_length = (coord_t) scale_(link_max_length);
+        // Used by the concentric infill pattern to clip the loops to create extrusion paths.
+        f->loop_clipping = coord_t(scale_(layerm.region().config().seam_gap.get_abs_value(surface_fill.params.flow.nozzle_diameter())));
+
+        // apply half spacing using this flow's own spacing and generate infill
+        FillParams params;
+        params.density           = float(0.01 * surface_fill.params.density);
+        params.dont_adjust       = false; //  surface_fill.params.dont_adjust;
+        params.anchor_length     = surface_fill.params.anchor_length;
+        params.anchor_length_max = surface_fill.params.anchor_length_max;
+        params.resolution        = resolution;
+        params.use_arachne       = false;
+        params.layer_height      = layerm.layer()->height;
+
+        for (ExPolygon &expoly : surface_fill.expolygons) {
+            // Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
+            f->spacing                     = surface_fill.params.spacing;
+            surface_fill.surface.expolygon = std::move(expoly);
+            try {
+                Polylines polylines = f->fill_surface(&surface_fill.surface, params);
+                sparse_infill_polylines.insert(sparse_infill_polylines.end(), polylines.begin(), polylines.end());
+            } catch (InfillFailedException &) {}
+        }
+    }
+
+    return sparse_infill_polylines;
 }
 
 // Create ironing extrusions over top surfaces.
@@ -689,7 +786,7 @@ void Layer::make_ironing()
 					// Check whether there is any non-solid hole in the regions.
 					bool internal_infill_solid = region_config.sparse_infill_density.value > 95.;
 					for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
-						if ((! internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid) {
+						if ((!internal_infill_solid && surface.surface_type == stInternal) || surface.surface_type == stInternalBridge || surface.surface_type == stInternalVoid) {
 							// Some fill region is not quite solid. Don't iron over the whole surface.
 							iron_completely = false;
 							break;
@@ -701,7 +798,7 @@ void Layer::make_ironing()
 						polygons_append(polys, surface.expolygon);
 				} else {
 					for (const Surface &surface : ironing_params.layerm->slices.surfaces)
-						if (surface.surface_type == stTop || (iron_everything && surface.surface_type == stBottom))
+						if ((surface.surface_type == stTop && region_config.top_shell_layers > 0) || (iron_everything && surface.surface_type == stBottom && region_config.bottom_shell_layers > 0))
 							// stBottomBridge is not being ironed on purpose, as it would likely destroy the bridges.
 							polygons_append(polys, surface.expolygon);
 				}

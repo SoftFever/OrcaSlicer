@@ -35,6 +35,12 @@
 
 namespace Slic3r { namespace GUI {
 
+enum AMSModel {
+    NO_AMS              = 0,
+    GENERIC_AMS         = 1,
+    EXTRA_AMS              = 2
+};
+
 enum ActionButton {
     ACTION_BTN_CALI     = 0,
     ACTION_BTN_LOAD     = 1,
@@ -105,6 +111,7 @@ enum FilamentStep {
     STEP_PURGE_OLD_FILAMENT,
     STEP_FEED_FILAMENT,
     STEP_CONFIRM_EXTRUDED,
+    STEP_CHECK_POSITION,
     STEP_COUNT,
 };
 
@@ -118,11 +125,11 @@ enum FilamentStepType {
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(120), FromDIP(27))
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
-#define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(60))
+#define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(70))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
-#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))
-#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(186))
-#define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(186))
+#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(196))
+#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
+#define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(196))
 #define AMS_REFRESH_SIZE wxSize(FromDIP(30), FromDIP(30))
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(86), FromDIP(72))
 #define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(36), FromDIP(55))
@@ -161,8 +168,8 @@ class AMSrefresh : public wxWindow
 {
 public:
     AMSrefresh();
-    AMSrefresh(wxWindow *parent, wxWindowID id, wxString number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
-    AMSrefresh(wxWindow *parent, wxWindowID id, int number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, wxString number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSrefresh(wxWindow *parent, int number, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSrefresh();
     void    PlayLoading();
     void    StopLoading();
@@ -243,7 +250,7 @@ public:
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
     void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
 
-    bool            m_none_ams_mode{false};
+    bool            m_none_ams_mode{true};
     bool            m_has_vams{false};
     bool            m_vams_loading{false};
     bool            m_ams_loading{false};
@@ -284,13 +291,15 @@ Description:AMSLib
 class AMSLib : public wxWindow
 {
 public:
-    AMSLib(wxWindow *parent, wxWindowID id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AMSLib(wxWindow *parent, Caninfo info);
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 public:
     wxColour     GetLibColour();
     Caninfo      m_info;
     MachineObject* m_obj = {nullptr};
-    int          m_can_index;
+    int          m_can_index = 0;
+    AMSModel     m_ams_model;
+
     void         Update(Caninfo info, bool refresh = true);
     void         UnableSelected() { m_unable_selected = true; };
     void         EableSelected() { m_unable_selected = false; };
@@ -303,7 +312,7 @@ public:
     virtual bool Enable(bool enable = true);
     void         set_disable_mode(bool disable) { m_disable_mode = disable; }
     void         msw_rescale();
-
+    void         on_pass_road(bool pass);
 
 protected:
     wxStaticBitmap *m_edit_bitmp       = {nullptr};
@@ -313,6 +322,15 @@ protected:
     ScalableBitmap  m_bitmap_readonly;
     ScalableBitmap  m_bitmap_readonly_light;
     ScalableBitmap  m_bitmap_transparent;
+
+    ScalableBitmap  m_bitmap_extra_tray_left;
+    ScalableBitmap  m_bitmap_extra_tray_right;
+
+    ScalableBitmap  m_bitmap_extra_tray_left_hover;
+    ScalableBitmap  m_bitmap_extra_tray_right_hover;
+
+    ScalableBitmap  m_bitmap_extra_tray_left_selected;
+    ScalableBitmap  m_bitmap_extra_tray_right_selected;
 
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
@@ -326,13 +344,18 @@ protected:
     wxColour m_road_def_color;
     wxColour m_lib_color;
     bool m_disable_mode{ false };
+    bool m_pass_road{false};
 
     void on_enter_window(wxMouseEvent &evt);
     void on_leave_window(wxMouseEvent &evt);
     void on_left_down(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
-    void doRender(wxDC &dc);
+    void render_extra_text(wxDC& dc);
+    void render_generic_text(wxDC& dc);
+    void doRender(wxDC& dc);
+    void render_extra_lib(wxDC& dc);
+    void render_generic_lib(wxDC& dc);
 };
 
 /*************************************************
@@ -364,9 +387,11 @@ public:
     ScalableBitmap ams_humidity_3;
     ScalableBitmap ams_humidity_4;
 
+   
     int      m_humidity = { 0 };
     bool     m_show_humidity = { false };
     bool     m_vams_loading{false};
+    AMSModel m_ams_model;
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
@@ -399,9 +424,6 @@ public:
     void         OnLeaveWindow(wxMouseEvent &evt);
     void         OnSelected();
     void         UnSelected();
-    void         ShowHumidity();
-    void         HideHumidity();
-    void         SetHumidity(int humidity);
     virtual bool Enable(bool enable = true);
 
     AMSinfo      m_amsinfo;
@@ -413,8 +435,6 @@ protected:
     int      m_space             = {5};
     bool     m_hover             = {false};
     bool     m_selected          = {false};
-    bool     m_show_humidity     = {false};
-    int      m_humidity          = {0};
     ScalableBitmap* m_ts_bitmap_cube;
 
     void         paintEvent(wxPaintEvent &evt);
@@ -455,32 +475,45 @@ class AmsCans : public wxWindow
 {
 public:
     AmsCans();
-    AmsCans(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    AmsCans(wxWindow *parent, AMSinfo info, AMSModel model);
 
     void     Update(AMSinfo info);
-    void     create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
-    void     AddCan(Caninfo caninfo, int canindex, int maxcan);
+    void     create(wxWindow *parent);
+    void     AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer);
     void     SetDefSelectCan();
     void     SelectCan(std::string canid);
-    wxColour GetTagColr(wxString canid);
-    void     SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
-    //wxColour GetCanColour(wxString canid);
     void     PlayRridLoading(wxString canid);
     void     StopRridLoading(wxString canid);
     void     msw_rescale();
     void     show_sn_value(bool show);
+    void     SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
+    void     SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
+    void     SetAmsStep(std::string can_id);
+    void     paintEvent(wxPaintEvent& evt);
+    void     render(wxDC& dc);
+    void     doRender(wxDC& dc);
+    wxColour GetTagColr(wxString canid);
     std::string GetCurrentCan();
 
 public:
+    ScalableBitmap  m_bitmap_extra_framework;
+    int             m_canlib_selection = { -1 };
+    int             m_selection = { 0 };
+    int             m_can_count = { 0 };
+    AMSModel        m_ams_model;
     std::string     m_canlib_id;
-    int             m_canlib_selection = {-1};
-    int             m_selection        = {0};
-    int             m_can_count        = {0};
+
+    std::string     m_road_canid;
+    wxColour        m_road_colour;
+
     CanLibsHash     m_can_lib_list;
     CansRoadsHash   m_can_road_list;
     CanrefreshsHash m_can_refresh_list;
     AMSinfo         m_info;
     wxBoxSizer *    sizer_can = {nullptr};
+    wxBoxSizer *    sizer_can_middle = {nullptr};
+    wxBoxSizer *    sizer_can_left = {nullptr};
+    wxBoxSizer *    sizer_can_right = {nullptr};
     AMSPassRoadSTEP m_step    = {AMSPassRoadSTEP ::AMS_ROAD_STEP_NONE};
 };
 
@@ -532,16 +565,16 @@ public:
     void init_scaled_buttons();
 
 protected:
-    int m_ams_count = {0};
-
-    std::map<std::string, int> m_ams_selection;
-    std::vector<AMSinfo>       m_ams_info;
-
     std::string  m_current_ams;
     std::string  m_current_show_ams;
-
+    std::map<std::string, int> m_ams_selection;
+    
     AmsItemsHash m_ams_item_list;
+
+    std::vector<AMSinfo>       m_ams_info;
     AmsCansHash  m_ams_cans_list;
+    AmsCansHash  m_ams_generic_cans_list;
+    AmsCansHash  m_ams_extra_cans_list;
 
     AMSextruder *m_extruder = {nullptr};
 
@@ -551,7 +584,10 @@ protected:
     wxSimplebook *m_simplebook_calibration = {nullptr};
     wxSimplebook *m_simplebook_amsitems    = {nullptr};
     wxSimplebook *m_simplebook_ams         = {nullptr};
-    wxSimplebook *m_simplebook_cans        = {nullptr};
+
+    wxSimplebook *m_simplebook_generic_cans= {nullptr};
+    wxSimplebook *m_simplebook_extra_cans     = {nullptr};
+
     wxSimplebook *m_simplebook_bottom      = {nullptr};
 
     wxStaticText *m_tip_right_top            = {nullptr};
@@ -564,6 +600,8 @@ protected:
     wxBoxSizer*   m_sizer_vams_tips          = {nullptr};
 
     Label*          m_ams_backup_tip = {nullptr};
+    Label*          m_ams_tip       = {nullptr};
+
     Caninfo         m_vams_info;
     StaticBox*      m_panel_virtual = {nullptr};
     AMSLib*         m_vams_lib      = {nullptr};
@@ -584,6 +622,8 @@ protected:
     Button *m_button_extruder_back = {nullptr};
     wxStaticBitmap* m_button_ams_setting   = {nullptr};
     wxStaticBitmap* m_img_ams_backup  = {nullptr};
+    wxStaticBitmap* m_img_amsmapping_tip = {nullptr};
+    wxStaticBitmap* m_img_vams_tip = {nullptr};
     ScalableBitmap m_button_ams_setting_normal;
     ScalableBitmap m_button_ams_setting_hover;
     ScalableBitmap m_button_ams_setting_press;
@@ -597,16 +637,23 @@ protected:
 
     std::string m_last_ams_id;
     std::string m_last_tray_id;
+
 public:
     std::string GetCurentAms();
     std::string GetCurentShowAms();
     std::string GetCurrentCan(std::string amsid);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
-    bool m_is_none_ams_mode{false};
+    AMSModel m_ams_model{AMSModel::NO_AMS};
+    AMSModel m_ext_model{AMSModel::NO_AMS};
+    AMSModel m_is_none_ams_mode{AMSModel::NO_AMS};
+
+    void SetAmsModel(AMSModel mode, AMSModel ext_mode) {m_ams_model = mode; m_ext_model = ext_mode;};
+
 	void SetActionState(bool button_status[]);
-    void EnterNoneAMSMode();
-    void ExitNoneAMSMode();
+    void EnterNoneAMSMode(bool support_vt_load = false);
+    void EnterGenericAMSMode();
+    void EnterExtraAMSMode();
 
     void EnterCalibrationMode(bool read_to_calibration);
     void ExitcClibrationMode();
@@ -617,15 +664,16 @@ public:
     void PlayRridLoading(wxString amsid, wxString canid);
     void StopRridLoading(wxString amsid, wxString canid);
 
-    void SetFilamentStep(int item_idx, FilamentStepType f_type, bool is_extrusion_exist = false);
+    void SetFilamentStep(int item_idx, FilamentStepType f_type);
     void ShowFilamentTip(bool hasams = true);
 
-    void SetHumidity(std::string amsid, int humidity);
     void UpdateStepCtrl(bool is_extrusion_exist);
     void CreateAms();
-    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool has_extrusion_cali = true, bool is_reset = false);
-    void AddAms(AMSinfo info, bool refresh = true);
-    void SetExtruder(bool on_off, bool is_vams, wxColour col);
+    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool is_reset = false);
+    void AddAms(AMSinfo info);
+    void AddAmsItems(AMSinfo info);
+    void AddExtraAms(AMSinfo info);
+    void SetExtruder(bool on_off, bool is_vams, std::string ams_now, wxColour col);
     void SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void SwitchAms(std::string ams_id);
 
@@ -639,7 +687,7 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray, bool support_extrustion_cali);
+    void show_noams_mode();
     void show_auto_refill(bool show);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
