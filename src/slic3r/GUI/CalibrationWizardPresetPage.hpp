@@ -40,6 +40,30 @@ protected:
     float m_flow_ratio_value;
 };
 
+class CaliComboBox : public wxPanel
+{
+public:
+    CaliComboBox(wxWindow *parent,
+        wxString title,
+        wxArrayString values,
+        int default_index = 0,  // default delected id
+        std::function<void(wxCommandEvent &)> on_value_change = nullptr,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+
+    int get_selection() const;
+    wxString get_value() const;
+    void set_values(const wxArrayString& values);
+
+private:
+    wxBoxSizer* m_top_sizer;
+    wxString m_title;
+    ComboBox* m_combo_box;
+    std::function<void(wxCommandEvent&)> m_on_value_change_call_back;
+};
+
 class CaliPresetWarningPanel : public wxPanel
 {
 public:
@@ -181,6 +205,7 @@ public:
     std::string get_print_preset_name();
 
     wxArrayString get_custom_range_values();
+    CalibMode     get_pa_cali_method();
 
     CaliPresetPageStatus get_page_status() { return m_page_status; }
 protected:
@@ -227,6 +252,7 @@ protected:
     CaliPresetPageStatus  get_status() { return m_page_status; }
 
     CaliPageStepGuide* m_step_panel{ nullptr };
+    CaliComboBox *            m_pa_cali_method_combox{nullptr};
     CaliPresetCaliStagePanel* m_cali_stage_panel { nullptr };
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };

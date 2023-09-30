@@ -1002,8 +1002,9 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
     Vec3d temp_position = m_mouse_position_world;
     Vec3d temp_normal   = m_mouse_normal_world;
 
-    Vec3d cut_plane = Vec3d::UnitY(); 
-    if (temp_normal != Vec3d::UnitZ()) {
+    Vec3d cut_plane = Vec3d::UnitY();
+    double epson = 1e-6;
+    if (!(abs(temp_normal.x()) <= epson && abs(temp_normal.y()) <= epson && abs(temp_normal.z()) > epson)) { // temp_normal != Vec3d::UnitZ()
         Vec3d v_plane   = temp_normal.cross(Vec3d::UnitZ());
         cut_plane = v_plane.cross(temp_normal);
     }
@@ -1092,6 +1093,9 @@ bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
 
     MeshSlicingParams slicing_params;
     slicing_params.trafo = transfo * mi->get_transformation().get_matrix() /** volume->get_transformation().get_matrix()*/;
+    // for debug
+    // its_write_obj(slice_meshs.its, "D:/debug_files/mesh.obj");
+
     // generate polygons
     const Polygons temp_polys = slice_mesh(slice_meshs.its, click_point.z(), slicing_params);
 

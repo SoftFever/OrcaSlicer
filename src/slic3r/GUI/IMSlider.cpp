@@ -234,7 +234,7 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
     m_ticks.ticks.clear();
     const std::vector<CustomGCode::Item> &heights = custom_gcode_per_print_z.gcodes;
     for (auto h : heights) {
-        int tick = get_tick_from_value(h.print_z);
+        int tick = get_tick_from_value(h.print_z, true);
         if (tick >= 0) m_ticks.ticks.emplace(TickCode{tick, h.type, h.extruder, h.color, h.extra});
     }
 

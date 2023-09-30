@@ -1,15 +1,18 @@
 {
     "type": "filament",
-    "filament_id": "GFL04",
     "name": "Overture PLA @base",
-    "from": "system",
-    "instantiation": "false",
     "inherits": "fdm_filament_pla",
+    "from": "system",
+    "filament_id": "GFL04",
+    "instantiation": "false",
     "filament_cost": [
         "24.15"
     ],
     "filament_density": [
         "1.2"
+    ],
+    "filament_flow_ratio": [
+        "0.98"
     ],
     "filament_max_volumetric_speed": [
         "15"

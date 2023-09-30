@@ -1,0 +1,12 @@
+{
+    "type": "machine_model",
+    "name": "Bambu Lab A1 mini",
+    "nozzle_diameter": "0.4;0.2;0.6;0.8",
+    "model_id": "N1",
+    "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
+    "machine_tech": "FFF",
+    "family": "BBL-3DP",
+    "bed_model": "bbl-3dp-A1M.stl",
+    "bed_texture": "bbl-3dp-logo.svg",
+    "default_materials": "Generic PLA @BBL A1M;Generic PLA Silk @BBL A1M;Bambu PLA Matte @BBL A1M;Bambu PLA Basic @BBL A1M;Bambu ABS @BBL P1P;Bambu PC @BBL P1P;Bambu Support W @BBL A1M;Bambu TPU 95A @BBL P1P;PolyTerra PLA @BBL A1M;PolyLite PLA @BBL A1M;"
+}

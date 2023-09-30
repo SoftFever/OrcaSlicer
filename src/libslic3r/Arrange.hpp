@@ -2,7 +2,7 @@
 #define ARRANGE_HPP
 
 #include "ExPolygon.hpp"
-
+#include "PrintConfig.hpp"
 namespace Slic3r {
 
 class BoundingBox;
@@ -53,7 +53,8 @@ struct ArrangePolygon {
     int       locked_plate{ -1 };
     bool      is_virt_object{ false };
     bool      is_extrusion_cali_object{ false };
-    bool      is_wipe_tower{false};
+    bool      is_wipe_tower{ false };
+    bool      has_tree_support{false};
     //BBS: add row/col for sudoku-style layout
     int       row{0};
     int       col{0};
@@ -120,6 +121,7 @@ struct ArrangeParams {
     bool  allow_multi_materials_on_same_plate = true;
     bool  avoid_extrusion_cali_region         = true;
     bool  is_seq_print                        = false;
+    bool  align_to_y_axis                     = false;
     float bed_shrink_x = 0;
     float bed_shrink_y = 0;
     float brim_skirt_distance = 0;
@@ -127,6 +129,7 @@ struct ArrangeParams {
     float clearance_height_to_lid = 0;
     float cleareance_radius = 0;
     float printable_height = 256.0;
+    Vec2d align_center{ 0.5,0.5 };
 
     ArrangePolygons excluded_regions;   // regions cant't be used
     ArrangePolygons nonprefered_regions; // regions can be used but not prefered
@@ -144,7 +147,38 @@ struct ArrangeParams {
     
     ArrangeParams() = default;
     explicit ArrangeParams(coord_t md) : min_obj_distance(md) {}
+    // to json format
+    std::string to_json() const{
+        std::string ret = "{";
+        ret += "\"min_obj_distance\":" + std::to_string(min_obj_distance) + ",";
+        ret += "\"accuracy\":" + std::to_string(accuracy) + ",";
+        ret += "\"parallel\":" + std::to_string(parallel) + ",";
+        ret += "\"allow_rotations\":" + std::to_string(allow_rotations) + ",";
+        ret += "\"do_final_align\":" + std::to_string(do_final_align) + ",";
+        ret += "\"allow_multi_materials_on_same_plate\":" + std::to_string(allow_multi_materials_on_same_plate) + ",";
+        ret += "\"avoid_extrusion_cali_region\":" + std::to_string(avoid_extrusion_cali_region) + ",";
+        ret += "\"is_seq_print\":" + std::to_string(is_seq_print) + ",";
+        ret += "\"bed_shrink_x\":" + std::to_string(bed_shrink_x) + ",";
+        ret += "\"bed_shrink_y\":" + std::to_string(bed_shrink_y) + ",";
+        ret += "\"brim_skirt_distance\":" + std::to_string(brim_skirt_distance) + ",";
+        ret += "\"clearance_height_to_rod\":" + std::to_string(clearance_height_to_rod) + ",";
+        ret += "\"clearance_height_to_lid\":" + std::to_string(clearance_height_to_lid) + ",";
+        ret += "\"cleareance_radius\":" + std::to_string(cleareance_radius) + ",";
+        ret += "\"printable_height\":" + std::to_string(printable_height) + ",";
+        return ret;
+    }
+
 };
+
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& print_cfg, const ArrangePolygons& selected);
+
+void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params);
+
+void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+
+void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
+
+Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParams& params);
 
 /**
  * \brief Arranges the input polygons.

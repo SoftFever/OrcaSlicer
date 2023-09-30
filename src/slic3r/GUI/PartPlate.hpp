@@ -144,6 +144,7 @@ private:
     GLUquadricObject* m_quadric;
     int m_hover_id;
     bool m_selected;
+    int m_timelapse_warning_code = 0;
 
     // BBS
     DynamicPrintConfig m_config;
@@ -263,6 +264,9 @@ public:
     //set the plate's name
     void set_plate_name(const std::string& name);
 
+    void set_timelapse_warning_code(int code) { m_timelapse_warning_code = code; }
+    int  timelapse_warning_code() { return m_timelapse_warning_code; }
+    
     //get the print's object, result and index
     void get_print(PrintBase **print, GCodeResult **result, int *index);
 
@@ -560,16 +564,16 @@ public:
         class TexturePart {
         public:
             // position
-            int x;
-            int y;
-            int w;
-            int h;
+            float x;
+            float y;
+            float w;
+            float h;
             unsigned int vbo_id;
             std::string filename;
             GLTexture* texture { nullptr };
             Vec2d offset;
             GeometryBuffer* buffer { nullptr };
-            TexturePart(int xx, int yy, int ww, int hh, std::string file) {
+            TexturePart(float xx, float yy, float ww, float hh, std::string file){
                 x = xx; y = yy;
                 w = ww; h = hh;
                 filename = file;
@@ -799,7 +803,8 @@ public:
     template<class Archive> void serialize(Archive& ar)
     {
         //ar(cereal::base_class<ObjectBase>(this));
-        ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
+        //Cancel undo/redo for m_shape ,Because the printing area of different models is different, currently if the grid changes, it cannot correspond to the model on the left ui
+        ar(m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
 

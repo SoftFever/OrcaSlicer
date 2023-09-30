@@ -419,6 +419,7 @@ private:
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
     coordf_t MAX_BRANCH_RADIUS = 10.0;
+    coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
     coordf_t MIN_BRANCH_RADIUS = 0.5;
     float tree_support_branch_diameter_angle = 5.0;
     bool  is_strong = false;
