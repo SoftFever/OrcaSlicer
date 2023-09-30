@@ -1160,6 +1160,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
             printer_tab->update();
         }
 
+        bool isBBL = preset_bundle.is_bbl_vendor();
+        wxGetApp().mainframe->show_calibration_button(!isBBL);
+
+        break;
     }
 
     default: break;
