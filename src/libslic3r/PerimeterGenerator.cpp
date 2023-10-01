@@ -2073,7 +2073,7 @@ void PerimeterGenerator::process_arachne()
                     // perimeters in a single island
                     // printf("Reorder Loop. Position %d, extrusion list size: %d, Outer index %d, inner index %d, second inner index %d\n", position, reordered_extrusions.size(),outer,first_internal,second_internal);
                     for (arr_i = position; arr_i < reordered_extrusions.size(); ++arr_i) {
-                        //  printf("Perimeter: extrusion inset index %d, ordered extrusions array position %d\n",reordered_extrusions[arr_i].extrusion->inset_idx, arr_i);
+                        // printf("Perimeter: extrusion inset index %d, ordered extrusions array position %d\n",reordered_extrusions[arr_i].extrusion->inset_idx, arr_i);
                         switch (reordered_extrusions[arr_i].extrusion->inset_idx) {
                             case 0: // external perimeter
                                 if (outer == -1)
