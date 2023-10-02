@@ -8529,6 +8529,12 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+        for (auto _vol : _obj->volumes) {
+            if (_vol->name != "ironing_modifier")
+                _vol->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+            else
+                _vol->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::AllSolid));
+        }
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
 
