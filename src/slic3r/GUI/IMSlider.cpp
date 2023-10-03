@@ -663,10 +663,8 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
             ImGui::RenderFrame(right_hover_box.Min, right_hover_box.Max, tick_hover_box_clr, false);
 
             show_tooltip(*tick_it);
-            if (context.IO.MouseClicked[0]) {
-                m_tick_value = tick_it->tick;
-                m_tick_rect = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
-            }
+            m_tick_value = tick_it->tick;
+            m_tick_rect = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
         }
         ++tick_it;
     }
