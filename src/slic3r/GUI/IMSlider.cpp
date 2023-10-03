@@ -6,6 +6,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
+#include <boost/algorithm/string/replace.hpp>
 
 namespace Slic3r {
 
@@ -769,9 +770,9 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     
     int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
 
-    if (tick == v_min || tick == v_max) {
-        return;
-    }
+//    if (tick == v_min || tick == v_max) {
+//        return;
+//    }
     
     //draw tick
     ImVec2 tick_offset   = ImVec2(22.0f, 14.0f) * m_scale;
@@ -784,6 +785,11 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     ImRect tick_right = ImRect(slideable_region.GetCenter().x + tick_offset.y, tick_pos - tick_width, slideable_region.GetCenter().x + tick_offset.x, tick_pos);
     ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
     ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
+    
+    // draw layer time
+    std::string label = get_label(tick, ltEstimatedTime);
+    boost::ireplace_all(label, "\n", "");
+    show_tooltip(label);
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
