@@ -405,8 +405,9 @@ void IMSlider::add_code_as_tick(Type type, int selected_extruder)
 }
 
 void IMSlider::delete_tick(const TickCode& tick) {
+    Type t = tick.type; // Avoid Use-After-Free issue, which resets the tick.type to 0
     m_ticks.ticks.erase(tick);
-    post_ticks_changed_event(tick.type);
+    post_ticks_changed_event(t);
 }
 
 bool IMSlider::check_ticks_changed_event(Type type)
