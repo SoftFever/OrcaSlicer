@@ -768,7 +768,22 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     ImGuiContext& context = *GImGui;
     
     int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
-    printf("hover tick: %d\n", tick);
+
+    if (tick == v_min || tick == v_max) {
+        return;
+    }
+    
+    //draw tick
+    ImVec2 tick_offset   = ImVec2(22.0f, 14.0f) * m_scale;
+    float  tick_width    = 1.0f * m_scale;
+
+    const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
+
+    float tick_pos = get_pos_from_value(v_min, v_max, tick, slideable_region);
+    ImRect tick_left  = ImRect(slideable_region.GetCenter().x - tick_offset.x, tick_pos - tick_width, slideable_region.GetCenter().x - tick_offset.y, tick_pos);
+    ImRect tick_right = ImRect(slideable_region.GetCenter().x + tick_offset.y, tick_pos - tick_width, slideable_region.GetCenter().x + tick_offset.x, tick_pos);
+    ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
+    ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
