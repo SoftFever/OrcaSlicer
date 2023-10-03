@@ -146,6 +146,7 @@ protected:
     void draw_background_and_groove(const ImRect& bg_rect, const ImRect& groove);
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
     void draw_ticks(const ImRect& slideable_region);
+    void draw_tick_on_mouse_position(const ImRect& slideable_region);
     void show_tooltip(const TickCode& tick); //menu
     void show_tooltip(const std::string tooltip); //menu
     bool vertical_slider(const char* str_id, int* higher_value, int* lower_value,
@@ -159,6 +160,7 @@ private:
     double get_double_value(const SelectedSlider& selection);
     int    get_tick_from_value(double value, bool force_lower_bound = false);
     float get_pos_from_value(int v_min, int v_max, int value, const ImRect& rect);
+    int    get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect);
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
     // Get active extruders for tick.
