@@ -746,6 +746,31 @@ void IMSlider::show_tooltip(const TickCode& tick){
     }
 }
 
+int IMSlider::get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect) {
+    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
+    
+    const ImGuiAxis axis = is_horizontal() ? ImGuiAxis_X : ImGuiAxis_Y;
+    const float region_usable_sz = (rect.Max[axis] - rect.Min[axis]);
+    const float region_usable_pos_min = rect.Min[axis];
+    
+    const float abs_pos = pt[axis];
+    
+    float pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
+    if (axis == ImGuiAxis_Y)
+        pos_ratio = 1.0f - pos_ratio;
+    
+    return v_min + (ImS32)(v_range * pos_ratio + 0.5f);
+}
+
+void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
+    int v_min = GetMinValue();
+    int v_max = GetMaxValue();
+    ImGuiContext& context = *GImGui;
+    
+    int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
+    printf("hover tick: %d\n", tick);
+}
+
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -914,6 +939,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         pos_3 = pos_1 + triangle_offsets[2];
         window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, lower_label.c_str());
+        
+        // draw mouse position
+        if (hovered) {
+            draw_tick_on_mouse_position(h_selected ? higher_slideable_region : lower_slideable_region);
+        }
     }
     if (one_layer_flag) 
     {
@@ -953,6 +983,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImRect text_rect = ImRect(text_start, text_start + text_size);
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, text_frame_rounding);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
+        
+        // draw mouse position
+        if (hovered) {
+            draw_tick_on_mouse_position(one_slideable_region);
+        }
     }
 
     return value_changed;
