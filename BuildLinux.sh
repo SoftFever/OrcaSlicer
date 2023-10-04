@@ -9,10 +9,10 @@ FOUND_GTK3=$(dpkg -l libgtk* | grep gtk-3)
 
 function check_available_memory_and_disk() {
     FREE_MEM_GB=$(free -g -t | grep 'Mem:' | rev | cut -d" " -f1 | rev)
-    MIN_MEM_GB=10
+    MIN_MEM_GB=4
 
     FREE_DISK_KB=$(df -k . | tail -1 | awk '{print $4}')
-    MIN_DISK_KB=$((10 * 1024 * 1024))
+    MIN_DISK_KB=$((8 * 1024 * 1024))
 
     if [ ${FREE_MEM_GB} -le ${MIN_MEM_GB} ]; then
         echo -e "\nERROR: Bambu Studio Builder requires at least ${MIN_MEM_GB}G of 'available' mem (systen has only ${FREE_MEM_GB}G available)"
