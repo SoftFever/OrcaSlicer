@@ -745,8 +745,8 @@ bool PrusaLink::get_storage(wxArrayString& storage_path, wxArrayString& storage_
                 const auto available = section.second.get_optional<bool>("available");
                 if (path && (!available || *available)) {
                     StorageInfo si;
-                    si.path = boost::nowide::widen(*path);
-                    si.name = name ? boost::nowide::widen(*name) : wxString();
+                    si.path = wxString(*path);
+                    si.name = name ? wxString(*name) : wxString();
                     // If read_only is missing, assume it is NOT read only.
                     // si.read_only = read_only ? *read_only : false; // version without "ro"
                     si.read_only = (read_only ? *read_only : (ro ? *ro : false));

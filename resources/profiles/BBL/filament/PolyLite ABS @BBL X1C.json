@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB60_00",
     "name": "PolyLite ABS @BBL X1C",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "PolyLite ABS @base",
+    "from": "system",
+    "setting_id": "GFSB60_00",
+    "instantiation": "true",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",
         "Bambu Lab X1 0.4 nozzle",
@@ -15,6 +15,5 @@
         "Bambu Lab P1S 0.4 nozzle",
         "Bambu Lab P1S 0.6 nozzle",
         "Bambu Lab P1S 0.8 nozzle"
-    ],
-    "version": "01.07.00.18"
+    ]
 }

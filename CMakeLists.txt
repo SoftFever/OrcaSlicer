@@ -113,6 +113,10 @@ if (MSVC)
     add_compile_options(/wd4244 /wd4267)
 endif ()
 
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
+    add_compile_definitions(BOOST_NO_CXX98_FUNCTION_BASE _HAS_AUTO_PTR_ETC=0)
+endif()
+
 if (MINGW)
     add_compile_options(-Wa,-mbig-obj)
 endif ()

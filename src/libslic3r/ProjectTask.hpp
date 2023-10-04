@@ -23,8 +23,9 @@ class BBLModelTask;
 enum MachineBedType {
     //BED_TYPE_AUTO = 0,
     BED_TYPE_PC = 0,
-    BED_TYPE_PEI,
     BED_TYPE_PE,
+    BED_TYPE_PEI,
+    BED_TYPE_PTE,
     BED_TYPE_COUNT,
 };
 
@@ -190,6 +191,8 @@ public:
     static BBLSubTask::SubTaskStatus parse_status(std::string status);
     static BBLSubTask::SubTaskStatus parse_user_service_task_status(int status);
 };
+
+typedef std::function<void(BBLModelTask* subtask)> OnGetSubTaskFn;
 
 class BBLTask {
 public:

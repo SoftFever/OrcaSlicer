@@ -52,6 +52,16 @@ public:
     void msw_rescale();
 };
 
+class ExtraAmsPanel : public AmsPanel 
+{
+public:
+    ExtraAmsPanel(wxWindow* parent,
+        wxWindowID      id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long            style = wxTAB_TRAVERSAL,
+        const wxString& name = wxEmptyString);
+};
 
 WX_DEFINE_ARRAY(AmsPanel*, AmsPanelHash);
 
@@ -74,6 +84,8 @@ protected:
     wxStaticBitmap *m_ams_img;
     AmsPanel*       m_ahb_panel;
     wxStaticLine*   m_staticline2;
+    ExtraAmsPanel*  m_extra_ams_panel;
+    wxStaticBitmap* m_extra_ams_img;
     wxStaticBitmap* m_ext_img;
     ExtensionPanel* m_ext_panel;
 
@@ -87,6 +99,10 @@ protected:
     bool           m_last_ext_show = true;
     wxBoxSizer*    m_ext_sizer;
 
+    /* extra_ams info */
+    bool           m_last_extra_ams_show = true;
+    wxBoxSizer*    m_extra_ams_sizer;
+
     /* upgrade widgets */
     wxBoxSizer*     m_upgrading_sizer;
     wxStaticText *  m_staticText_upgrading_info;
@@ -97,10 +113,12 @@ protected:
     Button *        m_button_upgrade_firmware;
 
     wxPanel* create_caption_panel(wxWindow *parent);
-    AmsPanelHash     m_amspanel_list;
+    AmsPanelHash             m_amspanel_list;
+    std::vector<ExtraAmsPanel*>    m_extra_ams_panel_list;
 
     ScalableBitmap m_img_ext;
     ScalableBitmap m_img_monitor_ams;
+    ScalableBitmap m_img_extra_ams;
     ScalableBitmap m_img_printer;
     ScalableBitmap upgrade_gray_icon;
     ScalableBitmap upgrade_green_icon;
@@ -134,6 +152,7 @@ public:
     void show_status(int status, std::string upgrade_status_str = "");
     void show_ams(bool show = false, bool force_update = false);
     void show_ext(bool show = false, bool force_update = false);
+    void show_extra_ams(bool show = false, bool force_update = false);
 
     void on_upgrade_firmware(wxCommandEvent &event);
     void on_consisitency_upgrade_firmware(wxCommandEvent &event);
@@ -152,12 +171,12 @@ public:
     }panel_type;
 };
 
-enum UpgradeMode {
-    umPushUpgrading,
-    umSelectOtaVerUpgrading,
-    umSelectAmsVerUpgrading,
-};
-static UpgradeMode upgrade_mode;
+//enum UpgradeMode {
+//    umPushUpgrading,
+//    umSelectOtaVerUpgrading,
+//    umSelectAmsVerUpgrading,
+//};
+//static UpgradeMode upgrade_mode;
 
 class UpgradePanel : public wxPanel
 {

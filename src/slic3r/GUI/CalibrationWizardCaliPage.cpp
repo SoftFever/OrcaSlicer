@@ -125,6 +125,17 @@ void CalibrationCaliPage::set_cali_img()
     }
 }
 
+void CalibrationCaliPage::set_pa_cali_image(int stage)
+{
+    if (m_cali_mode == CalibMode::Calib_PA_Line && m_cali_method == CALI_METHOD_MANUAL) {
+        if (stage == 0) {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual", nullptr, 400));
+        } else if (stage == 1) {
+            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual", nullptr, 400));
+        }
+    }
+}
+
 void CalibrationCaliPage::clear_last_job_status()
 {
     m_is_between_start_and_running = true;
@@ -132,6 +143,29 @@ void CalibrationCaliPage::clear_last_job_status()
 
 void CalibrationCaliPage::update(MachineObject* obj)
 {
+    if (this->IsShown()) {
+        if (obj) {
+            if (obj->print_status != "RUNNING") {
+                BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object status:"
+                                        << " dev_id = " << obj->dev_id
+                                        << ", print_type = " << obj->printer_type
+                                        << ", printer_status = " << obj->print_status
+                                        << ", is_connected = " << obj->is_connected()
+                                        << ", m_is_between_start_and_running = " << m_is_between_start_and_running
+                                        << ", cali_finished = " << obj->cali_finished
+                                        << ", cali_version = " << obj->cali_version
+                                        << ", cache_flow_ratio = " << obj->cache_flow_ratio
+                                        << ", sub_task_name = " << obj->subtask_name
+                                        << ", gcode_file_name = " << obj->m_gcode_file
+                                        << ", get_pa_calib_result" << obj->get_pa_calib_result
+                                        << ", get_flow_calib_result" << obj->get_flow_calib_result;
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "on_show_cali_page - machine object is nullptr";
+        }
+    }
+
     static int get_result_count = 0;
     // enable calibration when finished
     bool enable_cali = false;
@@ -349,7 +383,7 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
         m_printing_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
         if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
-            m_printing_panel->show_profile_info(wxString::FromUTF8(obj->get_modeltask()->profile_name));
+            m_printing_panel->show_profile_info(true, wxString::FromUTF8(obj->get_modeltask()->profile_name));
         }
         else {
             m_printing_panel->show_profile_info(false);

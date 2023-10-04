@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 20:34+0800\n"
+"POT-Creation-Date: 2023-09-30 10:27+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -658,6 +658,9 @@ msgstr "Завантаження режиму перегляду"
 
 msgid "Choose one file (3mf):"
 msgstr "Виберіть один файл (3mf):"
+
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr ""
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Виберіть один або кілька файлів (3mf/step/stl/svg/obj/amf):"
@@ -1514,6 +1517,9 @@ msgstr "Підключення..."
 msgid "?"
 msgstr "?"
 
+msgid "/"
+msgstr ""
+
 msgid "Empty"
 msgstr "Порожній"
 
@@ -1524,12 +1530,6 @@ msgid "Auto Refill"
 msgstr ""
 
 msgid "AMS not connected"
-msgstr "АМС не підключено"
-
-msgid "Cali"
-msgstr "Калі"
-
-msgid "Calibration of extrusion"
 msgstr "АМС не підключено"
 
 msgid "Load Filament"
@@ -1563,6 +1563,9 @@ msgstr "Повторити калібрування"
 msgid "Cancel calibration"
 msgstr "Скасувати калібрування"
 
+msgid "Idling..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "Нагрійте сопло"
 
@@ -1578,7 +1581,13 @@ msgstr "Вставте новий філамент в екструдер"
 msgid "Purge old filament"
 msgstr "Очистіть старий філамент"
 
-msgid "Push new filament into the extruder"
+msgid "Feed Filament"
+msgstr ""
+
+msgid "Confirm extruded"
+msgstr ""
+
+msgid "Check filament location"
 msgstr ""
 
 msgid "Grab new filament"
@@ -2427,33 +2436,19 @@ msgstr ""
 "Рекомендована температура сопла для цього типу нитки становить [%d, %d] "
 "градусів Цельсія"
 
-#, c-format, boost-format
-msgid ""
-"Bed temperature of other layer is lower than bed temperature of initial "
-"layer for more than %d degree centigrade.\n"
-"This may cause model broken free from build plate during printing"
-msgstr ""
-"Температура шару іншого шару нижче температури шару вихідного шару більш ніж "
-"на %d градусів за Цельсієм.\n"
-"Це може призвести до відриву моделі від робочої пластини під час друку"
-
-msgid ""
-"Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure\n"
-"Please keep the printer open during the printing process to ensure air "
-"circulation or reduce the temperature of the hot bed"
-msgstr ""
-"Температура шару вище температури скловання цієї нитки.\n"
-"Це може призвести до блокування сопла та збою друку\n"
-" Будь ласка , тримайте принтер відкритим під час друку , щоб забезпечити "
-"доступ повітря циркуляція або знизити температуру столу"
-
 msgid ""
 "Too small max volumetric speed.\n"
 "Reset to 0.5"
 msgstr ""
 "Надто маленька максимальна об'ємна швидкість.\n"
 "Скинути до 0,5"
+
+#, c-format, boost-format
+msgid ""
+"Current chamber temperature is higher than the material's safe temperature,"
+"it may result in material softening and clogging.The maximum safe "
+"temperature for the material is %d"
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -2514,6 +2509,9 @@ msgstr ""
 "Спіральний режим працює тільки тоді, коли периметри дорівнюють 1, підтримка "
 "відключена, верхня оболонка дорівнює 0, щільність заповнення дорівнює 0, а "
 "типуповільненої зйомки - традиційний."
+
+msgid " But machines with I3 structure will not generate timelapse videos."
+msgstr ""
 
 msgid ""
 "Change these settings automatically? \n"
@@ -2643,6 +2641,36 @@ msgstr "Припинено через збій температури сопла
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "Припинено через несправність температури нагрівального шару"
 
+msgid "Filament unloading"
+msgstr ""
+
+msgid "Skip step pause"
+msgstr ""
+
+msgid "Filament loading"
+msgstr ""
+
+msgid "Motor noise calibration"
+msgstr ""
+
+msgid "Paused due to AMS lost"
+msgstr ""
+
+msgid "Paused due to low speed of the heat break fan"
+msgstr ""
+
+msgid "Paused due to chamber temperature control error"
+msgstr ""
+
+msgid "Cooling chamber"
+msgstr ""
+
+msgid "Paused by the Gcode inserted by user"
+msgstr ""
+
+msgid "Motor noise showoff"
+msgstr ""
+
 msgid "MC"
 msgstr "MC"
 
@@ -2678,6 +2706,24 @@ msgstr "Перевірка не вдалася."
 
 msgid "Update failed."
 msgstr "Не вдалося оновити."
+
+msgid ""
+"The current chamber temperature or the target chamber temperature exceeds "
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
+msgstr ""
+
+msgid ""
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
+"avoid extruder clogging,it is not allowed to set the chamber temperature "
+"above 45℃."
+msgstr ""
+
+msgid ""
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
+msgstr ""
 
 msgid "Failed to start printing job"
 msgstr "Не вдалося запустити завдання друку"
@@ -2807,11 +2853,14 @@ msgstr "Очищення"
 msgid "Total"
 msgstr "Загальний"
 
-msgid "Total Time Estimation"
-msgstr "Оцінка загального часу"
+msgid "Total Estimation"
+msgstr "Загальна оцінка"
 
 msgid "Total time"
 msgstr "Загальний час"
+
+msgid "Total cost"
+msgstr ""
 
 msgid "up to"
 msgstr "аж до"
@@ -2899,9 +2948,6 @@ msgstr "Принтер"
 
 msgid "Print settings"
 msgstr "Параметри друку"
-
-msgid "Total Estimation"
-msgstr "Загальна оцінка"
 
 msgid "Time Estimation"
 msgstr "Оцінка часу"
@@ -3011,6 +3057,9 @@ msgstr "Дозволити використання декількох мате�
 msgid "Avoid extrusion calibration region"
 msgstr "Уникайте області калібрування екструзії"
 
+msgid "Align to Y axis"
+msgstr ""
+
 msgid "Add"
 msgstr "Додати"
 
@@ -3106,8 +3155,11 @@ msgstr "Калібрування мікролідара"
 msgid "Bed leveling"
 msgstr "Вирівнювання столу"
 
-msgid "Resonance frequency identification"
-msgstr "Ідентифікація резонансної частоти"
+msgid "Vibration compensation"
+msgstr ""
+
+msgid "Motor noise cancellation"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Програма калібрування"
@@ -3126,6 +3178,9 @@ msgstr "Калібрувальний потік"
 
 msgid "Start Calibration"
 msgstr "Почати калібрування"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Completed"
 msgstr "Завершений"
@@ -3202,9 +3257,6 @@ msgstr "Ні"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "буде закрито перед створенням нової моделі. Ви хочете продовжувати?"
-
-msgid "Upload"
-msgstr ""
 
 msgid "Slice plate"
 msgstr "Нарізати моделі"
@@ -3883,11 +3935,19 @@ msgstr "0"
 msgid "Layer: N/A"
 msgstr "Шар: немає даних"
 
-msgid "Immediately score"
-msgstr ""
-
 msgid "Clear"
 msgstr "Очищення"
+
+msgid "How do you like this printing file?"
+msgstr ""
+
+msgid ""
+"(The model has already been rated. Your rating will overwrite the previous "
+"rating.)"
+msgstr ""
+
+msgid "Rate"
+msgstr ""
 
 msgid "Camera"
 msgstr "Камера"
@@ -3954,12 +4014,6 @@ msgstr "У черзі Cloud Slicing Queue попереду %s завдань."
 msgid "Layer: %s"
 msgstr "Шар: %s"
 
-msgid "Please give a score for your favorite Bambu Market model."
-msgstr ""
-
-msgid "Score"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Layer: %d/%d"
 msgstr "Шар: %d/%d"
@@ -4002,6 +4056,97 @@ msgstr "Безглуздий"
 
 msgid "Can't start this without SD card."
 msgstr "Не можу запустити це без SD-карти."
+
+msgid "Rate the Print Profile"
+msgstr ""
+
+msgid "Comment"
+msgstr ""
+
+msgid "Rate this print"
+msgstr ""
+
+msgid "Add Photo"
+msgstr ""
+
+msgid "Delete Photo"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Please click on the star first."
+msgstr ""
+
+msgid "InFo"
+msgstr ""
+
+msgid "Get oss config failed."
+msgstr ""
+
+msgid "Upload Pictrues"
+msgstr ""
+
+msgid "Number of images successfully uploaded"
+msgstr ""
+
+msgid " upload failed"
+msgstr ""
+
+msgid " upload config prase failed\n"
+msgstr ""
+
+msgid " No corresponding storage bucket\n"
+msgstr ""
+
+msgid " can not be opened\n"
+msgstr ""
+
+msgid ""
+"The following issues occurred during the process of uploading images. Do you "
+"want to ignore them?\n"
+"\n"
+msgstr ""
+
+msgid "info"
+msgstr "інфо"
+
+msgid "Synchronizing the printing results. Please retry a few seconds later."
+msgstr ""
+
+msgid "Upload failed\n"
+msgstr ""
+
+msgid "obtaining instance_id failed\n"
+msgstr ""
+
+msgid ""
+"Your comment result cannot be uploaded due to some reasons. As follows:\n"
+"\n"
+"  error code: "
+msgstr ""
+
+msgid "error message: "
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Would you like to redirect to the webpage for rating?"
+msgstr ""
+
+msgid ""
+"Some of your images failed to upload. Would you like to redirect to the "
+"webpage for rating?"
+msgstr ""
+
+msgid "You can select up to 16 images."
+msgstr ""
+
+msgid ""
+"At least one successful print record of this print profile is required \n"
+"to give a positive rating(4 or 5stars)."
+msgstr ""
 
 msgid "Status"
 msgstr "Статус"
@@ -4132,6 +4277,9 @@ msgstr "Попередження:"
 msgid "Export successfully."
 msgstr "Експорт успішно."
 
+msgid "Model file downloaded."
+msgstr ""
+
 msgid "Serious warning:"
 msgstr ""
 
@@ -4217,6 +4365,9 @@ msgstr "Перевірка першого шару"
 
 msgid "Auto-recovery from step loss"
 msgstr "Автоматичне відновлення після втрати кроку"
+
+msgid "Allow Prompt Sound"
+msgstr ""
 
 msgid "Global"
 msgstr "Глобальний"
@@ -4374,6 +4525,11 @@ msgstr ""
 "замовчуванням.\n"
 "жорсткість сопла принтера. Будь ласка, замініть загартоване сопло або\n"
 "нитки розжарювання, інакше сопло буде зношене або пошкоджене."
+
+msgid ""
+"Enabling traditional timelapse photography may cause surface imperfections. "
+"It is recommended to change to smooth mode."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -4589,6 +4745,11 @@ msgstr "завантажую проект..."
 #, c-format, boost-format
 msgid "Project downloaded %d%%"
 msgstr "Проект завантажено %d%%"
+
+msgid ""
+"Importing to Bambu Studio failed. Please download the file and manually "
+"import it."
+msgstr ""
 
 msgid "The selected file"
 msgstr "Вибраний файл"
@@ -4979,9 +5140,6 @@ msgstr "помилка"
 msgid "warning"
 msgstr "попередження"
 
-msgid "info"
-msgstr "інфо"
-
 msgid "debug"
 msgstr "налагодження"
 
@@ -5232,11 +5390,17 @@ msgstr "Холодний стіл"
 msgid "PLA Plate"
 msgstr ""
 
-msgid "Bamabu Engineering Plate"
-msgstr "Інженерний стіл"
+msgid "Bambu Engineering Plate"
+msgstr ""
 
-msgid "Bamabu High Temperature Plate"
-msgstr "Високотемпературна пластина"
+msgid "Bambu Smooth PEI Plate"
+msgstr ""
+
+msgid "High temperature Plate"
+msgstr ""
+
+msgid "Bambu Textured PEI Plate"
+msgstr ""
 
 msgid "Send print job to"
 msgstr "Надіслати завдання на друк на"
@@ -5250,7 +5414,7 @@ msgstr "Вирівнювання столу"
 msgid "Flow Dynamics Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
+msgid "Click here if you can't connect to the printer"
 msgstr ""
 
 msgid "send completed"
@@ -5361,6 +5525,16 @@ msgstr "Неможливо надіслати завдання на друк д�
 
 msgid "This printer does not support printing all plates"
 msgstr "Цей принтер не підтримує друк усіх форм"
+
+msgid ""
+"When enable spiral vase mode, machines with I3 structure will not generate "
+"timelapse videos."
+msgstr ""
+
+msgid ""
+"When print by object, machines with I3 structure will not generate timelapse "
+"videos."
+msgstr ""
 
 msgid "Errors"
 msgstr "Помилки"
@@ -5669,6 +5843,9 @@ msgstr "Підкладка"
 msgid "Support filament"
 msgstr "Філамент підтримки"
 
+msgid "Tree supports"
+msgstr ""
+
 msgid "Prime tower"
 msgstr "Вежа Очищення"
 
@@ -5726,9 +5903,6 @@ msgstr ""
 "Рекомендований діапазон температур сопла для цього філаменту. 0 означає "
 "відсутність установки"
 
-msgid "Recommended temperature range"
-msgstr "Рекомендований діапазон температур"
-
 msgid "Print temperature"
 msgstr "Температура друку"
 
@@ -5759,15 +5933,14 @@ msgstr ""
 "Температура стола при встановленій інженерній плиті. Значення 0 означає \n"
 "Філамент не підтримує друк на інженерній пластині"
 
-msgid "High Temp Plate"
-msgstr "Високотемпературна пластина"
+msgid "Smooth PEI Plate / High Temp Plate"
+msgstr ""
 
 msgid ""
-"Bed temperature when high temperature plate is installed. Value 0 means the "
-"filament does not support to print on the High Temp Plate"
+"Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
+"Value 0 means the filament does not support to print on the Smooth PEI Plate/"
+"High Temp Plate"
 msgstr ""
-"Температура столу, коли встановлено високотемпературний стіл. Значення 0 "
-"означає філамент не підтримує друк на високотемпературному столі"
 
 msgid "Textured PEI Plate"
 msgstr "Текстурована пластина PEI"
@@ -5819,6 +5992,15 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr "Вентилятор охолодження допоміжних деталей"
 
+msgid "Exhaust fan"
+msgstr ""
+
+msgid "During print"
+msgstr ""
+
+msgid "Complete print"
+msgstr ""
+
 msgid "Filament start G-code"
 msgstr "G-код початку Філаменту"
 
@@ -5869,6 +6051,9 @@ msgstr "G-code перед зміною шару"
 
 msgid "Layer change G-code"
 msgstr "G-code Зміни шару"
+
+msgid "Time lapse G-code"
+msgstr ""
 
 msgid "Change filament G-code"
 msgstr "G-code Зміни філаменту"
@@ -6730,6 +6915,11 @@ msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
 msgstr ""
 "Не вдалося обчислити ширину лінії %1%. Неможливо отримати значення \"%2%\" "
 
+msgid ""
+"Invalid spacing supplied to Flow::with_spacing(), check your layer height "
+"and extrusion width"
+msgstr ""
+
 msgid "undefined error"
 msgstr "невизначена помилка"
 
@@ -6887,6 +7077,24 @@ msgid ""
 "materials."
 msgstr ""
 "Режим спіральної вази не працює, якщо об'єкт містить більше одногоматеріалу."
+
+#, boost-format
+msgid "The object %1% exceeds the maximum build volume height."
+msgstr ""
+
+#, boost-format
+msgid ""
+"While the object %1% itself fits the build volume, its last layer exceeds "
+"the maximum build volume height."
+msgstr ""
+
+msgid ""
+"You might want to reduce the size of your model or change current print "
+"settings and retry."
+msgstr ""
+
+msgid "Variable layer height is not supported with Organic supports."
+msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Під час друку \"По об'єкту\" праймер не підтримується."
@@ -7408,6 +7616,14 @@ msgid "Enable this option to slow printing down for different overhang degree"
 msgstr ""
 "Увімкнути цей параметр для уповільнення друку при різних ступенях звису"
 
+msgid "Slow down for curled perimeters"
+msgstr ""
+
+msgid ""
+"Enable this option to slow printing down in areas where potential curled "
+"perimeters may exist"
+msgstr ""
+
 msgid "mm/s or %"
 msgstr "мм/с або %"
 
@@ -7541,6 +7757,23 @@ msgstr "Профіль за промовчанням"
 msgid "Default process profile when switch to this machine profile"
 msgstr "Профіль за промовчанням при перемиканні на цей профіль машини"
 
+msgid "Activate air filtration"
+msgstr ""
+
+msgid "Activate for better air filtration"
+msgstr ""
+
+msgid "Fan speed"
+msgstr "Швидкість вентилятора"
+
+msgid ""
+"Speed of exhuast fan during printing.This speed will overwrite the speed in "
+"filament custom gcode"
+msgstr ""
+
+msgid "Speed of exhuast fan after printing completes"
+msgstr ""
+
 msgid "No cooling for the first"
 msgstr "Немає охолодження для першого шару"
 
@@ -7607,22 +7840,6 @@ msgid ""
 msgstr ""
 "Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
 "товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
-
-msgid "Internal bridge support thickness"
-msgstr "Товщина внутрішньої опори мосту"
-
-msgid ""
-"If enabled, support loops will be generated under the contours of internal "
-"bridges.These support loops could prevent internal bridges from extruding "
-"over the air and improve the top surface quality, especially when the sparse "
-"infill density is low.This value determines the thickness of the support "
-"loops. 0 means disable this feature"
-msgstr ""
-"Якщо ввімкнуто, опорні петлі будуть створюватися під контурами внутрішніх "
-"мости. Ці опорні петлі можуть запобігти екструзії внутрішніх мостівпо "
-"повітрю та покращити якість верхньої поверхні, особливо коли "
-"розрідженістьщільність заповнення низька. Це значення визначає товщину опори "
-"цикли. 0 означає вимкнути цю функцію"
 
 msgid "Top surface pattern"
 msgstr "Малюнок верхньої поверхні"
@@ -8245,10 +8462,13 @@ msgid "accel_to_decel"
 msgstr "прискорення до уповільнення"
 
 #, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this %% of acceleration"
 msgstr ""
-"Max \"прискорення до уповільнення\" для Klipper буде скориговано на % o "
-"автоматично"
+
+#, c-format, boost-format
+msgid "%%"
+msgstr ""
 
 msgid "Jerk of outer walls"
 msgstr "Ривок зовнішніх периметрів"
@@ -8466,6 +8686,30 @@ msgstr ""
 msgid "HRC"
 msgstr "HRC"
 
+msgid "Printer structure"
+msgstr ""
+
+msgid "The physical arrangement and components of a printing device"
+msgstr ""
+
+msgid "CoreXY"
+msgstr ""
+
+msgid "I3"
+msgstr ""
+
+msgid "Hbot"
+msgstr ""
+
+msgid "Delta"
+msgstr ""
+
+msgid "Best object position"
+msgstr ""
+
+msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
+msgstr ""
+
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
 "Увімкніть цю опцію, якщо машина оснащена вентилятором охолодженнядопоміжної "
@@ -8515,6 +8759,28 @@ msgstr ""
 "недостатнім для того, щоб вентилятор почав обертатися з упору, абодля "
 "прискорення роботи вентилятора.\n"
 "Для деактивації встановіть значення 0."
+
+msgid "Time cost"
+msgstr ""
+
+msgid "The printer cost per hour"
+msgstr ""
+
+msgid "money/h"
+msgstr ""
+
+msgid "Support control chamber temperature"
+msgstr ""
+
+msgid ""
+"This option is enabled if machine support controlling chamber temperature"
+msgstr ""
+
+msgid "Support air filtration"
+msgstr ""
+
+msgid "Enable this if printer support air filtration"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "Тип G-коду"
@@ -8776,9 +9042,6 @@ msgstr "Максимальне прискорення руху"
 msgid "Maximum acceleration for travel (M204 T), it only applies to Marlin 2"
 msgstr ""
 
-msgid "Fan speed"
-msgstr "Швидкість вентилятора"
-
 msgid ""
 "Part cooling fan speed may be increased when auto cooling is enabled. This "
 "is the maximum speed limitation of part cooling fan"
@@ -8796,6 +9059,55 @@ msgid ""
 msgstr ""
 "Найбільша висота шару, що друкується, для екструдера. Використовуваний tp "
 "обмежує максимальну висоту шару при включенні адаптивної висоти шару"
+
+msgid "Extrusion rate smoothing"
+msgstr ""
+
+msgid ""
+"This parameter smooths out sudden extrusion rate changes that happen when "
+"the printer transitions from printing a high flow (high speed/larger width) "
+"extrusion to a lower flow (lower speed/smaller width) extrusion and vice "
+"versa.\n"
+"\n"
+"It defines the maximum rate by which the extruded volumetric flow in mm3/sec "
+"can change over time. Higher values mean higher extrusion rate changes are "
+"allowed, resulting in faster speed transitions.\n"
+"\n"
+"A value of 0 disables the feature. \n"
+"\n"
+"For a high speed, high flow direct drive printer (like the Bambu lab or "
+"Voron) this value is usually not needed. However it can provide some "
+"marginal benefit in certain cases where feature speeds vary greatly. For "
+"example, when there are aggressive slowdowns due to overhangs. In these "
+"cases a high value of around 300-350mm3/s2 is recommended as this allows for "
+"just enough smoothing to assist pressure advance achieve a smoother flow "
+"transition.\n"
+"\n"
+"For slower printers without pressure advance, the value should be set much "
+"lower. A value of 10-15mm3/s2 is a good starting point for direct drive "
+"extruders and 5-10mm3/s2 for Bowden style. \n"
+"\n"
+"This feature is known as Pressure Equalizer in Prusa slicer.\n"
+"\n"
+"Note: this parameter disables arc fitting."
+msgstr ""
+
+msgid "mm³/s²"
+msgstr ""
+
+msgid "Smoothing segment length"
+msgstr ""
+
+msgid ""
+"A lower value results in smoother extrusion rate transitions. However, this "
+"results in a significantly larger gcode file and more instructions for the "
+"printer to process. \n"
+"\n"
+"Default value of 3 works well for most cases. If your printer is stuttering, "
+"increase this value to reduce the number of adjustments made\n"
+"\n"
+"Allowed values: 1-5"
+msgstr ""
 
 msgid "Minimum speed for part cooling fan"
 msgstr "Мінімальна швидкість вентилятора охолодження деталі"
@@ -9080,6 +9392,22 @@ msgstr ""
 "соплом та об’єктом який друкується. Це запобігає удару сопла об об’єкт при "
 "переміщення. Використання спіралевої лінії підняття по осі Z може "
 "перешкоджати появі висячих ниток"
+
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
 
 msgid "Z hop type"
 msgstr "Тип Z-стрибка"
@@ -9598,17 +9926,11 @@ msgid ""
 "Style and shape of the support. For normal support, projecting the supports "
 "into a regular grid will create more stable supports (default), while snug "
 "support towers will save material and reduce object scarring.\n"
-"For tree support, slim style will merge branches more aggressively and save "
-"a lot of material (default), while hybrid style will create similar "
-"structure to normal support under large flat overhangs."
+"For tree support, slim and organic style will merge branches more "
+"aggressively and save a lot of material (default organic), while hybrid "
+"style will create similar structure to normal support under large flat "
+"overhangs."
 msgstr ""
-"Стиль та форма опори. Для звичайної підтримки проектування опор у "
-"звичайнусітка створить більш стійкі опори (за замовчуванням), тоді як "
-"завзяті опори заощадять матеріал і зменшать утворення рубців на об'єктах.\n"
-"Для підтримки дерева тонкий стиль об'єднуватиме гілки більш агресивно і "
-"заощаджувати багато матеріалу (за замовчуванням), в той час як гібридний "
-"стильСтворить структуру, аналогічну звичайній підтримці при великих плоских "
-"звисах."
 
 msgid "Snug"
 msgstr "Обережний"
@@ -9766,24 +10088,18 @@ msgstr ""
 msgid "Chamber temperature"
 msgstr "Температура в камері"
 
-msgid "Target chamber temperature"
-msgstr "Температура цільової камери"
+msgid ""
+"Higher chamber temperature can help suppress or reduce warping and "
+"potentially lead to higher interlayer bonding strength for high temperature "
+"materials like ABS, ASA, PC, PA and so on.At the same time, the air "
+"filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and "
+"other low temperature materials,the actual chamber temperature should not be "
+"high to avoid cloggings, so 0 which stands for turning off is highly "
+"recommended"
+msgstr ""
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Температура сопла для шарів після початкового"
-
-msgid "Bed temperature difference"
-msgstr "Різниця температур шару"
-
-msgid ""
-"Do not recommend bed temperature of other layer to be lower than initial "
-"layer for more than this threshold. Too low bed temperature of other layer "
-"may cause the model broken free from build plate"
-msgstr ""
-"Не рекомендується, щоб температура шару іншого шару була нижчою, ніж "
-"температура вихідного шару, при перевищенні цього порога. Надто "
-"низькатемпература шару іншого шару може призвести до того, що модель "
-"будерозірвана без конструкційної пластини"
 
 msgid "Detect thin wall"
 msgstr "Виявлення тонкої стінки"
@@ -10193,6 +10509,12 @@ msgstr ""
 msgid "Load first filament as default for those not loaded"
 msgstr ""
 
+msgid "Minimum save"
+msgstr ""
+
+msgid "export 3mf with minimum size."
+msgstr ""
+
 msgid "mtcpp"
 msgstr "mtcpp"
 
@@ -10248,14 +10570,39 @@ msgstr ""
 msgid "Repetions count of the whole model"
 msgstr ""
 
+msgid "Ensure on bed"
+msgstr ""
+
+msgid ""
+"Lift the object above the bed when it is partially below. Disabled by default"
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Перетворити одиницю виміру"
 
 msgid "Convert the units of model"
 msgstr "Перетворення одиниць моделі"
 
-msgid "Orient the model"
-msgstr "Орієнтувати модель"
+msgid "Orient Options"
+msgstr ""
+
+msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Rotation angle around the Z axis in degrees."
+msgstr ""
+
+msgid "Rotate around X"
+msgstr ""
+
+msgid "Rotation angle around the X axis in degrees."
+msgstr ""
+
+msgid "Rotate around Y"
+msgstr ""
+
+msgid "Rotation angle around the Y axis in degrees."
+msgstr ""
 
 msgid "Scale the model by a float factor"
 msgstr "Масштабуйте модель за допомогою плаваючого коефіцієнта"
@@ -10312,6 +10659,12 @@ msgid ""
 msgstr ""
 "Встановлює рівень реєстрації налагодження. 0: непереборний, 1: помилка, 2: "
 "попередження, 3: інформація, 4: налагодження, 5: трасування\n"
+
+msgid "Load custom gcode"
+msgstr ""
+
+msgid "Load custom gcode from json"
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Помилка у zip архіві"
@@ -10507,6 +10860,15 @@ msgstr ""
 msgid "The name cannot exceed 40 characters."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"Please input valid values:\n"
+"Start value: >= %.1f\n"
+"End value: <= %.1f\n"
+"End value: > Start value\n"
+"Value step: >= %.3f)"
+msgstr ""
+
 msgid "The name cannot be empty."
 msgstr ""
 
@@ -10536,6 +10898,9 @@ msgstr ""
 msgid "Please select filament to calibrate."
 msgstr ""
 
+msgid "The input value size must be 3."
+msgstr ""
+
 msgid "Connecting to printer..."
 msgstr ""
 
@@ -10552,9 +10917,6 @@ msgid "Please select at least one filament for calibration"
 msgstr ""
 
 msgid "Flow rate calibration result has been saved to preset"
-msgstr ""
-
-msgid "The input value size must be 3."
 msgstr ""
 
 msgid "Max volumetric speed calibration result has been saved to preset"
@@ -10692,6 +11054,9 @@ msgstr ""
 msgid "Please find the best line on your plate"
 msgstr ""
 
+msgid "Please find the cornor with perfect degree of extrusion"
+msgstr ""
+
 msgid "Input Value"
 msgstr ""
 
@@ -10794,6 +11159,12 @@ msgstr ""
 msgid "Extra info"
 msgstr ""
 
+msgid "Pattern"
+msgstr ""
+
+msgid "Method"
+msgstr "Метод"
+
 #, c-format, boost-format
 msgid "%s is not compatible with %s"
 msgstr ""
@@ -10802,6 +11173,21 @@ msgid "TPU is not supported for Flow Dynamics Auto-Calibration."
 msgstr ""
 
 msgid "Connecting to printer"
+msgstr ""
+
+msgid "From k Value"
+msgstr ""
+
+msgid "To k Value"
+msgstr ""
+
+msgid "Step value"
+msgstr ""
+
+msgid "0.5"
+msgstr ""
+
+msgid "0.005"
 msgstr ""
 
 msgid "The nozzle diameter has been synchronized from the printer Settings"
@@ -10916,6 +11302,9 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 
+msgid "Upload"
+msgstr ""
+
 msgid "Print host upload queue"
 msgstr ""
 
@@ -10976,9 +11365,6 @@ msgstr "РА лінія"
 
 msgid "PA Pattern"
 msgstr ""
-
-msgid "Method"
-msgstr "Метод"
 
 msgid "Start PA: "
 msgstr "Стартовий PA: "
@@ -11057,12 +11443,10 @@ msgstr "крок: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \n"
+"step >= 0\n"
 "end > start + step)"
 msgstr ""
-"Введіть допустимі значення:\n"
-"початок > 0 крок >= 0\n"
-"кінець > початок + крок)"
 
 msgid "VFA test"
 msgstr "VFA тест"
@@ -11075,12 +11459,10 @@ msgstr "Кінцева швидкість: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \n"
+"step >= 0\n"
 "end > start + step)"
 msgstr ""
-"Введіть допустимі значення:\n"
-"старт > 10 кроків >= 0\n"
-"кінець > початок + крок)"
 
 msgid "Start retraction length: "
 msgstr "Початкова довжина ретракту: "
@@ -11139,6 +11521,17 @@ msgstr ""
 
 msgid "Connection to printers connected via the print host failed."
 msgstr "Не вдалося підключитися до принтерів, підключених через вузол друку."
+
+msgid "The start, end or step is not valid value."
+msgstr ""
+
+msgid ""
+"Unable to calibrate: maybe because the set calibration value range is too "
+"large, or the step is too small"
+msgstr ""
+
+msgid "Need select printer"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:3D Scene Operations]
 msgid ""
@@ -11403,3 +11796,133 @@ msgstr ""
 "Підвищення міцності\n"
 "Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
 "більшепериметрів та вищу щільність заповнення?"
+
+#~ msgid "Cali"
+#~ msgstr "Калі"
+
+#~ msgid "Calibration of extrusion"
+#~ msgstr "АМС не підключено"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Bed temperature of other layer is lower than bed temperature of initial "
+#~ "layer for more than %d degree centigrade.\n"
+#~ "This may cause model broken free from build plate during printing"
+#~ msgstr ""
+#~ "Температура шару іншого шару нижче температури шару вихідного шару більш "
+#~ "ніж на %d градусів за Цельсієм.\n"
+#~ "Це може призвести до відриву моделі від робочої пластини під час друку"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure\n"
+#~ "Please keep the printer open during the printing process to ensure air "
+#~ "circulation or reduce the temperature of the hot bed"
+#~ msgstr ""
+#~ "Температура шару вище температури скловання цієї нитки.\n"
+#~ "Це може призвести до блокування сопла та збою друку\n"
+#~ " Будь ласка , тримайте принтер відкритим під час друку , щоб забезпечити "
+#~ "доступ повітря циркуляція або знизити температуру столу"
+
+#~ msgid "Total Time Estimation"
+#~ msgstr "Оцінка загального часу"
+
+#~ msgid "Resonance frequency identification"
+#~ msgstr "Ідентифікація резонансної частоти"
+
+#~ msgid "Bamabu Engineering Plate"
+#~ msgstr "Інженерний стіл"
+
+#~ msgid "Bamabu High Temperature Plate"
+#~ msgstr "Високотемпературна пластина"
+
+#~ msgid "Recommended temperature range"
+#~ msgstr "Рекомендований діапазон температур"
+
+#~ msgid "High Temp Plate"
+#~ msgstr "Високотемпературна пластина"
+
+#~ msgid ""
+#~ "Bed temperature when high temperature plate is installed. Value 0 means "
+#~ "the filament does not support to print on the High Temp Plate"
+#~ msgstr ""
+#~ "Температура столу, коли встановлено високотемпературний стіл. Значення 0 "
+#~ "означає філамент не підтримує друк на високотемпературному столі"
+
+#~ msgid "Internal bridge support thickness"
+#~ msgstr "Товщина внутрішньої опори мосту"
+
+#~ msgid ""
+#~ "If enabled, support loops will be generated under the contours of "
+#~ "internal bridges.These support loops could prevent internal bridges from "
+#~ "extruding over the air and improve the top surface quality, especially "
+#~ "when the sparse infill density is low.This value determines the thickness "
+#~ "of the support loops. 0 means disable this feature"
+#~ msgstr ""
+#~ "Якщо ввімкнуто, опорні петлі будуть створюватися під контурами внутрішніх "
+#~ "мости. Ці опорні петлі можуть запобігти екструзії внутрішніх мостівпо "
+#~ "повітрю та покращити якість верхньої поверхні, особливо коли "
+#~ "розрідженістьщільність заповнення низька. Це значення визначає товщину "
+#~ "опори цикли. 0 означає вимкнути цю функцію"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+#~ msgstr ""
+#~ "Max \"прискорення до уповільнення\" для Klipper буде скориговано на % o "
+#~ "автоматично"
+
+#~ msgid ""
+#~ "Style and shape of the support. For normal support, projecting the "
+#~ "supports into a regular grid will create more stable supports (default), "
+#~ "while snug support towers will save material and reduce object scarring.\n"
+#~ "For tree support, slim style will merge branches more aggressively and "
+#~ "save a lot of material (default), while hybrid style will create similar "
+#~ "structure to normal support under large flat overhangs."
+#~ msgstr ""
+#~ "Стиль та форма опори. Для звичайної підтримки проектування опор у "
+#~ "звичайнусітка створить більш стійкі опори (за замовчуванням), тоді як "
+#~ "завзяті опори заощадять матеріал і зменшать утворення рубців на "
+#~ "об'єктах.\n"
+#~ "Для підтримки дерева тонкий стиль об'єднуватиме гілки більш агресивно і "
+#~ "заощаджувати багато матеріалу (за замовчуванням), в той час як гібридний "
+#~ "стильСтворить структуру, аналогічну звичайній підтримці при великих "
+#~ "плоских звисах."
+
+#~ msgid "Target chamber temperature"
+#~ msgstr "Температура цільової камери"
+
+#~ msgid "Bed temperature difference"
+#~ msgstr "Різниця температур шару"
+
+#~ msgid ""
+#~ "Do not recommend bed temperature of other layer to be lower than initial "
+#~ "layer for more than this threshold. Too low bed temperature of other "
+#~ "layer may cause the model broken free from build plate"
+#~ msgstr ""
+#~ "Не рекомендується, щоб температура шару іншого шару була нижчою, ніж "
+#~ "температура вихідного шару, при перевищенні цього порога. Надто "
+#~ "низькатемпература шару іншого шару може призвести до того, що модель "
+#~ "будерозірвана без конструкційної пластини"
+
+#~ msgid "Orient the model"
+#~ msgstr "Орієнтувати модель"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 0 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Введіть допустимі значення:\n"
+#~ "початок > 0 крок >= 0\n"
+#~ "кінець > початок + крок)"
+
+#~ msgid ""
+#~ "Please input valid values:\n"
+#~ "start > 10 step >= 0\n"
+#~ "end > start + step)"
+#~ msgstr ""
+#~ "Введіть допустимі значення:\n"
+#~ "старт > 10 кроків >= 0\n"
+#~ "кінець > початок + крок)"

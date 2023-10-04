@@ -1,6 +1,8 @@
 #ifndef slic3r_Print_hpp_
 #define slic3r_Print_hpp_
 
+#include "Fill/FillAdaptive.hpp"
+#include "Fill/FillLightning.hpp"
 #include "PrintBase.hpp"
 
 #include "BoundingBox.hpp"
@@ -87,7 +89,7 @@ enum PrintStep {
 };
 
 enum PrintObjectStep {
-    posSlice, posPerimeters, posPrepareInfill,
+    posSlice, posPerimeters,posEstimateCurledExtrusions, posPrepareInfill,
     posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
     // BBS
     posSimplifyInfill,
@@ -468,6 +470,7 @@ private:
     void infill();
     void ironing();
     void generate_support_material();
+    void estimate_curled_extrusions();
     void simplify_extrusion_path();
 
     void slice_volumes();
@@ -486,7 +489,8 @@ private:
     void discover_horizontal_shells();
     void combine_infill();
     void _generate_support_material();
-    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data(
+        const std::vector<std::pair<const Surface*, float>>& surfaces_w_bottom_z) const;
     FillLightning::GeneratorPtr prepare_lightning_infill_data();
 
     // BBS
@@ -516,6 +520,10 @@ private:
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
     bool                    				m_typed_slices = false;
+
+    std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> m_adaptive_fill_octrees;
+    FillLightning::GeneratorPtr m_lightning_generator;
+
     std::vector < VolumeSlices >            firstLayerObjSliceByVolume;
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
     // BBS: per object skirt

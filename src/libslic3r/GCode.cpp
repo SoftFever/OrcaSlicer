@@ -980,6 +980,33 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return gcode;
     }
 
+    bool WipeTowerIntegration::is_empty_wipe_tower_gcode(GCode &gcodegen, int extruder_id, bool finish_layer)
+    {
+        assert(m_layer_idx >= 0);
+        if (m_layer_idx >= (int) m_tool_changes.size())
+            return true;
+
+        bool   ignore_sparse = false;
+        if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
+            ignore_sparse = (m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+        }
+
+        if (m_enable_timelapse_print && m_is_first_print) {
+            return false;
+        }
+
+        if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
+            if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
+                throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+
+            if (!ignore_sparse) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Print is finished. Now it remains to unload the filament safely with ramming over the wipe tower.
     std::string WipeTowerIntegration::finalize(GCode &gcodegen)
     {
@@ -1286,10 +1313,11 @@ namespace DoExport {
 //            get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
 //    }
 
-    static void update_print_estimated_stats(const GCodeProcessor& processor, const std::vector<Extruder>& extruders, PrintStatistics& print_statistics)
+    static void update_print_estimated_stats(const GCodeProcessor& processor, const std::vector<Extruder>& extruders, PrintStatistics& print_statistics, const PrintConfig& config)
     {
         const GCodeProcessorResult& result = processor.get_result();
-        print_statistics.estimated_normal_print_time = get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+        double normal_print_time = result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time;
+        print_statistics.estimated_normal_print_time = get_time_dhms(normal_print_time);
         print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
             get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
 
@@ -1327,7 +1355,9 @@ namespace DoExport {
             total_weight        += weight;
             total_cost          += weight * extruder->filament_cost() * 0.001;
         }
-
+       
+        total_cost += config.time_cost.getFloat() * (normal_print_time/3600.0);
+        
         print_statistics.total_extruded_volume = total_extruded_volume;
         print_statistics.total_used_filament   = total_used_filament;
         print_statistics.total_weight          = total_weight;
@@ -1364,6 +1394,7 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Machine end G-code")), config.machine_end_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Layer change G-code")), config.layer_change_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Time lapse G-code")), config.time_lapse_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change filament G-code")), config.change_filament_gcode.value);
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
@@ -1486,9 +1517,19 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
+
+    m_timelapse_warning_code = 0;
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
+        m_timelapse_warning_code += 1;
+    }
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && print->config().print_sequence == PrintSequence::ByObject) {
+        m_timelapse_warning_code += (1 << 1);
+    }
+    m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
+    m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
-    DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
+    DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics, print->config());
     if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
         // set the filename to the correct value
@@ -1648,16 +1689,13 @@ namespace DoExport {
 	                    output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
 
 	                    unsigned int row_count = 0;
-	                    while (encoded.size() > max_row_length)
-	                    {
-	                        output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
-	                        encoded = encoded.substr(max_row_length);
+	                    //BBS: optimize performance ,reduce too much memeory operation 
+	                    size_t current_index = 0;
+	                    while(current_index<encoded.size()){
+	                        output((boost::format("; %s\n") % encoded.substr(current_index, max_row_length)).str().c_str());
+	                        current_index+=std::min(max_row_length,encoded.size()-current_index);
 	                        ++row_count;
 	                    }
-
-	                    if (encoded.size() > 0)
-	                    	output((boost::format("; %s\n") % encoded).str().c_str());
-
 	                    output("; thumbnail end\n");
                         output("; THUMBNAIL_BLOCK_END\n\n");
 
@@ -1873,14 +1911,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     if (print.config().spiral_mode.value)
         m_spiral_vase = make_unique<SpiralVase>(print.config());
-#ifdef HAS_PRESSURE_EQUALIZER
-    if (print.config().max_volumetric_extrusion_rate_slope_positive.value > 0 ||
-        print.config().max_volumetric_extrusion_rate_slope_negative.value > 0)
-        m_pressure_equalizer = make_unique<PressureEqualizer>(&print.config());
-    m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
-#else /* HAS_PRESSURE_EQUALIZER */
-    m_enable_extrusion_role_markers = false;
-#endif /* HAS_PRESSURE_EQUALIZER */
+
+    if (print.config().max_volumetric_extrusion_rate_slope.value > 0){
+    		m_pressure_equalizer = make_unique<PressureEqualizer>(print.config());
+    		m_enable_extrusion_role_markers = (bool)m_pressure_equalizer;
+    } else
+	    m_enable_extrusion_role_markers = false;
+
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -1946,7 +1983,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             [&print]() { print.throw_if_canceled(); });
       }
     }
-    
+
 
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
@@ -2196,7 +2233,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
-        //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
+        //add during_print_exhaust_fan_speed
+        std::vector<int> during_print_exhaust_fan_speed_num;
+        during_print_exhaust_fan_speed_num.reserve(m_config.during_print_exhaust_fan_speed.size());
+        for (const auto& item : m_config.during_print_exhaust_fan_speed.values)
+            during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
+        this->placeholder_parser().set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
+
+        // calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
@@ -2246,8 +2290,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.writeln(this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values[initial_extruder_id], initial_extruder_id, &config));
     }
 */
-    if (is_bbl_printers)
+    if (is_bbl_printers) {
         this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
+        if (m_config.support_air_filtration.getBool() && m_config.activate_air_filtration.get_at(initial_extruder_id)) {
+            file.write(m_writer.set_exhaust_fan(m_config.during_print_exhaust_fan_speed.get_at(initial_extruder_id), true));
+        }
+    }
     print.throw_if_canceled();
 
     // Set other general things.
@@ -2388,10 +2436,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         file.write("M1003 S0\n");
                     }
                 }
-    #ifdef HAS_PRESSURE_EQUALIZER
-                if (m_pressure_equalizer)
-                    file.write(m_pressure_equalizer->process("", true));
-    #endif /* HAS_PRESSURE_EQUALIZER */
                 ++ finished_objects;
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
@@ -2459,10 +2503,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     file.write("M1003 S0\n");
                 }
             }
-    #ifdef HAS_PRESSURE_EQUALIZER
-            if (m_pressure_equalizer)
-                file.write(m_pressure_equalizer->process("", true));
-    #endif /* HAS_PRESSURE_EQUALIZER */
             if (m_wipe_tower)
                 // Purge the extruder, pull out the active filament.
                 file.write(m_wipe_tower->finalize(*this));
@@ -2518,6 +2558,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
+    file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
+
+
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
     file.write_format("; EXECUTABLE_BLOCK_END\n\n");
@@ -2567,6 +2610,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
     file.write("\n");
 
+    bool activate_air_filtration = false;
+    for (const auto& extruder : m_writer.extruders())
+        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
+    activate_air_filtration &= m_config.support_air_filtration.getBool();
+
+    if (activate_air_filtration) {
+        int complete_print_exhaust_fan_speed = 0;
+        for (const auto& extruder : m_writer.extruders())
+            if (m_config.activate_air_filtration.get_at(extruder.id()))
+                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
+        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
+    }
+
     print.throw_if_canceled();
 }
 
@@ -2595,11 +2651,18 @@ void GCode::process_layers(
 {
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
-    const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> GCode::LayerResult {
-            if (layer_to_print_idx == layers_to_print.size()) {
-                fc.stop();
-                return {};
+    const auto generator = tbb::make_filter<void, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [this, &print, &tool_ordering, &print_object_instances_ordering, &layers_to_print, &layer_to_print_idx](tbb::flow_control& fc) -> LayerResult {
+            if (layer_to_print_idx >= layers_to_print.size()) {
+            	if ((!m_pressure_equalizer && layer_to_print_idx == layers_to_print.size()) || (m_pressure_equalizer && layer_to_print_idx == (layers_to_print.size() + 1))) {
+                    fc.stop();
+                    return {};
+                } else {
+                    // Pressure equalizer need insert empty input. Because it returns one layer back.
+                    // Insert NOP (no operation) layer;
+                    ++layer_to_print_idx;
+                    return LayerResult::make_nop_layer_result();
+                }
             } else {
                 const std::pair<coordf_t, std::vector<LayerToPrint>>& layer = layers_to_print[layer_to_print_idx++];
                 const LayerTools& layer_tools = tool_ordering.tools_for_layer(layer.first);
@@ -2612,13 +2675,23 @@ void GCode::process_layers(
                 return this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, size_t(-1));
             }
         });
-    const auto spiral_mode = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](GCode::LayerResult in) -> GCode::LayerResult {
+   
+    const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in) -> LayerResult {
+        	if (in.nop_layer_result)
+                return in;
+                
             spiral_mode.enable(in.spiral_vase_enable);
             return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
         });
-    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in) -> std::string {
+    const auto pressure_equalizer = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [pressure_equalizer = this->m_pressure_equalizer.get()](LayerResult in) -> LayerResult {
+            return pressure_equalizer->process_layer(std::move(in));
+        });
+    const auto cooling = tbb::make_filter<LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&cooling_buffer = *this->m_cooling_buffer.get()](LayerResult in) -> std::string {
+        	if (in.nop_layer_result)
+                return in.gcode;
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
@@ -2627,6 +2700,7 @@ void GCode::process_layers(
 
     const auto fan_mover = tbb::make_filter<std::string, std::string>(slic3r_tbb_filtermode::serial_in_order,
             [&fan_mover = this->m_fan_mover, &config = this->config(), &writer = this->m_writer](std::string in)->std::string {
+
         CNumericLocalesSetter locales_setter;
 
         if (config.fan_speedup_time.value != 0 || config.fan_kickstart.value > 0) {
@@ -2645,10 +2719,14 @@ void GCode::process_layers(
     });
 
     // The pipeline elements are joined using const references, thus no copying is performed.
-    if (m_spiral_vase)
-        tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    if (m_spiral_vase && m_pressure_equalizer)
+        tbb::parallel_pipeline(12, generator & spiral_mode & pressure_equalizer & cooling & fan_mover & output);
+    else if (m_spiral_vase)
+    	tbb::parallel_pipeline(12, generator & spiral_mode & cooling & fan_mover & output);
+    else if	(m_pressure_equalizer)
+        tbb::parallel_pipeline(12, generator & pressure_equalizer & cooling & fan_mover & output);
     else
-        tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
+    	tbb::parallel_pipeline(12, generator & cooling & fan_mover & output);
 }
 
 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
@@ -2665,8 +2743,8 @@ void GCode::process_layers(
 {
     // The pipeline is variable: The vase mode filter is optional.
     size_t layer_to_print_idx = 0;
-    const auto generator = tbb::make_filter<void, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx, prime_extruder](tbb::flow_control& fc) -> GCode::LayerResult {
+    const auto generator = tbb::make_filter<void, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx, prime_extruder](tbb::flow_control& fc) -> LayerResult {
             if (layer_to_print_idx == layers_to_print.size()) {
                 fc.stop();
                 return {};
@@ -2679,13 +2757,13 @@ void GCode::process_layers(
                 return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx, prime_extruder);
             }
         });
-    const auto spiral_mode = tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(slic3r_tbb_filtermode::serial_in_order,
-        [&spiral_mode = *this->m_spiral_vase.get()](GCode::LayerResult in)->GCode::LayerResult {
+    const auto spiral_mode = tbb::make_filter<LayerResult, LayerResult>(slic3r_tbb_filtermode::serial_in_order,
+        [&spiral_mode = *this->m_spiral_vase.get()](LayerResult in)->LayerResult {
             spiral_mode.enable(in.spiral_vase_enable);
             return { spiral_mode.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
         });
-    const auto cooling = tbb::make_filter<GCode::LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
-        [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in)->std::string {
+    const auto cooling = tbb::make_filter<LayerResult, std::string>(slic3r_tbb_filtermode::serial_in_order,
+        [&cooling_buffer = *this->m_cooling_buffer.get()](LayerResult in)->std::string {
             return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
         });
     const auto output = tbb::make_filter<std::string, void>(slic3r_tbb_filtermode::serial_in_order,
@@ -2884,6 +2962,7 @@ int GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer,
     const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
     return bed_temp_opt->get_at(extruder_id);
 }
+
 
 // Write 1st layer bed temperatures into the G-code.
 // Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.
@@ -3216,7 +3295,7 @@ inline std::string get_instance_name(const PrintObject *object, const PrintInsta
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
 // For multi-material prints, this routine minimizes extruder switches by gathering extruder specific extrusion paths
 // and performing the extruder specific extrusions together.
-GCode::LayerResult GCode::process_layer(
+LayerResult GCode::process_layer(
     const Print                    			&print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> 		&layers,
@@ -3255,7 +3334,7 @@ GCode::LayerResult GCode::process_layer(
     else if (support_layer != nullptr)
         layer_ptr = support_layer;
     const Layer& layer = *layer_ptr;
-    GCode::LayerResult   result { {}, layer.id(), false, last_layer };
+    LayerResult   result { {}, layer.id(), false, last_layer };
     if (layer_tools.extruders.empty())
         // Nothing to extrude.
         return result;
@@ -3320,10 +3399,45 @@ GCode::LayerResult GCode::process_layer(
             + "\n";
     }
 
+    PrinterStructure printer_structure           = m_config.printer_structure.value;
+    bool need_insert_timelapse_gcode_for_traditional = false;
+    if (printer_structure == PrinterStructure::psI3 &&
+        !m_spiral_vase &&
+        (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) &&
+        print.config().print_sequence == PrintSequence::ByLayer) {
+        need_insert_timelapse_gcode_for_traditional = true;
+    }
+    bool has_insert_timelapse_gcode = false;
+    bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
+
+    auto insert_timelapse_gcode = [this, print_z, &print]() -> std::string {
+        std::string gcode_res;
+        if (!print.config().time_lapse_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            gcode_res = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.extruder()->id(), &config) + "\n";
+        }
+        return gcode_res;
+    };
+
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
+    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
+        std::string timepals_gcode = insert_timelapse_gcode();
+        gcode += timepals_gcode;
+        m_writer.set_current_position_clear(false);
+        //BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2) = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
+    }
     if (! print.config().layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
@@ -3633,9 +3747,29 @@ GCode::LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
-        gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
-            m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
-            this->set_extruder(extruder_id, print_z);
+        if (has_wipe_tower) {
+            if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
+                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+                    gcode += this->retract(false, false, LiftType::NormalLift);
+                    m_writer.add_object_change_labels(gcode);
+
+                    std::string timepals_gcode = insert_timelapse_gcode();
+                    gcode += timepals_gcode;
+                    m_writer.set_current_position_clear(false);
+                    //BBS: check whether custom gcode changes the z position. Update if changed
+                    double temp_z_after_timepals_gcode;
+                    if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                        Vec3d pos = m_writer.get_position();
+                        pos(2) = temp_z_after_timepals_gcode;
+                        m_writer.set_position(pos);
+                    }
+                    has_insert_timelapse_gcode = true;
+                }
+                gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
+            }
+        } else {
+            gcode += this->set_extruder(extruder_id, print_z);
+        }
 
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
@@ -3829,11 +3963,11 @@ GCode::LayerResult GCode::process_layer(
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
-                        gcode += this->extrude_infill(print, by_region_specific, false);
+                                                gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific);
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific);
-                        gcode += this->extrude_infill(print,by_region_specific, false);
+                                                gcode += this->extrude_infill(print,by_region_specific, false);
                     }
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
@@ -3878,19 +4012,30 @@ GCode::LayerResult GCode::process_layer(
             // Flush the cooling buffer at each object layer or possibly at the last layer, even if it contains just supports (This should not happen).
             object_layer || last_layer);
 
-#ifdef HAS_PRESSURE_EQUALIZER
-    // Apply pressure equalization if enabled;
-    // printf("G-code before filter:\n%s\n", gcode.c_str());
-    if (m_pressure_equalizer)
-        gcode = m_pressure_equalizer->process(gcode.c_str(), false);
-    // printf("G-code after filter:\n%s\n", out.c_str());
-#endif /* HAS_PRESSURE_EQUALIZER */
-
     file.write(gcode);
 #endif
 
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
+
+    if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+        if (m_support_traditional_timelapse)
+            m_support_traditional_timelapse = false;
+
+        gcode += this->retract(false, false, LiftType::NormalLift);
+        m_writer.add_object_change_labels(gcode);
+
+        std::string timepals_gcode = insert_timelapse_gcode();
+        gcode += timepals_gcode;
+        m_writer.set_current_position_clear(false);
+        //BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2) = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
+    }
 
     result.gcode = std::move(gcode);
     result.cooling_buffer_flush = object_layer || raft_layer || last_layer;
@@ -4530,35 +4675,68 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (m_config.enable_overhang_speed && !m_config.overhang_speed_classic && !this->on_first_layer() &&
         (is_bridge(path.role()) || is_perimeter(path.role()))) {
-        double out_wall_ref_speed = m_config.get_abs_value("outer_wall_speed");
-        ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
-        ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
-            {(m_config.get_abs_value("overhang_1_4_speed") < 0.5) ?
-                 FloatOrPercent{100, true} :
-                 FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed") * 100 / out_wall_ref_speed, true},
-             (m_config.get_abs_value("overhang_2_4_speed") < 0.5) ?
-                 FloatOrPercent{100, true} :
-                 FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed") * 100 / out_wall_ref_speed, true},
-             (m_config.get_abs_value("overhang_3_4_speed") < 0.5) ?
-                 FloatOrPercent{100, true} :
-                 FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed") * 100 / out_wall_ref_speed, true},
-             (m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
-                 FloatOrPercent{100, true} :
-                 FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true},
-             FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / out_wall_ref_speed, true},
-             FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / out_wall_ref_speed, true}});
+               
+        	double out_wall_ref_speed = m_config.get_abs_value("outer_wall_speed");
+        	ConfigOptionPercents         overhang_overlap_levels({75, 50, 25, 13, 12.99, 0});
 
-        if (out_wall_ref_speed == 0)
-            out_wall_ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
+        	if (m_config.slowdown_for_curled_perimeters){
+        	 	ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
+            		{(m_config.get_abs_value("overhang_1_4_speed") < 0.5) ?
+                 		FloatOrPercent{100, true} :
+                 		FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed") * 100 / out_wall_ref_speed, true},
+            	 	(m_config.get_abs_value("overhang_2_4_speed") < 0.5) ?
+                 		FloatOrPercent{100, true} :
+                 		FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed") * 100 / out_wall_ref_speed, true},
+             		(m_config.get_abs_value("overhang_3_4_speed") < 0.5) ?
+                 		FloatOrPercent{100, true} :
+                 		FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed") * 100 / out_wall_ref_speed, true},
+             		(m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
+                 		FloatOrPercent{100, true} :
+                 		FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true},
+                	(m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
+                 		FloatOrPercent{100, true} :
+                 		FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true},
+                	(m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
+                		FloatOrPercent{100, true} :
+                 		FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true}});
+            	if (out_wall_ref_speed == 0)
+            		out_wall_ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
 
-        if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
-            out_wall_ref_speed = std::min(out_wall_ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
-        }
+        		if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+            		out_wall_ref_speed = std::min(out_wall_ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
+        		}
 
-        new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
-                                                                              out_wall_ref_speed, speed);
+        		new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
+                                                                              out_wall_ref_speed, speed, m_config.slowdown_for_curled_perimeters);
+        	}else{
+            	ConfigOptionFloatsOrPercents dynamic_overhang_speeds(
+            	{(m_config.get_abs_value("overhang_1_4_speed") < 0.5) ?
+                 	FloatOrPercent{100, true} :
+                 	FloatOrPercent{m_config.get_abs_value("overhang_1_4_speed") * 100 / out_wall_ref_speed, true},
+             	(m_config.get_abs_value("overhang_2_4_speed") < 0.5) ?
+                 	FloatOrPercent{100, true} :
+                 	FloatOrPercent{m_config.get_abs_value("overhang_2_4_speed") * 100 / out_wall_ref_speed, true},
+             	(m_config.get_abs_value("overhang_3_4_speed") < 0.5) ?
+                 	FloatOrPercent{100, true} :
+                 	FloatOrPercent{m_config.get_abs_value("overhang_3_4_speed") * 100 / out_wall_ref_speed, true},
+             	(m_config.get_abs_value("overhang_4_4_speed") < 0.5) ?
+                 	FloatOrPercent{100, true} :
+                 	FloatOrPercent{m_config.get_abs_value("overhang_4_4_speed") * 100 / out_wall_ref_speed, true},
+             	FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / out_wall_ref_speed, true},
+             	FloatOrPercent{m_config.get_abs_value("bridge_speed") * 100 / out_wall_ref_speed, true}});
+             
+        		if (out_wall_ref_speed == 0)
+            		out_wall_ref_speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
 
-        variable_speed = std::any_of(new_points.begin(), new_points.end(), [speed](const ProcessedPoint &p) { return p.speed != speed; });
+        		if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
+            		out_wall_ref_speed = std::min(out_wall_ref_speed, EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm);
+        		}
+
+        		new_points = m_extrusion_quality_estimator.estimate_extrusion_quality(path, overhang_overlap_levels, dynamic_overhang_speeds,
+                                                                              out_wall_ref_speed, speed, m_config.slowdown_for_curled_perimeters);
+        	}
+        	variable_speed = std::any_of(new_points.begin(), new_points.end(), [speed](const ProcessedPoint &p) { return p.speed != speed; });
+
     }
 
     double F = speed * 60;  // convert mm/sec to mm/min

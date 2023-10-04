@@ -70,7 +70,7 @@ orcaslicer_add_cmake_project(CURL
     ${_curl_platform_flags}
 )
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (APPLE OR (CMAKE_SYSTEM_NAME STREQUAL "Linux"))
   add_dependencies(dep_CURL dep_OpenSSL)
 endif ()
 

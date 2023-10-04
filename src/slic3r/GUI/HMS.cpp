@@ -279,9 +279,22 @@ std::string get_hms_wiki_url(std::string error_code)
     std::string hms_host = wxGetApp().app_config->get_hms_host();
     std::string lang_code = HMSQuery::hms_language_code();
     std::string url = (boost::format("https://%1%/index.php?e=%2%&s=device_hms&lang=%3%")
+        % hms_host
+        % error_code
+        % lang_code).str();
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return url;
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj) return url;
+
+    if (!obj->dev_id.empty()) {
+        url = (boost::format("https://%1%/index.php?e=%2%&d=%3%&s=device_hms&lang=%4%")
                        % hms_host
                        % error_code
+                       % obj->dev_id
                        % lang_code).str();
+    }
     return url;
 }
 

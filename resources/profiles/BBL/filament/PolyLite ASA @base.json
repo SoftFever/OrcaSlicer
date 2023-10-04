@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFB61",
     "name": "PolyLite ASA @base",
-    "from": "system",
-    "instantiation": "false",
     "inherits": "fdm_filament_asa",
+    "from": "system",
+    "filament_id": "GFB61",
+    "instantiation": "false",
     "filament_cost": [
         "23.6"
     ],

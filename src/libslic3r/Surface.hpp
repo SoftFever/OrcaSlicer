@@ -15,8 +15,6 @@ enum SurfaceType {
     stBottomBridge,
     // Normal sparse infill.
     stInternal,
-    // Normal sparse infill.
-    stInternalWithLoop,
     // Full infill, supporting the top surfaces and/or defining the verticall wall thickness.
     stInternalSolid,
     // 1st layer of dense infill over sparse infill, printed with a bridging extrusion flow.
@@ -115,7 +113,7 @@ public:
 };
 
 typedef std::vector<Surface> Surfaces;
-typedef std::vector<Surface*> SurfacesPtr;
+typedef std::vector<const Surface*> SurfacesPtr;
 
 inline Polygons to_polygons(const Surface &surface)
 {
@@ -232,6 +230,7 @@ inline void polygons_append(Polygons &dst, const SurfacesPtr &src)
     }
 }
 
+/*
 inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
 {
     dst.reserve(dst.size() + number_polygons(src));
@@ -241,6 +240,7 @@ inline void polygons_append(Polygons &dst, SurfacesPtr &&src)
         (*it)->expolygon.holes.clear();
     }
 }
+*/
 
 // Append a vector of Surfaces at the end of another vector of polygons.
 inline void surfaces_append(Surfaces &dst, const ExPolygons &src, SurfaceType surfaceType)

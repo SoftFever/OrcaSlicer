@@ -1,14 +1,11 @@
 {
-  "type": "filament",
-  "filament_id": "GFS98",
-  "name": "Generic HIPS @base",
-  "from": "system",
-  "instantiation": "false",
-  "inherits": "fdm_filament_hips",
-  "filament_vendor": [
-      "Generic"
-  ],
-  "filament_is_support": [
-      "1"
-  ]
+    "type": "filament",
+    "name": "Generic HIPS @base",
+    "inherits": "fdm_filament_hips",
+    "from": "system",
+    "filament_id": "GFS98",
+    "instantiation": "false",
+    "filament_is_support": [
+        "1"
+    ]
 }

@@ -1,6 +1,6 @@
 #ifndef SRC_LIBSLIC3R_SUPPORTABLEISSUESSEARCH_HPP_
 #define SRC_LIBSLIC3R_SUPPORTABLEISSUESSEARCH_HPP_
-/*
+
 #include "Layer.hpp"
 #include "Line.hpp"
 #include "PrintBase.hpp"
@@ -8,6 +8,7 @@
 #include <boost/log/trivial.hpp>
 #include <cstddef>
 #include <vector>
+
 
 namespace Slic3r {
 
@@ -42,8 +43,9 @@ struct Params
     BrimType brim_type;
     const float brim_width;
 
-    const std::pair<float,float> malformation_distance_factors = std::pair<float, float> { 0.5, 1.1 };
+    const std::pair<float,float> malformation_distance_factors = std::pair<float, float> { 0.33, 0.7 };
     const float max_curled_height_factor = 10.0f;
+    const float curling_tolerance_limit = 0.1f;
 
     const float min_distance_between_support_points = 3.0f; //mm
     const float support_points_interface_radius = 1.5f; // mm
@@ -77,6 +79,9 @@ struct Params
     }
 };
 
+void estimate_malformations(std::vector<Layer *> &layers, const Params &params);
+
+
 enum class SupportPointCause { 
     LongBridge, // point generated on bridge and straight perimeter extrusion longer than the allowed length 
     FloatingBridgeAnchor, // point generated on unsupported bridge endpoint
@@ -97,7 +102,7 @@ enum class SupportPointCause {
 //    between forces that destabilize the object (extruder conflicts with curled filament, weight if instable center of mass, bed movements etc)
 //    and forces that stabilize the object (bed adhesion, other support spots adhesion, weight if stable center of mass).
 //    Note that the force is only the difference - the amount needed to stabilize the object again.
-struct SupportPoint
+/*struct SupportPoint
 {
     SupportPoint(SupportPointCause cause, const Vec3f &position, float force, float spot_radius, const Vec2f &direction)
         : cause(cause), position(position), force(force), spot_radius(spot_radius), direction(direction)
@@ -147,13 +152,12 @@ using PartialObjects = std::vector<PartialObject>;
 std::tuple<SupportPoints, PartialObjects> full_search(const PrintObject *po, const PrintTryCancel& cancel_func, const Params &params);
 
 void estimate_supports_malformations(std::vector<SupportLayer *> &layers, float supports_flow_width, const Params &params);
-void estimate_malformations(std::vector<Layer *> &layers, const Params &params);
 
 
 // NOTE: the boolean marks if the issue is critical or not for now.
 std::vector<std::pair<SupportPointCause, bool>> gather_issues(const SupportPoints &support_points,
                                                              PartialObjects      &partial_objects);
-
-}} // namespace Slic3r::SupportSpotsGenerator
 */
+}} // namespace Slic3r::SupportSpotsGenerator
+
 #endif /* SRC_LIBSLIC3R_SUPPORTABLEISSUESSEARCH_HPP_ */

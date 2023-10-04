@@ -44,6 +44,7 @@
 #include "Widgets/TabCtrl.hpp"
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
+#include "BedShapeDialog.hpp"
 
 #include "BedShapeDialog.hpp"
 // #include "BonjourDialog.hpp"
@@ -1867,6 +1868,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("xy_hole_compensation");
         optgroup->append_single_option_line("xy_contour_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
+        optgroup->append_single_option_line("elefant_foot_compensation_layers");
         optgroup->append_single_option_line("precise_outer_wall");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
@@ -1935,7 +1937,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
         optgroup->append_single_option_line("ensure_vertical_shell_thickness");
-        optgroup->append_single_option_line("internal_bridge_support_thickness");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
@@ -1957,6 +1958,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Overhang speed"), L"param_speed", 15);
         optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
         optgroup->append_single_option_line("overhang_speed_classic", "slow-down-for-overhang");
+        optgroup->append_single_option_line("slowdown_for_curled_perimeters");
         Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };
         line.label_path = "slow-down-for-overhang";
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
@@ -1994,11 +1996,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_jerk");
         optgroup->append_single_option_line("initial_layer_jerk");
         optgroup->append_single_option_line("travel_jerk");
-
-#ifdef HAS_PRESSURE_EQUALIZER
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
-        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_negative");
-#endif /* HAS_PRESSURE_EQUALIZER */
+        
+        optgroup = page->new_optgroup(L("Advanced"), L"param_advanced", 15);
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope");
+        optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_segment_length");
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"), L"param_support");
@@ -2719,8 +2720,6 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup(L("Recommended temperature range"), L"param_temperature");
-        optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
         optgroup->append_single_option_line("chamber_temperature");
@@ -2742,7 +2741,7 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("eng_plate_temp"));
         optgroup->append_line(line);
 
-        line = { L("High Temp Plate"), L("Bed temperature when high temperature plate is installed. Value 0 means the filament does not support to print on the High Temp Plate") };
+        line = {L("Smooth PEI Plate / High Temp Plate"), L("Bed temperature when Smooth PEI Plate/High temperature plate is installed. Value 0 means the filament does not support to print on the Smooth PEI Plate/High Temp Plate") };
         line.append_option(optgroup->get_option("hot_plate_temp_initial_layer"));
         line.append_option(optgroup->get_option("hot_plate_temp"));
         optgroup->append_line(line);
@@ -2774,6 +2773,9 @@ void TabFilament::build()
             }
             else if (opt_key == "nozzle_temperature_initial_layer") {
                 m_config_manipulation.check_nozzle_temperature_initial_layer_range(&filament_config);
+            }
+            else if (opt_key == "chamber_temperatures") {
+                m_config_manipulation.check_chamber_temperature(&filament_config);
             }
 
             on_value_change(opt_key, value);
@@ -2825,6 +2827,18 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
         optgroup->append_single_option_line("additional_cooling_fan_speed");
 
+        optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
+
+        optgroup->append_single_option_line("activate_air_filtration");
+
+        line = {L("During print"), L("")};
+        line.append_option(optgroup->get_option("during_print_exhaust_fan_speed"));
+        optgroup->append_line(line);
+
+
+        line = {L("Complete print"), L("")};
+        line.append_option(optgroup->get_option("complete_print_exhaust_fan_speed"));
+        optgroup->append_line(line);
         //BBS
         add_filament_overrides_page();
         const int gcode_field_height = 15; // 150
@@ -2986,7 +3000,8 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
-        toggle_option("chamber_temperature", !is_BBL_printer);
+        // bool support_chamber_temp_control = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
+        // toggle_option("chamber_temperature", !is_BBL_printer || support_chamber_temp_control);
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page();
@@ -3099,6 +3114,7 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("printable_area");
         optgroup->append_single_option_line("printable_height");
         optgroup->append_single_option_line("nozzle_volume");
+        optgroup->append_single_option_line("best_object_pos");
 
 #if 0
         //optgroup->append_single_option_line("z_offset");
@@ -3117,6 +3133,7 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line(option);
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
@@ -3127,6 +3144,7 @@ void TabPrinter::build_fff()
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
+        optgroup->append_single_option_line("time_cost");
         
         optgroup = page->new_optgroup(L("Cooling Fan"));
         Line line = Line{ L("Fan speed-up time"), optgroup->get_option("fan_speedup_time").opt.tooltip };
@@ -3139,11 +3157,13 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("extruder_clearance_radius");
         optgroup->append_single_option_line("extruder_clearance_height_to_rod");
         optgroup->append_single_option_line("extruder_clearance_height_to_lid");
-        
+
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("nozzle_hrc");
         optgroup->append_single_option_line("auxiliary_fan");
+        optgroup->append_single_option_line("support_chamber_temp_control");
+        optgroup->append_single_option_line("support_air_filtration");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -3183,6 +3203,16 @@ void TabPrinter::build_fff()
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
         option = optgroup->get_option("layer_change_gcode");
+        option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+        
+        optgroup = page->new_optgroup(L("Time lapse G-code"), L"param_gcode", 0);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
+            validate_custom_gcode_cb(this, optgroup, opt_key, value);
+        };
+        option = optgroup->get_option("time_lapse_gcode");
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
@@ -3528,6 +3558,8 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("retraction_length", "", extruder_idx);
             optgroup->append_single_option_line("retract_restart_extra", "", extruder_idx);
             optgroup->append_single_option_line("z_hop", "", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
+            optgroup->append_single_option_line("retract_lift_below", "", extruder_idx);
             optgroup->append_single_option_line("z_hop_types", "", extruder_idx);
             optgroup->append_single_option_line("retraction_speed", "", extruder_idx);
             optgroup->append_single_option_line("deretraction_speed", "", extruder_idx);

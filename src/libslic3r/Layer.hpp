@@ -132,6 +132,9 @@ public:
     coordf_t            height;        // layer height in unscaled coordinates
     coordf_t            bottom_z() const { return this->print_z - this->height; }
 
+    //Extrusions estimated to be seriously malformed, estimated during "Estimating curled extrusions" step. These lines should be avoided during fast travels.
+    CurledLines         curled_lines;
+
     // BBS
     mutable ExPolygons          sharp_tails;
     mutable ExPolygons          cantilevers;
@@ -179,6 +182,9 @@ public:
     // Phony version of make_fills() without parameters for Perl integration only.
     void                    make_fills() { this->make_fills(nullptr, nullptr); }
     void                    make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator = nullptr);
+    Polylines               generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Octree *adaptive_fill_octree,
+                                                                           FillAdaptive::Octree *support_fill_octree,
+                                                                           FillLightning::Generator* lightning_generator) const;
     void 					make_ironing();
 
     void                    export_region_slices_to_svg(const char *path) const;
