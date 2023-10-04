@@ -587,7 +587,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
         f->z        = this->print_z;
         f->angle    = surface_fill.params.angle;
-        // f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+        f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         // TODO: f->print_config        = &this->object()->print()->config();
         // TODO: f->print_object_config = &this->object()->config();
 
