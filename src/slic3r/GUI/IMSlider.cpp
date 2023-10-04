@@ -6,7 +6,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
-#include <boost/algorithm/string/replace.hpp>
 
 namespace Slic3r {
 
@@ -102,19 +101,19 @@ static std::string short_and_splitted_time(const std::string &time)
     // Format the dhm time.
     char buffer[64];
     if (days > 0)
-        ::sprintf(buffer, "%dd%dh\n%dm", days, hours, minutes);
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0) {
         if (hours < 10 && minutes < 10 && seconds < 10)
             ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if (hours > 10 && minutes > 10 && seconds > 10)
-            ::sprintf(buffer, "%dh\n%dm\n%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if ((minutes < 10 && seconds > 10) || (minutes > 10 && seconds < 10))
-            ::sprintf(buffer, "%dh\n%dm%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else
-            ::sprintf(buffer, "%dh%dm\n%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
     } else if (minutes > 0) {
         if (minutes > 10 && seconds > 10)
-            ::sprintf(buffer, "%dm\n%ds", minutes, seconds);
+            ::sprintf(buffer, "%dm%ds", minutes, seconds);
         else
             ::sprintf(buffer, "%dm%ds", minutes, seconds);
     } else
@@ -725,21 +724,32 @@ void IMSlider::show_tooltip(const std::string tooltip) {
 }
 
 void IMSlider::show_tooltip(const TickCode& tick){
+    // Use previous layer's complete time as current layer's tick time,
+    // since ticks are added at the beginning of current layer
+    std::string time_str = "";
+    // TODO: support first layer
+    if (tick.tick > 0) {
+        time_str = get_label(tick.tick - 1, ltEstimatedTime);
+    }
+    if (!time_str.empty()) {
+        time_str += "\n";
+    }
+    
     switch (tick.type)
     {
     case CustomGCode::ColorChange:
         break;
     case CustomGCode::PausePrint:
-        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
+        show_tooltip(time_str + _u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
         break;
     case CustomGCode::ToolChange:
-        show_tooltip(_u8L("Change Filament"));
+        show_tooltip(time_str + _u8L("Change Filament"));
         break;
     case CustomGCode::Template:
-        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
+        show_tooltip(time_str + _u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
         break;
     case CustomGCode::Custom:
-        show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"");
+        show_tooltip(time_str + _u8L("Custom G-code:") + " \"" + tick.extra + "\"");
         break;
     default:
         break;
@@ -768,10 +778,6 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     ImGuiContext& context = *GImGui;
     
     int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
-
-//    if (tick == v_min || tick == v_max) {
-//        return;
-//    }
     
     //draw tick
     ImVec2 tick_offset   = ImVec2(22.0f, 14.0f) * m_scale;
@@ -787,7 +793,6 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     
     // draw layer time
     std::string label = get_label(tick, ltEstimatedTime);
-    boost::ireplace_all(label, "\n", "");
     show_tooltip(label);
 }
 
