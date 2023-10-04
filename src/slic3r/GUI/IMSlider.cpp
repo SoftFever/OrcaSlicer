@@ -6,7 +6,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui/imgui_internal.h>
-#include <boost/algorithm/string/replace.hpp>
 
 namespace Slic3r {
 
@@ -102,19 +101,19 @@ static std::string short_and_splitted_time(const std::string &time)
     // Format the dhm time.
     char buffer[64];
     if (days > 0)
-        ::sprintf(buffer, "%dd%dh\n%dm", days, hours, minutes);
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0) {
         if (hours < 10 && minutes < 10 && seconds < 10)
             ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if (hours > 10 && minutes > 10 && seconds > 10)
-            ::sprintf(buffer, "%dh\n%dm\n%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if ((minutes < 10 && seconds > 10) || (minutes > 10 && seconds < 10))
-            ::sprintf(buffer, "%dh\n%dm%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else
-            ::sprintf(buffer, "%dh%dm\n%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
     } else if (minutes > 0) {
         if (minutes > 10 && seconds > 10)
-            ::sprintf(buffer, "%dm\n%ds", minutes, seconds);
+            ::sprintf(buffer, "%dm%ds", minutes, seconds);
         else
             ::sprintf(buffer, "%dm%ds", minutes, seconds);
     } else
@@ -725,21 +724,32 @@ void IMSlider::show_tooltip(const std::string tooltip) {
 }
 
 void IMSlider::show_tooltip(const TickCode& tick){
+    // Use previous layer's complete time as current layer's tick time,
+    // since ticks are added at the beginning of current layer
+    std::string time_str = "";
+    // TODO: support first layer
+    if (tick.tick > 0) {
+        time_str = get_label(tick.tick - 1, ltEstimatedTime);
+    }
+    if (!time_str.empty()) {
+        time_str += "\n";
+    }
+    
     switch (tick.type)
     {
     case CustomGCode::ColorChange:
         break;
     case CustomGCode::PausePrint:
-        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
+        show_tooltip(time_str + _u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
         break;
     case CustomGCode::ToolChange:
-        show_tooltip(_u8L("Change Filament"));
+        show_tooltip(time_str + _u8L("Change Filament"));
         break;
     case CustomGCode::Template:
-        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
+        show_tooltip(time_str + _u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
         break;
     case CustomGCode::Custom:
-        show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"");
+        show_tooltip(time_str + _u8L("Custom G-code:") + " \"" + tick.extra + "\"");
         break;
     default:
         break;
@@ -783,7 +793,6 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
     
     // draw layer time
     std::string label = get_label(tick, ltEstimatedTime);
-    boost::ireplace_all(label, "\n", "");
     show_tooltip(label);
 }
 
@@ -827,8 +836,8 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
 
     // set mouse active region.
     const ImRect active_region = ImRect(ImVec2(draw_region.Min.x + 35.0f * m_scale, draw_region.Min.y), draw_region.Max);
-    bool hovered = ImGui::ItemHoverable(active_region, id);
-    if (hovered && !ImGui::ItemHoverable(m_tick_rect, id) && context.IO.MouseDown[0]) {
+    bool hovered = ImGui::ItemHoverable(active_region, id) && !ImGui::ItemHoverable(m_tick_rect, id);
+    if (hovered && context.IO.MouseDown[0]) {
         ImGui::SetActiveID(id, window);
         ImGui::SetFocusID(id, window);
         ImGui::FocusWindow(window);
@@ -903,12 +912,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         if ((!ImGui::ItemHoverable(h_selected ? higher_handle : lower_handle, id) && context.IO.MouseClicked[1]) ||
             context.IO.MouseClicked[0])
             m_show_menu = false;
-        
-        // draw mouse position
-        if (hovered) {
-            draw_tick_on_mouse_position(h_selected ? higher_slideable_region : lower_slideable_region);
-        }
-        
+
         // draw ticks
         draw_ticks(h_selected ? higher_slideable_region : lower_slideable_region);
         // draw colored band
@@ -960,6 +964,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         pos_3 = pos_1 + triangle_offsets[2];
         window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, lower_label.c_str());
+        
+        // draw mouse position
+        if (hovered) {
+            draw_tick_on_mouse_position(h_selected ? higher_slideable_region : lower_slideable_region);
+        }
     }
     if (one_layer_flag) 
     {
@@ -978,11 +987,6 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
             m_show_menu = false;
         
         ImVec2 bar_center = higher_handle.GetCenter();
-        
-        // draw mouse position
-        if (hovered) {
-            draw_tick_on_mouse_position(one_slideable_region);
-        }
 
         // draw ticks
         draw_ticks(one_slideable_region);
@@ -1004,6 +1008,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImRect text_rect = ImRect(text_start, text_start + text_size);
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, text_frame_rounding);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
+        
+        // draw mouse position
+        if (hovered) {
+            draw_tick_on_mouse_position(one_slideable_region);
+        }
     }
 
     return value_changed;
