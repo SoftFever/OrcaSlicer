@@ -60,7 +60,6 @@ jobs:
         run: df -h
       - name: Free disk space
         run: |
-          sudo docker rmi $(docker image ls -aq) || true
           sudo swapoff /swapfile || true
           sudo rm -rf /swapfile /usr/share/dotnet /usr/local/lib/android /opt/ghc  || true
           sudo apt purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
