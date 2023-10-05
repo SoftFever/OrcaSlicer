@@ -2558,7 +2558,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
-    file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
+    if (print.config().support_chamber_temp_control.value || print.config().chamber_temperature.values[0] > 0)
+        file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
 
 
     // adds tags for time estimators
