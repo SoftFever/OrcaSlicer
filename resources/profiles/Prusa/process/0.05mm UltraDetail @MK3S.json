@@ -1,7 +1,7 @@
 {
   "type": "process",
-  "print_settings_id": "0.05mm UltraDetail @MK3",
-  "name": "0.05mm UltraDetail @MK3",
+  "print_settings_id": "0.05mm UltraDetail @MK3S",
+  "name": "0.05mm UltraDetail @MK3S",
   "from": "system",
   "instantiation": "true",
   "inherits": "process_common_mk3",
