@@ -25,12 +25,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - os: ubuntu-22.04
+          - os: ubuntu-20.04
           - os: windows-latest
-          # - os: macos-12
-          #   arch: x86_64
-          # - os: macos-12
-          #   arch: arm64
+          - os: macos-12
+            arch: x86_64
+          - os: macos-12
+            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -82,7 +82,7 @@ jobs:
             ./build_release_macos.sh -dp -a arm64
 
       - name: Build on Ubuntu
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-20.04'
         working-directory: ${{ github.workspace }}
         run: |
             sudo apt-get update
@@ -119,7 +119,7 @@ jobs:
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
 
       - name: Upload Ubuntu artifacts
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
