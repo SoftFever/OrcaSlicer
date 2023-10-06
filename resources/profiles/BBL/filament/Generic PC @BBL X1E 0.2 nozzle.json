@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "name": "Generic PC @BBL X1E 0.2 nozzle",
+    "inherits": "Generic PC @0.2 nozzle",
+    "from": "system",
+    "setting_id": "GFSC99_05",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1E 0.2 nozzle"
+    ]
+}
