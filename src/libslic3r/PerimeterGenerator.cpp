@@ -1265,15 +1265,11 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
     return {extra_perims, diff(inset_overhang_area, inset_overhang_area_left_unfilled)};
 }
 
-void PerimeterGenerator::apply_extra_perimeters()
+void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
 {
     if (this->lower_slices != nullptr && this->config->detect_overhang_wall && this->config->extra_perimeters_on_overhangs &&
         this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
         // Generate extra perimeters on overhang areas, and cut them to these parts only, to save print time and material
-        ExPolygons infill_area;
-        for (const auto &internal_surface : this->fill_surfaces->surfaces) {
-            infill_area.push_back(internal_surface.expolygon);
-        }
         auto [extra_perimeters, filled_area] = generate_extra_perimeters_over_overhangs(infill_area, this->lower_slices_polygons(),
                                                                                         this->config->wall_loops, this->overhang_flow,
                                                                                         this->m_scaled_resolution, *this->object_config,
@@ -1708,7 +1704,7 @@ void PerimeterGenerator::process_classic()
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
-        apply_extra_perimeters();
+        apply_extra_perimeters(infill_exp);
 
         // BBS: get the no-overlap infill expolygons
         {
@@ -2167,7 +2163,7 @@ void PerimeterGenerator::process_arachne()
         }
         this->fill_surfaces->append(infill_exp, stInternal);
 
-        apply_extra_perimeters();
+        apply_extra_perimeters(infill_exp);
 
         // BBS: get the no-overlap infill expolygons
         {
