@@ -480,6 +480,8 @@ private:
     void detect_overhangs_for_lift();
     void clear_overhangs_for_lift();
 
+   void _transform_hole_to_polyholes();
+
     // Has any support (not counting the raft).
     void detect_surfaces_type();
     void process_external_surfaces();

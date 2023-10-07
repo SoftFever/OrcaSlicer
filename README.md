@@ -9,6 +9,7 @@ You can download Orca Slicer here: [github releases page](https://github.com/Sof
 - Auto calibrations for all printers
 - Sandwich(inner-outer-inner) mode - an improved version of the `External perimeters first` mode
 - Precise wall
+- Polyholes conversion support [SuperSlicer Wiki: Polyholes](https://github.com/supermerill/SuperSlicer/wiki/Polyholes)
 - Klipper support
 - More granular controls
 - More features can be found in [change notes](https://github.com/SoftFever/OrcaSlicer/releases/)  

@@ -721,6 +721,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("exclude_object", gcflavor == gcfKlipper);
 
     toggle_line("min_width_top_surface",config->opt_bool("only_one_wall_top"));
+
+    for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted" })
+        toggle_line(el, config->opt_bool("hole_to_polyhole"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
