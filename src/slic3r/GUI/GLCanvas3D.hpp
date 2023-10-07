@@ -481,8 +481,6 @@ public:
         bool  avoid_extrusion_cali_region = true;
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
-        float bed_shrink_x       = 0.f;
-        float bed_shrink_y       = 0.f;
         bool  align_to_y_axis    = false;
     };
 

@@ -80,19 +80,18 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 const double BIG_ITEM_TRESHOLD = 0.02;
 #define VITRIFY_TEMP_DIFF_THRSH 15  // bed temp can be higher than vitrify temp, but not higher than this thresh
 
-void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& print_cfg, const ArrangePolygons& selected)
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* print_cfg, const ArrangePolygons& selected)
 {
-    double                             skirt_distance = get_real_skirt_dist(print_cfg);
+    double                             skirt_distance = get_real_skirt_dist(*print_cfg);
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
     params.brim_skirt_distance = skirt_distance;
-    params.bed_shrink_x = params.brim_skirt_distance;
-    params.bed_shrink_y = params.brim_skirt_distance;
+    params.bed_shrink_x += params.brim_skirt_distance;
+    params.bed_shrink_y += params.brim_skirt_distance;
     // for sequential print, we need to inflate the bed because cleareance_radius is so large
     if (params.is_seq_print) {
-        float shift_dist = params.cleareance_radius / 2 - 5;
-        params.bed_shrink_x -= shift_dist;
-        params.bed_shrink_y -= shift_dist;
+        params.bed_shrink_x -= params.cleareance_radius / 2;
+        params.bed_shrink_y -= params.cleareance_radius / 2;
     }
 }
 
@@ -126,11 +125,13 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
 {
+    float exclusion_gap = 1.f;
     if (params.is_seq_print) {
-        float shift_dist = params.cleareance_radius / 2 - 5;
+        // bed_shrink_x is typically (-params.cleareance_radius / 2+5) for seq_print
+        exclusion_gap = std::max(exclusion_gap, params.cleareance_radius / 2 + params.bed_shrink_x);
         // dont forget to move the excluded region
         for (auto& region : unselected) {
-            if (region.is_virt_object) region.poly.translate(-scaled(shift_dist), -scaled(shift_dist));
+            if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
         }
     }
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
@@ -138,10 +139,9 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
     // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
-    double scaled_exclusion_gap = scale_(1);
     std::for_each(unselected.begin(), unselected.end(),
         [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
-        : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
+        : (ap.is_extrusion_cali_object ? 0 : scale_(exclusion_gap)); });
 }
 
 void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
