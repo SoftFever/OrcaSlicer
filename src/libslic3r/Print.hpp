@@ -706,7 +706,7 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
-    void                process(bool use_cache = false) override;
+    void                process(long long *time_cost_with_cache = nullptr, bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);

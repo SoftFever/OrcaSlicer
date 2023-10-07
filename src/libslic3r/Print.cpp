@@ -10,6 +10,7 @@
 #include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
 #include "Thread.hpp"
+#include "Time.hpp"
 #include "GCode.hpp"
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
@@ -1482,8 +1483,12 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
 }
 
 // Slicing process, running at a background thread.
-void Print::process(bool use_cache)
+void Print::process(long long *time_cost_with_cache, bool use_cache)
 {
+    long long start_time = 0, end_time = 0;
+    if (time_cost_with_cache)
+        *time_cost_with_cache = 0;
+
     name_tbb_thread_pool_threads_set_locale();
 
     //compute the PrintObject with the same geometries
@@ -1698,6 +1703,9 @@ void Print::process(bool use_cache)
     if (this->set_started(psSkirtBrim)) {
         this->set_status(70, L("Generating skirt & brim"));
 
+        if (time_cost_with_cache)
+            start_time = (long long)Slic3r::Utils::get_current_time_utc();
+
         m_skirt.clear();
         m_skirt_convex_hull.clear();
         m_first_layer_convex_hull.points.clear();
@@ -1782,6 +1790,11 @@ void Print::process(bool use_cache)
 
         this->finalize_first_layer_convex_hull();
         this->set_done(psSkirtBrim);
+
+        if (time_cost_with_cache) {
+            end_time = (long long)Slic3r::Utils::get_current_time_utc();
+            *time_cost_with_cache = *time_cost_with_cache + end_time - start_time;
+        }
     }
     //BBS
     for (PrintObject *obj : m_objects) {
