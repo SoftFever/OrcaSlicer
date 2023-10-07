@@ -825,6 +825,9 @@ void PrintObject::slice()
     }
 #endif
 
+    // Detect and process holes that should be converted to polyholes
+    this->_transform_hole_to_polyholes();
+
     // BBS: the actual first layer slices stored in layers are re-sorted by volume group and will be used to generate brim
     groupingVolumesForBrim(this, m_layers, firstLayerReplacedBy);
 
