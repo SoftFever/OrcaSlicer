@@ -8,8 +8,8 @@ if "%1"=="slicer" (
 )
 echo "building deps.."
 cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="%CD%/OrcaSlicer_dep" -DCMAKE_BUILD_TYPE=Release
-msbuild .\deps.vcxproj -property:Configuration=Release
-@REM  msbuild .\dep_OpenSSL.vcxproj
+cmake --build . --config Release --target deps -- -m
+
 
 if "%1"=="deps" exit /b 0
 
