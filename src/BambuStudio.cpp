@@ -2048,7 +2048,6 @@ int CLI::run(int argc, char **argv)
     bool user_center_specified = false;
     Points beds = get_bed_shape(m_print_config);
     ArrangeParams arrange_cfg;
-    arrange_cfg.min_obj_distance = scaled(min_object_distance(m_print_config));
 
     BOOST_LOG_TRIVIAL(info) << "will start transforms, commands count " << m_transforms.size() << "\n";
 #if defined(__linux__) || defined(__LINUX__)
@@ -2445,13 +2444,13 @@ int CLI::run(int argc, char **argv)
             Slic3r::GUI::PartPlate* cur_plate = nullptr;
             int low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
 
-            arrange_cfg.is_seq_print = false;
             if (duplicate_count > 0) {
                 original_model = model;
             }
 
             while(!finished_arrange)
             {
+                arrange_cfg = ArrangeParams();  // reset all params
                 arrange_count++;
                 //step-0: duplicate model
                 if (duplicate_count > 0)
@@ -2666,20 +2665,26 @@ int CLI::run(int argc, char **argv)
                 arrange_cfg.cleareance_radius                   = cleareance_radius;
                 arrange_cfg.printable_height                    = print_height;
                 arrange_cfg.min_obj_distance = 0;
-
+                if (arrange_cfg.is_seq_print) {
+                    arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
+                    arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
+                }
                 if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
                     arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
                 }
 
-                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                arrangement::update_arrange_params(arrange_cfg, &m_print_config, selected);
                 arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
                 arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
                 arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
 
                 beds=get_shrink_bedpts(&m_print_config, arrange_cfg);
 
+                partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, 1, scale_(1));
+
                 {
-                    BOOST_LOG_TRIVIAL(debug)<< "Arrange full params: "<< arrange_cfg.to_json();
+                    BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
+                    BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< arrange_cfg.to_json();
                     BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%")%selected.size();
                     for (auto item : selected)
                         BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx

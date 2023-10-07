@@ -3,6 +3,9 @@
 
 #include "ExPolygon.hpp"
 #include "PrintConfig.hpp"
+
+#define BED_SHRINK_SEQ_PRINT 5
+
 namespace Slic3r {
 
 class BoundingBox;
@@ -122,8 +125,8 @@ struct ArrangeParams {
     bool  avoid_extrusion_cali_region         = true;
     bool  is_seq_print                        = false;
     bool  align_to_y_axis                     = false;
-    float bed_shrink_x = 0;
-    float bed_shrink_y = 0;
+    float bed_shrink_x = 1;
+    float bed_shrink_y = 1;
     float brim_skirt_distance = 0;
     float clearance_height_to_rod = 0;
     float clearance_height_to_lid = 0;
@@ -170,7 +173,7 @@ struct ArrangeParams {
 
 };
 
-void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& print_cfg, const ArrangePolygons& selected);
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* print_cfg, const ArrangePolygons& selected);
 
 void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params);
 

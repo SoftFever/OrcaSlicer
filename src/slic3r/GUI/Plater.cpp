@@ -4249,7 +4249,7 @@ void Plater::priv::mirror(Axis axis)
 void Plater::find_new_position(const ModelInstancePtrs &instances)
 {
     arrangement::ArrangePolygons movable, fixed;
-    arrangement::ArrangeParams arr_params = get_arrange_params(this);
+    arrangement::ArrangeParams arr_params = init_arrange_params(this);
 
     for (const ModelObject *mo : p->model.objects)
         for (ModelInstance *inst : mo->instances) {

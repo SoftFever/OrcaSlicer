@@ -533,7 +533,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 auto tmp = offset(convex_hull_no_offset,
                         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_max_radius.value - 0.01)),
+                        float(scale_(0.5 * print.config().extruder_clearance_max_radius.value - 0.1)),
                         jtRound, scale_(0.1));
                 if (!tmp.empty()) { // tmp may be empty due to clipper's bug, see STUDIO-2452
                     convex_hull = tmp.front();
