@@ -6,7 +6,7 @@
     "setting_id": "GFSG60_00",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "11"
+        "11.5"
     ],
     "nozzle_temperature_range_high": [
         "270"
