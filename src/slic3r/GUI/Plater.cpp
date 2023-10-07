@@ -6545,6 +6545,7 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
 
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
+    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(PLATE_ALL_IDX);
     m_select_machine_dlg->ShowModal();
     record_start_print_preset("print_all");
