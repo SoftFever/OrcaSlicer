@@ -4153,6 +4153,34 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def = this->add("hole_to_polyhole", coBool);
+    def->label = L("Convert holes to polyholes");
+    def->category = L("Quality");
+    def->tooltip = L("Search for almost-circular holes that span more than one layer and convert the geometry to polyholes."
+                     " Use the nozzle size and the (biggest) diameter to compute the polyhole."
+                     "\nSee http://hydraraptor.blogspot.com/2011/02/polyholes.html");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("hole_to_polyhole_threshold", coFloatOrPercent);
+    def->label = L("Polyhole detection margin");
+    def->category = L("Quality");
+    def->tooltip = L("Maximum defection of a point to the estimated radius of the circle."
+                     "\nAs cylinders are often exported as triangles of varying size, points may not be on the circle circumference."
+                     " This setting allows you some leway to broaden the detection."
+                     "\nIn mm or in % of the radius.");
+    def->sidetext = L("mm or %");
+    def->max_literal = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0.01, false));
+
+    def = this->add("hole_to_polyhole_twisted", coBool);
+    def->label = L("Polyhole twist");
+    def->category = L("Quality");
+    def->tooltip = L("Rotate the polyhole every layer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("thumbnails", coPoints);
     def->label = L("G-code thumbnails");
     def->tooltip = L("Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the following format: \"XxY, XxY, ...\"");
