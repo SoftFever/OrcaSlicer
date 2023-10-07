@@ -2120,6 +2120,8 @@ void GUI_App::init_app_config()
             if (!boost::filesystem::exists(data_dir_path))
                 boost::filesystem::create_directory(data_dir_path);
             set_data_dir(data_dir);
+            // Change current dirtory of application
+            chdir(encode_path((data_dir + "/log").c_str()).c_str());
     } else {
         m_datadir_redefined = true;
     }
