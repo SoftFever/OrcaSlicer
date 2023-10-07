@@ -104,6 +104,7 @@ void PrinterFileSystem::SetFileType(FileType type, std::string const &storage)
     m_file_list.swap(m_file_list_cache[{m_file_type, m_file_storage}]);
     m_lock_start = m_lock_end = 0;
     BuildGroups();
+    UpdateGroupSelect();
     SendChangedEvent(EVT_FILE_CHANGED);
     if (type == F_INVALID_TYPE)
         return;
@@ -530,10 +531,10 @@ void PrinterFileSystem::Stop(bool quit)
 
 void PrinterFileSystem::BuildGroups()
 {
-    if (m_file_list.empty())
-        return;
     m_group_year.clear();
     m_group_month.clear();
+    if (m_file_list.empty())
+        return;
     wxDateTime t = wxDateTime((time_t) m_file_list.front().time);
     m_group_year.push_back(0);
     m_group_month.push_back(0);
