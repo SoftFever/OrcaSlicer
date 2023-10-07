@@ -145,6 +145,7 @@ std::map<int, std::string> cli_errors = {
 typedef struct  _sliced_plate_info{
     int plate_id{0};
     size_t sliced_time {0};
+    size_t sliced_time_with_cache {0};
     size_t triangle_count{0};
     std::string warning_message;
 }sliced_plate_info_t;
@@ -419,6 +420,7 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             json plate_json;
             plate_json["id"] = sliced_info.sliced_plates[index].plate_id;
             plate_json["sliced_time"] = sliced_info.sliced_plates[index].sliced_time;
+            plate_json["sliced_time_with_cache"] = sliced_info.sliced_plates[index].sliced_time_with_cache;
             plate_json["triangle_count"] = sliced_info.sliced_plates[index].triangle_count;
             plate_json["warning_message"] = sliced_info.sliced_plates[index].warning_message;
             j["sliced_plates"].push_back(plate_json);
@@ -3101,7 +3103,7 @@ int CLI::run(int argc, char **argv)
 
                         model.curr_plate_index = index;
                         BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: pre_check %2%, start")%(index+1)%pre_check;
-                        long long start_time = 0, end_time = 0;
+                        long long start_time = 0, end_time = 0, temp_time = 0, time_using_cache = 0;
                         start_time = (long long)Slic3r::Utils::get_current_time_utc();
                         //get the current partplate
                         Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
@@ -3322,12 +3324,13 @@ int CLI::run(int argc, char **argv)
                                             cli_status_callback(slicing_status);
                                         }
 #endif
-                                        print->process(true);
+                                        print->process(nullptr, true);
                                         BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
                                     }
                                 }
                                 else {
-                                    print->process();
+                                    print->process(&time_using_cache);
+                                    BOOST_LOG_TRIVIAL(info) << "print::process: first time_using_cache is " << time_using_cache << " secs.";
                                 }
                                 if (printer_technology == ptFFF) {
                                     std::string conflict_result = print_fff->get_conflict_string();
@@ -3379,7 +3382,11 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
+                                    temp_time = (long long)Slic3r::Utils::get_current_time_utc();
                                     outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
+                                    time_using_cache = time_using_cache + ((long long)Slic3r::Utils::get_current_time_utc() - temp_time);
+                                    BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << time_using_cache << " secs.";
+
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
                                     //m_fff_print->export_gcode(m_temp_output_path, m_gcode_result, [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
                                 }/* else {
@@ -3422,6 +3429,7 @@ int CLI::run(int argc, char **argv)
                                 }
                                 end_time = (long long)Slic3r::Utils::get_current_time_utc();
                                 sliced_plate_info.sliced_time = end_time - start_time;
+                                sliced_plate_info.sliced_time_with_cache = time_using_cache;
 
                                 if (max_slicing_time_per_plate != 0) {
                                     long long time_cost = end_time - start_time;
