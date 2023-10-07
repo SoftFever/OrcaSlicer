@@ -242,7 +242,8 @@ AboutDialog::AboutDialog()
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
         auto version_text = GUI_App::format_display_version();
 #if BBL_INTERNAL_TESTING
-        auto version_string = _L("Internal Version") + " " + std::string(version_text);
+        wxString versionText    = BBL_INTERNAL_TESTING == 1 ? _L("Internal Version") : _L("Beta Version");
+        auto     version_string = versionText + " " + std::string(version_text);
 #else
         auto version_string = _L("Version") + " " + std::string(version_text);
 #endif
@@ -259,6 +260,12 @@ AboutDialog::AboutDialog()
         version->SetBackgroundColour(wxColour("#00AF42"));
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 #if BBL_INTERNAL_TESTING
+        wxString plugin_version = wxString::Format("Plugin Version: %s", wxGetApp().getAgent() ? wxGetApp().getAgent()->get_version() : "");
+        wxStaticText *plugin_version_text = new wxStaticText(this, wxID_ANY, plugin_version, wxDefaultPosition, wxDefaultSize);
+        plugin_version_text->SetForegroundColour(wxColour("#FFFFFE"));
+        plugin_version_text->SetBackgroundColour(wxColour("#00AF42"));
+        vesizer->Add(plugin_version_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+
         wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
         wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
         build_time_text->SetForegroundColour(wxColour("#FFFFFE"));
