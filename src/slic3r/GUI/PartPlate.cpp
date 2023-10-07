@@ -837,6 +837,21 @@ void PartPlate::render_plate_name_texture(int position_id, int tex_coords_id)
 	glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
+void PartPlate::show_tooltip(const std::string tooltip)
+{
+    const auto scale = m_plater->get_current_canvas3D()->get_scale();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {6 * scale, 3 * scale});
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, {3 * scale});
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+    ImGui::PushStyleColor(ImGuiCol_Border, {0, 0, 0, 0});
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+    ImGui::BeginTooltip();
+    ImGui::TextUnformatted(tooltip.c_str());
+    ImGui::EndTooltip();
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(2);
+}
+
 void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 {
 	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
@@ -859,34 +874,44 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
             glsafe(::glEnableVertexAttribArray(tex_coords_id));
         }
         if (!only_name) {
-            if (hover_id == 1)
+            if (hover_id == 1) {
                 render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_hovered_texture,
                                     m_del_vbo_id);
+                show_tooltip(_u8L("Remove current plate (if not last one)"));
+            }
             else
                 render_icon_texture(position_id, tex_coords_id, m_del_icon, m_partplate_list->m_del_texture,
                                     m_del_vbo_id);
 
-            if (hover_id == 2)
+            if (hover_id == 2) {
                 render_icon_texture(position_id, tex_coords_id, m_orient_icon,
                                     m_partplate_list->m_orient_hovered_texture, m_orient_vbo_id);
+                show_tooltip(_u8L("Auto orient objects on current plate"));
+            }
             else
                 render_icon_texture(position_id, tex_coords_id, m_orient_icon, m_partplate_list->m_orient_texture,
                                     m_orient_vbo_id);
 
-            if (hover_id == 3)
+            if (hover_id == 3) {
                 render_icon_texture(position_id, tex_coords_id, m_arrange_icon,
                                     m_partplate_list->m_arrange_hovered_texture, m_arrange_vbo_id);
+                show_tooltip(_u8L("Arrange objects on current plate"));
+            }
             else
                 render_icon_texture(position_id, tex_coords_id, m_arrange_icon, m_partplate_list->m_arrange_texture,
                                     m_arrange_vbo_id);
 
             if (hover_id == 4) {
-                if (this->is_locked())
+                if (this->is_locked()) {
                     render_icon_texture(position_id, tex_coords_id, m_lock_icon,
                                         m_partplate_list->m_locked_hovered_texture, m_lock_vbo_id);
-                else
+                    show_tooltip(_u8L("Unlock current plate"));
+                }
+                else {
                     render_icon_texture(position_id, tex_coords_id, m_lock_icon,
                                         m_partplate_list->m_lockopen_hovered_texture, m_lock_vbo_id);
+                    show_tooltip(_u8L("Lock current plate"));
+                }
             } else {
                 if (this->is_locked())
                     render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture,
@@ -904,6 +929,8 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                       render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon,
                                           m_partplate_list->m_plate_settings_changed_hovered_texture,
                                           m_plate_settings_vbo_id);
+
+                    show_tooltip(_u8L("Customize current plate"));
                 } else {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
                         render_icon_texture(position_id, tex_coords_id, m_plate_settings_icon, m_partplate_list->m_plate_settings_texture, m_plate_settings_vbo_id);
