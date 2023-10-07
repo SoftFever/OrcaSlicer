@@ -94,7 +94,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           curl -LJO https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz
-          tar -zxf ./OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz -C ${{ github.workspace }}/deps/build_${{matrix.arch}}
+          tar -zxf ./OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz -C ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
           ls -l ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
           rm ./OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz
@@ -266,7 +266,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
           curl -LJO https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_ubuntu_20231007.zip
-          unzip ./OrcaSlicer_dep_ubuntu_20231007.zip -d ${{ github.workspace }}/deps/build
+          unzip ./OrcaSlicer_dep_ubuntu_20231007.zip -d ${{ github.workspace }}/deps/build/destdir
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/destdir
           ls -l ${{ github.workspace }}/deps/build/destdir
           rm OrcaSlicer_dep_ubuntu_20231007.zip
