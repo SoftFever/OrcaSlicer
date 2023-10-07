@@ -40,6 +40,7 @@
 #include <wx/popupwin.h>
 #endif
 #include <wx/clrpicker.h>
+#include <wx/tokenzr.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -174,7 +175,7 @@ wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
 wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 //BBS: change light/dark mode
 wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
-//BBS: print 
+//BBS: print
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
 
@@ -1159,6 +1160,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
             printer_tab->update();
         }
 
+        bool isBBL = preset_bundle.is_bbl_vendor();
+        wxGetApp().mainframe->show_calibration_button(!isBBL);
+
+        break;
     }
 
     default: break;
@@ -1451,7 +1456,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
 void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
-    
+
     if (!obj) {
         p->ams_list_device = device;
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " clear list";
@@ -2333,6 +2338,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "enable_support", "support_filament", "support_interface_filament",
         "support_top_z_distance", "support_bottom_z_distance", "raft_layers",
         "wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extruder",
+        "best_object_pos"
         }))
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
@@ -2569,7 +2575,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
             // update slice and print button
             wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
-            update();
+            set_need_update(true);
         });
     }
     if (wxGetApp().is_gcode_viewer())
@@ -2807,97 +2813,6 @@ void Plater::priv::select_view(const std::string& direction)
         assemble_view->select_view(direction);
     }
 }
-// BBS set print speed table and find maximum speed
-void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
-    Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
-    printSpeedMap.maxSpeed = 0;
-    if (config.has("inner_wall_speed")) {
-        printSpeedMap.perimeterSpeed = config.opt_float("inner_wall_speed");
-        if (printSpeedMap.perimeterSpeed > printSpeedMap.maxSpeed)
-            printSpeedMap.maxSpeed = printSpeedMap.perimeterSpeed;
-    }
-    if (config.has("outer_wall_speed")) {
-        printSpeedMap.externalPerimeterSpeed = config.opt_float("outer_wall_speed");
-        printSpeedMap.maxSpeed = std::max(printSpeedMap.maxSpeed, printSpeedMap.externalPerimeterSpeed);
-    }
-    if (config.has("sparse_infill_speed")) {
-        printSpeedMap.infillSpeed = config.opt_float("sparse_infill_speed");
-        if (printSpeedMap.infillSpeed > printSpeedMap.maxSpeed)
-            printSpeedMap.maxSpeed = printSpeedMap.infillSpeed;
-    }
-    if (config.has("internal_solid_infill_speed")) {
-        printSpeedMap.solidInfillSpeed = config.opt_float("internal_solid_infill_speed");
-        if (printSpeedMap.solidInfillSpeed > printSpeedMap.maxSpeed)
-            printSpeedMap.maxSpeed = printSpeedMap.solidInfillSpeed;
-    }
-    if (config.has("top_surface_speed")) {
-        printSpeedMap.topSolidInfillSpeed = config.opt_float("top_surface_speed");
-        if (printSpeedMap.topSolidInfillSpeed > printSpeedMap.maxSpeed)
-            printSpeedMap.maxSpeed = printSpeedMap.topSolidInfillSpeed;
-    }
-    if (config.has("support_speed")) {
-        printSpeedMap.supportSpeed = config.opt_float("support_speed");
-
-        if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
-            printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
-    }
-    if (config.has("small_perimeter_speed")) {
-        printSpeedMap.smallPerimeterSpeed = config.get_abs_value("small_perimeter_speed");
-
-        if (printSpeedMap.smallPerimeterSpeed > printSpeedMap.maxSpeed)
-            printSpeedMap.maxSpeed = printSpeedMap.smallPerimeterSpeed;
-    }
-    /*        "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
-        "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
-        "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/
-
-    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    auto print_config = print.config();
-    printSpeedMap.bed_poly.points = get_bed_shape(*(wxGetApp().plater()->config()));
-    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
-    Polygons exclude_polys;
-    Polygon exclude_poly;
-    for (int i = 0; i < excluse_area_points.size(); i++) {
-        auto pt = excluse_area_points[i];
-        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
-        if (i % 4 == 3) {  // exclude areas are always rectangle
-            exclude_polys.push_back(exclude_poly);
-            exclude_poly.points.clear();
-        }
-    }
-    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
-}
-
-// find temperature of heatend and bed and matierial of an given extruder
-void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas) {
-    extParas.clear();
-    Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
-    // BBS
-    int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
-    for (unsigned int i = 0; i != numExtruders; ++i) {
-        std::string matName = "";
-        // BBS
-        int bedTemp = 35;
-        double endTemp = 0.f;
-        if (config.has("filament_type")) {
-            matName = config.opt_string("filament_type", i);
-        }
-        if (config.has("nozzle_temperature")) {
-            endTemp = config.opt_int("nozzle_temperature", i);
-        }
-
-        // FIXME: curr_bed_type is now a plate config rather than a global config.
-        // Currently bed temp is not used for brim generation, so just comment it for now.
-#if 0
-        if (config.has("curr_bed_type")) {
-            BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
-            bedTemp = config.opt_int(get_bed_temp_key(curr_bed_type), i);
-        }
-#endif
-        if (i == 0) extParas.insert({ i,{matName, bedTemp, endTemp} });
-        extParas.insert({ i + 1,{matName, bedTemp, endTemp} });
-    }
-}
 
 wxColour Plater::get_next_color_for_filament()
 {
@@ -2930,7 +2845,12 @@ wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& wa
         return _L("The bed temperature exceeds filament's vitrification temperature. Please open the front door of printer before printing to avoid nozzle clog.");
     } else if (warning.msg == NOZZLE_HRC_CHECKER) {
         return _L("The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged.");
-    } else {
+    } else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
+        return _L("Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode.");
+    } else if (warning.msg == NOT_GENERATE_TIMELAPSE) {
+        return wxString();
+    }
+    else {
         return wxString(warning.msg);
     }
 }
@@ -2963,8 +2883,13 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     else if (name == "Preview") {
         BOOST_LOG_TRIVIAL(info) << "select preview";
         //BBS update extruder params and speed table before slicing
-        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
+        const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+        auto& print = q->get_partplate_list().get_current_fff_print();
+        auto print_config = print.config();
+        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+
+        Model::setExtruderParams(config, numExtruders);
+        Model::setPrintSpeedTable(config, print_config);
         set_current_panel(preview, no_slice);
     }
     else if (name == "Assemble") {
@@ -4853,7 +4778,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
     Model new_model;
     try {
-        new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances);
+        new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
         for (ModelObject* model_object : new_model.objects) {
             model_object->center_around_origin();
             model_object->ensure_on_bed();
@@ -5876,7 +5801,11 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         // Now process state.warnings.
         for (auto const& warning : state.warnings) {
             if (warning.current) {
-                notification_manager->push_slicing_warning_notification(warning.message, false, model_object, object_id, warning_step, warning.message_id);
+                NotificationManager::NotificationLevel notif_level = NotificationManager::NotificationLevel::WarningNotificationLevel;
+                if (evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers | PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers) {
+                    notif_level = NotificationManager::NotificationLevel::SeriousWarningNotificationLevel;
+                }
+                notification_manager->push_slicing_warning_notification(warning.message, false, model_object, object_id, warning_step, warning.message_id, notif_level);
                 add_warning(warning, object_id.id);
             }
         }
@@ -6045,8 +5974,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         } else {
             std::vector<const ModelObject *> ptrs;
-            for (auto oid : message.second) 
-            { 
+            for (auto oid : message.second)
+            {
                 const PrintObject *print_object = this->background_process.m_fff_print->get_object(ObjectID(oid));
                 if (print_object) { ptrs.push_back(print_object->model_object()); }
             }
@@ -6258,8 +6187,13 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
         //BBS update extruder params and speed table before slicing
-        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
+        const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+        auto& print = q->get_partplate_list().get_current_fff_print();
+        auto print_config = print.config();
+        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+
+        Model::setExtruderParams(config, numExtruders);
+        Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
         q->reslice();
         q->select_view_3D("Preview");
@@ -6272,8 +6206,13 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
         //BBS update extruder params and speed table before slicing
-        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
+        const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
+        auto& print = q->get_partplate_list().get_current_fff_print();
+        auto print_config = print.config();
+        int numExtruders = wxGetApp().preset_bundle->filament_presets.size();
+
+        Model::setExtruderParams(config, numExtruders);
+        Model::setPrintSpeedTable(config, print_config);
         m_slice_all = true;
         m_slice_all_only_has_gcode = true;
         m_cur_slice_plate = 0;
@@ -7642,10 +7581,10 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
     // triangle meshes may have gotten released from the scene or the background processing, therefore now being calculated into the Undo / Redo stack size.
         this->undo_redo_stack().release_least_recently_used();
     //YS_FIXME update obj_list from the deserialized model (maybe store ObjectIDs into the tree?) (no selections at this point of time)
-        get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? 
+        get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
             assemble_view->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances) :
             this->view3D->get_canvas3d()->get_selection().set_deserialized(GUI::Selection::EMode(this->undo_redo_stack().selection_deserialized().mode), this->undo_redo_stack().selection_deserialized().volumes_and_instances);
-    get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? 
+    get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
         assemble_view->get_canvas3d()->get_gizmos_manager().update_after_undo_redo(snapshot) :
         this->view3D->get_canvas3d()->get_gizmos_manager().update_after_undo_redo(snapshot);
 
@@ -8039,26 +7978,25 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(wxString download_info)
 {
-    //std::string download_origin_url = wxGetApp().url_decode(download_info.ToStdString());
-
-    std::string download_origin_url = download_info.ToStdString();
-    std::string download_url;
-    std::string filename;
+    wxString download_origin_url = download_info;
+    wxString download_url;
+    wxString filename;
+    wxString separator = "&name=";
 
     try
     {
-        std::vector<std::string> origin_array = wxGetApp().split_str(download_origin_url, "&name=");
-        if (origin_array.size() >= 2) {
+        size_t namePos = download_info.Find(separator);
+        if (namePos != wxString::npos) {
+            download_url = download_info.Mid(0, namePos);
+            filename = download_info.Mid(namePos + separator.Length());
 
-            download_url = origin_array[0];
-            filename = origin_array[1];
         }
-        else if (!download_origin_url.empty()) {
-
-            fs::path download_path = fs::path(download_origin_url);
+        else {
+            fs::path download_path = fs::path(download_origin_url.wx_str());
             download_url = download_origin_url;
             filename = download_path.filename().string();
         }
+
     }
     catch (const std::exception& error)
     {
@@ -8066,7 +8004,8 @@ void Plater::import_model_id(wxString download_info)
     }
 
     bool download_ok = false;
-    /* save to a file */
+    int retry_count = 0;
+    const int max_retries = 3;
 
     /* jump to 3D eidtor */
     wxGetApp().mainframe->select_tab((size_t)MainFrame::TabPosition::tp3DEditor);
@@ -8094,7 +8033,7 @@ void Plater::import_model_id(wxString download_info)
     p->project.reset();
 
     /* prepare project and profile */
-    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &msg, &target_path, &download_ok, download_url, &filename] {
+    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &retry_count, max_retries, &msg, &target_path, &download_ok, download_url, &filename] {
 
         NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
         if (!m_agent) return;
@@ -8115,7 +8054,7 @@ void Plater::import_model_id(wxString download_info)
         try
         {
             vecFiles.clear();
-            wxString extension = fs::path(filename).extension().c_str();
+            wxString extension = fs::path(filename.wx_str()).extension().c_str();
             auto name = filename.substr(0, filename.length() - extension.length() - 1);
 
             for (const auto& iter : boost::filesystem::directory_iterator(target_path))
@@ -8138,7 +8077,7 @@ void Plater::import_model_id(wxString download_info)
 
         //update filename
         if (is_already_exist && vecFiles.size() >= 1) {
-            wxString extension = fs::path(filename).extension().c_str();
+            wxString extension = fs::path(filename.wx_str()).extension().c_str();
             wxString name = filename.substr(0, filename.length() - extension.length());
             filename = wxString::Format("%s(%d)%s", name, vecFiles.size() + 1, extension).ToStdString();
         }
@@ -8158,43 +8097,49 @@ void Plater::import_model_id(wxString download_info)
         }
 
         //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
-        target_path /= fs::path(wxString(filename).wc_str());
+        target_path /= fs::path(filename.wc_str());
 
         fs::path tmp_path = target_path;
         tmp_path += format(".%1%", ".download");
 
-        auto url = download_url;
-        auto http = Http::get(url);
-        http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
-            if (!cont) cancel = true;
-            if (progress.dltotal != 0) {
-                percent = progress.dlnow * 100 / progress.dltotal;
-            }
-            msg = wxString::Format(_L("Project downloaded %d%%"), percent);
-            })
-            .on_error([&msg, &cont](std::string body, std::string error, unsigned http_status) {
-                (void)body;
-                BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
-                    body,
-                    http_status,
-                    error);
-                msg = wxString::Format("Download Failed! body=%s, error=%s, status=%d", body, error, http_status);
-                cont = false;
-                return;
+
+        auto http = Http::get(download_url.ToStdString());
+
+        while (cont && retry_count < max_retries) {
+            retry_count++;
+            http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
+                    if (!cont) cancel = true;
+                    if (progress.dltotal != 0) {
+                        percent = progress.dlnow * 100 / progress.dltotal;
+                    }
+                    msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+                })
+                .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
+                    (void)body;
+                    BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
+                        body,
+                        http_status,
+                        error);
+                    
+                    if (retry_count == max_retries) {
+                        msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
+                        cont = false;
+                    }
                 })
                 .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
-                    fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-                    file.write(body.c_str(), body.size());
-                    file.close();
-                    fs::rename(tmp_path, target_path);
-                    cont = false;
-                    download_ok = true;
-                    })
-                    .perform_sync();
+                        fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                        file.write(body.c_str(), body.size());
+                        file.close();
+                        fs::rename(tmp_path, target_path);
+                        cont = false;
+                        download_ok = true;
+                }).perform_sync();
 
-                    // for break while
-                    cont = false;
-        });
+                // for break while
+                //cont = false;
+        }
+
+    });
 
     while (cont && cont_dlg) {
         wxMilliSleep(50);
@@ -8216,8 +8161,7 @@ void Plater::import_model_id(wxString download_info)
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
         /* load project */
-        this->load_project(encode_path(target_path.string().c_str()));
-
+        this->load_project(target_path.wstring());
         /*BBS set project info after load project, project info is reset in load project */
         //p->project.project_model_id = model_id;
         //p->project.project_design_id = design_id;
@@ -8227,10 +8171,15 @@ void Plater::import_model_id(wxString download_info)
         }
 
         // show save new project
-        p->set_project_filename(wxString(filename));
+        p->set_project_filename(filename);
+        p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
-        if (!msg.empty()) wxMessageBox(msg);
+        if (!msg.empty()) {
+            MessageDialog msg_wingow(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_wingow.SetSize(wxSize(FromDIP(480), -1));
+            msg_wingow.ShowModal();
+        }
         return;
     }
 }
@@ -9598,16 +9547,17 @@ void Plater::add_file()
     }
 }
 
-void Plater::update(bool conside_update_flag)
+void Plater::update(bool conside_update_flag, bool force_background_processing_update)
 {
+    unsigned int flag = force_background_processing_update ? (unsigned int)Plater::priv::UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE : 0;
     if (conside_update_flag) {
         if (need_update()) {
-            p->update();
+            p->update(flag);
             p->set_need_update(false);
         }
     }
     else
-        p->update();
+        p->update(flag);
 }
 
 void Plater::object_list_changed() { p->object_list_changed(); }
@@ -11085,7 +11035,7 @@ void Plater::print_job_finished(wxCommandEvent &evt)
         p->enter_prepare_mode();
     }
 
-    
+
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
@@ -11220,7 +11170,7 @@ void Plater::on_filaments_change(size_t num_filaments)
     for (int i = 0; i < plate_list.get_plate_count(); ++i) {
         PartPlate* part_plate = plate_list.get_plate(i);
         part_plate->update_first_layer_print_sequence(num_filaments);
-    }    
+    }
 
     for (ModelObject* mo : wxGetApp().model().objects) {
         for (ModelVolume* mv : mo->volumes) {
@@ -11481,7 +11431,7 @@ void Plater::update_print_error_info(int code, std::string msg, std::string extr
     if (p->main_frame->m_calibration)
         p->main_frame->m_calibration->update_print_error_info(code, msg, extra);
 }
-    
+
 wxString Plater::get_project_filename(const wxString& extension) const
 {
     return p->get_project_filename(extension);
@@ -12299,7 +12249,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
         if (!ret) {
             PlateNameEditDialog dlg(this, wxID_ANY, _L("Edit Plate Name"));
             PartPlate *         curr_plate = p->partplate_list.get_curr_plate();
-   
+
             wxString curr_plate_name = from_u8(curr_plate->get_plate_name());
             dlg.set_plate_name(curr_plate_name);
 

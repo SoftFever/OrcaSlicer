@@ -14,15 +14,17 @@
           "FUNC_VIRTUAL_CAMERA": false,
           "FUNC_PRINT_WITHOUT_SD": false,
           "FUNC_ALTER_RESOLUTION": false,
-
           "FUNC_PRINT_ALL": false,
-          "FUNC_EXTRUSION_CALI": true
+          "FUNC_EXTRUSION_CALI": true,
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false,
+          "FUNC_VIRTUAL_TYAY": true
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
         "model_id": "C11",
         "printer_type": "C11",
-        "compatible_machine": [ "BL-P001", "BL-P002", "C12"],
+        "compatible_machine": [ "BL-P001", "BL-P002", "C12", "C13"],
         "ftp_folder": "sdcard/",
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
@@ -41,40 +43,86 @@
           "FUNC_PRINT_WITHOUT_SD": false,
           "FUNC_ALTER_RESOLUTION": false,
           "FUNC_PRINT_ALL": false,
-          "FUNC_VIRTUAL_TYAY": true,
-          "FUNC_EXTRUSION_CALI": true
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false,
+          "FUNC_VIRTUAL_TYAY": true
         },
         "camera_resolution": [ "720p" ],
         "bed_temperature_limit": 100,
         "model_id": "C12",
-        "compatible_machine":["BL-P001", "BL-P002", "C11"],
+        "compatible_machine":["BL-P001", "BL-P002", "C11", "C13"],
         "printer_type": "C12",
         "ftp_folder" : "sdcard/",
         "printer_thumbnail_image": "printer_thumbnail_p1p"
       },
       {
-
+          "display_name": "Bambu Lab A1 mini",
+          "func": {
+            "FUNC_CHAMBER_TEMP": false,
+            "FUNC_FIRSTLAYER_INSPECT": false,
+            "FUNC_AI_MONITORING": false,
+            "FUNC_BUILDPLATE_MARKER_DETECT": false,
+            "FUNC_FLOW_CALIBRATION": true,
+            "FUNC_MONITORING": false,
+            "FUNC_MEDIA_FILE": false,
+            "FUNC_VIRTUAL_CAMERA": false,
+            "FUNC_PRINT_WITHOUT_SD": false,
+            "FUNC_ALTER_RESOLUTION": true,
+            "FUNC_CHAMBER_FAN": false,
+            "FUNC_AUX_FAN": false,
+            "FUNC_UPDATE_REMAIN": false,
+            "FUNC_EXTRUSION_CALI": false,
+            "FUNC_AUTO_LEVELING": true
+        },
+        "printer_arch" : "i3",
+        "camera_resolution": [ "720p" ],
+        "bed_temperature_limit": 100,
+        "model_id": "N1",
+        "compatible_machine":[],
+        "printer_type": "N1",
+        "ftp_folder" : "sdcard/",
+        "printer_thumbnail_image": "printer_thumbnail_n1"
+      },
+      {
         "display_name": "Bambu Lab X1",
         "func": {
+          "FUNC_CHAMBER_TEMP": false,
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
-          "FUNC_LOCAL_TUNNEL": false
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false
         },
         "model_id": "BL-P002",
-        "compatible_machine": [ "BL-P001", "C11", "C12"],
+        "compatible_machine": [ "BL-P001", "C11", "C12", "C13"],
         "camera_resolution": [ "720p", "1080p" ],
         "printer_type": "3DPrinter-X1",
         "printer_thumbnail_image": "printer_thumbnail"
       },
       {
+        "display_name": "Bambu Lab X1E",
+        "func": {
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false
+        },
+        "camera_resolution": [ "720p", "1080p" ],
+        "nozzle_max_temperature": 330,
+        "model_id": "C13",
+        "compatible_machine": [ "BL-P001", "BL-P002", "C11", "C12"],
+        "printer_type": "C13",
+        "printer_thumbnail_image": "printer_thumbnail"
+      },
+      {
         "display_name": "Bambu Lab X1 Carbon",
         "func": {
+          "FUNC_CHAMBER_TEMP": false,
           "FUNC_VIRTUAL_TYAY": true,
           "FUNC_EXTRUSION_CALI": false,
-          "FUNC_LOCAL_TUNNEL": false
+          "FUNC_LOCAL_TUNNEL": false,
+          "FUNC_MOTOR_NOISE_CALI": false,
+          "FUNC_PROMPT_SOUND": false
         },
         "model_id": "BL-P001",
-        "compatible_machine": [ "BL-P002", "C11", "C12"],
+        "compatible_machine": [ "BL-P002", "C11", "C12", "C13"],
         "camera_resolution": [ "720p", "1080p" ],
         "printer_type": "3DPrinter-X1-Carbon",
         "printer_thumbnail_image": "printer_thumbnail"

@@ -507,7 +507,7 @@ void PrintObject::generate_support_material()
                     {LargeOverhang,L("large overhangs")} };
                 std::string warning_message = format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
                     this->model_object()->name, reasons[sntype]);
-                this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
 
 #if 0
@@ -805,6 +805,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
+            || opt_key == "elefant_foot_compensation_layers"
             || opt_key == "support_top_z_distance"
             || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
@@ -874,7 +875,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers") {
-            
+
             steps.emplace_back(posPrepareInfill);
 
             const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
@@ -886,7 +887,7 @@ bool PrintObject::invalidate_state_by_config_options(
 
             if (value_changed && this->object_extruders().size() > 1) {
                 steps.emplace_back(posSlice);
-            }               
+            }
             else if (m_print->config().spiral_mode && opt_key == "bottom_shell_layers") {
                 // Changing the number of bottom layers when a spiral vase is enabled requires re-slicing the object again.
                 // Otherwise, holes in the bottom layers could be filled, as is reported in GH #5528.
@@ -912,21 +913,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bottom_surface_pattern"
             || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
-            || opt_key == "sparse_infill_pattern"
             || opt_key == "infill_anchor"
             || opt_key == "infill_anchor_max"
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
-            steps.emplace_back(posInfill);
-            const auto *old_fill_pattern = old_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
-            const auto *new_fill_pattern = new_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
-            assert(old_fill_pattern && new_fill_pattern);
-            // We need to recalculate infill surfaces when infill_only_where_needed is enabled, and we are switching from
-            // the Lightning infill to another infill or vice versa.
-            if (PrintObject::infill_only_where_needed && (new_fill_pattern->value == ipLightning || old_fill_pattern->value == ipLightning))
-                steps.emplace_back(posPrepareInfill);
+            steps.emplace_back(posPrepareInfill);
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
             // normal infill and 100% (solid) infill.

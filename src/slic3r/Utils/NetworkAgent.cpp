@@ -90,6 +90,7 @@ func_get_printer_firmware           NetworkAgent::get_printer_firmware_ptr = nul
 func_get_task_plate_index           NetworkAgent::get_task_plate_index_ptr = nullptr;
 func_get_user_info                  NetworkAgent::get_user_info_ptr = nullptr;
 func_request_bind_ticket            NetworkAgent::request_bind_ticket_ptr = nullptr;
+func_get_subtask_info               NetworkAgent::get_subtask_info_ptr = nullptr;
 func_get_slice_info                 NetworkAgent::get_slice_info_ptr = nullptr;
 func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullptr;
 func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
@@ -107,6 +108,10 @@ func_track_event                    NetworkAgent::track_event_ptr = nullptr;
 func_track_header                   NetworkAgent::track_header_ptr = nullptr;
 func_track_update_property          NetworkAgent::track_update_property_ptr = nullptr;
 func_track_get_property             NetworkAgent::track_get_property_ptr = nullptr;
+func_put_model_mall_rating_url      NetworkAgent::put_model_mall_rating_url_ptr = nullptr;
+func_get_oss_config                 NetworkAgent::get_oss_config_ptr = nullptr;
+func_put_rating_picture_oss         NetworkAgent::put_rating_picture_oss_ptr = nullptr;
+func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_ptr  = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -242,6 +247,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_task_plate_index_ptr          =  reinterpret_cast<func_get_task_plate_index>(get_network_function("bambu_network_get_task_plate_index"));
     get_user_info_ptr                 =  reinterpret_cast<func_get_user_info>(get_network_function("bambu_network_get_user_info"));
     request_bind_ticket_ptr           =  reinterpret_cast<func_request_bind_ticket>(get_network_function("bambu_network_request_bind_ticket"));
+    get_subtask_info_ptr              =  reinterpret_cast<func_get_subtask_info>(get_network_function("bambu_network_get_subtask_info"));
     get_slice_info_ptr                =  reinterpret_cast<func_get_slice_info>(get_network_function("bambu_network_get_slice_info"));
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
@@ -259,6 +265,10 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     track_header_ptr                  =  reinterpret_cast<func_track_header>(get_network_function("bambu_network_track_header"));
     track_update_property_ptr         = reinterpret_cast<func_track_update_property>(get_network_function("bambu_network_track_update_property"));
     track_get_property_ptr            = reinterpret_cast<func_track_get_property>(get_network_function("bambu_network_track_get_property"));
+    put_model_mall_rating_url_ptr     = reinterpret_cast<func_put_model_mall_rating_url>(get_network_function("bambu_network_put_model_mall_rating"));
+    get_oss_config_ptr                = reinterpret_cast<func_get_oss_config>(get_network_function("bambu_network_get_oss_config"));
+    put_rating_picture_oss_ptr        = reinterpret_cast<func_put_rating_picture_oss>(get_network_function("bambu_network_put_rating_picture_oss"));
+    get_model_mall_rating_result_ptr  = reinterpret_cast<func_get_model_mall_rating_result>(get_network_function("bambu_network_get_model_mall_rating"));
 
     return 0;
 }
@@ -347,11 +357,12 @@ int NetworkAgent::unload_network_module()
     get_printer_firmware_ptr          =  nullptr;
     get_task_plate_index_ptr          =  nullptr;
     get_user_info_ptr                 =  nullptr;
+    get_subtask_info_ptr              =  nullptr;
     get_slice_info_ptr                =  nullptr;
     query_bind_status_ptr             =  nullptr;
     modify_printer_name_ptr           =  nullptr;
     get_camera_url_ptr                =  nullptr;
-    get_design_staffpick_ptr          = nullptr;
+    get_design_staffpick_ptr          =  nullptr;
     start_publish_ptr                 =  nullptr;
     get_profile_3mf_ptr               =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
@@ -364,6 +375,10 @@ int NetworkAgent::unload_network_module()
     track_header_ptr                  =  nullptr;
     track_update_property_ptr         =  nullptr;
     track_get_property_ptr            =  nullptr;
+    get_oss_config_ptr                =  nullptr;
+    put_rating_picture_oss_ptr        =  nullptr;
+    put_model_mall_rating_url_ptr     =  nullptr;
+    get_model_mall_rating_result_ptr  = nullptr;
 
     return 0;
 }
@@ -878,33 +893,33 @@ int NetworkAgent::set_user_selected_machine(std::string dev_id)
     return ret;
 }
 
-int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
     int ret = 0;
     if (network_agent && start_print_ptr) {
-        ret = start_print_ptr(network_agent, params, update_fn, cancel_fn);
+        ret = start_print_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
     return ret;
 }
 
-int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
     int ret = 0;
     if (network_agent && start_local_print_with_record_ptr) {
-        ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn);
+        ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
     return ret;
 }
 
-int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, OnWaitFn wait_fn)
 {
 	int ret = 0;
 	if (network_agent && start_send_gcode_to_sdcard_ptr) {
-		ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn);
+		ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn, wait_fn);
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
 			% network_agent % ret % params.dev_id % params.task_name % params.project_name;
 	}
@@ -1071,6 +1086,17 @@ int NetworkAgent::request_bind_ticket(std::string* ticket)
     return ret;
 }
 
+int NetworkAgent::get_subtask_info(std::string subtask_id, std::string* task_json, unsigned int* http_code, std::string* http_body)
+{
+    int ret = 0;
+    if (network_agent && get_subtask_info_ptr) {
+        ret = get_subtask_info_ptr(network_agent, subtask_id, task_json, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
 int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json)
 {
     int ret;
@@ -1158,11 +1184,11 @@ int NetworkAgent::get_model_publish_url(std::string* url)
     return ret;
 }
 
-int NetworkAgent::get_subtask(BBLModelTask* task)
+int NetworkAgent::get_subtask(BBLModelTask* task, OnGetSubTaskFn getsub_fn)
 {
     int ret = 0;
     if (network_agent && get_subtask_ptr) {
-        ret = get_subtask_ptr(network_agent, task);
+        ret = get_subtask_ptr(network_agent, task, getsub_fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
@@ -1268,6 +1294,46 @@ int NetworkAgent::track_get_property(std::string name, std::string& value, std::
         ret = track_get_property_ptr(network_agent, name, value, type);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format("error network_agnet=%1%, ret = %2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::put_model_mall_rating(int rating_id, int score, std::string content, std::vector<std::string> images, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && get_model_publish_url_ptr) {
+        ret = put_model_mall_rating_url_ptr(network_agent, rating_id, score, content, images, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_oss_config(std::string &config, std::string country_code, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && get_oss_config_ptr) {
+        ret = get_oss_config_ptr(network_agent, config, country_code, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::put_rating_picture_oss(std::string &config, std::string &pic_oss_path, std::string model_id, int profile_id, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && put_rating_picture_oss_ptr) {
+        ret = put_rating_picture_oss_ptr(network_agent, config, pic_oss_path, model_id, profile_id, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_model_mall_rating_result(int job_id, std::string &rating_result, unsigned int &http_code, std::string &http_error)
+{
+    int ret = 0;
+    if (network_agent && get_model_mall_rating_result_ptr) {
+        ret = get_model_mall_rating_result_ptr(network_agent, job_id, rating_result, http_code, http_error);
+        if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }

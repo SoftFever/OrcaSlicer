@@ -146,6 +146,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "textured_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
+        "time_lapse_gcode",
         "fan_min_speed",
         "fan_max_speed",
         "printable_height",
@@ -177,12 +178,12 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
-        "chamber_temperature",
-        "thumbnails",
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine",
         // SoftFever
+        "chamber_temperature",
+        "thumbnails",
         "seam_gap",
         "role_based_wipe_speed",
         "wipe_speed",
@@ -194,7 +195,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "gcode_label_objects", 
         "exclude_object",
         "support_material_interface_fan_speed",
-        "single_extruder_multi_material_priming"
+        "single_extruder_multi_material_priming",
+        "activate_air_filtration",
+        "during_print_exhaust_fan_speed",
+        "complete_print_exhaust_fan_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;

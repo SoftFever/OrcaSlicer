@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSG99_10",
     "name": "Generic PETG @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PETG @base",
+    "from": "system",
+    "setting_id": "GFSG99_10",
+    "instantiation": "true",
     "hot_plate_temp": [
         "80"
     ],
@@ -21,6 +21,5 @@
         "Bambu Lab P1P 0.4 nozzle",
         "Bambu Lab P1P 0.6 nozzle",
         "Bambu Lab P1P 0.8 nozzle"
-    ],
-    "version": "01.07.00.18"
+    ]
 }

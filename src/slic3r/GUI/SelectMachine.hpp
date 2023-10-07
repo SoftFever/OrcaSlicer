@@ -272,7 +272,8 @@ enum PrintDialogStatus {
     PrintStatusNotSupportedSendToSDCard,
     PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate,
-    PrintStatusUnsupportedPrinter
+    PrintStatusUnsupportedPrinter,
+    PrintStatusTimelapseWarning
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -385,7 +386,7 @@ protected:
     ScalableBitmap *                    print_weight{nullptr};
     wxStaticBitmap *                    amsmapping_tip{nullptr};
     ScalableBitmap *                    enable_ams_mapping{nullptr};
-    wxStaticBitmap *                    ams_tip{nullptr};
+    wxStaticBitmap *                    img_ams_tip{nullptr};
     wxStaticBitmap *                    img_ams_backup{nullptr};
     ScalableBitmap *                    enable_ams{nullptr};
 
@@ -400,7 +401,7 @@ public:
     void check_fcous_state(wxWindow* window);
     void popup_filament_backup();
     void update_select_layout(MachineObject *obj);
-    void prepare_mode();
+    void prepare_mode(bool refresh_button = true);
     void sending_mode();
     void finish_mode();
 	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);
@@ -443,6 +444,8 @@ public:
     void update_print_error_info(int code, std::string msg, std::string extra);
     void set_flow_calibration_state(bool state);
     bool is_show_timelapse();
+    bool has_timelapse_warning();
+    void update_timelapse_enable_status();
     bool is_same_printer_model();
     bool is_blocking_printing();
     bool has_tips(MachineObject* obj);
