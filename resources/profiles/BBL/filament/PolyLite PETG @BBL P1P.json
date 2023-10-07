@@ -6,7 +6,7 @@
     "setting_id": "GFSG60_02",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "11"
+        "11.5"
     ],
     "hot_plate_temp": [
         "80"
