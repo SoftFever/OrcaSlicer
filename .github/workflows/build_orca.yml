@@ -32,7 +32,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-          - os: windows-2019
+          - os: windows-latest
           - os: macos-12
             arch: x86_64
           - os: macos-12
@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get the version and date on Ubuntu and macOS
-        if: matrix.os != 'windows-2019'
+        if: matrix.os != 'windows-latest'
         id: get-version-unix
         run: |
           ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
@@ -53,7 +53,7 @@ jobs:
         shell: bash
 
       - name: Get the version and date on Windows
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         id: get-version-windows
         run: |
           echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
@@ -97,7 +97,7 @@ jobs:
           tar -zxf ./OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz -C ${{ github.workspace }}/deps/build_${{matrix.arch}}
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
           ls -l ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
-          rm 。/OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz
+          rm ./OrcaSlicer_dep_mac_${{matrix.arch}}_07-10-2023.tar.gz
 
 
       - name: Build slicer mac
@@ -149,34 +149,34 @@ jobs:
 
 # Windows
       - name: setup MSVC
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v1.1
 
       - name: Install nsis
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         run: |
           choco install nsis
 
       - name: download deps
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         shell: powershell
         run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_win64_20231007.zip", "$env:temp\OrcaSlicer_dep_win64_20231007.zip")'
 
       - name: maker dir
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
         run: |
           mkdir ${{ github.workspace }}/deps/build
           mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
 
       - name: extract deps
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\OrcaSlicer_dep_win64_20231007.zip'
       
       # - name: build deps
-        # if: matrix.os == 'windows-2019'
+        # if: matrix.os == 'windows-latest'
         #   id: cache_deps
       #   uses: actions/cache@v3
       #   env:
@@ -194,31 +194,31 @@ jobs:
       # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude OrcaSlicer_dep | Remove-Item -Recurse -Force
 
       - name: Build slicer Win
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
-        run: .\build_release.bat slicer
+        run: .\build_release_vs2022.bat slicer
 
       - name: Create installer Win
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build
         run: |
           cpack -G NSIS
 
       # - name: pack app
-        # if: matrix.os == 'windows-2019'
+        # if: matrix.os == 'windows-latest'
         #   working-directory: ${{ github.workspace }}/build
       #   shell: cmd
       #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_dev_build.zip ${{ github.workspace }}/build/OrcaSlicer'
 
       - name: Upload artifacts Win zip
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}_portable
           path: ${{ github.workspace }}/build/OrcaSlicer
 
       - name: Upload artifacts Win installer
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}
