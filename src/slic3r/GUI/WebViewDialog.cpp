@@ -497,7 +497,7 @@ void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<voi
         .header("Content-Type", "application/json")
         .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
         .on_error([this, callback](std::string body, std::string error, unsigned status) {
-            callback(body);
+            callback(body + error);
         })
         .perform();
 }
