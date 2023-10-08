@@ -4180,7 +4180,7 @@ int MachineObject::parse_json(std::string payload)
                             std::string reason = jj["reason"].get<std::string>();
                             GUI::wxGetApp().CallAfter([cali_mode, reason] {
                                 wxString info = "";
-                                if (reason == "invalid nozzle_diameter") {
+                                if (reason == "invalid nozzle_diameter" || reason == "nozzle_diameter is not supported") {
                                     info = _L("This calibration does not support the currently selected nozzle diameter");
                                 }
                                 else if (reason == "invalid handle_flowrate_cali param") {
