@@ -31,6 +31,10 @@
         {
             "name": "Voron 0.1",
             "sub_path": "machine/Voron 0.1.json"
+        },
+        {
+            "name": "Voron Switchwire 250",
+            "sub_path": "machine/Voron Switchwire 250.json"
         }
     ],
     "process_list": [
@@ -181,6 +185,10 @@
         {
             "name": "Voron 0.1 0.4 nozzle",
             "sub_path": "machine/Voron 0.1 0.4 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 0.4 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 0.4 nozzle.json"
         }
     ]
 }
