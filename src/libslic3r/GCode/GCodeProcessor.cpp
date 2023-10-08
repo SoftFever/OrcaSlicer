@@ -4300,7 +4300,7 @@ void GCodeProcessor::update_slice_warnings()
     if (m_highest_bed_temp != 0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int temperature = get_filament_vitrification_temperature(used_extruders[i]);
-            if (temperature != 0 && m_highest_bed_temp > temperature)
+            if (temperature != 0 && m_highest_bed_temp >= temperature)
                 warning.params.push_back(std::to_string(used_extruders[i]));
         }
     }

@@ -1378,8 +1378,8 @@ void PrintConfigDef::init_fff_params()
 
     // BBS
     def = this->add("temperature_vitrification", coInts);
-    def->label = L("Glass transition temperature");
-    def->tooltip = L("At this temperature,glass state transists to rubbery state. Thus the heatbed cannot be hotter than this temperature");
+    def->label = L("Softening temperature");
+    def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
