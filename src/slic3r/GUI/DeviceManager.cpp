@@ -4667,22 +4667,26 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                     std::string http_body;
                     if (m_agent->get_subtask_info(subtask_id, &subtask_json, &http_code, &http_body) == 0) {
                         try  {
-                            json task_j = json::parse(subtask_json);
-                            if (task_j.contains("content")) {
-                                std::string content_str = task_j["content"].get<std::string>();
-                                json content_j = json::parse(content_str);
-                                plate_index = content_j["info"]["plate_idx"].get<int>();
-                            }
+                            if (!subtask_json.empty()){
 
-                            if (task_j.contains("context") && task_j["context"].contains("plates")) {
-                                for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
-                                    if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
-                                        slice_info->thumbnail_url = task_j["context"]["plates"][i]["thumbnail"]["url"].get<std::string>();
-                                        BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                json task_j = json::parse(subtask_json);
+                                if (task_j.contains("content")) {
+                                    std::string content_str = task_j["content"].get<std::string>();
+                                    json content_j = json::parse(content_str);
+                                    plate_index = content_j["info"]["plate_idx"].get<int>();
+                                }
+
+                                if (task_j.contains("context") && task_j["context"].contains("plates")) {
+                                    for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
+                                        if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
+                                            slice_info->thumbnail_url = task_j["context"]["plates"][i]["thumbnail"]["url"].get<std::string>();
+                                            BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                        }
                                     }
                                 }
-                            } else {
-                                BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
+                                else {
+                                    BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
+                                }
                             }
                         }
                         catch(...) {
