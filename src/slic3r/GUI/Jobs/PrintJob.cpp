@@ -397,6 +397,11 @@ void PrintJob::process()
 
     auto wait_fn = [this, curr_percent, &obj](int state, std::string job_info) {
             BOOST_LOG_TRIVIAL(info) << "print_job: get_job_info = " << job_info;
+
+            if (!obj->is_support_wait_sending_finish) {
+                return true;
+            }
+
             std::string curr_job_id;
             json job_info_j;
             try {
@@ -426,6 +431,7 @@ void PrintJob::process()
                     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
                 }
                 this->update_status(curr_percent, _L("Print task sending times out."));
+                m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, "Print task sending times out.", "");
                 BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
                 /* handle tiemout */
                 obj->command_task_cancel(curr_job_id);

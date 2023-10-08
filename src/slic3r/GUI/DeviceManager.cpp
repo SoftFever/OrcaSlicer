@@ -3054,7 +3054,11 @@ int MachineObject::parse_json(std::string payload)
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
                     if (jj.contains("job_id")) {
+                        is_support_wait_sending_finish = true;
                         this->job_id_ = jj["job_id"].get<std::string>();
+                    }
+                    else {
+                        is_support_wait_sending_finish = false;
                     }
 
                     if (jj.contains("queue_number")) {
