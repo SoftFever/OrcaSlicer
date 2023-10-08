@@ -2084,6 +2084,7 @@ void MainFrame::on_sys_color_changed()
         tab->sys_color_changed();
     for (auto tab : wxGetApp().model_tabs_list)
         tab->sys_color_changed();
+    wxGetApp().plate_tab->sys_color_changed();
 
     MenuFactory::sys_color_changed(m_menubar);
 

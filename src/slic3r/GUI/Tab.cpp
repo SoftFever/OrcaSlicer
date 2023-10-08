@@ -933,8 +933,14 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
 
 void Tab::update_changed_tree_ui()
 {
-    if (m_options_list.empty())
+    if (m_options_list.empty()) {
+        if (m_type == Preset::Type::TYPE_PLATE) {
+            for (auto page : m_pages) {
+                page->m_is_nonsys_values = false;
+            }
+        }
         return;
+    }
     auto cur_item = m_tabctrl->GetFirstVisibleItem();
     if (cur_item < 0 || !m_tabctrl->IsVisible(cur_item))
         return;
@@ -2475,7 +2481,7 @@ void TabPrintPlate::build()
     m_config->option("first_layer_sequence_choice", true);
     m_config->option("first_layer_print_sequence", true);
 
-    auto page = add_options_page(L("Plate Settings"), "");
+    auto page = add_options_page(L("Plate Settings"), "empty");
     auto optgroup = page->new_optgroup("");
     optgroup->append_single_option_line("curr_bed_type");
     optgroup->append_single_option_line("print_sequence");
