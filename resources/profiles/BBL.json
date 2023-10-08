@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.07.00.26",
+    "version": "01.07.00.27",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -540,6 +540,10 @@
         {
             "name": "Generic PLA High Speed @base",
             "sub_path": "filament/Generic PLA High Speed @base.json"
+        },
+        {
+            "name": "Bambu PLA Glow @base",
+            "sub_path": "filament/Bambu PLA Glow @base.json"
         },
         {
             "name": "Bambu TPU 95A @base",
@@ -1102,6 +1106,26 @@
             "sub_path": "filament/Generic PLA High Speed @BBL A1M.json"
         },
         {
+            "name": "Bambu PLA Glow @BBL X1C",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL P1P",
+            "sub_path": "filament/Bambu PLA Glow @BBL P1P.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL X1E",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1E.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL A1M",
+            "sub_path": "filament/Bambu PLA Glow @BBL A1M.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL X1",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1.json"
+        },
+        {
             "name": "Bambu TPU 95A @BBL X1C",
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
         },
@@ -1492,6 +1516,26 @@
         {
             "name": "Generic PLA High Speed @BBL A1M 0.2 nozzle",
             "sub_path": "filament/Generic PLA High Speed @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL X1E 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1E 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL X1 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1 0.2 nozzle.json"
         },
         {
             "name": "Bambu PETG Basic @BBL A1M 0.4 nozzle",
