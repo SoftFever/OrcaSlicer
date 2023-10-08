@@ -22,14 +22,12 @@
 #include "libslic3r/ObjectID.hpp"
 #include "GCode/ExtrusionProcessor.hpp"
 
+#include "GCode/PressureEqualizer.hpp"
+
 #include <memory>
 #include <map>
 #include <set>
 #include <string>
-
-#ifdef HAS_PRESSURE_EQUALIZER
-#include "GCode/PressureEqualizer.hpp"
-#endif /* HAS_PRESSURE_EQUALIZER */
 
 namespace Slic3r {
 
@@ -136,6 +134,20 @@ class ColorPrintColors
     static const std::vector<std::string> Colors;
 public:
     static const std::vector<std::string>& get() { return Colors; }
+};
+
+struct LayerResult {
+    std::string gcode;
+    size_t      layer_id;
+    // Is spiral vase post processing enabled for this layer?
+    bool        spiral_vase_enable { false };
+    // Should the cooling buffer content be flushed at the end of this layer?
+    bool        cooling_buffer_flush { false };
+	// Is indicating if this LayerResult should be processed, or it is just inserted artificial LayerResult.
+    // It is used for the pressure equalizer because it needs to buffer one layer back.
+    bool        nop_layer_result { false };
+
+    static LayerResult make_nop_layer_result() { return {"", std::numeric_limits<coord_t>::max(), false, false, true}; }
 };
 
 class GCode {
@@ -285,14 +297,6 @@ private:
     static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
 
-    struct LayerResult {
-        std::string gcode;
-        size_t      layer_id;
-        // Is spiral vase post processing enabled for this layer?
-        bool        spiral_vase_enable { false };
-        // Should the cooling buffer content be flushed at the end of this layer?
-        bool        cooling_buffer_flush { false };
-    };
     LayerResult process_layer(
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
@@ -511,9 +515,9 @@ private:
 
     std::unique_ptr<CoolingBuffer>      m_cooling_buffer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
-#ifdef HAS_PRESSURE_EQUALIZER
+
     std::unique_ptr<PressureEqualizer>  m_pressure_equalizer;
-#endif /* HAS_PRESSURE_EQUALIZER */
+
     std::unique_ptr<WipeTowerIntegration> m_wipe_tower;
 
     // Heights (print_z) at which the skirt has already been extruded.
@@ -572,6 +576,7 @@ private:
 
     friend class Wipe;
     friend class WipeTowerIntegration;
+    friend class PressureEqualizer;
     friend class Print;
 };
 

@@ -475,6 +475,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
@@ -507,6 +508,17 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
     //SoftFever
     auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+    
+    bool have_volumetric_extrusion_rate_slope = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0;
+    int have_volumetric_extrusion_rate_slope_segment_length = config->option<ConfigOptionInt>("max_volumetric_extrusion_rate_slope_segment_length")->value;
+    toggle_field("enable_arc_fitting", !have_volumetric_extrusion_rate_slope);
+    toggle_line("max_volumetric_extrusion_rate_slope_segment_length", have_volumetric_extrusion_rate_slope);
+    if(have_volumetric_extrusion_rate_slope) config->set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+    if(have_volumetric_extrusion_rate_slope_segment_length==0) {
+    	DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("max_volumetric_extrusion_rate_slope_segment_length", new ConfigOptionInt(1));
+        apply(config, &new_conf);    
+    }
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
@@ -596,7 +608,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
-    bool support_is_normal_tree = support_is_tree && support_style != smsOrganic && support_style != smsDefault;
+    bool support_is_normal_tree = support_is_tree && support_style != smsOrganic &&
+        // Orca: use organic as default
+        support_style != smsDefault;
     bool support_is_organic = support_is_tree && !support_is_normal_tree;
     // settings shared by normal and organic trees
     for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter" })
@@ -612,6 +626,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // non-organic tree support use max_bridge_length instead of bridge_no_support
     toggle_line("max_bridge_length", support_is_normal_tree);
     toggle_line("bridge_no_support", !support_is_normal_tree);
+
+    // This is only supported for auto normal tree
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_normal_tree);
 
     for (auto el : { "support_interface_spacing", "support_interface_filament",
                      "support_interface_loop_pattern", "support_bottom_interface_spacing" })

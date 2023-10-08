@@ -9240,49 +9240,49 @@ wxBoxSizer *ProjectDropDialog::create_item_checkbox(wxString title, wxWindow *pa
 void ProjectDropDialog::select_radio(int index)
 {
     m_action                         = index;
-    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_select_id == index) groupid = rs->m_groupid;
-        node = node->GetNext();
+        it = it->GetNext();
     }
 
-    node = m_radio_group.GetFirst();
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    it = m_radio_group.GetFirst();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_groupid == groupid && rs->m_select_id == index) rs->m_radiobox->SetValue(true);
         if (rs->m_groupid == groupid && rs->m_select_id != index) rs->m_radiobox->SetValue(false);
-        node = node->GetNext();
+        it = it->GetNext();
     }
 }
 
 int ProjectDropDialog::get_select_radio(int groupid)
 {
-    RadioSelectorList::Node *node = m_radio_group.GetFirst();
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_groupid == groupid && rs->m_radiobox->GetValue()) { return rs->m_select_id; }
-        node = node->GetNext();
+        it = it->GetNext();
     }
 
     return 0;
 }
 void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
 {
-    RadioSelectorList::Node *node    = m_radio_group.GetFirst();
+    RadioSelectorList::compatibility_iterator it = m_radio_group.GetFirst();
     auto                     groupid = 0;
 
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_radiobox->GetId() == event.GetId()) groupid = rs->m_groupid;
-        node = node->GetNext();
+        it = it->GetNext();
     }
 
-    node = m_radio_group.GetFirst();
-    while (node) {
-        RadioSelector *rs = node->GetData();
+    it = m_radio_group.GetFirst();
+    while (it) {
+        RadioSelector *rs = it->GetData();
         if (rs->m_groupid == groupid && rs->m_radiobox->GetId() == event.GetId()) {
             set_action(rs->m_select_id);
             rs->m_radiobox->SetValue(true);
@@ -9290,7 +9290,7 @@ void ProjectDropDialog::on_select_radio(wxMouseEvent &event)
 
 
         if (rs->m_groupid == groupid && rs->m_radiobox->GetId() != event.GetId()) rs->m_radiobox->SetValue(false);
-        node = node->GetNext();
+        it = it->GetNext();
     }
 }
 

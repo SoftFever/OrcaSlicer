@@ -1,0 +1,15 @@
+{
+    "bridge_density": "95%",
+    "bridge_flow": "0.9",
+    "bridge_speed": "30",
+    "enable_support": "0",
+    "from": "User",
+    "inherits": "0.20mm Standard @Kingroon KP3S PRO S1",
+    "is_custom_defined": "0",
+    "name": "0.20mm Standard @Kingroon KP3S PRO S1 - TADEUS",
+    "overhang_1_4_speed": "50",
+    "overhang_2_4_speed": "40",
+    "overhang_3_4_speed": "20",
+    "print_settings_id": "0.20mm Standard @Kingroon KP3S PRO S1 - TADEUS",
+    "version": "1.6.4.0"
+}

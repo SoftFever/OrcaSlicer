@@ -11,7 +11,7 @@
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 using boost::optional;
 using boost::system::error_code;
