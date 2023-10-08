@@ -185,6 +185,7 @@ private:
     void render_left_arrow(const float* render_color, bool use_lighting) const;
     void render_right_arrow(const float* render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
+    void show_tooltip(const std::string tooltip);
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
     void render_only_numbers(bool bottom) const;
     void render_plate_name_texture(int position_id, int tex_coords_id);

@@ -1,12 +1,12 @@
 {
     "type": "filament",
-    "filament_id": "GFG99",
-    "setting_id": "GFSA04",
-    "name": "Voron Generic PETG",
+	"filament_id": "GFG99",
+    "setting_id": "GFSG99",
+    "name": "Wanhao Generic PETG",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pet",
-    "reduce_fan_stop_start_freq": [
+	"reduce_fan_stop_start_freq": [
         "1"
     ],
     "slow_down_for_layer_cooling": [
@@ -43,13 +43,6 @@
         "; filament start gcode\n"
     ],
     "compatible_printers": [
-      "Voron 2.4 250 0.4 nozzle",
-      "Voron 2.4 300 0.4 nozzle",
-      "Voron 2.4 350 0.4 nozzle",
-      "Voron Trident 250 0.4 nozzle",
-      "Voron Trident 300 0.4 nozzle",
-      "Voron Trident 350 0.4 nozzle",
-      "Voron 0.1 0.4 nozzle",
-	  "Voron Switchwire 250 0.4 nozzle"
+	  "Wanhao D12-300 0.4 nozzle"
     ]
 }
