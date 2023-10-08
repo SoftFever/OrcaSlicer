@@ -126,5 +126,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/destdir
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
         
