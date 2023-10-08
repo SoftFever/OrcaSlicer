@@ -70,7 +70,7 @@ jobs:
       - name: Install tools mac
         if: matrix.os == 'macos-12'
         run: |
-          brew install cmake git gettext zstd
+          brew install cmake git gettext zstd tree
           mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}
           mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
 
@@ -94,9 +94,9 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           curl -LJO https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz
-          tar -zxf ./OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz -C ${{ github.workspace }}/deps/build_${{matrix.arch}}
+          tar -zxfv ./OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz -C ${{ github.workspace }}/deps/build_${{matrix.arch}}
           chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_${{matrix.arch}}
-          ls -l ${{ github.workspace }}/deps/build_${{matrix.arch}}
+          tree ${{ github.workspace }}/deps/build_${{matrix.arch}}
           rm ./OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz
 
 
