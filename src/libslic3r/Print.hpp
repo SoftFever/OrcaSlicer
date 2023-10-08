@@ -821,6 +821,15 @@ public:
     Vec2d translate_to_print_space(const Point& point) const;
 
     static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
+    // similar to check_multi_filaments_compatibility, but the input is int, and may be negative (means unset)
+    static bool is_filaments_compatible(const std::vector<int>& types);
+    // get the compatible filament type of a multi-material object
+    // Rule:
+    // 1. LowTemp+HighLowCompatible=LowTemp
+    // 2. HighTemp++HighLowCompatible=HighTemp
+    // 3. LowTemp+HighTemp+...=HighLowCompatible
+    // Unset types are just ignored.
+    static int get_compatible_filament_type(const std::set<int>& types);
 
 protected:
     // Invalidates the step, and its depending steps in Print.
