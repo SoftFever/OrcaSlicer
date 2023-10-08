@@ -518,9 +518,9 @@ void ArrangeJob::process()
     {
         BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< params.to_json();
         BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % m_selected.size();
-        for (auto selected : m_selected)
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
-            << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
+        for (auto selected : m_selected) {
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx<<", filemant_type:" << selected.filament_temp_type;
+        }
         BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();

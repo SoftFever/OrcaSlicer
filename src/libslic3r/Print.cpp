@@ -916,6 +916,44 @@ bool Print::check_multi_filaments_compatibility(const std::vector<std::string>& 
     return true;
 }
 
+bool Print::is_filaments_compatible(const std::vector<int>& filament_types)
+{
+    bool has_high_temperature_filament = false;
+    bool has_low_temperature_filament = false;
+
+    for (const auto& type : filament_types) {
+        if (type == FilamentTempType::HighTemp)
+            has_high_temperature_filament = true;
+        else if (type == FilamentTempType::LowTemp)
+            has_low_temperature_filament = true;
+    }
+
+    if (has_high_temperature_filament && has_low_temperature_filament)
+        return false;
+
+    return true;
+}
+int Print::get_compatible_filament_type(const std::set<int>& filament_types)
+{
+    bool has_high_temperature_filament = false;
+    bool has_low_temperature_filament = false;
+
+    for (const auto& type : filament_types) {
+        if (type == FilamentTempType::HighTemp)
+            has_high_temperature_filament = true;
+        else if (type == FilamentTempType::LowTemp)
+            has_low_temperature_filament = true;
+    }
+
+    if (has_high_temperature_filament && has_low_temperature_filament)
+        return HighLowCompatible;
+    else if (has_high_temperature_filament)
+        return HighTemp;
+    else if (has_low_temperature_filament)
+        return LowTemp;
+    return HighLowCompatible;
+}
+
 //BBS: this function is used to check whether multi filament can be printed
 StringObjectException Print::check_multi_filament_valid(const Print& print)
 {

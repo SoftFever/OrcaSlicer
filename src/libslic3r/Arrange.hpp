@@ -40,12 +40,12 @@ static const constexpr int UNARRANGED = -1;
 /// be modified during arrangement. Instead, the translation and rotation fields
 /// will mark the needed transformation for the polygon to be in the arranged
 /// position. These can also be set to an initial offset and rotation.
-/// 
+///
 /// The bed_idx field will indicate the logical bed into which the
 /// polygon belongs: UNARRANGED means no place for the polygon
 /// (also the initial state before arrange), 0..N means the index of the bed.
 /// Zero is the physical bed, larger than zero means a virtual bed.
-struct ArrangePolygon { 
+struct ArrangePolygon {
     ExPolygon poly;                 /// The 2D silhouette to be arranged
     Vec2crd   translation{0, 0};    /// The translation of the poly
     double    rotation{0.0};        /// The rotation of the poly in radians
@@ -62,6 +62,7 @@ struct ArrangePolygon {
     int       row{0};
     int       col{0};
     std::vector<int> extrude_ids{};      /// extruder_id for least extruder switch
+    int filament_temp_type{ -1 };
     int       bed_temp{0};         ///bed temperature for different material judge
     int       print_temp{0};      ///print temperature for different material judge
     int       first_bed_temp{ 0 };      ///first layer bed temperature for different material judge
@@ -69,20 +70,20 @@ struct ArrangePolygon {
     int       vitrify_temp{ 0 };   // max bed temperature for material compatibility, which is usually the filament vitrification temp
     int       itemid{ 0 };         // item id in the vector, used for accessing all possible params like extrude_id
     int       is_applied{ 0 };     // transform has been applied
-    double    height{ 0 };         // item height 
+    double    height{ 0 };         // item height
     double    brim_width{ 0 };     // brim width
     std::string name;
-    
+
     // If empty, any rotation is allowed (currently unsupported)
     // If only a zero is there, no rotation is allowed
     std::vector<double> allowed_rotations = {0.};
-    
+
     /// Optional setter function which can store arbitrary data in its closure
     std::function<void(const ArrangePolygon&)> setter = nullptr;
-    
+
     /// Helper function to call the setter with the arrange data arguments
     void apply() {
-        if (setter && !is_applied) { 
+        if (setter && !is_applied) {
             setter(*this);
             is_applied = 1;
         }
@@ -104,15 +105,15 @@ struct ArrangePolygon {
 using ArrangePolygons = std::vector<ArrangePolygon>;
 
 struct ArrangeParams {
-    
-    /// The minimum distance which is allowed for any 
+
+    /// The minimum distance which is allowed for any
     /// pair of items on the print bed in any direction.
     coord_t min_obj_distance = 0;
-    
+
     /// The accuracy of optimization.
     /// Goes from 0.0 to 1.0 and scales performance as well
     float accuracy = 1.f;
-    
+
     /// Allow parallel execution.
     bool parallel = true;
 
@@ -136,18 +137,18 @@ struct ArrangeParams {
 
     ArrangePolygons excluded_regions;   // regions cant't be used
     ArrangePolygons nonprefered_regions; // regions can be used but not prefered
-    
-    /// Progress indicator callback called when an object gets packed. 
+
+    /// Progress indicator callback called when an object gets packed.
     /// The unsigned argument is the number of items remaining to pack.
     std::function<void(unsigned, std::string)> progressind = [](unsigned st, std::string str = "") {
         std::cout << "st=" << st << ", " << str << std::endl;
     };
 
     std::function<void(const ArrangePolygon &)> on_packed;
-    
+
     /// A predicate returning true if abort is needed.
     std::function<bool(void)>     stopcondition;
-    
+
     ArrangeParams() = default;
     explicit ArrangeParams(coord_t md) : min_obj_distance(md) {}
     // to json format
@@ -186,11 +187,11 @@ Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParam
 /**
  * \brief Arranges the input polygons.
  *
- * WARNING: Currently, only convex polygons are supported by the libnest2d 
+ * WARNING: Currently, only convex polygons are supported by the libnest2d
  * library which is used to do the arrangement. This might change in the future
  * this is why the interface contains a general polygon capable to have holes.
  *
- * \param items Input vector of ArrangePolygons. The transformation, rotation 
+ * \param items Input vector of ArrangePolygons. The transformation, rotation
  * and bin_idx fields will be changed after the call finished and can be used
  * to apply the result on the input polygon.
  */
