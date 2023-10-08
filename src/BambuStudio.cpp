@@ -515,7 +515,6 @@ int CLI::run(int argc, char **argv)
         boost::nowide::cerr << text.c_str() << std::endl;
         return CLI_ENVIRONMENT_ERROR;
     }
-    BOOST_LOG_TRIVIAL(warning) << "Current BambuStudio Version "<< SLIC3R_VERSION << std::endl;
 
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
@@ -643,7 +642,7 @@ int CLI::run(int argc, char **argv)
     }
 
     global_begin_time = (long long)Slic3r::Utils::get_current_time_utc();
-    BOOST_LOG_TRIVIAL(info) << boost::format("cli mode, begin at %1%")%global_begin_time;
+    BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
 
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
@@ -1236,6 +1235,26 @@ int CLI::run(int argc, char **argv)
                     if (ret) {
                         record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
                         flush_and_exit(ret);
+                    }
+                    int orig_printable_width, orig_printable_depth, orig_printable_height;
+                    Pointfs orig_printable_area;
+                    orig_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
+                    if (orig_printable_area.size() >= 4) {
+                        orig_printable_width = (int)(orig_printable_area[2].x() - orig_printable_area[0].x());
+                        orig_printable_depth = (int)(orig_printable_area[2].y() - orig_printable_area[0].y());
+                    }
+                    orig_printable_height = (int)(config.opt_float("printable_height"));
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, check printable size: old_printable_width=%2%, orig_printable_width=%3%, old_printable_depth=%4%, orig_printable_depth=%5%, old_printable_height=%6%, orig_printable_height=%7%")
+                                %__LINE__ %old_printable_width %orig_printable_width %old_printable_depth %orig_printable_depth %old_printable_height %orig_printable_height;
+                    if ((orig_printable_width > 0) && (orig_printable_depth > 0) && (orig_printable_height > 0))
+                    {
+                        if ((old_printable_width > orig_printable_width) || (old_printable_depth > orig_printable_depth) || (old_printable_height > orig_printable_height))
+                        {
+                            std::string error_str = (boost::format("Invalid printable size {%1%, %2%, %3%} exceeds the default size.")%old_printable_width %old_printable_depth %old_printable_height).str();
+                            BOOST_LOG_TRIVIAL(error) << error_str;
+                            record_exit_reson(outfile_dir, CLI_INVALID_VALUES_IN_3MF, 0, error_str, sliced_info);
+                            flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
+                        }
                     }
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     config.set("printer_settings_id", config_name, true);
