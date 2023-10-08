@@ -61,13 +61,14 @@ jobs:
             mkdir ${{ github.workspace }}/deps/build
             mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
             .\build_release_vs2022.bat deps
+            .\build_release_vs2022.bat pack
             cd ${{ github.workspace }}/deps/build
 
       - name: Build on Mac x86_64
         if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install cmake git gettext
+            brew install cmake git gettext automake
             mkdir -p ${{ github.workspace }}/deps/build_x86_64
             mkdir -p ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
             ./build_release_macos.sh -dp -a x86_64
@@ -76,7 +77,7 @@ jobs:
         if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
         working-directory: ${{ github.workspace }}
         run: |
-            brew install cmake git gettext
+            brew install cmake git gettext automake
             mkdir -p ${{ github.workspace }}/deps/build_arm64
             mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
             ./build_release_macos.sh -dp -a arm64
@@ -96,6 +97,8 @@ jobs:
             sudo ./BuildLinux.sh -ur
             sudo chown $USER -R ./
             ./BuildLinux.sh -dr
+            cd deps/build
+            tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
       - name: Upload Mac arm64 artifacts
         if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
@@ -116,12 +119,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_win64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
         if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/destdir
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
         
