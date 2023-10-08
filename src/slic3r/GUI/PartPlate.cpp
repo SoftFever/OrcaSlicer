@@ -1701,6 +1701,46 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 	return wipe_tower_size;
 }
 
+arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, int plate_extruder_size) const
+{
+	float x = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_x"))->get_at(plate_index);
+	float y = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"))->get_at(plate_index);
+	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
+	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
+	float v = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_volume"))->value;
+	Vec3d wipe_tower_size = estimate_wipe_tower_size(config, w, v, plate_extruder_size);
+	int plate_width=m_width, plate_depth=m_depth;
+	float depth = wipe_tower_size(1);
+	float margin = WIPE_TOWER_MARGIN, wp_brim_width = 0.f;
+	const ConfigOption* wipe_tower_brim_width_opt = config.option("prime_tower_brim_width");
+	if (wipe_tower_brim_width_opt) {
+		wp_brim_width = wipe_tower_brim_width_opt->getFloat();
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: wp_brim_width %1%") % wp_brim_width;
+	}
+
+	x = std::clamp(x, margin, (float)plate_width - w - margin - wp_brim_width);
+	y = std::clamp(y, margin, (float)plate_depth - depth - margin - wp_brim_width);
+
+	arrangement::ArrangePolygon wipe_tower_ap;
+	Polygon ap({
+		{scaled(x - wp_brim_width), scaled(y - wp_brim_width)},
+		{scaled(x + w + wp_brim_width), scaled(y - wp_brim_width)},
+		{scaled(x + w + wp_brim_width), scaled(y + depth + wp_brim_width)},
+		{scaled(x - wp_brim_width), scaled(y + depth + wp_brim_width)}
+		});
+	wipe_tower_ap.bed_idx = plate_index;
+	wipe_tower_ap.setter = NULL; // do not move wipe tower
+
+	wipe_tower_ap.poly.contour = std::move(ap);
+	wipe_tower_ap.translation = { scaled(0.f), scaled(0.f) };
+	//wipe_tower_ap.rotation = a;
+	wipe_tower_ap.name = "WipeTower";
+	wipe_tower_ap.is_virt_object = true;
+	wipe_tower_ap.is_wipe_tower = true;
+
+	return wipe_tower_ap;
+}
+
 bool PartPlate::operator<(PartPlate& plate) const
 {
 	int index = plate.get_index();
@@ -3702,6 +3742,20 @@ std::vector<const GCodeProcessorResult*> PartPlateList::get_nonempty_plates_slic
 	return nonempty_plates_slice_result;
 }
 
+std::set<int> PartPlateList::get_extruders(bool conside_custom_gcode) const
+{
+    int plate_count = get_plate_count();
+    std::set<int> extruder_ids;
+
+    for (size_t i = 0; i < plate_count; i++) {
+        auto plate_extruders = m_plate_list[i]->get_extruders(conside_custom_gcode);
+        extruder_ids.insert(plate_extruders.begin(), plate_extruders.end());
+    }
+
+    return extruder_ids;
+}
+
+
 //select plate
 int PartPlateList::select_plate(int index)
 {
@@ -3795,7 +3849,7 @@ double PartPlateList::plate_stride_y()
 }
 
 //get the plate counts, not including the invalid plate
-int PartPlateList::get_plate_count()
+int PartPlateList::get_plate_count() const
 {
 	int ret = 0;
 
@@ -4353,7 +4407,7 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 				arrange_polygon.col = i % m_plate_cols;
 				arrange_polygon.translation(X) -= scaled<double>(plate_stride_x() * arrange_polygon.col);
 				arrange_polygon.translation(Y) += scaled<double>(plate_stride_y() * arrange_polygon.row);
-				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
+				//BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj_id %1% instance_id %2% in plate %3%, locked %4%, row %5%, col %6%\n") % obj_index % instance_index % i % locked % arrange_polygon.row % arrange_polygon.col;
 				return locked;
 			}
 		}

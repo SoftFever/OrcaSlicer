@@ -288,11 +288,13 @@ public:
     void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move);
 
     // BBS
+    Vec2d get_size() const { return Vec2d(m_width, m_depth); }
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelInstance* get_instance(int obj_id, int instance_id);
 
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size = 0) const;
+    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, int plate_extruder_size = 0) const;
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
@@ -687,11 +689,13 @@ public:
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }
 
+    std::set<int> get_extruders(bool conside_custom_gcode = false) const;
+
     //select plate
     int select_plate(int index);
 
     //get the plate counts, not including the invalid plate
-    int get_plate_count();
+    int get_plate_count() const;
 
     //update the plate cols due to plate count change
     void update_plate_cols();

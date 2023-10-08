@@ -1737,45 +1737,6 @@ bool GLCanvas3D::make_current_for_postinit() {
     return _set_current();
 }
 
-Points GLCanvas3D::estimate_wipe_tower_points(int plate_index, bool global) const
-{
-    PartPlateList &     ppl         = wxGetApp().plater()->get_partplate_list();
-    DynamicPrintConfig &proj_cfg    = wxGetApp().preset_bundle->project_config;
-    auto &              print       = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    int                 plate_count = ppl.get_plate_count();
-    float               x           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_x"))->get_at(plate_index);
-    float               y           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->get_at(plate_index);
-    if (plate_index >= plate_count) { plate_index = 0; }
-    float w               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_tower_width"))->value;
-    float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
-    const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    Vec3d         wipe_tower_size = ppl.get_plate(plate_index)->estimate_wipe_tower_size(print_cfg, w, v);
-
-    if (wipe_tower_size(1) == 0) {
-        // when depth is unavailable (no items on this plate), we have to estimate the depth using the extruder number of all plates
-        std::set<int> extruder_ids;
-        if (global) {
-            auto objs = wxGetApp().obj_list()->objects();
-            for (ModelObject *obj : *objs) {
-                for (ModelVolume *volume : obj->volumes) {
-                    std::vector<int> es = volume->get_extruders();
-                    extruder_ids.insert(es.begin(), es.end());
-                }
-            }
-        } else {
-            PartPlate* pl = ppl.get_plate(plate_index);
-            std::vector<int> es = pl->get_extruders();
-            extruder_ids.insert(es.begin(), es.end());
-        }
-        int extruder_size  = extruder_ids.size();
-        wipe_tower_size(1) = extruder_size * print.wipe_tower_data(extruder_size).depth + 2 * print.wipe_tower_data().brim_width;
-    }
-    Vec3d plate_origin = ppl.get_plate(plate_index)->get_origin();
-    Point wt_min_corner{scale_(x), scale_(y)};
-    Point wt_max_corner(scale_(x + wipe_tower_size(0)), scale_(y + wipe_tower_size(1)));
-    return {wt_min_corner, {wt_max_corner.x(), wt_min_corner.y()}, wt_max_corner, {wt_min_corner.x(), wt_max_corner.y()}};
-}
-
 void GLCanvas3D::render(bool only_init)
 {
     if (m_in_render) {
@@ -2639,7 +2600,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
                 Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, v);
 
-                const float margin = 15.f;
+                const float margin = WIPE_TOWER_MARGIN;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
                 coordf_t plate_bbox_x_max_local_coord = plate_bbox.max(0) - plate_origin(0);
                 coordf_t plate_bbox_y_max_local_coord = plate_bbox.max(1) - plate_origin(1);
@@ -4913,10 +4874,10 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
             wti.m_bb.offset((brim_width));
 
             // BBS: the wipe tower pos might be outside bed
-            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-            BoundingBoxf3 build_volume = plate->get_build_volume();
-            wti.m_pos.x() = std::clamp(wti.m_pos.x(), 0.0, build_volume.max.x() - wti.m_bb.size().x());
-            wti.m_pos.y() = std::clamp(wti.m_pos.y(), 0.0, build_volume.max.y() - wti.m_bb.size().y());
+            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+            Vec2d plate_size = plate->get_size();
+            wti.m_pos.x() = std::clamp(wti.m_pos.x(), 0.0, plate_size(0) - wti.m_bb.size().x());
+            wti.m_pos.y() = std::clamp(wti.m_pos.y(), 0.0, plate_size(1) - wti.m_bb.size().y());
 
             // BBS: add partplate logic
             wti.m_plate_idx = plate_idx;

@@ -899,7 +899,7 @@ void Selection::translate(const Vec3d& displacement, bool local)
             Vec3d tower_size = v.bounding_box().size();
             Vec3d tower_origin = m_cache.volumes_data[i].get_volume_position();
             Vec3d actual_displacement = displacement;
-            const double margin = 15.f;
+            const double margin = WIPE_TOWER_MARGIN;
 
             if (!local)
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;

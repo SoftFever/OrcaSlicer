@@ -1083,9 +1083,6 @@ public:
 
     bool make_current_for_postinit();
 
-    //BBS
-    Points estimate_wipe_tower_points(int plate_index, bool global = true) const;
-
 private:
     bool _is_shown_on_screen() const;
 
