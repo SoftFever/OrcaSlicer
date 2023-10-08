@@ -181,6 +181,7 @@ enum ManualPaCaliMethod {
 
 struct RatingInfo {
     bool        request_successful;
+    int         http_code;
     int         rating_id;
     int         start_count;
     bool        success_printed;
