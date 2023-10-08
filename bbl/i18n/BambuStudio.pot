@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-28 10:41+0800\n"
+"POT-Creation-Date: 2023-10-08 20:22+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3697,9 +3697,8 @@ msgid "Clear"
 msgstr ""
 
 msgid ""
-"You have completed printing the mall model, but the synchronization of "
-"rating information has failed. \n"
-"If you need to resynchronize, please reselect the printer."
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
 msgstr ""
 
 msgid "How do you like this printing file?"
@@ -3759,9 +3758,6 @@ msgid "Cancel print"
 msgstr ""
 
 msgid "Are you sure you want to cancel this print?"
-msgstr ""
-
-msgid "Done"
 msgstr ""
 
 msgid "Downloading..."
@@ -4247,8 +4243,8 @@ msgid "Restore"
 msgstr ""
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high.The nozzle may be clogged "
+"when printing this filament in a closed enclosure."
 msgstr ""
 
 msgid ""
@@ -6167,6 +6163,9 @@ msgstr ""
 msgid "Don't remind me of this version again"
 msgstr ""
 
+msgid "Done"
+msgstr ""
+
 msgid "LAN Connection Failed (Sending print file)"
 msgstr ""
 
@@ -7279,12 +7278,13 @@ msgid ""
 "Support material is commonly used to print support and support interface"
 msgstr ""
 
-msgid "Temperature of vitrificaiton"
+msgid "Softening temperature"
 msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
 
 msgid "Price"
