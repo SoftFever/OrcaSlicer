@@ -171,7 +171,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "use_relative_e_distances",
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
-        "complete_print_exhaust_fan_speed"
+        "complete_print_exhaust_fan_speed",
+        "use_firmware_retraction"
     };
 
     static std::unordered_set<std::string> steps_ignore;

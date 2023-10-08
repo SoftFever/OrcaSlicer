@@ -3378,6 +3378,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("use_firmware_retraction",coBool);
+    def->label = L("Use firmware retraction");
+    def->tooltip = L("Convert the retraction moves to G10 and G11 gcode");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("wipe", coBools);
     def->label = L("Wipe while retracting");
     def->tooltip = L("Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. "
@@ -4880,6 +4886,24 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     if (cfg.bottom_shell_layers < 0) {
         error_message.emplace("bottom_shell_layers", L("invalid value ") + std::to_string(cfg.bottom_shell_layers));
     }
+
+    std::set<GCodeFlavor>with_firmware_retraction_flavor = {
+        gcfSmoothie,
+        gcfRepRapSprinter,
+        gcfRepRapFirmware,
+        gcfMarlinLegacy,
+        gcfMarlinFirmware,
+        gcfMachinekit,
+        gcfRepetier,
+        gcfKlipper
+    };
+    if (cfg.use_firmware_retraction.value && with_firmware_retraction_flavor.count(cfg.gcode_flavor.value)==0)
+        error_message.emplace("gcode_flavor",L("--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, RepRapFirmware, Repetier and Machinekit firmware"));
+
+    if (cfg.use_firmware_retraction.value)
+        for (unsigned char wipe : cfg.wipe.values)
+            if (wipe)
+                error_message.emplace("wipe",L("--use-firmware-retraction is not compatible with --wipe"));
 
     // --gcode-flavor
     if (! print_config_def.get("gcode_flavor")->has_enum_value(cfg.gcode_flavor.serialize())) {

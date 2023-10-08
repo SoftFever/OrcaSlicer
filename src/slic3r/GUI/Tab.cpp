@@ -3314,6 +3314,7 @@ void TabPrinter::build_fff()
 
         optgroup->append_single_option_line("scan_first_layer");
         optgroup->append_single_option_line("use_relative_e_distances");
+        optgroup->append_single_option_line("use_firmware_retraction");
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
@@ -3907,6 +3908,7 @@ void TabPrinter::toggle_options()
         toggle_option("printer_structure", !is_BBL_printer);
         toggle_option("use_relative_e_distances", !is_BBL_printer);
         toggle_option("support_chamber_temp_control",!is_BBL_printer);
+        toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_option("support_air_filtration",is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
@@ -3933,13 +3935,16 @@ void TabPrinter::toggle_options()
         for (auto el : {"extruder_type" , "nozzle_diameter", "extruder_offset"})
             toggle_option(el, !is_BBL_printer, i);
 
+        bool use_firmware_retraction = m_config->opt_bool("use_firmware_retraction");
+        toggle_option("retract_length",!use_firmware_retraction, i);
+
         // user can customize travel length if we have retraction length or we"re using
         // firmware retraction
-        toggle_option("retraction_minimum_travel", have_retract_length, i);
+        toggle_option("retraction_minimum_travel", have_retract_length||use_firmware_retraction, i);
 
         // user can customize other retraction options if retraction is enabled
         //BBS
-        bool retraction = have_retract_length;
+        bool retraction = have_retract_length || use_firmware_retraction;
         std::vector<std::string> vec = { "z_hop", "retract_when_changing_layer" };
         for (auto el : vec)
             toggle_option(el, retraction, i);
@@ -3949,10 +3954,31 @@ void TabPrinter::toggle_options()
         vec = { "retraction_speed", "deretraction_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
         for (auto el : vec)
             //BBS
-            toggle_option(el, retraction, i);
+            toggle_option(el, retraction && !use_firmware_retraction, i);
 
         bool wipe = retraction && m_config->opt_bool("wipe", i);
         toggle_option("retract_before_wipe", wipe, i);
+
+        if (use_firmware_retraction && wipe) {
+            //wxMessageDialog dialog(parent(),
+            MessageDialog dialog(parent(),
+                _(L("The Wipe option is not available when using the Firmware Retraction mode.\n"
+                    "\nShall I disable it in order to enable Firmware Retraction?")),
+                _(L("Firmware Retraction")), wxICON_WARNING | wxYES | wxNO);
+
+            DynamicPrintConfig new_conf = *m_config;
+            if (dialog.ShowModal() == wxID_YES) {
+                auto wipe = static_cast<ConfigOptionBools*>(m_config->option("wipe")->clone());
+                for (size_t w = 0; w < wipe->values.size(); w++)
+                    wipe->values[w] = false;
+                new_conf.set_key_value("wipe", wipe);
+            }
+            else {
+                new_conf.set_key_value("use_firmware_retraction", new ConfigOptionBool(false));
+            }
+            load_config(new_conf);
+        }
+
         // BBS
         toggle_option("wipe_distance", wipe, i);
 

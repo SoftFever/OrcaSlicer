@@ -908,6 +908,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed))
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                use_relative_e_distances))
+    ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                silent_mode))
     ((ConfigOptionString,              machine_pause_gcode))
     ((ConfigOptionString,              template_custom_gcode))

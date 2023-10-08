@@ -4671,7 +4671,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 
     gcode += m_writer.reset_e();
     //BBS
-    if (m_writer.extruder()->retraction_length() > 0) {
+    if (m_writer.extruder()->retraction_length() > 0||m_config.use_firmware_retraction) {
         // BBS: force to use normal lift for spiral vase mode
         gcode += m_writer.lift(lift_type, m_spiral_vase != nullptr);
     }
