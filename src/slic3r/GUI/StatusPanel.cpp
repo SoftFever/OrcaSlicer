@@ -2759,6 +2759,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare() || obj->print_status == "SLICING") {
             m_project_task_panel->market_scoring_hide();
+            m_project_task_panel->get_request_failed_panel()->Hide();
             m_project_task_panel->enable_abort_button(false);
             m_project_task_panel->enable_pause_resume_button(false, "pause_disable");
             wxString prepare_text;
@@ -2828,8 +2829,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         m_project_task_panel->market_scoring_show();
                     } else if (obj && obj->rating_info && !obj->rating_info->request_successful) {
                         BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
-                        m_project_task_panel->get_market_retry_buttom()->Enable(!obj->get_model_mall_result_need_retry);
-                        m_project_task_panel->get_request_failed_panel()->Show();
+                        if (403 != obj->rating_info->http_code) {
+                            BOOST_LOG_TRIVIAL(info) << "Request need retry";
+                            m_project_task_panel->get_market_retry_buttom()->Enable(!obj->get_model_mall_result_need_retry);
+                            m_project_task_panel->get_request_failed_panel()->Show();
+                        } else {
+                            BOOST_LOG_TRIVIAL(info) << "Request rejected";
+                        }
                     }
                 } else {
                     m_project_task_panel->market_scoring_hide();
@@ -2940,6 +2946,7 @@ void StatusPanel::reset_printing_values()
 
 
     m_project_task_panel->market_scoring_hide();
+    m_project_task_panel->get_request_failed_panel()->Hide();
     update_basic_print_data(false);
     m_project_task_panel->update_left_time(NA_STR);
     m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));

@@ -4590,6 +4590,7 @@ void MachineObject::update_model_task()
             request_model_result++;
             BOOST_LOG_TRIVIAL(info) << "request times: " << request_model_result << " http code: " << http_code;
             rating_info = new RatingInfo();
+            rating_info->http_code = http_code;
             if (0 == res && 200 == http_code) {
                 try {
                     json rating_json = json::parse(rating_result);
