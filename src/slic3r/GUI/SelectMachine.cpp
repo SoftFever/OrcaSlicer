@@ -3654,10 +3654,6 @@ void SelectMachineDialog::set_default_normal()
     m_materialList.clear();
     m_filaments.clear();
 
-    DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev_manager) return;
-    MachineObject* obj_ = dev_manager->get_selected_machine();
-
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
         auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
@@ -3672,7 +3668,12 @@ void SelectMachineDialog::set_default_normal()
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent& e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder, obj_](wxMouseEvent& e) {
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent& e) {
+
+            DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev_manager) return;
+            MachineObject* curr_obj = dev_manager->get_selected_machine();
+
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id = iter->first;
@@ -3690,25 +3691,24 @@ void SelectMachineDialog::set_default_normal()
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
             // update ams data
            
-            if (obj_ && obj_->is_support_ams_mapping()) {
+            if (curr_obj && curr_obj->is_support_ams_mapping()) {
                 if (m_mapping_popup.IsShown()) return;
                 wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Move(pos);
 
-                if (obj_ &&
-                    obj_->has_ams() &&
+                if (curr_obj->has_ams() &&
                     m_checkbox_list["use_ams"]->GetValue() &&
-                    obj_->dev_id == m_printer_last_select)
+                    curr_obj->dev_id == m_printer_last_select)
                 {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
-                    m_mapping_popup.update_ams_data(obj_->amsList);
+                    m_mapping_popup.update_ams_data(curr_obj->amsList);
                     m_mapping_popup.Popup();
                 }
             }
-            });
+         });
 
         Material* material_item = new Material();
         material_item->id = extruder;
@@ -3741,6 +3741,9 @@ void SelectMachineDialog::set_default_normal()
     m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
 
     //disable pei bed
+    DeviceManager* dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev_manager) return;
+    MachineObject* obj_ = dev_manager->get_selected_machine();
     update_flow_cali_check(obj_);
 
     wxSize screenSize = wxGetDisplaySize();
