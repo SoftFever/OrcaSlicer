@@ -391,8 +391,8 @@ public:
     typedef std::function<void(Preset* preset, std::string sync_info)> SyncFunc;
     //BBS get m_presets begin
     Iterator        lbegin() { return m_presets.begin(); }
-    //BBS: validate_printers
-    bool            validate_printers(const std::string &name, DynamicPrintConfig& config, std::string &inherit);
+    //BBS: validate_preset
+    bool            validate_preset(const std::string &name, std::string &inherit);
 
     Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
     ConstIterator   begin() const { return m_presets.cbegin() + m_num_default_presets; }

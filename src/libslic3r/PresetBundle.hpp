@@ -12,6 +12,12 @@
 #define DEFAULT_USER_FOLDER_NAME "default"
 #define BUNDLE_STRUCTURE_JSON_NAME "bundle_structure.json"
 
+#define VALIDATE_PRESETS_SUCCESS                0
+#define VALIDATE_PRESETS_PRINTER_NOT_FOUND      1
+#define VALIDATE_PRESETS_FILAMENTS_NOT_FOUND    2
+#define VALIDATE_PRESETS_MODIFIED_GCODES        3
+
+
 namespace Slic3r {
 
 // Bundle of Print + Filament + Printer presets.
@@ -64,7 +70,7 @@ public:
     void update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets);
 
     //BBS: add API to get previous machine
-    bool validate_printers(const std::string &name, DynamicPrintConfig& config);
+    int validate_presets(const std::string &file_name, DynamicPrintConfig& config, std::set<std::string>& different_gcodes);
 
     //BBS: add function to generate differed preset for save
     //the pointer should be freed by the caller
@@ -183,7 +189,7 @@ public:
     //void export_current_configbundle(const std::string &path);
     //BBS: add a function to export system presets for cloud-slicer
     //void export_system_configs(const std::string &path);
-    std::vector<std::string> export_current_configs(const std::string &path, std::function<int(std::string const &)> override_confirm, 
+    std::vector<std::string> export_current_configs(const std::string &path, std::function<int(std::string const &)> override_confirm,
         bool include_modify, bool export_system_settings = false);
 
     // Enable / disable the "- default -" preset.

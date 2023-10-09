@@ -3491,22 +3491,30 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         Preset::normalize(config);
                         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
                         // BBS: first validate the printer
-                        // TODO: remove it after released""
-                        bool validated = preset_bundle->validate_printers(filename.string(), config);
-                        if (!validated) {
-                            load_config      = false;
-                            load_old_project = true;
-                            // select view to 3D
-                            q->select_view_3D("3D");
-                            // select plate 0 as default
-                            q->select_plate(0);
-                            show_info(q, _L("The 3mf is not compatible, load geometry data only!"), _L("Incompatible 3mf"));
-                            for (ModelObject *model_object : model.objects) {
-                                model_object->config.reset();
-                                // Is there any modifier or advanced config data?
-                                for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
-                            }
-                        } else {
+                        // validate the system profiles
+                        std::set<std::string> modified_gcodes;
+                        int validated = preset_bundle->validate_presets(filename.string(), config, modified_gcodes);
+                        if (validated == VALIDATE_PRESETS_MODIFIED_GCODES) {
+                            std::string warning_message = L("The 3mf has following modified G-codes in filament or printer presets:");
+                            warning_message += "\n";
+                            for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
+                                warning_message += "-" + *it + "\n";
+                            warning_message += "\n";
+                            warning_message += L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!");
+                            show_info(q, warning_message, _L("Modified G-codes"));
+                        }
+                        else if ((validated == VALIDATE_PRESETS_PRINTER_NOT_FOUND) || (validated == VALIDATE_PRESETS_FILAMENTS_NOT_FOUND)) {
+                            std::string warning_message = L("The 3mf has following customized filament or printer presets:");
+                            warning_message += "\n";
+                            for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
+                                warning_message += "-" + *it + "\n";
+                            warning_message += "\n";
+                            warning_message += L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!");
+                            show_info(q, warning_message, _L("Customized Preset"));
+                        }
+
+                        //always load config
+                        {
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
@@ -4182,9 +4190,9 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         out_path += output_file.extension().string();
         boost::system::error_code ec;
         if (boost::filesystem::exists(into_u8(out_path), ec)) {
-            auto result = MessageBox(q->GetHandle(), 
-                wxString::Format(_L("The file %s already exists\nDo you want to replace it?"), out_path), 
-                _L("Comfirm Save As"), 
+            auto result = MessageBox(q->GetHandle(),
+                wxString::Format(_L("The file %s already exists\nDo you want to replace it?"), out_path),
+                _L("Comfirm Save As"),
                 MB_YESNO | MB_ICONWARNING);
             if (result != IDYES)
                 return wxEmptyString;
@@ -8364,7 +8372,7 @@ void Plater::import_model_id(wxString download_info)
                         body,
                         http_status,
                         error);
-                    
+
                     if (retry_count == max_retries) {
                         msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
                         cont = false;

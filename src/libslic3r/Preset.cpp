@@ -679,7 +679,7 @@ std::string Preset::get_printer_type(PresetBundle *preset_bundle)
                     vendor_name = vendor_profile.first;
                     return vendor_model.model_id;
                 }
-        }    
+        }
     }
     return "";
 }
@@ -1748,28 +1748,33 @@ void PresetCollection::update_after_user_presets_loaded()
     return;
 }
 
-//BBS: validate_printers
-bool PresetCollection::validate_printers(const std::string &name, DynamicPrintConfig& config, std::string &inherit)
+//BBS: validate_preset
+bool PresetCollection::validate_preset(const std::string &preset_name, std::string &inherit_name)
 {
-    std::string&                 original_name = config.opt_string("printer_settings_id", true);
-    std::deque<Preset>::iterator it       = this->find_preset_internal(original_name);
-    bool                         found    = it != m_presets.end() && it->name == original_name && (it->is_system || it->is_default);
+    std::deque<Preset>::iterator it       = this->find_preset_internal(preset_name);
+    bool                         found    = (it != m_presets.end()) && (it->name == preset_name) && (it->is_system || it->is_default);
     if (!found) {
-        it = this->find_preset_renamed(original_name);
+        it = this->find_preset_renamed(preset_name);
         found = it != m_presets.end() && (it->is_system || it->is_default);
     }
     if (!found) {
-        if (!inherit.empty()) {
-            it    = this->find_preset_internal(inherit);
-            found = it != m_presets.end() && it->name == inherit && (it->is_system || it->is_default);
+        if (!inherit_name.empty()) {
+            it    = this->find_preset_internal(inherit_name);
+            found = it != m_presets.end() && it->name == inherit_name && (it->is_system || it->is_default);
+            if (found)
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": preset_name %1%, inherit_name %2%, found inherit in list")%preset_name %inherit_name;
+            else
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": preset_name %1%, inherit_name %2%, can not found preset and inherit in list")%preset_name %inherit_name;
         }
         else {
             //inherit is null , should not happen , just consider it as valid
             found = false;
-            BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, no inherit, set to not found")%name %original_name;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": preset_name %1%, no inherit, set to not found")%preset_name;
         }
     }
-    BOOST_LOG_TRIVIAL(warning) << boost::format(": name %1%, printer_settings %2%, inherit %3%, found result %4%")%name %original_name % inherit % found;
+    else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": preset_name %1%, found in list")%preset_name;
+    }
 
     return found;
 }
@@ -2152,7 +2157,7 @@ bool PresetCollection::clone_presets_for_filament(std::vector<Preset const *> co
 {
     return clone_presets(presets, failures, [filament_name, filament_id, vendor_name](Preset &preset, Preset::Type &type) {
         preset.name        = filament_name + " " + preset.name.substr(preset.name.find_last_of('@'));
-            if (type == Preset::TYPE_FILAMENT) 
+            if (type == Preset::TYPE_FILAMENT)
                 preset.config.option<ConfigOptionStrings>("filament_vendor", true)->values[0] = vendor_name;
         preset.filament_id = filament_id;
         },

@@ -707,7 +707,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
 
                     status = mz_zip_reader_extract_to_file(&zip_archive, i, target_file_path.c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
                     // target file is opened
-                    if (MZ_FALSE == status) { 
+                    if (MZ_FALSE == status) {
                         BOOST_LOG_TRIVIAL(info) << "Failed to open target file: " << target_file_path;
                     } else {
                         import_json_presets(substitutions, target_file_path, override_confirm, rule, overwrite, result);
@@ -937,26 +937,79 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
 }
 
 //BBS: validate printers from previous project
-bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
+static std::set<std::string> gcodes_key_set =  {"filament_end_gcode", "filament_start_gcode", "change_filament_gcode", "layer_change_gcode", "machine_end_gcode", "machine_pause_gcode", "machine_start_gcode", "template_custom_gcode"};
+int PresetBundle::validate_presets(const std::string &file_name, DynamicPrintConfig& config, std::set<std::string>& different_gcodes)
 {
-    // BBS TODO:
-#if 0
-    std::vector<std::string> inherits_values;
-    PrinterTechnology printer_technology = Preset::printer_technology(config);
-    size_t num_extruders = (printer_technology == ptFFF) ?
-        std::min(config.option<ConfigOptionFloats>("nozzle_diameter"  )->values.size(),
-                 config.option<ConfigOptionFloats>("filament_diameter")->values.size()) : 1;
-    inherits_values.resize(num_extruders + 2, std::string());
-    inherits_values  = config.option<ConfigOptionStrings>("inherits_group", true)->values;
+    bool    validated = false;
+    std::vector<std::string> inherits_values                        = config.option<ConfigOptionStrings>("inherits_group", true)->values;
+    std::vector<std::string> filament_preset_name                   = config.option<ConfigOptionStrings>("filament_settings_id", true)->values;
+    std::string printer_preset                                      = config.option<ConfigOptionString>("printer_settings_id", true)->value;
+    bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
+    std::vector<std::string> different_values;
+    int     ret = VALIDATE_PRESETS_SUCCESS;
 
-    std::string inherits;
-    if (inherits_values.size() >= (num_extruders + 2))
-        inherits = inherits_values[num_extruders + 1];
+    if (has_different_settings_to_system)
+        different_values = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
 
-    return this->printers.validate_printers(name, config, inherits);
-#else
-    return true;
-#endif
+    //PrinterTechnology printer_technology = Preset::printer_technology(config);
+    size_t filament_count = config.option<ConfigOptionFloats>("filament_diameter")->values.size();
+    inherits_values.resize(filament_count + 2, std::string());
+    different_values.resize(filament_count + 2, std::string());
+    filament_preset_name.resize(filament_count, std::string());
+
+    std::string printer_inherits = inherits_values[filament_count + 1];
+
+    validated = this->printers.validate_preset(printer_preset, printer_inherits);
+    if (!validated) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":file_name %1%, found the printer preset not inherit from system") % file_name;
+        different_gcodes.emplace(printer_preset);
+        ret = VALIDATE_PRESETS_PRINTER_NOT_FOUND;
+    }
+    for(unsigned int index = 0; index < filament_count; index ++)
+    {
+        std::string filament_preset = filament_preset_name[index];
+        std::string filament_inherits = inherits_values[index+1];
+
+        validated = this->filaments.validate_preset(filament_preset, filament_inherits);
+        if (!validated) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":file_name %1%, found the filament %2% preset not inherit from system") % file_name %(index+1);
+            different_gcodes.emplace(filament_preset);
+            ret = VALIDATE_PRESETS_FILAMENTS_NOT_FOUND;
+        }
+    }
+
+    //self defined presets, return directly
+    if (ret)
+    {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":file_name %1%, found self defined presets, count %2%") %file_name %different_gcodes.size();
+        return ret;
+    }
+
+    for(unsigned int index = 1; index < filament_count+2; index ++)
+    {
+        std::string different_settingss = different_values[index];
+
+        std::vector<std::string> different_keys;
+
+        Slic3r::unescape_strings_cstyle(different_settingss, different_keys);
+
+        for (unsigned int j = 0; j < different_keys.size(); j++) {
+            if (gcodes_key_set.find(different_keys[j]) != gcodes_key_set.end()) {
+                different_gcodes.emplace(different_keys[j]);
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":preset index %1%, different key %2%") %index %different_keys[j];
+            }
+        }
+    }
+
+    if (!different_gcodes.empty())
+    {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":file_name %1%, found different gcodes count %2%") %file_name %different_gcodes.size();
+        return VALIDATE_PRESETS_MODIFIED_GCODES;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":file_name %1%, validate presets success!") % file_name;
+
+    return VALIDATE_PRESETS_SUCCESS;
 }
 
 void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, std::map<std::string, std::string>> *my_presets)
