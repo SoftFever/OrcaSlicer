@@ -8,12 +8,6 @@
     "chamber_temperatures": [
         "60"
     ],
-    "filament_max_volumetric_speed": [
-        "8"
-    ],
-    "filament_type": [
-        "PPA-GF"
-    ],
     "filament_vendor": [
         "Bambu Lab"
     ],
