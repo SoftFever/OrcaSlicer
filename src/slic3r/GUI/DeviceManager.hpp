@@ -471,6 +471,7 @@ public:
     std::string printer_type;       /* model_id */
     PrinterSeries get_printer_series() const;
     PrinterArch get_printer_arch() const;
+    bool  is_printer_enclosed() const;
 
     std::string printer_thumbnail_img;
     std::string monitor_upgrade_printer_img;

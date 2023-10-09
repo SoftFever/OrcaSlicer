@@ -474,6 +474,18 @@ PrinterArch MachineObject::get_printer_arch() const
     return DeviceManager::get_printer_arch(printer_type);
 }
 
+//BBS: check if machine is enclosed
+bool MachineObject::is_printer_enclosed() const
+{
+    std::unordered_set<std::string>enclosed_printers = {
+        "C12",
+        "BL-P002",
+        "BL-P001",
+        "C13"
+    };
+    return enclosed_printers.find(printer_type) != enclosed_printers.end();
+}
+
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
     :dev_name(name),
     dev_id(id),
