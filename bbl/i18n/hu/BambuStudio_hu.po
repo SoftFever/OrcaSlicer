@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 17:00+0800\n"
+"POT-Creation-Date: 2023-10-09 20:21+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4644,8 +4644,14 @@ msgstr "Az objektum túl nagy"
 msgid "Export STL file:"
 msgstr "STL fájl exportálása:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Fájl mentése mint:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "A kivágott objektum részét képező objektum törlése"
@@ -4665,6 +4671,9 @@ msgstr "A kijelölt objektumot nem lehet feldarabolni."
 msgid "Another export job is running."
 msgstr "Egy másik exportálási feladat is fut."
 
+msgid "Replace from:"
+msgstr ""
+
 msgid "Unable to replace with more than one volume"
 msgstr ""
 
@@ -4681,6 +4690,18 @@ msgid "Please select a file"
 msgstr "Kérjük, válassz egy fájlt"
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4814,6 +4835,15 @@ msgstr "Kijelölt objektum másolatai"
 
 msgid "Save G-code file as:"
 msgstr "G-kód fájl mentése mint:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Szeletelt fájl mentése mint:"
@@ -8821,6 +8851,9 @@ msgstr "Közvetlen hajtás"
 
 msgid "Bowden"
 msgstr "Bowden"
+
+msgid "Extra length on restart"
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Visszahúzás sebessége"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 17:00+0800\n"
+"POT-Creation-Date: 2023-10-09 20:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4563,8 +4563,14 @@ msgstr "객체가 너무 큽니다"
 msgid "Export STL file:"
 msgstr "STL 파일 내보내기:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "다른 이름으로 파일 저장"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "잘라낸 객체 일부를 삭제"
@@ -4584,6 +4590,9 @@ msgstr "선택한 객체를 분할할 수 없습니다."
 msgid "Another export job is running."
 msgstr "다른 내보내기 작업이 실행 중입니다."
 
+msgid "Replace from:"
+msgstr ""
+
 msgid "Unable to replace with more than one volume"
 msgstr ""
 
@@ -4600,6 +4609,18 @@ msgid "Please select a file"
 msgstr "파일을 선택해 주십시오"
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4731,6 +4752,15 @@ msgstr "선택한 객체의 복제품"
 
 msgid "Save G-code file as:"
 msgstr "G코드 파일을 다른 이름으로 저장합니다:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "슬라이스된 파일을 다른 이름으로 저장합니다:"
@@ -8582,6 +8612,9 @@ msgstr "Direct drive"
 
 msgid "Bowden"
 msgstr "Bowden"
+
+msgid "Extra length on restart"
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "리트랙션 속도"

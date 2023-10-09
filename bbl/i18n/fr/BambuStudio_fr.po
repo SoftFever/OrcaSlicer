@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 17:00+0800\n"
+"POT-Creation-Date: 2023-10-09 20:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4675,8 +4675,14 @@ msgstr "Objet trop grand"
 msgid "Export STL file:"
 msgstr "Exporter le fichier STL :"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Enregistrer le fichier sous :"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Supprimer l'objet qui fait partie de l'objet découpé"
@@ -4696,6 +4702,9 @@ msgstr "L'objet sélectionné n'a pas pu être divisé."
 msgid "Another export job is running."
 msgstr "Une autre tâche d'exportation est en cours d'exécution."
 
+msgid "Replace from:"
+msgstr ""
+
 msgid "Unable to replace with more than one volume"
 msgstr ""
 
@@ -4712,6 +4721,18 @@ msgid "Please select a file"
 msgstr "Veuillez sélectionner un fichier"
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4847,6 +4868,15 @@ msgstr "Copies de l'objet sélectionné"
 
 msgid "Save G-code file as:"
 msgstr "Sauvegarder le fichier G-code en tant que :"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Enregistrer le fichier découpé sous :"
@@ -8948,6 +8978,9 @@ msgstr "Direct drive"
 
 msgid "Bowden"
 msgstr "Bowden"
+
+msgid "Extra length on restart"
+msgstr ""
 
 msgid "Retraction Speed"
 msgstr "Vitesse de Rétractation"

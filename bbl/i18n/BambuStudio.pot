@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 17:00+0800\n"
+"POT-Creation-Date: 2023-10-09 20:21+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4366,7 +4366,13 @@ msgstr ""
 msgid "Export STL file:"
 msgstr ""
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
+msgstr ""
+
+msgid "Export OBJ file:"
 msgstr ""
 
 msgid "Delete object which is a part of cut object"
@@ -4382,6 +4388,9 @@ msgid "The selected object couldn't be split."
 msgstr ""
 
 msgid "Another export job is running."
+msgstr ""
+
+msgid "Replace from:"
 msgstr ""
 
 msgid "Unable to replace with more than one volume"
@@ -4400,6 +4409,18 @@ msgid "Please select a file"
 msgstr ""
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4521,6 +4542,15 @@ msgid "Copies of the selected object"
 msgstr ""
 
 msgid "Save G-code file as:"
+msgstr ""
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
 msgstr ""
 
 msgid "Save Sliced file as:"
@@ -8046,6 +8076,9 @@ msgid "Direct drive"
 msgstr ""
 
 msgid "Bowden"
+msgstr ""
+
+msgid "Extra length on restart"
 msgstr ""
 
 msgid "Retraction Speed"

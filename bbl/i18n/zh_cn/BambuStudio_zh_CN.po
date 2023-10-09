@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 17:00+0800\n"
+"POT-Creation-Date: 2023-10-09 20:21+0800\n"
 "PO-Revision-Date: 2023-09-18 09:18+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2074,8 +2074,7 @@ msgstr "打印机当前不支持自动重新填充。"
 
 msgid ""
 "AMS filament backup is not enabled, please enable it in the AMS settings."
-msgstr ""
-"AMS自动续料未启用，请在AMS设置中启用。"
+msgstr "AMS自动续料未启用，请在AMS设置中启用。"
 
 msgid ""
 "If there are two identical filaments in AMS, AMS filament backup will be "
@@ -2083,7 +2082,8 @@ msgid ""
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"如果AMS中有两卷相同的耗材，则自动补给将会启用（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
+"如果AMS中有两卷相同的耗材，则自动补给将会启用（目前支持品牌、材料种类、颜色相"
+"同的耗材的自动补给）"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -4486,8 +4486,14 @@ msgstr "对象太大"
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
 
+msgid "Export AMF file:"
+msgstr "导出 AMF 文件："
+
 msgid "Save file as:"
 msgstr "文件另存为："
+
+msgid "Export OBJ file:"
+msgstr "导出 OBJ 文件："
 
 msgid "Delete object which is a part of cut object"
 msgstr "删除切割对象的一部分"
@@ -4506,6 +4512,9 @@ msgstr "选中的模型不可分裂。"
 msgid "Another export job is running."
 msgstr "有其他导出任务正在进行中。"
 
+msgid "Replace from:"
+msgstr "替换："
+
 msgid "Unable to replace with more than one volume"
 msgstr "超过1个零件，无法替换"
 
@@ -4523,6 +4532,18 @@ msgstr "请选择一个文件"
 
 msgid "Do you want to replace it"
 msgstr "您是否要替换"
+
+msgid "Message"
+msgstr "信息"
+
+msgid "Reload from:"
+msgstr "重新加载："
+
+msgid "Unable to reload:"
+msgstr "无法重新加载："
+
+msgid "Error during reload"
+msgstr "重新加载时发生错误："
 
 msgid "Slicing"
 msgstr "正在切片"
@@ -4646,6 +4667,15 @@ msgstr "所选对象的克隆数量"
 
 msgid "Save G-code file as:"
 msgstr "G-code文件另存为："
+
+msgid "Save SLA file as:"
+msgstr "SLA 文件另存为："
+
+msgid "The provided file name is not valid."
+msgstr "无效的文件名。"
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr "不允许使用以下字符："
 
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
@@ -8324,6 +8354,9 @@ msgstr "直接驱动"
 msgid "Bowden"
 msgstr ""
 
+msgid "Extra length on restart"
+msgstr "启动时额外长度"
+
 msgid "Retraction Speed"
 msgstr "回抽速度"
 
@@ -8745,8 +8778,8 @@ msgid ""
 "high to avoid cloggings, so 0 which stands for turning off is highly "
 "recommended"
 msgstr ""
-"更高的腔温可以帮助抑制或减少翘曲，并可能会提高高温材料（如ABS、ASA、PC、PA）"
-"的层间粘合强度。与此同时，ABS和ASA的空气过滤效果将变差。而对于PLA、PETG、"
+"更高的腔温可以帮助抑制或减少翘曲，并可能会提高高温材料（如ABS、ASA、PC、PA"
+"等）的层间粘合强度。与此同时，ABS和ASA的空气过滤效果将变差。而对于PLA、PETG、"
 "TPU、PVA等低温材料，实际腔温不应过高，以避免堵塞，因此强烈建议将腔温设为0°C, "
 "即关闭"
 
@@ -13296,9 +13329,6 @@ msgstr ""
 #~ msgid "Error while loading G-code file"
 #~ msgstr "加载G-code文件时发生错误"
 
-#~ msgid "Save SLA file as:"
-#~ msgstr "SLA 文件另存为："
-
 #~ msgid "Home page and Daily Tips"
 #~ msgstr "主页和每日提示"
 
@@ -13641,30 +13671,6 @@ msgstr ""
 #~ msgid "Open BambuStudio"
 #~ msgstr "打开BambuStudio"
 
-#~ msgid "Export AMF file:"
-#~ msgstr "导出 AMF 文件："
-
-#~ msgid "Export OBJ file:"
-#~ msgstr "导出 OBJ 文件："
-
-#~ msgid "Replace from:"
-#~ msgstr "替换："
-
-#~ msgid "Reload from:"
-#~ msgstr "重新加载："
-
-#~ msgid "Unable to reload:"
-#~ msgstr "无法重新加载："
-
-#~ msgid "Error during reload"
-#~ msgstr "重新加载时发生错误："
-
-#~ msgid "The provided file name is not valid."
-#~ msgstr "无效的文件名。"
-
-#~ msgid "The following characters are not allowed by a FAT file system:"
-#~ msgstr "不允许使用以下字符："
-
 #~ msgid "Skirt Loops"
 #~ msgstr "Skirt圈数"
 
@@ -13762,9 +13768,6 @@ msgstr ""
 
 #~ msgid "Retraction Length (Toolchange)"
 #~ msgstr "回抽长度(更换工具头)"
-
-#~ msgid "Extra length on restart"
-#~ msgstr "启动时额外长度"
 
 #~ msgid "Disabled"
 #~ msgstr "关闭"
