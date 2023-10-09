@@ -45,7 +45,8 @@
         "use_ams_type":"generic",
         "printer_arch" : "core_xy",
         "printer_series":"series_p1p",
-        "has_cali_line":false
+        "has_cali_line":false,
+        "printer_is_enclosed":true
     }, 
     "01.02.99.10" : {
         "print": {

@@ -46,6 +46,7 @@
         "use_ams_type":"f1",
         "printer_arch" : "i3",
         "printer_series":"series_p1p",
-        "has_cali_line":false
+        "has_cali_line":false,
+        "printer_is_enclosed":false
     }
 }

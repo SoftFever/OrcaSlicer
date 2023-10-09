@@ -483,6 +483,11 @@ std::string MachineObject::get_printer_ams_type() const
     return DeviceManager::get_printer_ams_type(printer_type);
 }
 
+bool MachineObject::get_printer_is_enclosed() const
+{
+    return DeviceManager::get_printer_is_enclosed(printer_type);
+}
+
 void MachineObject::reload_printer_settings()
 {
     print_json.load_compatible_settings("", "");
@@ -5373,63 +5378,47 @@ void DeviceManager::load_last_machine()
 json DeviceManager::filaments_blacklist = json::object();
 
 
-std::string DeviceManager::get_string_from_config(std::string type_str, std::string item)
-{
-    std::string config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
-    boost::nowide::ifstream json_file(config_file.c_str());
-    try {
-        json jj;
-        if (json_file.is_open()) {
-            json_file >> jj;
-            if (jj.contains("00.00.00.00")) {
-                json const& printer = jj["00.00.00.00"];
-                if (printer.contains(item)) {
-                    return printer[item].get<std::string>();
-                }
-            }
-        }
-    }
-    catch (...) {}
-    return "";
-}
 
 std::string DeviceManager::parse_printer_type(std::string type_str)
 {
-    return get_string_from_config(type_str, "printer_type");
+    return get_value_from_config<std::string>(type_str, "printer_type");
 }
 std::string DeviceManager::get_printer_display_name(std::string type_str)
 {
-    return get_string_from_config(type_str, "display_name");
+    return get_value_from_config<std::string>(type_str, "display_name");
 }
 std::string DeviceManager::get_ftp_folder(std::string type_str)
 {
-    return get_string_from_config(type_str, "ftp_folder");
+    return get_value_from_config<std::string>(type_str, "ftp_folder");
 }
 PrinterArch DeviceManager::get_printer_arch(std::string type_str)
 {
-    return get_printer_arch_by_str(get_string_from_config(type_str, "printer_arch"));
+    return get_printer_arch_by_str(get_value_from_config<std::string>(type_str, "printer_arch"));
 }
 std::string DeviceManager::get_printer_thumbnail_img(std::string type_str)
 {
-    return get_string_from_config(type_str, "printer_thumbnail_image");
+    return get_value_from_config<std::string>(type_str, "printer_thumbnail_image");
 }
 std::string DeviceManager::get_printer_ams_type(std::string type_str)
 {
-    return get_string_from_config(type_str, "use_ams_type");
+    return get_value_from_config<std::string>(type_str, "use_ams_type");
 }
 std::string DeviceManager::get_printer_series(std::string type_str)
 {
-    return get_string_from_config(type_str, "printer_series");
+    return get_value_from_config<std::string>(type_str, "printer_series");
 }
 std::string DeviceManager::get_printer_diagram_img(std::string type_str)
 {
-    return get_string_from_config(type_str, "printer_connect_help_image");
+    return get_value_from_config<std::string>(type_str, "printer_connect_help_image");
 }
 std::string DeviceManager::get_printer_ams_img(std::string type_str)
 {
-    return get_string_from_config(type_str, "printer_use_ams_image");
+    return get_value_from_config<std::string>(type_str, "printer_use_ams_image");
 }
 
+bool DeviceManager::get_printer_is_enclosed(std::string type_str) {
+    return get_value_from_config<bool>(type_str, "printer_is_enclosed");
+}
 std::vector<std::string> DeviceManager::get_resolution_supported(std::string type_str)
 {
     std::vector<std::string> resolution_supported;

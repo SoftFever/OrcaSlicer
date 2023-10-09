@@ -7,13 +7,14 @@
 #include <memory>
 #include <chrono>
 #include <boost/thread.hpp>
+#include <boost/nowide/fstream.hpp>
 #include "nlohmann/json.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "CameraPopup.hpp"
 #include "libslic3r/Calib.hpp"
-
+#include "libslic3r/Utils.hpp"
 #define USE_LOCAL_SOCKET_BIND 0
 
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
@@ -424,6 +425,7 @@ public:
     PrinterSeries get_printer_series() const;
     PrinterArch get_printer_arch() const;
     std::string get_printer_ams_type() const;
+    bool        get_printer_is_enclosed() const;
 
     void reload_printer_settings();
 
@@ -969,7 +971,26 @@ public:
     static json function_table;
     static json filaments_blacklist;
 
-    static std::string get_string_from_config(std::string type_str, std::string item);
+    template<typename T>
+    static T get_value_from_config(std::string type_str, std::string item){
+        std::string config_file = Slic3r::resources_dir() + "/printers/" + type_str + ".json";
+        boost::nowide::ifstream json_file(config_file.c_str());
+        try {
+            json jj;
+            if (json_file.is_open()) {
+                json_file >> jj;
+                if (jj.contains("00.00.00.00")) {
+                    json const& printer = jj["00.00.00.00"];
+                    if (printer.contains(item)) {
+                        return printer[item].get<T>();
+                    }
+                }
+            }
+        }
+        catch (...) {}
+        return "";
+    }
+
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
@@ -979,6 +1000,7 @@ public:
     static std::string get_printer_ams_img(std::string type_str);
     static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
+    static bool        get_printer_is_enclosed(std::string type_str);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
     static std::vector<std::string> get_compatible_machine(std::string type_str);
     static bool load_filaments_blacklist_config(std::string config_file);
