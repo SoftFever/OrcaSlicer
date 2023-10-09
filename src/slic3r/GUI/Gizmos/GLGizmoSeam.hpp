@@ -34,7 +34,7 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering Seam painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving Seam painting"; }
-    std::string get_action_snapshot_name() override { return "Paint-on seam editing"; }
+    std::string get_action_snapshot_name() const override { return "Paint-on seam editing"; }
 
 private:
     bool on_init() override;

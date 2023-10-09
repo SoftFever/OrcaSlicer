@@ -103,7 +103,7 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering color painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving color painting"; }
-    std::string get_action_snapshot_name() override { return "Color painting editing"; }
+    std::string get_action_snapshot_name() const override { return "Color painting editing"; }
 
     // BBS
     size_t                            m_selected_extruder_idx = 0;

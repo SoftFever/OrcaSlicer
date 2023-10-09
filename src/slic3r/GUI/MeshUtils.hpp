@@ -5,6 +5,7 @@
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
+#include "libslic3r/AABBMesh.hpp"
 
 #include "slic3r/GUI/3DScene.hpp"
 
@@ -169,18 +170,39 @@ public:
     // normal* can be used to also get normal of the respective triangle.
 
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
-
+    // Returns true if the ray, built from mouse position and camera direction, intersects the mesh.
+    // In this case, position and normal contain the position and normal, in model coordinates, of the intersection closest to the camera,
+    // depending on the position/orientation of the clipping_plane, if specified 
+    bool closest_hit(
+        const Vec2d& mouse_pos,
+        const Transform3d& trafo, // how to get the mesh into world coords
+        const Camera& camera, // current camera position
+        Vec3f& position, // where to save the positibon of the hit (mesh coords)
+        Vec3f& normal, // normal of the triangle that was hit
+        const ClippingPlane* clipping_plane = nullptr, // clipping plane (if active)
+        size_t* facet_idx = nullptr // index of the facet hit
+    ) const;
     // Given a point in mesh coords, the method returns the closest facet from mesh.
     int get_closest_facet(const Vec3f &point) const;
 
     Vec3f get_triangle_normal(size_t facet_idx) const;
 
 private:
-    sla::IndexedMesh m_emesh;
+    AABBMesh m_emesh;
     std::vector<stl_normal> m_normals;
 };
 
-    
+struct PickingModel
+{
+    GLModel model;
+    std::unique_ptr<MeshRaycaster> mesh_raycaster;
+
+    void reset() {
+        model.reset();
+        mesh_raycaster.reset();
+    }
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

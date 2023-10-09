@@ -102,7 +102,7 @@ inline Vec2d circle_center_taubin_newton(const Vec2ds& input, size_t cycles = 20
 Circled circle_taubin_newton(const Vec2ds& input, size_t cycles = 20);
 
 // Find circle using RANSAC randomized algorithm.
-Circled circle_ransac(const Vec2ds& input, size_t iterations = 20);
+Circled circle_ransac(const Vec2ds& input, size_t iterations = 20, double* min_error = nullptr);
 
 // Randomized algorithm by Emo Welzl, working with squared radii for efficiency. The returned circle radius is inflated by epsilon.
 template<typename Vector, typename Points>

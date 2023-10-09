@@ -348,14 +348,31 @@ Vec3d extract_euler_angles(const Transform3d& transform);
 // Euler angles can be obtained by extract_euler_angles()
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix = nullptr);
 
+// Sets the given transform by assembling the given translation
+void translation_transform(Transform3d& transform, const Vec3d& translation);
+
 // Returns the transform obtained by assembling the given translation
 Transform3d translation_transform(const Vec3d &translation);
+
+// Sets the given transform by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+void rotation_transform(Transform3d& transform, const Vec3d& rotation);
 
 // Returns the transform obtained by assembling the given rotations in the following order:
 // 1) rotate X
 // 2) rotate Y
 // 3) rotate Z
 Transform3d rotation_transform(const Vec3d &rotation);
+
+// Sets the given transform by assembling the given scale factors
+void scale_transform(Transform3d& transform, double scale);
+void scale_transform(Transform3d& transform, const Vec3d& scale);
+
+// Returns the transform obtained by assembling the given scale factors
+Transform3d scale_transform(double scale);
+Transform3d scale_transform(const Vec3d& scale);
 
 class Transformation
 {
@@ -396,6 +413,8 @@ public:
 
     const Vec3d& get_rotation() const { return m_rotation; }
     double get_rotation(Axis axis) const { return m_rotation(axis); }
+
+    Transform3d get_rotation_matrix() const;
 
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);

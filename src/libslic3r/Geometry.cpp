@@ -409,6 +409,20 @@ void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, doubl
     }
 }
 
+static Transform3d extract_rotation_matrix(const Transform3d& trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return Transform3d(rotation);
+}
+
+void translation_transform(Transform3d& transform, const Vec3d& translation)
+{
+    transform = Transform3d::Identity();
+    transform.translate(translation);
+}
+
 Transform3d translation_transform(const Vec3d &translation)
 {
     Transform3d transform = Transform3d::Identity();
@@ -416,10 +430,39 @@ Transform3d translation_transform(const Vec3d &translation)
     return transform;
 }
 
+void rotation_transform(Transform3d& transform, const Vec3d& rotation)
+{
+    transform = Transform3d::Identity();
+    transform.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rotation.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rotation.x(), Vec3d::UnitX()));
+}
+
 Transform3d rotation_transform(const Vec3d& rotation)
 {
     Transform3d transform = Transform3d::Identity();
     transform.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rotation.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rotation.x(), Vec3d::UnitX()));
+    return transform;
+}
+
+void scale_transform(Transform3d& transform, double scale)
+{
+    return scale_transform(transform, scale * Vec3d::Ones());
+}
+
+void scale_transform(Transform3d& transform, const Vec3d& scale)
+{
+    transform = Transform3d::Identity();
+    transform.scale(scale);
+}
+
+Transform3d scale_transform(double scale)
+{
+    return scale_transform(scale * Vec3d::Ones());
+}
+
+Transform3d scale_transform(const Vec3d& scale)
+{
+    Transform3d transform;
+    scale_transform(transform, scale);
     return transform;
 }
 
@@ -468,6 +511,10 @@ void Transformation::set_offset(Axis axis, double offset)
         m_offset(axis) = offset;
         m_dirty = true;
     }
+}
+Transform3d Transformation::get_rotation_matrix() const
+{
+    return extract_rotation_matrix(m_matrix);
 }
 
 void Transformation::set_rotation(const Vec3d& rotation)

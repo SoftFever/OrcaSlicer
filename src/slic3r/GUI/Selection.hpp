@@ -3,6 +3,7 @@
 
 #include "libslic3r/Geometry.hpp"
 #include "GLModel.hpp"
+#include "GUI_Geometry.hpp"
 
 #include <set>
 #include <optional>
@@ -26,58 +27,6 @@ using ModelObjectPtrs = std::vector<ModelObject*>;
 
 
 namespace GUI {
-class TransformationType
-{
-public:
-    enum Enum {
-        // Transforming in a world coordinate system
-        World = 0,
-        // Transforming in a local coordinate system
-        Local = 1,
-        // Absolute transformations, allowed in local coordinate system only.
-        Absolute = 0,
-        // Relative transformations, allowed in both local and world coordinate system.
-        Relative = 2,
-        // For group selection, the transformation is performed as if the group made a single solid body.
-        Joint = 0,
-        // For group selection, the transformation is performed on each object independently.
-        Independent = 4,
-
-        World_Relative_Joint = World | Relative | Joint,
-        World_Relative_Independent = World | Relative | Independent,
-        Local_Absolute_Joint = Local | Absolute | Joint,
-        Local_Absolute_Independent = Local | Absolute | Independent,
-        Local_Relative_Joint = Local | Relative | Joint,
-        Local_Relative_Independent = Local | Relative | Independent,
-    };
-
-    TransformationType() : m_value(World) {}
-    TransformationType(Enum value) : m_value(value) {}
-    TransformationType& operator=(Enum value) { m_value = value; return *this; }
-
-    Enum operator()() const { return m_value; }
-    bool has(Enum v) const { return ((unsigned int)m_value & (unsigned int)v) != 0; }
-
-    void set_world()        { this->remove(Local); }
-    void set_local()        { this->add(Local); }
-    void set_absolute()     { this->remove(Relative); }
-    void set_relative()     { this->add(Relative); }
-    void set_joint()        { this->remove(Independent); }
-    void set_independent()  { this->add(Independent); }
-
-    bool world()        const { return !this->has(Local); }
-    bool local()        const { return this->has(Local); }
-    bool absolute()     const { return !this->has(Relative); }
-    bool relative()     const { return this->has(Relative); }
-    bool joint()        const { return !this->has(Independent); }
-    bool independent()  const { return this->has(Independent); }
-
-private:
-    void add(Enum v) { m_value = Enum((unsigned int)m_value | (unsigned int)v); }
-    void remove(Enum v) { m_value = Enum((unsigned int)m_value & (~(unsigned int)v)); }
-
-    Enum    m_value;
-};
 
 class Selection
 {
@@ -301,6 +250,8 @@ public:
     bool contains_all_volumes(const std::vector<unsigned int>& volume_idxs) const;
     // returns true if the selection contains at least one of the given indices
     bool contains_any_volume(const std::vector<unsigned int>& volume_idxs) const;
+    // returns true if the selection contains any sinking volume
+    bool contains_sinking_volumes(bool ignore_modifiers = true) const;
     // returns true if the selection contains all and only the given indices
     bool matches(const std::vector<unsigned int>& volume_idxs) const;
 
@@ -316,6 +267,7 @@ public:
 
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
+    const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
 
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
@@ -366,6 +318,8 @@ public:
         m_scale_factor = scale;
         render_bounding_box(box, color);
     }
+    
+    void setup_cache();
 
     //BBS
     void cut_to_clipboard();

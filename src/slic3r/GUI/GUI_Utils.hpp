@@ -501,6 +501,16 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 int get_dpi_for_window(const wxWindow *window);
 
 
+class KeyAutoRepeatFilter
+{
+    size_t m_count{ 0 };
+
+public:
+    void increase_count() { ++m_count; }
+    void reset_count() { m_count = 0; }
+    bool is_first() const { return m_count == 0; }
+};
+
 }}
 
 #endif

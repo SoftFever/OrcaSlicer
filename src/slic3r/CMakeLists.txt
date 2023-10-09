@@ -99,6 +99,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLShader.hpp
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
+    GUI/SceneRaycaster.hpp
+    GUI/SceneRaycaster.cpp	
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
@@ -139,6 +141,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoText.hpp
     GUI/Gizmos/GLGizmoMeshBoolean.cpp
     GUI/Gizmos/GLGizmoMeshBoolean.hpp
+    GUI/Gizmos/GLGizmoMeasure.cpp
+    GUI/Gizmos/GLGizmoMeasure.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
@@ -205,6 +209,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_AuxiliaryList.hpp
     GUI/GUI_ObjectSettings.cpp
     GUI/GUI_ObjectSettings.hpp
+    GUI/GUI_Geometry.cpp
+    GUI/GUI_Geometry.hpp
     GUI/GUI_ObjectTable.cpp
     GUI/GUI_ObjectTable.hpp
     GUI/GUI_ObjectTableSettings.cpp

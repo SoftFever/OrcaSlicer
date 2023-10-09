@@ -247,7 +247,7 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     Vec3d direction;
     line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
 
-    std::vector<sla::IndexedMesh::hit_result> hits = m_emesh.query_ray_hits(point, direction);
+    std::vector<AABBMesh::hit_result> hits = m_emesh.query_ray_hits(point, direction);
 
     if (hits.empty())
         return false; // no intersection found
@@ -298,7 +298,7 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
 
         bool is_obscured = false;
         // Cast a ray in the direction of the camera and look for intersection with the mesh:
-        std::vector<sla::IndexedMesh::hit_result> hits;
+        std::vector<AABBMesh::hit_result> hits;
         // Offset the start of the ray by EPSILON to account for numerical inaccuracies.
         hits = m_emesh.query_ray_hits((inverse_trafo * pt.cast<double>() + direction_to_camera_mesh * EPSILON),
                                       direction_to_camera_mesh);
@@ -326,6 +326,39 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
             out.push_back(i);
     }
     return out;
+}
+
+bool MeshRaycaster::closest_hit(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+    Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane, size_t* facet_idx) const
+{
+    Vec3d point;
+    Vec3d direction;
+    line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
+
+    const std::vector<AABBMesh::hit_result> hits = m_emesh.query_ray_hits(point, direction.normalized());
+
+    if (hits.empty())
+        return false; // no intersection found
+
+    size_t hit_id = 0;
+    if (clipping_plane != nullptr) {
+        while (hit_id < hits.size() && clipping_plane->is_point_clipped(trafo * hits[hit_id].position())) {
+            ++hit_id;
+        }
+    }
+
+    if (hit_id == hits.size())
+        return false; // all points are obscured or cut by the clipping plane.
+
+    const AABBMesh::hit_result& hit = hits[hit_id];
+
+    position = hit.position().cast<float>();
+    normal = hit.normal().cast<float>();
+
+    if (facet_idx != nullptr)
+        *facet_idx = hit.face();
+
+    return true;
 }
 
 

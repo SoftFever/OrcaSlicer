@@ -19,6 +19,7 @@
 #include "IMToolbar.hpp"
 
 #include "libslic3r/Slicing.hpp"
+#include "slic3r/GUI/SceneRaycaster.hpp"
 
 #include <float.h>
 
@@ -506,6 +507,8 @@ private:
     bool m_is_dark = false;
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    SceneRaycaster m_scene_raycaster;
+
     Bed3D &m_bed;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
@@ -723,6 +726,26 @@ public:
 
     bool init();
     void post_event(wxEvent &&event);
+
+    std::shared_ptr<SceneRaycasterItem> add_raycaster_for_picking(SceneRaycaster::EType type, int id, const MeshRaycaster& raycaster,
+        const Transform3d& trafo = Transform3d::Identity(), bool use_back_faces = false) {
+        return m_scene_raycaster.add_raycaster(type, id, raycaster, trafo, use_back_faces);
+    }
+    void remove_raycasters_for_picking(SceneRaycaster::EType type, int id) {
+        m_scene_raycaster.remove_raycasters(type, id);
+    }
+    void remove_raycasters_for_picking(SceneRaycaster::EType type) {
+        m_scene_raycaster.remove_raycasters(type);
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* get_raycasters_for_picking(SceneRaycaster::EType type) {
+        return m_scene_raycaster.get_raycasters(type);
+    }
+
+    void set_raycaster_gizmos_on_top(bool value) {
+        m_scene_raycaster.set_gizmos_on_top(value);
+    }
+
 
     void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);

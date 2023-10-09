@@ -4044,7 +4044,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.state = LayersEditing::Editing;
             _perform_layer_editing_action(&evt);
         }
-
         else {
             // BBS: define Alt key to enable volume selection mode
             m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
@@ -4052,6 +4051,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
                     && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
                     && m_gizmos.get_current_type() != GLGizmosManager::Seam
+                    && m_gizmos.get_current_type() != GLGizmosManager::Measure
                     && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
                     m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
                     m_dirty = true;
@@ -4327,7 +4327,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // if right clicking on volume, propagate event through callback (shows context menu)
                 int volume_idx = get_first_hover_volume_idx();
                 if (!m_volumes.volumes[volume_idx]->is_wipe_tower // no context menu for the wipe tower
-                    && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)  // disable context menu when the gizmo is open
+                    && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports && m_gizmos.get_current_type() != GLGizmosManager::Measure))  // disable context menu when the gizmo is open
                 {
                     // forces the selection of the volume
                     /* m_selection.add(volume_idx); // #et_FIXME_if_needed
@@ -4368,7 +4368,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 else {
                     // do not post the event if the user is panning the scene
                     // or if right click was done over the wipe tower
-                    bool post_right_click_event = m_hover_volume_idxs.empty() || !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower;
+                    bool post_right_click_event = (m_hover_volume_idxs.empty() ||
+                                                   !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower) &&
+                                                  m_gizmos.get_current_type() != GLGizmosManager::Measure;
                     if (post_right_click_event)
                         post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
                 }
@@ -6953,6 +6955,7 @@ void GLCanvas3D::_render_sequential_clearance()
     {
     case GLGizmosManager::EType::Flatten:
     case GLGizmosManager::EType::Cut:
+    case GLGizmosManager::EType::Measure:
     case GLGizmosManager::EType::Hollow:
     case GLGizmosManager::EType::SlaSupports:
     case GLGizmosManager::EType::FdmSupports:
@@ -8224,6 +8227,10 @@ void GLCanvas3D::_render_selection_sidebar_hints() const
 
 void GLCanvas3D::_update_volumes_hover_state()
 {
+    // skip update if the Gizmo Measure is active
+    if (m_gizmos.get_current_type() == GLGizmosManager::Measure)
+        return;
+    
     for (GLVolume* v : m_volumes.volumes) {
         v->hover = GLVolume::HS_None;
     }

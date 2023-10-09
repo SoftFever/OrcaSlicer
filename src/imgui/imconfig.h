@@ -197,6 +197,9 @@ namespace ImGui
     const wchar_t CloseBlockNotifHoverButton = 0x0834;
     const wchar_t BlockNotifErrorIcon        = 0x0835;
 
+    const wchar_t ClipboardBtnIcon         = 0x2606;
+
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

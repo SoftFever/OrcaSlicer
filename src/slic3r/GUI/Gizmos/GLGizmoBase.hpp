@@ -5,6 +5,7 @@
 
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GLModel.hpp"
+#include "slic3r/GUI/SceneRaycaster.hpp"
 
 #include <cereal/archives/binary.hpp>
 
@@ -34,6 +35,7 @@ public:
     // Starting value for ids to avoid clashing with ids used by GLVolumes
     // (254 is choosen to leave some space for forward compatibility)
     static const unsigned int BASE_ID = 255 * 255 * 254;
+    static const unsigned int GRABBER_ELEMENTS_MAX_COUNT = 7;
 
     static float INV_ZOOM;
 
@@ -69,6 +71,8 @@ protected:
         std::array<float, 4> hover_color;
         bool enabled;
         bool dragging;
+        int picking_id{ -1 };
+        std::array<std::shared_ptr<SceneRaycasterItem>, GRABBER_ELEMENTS_MAX_COUNT> raycasters = { nullptr };
 
         Grabber();
 
@@ -78,6 +82,9 @@ protected:
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
         const GLModel& get_cube() const;
+
+        void register_raycasters_for_picking(int id);
+        void unregister_raycasters_for_picking();
 
     private:
         void render(float size, const std::array<float, 4>& render_color, bool picking) const;
@@ -159,7 +166,7 @@ public:
     virtual bool wants_enter_leave_snapshots() const { return false; }
     virtual std::string get_gizmo_entering_text() const { assert(false); return ""; }
     virtual std::string get_gizmo_leaving_text() const { assert(false); return ""; }
-    virtual std::string get_action_snapshot_name() { return "Gizmo action"; }
+    virtual std::string get_action_snapshot_name() const { return "Gizmo action"; }
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     virtual bool apply_clipping_plane() { return true; }
@@ -189,7 +196,26 @@ public:
     void render_input_window(float x, float y, float bottom_limit);
     virtual void on_change_color_mode(bool is_dark) {  m_is_dark_mode = is_dark; }
 
+    /// <summary>
+    /// Mouse tooltip text
+    /// </summary>
+    /// <returns>Text to be visible in mouse tooltip</returns>
     virtual std::string get_tooltip() const { return ""; }
+
+    /// <summary>
+    /// Is called when data (Selection) is changed
+    /// </summary>
+    virtual void data_changed(bool is_serializing){};
+
+    /// <summary>
+    /// Implement when want to process mouse events in gizmo
+    /// Click, Right click, move, drag, ...
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information and don't want to propagate it otherwise False.</returns>
+    virtual bool on_mouse(const wxMouseEvent &mouse_event) { return false; }
+    void register_raycasters_for_picking()   { register_grabbers_for_picking(); on_register_raycasters_for_picking(); }
+    void unregister_raycasters_for_picking() { unregister_grabbers_for_picking(); on_unregister_raycasters_for_picking(); }
 
     int get_count() { return ++count; }
     std::string get_gizmo_name() { return on_get_name(); }
@@ -213,6 +239,10 @@ protected:
     virtual void on_render() = 0;
     virtual void on_render_for_picking() = 0;
     virtual void on_render_input_window(float x, float y, float bottom_limit) {}
+    void register_grabbers_for_picking();
+    void unregister_grabbers_for_picking();
+    virtual void on_register_raycasters_for_picking() {}
+    virtual void on_unregister_raycasters_for_picking() {}
 
     bool GizmoImguiBegin(const std::string& name, int flags);
     void GizmoImguiEnd();

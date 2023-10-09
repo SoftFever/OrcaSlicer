@@ -5,6 +5,7 @@
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
@@ -15,7 +16,6 @@
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
-// BBS
 #include "slic3r/GUI/Gizmos/GLGizmoAdvancedCut.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFaceDetector.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
@@ -24,6 +24,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMeshBoolean.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoMeasure.hpp"
 
 #include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
@@ -171,6 +172,9 @@ void GLGizmosManager::switch_gizmos_icon_filename()
         case(EType::MmuSegmentation):
             gizmo->set_icon_filename(m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg");
             break;
+        case(EType::Measure):
+            gizmo->set_icon_filename(m_is_dark ? "measure.svg" : "measure.svg");
+            break;
         case(EType::MeshBoolean):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg");
             break;
@@ -210,6 +214,8 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
     m_gizmos.emplace_back(new GLGizmoText(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
+    m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "measure.svg" : "measure.svg", EType::Measure));
+
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
@@ -646,6 +652,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoAdvancedCut *>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MeshBoolean)
         return dynamic_cast<GLGizmoMeshBoolean*>(m_gizmos[MeshBoolean].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == Measure)
+        return dynamic_cast<GLGizmoMeasure*>(m_gizmos[Measure].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else
         return false;
 }
@@ -762,6 +770,9 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 
 bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
 {
+    if (m_current == Measure) {
+        return dynamic_cast<GLGizmoMeasure *>(m_gizmos[Measure].get())->on_mouse(evt);
+    }
     // used to set a right up event as processed when needed
     static bool pending_right_up = false;
 
@@ -1045,7 +1056,9 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         {
             if (m_current != Undefined)
             {
-                if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
+                if (m_current == Measure && gizmo_event(SLAGizmoEventType::Escape)) {
+                    // do nothing
+                } else if ((m_current != SlaSupports) || !gizmo_event(SLAGizmoEventType::DiscardChanges))
                     reset_all_states();
 
                 processed = true;
@@ -1079,14 +1092,14 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         //}
 
 
-        //case WXK_BACK:
-        //case WXK_DELETE:
-        //{
-        //    if ((m_current == SlaSupports || m_current == Hollow) && gizmo_event(SLAGizmoEventType::Delete))
-        //        processed = true;
+        case WXK_BACK:
+        case WXK_DELETE:
+        {
+           if ((m_current == SlaSupports || m_current == Hollow || m_current == Measure) && gizmo_event(SLAGizmoEventType::Delete))
+               processed = true;
 
-        //    break;
-        //}
+           break;
+        }
         //case 'A':
         //case 'a':
         //{
@@ -1189,6 +1202,12 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 // capture number key
                 processed = true;
             }
+        }
+        else if (m_current == Measure) { 
+            if (keyCode == WXK_CONTROL)
+                gizmo_event(SLAGizmoEventType::CtrlUp, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
+            else if (keyCode == WXK_SHIFT)
+                gizmo_event(SLAGizmoEventType::ShiftUp, Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.CmdDown());
         }
 
 //        if (processed)

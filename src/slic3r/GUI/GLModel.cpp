@@ -35,6 +35,429 @@ size_t GLModel::InitializationData::indices_count() const
     return ret;
 }
 
+
+void GLModel::Geometry::add_vertex(const Vec2f& position)
+{
+    assert(format.vertex_layout == EVertexLayout::P2);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+}
+
+void GLModel::Geometry::add_vertex(const Vec2f& position, const Vec2f& tex_coord)
+{
+    assert(format.vertex_layout == EVertexLayout::P2T2);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+    vertices.emplace_back(tex_coord.x());
+    vertices.emplace_back(tex_coord.y());
+}
+
+void GLModel::Geometry::add_vertex(const Vec3f& position)
+{
+    assert(format.vertex_layout == EVertexLayout::P3);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+    vertices.emplace_back(position.z());
+}
+
+void GLModel::Geometry::add_vertex(const Vec3f& position, const Vec2f& tex_coord)
+{
+    assert(format.vertex_layout == EVertexLayout::P3T2);
+    vertices.insert(vertices.end(), position.data(), position.data() + 3);
+    vertices.insert(vertices.end(), tex_coord.data(), tex_coord.data() + 2);
+}
+
+void GLModel::Geometry::add_vertex(const Vec3f& position, const Vec3f& normal, const Vec2f& tex_coord)
+{
+    assert(format.vertex_layout == EVertexLayout::P3N3T2);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+    vertices.emplace_back(position.z());
+    vertices.emplace_back(normal.x());
+    vertices.emplace_back(normal.y());
+    vertices.emplace_back(normal.z());
+    vertices.emplace_back(tex_coord.x());
+    vertices.emplace_back(tex_coord.y());
+}
+
+#if ENABLE_OPENGL_ES
+void GLModel::Geometry::add_vertex(const Vec3f& position, const Vec3f& normal, const Vec3f& extra)
+{
+    assert(format.vertex_layout == EVertexLayout::P3N3E3);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+    vertices.emplace_back(position.z());
+    vertices.emplace_back(normal.x());
+    vertices.emplace_back(normal.y());
+    vertices.emplace_back(normal.z());
+    vertices.emplace_back(extra.x());
+    vertices.emplace_back(extra.y());
+    vertices.emplace_back(extra.z());
+}
+#endif // ENABLE_OPENGL_ES
+
+void GLModel::Geometry::add_vertex(const Vec4f& position)
+{
+    assert(format.vertex_layout == EVertexLayout::P4);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+    vertices.emplace_back(position.z());
+    vertices.emplace_back(position.w());
+}
+
+void GLModel::Geometry::add_index(unsigned int id)
+{
+    indices.emplace_back(id);
+}
+
+void GLModel::Geometry::add_line(unsigned int id1, unsigned int id2)
+{
+    indices.emplace_back(id1);
+    indices.emplace_back(id2);
+}
+
+Vec2f GLModel::Geometry::extract_position_2(size_t id) const
+{
+    const size_t p_stride = position_stride_floats(format);
+    if (p_stride != 2) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX };
+    }
+
+    if (vertices_count() <= id) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX };
+    }
+
+    const float* start = &vertices[id * vertex_stride_floats(format) + position_offset_floats(format)];
+    return { *(start + 0), *(start + 1) };
+}
+
+Vec3f GLModel::Geometry::extract_position_3(size_t id) const
+{
+    const size_t p_stride = position_stride_floats(format);
+    if (p_stride != 3) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX, FLT_MAX };
+    }
+
+    if (vertices_count() <= id) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX, FLT_MAX };
+    }
+
+    const float* start = &vertices[id * vertex_stride_floats(format) + position_offset_floats(format)];
+    return { *(start + 0), *(start + 1), *(start + 2) };
+}
+
+Vec3f GLModel::Geometry::extract_normal_3(size_t id) const
+{
+    const size_t n_stride = normal_stride_floats(format);
+    if (n_stride != 3) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX, FLT_MAX };
+    }
+
+    if (vertices_count() <= id) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX, FLT_MAX };
+    }
+
+    const float* start = &vertices[id * vertex_stride_floats(format) + normal_offset_floats(format)];
+    return { *(start + 0), *(start + 1), *(start + 2) };
+}
+
+Vec2f GLModel::Geometry::extract_tex_coord_2(size_t id) const
+{
+    const size_t t_stride = tex_coord_stride_floats(format);
+    if (t_stride != 2) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX };
+    }
+
+    if (vertices_count() <= id) {
+        assert(false);
+        return { FLT_MAX, FLT_MAX };
+    }
+
+    const float* start = &vertices[id * vertex_stride_floats(format) + tex_coord_offset_floats(format)];
+    return { *(start + 0), *(start + 1) };
+}
+
+void GLModel::Geometry::set_vertex(size_t id, const Vec3f& position, const Vec3f& normal)
+{
+    assert(format.vertex_layout == EVertexLayout::P3N3);
+    assert(id < vertices_count());
+    if (id < vertices_count()) {
+        float* start = &vertices[id * vertex_stride_floats(format)];
+        *(start + 0) = position.x();
+        *(start + 1) = position.y();
+        *(start + 2) = position.z();
+        *(start + 3) = normal.x();
+        *(start + 4) = normal.y();
+        *(start + 5) = normal.z();
+    }
+}
+
+void GLModel::Geometry::set_index(size_t id, unsigned int index)
+{
+    assert(id < indices_count());
+    if (id < indices_count())
+        indices[id] = index;
+}
+
+unsigned int GLModel::Geometry::extract_index(size_t id) const
+{
+    if (indices_count() <= id) {
+        assert(false);
+        return -1;
+    }
+
+    return indices[id];
+}
+
+void GLModel::Geometry::remove_vertex(size_t id)
+{
+    assert(id < vertices_count());
+    if (id < vertices_count()) {
+        const size_t stride = vertex_stride_floats(format);
+        std::vector<float>::const_iterator it = vertices.begin() + id * stride;
+        vertices.erase(it, it + stride);
+    }
+}
+
+indexed_triangle_set GLModel::Geometry::get_as_indexed_triangle_set() const
+{
+    indexed_triangle_set its;
+    its.vertices.reserve(vertices_count());
+    for (size_t i = 0; i < vertices_count(); ++i) {
+        its.vertices.emplace_back(extract_position_3(i));
+    }
+    its.indices.reserve(indices_count() / 3);
+    for (size_t i = 0; i < indices_count() / 3; ++i) {
+        const size_t tri_id = i * 3;
+        its.indices.emplace_back(extract_index(tri_id), extract_index(tri_id + 1), extract_index(tri_id + 2));
+    }
+    return its;
+}
+
+size_t GLModel::Geometry::vertex_stride_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2:     { return 2; }
+    case EVertexLayout::P2T2:   { return 4; }
+    case EVertexLayout::P3:     { return 3; }
+    case EVertexLayout::P3T2:   { return 5; }
+    case EVertexLayout::P3N3:   { return 6; }
+    case EVertexLayout::P3N3T2: { return 8; }
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3E3: { return 9; }
+#endif // ENABLE_OPENGL_ES
+    case EVertexLayout::P4:     { return 4; }
+    default:                    { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::position_stride_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2:
+    case EVertexLayout::P2T2:   { return 2; }
+    case EVertexLayout::P3:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P3N3:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3T2:
+    case EVertexLayout::P3N3E3: { return 3; }
+#else
+    case EVertexLayout::P3N3T2: { return 3; }
+#endif // ENABLE_OPENGL_ES
+    case EVertexLayout::P4:     { return 4; }
+    default:                    { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::position_offset_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2:
+    case EVertexLayout::P2T2:
+    case EVertexLayout::P3:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P3N3:
+    case EVertexLayout::P3N3T2:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3E3:
+#endif // ENABLE_OPENGL_ES
+    case EVertexLayout::P4:   { return 0; }
+    default:                  { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::normal_stride_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P3N3:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3T2:
+    case EVertexLayout::P3N3E3: { return 3; }
+#else
+    case EVertexLayout::P3N3T2: { return 3; }
+#endif // ENABLE_OPENGL_ES
+    default:                    { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::normal_offset_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P3N3:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3T2:
+    case EVertexLayout::P3N3E3: { return 3; }
+#else
+    case EVertexLayout::P3N3T2: { return 3; }
+#endif // ENABLE_OPENGL_ES
+    default:                    { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::tex_coord_stride_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2T2:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P3N3T2: { return 2; }
+    default:                    { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::tex_coord_offset_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2T2:   { return 2; }
+    case EVertexLayout::P3T2:   { return 3; }
+    case EVertexLayout::P3N3T2: { return 6; }
+    default:                    { assert(false); return 0; }
+    };
+}
+
+#if ENABLE_OPENGL_ES
+size_t GLModel::Geometry::extra_stride_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P3N3E3: { return 3; }
+    default:                    { assert(false); return 0; }
+    };
+}
+
+size_t GLModel::Geometry::extra_offset_floats(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P3N3E3: { return 6; }
+    default:                    { assert(false); return 0; }
+    };
+}
+#endif // ENABLE_OPENGL_ES
+
+size_t GLModel::Geometry::index_stride_bytes(const Geometry& data)
+{
+    switch (data.index_type)
+    {
+    case EIndexType::UINT:   { return sizeof(unsigned int); }
+    case EIndexType::USHORT: { return sizeof(unsigned short); }
+    case EIndexType::UBYTE:  { return sizeof(unsigned char); }
+    default:                 { assert(false); return 0; }
+    };
+}
+
+bool GLModel::Geometry::has_position(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2:
+    case EVertexLayout::P2T2:
+    case EVertexLayout::P3:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P3N3:
+    case EVertexLayout::P3N3T2:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3E3:
+#endif // ENABLE_OPENGL_ES
+    case EVertexLayout::P4:   { return true; }
+    default:                  { assert(false); return false; }
+    };
+}
+
+bool GLModel::Geometry::has_normal(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2:
+    case EVertexLayout::P2T2:
+    case EVertexLayout::P3:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P4:     { return false; }
+    case EVertexLayout::P3N3:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3T2:
+    case EVertexLayout::P3N3E3: { return true; }
+#else
+    case EVertexLayout::P3N3T2: { return true; }
+#endif // ENABLE_OPENGL_ES
+    default:                    { assert(false); return false; }
+    };
+}
+
+bool GLModel::Geometry::has_tex_coord(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P2T2:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P3N3T2: { return true; }
+    case EVertexLayout::P2:
+    case EVertexLayout::P3:
+    case EVertexLayout::P3N3:
+#if ENABLE_OPENGL_ES
+    case EVertexLayout::P3N3E3:
+#endif // ENABLE_OPENGL_ES
+    case EVertexLayout::P4:     { return false; }
+    default:                    { assert(false); return false; }
+    };
+}
+
+#if ENABLE_OPENGL_ES
+bool GLModel::Geometry::has_extra(const Format& format)
+{
+    switch (format.vertex_layout)
+    {
+    case EVertexLayout::P3N3E3: { return true; }
+    case EVertexLayout::P2:
+    case EVertexLayout::P2T2:
+    case EVertexLayout::P3:
+    case EVertexLayout::P3T2:
+    case EVertexLayout::P3N3:
+    case EVertexLayout::P3N3T2:
+    case EVertexLayout::P4:     { return false; }
+    default:                    { assert(false); return false; }
+    };
+}
+#endif // ENABLE_OPENGL_ES
+
+#if ENABLE_GLMODEL_STATISTICS
+GLModel::Statistics GLModel::s_statistics;
+#endif // ENABLE_GLMODEL_STATISTICS
+
 void GLModel::init_from(const InitializationData& data)
 {
     if (!m_render_data.empty()) // call reset() if you want to reuse this model
@@ -72,6 +495,11 @@ void GLModel::init_from(const InitializationData& data)
         send_to_gpu(rdata, vertices, indices);
         m_render_data.emplace_back(rdata);
     }
+}
+
+void GLModel::init_from(Geometry& data)
+{
+    init_from(data.get_as_indexed_triangle_set());
 }
 
 void GLModel::init_from(const indexed_triangle_set& its, const BoundingBoxf3 &bbox)
@@ -741,6 +1169,192 @@ GLModel::InitializationData diamond(int resolution)
     entity.indices.push_back(0);
 
     data.entities.emplace_back(entity);
+    return data;
+}
+
+
+GLModel::Geometry smooth_sphere(unsigned int resolution, float radius)
+{
+    resolution = std::max<unsigned int>(4, resolution);
+
+    const unsigned int sectorCount = resolution;
+    const unsigned int stackCount  = resolution;
+
+    const float sectorStep = float(2.0 * M_PI / sectorCount);
+    const float stackStep = float(M_PI / stackCount);
+
+    GLModel::Geometry data;
+    data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    data.reserve_vertices((stackCount - 1) * sectorCount + 2);
+    data.reserve_indices((2 * (stackCount - 1) * sectorCount) * 3);
+
+    // vertices
+    for (unsigned int i = 0; i <= stackCount; ++i) {
+        // from pi/2 to -pi/2
+        const double stackAngle = 0.5 * M_PI - stackStep * i;
+        const double xy = double(radius) * ::cos(stackAngle);
+        const double z = double(radius) * ::sin(stackAngle);
+        if (i == 0 || i == stackCount) {
+            const Vec3f v(float(xy), 0.0f, float(z));
+            data.add_vertex(v, (Vec3f)v.normalized());
+        }
+        else {
+            for (unsigned int j = 0; j < sectorCount; ++j) {
+                // from 0 to 2pi
+                const double sectorAngle = sectorStep * j;
+                const Vec3f v(float(xy * std::cos(sectorAngle)), float(xy * std::sin(sectorAngle)), float(z));
+                data.add_vertex(v, (Vec3f)v.normalized());
+            }
+        }
+    }
+
+    // triangles
+    for (unsigned int i = 0; i < stackCount; ++i) {
+        // Beginning of current stack.
+        unsigned int k1 = (i == 0) ? 0 : (1 + (i - 1) * sectorCount);
+        const unsigned int k1_first = k1;
+        // Beginning of next stack.
+        unsigned int k2 = (i == 0) ? 1 : (k1 + sectorCount);
+        const unsigned int k2_first = k2;
+        for (unsigned int j = 0; j < sectorCount; ++j) {
+            // 2 triangles per sector excluding first and last stacks
+            unsigned int k1_next = k1;
+            unsigned int k2_next = k2;
+            if (i != 0) {
+                k1_next = (j + 1 == sectorCount) ? k1_first : (k1 + 1);
+                data.add_triangle(k1, k2, k1_next);
+            }
+            if (i + 1 != stackCount) {
+                k2_next = (j + 1 == sectorCount) ? k2_first : (k2 + 1);
+                data.add_triangle(k1_next, k2, k2_next);
+            }
+            k1 = k1_next;
+            k2 = k2_next;
+        }
+    }
+
+    return data;
+}
+
+GLModel::Geometry smooth_cylinder(unsigned int resolution, float radius, float height)
+{
+    resolution = std::max<unsigned int>(4, resolution);
+
+    const unsigned int sectorCount = resolution;
+    const float sectorStep = 2.0f * float(M_PI) / float(sectorCount);
+
+    GLModel::Geometry data;
+    data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    data.reserve_vertices(sectorCount * 4 + 2);
+    data.reserve_indices(sectorCount * 4 * 3);
+
+    auto generate_vertices_on_circle = [sectorCount, sectorStep](float radius) {
+        std::vector<Vec3f> ret;
+        ret.reserve(sectorCount);
+        for (unsigned int i = 0; i < sectorCount; ++i) {
+            // from 0 to 2pi
+            const float sectorAngle = sectorStep * i;
+            ret.emplace_back(radius * std::cos(sectorAngle), radius * std::sin(sectorAngle), 0.0f);
+        }
+        return ret;
+    };
+
+    const std::vector<Vec3f> base_vertices = generate_vertices_on_circle(radius);
+    const Vec3f h = height * Vec3f::UnitZ();
+
+    // stem vertices
+    for (unsigned int i = 0; i < sectorCount; ++i) {
+        const Vec3f& v = base_vertices[i];
+        const Vec3f n = v.normalized();
+        data.add_vertex(v, n);
+        data.add_vertex(v + h, n);
+    }
+
+    // stem triangles
+    for (unsigned int i = 0; i < sectorCount; ++i) {
+        unsigned int v1 = i * 2;
+        unsigned int v2 = (i < sectorCount - 1) ? v1 + 2 : 0;
+        unsigned int v3 = v2 + 1;
+        unsigned int v4 = v1 + 1;
+        data.add_triangle(v1, v2, v3);
+        data.add_triangle(v1, v3, v4);
+    }
+
+    // bottom cap vertices
+    Vec3f cap_center = Vec3f::Zero();
+    unsigned int cap_center_id = data.vertices_count();
+    Vec3f normal = -Vec3f::UnitZ();
+
+    data.add_vertex(cap_center, normal);
+    for (unsigned int i = 0; i < sectorCount; ++i) {
+        data.add_vertex(base_vertices[i], normal);
+    }
+
+    // bottom cap triangles
+    for (unsigned int i = 0; i < sectorCount; ++i) {
+        data.add_triangle(cap_center_id, (i < sectorCount - 1) ? cap_center_id + i + 2 : cap_center_id + 1, cap_center_id + i + 1);
+    }
+
+    // top cap vertices
+    cap_center += h;
+    cap_center_id = data.vertices_count();
+    normal = -normal;
+
+    data.add_vertex(cap_center, normal);
+    for (unsigned int i = 0; i < sectorCount; ++i) {
+        data.add_vertex(base_vertices[i] + h, normal);
+    }
+
+    // top cap triangles
+    for (unsigned int i = 0; i < sectorCount; ++i) {
+        data.add_triangle(cap_center_id, cap_center_id + i + 1, (i < sectorCount - 1) ? cap_center_id + i + 2 : cap_center_id + 1);
+    }
+
+    return data;
+}
+
+GLModel::Geometry smooth_torus(unsigned int primary_resolution, unsigned int secondary_resolution, float radius, float thickness)
+{
+    const unsigned int torus_sector_count = std::max<unsigned int>(4, primary_resolution);
+    const float torus_sector_step = 2.0f * float(M_PI) / float(torus_sector_count);
+    const unsigned int section_sector_count = std::max<unsigned int>(4, secondary_resolution);
+    const float section_sector_step = 2.0f * float(M_PI) / float(section_sector_count);
+
+    GLModel::Geometry data;
+    data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    data.reserve_vertices(torus_sector_count * section_sector_count);
+    data.reserve_indices(torus_sector_count * section_sector_count * 2 * 3);
+
+    // vertices
+    for (unsigned int i = 0; i < torus_sector_count; ++i) {
+        const float section_angle = torus_sector_step * i;
+        const float csa = std::cos(section_angle);
+        const float ssa = std::sin(section_angle);
+        const Vec3f section_center(radius * csa, radius * ssa, 0.0f);
+        for (unsigned int j = 0; j < section_sector_count; ++j) {
+            const float circle_angle = section_sector_step * j;
+            const float thickness_xy = thickness * std::cos(circle_angle);
+            const float thickness_z  = thickness * std::sin(circle_angle);
+            const Vec3f v(thickness_xy * csa, thickness_xy * ssa, thickness_z);
+            data.add_vertex(section_center + v, (Vec3f)v.normalized());
+        }
+    }
+
+    // triangles
+    for (unsigned int i = 0; i < torus_sector_count; ++i) {
+        const unsigned int ii = i * section_sector_count;
+        const unsigned int ii_next = ((i + 1) % torus_sector_count) * section_sector_count;
+        for (unsigned int j = 0; j < section_sector_count; ++j) {
+            const unsigned int j_next = (j + 1) % section_sector_count;
+            const unsigned int i0 = ii + j;
+            const unsigned int i1 = ii_next + j;
+            const unsigned int i2 = ii_next + j_next;
+            const unsigned int i3 = ii + j_next;
+            data.add_triangle(i0, i1, i2);
+            data.add_triangle(i0, i2, i3);
+        }
+    }
+
     return data;
 }
 

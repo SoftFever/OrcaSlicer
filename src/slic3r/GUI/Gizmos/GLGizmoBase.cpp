@@ -5,6 +5,7 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 // TODO: Display tooltips quicker on Linux
 
@@ -98,6 +99,18 @@ float GLGizmoBase::Grabber::get_half_size(float size) const
 float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
 {
     return get_half_size(size) * DraggingScaleFactor;
+}
+void GLGizmoBase::Grabber::register_raycasters_for_picking(int id)
+{
+    picking_id = id;
+    // registration will happen on next call to render()
+}
+
+void GLGizmoBase::Grabber::unregister_raycasters_for_picking()
+{
+    wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Gizmo, picking_id);
+    picking_id = -1;
+    raycasters = { nullptr };
 }
 
 const GLModel& GLGizmoBase::Grabber::get_cube() const
@@ -238,7 +251,19 @@ bool GLGizmoBase::update_items_state()
     m_dirty  = false;
     return res;
 };
+void GLGizmoBase::register_grabbers_for_picking()
+{
+    for (size_t i = 0; i < m_grabbers.size(); ++i) {
+        m_grabbers[i].register_raycasters_for_picking((m_group_id >= 0) ? m_group_id : i);
+    }
+}
 
+void GLGizmoBase::unregister_grabbers_for_picking()
+{
+    for (size_t i = 0; i < m_grabbers.size(); ++i) {
+        m_grabbers[i].unregister_raycasters_for_picking();
+    }
+}
 bool GLGizmoBase::GizmoImguiBegin(const std::string &name, int flags)
 {
     return m_imgui->begin(name, flags);
@@ -282,6 +307,7 @@ std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
 		float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255 // checksum for validating against unwanted alpha blending and multi sampling
 	};
 }
+
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {

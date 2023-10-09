@@ -785,9 +785,96 @@ bool ImGuiWrapper::radio_button(const wxString &label, bool active)
     return ImGui::RadioButton(label_utf8.c_str(), active);
 }
 
-bool ImGuiWrapper::image_button()
+ImU32 ImGuiWrapper::to_ImU32(const ColorRGBA& color)
 {
-    return false;
+    return ImGui::GetColorU32({ color.r(), color.g(), color.b(), color.a() });
+}
+
+ImVec4 ImGuiWrapper::to_ImVec4(const ColorRGBA& color)
+{
+    return { color.r(), color.g(), color.b(), color.a() };
+}
+
+ColorRGBA ImGuiWrapper::from_ImU32(const ImU32& color)
+{
+    return from_ImVec4(ImGui::ColorConvertU32ToFloat4(color));
+}
+
+ColorRGBA ImGuiWrapper::from_ImVec4(const ImVec4& color)
+{
+    return { color.x, color.y, color.z, color.w };
+}
+
+
+static bool image_button_ex(ImGuiID id, ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& padding, const ImVec4& bg_col, const ImVec4& tint_col, ImGuiButtonFlags flags)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size + padding * 2);
+    ImGui::ItemSize(bb);
+    if (!ImGui::ItemAdd(bb, id))
+        return false;
+
+    bool hovered, held;
+    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
+
+    // Render
+    const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    ImGui::RenderNavHighlight(bb, id);
+    ImGui::RenderFrame(bb.Min, bb.Max, col, true, ImClamp((float)ImMin(padding.x, padding.y), 0.0f, g.Style.FrameRounding));
+    if (bg_col.w > 0.0f)
+        window->DrawList->AddRectFilled(bb.Min + padding, bb.Max - padding, ImGui::GetColorU32(bg_col));
+    window->DrawList->AddImage(texture_id, bb.Min + padding, bb.Max - padding, uv0, uv1, ImGui::GetColorU32(tint_col));
+
+    return pressed;
+}
+
+bool ImGuiWrapper::image_button(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col, ImGuiButtonFlags flags)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    if (window->SkipItems)
+        return false;
+
+    // Default to using texture ID as ID. User can still push string/integer prefixes.
+    ImGui::PushID((void*)(intptr_t)user_texture_id);
+    const ImGuiID id = window->GetID("#image");
+    ImGui::PopID();
+
+    const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : g.Style.FramePadding;
+    return image_button_ex(id, user_texture_id, size, uv0, uv1, padding, bg_col, tint_col, flags);
+}
+
+bool ImGuiWrapper::image_button(const wchar_t icon, const wxString& tooltip)
+{
+    const ImGuiIO& io = ImGui::GetIO();
+    const ImTextureID tex_id = io.Fonts->TexID;
+    assert(io.Fonts->TexWidth > 0 && io.Fonts->TexHeight > 0);
+    const float inv_tex_w = 1.0f / float(io.Fonts->TexWidth);
+    const float inv_tex_h = 1.0f / float(io.Fonts->TexHeight);
+    const ImFontAtlasCustomRect* const rect = GetTextureCustomRect(icon);
+    const ImVec2 size = { float(rect->Width), float(rect->Height) };
+    const ImVec2 uv0 = ImVec2(float(rect->X) * inv_tex_w, float(rect->Y) * inv_tex_h);
+    const ImVec2 uv1 = ImVec2(float(rect->X + rect->Width) * inv_tex_w, float(rect->Y + rect->Height) * inv_tex_h);
+    ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 0.0f });
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.4f, 0.4f, 0.4f, 1.0f });
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.25f, 0.25f, 0.25f, 1.0f });
+    const bool res = image_button(tex_id, size, uv0, uv1);
+    ImGui::PopStyleColor(3);
+
+    if (!tooltip.empty() && ImGui::IsItemHovered())
+        this->tooltip(tooltip, ImGui::GetFontSize() * 20.0f);
+
+    return res;
+}
+
+ImFontAtlasCustomRect* ImGuiWrapper::GetTextureCustomRect(const wchar_t& tex_id)
+{
+    auto item = m_custom_glyph_rects_ids.find(tex_id);
+    return (item != m_custom_glyph_rects_ids.end()) ? ImGui::GetIO().Fonts->GetCustomRectByIndex(m_custom_glyph_rects_ids[tex_id]) : nullptr;
 }
 
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
@@ -2128,11 +2215,12 @@ void ImGuiWrapper::init_font(bool compress)
     int rect_id = io.Fonts->CustomRects.Size;  // id of the rectangle added next
     // add rectangles for the icons to the font atlas
     for (auto& icon : font_icons)
-        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
+        m_custom_glyph_rects_ids[icon.first] = io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
     for (auto& icon : font_icons_large)
-        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
+        m_custom_glyph_rects_ids[icon.first] = io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
     for (auto& icon : font_icons_extra_large)
-        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
+        m_custom_glyph_rects_ids[icon.first] = io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
+
 
     // Build texture atlas
     unsigned char* pixels;

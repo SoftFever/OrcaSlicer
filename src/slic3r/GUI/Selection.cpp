@@ -710,6 +710,17 @@ bool Selection::contains_any_volume(const std::vector<unsigned int>& volume_idxs
     return false;
 }
 
+bool Selection::contains_sinking_volumes(bool ignore_modifiers) const
+{
+    for (const GLVolume* v : *m_volumes) {
+        if (!ignore_modifiers || !v->is_modifier) {
+            if (v->is_sinking())
+                return true;
+        }
+    }
+    return false;
+}
+
 bool Selection::matches(const std::vector<unsigned int>& volume_idxs) const
 {
     unsigned int count = 0;
@@ -851,6 +862,14 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
         }
     }
     this->set_bounding_boxes_dirty();
+}
+
+void Selection::setup_cache()
+{
+    if (!m_valid)
+        return;
+
+    set_caches();
 }
 
 void Selection::translate(const Vec3d& displacement, bool local)

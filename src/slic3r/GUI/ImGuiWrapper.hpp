@@ -8,6 +8,7 @@
 
 #include <wx/string.h>
 
+#include "libslic3r/Color.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 
@@ -59,6 +60,7 @@ class ImGuiWrapper
     bool m_requires_extra_frame{ false };
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     std::string m_clipboard_text;
+    std::map<wchar_t, int> m_custom_glyph_rects_ids;
 
 public:
     struct LastSliderStatus {
@@ -114,7 +116,8 @@ public:
     bool bbl_button(const wxString &label);
 	bool button(const wxString& label, float width, float height);
     bool radio_button(const wxString &label, bool active);
-	bool image_button();
+    bool image_button(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0.0, 0.0), const ImVec2& uv1 = ImVec2(1.0, 1.0), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0.0, 0.0, 0.0, 0.0), const ImVec4& tint_col = ImVec4(1.0, 1.0, 1.0, 1.0), ImGuiButtonFlags flags = 0);
+    bool image_button(const wchar_t icon, const wxString& tooltip = L"");
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_double(const wxString &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
@@ -134,6 +137,12 @@ public:
     void tooltip(const char *label, float wrap_width);
     void tooltip(const wxString &label, float wrap_width);
 
+    static ImU32 to_ImU32(const ColorRGBA& color);
+    static ImVec4 to_ImVec4(const ColorRGBA& color);
+    static ColorRGBA from_ImU32(const ImU32& color);
+    static ColorRGBA from_ImVec4(const ImVec4& color);
+
+    ImFontAtlasCustomRect* GetTextureCustomRect(const wchar_t& tex_id);
 
     // Float sliders: Manually inserted values aren't clamped by ImGui.Using this wrapper function does (when clamp==true).
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
