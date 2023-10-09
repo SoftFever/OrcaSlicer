@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 18:57+0800\n"
+"POT-Creation-Date: 2023-10-09 20:48+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -366,6 +366,12 @@ msgstr "翻转"
 
 msgid "After cut"
 msgstr "切割后"
+
+msgid "A"
+msgstr ""
+
+msgid "B"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "切割为零件"
@@ -3929,10 +3935,9 @@ msgid "Clear"
 msgstr "清除"
 
 msgid ""
-"You have completed printing the mall model, but the synchronization of "
-"rating information has failed. \n"
-"If you need to resynchronize, please reselect the printer."
-msgstr "您已完成打印商城模型，但评分信息的同步失败了。\n如果需要重新同步，请重新选择打印机。"
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr "您已经完成了商城模型的打印，但是评分信息的同步失败了。"
 
 msgid "How do you like this printing file?"
 msgstr "您喜欢这个打印文件吗？"
@@ -4492,9 +4497,10 @@ msgid "Restore"
 msgstr "恢复"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
-msgstr "热床温度超过了材料的软化温度。请在打印前打开打印机前门以防堵头。"
+"The current hot bed temperature is relatively high.The nozzle may be clogged "
+"when printing this filament in a closed enclosure.Please open the front door "
+"and/or remove the upper glass."
+msgstr "当前热床温度相对较高。在封闭式外壳中打印这种丝可能会导致喷嘴堵塞。请打开前门和/或取下上部玻璃。"
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4561,11 +4567,27 @@ msgstr "在3mf文件中发现无效值："
 msgid "Please correct them in the param tabs"
 msgstr "请在参数页更正它们"
 
-msgid "The 3mf is not compatible, load geometry data only!"
-msgstr "该3mf文件与软件不兼容，将只加载几何数据。"
+msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgstr "3mf 文件中在丝材或打印机参数中进行了以下修改的 G 代码："
 
-msgid "Incompatible 3mf"
-msgstr "不兼容的3mf"
+msgid ""
+"Please confirm that these modified G-codes are safe to prevent any damage to "
+"the machine!"
+msgstr "请确认这些修改后的 G 代码是否安全，以防止对打印机造成任何损坏！"
+
+msgid "Modified G-codes"
+msgstr "修改 G 代码"
+
+msgid "The 3mf has following customized filament or printer presets:"
+msgstr "该 3mf 文件包含以下自定义的打印材料或打印机参数设置："
+
+msgid ""
+"Please confirm that the G-codes within these presets are safe to prevent any "
+"damage to the machine!"
+msgstr "请确认这些预设内的 G-Codes 是否安全，以防止对机器造成任何损坏！"
+
+msgid "Customized Preset"
+msgstr "自定义预设"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "step 文件中的部件名称包含非UTF8格式的字符！"
@@ -4625,8 +4647,14 @@ msgstr "对象太大"
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
 
+msgid "Export AMF file:"
+msgstr "导出 AMF 文件："
+
 msgid "Save file as:"
 msgstr "文件另存为："
+
+msgid "Export OBJ file:"
+msgstr "导出 OBJ 文件："
 
 #, c-format, boost-format
 msgid ""
@@ -4662,6 +4690,9 @@ msgstr "超过1个零件，无法替换"
 msgid "Error during replace"
 msgstr "替换时发生错误"
 
+msgid "Replace from:"
+msgstr "替换："
+
 msgid "Select a new file"
 msgstr "选择新文件"
 
@@ -4673,6 +4704,18 @@ msgstr "请选择一个文件"
 
 msgid "Do you want to replace it"
 msgstr "您是否要替换"
+
+msgid "Message"
+msgstr "信息"
+
+msgid "Reload from:"
+msgstr "重新加载："
+
+msgid "Unable to reload:"
+msgstr "无法重新加载："
+
+msgid "Error during reload"
+msgstr "重新加载时发生错误："
 
 msgid "Slicing"
 msgstr "正在切片"
@@ -4796,6 +4839,15 @@ msgstr "所选对象的克隆数量"
 
 msgid "Save G-code file as:"
 msgstr "G-code文件另存为："
+
+msgid "Save SLA file as:"
+msgstr "SLA 文件另存为："
+
+msgid "The provided file name is not valid."
+msgstr "无效的文件名。"
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr "不允许使用以下字符："
 
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
@@ -7790,13 +7842,14 @@ msgid ""
 "Support material is commonly used to print support and support interface"
 msgstr "支撑材料通常用于打印支撑体和支撑接触面"
 
-msgid "Temperature of vitrificaiton"
+msgid "Softening temperature"
 msgstr "软化温度"
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
-msgstr "材料在这个温度开始变软。因此热床温度不能超过这个温度。"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
+msgstr "材料在这个温度下会软化，因此当热床温度等于或高于这个温度时，强烈建议打开前门和/或去除上玻璃以避免堵塞。"
 
 msgid "Price"
 msgstr "价格"
@@ -9675,6 +9728,12 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr "不支持校准"
 
+msgid "Error desc"
+msgstr "错误描述"
+
+msgid "Extra info"
+msgstr "额外信息"
+
 msgid "Flow Dynamics"
 msgstr "动态流量"
 
@@ -10032,12 +10091,6 @@ msgstr ""
 "校准材料提示：\n"
 "-可以共享相同热床温度的材料\n"
 "-不同的耗材品牌和系列（Brand = Bambu, Family = Basic, Matte）"
-
-msgid "Error desc"
-msgstr "错误描述"
-
-msgid "Extra info"
-msgstr "额外信息"
 
 msgid "Pattern"
 msgstr "图案"
@@ -10976,6 +11029,33 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid ""
+#~ "You have completed printing the mall model, but the synchronization of "
+#~ "rating information has failed. \n"
+#~ "If you need to resynchronize, please reselect the printer."
+#~ msgstr ""
+#~ "您已完成打印商城模型，但评分信息的同步失败了。\n"
+#~ "如果需要重新同步，请重新选择打印机。"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr "热床温度超过了材料的软化温度。请在打印前打开打印机前门以防堵头。"
+
+#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgstr "该3mf文件与软件不兼容，将只加载几何数据。"
+
+#~ msgid "Incompatible 3mf"
+#~ msgstr "不兼容的3mf"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "软化温度"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr "材料在这个温度开始变软。因此热床温度不能超过这个温度。"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "
@@ -13973,9 +14053,6 @@ msgstr ""
 #~ msgid "Error while loading G-code file"
 #~ msgstr "加载G-code文件时发生错误"
 
-#~ msgid "Save SLA file as:"
-#~ msgstr "SLA 文件另存为："
-
 #~ msgid "Home page and Daily Tips"
 #~ msgstr "主页和每日提示"
 
@@ -14317,30 +14394,6 @@ msgstr ""
 
 #~ msgid "Open BambuStudio"
 #~ msgstr "打开BambuStudio"
-
-#~ msgid "Export AMF file:"
-#~ msgstr "导出 AMF 文件："
-
-#~ msgid "Export OBJ file:"
-#~ msgstr "导出 OBJ 文件："
-
-#~ msgid "Replace from:"
-#~ msgstr "替换："
-
-#~ msgid "Reload from:"
-#~ msgstr "重新加载："
-
-#~ msgid "Unable to reload:"
-#~ msgstr "无法重新加载："
-
-#~ msgid "Error during reload"
-#~ msgstr "重新加载时发生错误："
-
-#~ msgid "The provided file name is not valid."
-#~ msgstr "无效的文件名。"
-
-#~ msgid "The following characters are not allowed by a FAT file system:"
-#~ msgstr "不允许使用以下字符："
 
 #~ msgid "Skirt Loops"
 #~ msgstr "Skirt圈数"

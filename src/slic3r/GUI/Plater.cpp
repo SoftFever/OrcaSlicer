@@ -4153,7 +4153,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         {
             // XXX: Problem on OS X with double extension?
             output_file.replace_extension("zip.amf");
-            dlg_title = _devL("Export AMF file:");
+            dlg_title = _L("Export AMF file:");
             break;
         }
         case FT_3MF:
@@ -4165,7 +4165,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         case FT_OBJ:
         {
             output_file.replace_extension("obj");
-            dlg_title = _devL("Export OBJ file:");
+            dlg_title = _L("Export OBJ file:");
             break;
         }
         default: break;
@@ -4987,7 +4987,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
         return false;
     }
 
-    wxBusyInfo info(_devL("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+    wxBusyInfo info(_L("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
     if (!snapshot.empty())
         q->take_snapshot(snapshot);
@@ -5250,7 +5250,7 @@ void Plater::priv::reload_from_disk()
         }
         else {
             wxString      message = _L("Do you want to replace it") + " ?";
-            MessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
+            MessageDialog dlg(q, message, _L("Message"), wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() == wxID_YES)
 #if ENABLE_RELOAD_FROM_DISK_REWORK
                 replace_paths.emplace_back(search, sel_filename_path);
@@ -5278,7 +5278,7 @@ void Plater::priv::reload_from_disk()
         const auto& path = input_paths[i].string();
 
         wxBusyCursor wait;
-        wxBusyInfo info(_devL("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+        wxBusyInfo info(_L("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
         Model new_model;
         try
@@ -5489,11 +5489,11 @@ void Plater::priv::reload_from_disk()
 #endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
     if (!fail_list.empty()) {
-        wxString message = _devL("Unable to reload:") + "\n";
+        wxString message = _L("Unable to reload:") + "\n";
         for (const wxString& s : fail_list) {
             message += s + "\n";
         }
-        MessageDialog dlg(q, message, _devL("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        MessageDialog dlg(q, message, _L("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
         dlg.ShowModal();
     }
 
@@ -10238,7 +10238,7 @@ void Plater::export_gcode(bool prefer_removable)
     fs::path output_path;
     {
         std::string ext = default_output_file.extension().string();
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _devL("Save SLA file as:"),
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SLA file as:"),
             start_dir,
             from_path(default_output_file.filename()),
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_SL1, ext),
@@ -10247,8 +10247,8 @@ void Plater::export_gcode(bool prefer_removable)
         if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
             while (has_illegal_filename_characters(output_path.filename().string())) {
-                show_error(this, _devL("The provided file name is not valid.") + "\n" +
-                    _devL("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
+                show_error(this, _L("The provided file name is not valid.") + "\n" +
+                    _L("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
                 dlg.SetFilename(from_path(output_path.filename()));
                 if (dlg.ShowModal() == wxID_OK)
                     output_path = into_path(dlg.GetPath());

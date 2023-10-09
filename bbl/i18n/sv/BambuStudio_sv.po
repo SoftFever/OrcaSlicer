@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 18:57+0800\n"
+"POT-Creation-Date: 2023-10-09 20:48+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -361,6 +361,12 @@ msgstr "Vänd"
 
 msgid "After cut"
 msgstr "Efter skärning"
+
+msgid "A"
+msgstr ""
+
+msgid "B"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "Beskär till delar"
@@ -4031,9 +4037,8 @@ msgid "Clear"
 msgstr "Rensa"
 
 msgid ""
-"You have completed printing the mall model, but the synchronization of "
-"rating information has failed. \n"
-"If you need to resynchronize, please reselect the printer."
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
 msgstr ""
 
 msgid "How do you like this printing file?"
@@ -4602,12 +4607,10 @@ msgid "Restore"
 msgstr "Återställ"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high.The nozzle may be clogged "
+"when printing this filament in a closed enclosure.Please open the front door "
+"and/or remove the upper glass."
 msgstr ""
-"Byggplattans temperatur överskrider filamentens förglasningstemperatur. "
-"Öppna skrivarens främre dörr innan du skriver ut för att undvika att nozzeln "
-"täpps till."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4672,11 +4675,27 @@ msgstr "Ogiltiga värden hittades i 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Vänligen korrigera dem i Parameter flikarna"
 
-msgid "The 3mf is not compatible, load geometry data only!"
-msgstr "3mf ej kompatibel, laddar endast geometrin !"
+msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgstr ""
 
-msgid "Incompatible 3mf"
-msgstr "Ej kompatibel 3mf"
+msgid ""
+"Please confirm that these modified G-codes are safe to prevent any damage to "
+"the machine!"
+msgstr ""
+
+msgid "Modified G-codes"
+msgstr ""
+
+msgid "The 3mf has following customized filament or printer presets:"
+msgstr ""
+
+msgid ""
+"Please confirm that the G-codes within these presets are safe to prevent any "
+"damage to the machine!"
+msgstr ""
+
+msgid "Customized Preset"
+msgstr ""
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Komponent namnet i step filen är inte UTF8 format!"
@@ -4740,8 +4759,14 @@ msgstr "Objektet är för stort"
 msgid "Export STL file:"
 msgstr "Exportera STL-fil:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Spara fil som:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -4776,6 +4801,9 @@ msgstr ""
 msgid "Error during replace"
 msgstr "Fel vid byte"
 
+msgid "Replace from:"
+msgstr ""
+
 msgid "Select a new file"
 msgstr "Välj en ny fil"
 
@@ -4786,6 +4814,18 @@ msgid "Please select a file"
 msgstr "Välj en fil"
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4917,6 +4957,15 @@ msgstr "Kopior av det valda objektet"
 
 msgid "Save G-code file as:"
 msgstr "Spara G-kod som:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
@@ -8087,15 +8136,14 @@ msgstr ""
 "Support material används ofta för att skriva ut support och stödja "
 "gränssnittet"
 
-msgid "Temperature of vitrificaiton"
-msgstr "Kristalliserings temperatur"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"Materialet mjuknar vid denna temperatur. Därför får inte byggplattan vara "
-"varmare än denna temperatur"
 
 msgid "Price"
 msgstr "Pris"
@@ -10100,6 +10148,12 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr ""
 
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
 msgid "Flow Dynamics"
 msgstr ""
 
@@ -10406,12 +10460,6 @@ msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
-msgstr ""
-
-msgid "Error desc"
-msgstr ""
-
-msgid "Extra info"
 msgstr ""
 
 msgid "Pattern"
@@ -11342,6 +11390,30 @@ msgstr ""
 "Förbättra styrkan\n"
 "Visste du att du kan använda fler väggslingor och högre gles fyllningstäthet "
 "för att förbättra modellens styrka?"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "Byggplattans temperatur överskrider filamentens förglasningstemperatur. "
+#~ "Öppna skrivarens främre dörr innan du skriver ut för att undvika att "
+#~ "nozzeln täpps till."
+
+#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgstr "3mf ej kompatibel, laddar endast geometrin !"
+
+#~ msgid "Incompatible 3mf"
+#~ msgstr "Ej kompatibel 3mf"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Kristalliserings temperatur"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "Materialet mjuknar vid denna temperatur. Därför får inte byggplattan vara "
+#~ "varmare än denna temperatur"
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

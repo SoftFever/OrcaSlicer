@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 18:57+0800\n"
+"POT-Creation-Date: 2023-10-09 20:48+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -361,6 +361,12 @@ msgstr "Flip"
 
 msgid "After cut"
 msgstr "After cut"
+
+msgid "A"
+msgstr ""
+
+msgid "B"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "In delen knippen"
@@ -4063,9 +4069,8 @@ msgid "Clear"
 msgstr "Wissen"
 
 msgid ""
-"You have completed printing the mall model, but the synchronization of "
-"rating information has failed. \n"
-"If you need to resynchronize, please reselect the printer."
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
 msgstr ""
 
 msgid "How do you like this printing file?"
@@ -4648,12 +4653,10 @@ msgid "Restore"
 msgstr "Herstellen"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high.The nozzle may be clogged "
+"when printing this filament in a closed enclosure.Please open the front door "
+"and/or remove the upper glass."
 msgstr ""
-"De bedtemperatuur overschrijdt de vitrificatietemperatuur van het filament. "
-"Open de voorkdeur van de printer voor het printen om verstopping van de "
-"nozzles te voorkomen."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4719,12 +4722,27 @@ msgstr "Invalid values found in the 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Please correct them in the Param tabs"
 
-msgid "The 3mf is not compatible, load geometry data only!"
+msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
-"Het 3mf bestand is niet compatibel, enkel de geometrische data wordt geladen!"
 
-msgid "Incompatible 3mf"
-msgstr "Onbruikbaar 3mf bestand"
+msgid ""
+"Please confirm that these modified G-codes are safe to prevent any damage to "
+"the machine!"
+msgstr ""
+
+msgid "Modified G-codes"
+msgstr ""
+
+msgid "The 3mf has following customized filament or printer presets:"
+msgstr ""
+
+msgid ""
+"Please confirm that the G-codes within these presets are safe to prevent any "
+"damage to the machine!"
+msgstr ""
+
+msgid "Customized Preset"
+msgstr ""
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Naam van componenten in step-bestand is niet UTF8-formaat!"
@@ -4793,8 +4811,14 @@ msgstr "Object te groot"
 msgid "Export STL file:"
 msgstr "Exporteer STL bestand:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Bewaar bestand als:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -4829,6 +4853,9 @@ msgstr ""
 msgid "Error during replace"
 msgstr "Fout tijdens vervanging"
 
+msgid "Replace from:"
+msgstr ""
+
 msgid "Select a new file"
 msgstr "Selecteer een nieuw bestand"
 
@@ -4839,6 +4866,18 @@ msgid "Please select a file"
 msgstr "Selecteer een bestand"
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4973,6 +5012,15 @@ msgstr "Kopieen van het geselecteerde object"
 
 msgid "Save G-code file as:"
 msgstr "Bewaar G-code bestand als:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Bewaar het geslicede bestand als:"
@@ -8230,15 +8278,14 @@ msgstr ""
 "Support materiaal wordt vaak gebruikt om support en support interfaces af te "
 "drukken."
 
-msgid "Temperature of vitrificaiton"
-msgstr "Temperatuur van verglazing"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"Op deze temperatuur zal het materiaal zacht worden. Daarom kan de "
-"temperatuur van het printbed niet hoger dan deze waarde."
 
 msgid "Price"
 msgstr "Prijs"
@@ -10284,6 +10331,12 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr ""
 
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
 msgid "Flow Dynamics"
 msgstr ""
 
@@ -10590,12 +10643,6 @@ msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
-msgstr ""
-
-msgid "Error desc"
-msgstr ""
-
-msgid "Extra info"
 msgstr ""
 
 msgid "Pattern"
@@ -11527,6 +11574,32 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "De bedtemperatuur overschrijdt de vitrificatietemperatuur van het "
+#~ "filament. Open de voorkdeur van de printer voor het printen om "
+#~ "verstopping van de nozzles te voorkomen."
+
+#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgstr ""
+#~ "Het 3mf bestand is niet compatibel, enkel de geometrische data wordt "
+#~ "geladen!"
+
+#~ msgid "Incompatible 3mf"
+#~ msgstr "Onbruikbaar 3mf bestand"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Temperatuur van verglazing"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "Op deze temperatuur zal het materiaal zacht worden. Daarom kan de "
+#~ "temperatuur van het printbed niet hoger dan deze waarde."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\ u2103"

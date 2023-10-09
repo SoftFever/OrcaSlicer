@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-26 18:57+0800\n"
+"POT-Creation-Date: 2023-10-09 20:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -363,6 +363,12 @@ msgstr "뒤집기"
 
 msgid "After cut"
 msgstr "컷 이후"
+
+msgid "A"
+msgstr ""
+
+msgid "B"
+msgstr ""
 
 msgid "Cut to parts"
 msgstr "부품으로 자르기"
@@ -3983,9 +3989,8 @@ msgid "Clear"
 msgstr "지우기"
 
 msgid ""
-"You have completed printing the mall model, but the synchronization of "
-"rating information has failed. \n"
-"If you need to resynchronize, please reselect the printer."
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
 msgstr ""
 
 msgid "How do you like this printing file?"
@@ -4551,11 +4556,10 @@ msgid "Restore"
 msgstr "복원"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high.The nozzle may be clogged "
+"when printing this filament in a closed enclosure.Please open the front door "
+"and/or remove the upper glass."
 msgstr ""
-"베드 온도가 필라멘트의 유리화 온도를 초과합니다.노즐이 막히지 않도록 출력 전"
-"에 프린터의 전면 도어를 여십시오."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4619,11 +4623,27 @@ msgstr "3mf에서 잘못된 값이 발견됨:"
 msgid "Please correct them in the param tabs"
 msgstr "매개변수 탭에서 수정하세요."
 
-msgid "The 3mf is not compatible, load geometry data only!"
-msgstr "3mf는 호환되지 않으며 형상 데이터만 불러옵니다!"
+msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgstr ""
 
-msgid "Incompatible 3mf"
-msgstr "호환되지 않는 3mf"
+msgid ""
+"Please confirm that these modified G-codes are safe to prevent any damage to "
+"the machine!"
+msgstr ""
+
+msgid "Modified G-codes"
+msgstr ""
+
+msgid "The 3mf has following customized filament or printer presets:"
+msgstr ""
+
+msgid ""
+"Please confirm that the G-codes within these presets are safe to prevent any "
+"damage to the machine!"
+msgstr ""
+
+msgid "Customized Preset"
+msgstr ""
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "STEP 파일 내 컴포넌트 이름이 UTF8 형식이 아닙니다!"
@@ -4687,8 +4707,14 @@ msgstr "객체가 너무 큽니다"
 msgid "Export STL file:"
 msgstr "STL 파일 내보내기:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "다른 이름으로 파일 저장"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -4723,6 +4749,9 @@ msgstr ""
 msgid "Error during replace"
 msgstr "교체 중 오류"
 
+msgid "Replace from:"
+msgstr ""
+
 msgid "Select a new file"
 msgstr "새 파일 선택"
 
@@ -4733,6 +4762,18 @@ msgid "Please select a file"
 msgstr "파일을 선택해 주십시오"
 
 msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
 msgstr ""
 
 msgid "Slicing"
@@ -4864,6 +4905,15 @@ msgstr "선택한 객체의 복제품"
 
 msgid "Save G-code file as:"
 msgstr "G코드 파일을 다른 이름으로 저장합니다:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "슬라이스된 파일을 다른 이름으로 저장합니다:"
@@ -7967,15 +8017,14 @@ msgstr ""
 "서포트 재료는 일반적으로 서포트 및 서포트 인터페이스를 인쇄하는 데 사용됩니"
 "다."
 
-msgid "Temperature of vitrificaiton"
-msgstr "유리화 온도"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"이 온도에서 재료의 변형이 시작됩니다. 따라서 히팅베드는 이 온도보다 더 높아서"
-"는 안됩니다."
 
 msgid "Price"
 msgstr "가격"
@@ -9920,6 +9969,12 @@ msgstr ""
 msgid "Calibration not supported"
 msgstr ""
 
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
+msgstr ""
+
 msgid "Flow Dynamics"
 msgstr ""
 
@@ -10226,12 +10281,6 @@ msgid ""
 "Tips for calibration material: \n"
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
-msgstr ""
-
-msgid "Error desc"
-msgstr ""
-
-msgid "Extra info"
 msgstr ""
 
 msgid "Pattern"
@@ -11159,6 +11208,29 @@ msgstr ""
 "강도 향상\n"
 "더 많은 벽 루프와 더 높은 내부채움 밀도를 사용하여 모델의 강도를 높일 수 있다"
 "는 사실을 알고 계셨습니까?"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "베드 온도가 필라멘트의 유리화 온도를 초과합니다.노즐이 막히지 않도록 출력 "
+#~ "전에 프린터의 전면 도어를 여십시오."
+
+#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgstr "3mf는 호환되지 않으며 형상 데이터만 불러옵니다!"
+
+#~ msgid "Incompatible 3mf"
+#~ msgstr "호환되지 않는 3mf"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "유리화 온도"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "이 온도에서 재료의 변형이 시작됩니다. 따라서 히팅베드는 이 온도보다 더 높"
+#~ "아서는 안됩니다."
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"
