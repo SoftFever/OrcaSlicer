@@ -74,6 +74,7 @@ public:
     void get_value(double& value);
     void get_save_name(std::string& name);
     void set_save_name(const std::string& name);
+    void msw_rescale();
 };
 
 
@@ -129,6 +130,8 @@ public:
 
     virtual bool Show(bool show = true) override;
 
+    void msw_rescale();
+
 protected:
     wxBoxSizer* m_top_sizer;
     Label *          m_complete_text;
@@ -156,6 +159,8 @@ public:
     bool get_result(float* out_k, float* out_n);
 
     virtual bool Show(bool show = true) override;
+
+    void msw_rescale();
 
 protected:
     wxBoxSizer* m_top_sizer;
@@ -187,12 +192,14 @@ public:
 
     virtual bool Show(bool show = true) override;
 
+    void msw_rescale() override;
+
 protected:
     CaliPageStepGuide*  m_step_panel { nullptr };
     CaliPASaveAutoPanel*  m_auto_panel { nullptr };
     CaliPASaveManualPanel* m_manual_panel { nullptr };
     CaliPASaveP1PPanel* m_p1p_panel{ nullptr };
-    PAPageHelpPanel* m_help_panel;
+    PAPageHelpPanel* m_help_panel{ nullptr };
 
     CaliSaveStyle m_save_style;
 };
@@ -211,6 +218,8 @@ public:
     bool is_all_failed() { return m_is_all_failed; }
 
     virtual bool Show(bool show = true) override;
+    
+    void msw_rescale() override;
 
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
@@ -251,6 +260,8 @@ public:
         return m_sending_panel->get_sending_progress_bar();
     }
 
+    void msw_rescale() override;
+
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };
     CaliPagePicture*   m_picture_panel;
@@ -282,6 +293,8 @@ public:
     bool get_result(float* out_value, wxString* out_name);
 
     virtual bool Show(bool show = true) override;
+
+    void msw_rescale() override;
 
 protected:
     CaliPageStepGuide* m_step_panel{ nullptr };

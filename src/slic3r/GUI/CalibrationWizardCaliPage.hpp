@@ -33,6 +33,7 @@ public:
 
     void set_cali_method(CalibrationMethod method) override;
     virtual bool Show(bool show = true) override;
+    void msw_rescale() override;
 
 protected:
     float get_selected_calibration_nozzle_dia(MachineObject* obj);

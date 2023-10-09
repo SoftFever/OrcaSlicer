@@ -206,6 +206,9 @@ public:
     CalibMode     get_pa_cali_method();
 
     CaliPresetPageStatus get_page_status() { return m_page_status; }
+
+    void msw_rescale() override;
+
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);

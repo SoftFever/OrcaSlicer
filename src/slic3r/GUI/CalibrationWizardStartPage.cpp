@@ -35,30 +35,37 @@ void CalibrationStartPage::create_about(wxWindow* parent, wxString title, wxStri
 
 void CalibrationStartPage::create_bitmap(wxWindow* parent, const wxBitmap& before_img, const wxBitmap& after_img)
 {
-    m_images_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_before_bmp = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    if (!m_before_bmp)
+        m_before_bmp = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
     m_before_bmp->SetBitmap(before_img);
-    m_images_sizer->Add(m_before_bmp, 0, wxALL, 0);
-    m_images_sizer->AddSpacer(FromDIP(20));
-    m_after_bmp = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    if (!m_after_bmp)
+        m_after_bmp = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
     m_after_bmp->SetBitmap(after_img);
-    m_images_sizer->Add(m_after_bmp, 0, wxALL, 0);
+    if (!m_images_sizer) {
+        m_images_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_images_sizer->Add(m_before_bmp, 0, wxALL, 0);
+        m_images_sizer->AddSpacer(FromDIP(20));
+        m_images_sizer->Add(m_after_bmp, 0, wxALL, 0);
+    }
 }
 
 void CalibrationStartPage::create_bitmap(wxWindow* parent, std::string before_img, std::string after_img)
 {
-    wxBitmap before_bmp = create_scaled_bitmap(before_img, nullptr, 350);
-    wxBitmap after_bmp = create_scaled_bitmap(after_img, nullptr, 350);
+    wxBitmap before_bmp = create_scaled_bitmap(before_img, this, 350);
+    wxBitmap after_bmp = create_scaled_bitmap(after_img, this, 350);
 
     create_bitmap(parent, before_bmp, after_bmp);
 }
 
 void CalibrationStartPage::create_bitmap(wxWindow* parent, std::string img) {
-    wxBitmap before_bmp = create_scaled_bitmap(img, nullptr, 350);
-    m_images_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_bmp_intro = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+    wxBitmap before_bmp = create_scaled_bitmap(img, this, 350);
+    if (!m_bmp_intro)
+        m_bmp_intro = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
     m_bmp_intro->SetBitmap(before_bmp);
-    m_images_sizer->Add(m_bmp_intro, 0, wxALL, 0);
+    if (!m_images_sizer) {
+        m_images_sizer = new wxBoxSizer(wxHORIZONTAL);
+        m_images_sizer->Add(m_bmp_intro, 0, wxALL, 0);
+    }
 }
 
 CalibrationPAStartPage::CalibrationPAStartPage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -97,7 +104,7 @@ void CalibrationPAStartPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_images_sizer, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
-    PAPageHelpPanel* m_help_panel = new PAPageHelpPanel(parent, false);
+    m_help_panel = new PAPageHelpPanel(parent, false);
     m_top_sizer->Add(m_help_panel, 0, wxALL, 0);
     m_top_sizer->AddSpacer(PRESET_GAP);
 
@@ -166,6 +173,17 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
     bool is_support_pa_auto = (obj->home_flag >> 16 & 1) == 1;
     if (!is_support_pa_auto) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
+    }
+}
+
+void CalibrationPAStartPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    m_help_panel->msw_rescale();
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(this, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
+    } else {
+        create_bitmap(this, "cali_page_before_pa", "cali_page_after_pa");
     }
 }
 
@@ -291,6 +309,16 @@ void CalibrationFlowRateStartPage::on_device_connected(MachineObject* obj)
     }
 }
 
+void CalibrationFlowRateStartPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(this, "cali_page_flow_introduction_CN");
+    } else {
+        create_bitmap(this, "cali_page_flow_introduction");
+    }
+}
+
 CalibrationMaxVolumetricSpeedStartPage::CalibrationMaxVolumetricSpeedStartPage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationStartPage(parent, id, pos, size, style)
 {
@@ -341,6 +369,16 @@ void CalibrationMaxVolumetricSpeedStartPage::create_page(wxWindow* parent)
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_START);
 
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
+}
+
+void CalibrationMaxVolumetricSpeedStartPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
+        create_bitmap(this, "cali_page_before_pa_CN", "cali_page_after_pa_CN");
+    } else {
+        create_bitmap(this, "cali_page_before_pa", "cali_page_after_pa");
+    }
 }
 
 }}

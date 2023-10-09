@@ -249,6 +249,13 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
     SetCornerRadius(FromDIP(12));
 }
 
+void CaliPageButton::msw_rescale()
+{
+    SetMinSize(wxSize(-1, FromDIP(24)));
+    SetCornerRadius(FromDIP(12));
+    Rescale();
+}
+
 
 FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
@@ -341,6 +348,14 @@ void FilamentComboBox::SetValue(bool value, bool send_event) {
         m_radioBox->SetValue(value);
     if (m_checkBox)
         m_checkBox->SetValue(value);
+}
+
+void FilamentComboBox::msw_rescale()
+{
+    //m_checkBox->Rescale();
+    m_comboBox->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_comboBox->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_comboBox->msw_rescale();
 }
 
 
@@ -460,6 +475,11 @@ void CaliPageCaption::on_sys_color_changed()
     m_prev_btn->msw_rescale();
 }
 
+void CaliPageCaption::msw_rescale()
+{
+    m_prev_btn->msw_rescale();
+}
+
 CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
     wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style),
@@ -541,9 +561,16 @@ CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint&
     top_sizer->Fit(this);
 }
 
-void CaliPagePicture::set_img(const wxBitmap& bmp)
+void CaliPagePicture::set_bmp(const ScalableBitmap& bmp)
 {
-    m_img->SetBitmap(bmp);
+    m_bmp = bmp;
+    m_img->SetBitmap(m_bmp.bmp());
+}
+
+void CaliPagePicture::msw_rescale()
+{
+    m_bmp.msw_rescale();
+    m_img->SetBitmap(m_bmp.bmp());
 }
 
 
@@ -582,6 +609,13 @@ PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID
     top_sizer->Fit(this);
 }
 
+void PAPageHelpPanel::msw_rescale()
+{
+    m_help_btn->msw_rescale();
+    m_bmp.msw_rescale();
+    m_img->SetBitmap(m_bmp.bmp());
+}
+
 void PAPageHelpPanel::create_pop_window()
 {
     m_pop_win = new PopupWindow(this);
@@ -589,13 +623,10 @@ void PAPageHelpPanel::create_pop_window()
     wxBoxSizer* pop_sizer = new wxBoxSizer(wxVERTICAL);
     m_pop_win->SetSizer(pop_sizer);
 
-    wxStaticBitmap* img = new wxStaticBitmap(m_pop_win, wxID_ANY, wxNullBitmap);
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-        img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram_CN", 206).bmp());
-    } else {
-        img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram", 206).bmp());
-    }
-    pop_sizer->Add(img, 1, wxEXPAND | wxALL, FromDIP(20));
+    m_img = new wxStaticBitmap(m_pop_win, wxID_ANY, wxNullBitmap);
+    m_bmp = ScalableBitmap(this, "cali_fdc_editing_diagram", 206);
+    m_img->SetBitmap(m_bmp.bmp());
+    pop_sizer->Add(m_img, 1, wxEXPAND | wxALL, FromDIP(20));
 
     m_pop_win->Layout();
     m_pop_win->Fit();
@@ -751,6 +782,13 @@ void CaliPageActionPanel::enable_button(CaliPageActionType action_type, bool ena
         if (m_action_btns[i]->get_action_type() == action_type) {
             m_action_btns[i]->Enable(enable);
         }
+    }
+}
+
+void CaliPageActionPanel::msw_rescale()
+{
+    for (int i = 0; i < m_action_btns.size(); i++) {
+        m_action_btns[i]->msw_rescale();
     }
 }
 
@@ -914,6 +952,8 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
 
 void CalibrationWizardPage::msw_rescale()
 {
+    m_page_caption->msw_rescale();
+    m_action_panel->msw_rescale();
 }
 
 void CalibrationWizardPage::on_sys_color_changed()

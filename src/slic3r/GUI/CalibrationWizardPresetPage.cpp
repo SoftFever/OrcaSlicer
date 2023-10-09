@@ -445,6 +445,16 @@ CalibrationPresetPage::CalibrationPresetPage(
     m_top_sizer->Fit(this);
 }
 
+void CalibrationPresetPage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    m_ams_sync_button->msw_rescale();
+    m_virtual_tray_comboBox->msw_rescale();
+    for (auto& comboBox : m_filament_comboBox_list) {
+        comboBox->msw_rescale();
+    }
+}
+
 void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);

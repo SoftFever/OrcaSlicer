@@ -1393,7 +1393,7 @@ GUI::CalibrateFilamentComboBox::CalibrateFilamentComboBox(wxWindow *parent)
 : PlaterPresetComboBox(parent, Preset::TYPE_FILAMENT)
 {
     clr_picker->SetBackgroundColour(*wxWHITE);
-    clr_picker->SetBitmap(*get_extruder_color_icon("#FFFFFFFF", "", 20, 20));
+    clr_picker->SetBitmap(*get_extruder_color_icon("#FFFFFFFF", "", FromDIP(20), FromDIP(20)));
     clr_picker->SetToolTip("");
     clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {});
 }
@@ -1411,7 +1411,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
     m_filament_color = config.opt_string("filament_colour", 0u);
     m_filament_exist = config.opt_bool("filament_exist", 0u);
     wxColor clr(m_filament_color);
-    clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, 20, 20));
+    clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, FromDIP(20), FromDIP(20)));
 #ifdef __WXOSX__
     clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
     clr_picker->Refresh();
@@ -1420,7 +1420,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
         SetValue(_L("Empty"));
         m_selected_preset = nullptr;
         m_is_compatible = false;
-        clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, 20, 20));
+        clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
     } else {
         auto &filaments = m_collection->get_presets();
         auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
@@ -1519,6 +1519,17 @@ void GUI::CalibrateFilamentComboBox::update()
     Thaw();
 
     SetToolTip(NULL);
+}
+
+void GUI::CalibrateFilamentComboBox::msw_rescale()
+{
+    if (clr_picker) {
+        clr_picker->SetSize(FromDIP(20), FromDIP(20));
+        clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, FromDIP(20), FromDIP(20)));
+    }
+    // BBS
+    if (edit_btn != nullptr)
+        edit_btn->msw_rescale();
 }
 
 void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
