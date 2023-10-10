@@ -261,6 +261,7 @@ namespace Slic3r {
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
             Total_Layer_Number_Placeholder,
+            Tool_Change,
             During_Print_Exhaust_Fan
         };
 
@@ -638,6 +639,7 @@ namespace Slic3r {
         bool m_wiping;
         bool m_flushing;
         float m_remaining_volume;
+        bool m_manual_filament_change;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };

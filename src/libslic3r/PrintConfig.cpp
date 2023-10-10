@@ -3324,6 +3324,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->readonly = true;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("manual_filament_change", coBool);
+    def->label = L("Manual Filament Change");
+    def->tooltip = L("Perform filament changes by pausing print (must be set in custom g-code) for the manual swap of the filament. "
+                     "The tool change command is no longer emitted at all and custom g-code is not called during the pre-print phase.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("purge_in_prime_tower", coBool);
     def->label = L("Purge in prime tower");
     def->tooltip = L("Purge remaining filament into prime tower");

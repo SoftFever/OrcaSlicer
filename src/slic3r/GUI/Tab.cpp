@@ -3488,6 +3488,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         optgroup->append_single_option_line("parking_pos_retraction");
         optgroup->append_single_option_line("extra_loading_move");
         optgroup->append_single_option_line("high_current_on_filament_swap");
+        optgroup->append_single_option_line("manual_filament_change");
         m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
     }
 
