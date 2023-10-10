@@ -4103,19 +4103,40 @@ void AddPolyNodeToPaths(const PolyNode& polynode, NodeType nodetype, Paths& path
   for (int i = 0; i < polynode.ChildCount(); ++i)
     AddPolyNodeToPaths(*polynode.Childs[i], nodetype, paths);
 }
+
+void AddPolyNodeToPaths(PolyNode&& polynode, NodeType nodetype, Paths& paths)
+{
+  bool match = true;
+  if (nodetype == ntClosed) match = !polynode.IsOpen();
+  else if (nodetype == ntOpen) return;
+
+  if (!polynode.Contour.empty() && match)
+    paths.emplace_back(std::move(polynode.Contour));
+  for (int i = 0; i < polynode.ChildCount(); ++i)
+    AddPolyNodeToPaths(std::move(*polynode.Childs[i]), nodetype, paths);
+}
+
 //------------------------------------------------------------------------------
 
 void PolyTreeToPaths(const PolyTree& polytree, Paths& paths)
 {
-  paths.resize(0); 
+  paths.clear();
   paths.reserve(polytree.Total());
   AddPolyNodeToPaths(polytree, ntAny, paths);
 }
+
+void PolyTreeToPaths(PolyTree&& polytree, Paths& paths)
+{
+  paths.clear();
+  paths.reserve(polytree.Total());
+  AddPolyNodeToPaths(std::move(polytree), ntAny, paths);
+}
+
 //------------------------------------------------------------------------------
 
 void ClosedPathsFromPolyTree(const PolyTree& polytree, Paths& paths)
 {
-  paths.resize(0); 
+  paths.clear();
   paths.reserve(polytree.Total());
   AddPolyNodeToPaths(polytree, ntClosed, paths);
 }
@@ -4123,7 +4144,7 @@ void ClosedPathsFromPolyTree(const PolyTree& polytree, Paths& paths)
 
 void OpenPathsFromPolyTree(PolyTree& polytree, Paths& paths)
 {
-  paths.resize(0); 
+  paths.clear();
   paths.reserve(polytree.Total());
   //Open paths are top level only, so ...
   for (int i = 0; i < polytree.ChildCount(); ++i)

@@ -21,8 +21,8 @@
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
 #include "FillLightning.hpp"
-#include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
+#include "FillEnsuring.hpp"
 
 #define NARROW_INFILL_AREA_THRESHOLD 3
 
@@ -356,50 +356,13 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		}
     }
 
-	// BBS: detect narrow internal solid infill area and use ipConcentricInternal pattern instead
-	if (layer.object()->config().detect_narrow_internal_solid_infill) {
-		size_t surface_fills_size = surface_fills.size();
-		for (size_t i = 0; i < surface_fills_size; i++) {
-			if (surface_fills[i].surface.surface_type != stInternalSolid)
-				continue;
-
-			size_t expolygons_size = surface_fills[i].expolygons.size();
-			std::vector<size_t> narrow_expolygons_index;
-			narrow_expolygons_index.reserve(expolygons_size);
-			// BBS: get the index list of narrow expolygon
-			for (size_t j = 0; j < expolygons_size; j++)
-				if (is_narrow_infill_area(surface_fills[i].expolygons[j]))
-					narrow_expolygons_index.push_back(j);
-
-			if (narrow_expolygons_index.size() == 0) {
-				// BBS: has no narrow expolygon
-				continue;
-			}
-			else if (narrow_expolygons_index.size() == expolygons_size) {
-				// BBS: all expolygons are narrow, directly change the fill pattern
-				surface_fills[i].params.pattern = ipConcentricInternal;
-			}
-			else {
-				// BBS: some expolygons are narrow, spilit surface_fills[i] and rearrange the expolygons
-				params = surface_fills[i].params;
-				params.pattern = ipConcentricInternal;
-				surface_fills.emplace_back(params);
-				surface_fills.back().region_id = surface_fills[i].region_id;
-				surface_fills.back().surface.surface_type = stInternalSolid;
-				surface_fills.back().surface.thickness = surface_fills[i].surface.thickness;
-                surface_fills.back().region_id_group       = surface_fills[i].region_id_group;
-                surface_fills.back().no_overlap_expolygons = surface_fills[i].no_overlap_expolygons;
-				for (size_t j = 0; j < narrow_expolygons_index.size(); j++) {
-					// BBS: move the narrow expolygons to new surface_fills.back();
-					surface_fills.back().expolygons.emplace_back(std::move(surface_fills[i].expolygons[narrow_expolygons_index[j]]));
-				}
-				for (int j = narrow_expolygons_index.size() - 1; j >= 0; j--) {
-					// BBS: delete the narrow expolygons from old surface_fills
-					surface_fills[i].expolygons.erase(surface_fills[i].expolygons.begin() + narrow_expolygons_index[j]);
-				}
-			}
-		}
-	}
+    // Use ipEnsuring pattern for all internal Solids.
+    {
+        for (size_t surface_fill_id = 0; surface_fill_id < surface_fills.size(); ++surface_fill_id)
+            if (SurfaceFill &fill = surface_fills[surface_fill_id]; fill.surface.surface_type == stInternalSolid) {
+                fill.params.pattern = ipEnsuring;
+            }
+    }
 
 	return surface_fills;
 }
@@ -454,20 +417,23 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->layer_id = this->id();
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
-        f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+        f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+        f->print_config        = &this->object()->print()->config();
+        f->print_object_config = &this->object()->config();
 
-		if (surface_fill.params.pattern == ipConcentricInternal) {
-            FillConcentricInternal *fill_concentric = dynamic_cast<FillConcentricInternal *>(f.get());
-            assert(fill_concentric != nullptr);
-            fill_concentric->print_config        = &this->object()->print()->config();
-            fill_concentric->print_object_config = &this->object()->config();
-        } else if (surface_fill.params.pattern == ipConcentric) {
+		if (surface_fill.params.pattern == ipConcentric) {
             FillConcentric *fill_concentric = dynamic_cast<FillConcentric *>(f.get());
             assert(fill_concentric != nullptr);
             fill_concentric->print_config = &this->object()->print()->config();
             fill_concentric->print_object_config = &this->object()->config();
         } else if (surface_fill.params.pattern == ipLightning)
             dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
+
+        if (surface_fill.params.pattern == ipEnsuring) {
+            auto *fill_ensuring = dynamic_cast<FillEnsuring *>(f.get());
+            assert(fill_ensuring != nullptr);
+            fill_ensuring->print_region_config = &m_regions[surface_fill.region_id]->region().config();
+        }
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.bridge;
@@ -496,8 +462,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.anchor_length     = surface_fill.params.anchor_length;
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 		params.resolution        = resolution;
-		params.use_arachne = surface_fill.params.pattern == ipConcentric;
-		params.layer_height      = m_regions[surface_fill.region_id]->layer()->height;
+		params.use_arachne       = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipEnsuring;
+        params.layer_height      = layerm->layer()->height;
 
 		// BBS
 		params.flow = surface_fill.params.flow;
@@ -558,7 +524,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         switch (surface_fill.params.pattern) {
         case ipCount: continue; break;
         case ipSupportBase: continue; break;
-        //TODO: case ipEnsuring: continue; break;
+        case ipEnsuring: continue; break;
         case ipLightning:
 		case ipAdaptiveCubic:
         case ipSupportCubic:
@@ -572,7 +538,6 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipCubic:
         case ipLine:
         case ipConcentric:
-		case ipConcentricInternal:
         case ipHoneycomb:
         case ip3DHoneycomb:
         case ipGyroid:
@@ -588,8 +553,8 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         f->z        = this->print_z;
         f->angle    = surface_fill.params.angle;
         f->adapt_fill_octree   = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
-        // TODO: f->print_config        = &this->object()->print()->config();
-        // TODO: f->print_object_config = &this->object()->config();
+        f->print_config        = &this->object()->print()->config();
+        f->print_object_config = &this->object()->config();
 
         if (surface_fill.params.pattern == ipLightning)
             dynamic_cast<FillLightning::Filler *>(f.get())->generator = lightning_generator;

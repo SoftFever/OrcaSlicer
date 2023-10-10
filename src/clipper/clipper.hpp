@@ -204,6 +204,7 @@ void MinkowskiSum(const Path& pattern, const Paths& paths, Paths& solution, bool
 void MinkowskiDiff(const Path& poly1, const Path& poly2, Paths& solution);
 
 void PolyTreeToPaths(const PolyTree& polytree, Paths& paths);
+void PolyTreeToPaths(PolyTree&& polytree, Paths& paths);
 void ClosedPathsFromPolyTree(const PolyTree& polytree, Paths& paths);
 void OpenPathsFromPolyTree(PolyTree& polytree, Paths& paths);
 
