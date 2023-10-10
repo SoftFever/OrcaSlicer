@@ -3495,22 +3495,20 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         std::set<std::string> modified_gcodes;
                         int validated = preset_bundle->validate_presets(filename.string(), config, modified_gcodes);
                         if (validated == VALIDATE_PRESETS_MODIFIED_GCODES) {
-                            std::string warning_message = L("The 3mf has following modified G-codes in filament or printer presets:");
+                            std::string warning_message;
                             warning_message += "\n";
                             for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
                                 warning_message += "-" + *it + "\n";
                             warning_message += "\n";
-                            warning_message += L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!");
-                            show_info(q, warning_message, _L("Modified G-codes"));
+                            show_info(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
                         }
                         else if ((validated == VALIDATE_PRESETS_PRINTER_NOT_FOUND) || (validated == VALIDATE_PRESETS_FILAMENTS_NOT_FOUND)) {
-                            std::string warning_message = L("The 3mf has following customized filament or printer presets:");
+                            std::string warning_message;
                             warning_message += "\n";
                             for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
                                 warning_message += "-" + *it + "\n";
                             warning_message += "\n";
-                            warning_message += L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!");
-                            show_info(q, warning_message, _L("Customized Preset"));
+                            show_info(q, _L("The 3mf has following customized filament or printer presets:") + warning_message + _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
                         }
 
                         //always load config
