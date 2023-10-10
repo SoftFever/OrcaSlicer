@@ -266,6 +266,16 @@ body
 }
 
 /*---Document---*/
+#LeftEmptyBlock
+{
+
+}
+
+#Model_Desc img
+{
+	max-width:100%;
+}
+
 #Model_Accessories
 {
 }
