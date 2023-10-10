@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 20:48+0800\n"
+"POT-Creation-Date: 2023-10-10 20:13+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -629,11 +629,14 @@ msgstr ""
 "Il file di configurazione \"%1%\" è stato caricato, ma alcuni valori non "
 "sono stati riconosciuti."
 
-msgid "V"
-msgstr "V"
-
 msgid "Internal Version"
 msgstr "Versione interna"
+
+msgid "Beta Version"
+msgstr ""
+
+msgid "V"
+msgstr "V"
 
 msgid "Version"
 msgstr "Versione"
@@ -3832,9 +3835,6 @@ msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr ""
 "Stampante in fase di caricamento; attendi il completamento del caricamento."
 
-msgid "Loading..."
-msgstr "Caricamento…"
-
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
@@ -3896,6 +3896,9 @@ msgstr "Riproduzione"
 #, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "Caricamento non riuscito [%d]!"
+
+msgid "Loading..."
+msgstr "Caricamento…"
 
 msgid "Year"
 msgstr "Anno"
@@ -4645,9 +4648,9 @@ msgid "Restore"
 msgstr "Ripristina"
 
 msgid ""
-"The current hot bed temperature is relatively high.The nozzle may be clogged "
-"when printing this filament in a closed enclosure.Please open the front door "
-"and/or remove the upper glass."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
 
 msgid ""

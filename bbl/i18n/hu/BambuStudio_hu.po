@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 20:48+0800\n"
+"POT-Creation-Date: 2023-10-10 20:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -632,11 +632,14 @@ msgstr ""
 "A(z) \"%1%\" konfigurációs csomag betöltődött, de néhány értéket nem "
 "sikerült felismerni."
 
-msgid "V"
-msgstr "V"
-
 msgid "Internal Version"
 msgstr "Belső verzió"
+
+msgid "Beta Version"
+msgstr ""
+
+msgid "V"
+msgstr "V"
 
 msgid "Version"
 msgstr "Verzió"
@@ -3818,9 +3821,6 @@ msgstr ""
 "A nyomtató a letöltéssel van elfoglalva; kérjük, várd meg, amíg a letöltés "
 "befejeződik."
 
-msgid "Loading..."
-msgstr "Betöltés…"
-
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
@@ -3882,6 +3882,9 @@ msgstr "Lejátszás..."
 #, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "A betöltés sikertelen [%d]!"
+
+msgid "Loading..."
+msgstr "Betöltés…"
 
 msgid "Year"
 msgstr "Év"
@@ -4628,9 +4631,9 @@ msgid "Restore"
 msgstr "Visszaállítás"
 
 msgid ""
-"The current hot bed temperature is relatively high.The nozzle may be clogged "
-"when printing this filament in a closed enclosure.Please open the front door "
-"and/or remove the upper glass."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
 
 msgid ""

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 20:48+0800\n"
+"POT-Creation-Date: 2023-10-10 20:13+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -634,11 +634,14 @@ msgstr ""
 "Файл конфигурации \\%1%\\ был загружен, но некоторые значения не были "
 "распознаны."
 
-msgid "V"
-msgstr "V"
-
 msgid "Internal Version"
 msgstr ""
+
+msgid "Beta Version"
+msgstr ""
+
+msgid "V"
+msgstr "V"
 
 msgid "Version"
 msgstr "Версия"
@@ -3829,9 +3832,6 @@ msgstr "Ошибка инициализации (нет камеры)!"
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "Принтер занят загрузкой. Дождитесь завершения загрузки."
 
-msgid "Loading..."
-msgstr "Загрузка..."
-
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
@@ -3895,6 +3895,9 @@ msgstr "Игра..."
 #, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "Загрузка не удалась [%d]!"
+
+msgid "Loading..."
+msgstr "Загрузка..."
 
 msgid "Year"
 msgstr "Год"
@@ -4648,9 +4651,9 @@ msgid "Restore"
 msgstr "Восстановить"
 
 msgid ""
-"The current hot bed temperature is relatively high.The nozzle may be clogged "
-"when printing this filament in a closed enclosure.Please open the front door "
-"and/or remove the upper glass."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
 
 msgid ""

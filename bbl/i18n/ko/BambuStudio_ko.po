@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 20:48+0800\n"
+"POT-Creation-Date: 2023-10-10 20:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -623,11 +623,14 @@ msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr "설정 파일 \"%1%\"을(를) 로드했지만 일부 값을 인식하지 못했습니다."
 
-msgid "V"
-msgstr "V"
-
 msgid "Internal Version"
 msgstr "내부 버전"
+
+msgid "Beta Version"
+msgstr ""
+
+msgid "V"
+msgstr "V"
 
 msgid "Version"
 msgstr "버전"
@@ -3752,9 +3755,6 @@ msgstr "초기화 실패 (카메라 장치 없음)!"
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "프린터가 다운로드 중입니다. 다운로드가 완료될 때까지 기다려 주십시오."
 
-msgid "Loading..."
-msgstr "로드 중…"
-
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
@@ -3816,6 +3816,9 @@ msgstr "출력 중..."
 #, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "[%d] 불러오기 실패!"
+
+msgid "Loading..."
+msgstr "로드 중…"
 
 msgid "Year"
 msgstr "년"
@@ -4556,9 +4559,9 @@ msgid "Restore"
 msgstr "복원"
 
 msgid ""
-"The current hot bed temperature is relatively high.The nozzle may be clogged "
-"when printing this filament in a closed enclosure.Please open the front door "
-"and/or remove the upper glass."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
 
 msgid ""

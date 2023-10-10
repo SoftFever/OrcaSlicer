@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-09 20:48+0800\n"
+"POT-Creation-Date: 2023-10-10 20:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -622,10 +622,13 @@ msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
 
-msgid "V"
+msgid "Internal Version"
 msgstr ""
 
-msgid "Internal Version"
+msgid "Beta Version"
+msgstr ""
+
+msgid "V"
 msgstr ""
 
 msgid "Version"
@@ -3598,9 +3601,6 @@ msgstr ""
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr ""
 
-msgid "Loading..."
-msgstr ""
-
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
@@ -3656,6 +3656,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Load failed [%d]!"
+msgstr ""
+
+msgid "Loading..."
 msgstr ""
 
 msgid "Year"
@@ -4386,9 +4389,9 @@ msgid "Restore"
 msgstr ""
 
 msgid ""
-"The current hot bed temperature is relatively high.The nozzle may be clogged "
-"when printing this filament in a closed enclosure.Please open the front door "
-"and/or remove the upper glass."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
 
 msgid ""
