@@ -111,11 +111,23 @@ namespace Slic3r {
         ConflictResult() = default;
     };
 
+    struct BedMatchResult
+    {
+        bool match;
+        std::string bed_type_name;
+        int extruder_id;
+        BedMatchResult():match(true),bed_type_name(""),extruder_id(-1) {}
+        BedMatchResult(bool _match,const std::string& _bed_type_name="",int _extruder_id=-1)
+            :match(_match),bed_type_name(_bed_type_name),extruder_id(_extruder_id)
+        {}
+    };
+
     using ConflictResultOpt = std::optional<ConflictResult>;
 
     struct GCodeProcessorResult
     {
         ConflictResultOpt conflict_result;
+        BedMatchResult  bed_match_result;
 
         struct SettingsIds
         {
@@ -231,6 +243,7 @@ namespace Slic3r {
             spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
             bed_type = other.bed_type;
+            bed_match_result = other.bed_match_result;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
