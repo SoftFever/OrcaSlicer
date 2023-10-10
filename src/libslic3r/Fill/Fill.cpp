@@ -24,8 +24,6 @@
 #include "FillConcentric.hpp"
 #include "FillEnsuring.hpp"
 
-#define NARROW_INFILL_AREA_THRESHOLD 3
-
 namespace Slic3r {
 
 struct SurfaceFillParams
@@ -122,16 +120,6 @@ struct SurfaceFill {
     std::vector<size_t> region_id_group;
     ExPolygons          no_overlap_expolygons;
 };
-
-// BBS: used to judge whether the internal solid infill area is narrow
-static bool is_narrow_infill_area(const ExPolygon& expolygon)
-{
-	ExPolygons offsets = offset_ex(expolygon, -scale_(NARROW_INFILL_AREA_THRESHOLD));
-	if (offsets.empty())
-		return true;
-
-	return false;
-}
 
 std::vector<SurfaceFill> group_fills(const Layer &layer)
 {
