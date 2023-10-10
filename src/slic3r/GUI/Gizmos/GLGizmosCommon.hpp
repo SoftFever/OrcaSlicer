@@ -6,7 +6,7 @@
 
 #include "slic3r/GUI/MeshUtils.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
-
+#include "slic3r/GUI/GLModel.hpp"
 namespace Slic3r {
 
 class ModelObject;

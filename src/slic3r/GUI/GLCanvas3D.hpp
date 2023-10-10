@@ -1137,8 +1137,8 @@ private:
     void _picking_pass();
     void _rectangular_selection_picking_pass();
     void _render_background() const;
-    void _render_bed(bool bottom, bool show_axes);
-    void _render_bed_for_picking(bool bottom);
+    void _render_bed(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool show_axes);
+    void _render_bed_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
     //BBS: add part plate related logic
     void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false) const;
     void _render_plates_for_picking() const;
@@ -1148,7 +1148,7 @@ private:
     void _render_gcode(int canvas_width, int canvas_height);
     //BBS: render a plane for assemble
     void _render_plane() const;
-    void _render_selection() const;
+    void _render_selection();
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
     void _render_selection_center() const;
@@ -1175,7 +1175,7 @@ private:
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices();
-    void _render_selection_sidebar_hints() const;
+    void _render_selection_sidebar_hints();
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);

@@ -325,7 +325,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     render_grabbers(box);
 }
 
-void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
+void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking)
 {
     double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
     //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
@@ -343,7 +343,7 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     if (shader == nullptr)
         return;
 
-    const_cast<GLModel*>(&m_cone)->set_color(-1, color);
+    m_cone.set_color(color);
     if (!picking) {
         shader->start_using();
         shader->set_uniform("emission_factor", 0.1f);

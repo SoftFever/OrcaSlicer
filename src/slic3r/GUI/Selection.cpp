@@ -1571,7 +1571,7 @@ void Selection::erase()
     }
 }
 
-void Selection::render(float scale_factor) const
+void Selection::render(float scale_factor)
 {
     if (!m_valid || is_empty())
         return;
@@ -1602,7 +1602,7 @@ void Selection::render_center(bool gizmo_is_dragging) const
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
 //BBS: GUI refactor, add uniform scale from gizmo
-void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale)
 //void Selection::render_sidebar_hints(const std::string& sidebar_field) const
 {
     if (sidebar_field.empty())
@@ -2150,13 +2150,13 @@ void Selection::do_remove_object(unsigned int object_idx)
     }
 }
 
-void Selection::render_selected_volumes() const
+void Selection::render_selected_volumes()
 {
     float color[3] = { 1.0f, 1.0f, 1.0f };
     render_bounding_box(get_bounding_box(), color);
 }
 
-void Selection::render_synchronized_volumes() const
+void Selection::render_synchronized_volumes()
 {
     if (m_mode == Instance)
         return;
@@ -2180,7 +2180,7 @@ void Selection::render_synchronized_volumes() const
     }
 }
 
-void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) const
+void Selection::render_bounding_box(const BoundingBoxf3& box, float* color)
 {
     if (color == nullptr)
         return;
@@ -2239,25 +2239,25 @@ static std::array<float, 4> get_color(Axis axis)
             GLGizmoBase::AXES_COLOR[axis][3] };
 };
 
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_position_hints(const std::string& sidebar_field)
 {
     if (boost::ends_with(sidebar_field, "x")) {
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(X));
+        const_cast<GLModel*>(&m_arrow)->set_color(get_color(X));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Y));
+        const_cast<GLModel*>(&m_arrow)->set_color(get_color(Y));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Z));
+        const_cast<GLModel*>(&m_arrow)->set_color(get_color(Z));
         m_arrow.render();
     }
 }
 
-void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field)
 {
     auto render_sidebar_rotation_hint = [this]() {
         m_curved_arrow.render();
@@ -2267,29 +2267,29 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
 
     if (boost::ends_with(sidebar_field, "x")) {
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(X));
+        const_cast<GLModel*>(&m_curved_arrow)->set_color(get_color(X));
         render_sidebar_rotation_hint();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Y));
+        const_cast<GLModel*>(&m_curved_arrow)->set_color(get_color(Y));
         render_sidebar_rotation_hint();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Z));
+        const_cast<GLModel*>(&m_curved_arrow)->set_color(get_color(Z));
         render_sidebar_rotation_hint();
     }
 }
 
 //BBS: GUI refactor: add gizmo uniform_scale
-void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const
+void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale)
 {
     // BBS
     //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
     bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
+        const_cast<GLModel*>(&m_arrow)->set_color(uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("emission_factor", 0.0f);
@@ -2323,7 +2323,7 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, boo
     }
 }
 
-void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_layers_hints(const std::string& sidebar_field)
 {
     static const double Margin = 10.0;
 

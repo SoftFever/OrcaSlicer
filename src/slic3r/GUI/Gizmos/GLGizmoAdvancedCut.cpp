@@ -926,7 +926,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     else
         render_color = GrabberColor;
 
-    const GLModel &cube = m_move_grabber.get_cube();
+    GLModel &cube = m_move_grabber.get_cube();
     // BBS set to fixed size grabber
     // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
     float fullsize = 8.0f;
@@ -934,7 +934,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
     }
 
-    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
+    cube.set_color(render_color);
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
@@ -1049,7 +1049,7 @@ void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const std::array
 
         glsafe(::glMultMatrixd(view_model_matrix.data()));
 
-        model.set_color(-1, color);
+        model.set_color(color);
         model.render();
 
         shader->stop_using();

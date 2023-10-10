@@ -15,20 +15,14 @@ namespace Slic3r {
 class TriangleMesh;
 class Polygon;
 using Polygons = std::vector<Polygon>;
+// using Polygons = std::vector<Polygon, PointsAllocator<Polygon>>;
+class BuildVolume;
 
 namespace GUI {
 
     class GLModel
     {
     public:
-        enum class PrimitiveType : unsigned char
-        {
-            Triangles,
-            Lines,
-            LineStrip,
-            LineLoop
-        };
-
         struct Geometry
         {
             enum class EPrimitiveType : unsigned char
@@ -164,37 +158,50 @@ namespace GUI {
 
         struct RenderData
         {
-            PrimitiveType type;
+            Geometry geometry;
+#if ENABLE_GL_CORE_PROFILE
+            unsigned int vao_id{ 0 };
+#endif // ENABLE_GL_CORE_PROFILE
             unsigned int vbo_id{ 0 };
             unsigned int ibo_id{ 0 };
+            size_t vertices_count{ 0 };
             size_t indices_count{ 0 };
-            std::array<float, 4> color{ 1.0f, 1.0f, 1.0f, 1.0f };
-        };
-
-        struct InitializationData
-        {
-            struct Entity
-            {
-                PrimitiveType type;
-                std::vector<Vec3f> positions;
-                std::vector<Vec3f> normals;
-                std::vector<unsigned int> indices;
-                std::array<float, 4> color{ 1.0f, 1.0f, 1.0f, 1.0f };
-            };
-
-            std::vector<Entity> entities;
-
-            size_t vertices_count() const;
-            size_t vertices_size_floats() const { return vertices_count() * 6; }
-            size_t vertices_size_bytes() const { return vertices_size_floats() * sizeof(float); }
-
-            size_t indices_count() const;
-            size_t indices_size_bytes() const { return indices_count() * sizeof(unsigned int); }
         };
 
     private:
-        std::vector<RenderData> m_render_data;
+#if ENABLE_GLMODEL_STATISTICS
+        struct Statistics
+        {
+            struct Buffers
+            {
+                struct Data
+                {
+                    size_t current{ 0 };
+                    size_t max{ 0 };
+                };
+                Data indices;
+                Data vertices;
+            };
 
+            Buffers gpu_memory;
+
+            int64_t render_calls{ 0 };
+            int64_t render_instanced_calls{ 0 };
+        };
+
+        static Statistics s_statistics;
+#endif // ENABLE_GLMODEL_STATISTICS
+
+        RenderData m_render_data;
+
+        // By default the vertex and index buffers data are sent to gpu at the first call to render() method.
+        // If you need to initialize a model from outside the main thread, so that a call to render() may happen
+        // before the initialization is complete, use the methods:
+        // disable_render()
+        // ... do your initialization ...
+        // enable_render()
+        // to keep the data on cpu side until needed.
+        bool m_render_disabled{ false };
         BoundingBoxf3 m_bounding_box;
         std::string m_filename;
 
@@ -202,52 +209,103 @@ namespace GUI {
         GLModel() = default;
         virtual ~GLModel() { reset(); }
 
-        void init_from(const InitializationData& data);
-        void init_from(const indexed_triangle_set& its, const BoundingBoxf3& bbox);
-        void init_from(Geometry& data);
+        size_t vertices_count() const { return m_render_data.vertices_count > 0 ?
+            m_render_data.vertices_count : m_render_data.geometry.vertices_count(); }
+        size_t indices_count() const { return m_render_data.indices_count > 0 ?
+            m_render_data.indices_count : m_render_data.geometry.indices_count(); }
+
+        size_t vertices_size_floats() const { return vertices_count() * Geometry::vertex_stride_floats(m_render_data.geometry.format); }
+        size_t vertices_size_bytes() const  { return vertices_size_floats() * sizeof(float); }
+
+        size_t indices_size_bytes() const { return indices_count() * Geometry::index_stride_bytes(m_render_data.geometry); }
+
+        const Geometry& get_geometry() const { return m_render_data.geometry; }
+
+        void init_from(Geometry&& data);
+#if ENABLE_SMOOTH_NORMALS
+        void init_from(const TriangleMesh& mesh, bool smooth_normals = false);
+#else
+        void init_from(const TriangleMesh& mesh);
+#endif // ENABLE_SMOOTH_NORMALS
         void init_from(const indexed_triangle_set& its);
+        void init_from(const Polygon& polygon, float z);
         void init_from(const Polygons& polygons, float z);
         bool init_from_file(const std::string& filename);
 
-        // if entity_id == -1 set the color of all entities
-        void set_color(int entity_id, const std::array<float, 4>& color);
-        void set_color(const ColorRGBA& color) { set_color(-1, color.data_array()); }
+        void set_color(const ColorRGBA& color) { m_render_data.geometry.color = color; }
+        const ColorRGBA& get_color() const { return m_render_data.geometry.color; }
+        void set_color(const std::array<float, 4>& color){
+            m_render_data.geometry.color = color;
+        }
 
         void reset();
-        void render() const;
-        void render_instanced(unsigned int instances_vbo, unsigned int instances_count) const;
+        void render();
+        void render(const std::pair<size_t, size_t>& range);
+        void render_instanced(unsigned int instances_vbo, unsigned int instances_count);
 
-        bool is_initialized() const { return !m_render_data.empty(); }
+        bool is_initialized() const { return vertices_count() > 0 && indices_count() > 0; }
+        bool is_empty() const { return m_render_data.geometry.is_empty(); }
 
         const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
         const std::string& get_filename() const { return m_filename; }
 
+        bool is_render_disabled() const { return m_render_disabled; }
+        void enable_render() { m_render_disabled = false; }
+        void disable_render() { m_render_disabled = true; }
+
+        size_t cpu_memory_used() const {
+            size_t ret = 0;
+            if (!m_render_data.geometry.vertices.empty())
+                ret += vertices_size_bytes();
+            if (!m_render_data.geometry.indices.empty())
+                ret += indices_size_bytes();
+            return ret;
+        }
+        size_t gpu_memory_used() const {
+            size_t ret = 0;
+            if (m_render_data.geometry.vertices.empty())
+                ret += vertices_size_bytes();
+            if (m_render_data.geometry.indices.empty())
+                ret += indices_size_bytes();
+            return ret;
+        }
+
+#if ENABLE_GLMODEL_STATISTICS
+        static void render_statistics();
+        static void reset_statistics_counters() {
+            s_statistics.render_calls = 0;
+            s_statistics.render_instanced_calls = 0;
+        }
+#endif // ENABLE_GLMODEL_STATISTICS
+
     private:
-        void send_to_gpu(RenderData& data, const std::vector<float>& vertices, const std::vector<unsigned int>& indices);
+        bool send_to_gpu();
     };
+
+    bool contains(const BuildVolume& volume, const GLModel& model, bool ignore_bottom = true);
 
     // create an arrow with cylindrical stem and conical tip, with the given dimensions and resolution
     // the origin of the arrow is in the center of the stem cap
     // the arrow has its axis of symmetry along the Z axis and is pointing upward
     // used to render bed axes and sequential marker
-    GLModel::InitializationData stilized_arrow(int resolution, float tip_radius, float tip_height, float stem_radius, float stem_height);
+    GLModel::Geometry stilized_arrow(unsigned int resolution, float tip_radius, float tip_height, float stem_radius, float stem_height);
 
     // create an arrow whose stem is a quarter of circle, with the given dimensions and resolution
     // the origin of the arrow is in the center of the circle
     // the arrow is contained in the 1st quadrant of the XY plane and is pointing counterclockwise
     // used to render sidebar hints for rotations
-    GLModel::InitializationData circular_arrow(int resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness);
+    GLModel::Geometry circular_arrow(unsigned int resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness);
 
     // create an arrow with the given dimensions
     // the origin of the arrow is in the center of the stem cap
     // the arrow is contained in XY plane and has its main axis along the Y axis
     // used to render sidebar hints for position and scale
-    GLModel::InitializationData straight_arrow(float tip_width, float tip_height, float stem_width, float stem_height, float thickness);
+    GLModel::Geometry straight_arrow(float tip_width, float tip_height, float stem_width, float stem_height, float thickness);
 
     // create a diamond with the given resolution
     // the origin of the diamond is in its center
     // the diamond is contained into a box with size [1, 1, 1]
-    GLModel::InitializationData diamond(int resolution);
+    GLModel::Geometry diamond(unsigned int resolution);
 
     // create a sphere with smooth normals
     // the origin of the sphere is in its center

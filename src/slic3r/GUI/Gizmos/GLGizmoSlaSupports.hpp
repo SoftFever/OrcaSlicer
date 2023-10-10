@@ -77,7 +77,7 @@ private:
     void on_render() override;
     void on_render_for_picking() override;
 
-    void render_points(const Selection& selection, bool picking = false) const;
+    void render_points(const Selection& selection, bool picking = false);
     bool unsaved_changes() const;
 
     bool m_lock_unique_islands = false;

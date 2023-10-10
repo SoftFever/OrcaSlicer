@@ -16,6 +16,8 @@
 
 #include <GL/glew.h>
 
+#include <tbb/parallel_for.h>
+
 #include <wx/clipbrd.h>
 
 namespace Slic3r {
@@ -99,6 +101,8 @@ static GLModel::Geometry init_plane_data(const indexed_triangle_set& its, const 
 {
     GLModel::Geometry init_data;
     init_data.format = { GUI::GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
+    init_data.reserve_indices(3 * triangle_indices.size());
+    init_data.reserve_vertices(3 * triangle_indices.size());
     unsigned int i = 0;
     for (int idx : triangle_indices) {
         const Vec3f& v0 = its.vertices[its.indices[idx][0]];
@@ -278,12 +282,12 @@ GLGizmoMeasure::GLGizmoMeasure(GLCanvas3D& parent, const std::string& icon_filen
 : GLGizmoBase(parent, icon_filename, sprite_id)
 {
     GLModel::Geometry sphere_geometry = smooth_sphere(16, 7.5f);
-    m_sphere.mesh_raycaster = std::make_unique<MeshRaycaster>(TriangleMesh(sphere_geometry.get_as_indexed_triangle_set()));
-    m_sphere.model.init_from(sphere_geometry);
+    m_sphere.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(sphere_geometry.get_as_indexed_triangle_set()));
+    m_sphere.model.init_from(std::move(sphere_geometry));
 
     GLModel::Geometry cylinder_geometry = smooth_cylinder(16, 5.0f, 1.0f);
-    m_cylinder.mesh_raycaster = std::make_unique<MeshRaycaster>(TriangleMesh(cylinder_geometry.get_as_indexed_triangle_set()));
-    m_cylinder.model.init_from(cylinder_geometry);
+    m_cylinder.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(cylinder_geometry.get_as_indexed_triangle_set()));
+    m_cylinder.model.init_from(std::move(cylinder_geometry));
 }
 
 bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
@@ -596,8 +600,8 @@ void GLGizmoMeasure::on_render()
             m_circle.reset();
             const auto [center, radius, normal] = m_curr_feature->get_circle();
             GLModel::Geometry circle_geometry = init_torus_data(64, 16, center.cast<float>(), float(radius), 5.0f * inv_zoom, normal.cast<float>(), Transform3f::Identity());
-            m_circle.mesh_raycaster = std::make_unique<MeshRaycaster>(TriangleMesh(circle_geometry.get_as_indexed_triangle_set()));
-            m_circle.model.init_from(circle_geometry);
+            m_circle.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(circle_geometry.get_as_indexed_triangle_set()));
+            m_circle.model.init_from(std::move(circle_geometry));
             return true;
         }
         return false;
@@ -651,11 +655,11 @@ void GLGizmoMeasure::on_render()
                     const auto [idx, normal, point] = m_curr_feature->get_plane();
                     if (m_last_plane_idx != idx) {
                         m_last_plane_idx = idx;
-                        const indexed_triangle_set& its = m_measuring->get_mesh().its;
+                        const indexed_triangle_set& its = m_measuring->get_its();
                         const std::vector<int>& plane_triangles = m_measuring->get_plane_triangle_indices(idx);
                         GLModel::Geometry init_data = init_plane_data(its, plane_triangles);
                         m_plane.reset();
-                        m_plane.mesh_raycaster = std::make_unique<MeshRaycaster>(TriangleMesh(init_data.get_as_indexed_triangle_set()));
+                        m_plane.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(init_data.get_as_indexed_triangle_set()));
                     }
 
                     m_raycasters.insert({ PLANE_ID, m_parent.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, PLANE_ID, *m_plane.mesh_raycaster) });
@@ -785,7 +789,7 @@ void GLGizmoMeasure::on_render()
                 const Transform3d feature_matrix = Geometry::translation_transform(feature.get_point()) * Geometry::scale_transform(inv_zoom);
                 set_matrix_uniforms(feature_matrix);
                 set_emission_uniform(colors.front(), hover);
-                m_sphere.model.set_color(-1, colors.front().data_array());
+                m_sphere.model.set_color(colors.front().data_array());
                 m_sphere.model.render();
                 if (update_raycasters_transform) {
                     auto it = m_raycasters.find(POINT_ID);
@@ -802,7 +806,7 @@ void GLGizmoMeasure::on_render()
                 set_matrix_uniforms(circle_matrix);
                 if (update_raycasters_transform) {
                     set_emission_uniform(colors.front(), hover);
-                    m_circle.model.set_color(-1, colors.front().data_array());
+                    m_circle.model.set_color(colors.front().data_array());
                     m_circle.model.render();
                     auto it = m_raycasters.find(CIRCLE_ID);
                     if (it != m_raycasters.end() && it->second != nullptr)
@@ -811,9 +815,9 @@ void GLGizmoMeasure::on_render()
                 else {
                     GLModel circle;
                     GLModel::Geometry circle_geometry = init_torus_data(64, 16, center.cast<float>(), float(radius), 5.0f * inv_zoom, normal.cast<float>(), Transform3f::Identity());
-                    circle.init_from(circle_geometry);
+                    circle.init_from(std::move(circle_geometry));
                     set_emission_uniform(colors.front(), hover);
-                    circle.set_color(-1, colors.front().data_array());
+                    circle.set_color(colors.front().data_array());
                     circle.render();
                 }
                 // render center
@@ -821,7 +825,7 @@ void GLGizmoMeasure::on_render()
                     const Transform3d center_matrix = Geometry::translation_transform(center) * Geometry::scale_transform(inv_zoom);
                     set_matrix_uniforms(center_matrix);
                     set_emission_uniform(colors.back(), hover);
-                    m_sphere.model.set_color(-1, colors.back().data_array());
+                    m_sphere.model.set_color(colors.back().data_array());
                     m_sphere.model.render();
                     auto it = m_raycasters.find(POINT_ID);
                     if (it != m_raycasters.end() && it->second != nullptr)
@@ -838,7 +842,7 @@ void GLGizmoMeasure::on_render()
                     Geometry::scale_transform({ (double)inv_zoom, (double)inv_zoom, (to - from).norm() });
                 set_matrix_uniforms(edge_matrix);
                 set_emission_uniform(colors.front(), hover);
-                m_cylinder.model.set_color(-1, colors.front().data_array());
+                m_cylinder.model.set_color(colors.front().data_array());
                 m_cylinder.model.render();
                 if (update_raycasters_transform) {
                     auto it = m_raycasters.find(EDGE_ID);
@@ -853,7 +857,7 @@ void GLGizmoMeasure::on_render()
                         const Transform3d point_matrix = Geometry::translation_transform(*extra) * Geometry::scale_transform(inv_zoom);
                         set_matrix_uniforms(point_matrix);
                         set_emission_uniform(colors.back(), hover);
-                        m_sphere.model.set_color(-1, colors.back().data_array());
+                        m_sphere.model.set_color(colors.back().data_array());
                         m_sphere.model.render();
                         auto it = m_raycasters.find(POINT_ID);
                         if (it != m_raycasters.end() && it->second != nullptr)
@@ -868,7 +872,7 @@ void GLGizmoMeasure::on_render()
                 assert(idx < m_plane_models_cache.size());
                 set_matrix_uniforms(Transform3d::Identity());
                 set_emission_uniform(colors.front(), hover);
-                m_plane_models_cache[idx].set_color(-1, colors.front().data_array());
+                m_plane_models_cache[idx].set_color(colors.front().data_array());
                 m_plane_models_cache[idx].render();
                 if (update_raycasters_transform) {
                     auto it = m_raycasters.find(PLANE_ID);
@@ -1022,7 +1026,7 @@ void GLGizmoMeasure::on_render()
             set_matrix_uniforms(matrix);
             const ColorRGBA color = hover_selection_color();
             set_emission_uniform(color, true);
-            m_sphere.model.set_color(-1, color.data_array());
+            m_sphere.model.set_color(color.data_array());
             m_sphere.model.render();
         }
     }
@@ -1039,11 +1043,19 @@ void GLGizmoMeasure::update_if_needed()
 {
     auto update_plane_models_cache = [this](const indexed_triangle_set& its) {
         m_plane_models_cache.clear();
-        for (int idx = 0; idx < m_measuring->get_num_of_planes(); ++idx) {
-            m_plane_models_cache.emplace_back(GLModel());
-            GLModel::Geometry init_data = init_plane_data(its, m_measuring->get_plane_triangle_indices(idx));
-            m_plane_models_cache.back().init_from(init_data);
-        }
+        m_plane_models_cache.resize(m_measuring->get_num_of_planes(), GLModel());
+
+        auto& plane_models_cache = m_plane_models_cache;
+        const auto& measuring = m_measuring;
+
+        //for (int idx = 0; idx < m_measuring->get_num_of_planes(); ++idx) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, m_measuring->get_num_of_planes()),
+        [&plane_models_cache, &measuring, &its](const tbb::blocked_range<size_t>& range) {
+            for (size_t idx = range.begin(); idx != range.end(); ++idx) {
+                GLModel::Geometry init_data = init_plane_data(its, measuring->get_plane_triangle_indices(idx));
+                plane_models_cache[idx].init_from(std::move(init_data));
+            }
+        });
     };
 
     auto do_update = [this, update_plane_models_cache](const std::vector<VolumeCacheItem>& volumes_cache, const Selection& selection) {
@@ -1062,8 +1074,8 @@ void GLGizmoMeasure::update_if_needed()
         }
 
         m_measuring.reset(new Measure::Measuring(composite_mesh.its));
-        update_plane_models_cache(m_measuring->get_mesh().its);
-        m_raycaster.reset(new MeshRaycaster(m_measuring->get_mesh()));
+        update_plane_models_cache(m_measuring->get_its());
+        m_raycaster.reset(new MeshRaycaster(std::make_shared<const TriangleMesh>(composite_mesh)));
         m_volumes_cache = volumes_cache;
     };
 
@@ -1178,7 +1190,7 @@ void GLGizmoMeasure::render_dimensioning()
         shader->set_uniform("view_model_matrix", overlap ?
             ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q12ss * Geometry::translation_transform(-2.0 * TRIANGLE_HEIGHT * Vec3d::UnitX()) * Geometry::scale_transform({ v12ss_len + 4.0 * TRIANGLE_HEIGHT, 1.0f, 1.0f }) :
             ss_to_ndc_matrix * Geometry::translation_transform(v1ss_3) * q12ss * Geometry::scale_transform({ v12ss_len, 1.0f, 1.0f }));
-        m_dimensioning.line.set_color(-1, ColorRGBA::WHITE().data_array());
+        m_dimensioning.line.set_color(ColorRGBA::WHITE().data_array());
         m_dimensioning.line.render();
 
 #if ENABLE_GL_CORE_PROFILE
@@ -1447,7 +1459,7 @@ void GLGizmoMeasure::render_dimensioning()
                 init_data.add_index(i);
             }
 
-            m_dimensioning.arc.init_from(init_data);
+            m_dimensioning.arc.init_from(std::move(init_data));
         }
 
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -1606,7 +1618,7 @@ void GLGizmoMeasure::render_dimensioning()
         // indices
         init_data.add_line(0, 1);
 
-        m_dimensioning.line.init_from(init_data);
+        m_dimensioning.line.init_from(std::move(init_data));
     }
 
     if (!m_dimensioning.triangle.is_initialized()) {
@@ -1624,7 +1636,7 @@ void GLGizmoMeasure::render_dimensioning()
         // indices
         init_data.add_triangle(0, 1, 2);
 
-        m_dimensioning.triangle.init_from(init_data);
+        m_dimensioning.triangle.init_from(std::move(init_data));
     }
 
     if (last_selected_features != m_selected_features)

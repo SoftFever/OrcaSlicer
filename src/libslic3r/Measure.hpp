@@ -109,7 +109,7 @@ public:
     const std::vector<SurfaceFeature>& get_plane_features(unsigned int plane_id) const;
 
     // Returns the mesh used for measuring
-    const TriangleMesh& get_mesh() const;
+    const indexed_triangle_set& get_its() const;
 
 private: 
     std::unique_ptr<MeasuringImpl> priv;

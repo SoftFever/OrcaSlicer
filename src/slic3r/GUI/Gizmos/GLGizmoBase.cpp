@@ -79,7 +79,7 @@ GLGizmoBase::Grabber::Grabber()
     hover_color = GRABBER_HOVER_COL;
 }
 
-void GLGizmoBase::Grabber::render(bool hover, float size) const
+void GLGizmoBase::Grabber::render(bool hover, float size)
 {
     std::array<float, 4> render_color;
     if (hover) {
@@ -113,28 +113,28 @@ void GLGizmoBase::Grabber::unregister_raycasters_for_picking()
     raycasters = { nullptr };
 }
 
-const GLModel& GLGizmoBase::Grabber::get_cube() const
+GLModel& GLGizmoBase::Grabber::get_cube()
 {
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
         indexed_triangle_set mesh = its_make_cube(1., 1., 1.);
         its_translate(mesh, Vec3f(-0.5, -0.5, -0.5));
-        const_cast<GLModel&>(cube).init_from(mesh, BoundingBoxf3{ { -0.5, -0.5, -0.5 }, { 0.5, 0.5, 0.5 } });
-        const_cast<bool&>(cube_initialized) = true;
+        cube.init_from(mesh);
+        cube_initialized = true;
     }
     return cube;
 }
 
-void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking) const
+void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking)
 {
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
         indexed_triangle_set mesh = its_make_cube(1., 1., 1.);
         its_translate(mesh, Vec3f(-0.5, -0.5, -0.5));
-        const_cast<GLModel&>(cube).init_from(mesh, BoundingBoxf3{ { -0.5, -0.5, -0.5 }, { 0.5, 0.5, 0.5 } });
-        const_cast<bool&>(cube_initialized) = true;
+        cube.init_from(mesh);
+        cube_initialized = true;
     }
 
     //BBS set to fixed size grabber
@@ -145,7 +145,7 @@ void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render
     }
 
 
-    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
+    cube.set_color(render_color);
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center.x(), center.y(), center.z()));

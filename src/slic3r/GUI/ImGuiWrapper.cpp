@@ -84,6 +84,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
 
     {ImGui::TextSearchIcon             , "im_text_search"             },
     {ImGui::TextSearchCloseIcon        , "im_text_search_close"       },
+    {ImGui::ClipboardBtnIcon      , "copy_menu"                     },
 
     {ImGui::ExpandBtn                  , "expand_btn"                 },
     {ImGui::CollapseBtn                , "collapse_btn"               },

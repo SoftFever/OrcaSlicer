@@ -1,3 +1,4 @@
+#include "libslic3r/Color.hpp"
 #include "libslic3r/libslic3r.h"
 #include "GCodeViewer.hpp"
 
@@ -331,7 +332,7 @@ void GCodeViewer::SequentialView::Marker::init(std::string filename)
     } else {
         m_model.init_from_file(filename);
     }
-    m_model.set_color(-1, {1.0f, 1.0f, 1.0f, 0.5f});
+    m_model.set_color(ColorRGBA(1.0f, 1.0f, 1.0f, 0.5f));
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -345,7 +346,7 @@ void GCodeViewer::SequentialView::Marker::update_curr_move(const GCodeProcessorR
 }
 
 //BBS: GUI refactor: add canvas size from parameters
-void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type) const
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type)
 {
     if (!m_visible)
         return;
@@ -359,13 +360,15 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
     shader->start_using();
     shader->set_uniform("emission_factor", 0.0f);
-
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixf(m_world_transform.data()));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d model_matrix = m_world_transform.cast<double>();
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
     m_model.render();
-
-    glsafe(::glPopMatrix());
 
     shader->stop_using();
 
@@ -713,7 +716,7 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
     }
 }
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const
+void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type)
 {
 if (has_render_path)
     marker.render(canvas_width, canvas_height, view_type);
@@ -790,6 +793,7 @@ GCodeViewer::GCodeViewer()
     m_moves_slider  = new IMSlider(0, 0, 0, 100, wxSL_HORIZONTAL);
     m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
     m_extrusions.reset_role_visibility_flags();
+    m_shells.volumes.set_use_raycasters(false);
 
 //    m_sequential_view.skip_invisible_moves = true;
 }
@@ -1387,7 +1391,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
 
             if (range.vbo > 0) {
-                buffer.model.model.set_color(-1, range.color);
+                buffer.model.model.set_color(range.color);
                 buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;
@@ -2332,28 +2336,28 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     };
 
     // format data into the buffers to be rendered as batched model
-    auto add_vertices_as_model_batch = [](const GCodeProcessorResult::MoveVertex& curr, const GLModel::InitializationData& data, VertexBuffer& vertices, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
+    auto add_vertices_as_model_batch = [](const GCodeProcessorResult::MoveVertex& curr, const GLModel::Geometry& data, VertexBuffer& vertices, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
         const double width = static_cast<double>(1.5f * curr.width);
         const double height = static_cast<double>(1.5f * curr.height);
 
-        const Transform3d trafo = Geometry::assemble_transform((curr.position - 0.5f * curr.height * Vec3f::UnitZ()).cast<double>(), Vec3d::Zero(), { width, width, height });
+        const Transform3d trafo = Geometry::translation_transform((curr.position - 0.5f * curr.height * Vec3f::UnitZ()).cast<double>()) * 
+          Geometry::scale_transform({ width, width, height });
         const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> normal_matrix = trafo.matrix().template block<3, 3>(0, 0).inverse().transpose();
 
-        for (const auto& entity : data.entities) {
-            // append vertices
-            for (size_t i = 0; i < entity.positions.size(); ++i) {
-                // append position
-                const Vec3d position = trafo * entity.positions[i].cast<double>();
-                vertices.push_back(static_cast<float>(position.x()));
-                vertices.push_back(static_cast<float>(position.y()));
-                vertices.push_back(static_cast<float>(position.z()));
+        // append vertices
+        const size_t vertices_count = data.vertices_count();
+        for (size_t i = 0; i < vertices_count; ++i) {
+            // append position
+            const Vec3d position = trafo * data.extract_position_3(i).cast<double>();
+            vertices.push_back(float(position.x()));
+            vertices.push_back(float(position.y()));
+            vertices.push_back(float(position.z()));
 
-                // append normal
-                const Vec3d normal = normal_matrix * entity.normals[i].cast<double>();
-                vertices.push_back(static_cast<float>(normal.x()));
-                vertices.push_back(static_cast<float>(normal.y()));
-                vertices.push_back(static_cast<float>(normal.z()));
-            }
+            // append normal
+            const Vec3d normal = normal_matrix * data.extract_normal_3(i).cast<double>();
+            vertices.push_back(float(normal.x()));
+            vertices.push_back(float(normal.y()));
+            vertices.push_back(float(normal.z()));
         }
 
         // append instance position
@@ -2364,11 +2368,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         instances_ids.push_back(move_id);
     };
 
-    auto add_indices_as_model_batch = [](const GLModel::InitializationData& data, IndexBuffer& indices, IBufferType base_index) {
-        for (const auto& entity : data.entities) {
-            for (size_t i = 0; i < entity.indices.size(); ++i) {
-                indices.push_back(static_cast<IBufferType>(entity.indices[i] + base_index));
-            }
+    auto add_indices_as_model_batch = [](const GLModel::Geometry& data, IndexBuffer& indices, IBufferType base_index) {
+        const size_t indices_count = data.indices_count();
+        for (size_t i = 0; i < indices_count; ++i) {
+            indices.push_back(static_cast<IBufferType>(data.extract_index(i) + base_index));
         }
     };
 
@@ -3909,7 +3912,7 @@ void GCodeViewer::render_toolpaths()
             }
 
             if (range.vbo > 0) {
-                buffer.model.model.set_color(-1, range.color);
+                buffer.model.model.set_color(range.color);
                 buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;

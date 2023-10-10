@@ -1,4 +1,5 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+#include "libslic3r/Color.hpp"
 #include "GLGizmoPainterBase.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
@@ -117,7 +118,7 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 }
 
 
-void GLGizmoPainterBase::render_cursor() const
+void GLGizmoPainterBase::render_cursor()
 {
     // First check that the mouse pointer is on an object.
     const ModelObject* mo = m_c->selection_info()->model_object();
@@ -239,7 +240,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
 }
 
 // BBS
-void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
+void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo)
 {
     const BoundingBoxf3 box = bounding_box();
     Vec3d hit_world = trafo * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
@@ -289,7 +290,7 @@ BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
     return ret;
 }
 
-void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const
+void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z)
 {
     const Selection& selection = m_parent.get_selection();
     const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
@@ -315,7 +316,7 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
                 const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
                 if (!polys.empty()) {
                     m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
-                    m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                    m_cut_contours.contours.set_color(ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f ));
                 }
             }
             else if (box.center() != m_cut_contours.position) {

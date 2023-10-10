@@ -76,18 +76,18 @@ protected:
 
         Grabber();
 
-        void render(bool hover, float size) const;
-        void render_for_picking(float size) const { render(size, color, true); }
+        void render(bool hover, float size);
+        void render_for_picking(float size) { render(size, color, true); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
-        const GLModel& get_cube() const;
+        GLModel& get_cube();
 
         void register_raycasters_for_picking(int id);
         void unregister_raycasters_for_picking();
 
     private:
-        void render(float size, const std::array<float, 4>& render_color, bool picking) const;
+        void render(float size, const std::array<float, 4>& render_color, bool picking);
 
         GLModel cube;
         bool cube_initialized = false;

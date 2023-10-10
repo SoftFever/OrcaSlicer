@@ -700,7 +700,7 @@ void GLGizmosManager::render_current_gizmo() const
     m_gizmos[m_current]->render();
 }
 
-void GLGizmosManager::render_painter_gizmo() const
+void GLGizmosManager::render_painter_gizmo()
 {
     // This function shall only be called when current gizmo is
     // derived from GLGizmoPainterBase.
@@ -1648,6 +1648,8 @@ bool GLGizmosManager::activate_gizmo(EType type)
         if (old_gizmo->get_state() != GLGizmoBase::Off)
             return false; // gizmo refused to be turned off, do nothing.
 
+        old_gizmo->unregister_raycasters_for_picking();
+
         if (! m_parent.get_gizmos_manager().is_serializing()
          && old_gizmo->wants_enter_leave_snapshots())
             Plater::TakeSnapshot snapshot(wxGetApp().plater(),
@@ -1668,7 +1670,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
         //    wxGetApp().imgui()->load_fonts_texture();
         //}
         new_gizmo->set_state(GLGizmoBase::On);
+        new_gizmo->register_raycasters_for_picking();
     }
+
     return true;
 }
 

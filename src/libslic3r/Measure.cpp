@@ -72,7 +72,7 @@ public:
     int get_num_of_planes() const;
     const std::vector<int>& get_plane_triangle_indices(int idx) const;
     const std::vector<SurfaceFeature>& get_plane_features(unsigned int plane_id);
-    const TriangleMesh& get_mesh() const;
+    const indexed_triangle_set& get_its() const;
 
 private:
     void update_planes();
@@ -80,7 +80,7 @@ private:
     
     std::vector<PlaneData> m_planes;
     std::vector<size_t>    m_face_to_plane;
-    TriangleMesh m_mesh;
+    indexed_triangle_set   m_its;
 };
 
 
@@ -89,7 +89,7 @@ private:
 
 
 MeasuringImpl::MeasuringImpl(const indexed_triangle_set& its)
-: m_mesh(its)
+: m_its(its)
 {
     update_planes();
 
@@ -104,14 +104,12 @@ MeasuringImpl::MeasuringImpl(const indexed_triangle_set& its)
 
 void MeasuringImpl::update_planes()
 {
-    m_planes.clear();
-
     // Now we'll go through all the facets and append Points of facets sharing the same normal.
     // This part is still performed in mesh coordinate system.
-    const size_t             num_of_facets = m_mesh.its.indices.size();
+    const size_t             num_of_facets = m_its.indices.size();
     m_face_to_plane.resize(num_of_facets, size_t(-1));
-    const std::vector<Vec3f> face_normals = its_face_normals(m_mesh.its);
-    const std::vector<Vec3i> face_neighbors = its_face_neighbors(m_mesh.its);
+    const std::vector<Vec3f> face_normals = its_face_normals(m_its);
+    const std::vector<Vec3i> face_neighbors = its_face_neighbors(m_its);
     std::vector<int>         facet_queue(num_of_facets, 0);
     int                      facet_queue_cnt = 0;
     const stl_normal*        normal_ptr      = nullptr;
@@ -120,6 +118,10 @@ void MeasuringImpl::update_planes()
     auto is_same_normal = [](const stl_normal& a, const stl_normal& b) -> bool {
         return (std::abs(a(0) - b(0)) < 0.001 && std::abs(a(1) - b(1)) < 0.001 && std::abs(a(2) - b(2)) < 0.001);
     };
+
+    m_planes.clear();
+    m_planes.reserve(num_of_facets / 5); // empty plane data object is quite lightweight, let's save the initial reallocations
+
 
     // First go through all the triangles and fill in m_planes vector. For each "plane"
     // detected on the model, it will contain list of facets that are part of it.
@@ -132,7 +134,7 @@ void MeasuringImpl::update_planes()
                 facet_queue[facet_queue_cnt ++] = seed_facet_idx;
                 normal_ptr = &face_normals[seed_facet_idx];
                 m_face_to_plane[seed_facet_idx] = m_planes.size();
-                m_planes.emplace_back();                
+                m_planes.emplace_back();
                 break;
             }
         if (seed_facet_idx == num_of_facets)
@@ -160,16 +162,21 @@ void MeasuringImpl::update_planes()
     assert(std::none_of(m_face_to_plane.begin(), m_face_to_plane.end(), [](size_t val) { return val == size_t(-1); }));
 
     // Now we will walk around each of the planes and save vertices which form the border.
-    SurfaceMesh sm(m_mesh.its);
-    for (int plane_id=0; plane_id < int(m_planes.size()); ++plane_id) {
-        const auto& facets = m_planes[plane_id].facets;
-        m_planes[plane_id].borders.clear();
+    const SurfaceMesh sm(m_its);
+
+    const auto& face_to_plane = m_face_to_plane;
+    auto& planes = m_planes;
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_planes.size()),
+        [&planes, &face_to_plane, &face_neighbors, &sm](const tbb::blocked_range<size_t>& range) {
+            for (size_t plane_id = range.begin(); plane_id != range.end(); ++plane_id) {
+
+        const auto& facets = planes[plane_id].facets;
+        planes[plane_id].borders.clear();
         std::vector<std::array<bool, 3>> visited(facets.size(), {false, false, false});
         
-        
-
         for (int face_id=0; face_id<int(facets.size()); ++face_id) {
-            assert(m_face_to_plane[facets[face_id]] == plane_id);
+            assert(face_to_plane[facets[face_id]] == plane_id);
 
             for (int edge_id=0; edge_id<3; ++edge_id) {
                 // Every facet's edge which has a neighbor from a different plane is
@@ -177,7 +184,7 @@ void MeasuringImpl::update_planes()
                 int neighbor_idx = face_neighbors[facets[face_id]][edge_id];
                 if (neighbor_idx == -1)
                     goto PLANE_FAILURE;
-                if (visited[face_id][edge_id] || (int)m_face_to_plane[neighbor_idx] == plane_id) {
+                if (visited[face_id][edge_id] || (int)face_to_plane[neighbor_idx] == plane_id) {
                     visited[face_id][edge_id] = true;
                     continue;
                 }
@@ -188,8 +195,9 @@ void MeasuringImpl::update_planes()
             
                 // he is the first halfedge on the border. Now walk around and append the points.
                 //const Halfedge_index he_orig = he;
-                m_planes[plane_id].borders.emplace_back();
-                std::vector<Vec3d>& last_border = m_planes[plane_id].borders.back();
+                planes[plane_id].borders.emplace_back();
+                std::vector<Vec3d>& last_border = planes[plane_id].borders.back();
+                last_border.reserve(4);
                 last_border.emplace_back(sm.point(sm.source(he)).cast<double>());
                 //Vertex_index target = sm.target(he);
                 const Halfedge_index he_start = he;
@@ -210,7 +218,7 @@ void MeasuringImpl::update_planes()
                     // Remember all halfedges we saw to break out of such infinite loops.
                     boost::container::small_vector<Halfedge_index, 10> he_seen;
 
-                    while ( (int)m_face_to_plane[sm.face(he)] == plane_id && he != he_orig) {
+                    while ( (int)face_to_plane[sm.face(he)] == plane_id && he != he_orig) {
                         he_seen.emplace_back(he);
                         he = sm.next_around_target(he);
                         if (he.is_invalid() || std::find(he_seen.begin(), he_seen.end(), he) != he_seen.end())
@@ -241,7 +249,7 @@ void MeasuringImpl::update_planes()
                 } while (he != he_start);
 
                 if (last_border.size() == 1)
-                    m_planes[plane_id].borders.pop_back();
+                    planes[plane_id].borders.pop_back();
                 else {
                     assert(last_border.front() == last_border.back());
                     last_border.pop_back();
@@ -251,8 +259,9 @@ void MeasuringImpl::update_planes()
         continue; // There was no failure.
 
         PLANE_FAILURE:
-            m_planes[plane_id].borders.clear();
-    }
+            planes[plane_id].borders.clear();
+    }});
+    m_planes.shrink_to_fit();
 }
 
 
@@ -581,9 +590,9 @@ const std::vector<SurfaceFeature>& MeasuringImpl::get_plane_features(unsigned in
     return m_planes[plane_id].surface_features;
 }
 
-const TriangleMesh& MeasuringImpl::get_mesh() const
+const indexed_triangle_set& MeasuringImpl::get_its() const
 {
-    return this->m_mesh;
+    return this->m_its;
 }
 
 
@@ -626,9 +635,9 @@ const std::vector<SurfaceFeature>& Measuring::get_plane_features(unsigned int pl
     return priv->get_plane_features(plane_id);
 }
 
-const TriangleMesh& Measuring::get_mesh() const
+const indexed_triangle_set& Measuring::get_its() const
 {
-    return priv->get_mesh();
+    return priv->get_its();
 }
 
 const AngleAndEdges AngleAndEdges::Dummy = { 0.0, Vec3d::Zero(), { Vec3d::Zero(), Vec3d::Zero() }, { Vec3d::Zero(), Vec3d::Zero() }, 0.0, true };

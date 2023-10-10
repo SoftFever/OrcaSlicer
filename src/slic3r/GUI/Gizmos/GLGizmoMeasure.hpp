@@ -8,7 +8,6 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "libslic3r/Measure.hpp"
 #include "libslic3r/Model.hpp"
-#include "slic3r/GUI/SceneRaycaster.hpp"
 
 namespace Slic3r {
 

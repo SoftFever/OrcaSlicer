@@ -328,7 +328,7 @@ void GLGizmoCut::update_contours()
             const Polygons polys = slice_mesh(m_cut_contours.mesh.its, m_cut_z, slicing_params);
             if (!polys.empty()) {
                 m_cut_contours.contours.init_from(polys, static_cast<float>(m_cut_z));
-                m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                m_cut_contours.contours.set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
             }
         }
         else if (box.center() != m_cut_contours.position) {

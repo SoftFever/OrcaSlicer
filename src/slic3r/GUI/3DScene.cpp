@@ -1,6 +1,6 @@
 #include "slic3r/GUI/3DScene.hpp"
 #include <GL/glew.h>
-
+#include "MeshUtils.hpp"
 #if ENABLE_SMOOTH_NORMALS
 #include <igl/per_face_normals.h>
 #include <igl/per_corner_normals.h>
@@ -353,28 +353,30 @@ void GLVolume::SinkingContours::update()
             const TriangleMesh& mesh = model.objects[object_idx]->volumes[m_parent.volume_idx()]->mesh();
 
             m_model.reset();
-            GUI::GLModel::InitializationData init_data;
+            GUI::GLModel::Geometry init_data;
+            init_data.format = {GUI::GLModel::Geometry::EPrimitiveType::Triangles, GUI::GLModel::Geometry::EVertexLayout::P3};
+            init_data.color  = ColorRGBA::WHITE();
+            unsigned int      vertices_counter = 0;
             MeshSlicingParams slicing_params;
-            slicing_params.trafo = m_parent.world_matrix();
-            Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
-            for (ExPolygon &expoly : diff_ex(expand(polygons, float(scale_(HalfWidth))), shrink(polygons, float(scale_(HalfWidth))))) {
-                GUI::GLModel::InitializationData::Entity entity;
-                entity.type = GUI::GLModel::PrimitiveType::Triangles;
+            slicing_params.trafo    = m_parent.world_matrix();
+            const Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
+            if (polygons.empty())
+                return;
+
+            for (const ExPolygon &expoly : diff_ex(expand(polygons, float(scale_(HalfWidth))), shrink(polygons, float(scale_(HalfWidth))))) {
                 const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(expoly);
-                for (const Vec3d& v : triangulation) {
-                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.015f)); // add a small positive z to avoid z-fighting
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                    const size_t positions_count = entity.positions.size();
-                    if (positions_count % 3 == 0) {
-                        entity.indices.emplace_back(positions_count - 3);
-                        entity.indices.emplace_back(positions_count - 2);
-                        entity.indices.emplace_back(positions_count - 1);
-                    }
+                init_data.reserve_vertices(init_data.vertices_count() + triangulation.size());
+                init_data.reserve_indices(init_data.indices_count() + triangulation.size());
+                for (const Vec3d &v : triangulation) {
+                    init_data.add_vertex((Vec3f) (v.cast<float>() + 0.015f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
+                    ++vertices_counter;
+                    if (vertices_counter % 3 == 0)
+                        init_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
                 }
-                init_data.entities.emplace_back(entity);
             }
 
-            m_model.init_from(init_data);
+            if (init_data.vertices_count() > 0)
+                m_model.init_from(std::move(init_data));
         }
         else
             m_shift = box.center() - m_old_box.center();
@@ -453,12 +455,19 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , force_sinking_contours(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
+    , mesh_raycaster(nullptr)
 {
     color = { r, g, b, a };
     set_render_color(color);
     mmuseg_ts = 0;
 }
 
+GLVolume::~GLVolume(){
+    if(mesh_raycaster){
+        delete mesh_raycaster;
+        mesh_raycaster = nullptr;
+    }
+}
 void GLVolume::set_color(const std::array<float, 4>& rgba)
 {
     color = rgba;
@@ -1105,6 +1114,9 @@ int GLVolumeCollection::load_object_volume(
     else
         v.model_object_ID = instance->id().id;
 
+    if (m_use_raycasters)
+      v.mesh_raycaster = new GUI::MeshRaycaster(std::make_shared<const TriangleMesh>(mesh));
+
     return int(this->volumes.size() - 1);
 }
 
@@ -1140,6 +1152,7 @@ void GLVolumeCollection::load_object_auxiliary(
         v.indexed_vertex_array.finalize_geometry(opengl_initialized);
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
+        v.mesh_raycaster = new GUI::MeshRaycaster(std::make_shared<const TriangleMesh>(mesh));
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
         if (&instance_idx == &instances.back())
             v.set_convex_hull(std::move(convex_hull));
@@ -1198,6 +1211,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.indexed_vertex_array.load_mesh(wipe_tower_shell);
     v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.set_convex_hull(wipe_tower_shell);
+    v.mesh_raycaster = new GUI::MeshRaycaster(std::make_shared<const TriangleMesh>(wipe_tower_shell));
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
     v.composite_id = GLVolume::CompositeID(obj_idx, 0, 0);
@@ -2322,5 +2336,4 @@ void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height
 {
     thick_point_to_verts(point, width, height, volume);
 }
-
 } // namespace Slic3r

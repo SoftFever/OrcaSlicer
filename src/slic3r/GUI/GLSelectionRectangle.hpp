@@ -33,6 +33,7 @@ public:
     void render(const GLCanvas3D& canvas) const;
 
     bool is_dragging() const { return m_state != Off; }
+    bool is_empty() const    { return m_state == EState::Off || m_start_corner.isApprox(m_end_corner); }
     EState get_state() const { return m_state; }
 
     float get_width() const { return std::abs(m_start_corner(0) - m_end_corner(0)); }

@@ -214,7 +214,7 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
     return projection;
 }
 
-void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
+void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking)
 {
 #if ENABLE_FIXED_GRABBER
     float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
@@ -235,7 +235,7 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     if (shader == nullptr)
         return;
 
-    const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
+    m_vbo_cone.set_color(color);
     if (!picking) {
         shader->start_using();
         shader->set_uniform("emission_factor", 0.1f);

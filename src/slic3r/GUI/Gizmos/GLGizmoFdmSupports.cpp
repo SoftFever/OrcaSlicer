@@ -105,7 +105,7 @@ bool GLGizmoFdmSupports::on_init()
     return true;
 }
 
-void GLGizmoFdmSupports::render_painter_gizmo() const
+void GLGizmoFdmSupports::render_painter_gizmo()
 {
     const Selection& selection = m_parent.get_selection();
 

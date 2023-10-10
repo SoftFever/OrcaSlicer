@@ -40,6 +40,7 @@ std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, in
     case EType::Bed:    { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
     case EType::Volume: { return m_volumes.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
     case EType::Gizmo:  { return m_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    case EType::FallbackGizmo:  { return m_fallback_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
     default:            { assert(false);  return nullptr; }
     };
 }
@@ -62,6 +63,7 @@ void SceneRaycaster::remove_raycasters(EType type)
     case EType::Bed:    { m_bed.clear(); break; }
     case EType::Volume: { m_volumes.clear(); break; }
     case EType::Gizmo:  { m_gizmos.clear(); break; }
+    case EType::FallbackGizmo:  { m_fallback_gizmos.clear(); break; }
     default:            { break; }
     };
 }
@@ -83,6 +85,12 @@ void SceneRaycaster::remove_raycaster(std::shared_ptr<SceneRaycasterItem> item)
     for (auto it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
         if (*it == item) {
             m_gizmos.erase(it);
+            return;
+        }
+    }
+    for (auto it = m_fallback_gizmos.begin(); it != m_fallback_gizmos.end(); ++it) {
+        if (*it == item) {
+            m_fallback_gizmos.erase(it);
             return;
         }
     }
@@ -174,6 +182,9 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
     if (!m_gizmos.empty())
         test_raycasters(EType::Gizmo, mouse_pos, camera, ret);
 
+    if (!m_fallback_gizmos.empty() && !ret.is_valid())
+        test_raycasters(EType::FallbackGizmo, mouse_pos, camera, ret);
+
     if (!m_gizmos_on_top || !ret.is_valid()) {
         if (camera.is_looking_downward() && !m_bed.empty())
             test_raycasters(EType::Bed, mouse_pos, camera, ret);
@@ -241,6 +252,14 @@ size_t SceneRaycaster::active_gizmos_count() const {
     }
     return count;
 }
+size_t SceneRaycaster::active_fallback_gizmos_count() const {
+    size_t count = 0;
+    for (const auto& g : m_fallback_gizmos) {
+        if (g->is_active())
+            ++count;
+    }
+    return count;
+}
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 
 std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters(EType type)
@@ -251,6 +270,7 @@ std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters
     case EType::Bed:    { ret = &m_bed; break; }
     case EType::Volume: { ret = &m_volumes; break; }
     case EType::Gizmo:  { ret = &m_gizmos; break; }
+    case EType::FallbackGizmo:  { ret = &m_fallback_gizmos; break; }
     default:            { break; }
     }
     assert(ret != nullptr);
@@ -265,6 +285,7 @@ const std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_rayc
     case EType::Bed:    { ret = &m_bed; break; }
     case EType::Volume: { ret = &m_volumes; break; }
     case EType::Gizmo:  { ret = &m_gizmos; break; }
+    case EType::FallbackGizmo:  { ret = &m_fallback_gizmos; break; }
     default:            { break; }
     }
     assert(ret != nullptr);
@@ -278,6 +299,7 @@ int SceneRaycaster::base_id(EType type)
     case EType::Bed:    { return int(EIdBase::Bed); }
     case EType::Volume: { return int(EIdBase::Volume); }
     case EType::Gizmo:  { return int(EIdBase::Gizmo); }
+    case EType::FallbackGizmo:  { return int(EIdBase::FallbackGizmo); }
     default:            { break; }
     };
 

@@ -42,7 +42,7 @@ private:
     void on_render() override;
     void on_render_for_picking() override;
 
-    void render_points(const Selection& selection, bool picking = false) const;
+    void render_points(const Selection& selection, bool picking = false);
     void hollow_mesh(bool postpone_error_messages = false);
     bool unsaved_changes() const;
 

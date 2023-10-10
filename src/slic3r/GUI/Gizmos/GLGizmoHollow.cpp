@@ -99,7 +99,7 @@ void GLGizmoHollow::on_render_for_picking()
     render_points(selection, true);
 }
 
-void GLGizmoHollow::render_points(const Selection& selection, bool picking) const
+void GLGizmoHollow::render_points(const Selection& selection, bool picking)
 {
     GLShaderProgram* shader = picking ? nullptr : wxGetApp().get_shader("gouraud_light");
     if (shader)
@@ -148,7 +148,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking) cons
             }
         }
 
-        const_cast<GLModel*>(&m_vbo_cylinder)->set_color(-1, render_color);
+        m_vbo_cylinder.set_color(render_color);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
         glsafe(::glPushMatrix());

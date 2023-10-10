@@ -225,7 +225,7 @@ public:
     // from usual on_render method allows to render them before transparent
     // objects, so they can be seen inside them. The usual on_render is called
     // after all volumes (including transparent ones) are rendered.
-    virtual void render_painter_gizmo() const = 0;
+    virtual void render_painter_gizmo() = 0;
 
     virtual const float get_cursor_radius_min() const { return CursorRadiusMin; }
     virtual const float get_cursor_radius_max() const { return CursorRadiusMax; }
@@ -238,11 +238,11 @@ public:
 
 protected:
     virtual void render_triangles(const Selection& selection) const;
-    void render_cursor() const;
+    void render_cursor();
     void render_cursor_circle() const;
     void render_cursor_sphere(const Transform3d& trafo) const;
     // BBS
-    void render_cursor_height_range(const Transform3d& trafo) const;
+    void render_cursor_height_range(const Transform3d& trafo);
     //BBS: add logic to distinguish the first_time_update and later_update
     virtual void update_model_object() = 0;
     virtual void update_from_model_object(bool first_update) = 0;
@@ -368,7 +368,7 @@ private:
     mutable CutContours m_cut_contours;
 
     BoundingBoxf3 bounding_box() const;
-    void update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const;
+    void update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z);
 
 protected:
     void on_set_state() override;

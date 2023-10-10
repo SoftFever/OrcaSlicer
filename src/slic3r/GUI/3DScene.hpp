@@ -35,7 +35,10 @@ extern float FullyTransparentMaterialThreshold;
 extern float FullTransparentModdifiedToFixAlpha;
 extern std::array<float, 4>    adjust_color_for_rendering(const std::array<float, 4> &colors);
 
-
+namespace Slic3r {
+namespace GUI {
+    class MeshRaycaster;
+}}
 namespace Slic3r {
 class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
@@ -289,7 +292,7 @@ public:
 
     GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const std::array<float, 4>& rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
-    virtual ~GLVolume() = default;
+    virtual ~GLVolume();
 
     // BBS
 protected:
@@ -398,6 +401,8 @@ public:
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
     EHoverState         	hover;
+    // raycaster used for picking
+    GUI::MeshRaycaster* mesh_raycaster;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -614,6 +619,7 @@ private:
 
     Slope m_slope;
     bool m_show_sinking_contours = false;
+    bool m_use_raycasters{ true };
 
 public:
     GLVolumePtrs volumes;
@@ -681,6 +687,7 @@ public:
 
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
+    void set_use_raycasters(bool value) { m_use_raycasters = value; }
 
     void set_print_volume(const PrintVolume& print_volume) { m_print_volume = print_volume; }
 

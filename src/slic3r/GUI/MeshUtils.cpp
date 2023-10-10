@@ -216,28 +216,13 @@ void MeshRaycaster::line_from_mouse_pos_static(const Vec2d &mouse_pos, const Tra
     direction       = inv.linear() * direction;
 }
 
-void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                                        Vec3d& point, Vec3d& direction) const
+void MeshRaycaster::line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera, Vec3d& point, Vec3d& direction)
 {
-    Matrix4d modelview = camera.get_view_matrix().matrix();
-    Matrix4d projection= camera.get_projection_matrix().matrix();
-    Vec4i viewport(camera.get_viewport().data());
-
-    Vec3d pt1;
-    Vec3d pt2;
-    igl::unproject(Vec3d(mouse_pos(0), viewport[3] - mouse_pos(1), 0.),
-                   modelview, projection, viewport, pt1);
-    igl::unproject(Vec3d(mouse_pos(0), viewport[3] - mouse_pos(1), 1.),
-                   modelview, projection, viewport, pt2);
-
+    CameraUtils::ray_from_screen_pos(camera, mouse_pos, point, direction);
     Transform3d inv = trafo.inverse();
-    pt1 = inv * pt1;
-    pt2 = inv * pt2;
-
-    point = pt1;
-    direction = pt2-pt1;
+    point     = inv*point;
+    direction = inv.linear()*direction;
 }
-
 
 bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
                                       Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane,
@@ -245,7 +230,10 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 {
     Vec3d point;
     Vec3d direction;
-    line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
+    CameraUtils::ray_from_screen_pos(camera, mouse_pos, point, direction);
+    Transform3d inv = trafo.inverse();
+    point     = inv*point;
+    direction = inv.linear()*direction;
 
     std::vector<AABBMesh::hit_result> hits = m_emesh.query_ray_hits(point, direction);
 
@@ -259,7 +247,7 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
     for (i=0; i<hits.size(); ++i) {
         Vec3d transformed_hit = trafo * hits[i].position();
         if (transformed_hit.z() >= (sinking_limit ? SINKING_Z_THRESHOLD : -std::numeric_limits<double>::max()) &&
-            (!clipping_plane || !clipping_plane->is_point_clipped(transformed_hit)))
+            (! clipping_plane || ! clipping_plane->is_point_clipped(transformed_hit)))
             break;
     }
 
@@ -280,12 +268,27 @@ bool MeshRaycaster::unproject_on_mesh(const Vec2d& mouse_pos, const Transform3d&
 }
 
 
+
+bool MeshRaycaster::intersects_line(Vec3d point, Vec3d direction, const Transform3d& trafo) const 
+{
+    Transform3d trafo_inv = trafo.inverse();
+    Vec3d to = trafo_inv * (point + direction);
+    point = trafo_inv * point;
+    direction = (to-point).normalized();
+
+    std::vector<AABBMesh::hit_result> hits      = m_emesh.query_ray_hits(point, direction);
+    std::vector<AABBMesh::hit_result> neg_hits  = m_emesh.query_ray_hits(point, -direction);
+
+    return !hits.empty() || !neg_hits.empty();
+}
+
+
 std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transformation& trafo, const Camera& camera, const std::vector<Vec3f>& points,
                                                        const ClippingPlane* clipping_plane) const
 {
     std::vector<unsigned> out;
 
-    const Transform3d& instance_matrix_no_translation_no_scaling = trafo.get_matrix(true,false,true);
+    const Transform3d instance_matrix_no_translation_no_scaling = trafo.get_rotation_matrix();
     Vec3d direction_to_camera = -camera.get_dir_forward();
     Vec3d direction_to_camera_mesh = (instance_matrix_no_translation_no_scaling.inverse() * direction_to_camera).normalized().eval();
     direction_to_camera_mesh = direction_to_camera_mesh.cwiseProduct(trafo.get_scaling_factor());
@@ -361,13 +364,14 @@ bool MeshRaycaster::closest_hit(const Vec2d& mouse_pos, const Transform3d& trafo
     return true;
 }
 
-
 Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
 {
     int idx = 0;
     Vec3d closest_point;
-    m_emesh.squared_distance(point.cast<double>(), idx, closest_point);
+    Vec3d pointd = point.cast<double>();
+    m_emesh.squared_distance(pointd, idx, closest_point);
     if (normal)
+        // TODO: consider: get_normal(m_emesh, pointd).cast<float>();
         *normal = m_normals[idx];
 
     return closest_point.cast<float>();

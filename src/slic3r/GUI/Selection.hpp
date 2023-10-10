@@ -305,12 +305,12 @@ public:
 
     void erase();
 
-    void render(float scale_factor = 1.0) const;
+    void render(float scale_factor = 1.0);
 #if ENABLE_RENDER_SELECTION_CENTER
     void render_center(bool gizmo_is_dragging) const;
 #endif // ENABLE_RENDER_SELECTION_CENTER
     //BBS: GUI refactor: add uniform scale from gizmo
-    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const;
+    void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale);
 
     bool requires_local_axes() const;
 
@@ -353,14 +353,14 @@ private:
     void do_remove_instance(unsigned int object_idx, unsigned int instance_idx);
     void do_remove_object(unsigned int object_idx);
     void set_bounding_boxes_dirty() { m_bounding_box.reset(); m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset(); }
-    void render_selected_volumes() const;
-    void render_synchronized_volumes() const;
-    void render_bounding_box(const BoundingBoxf3& box, float* color) const;
-    void render_sidebar_position_hints(const std::string& sidebar_field) const;
-    void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
+    void render_selected_volumes();
+    void render_synchronized_volumes();
+    void render_bounding_box(const BoundingBoxf3& box, float* color);
+    void render_sidebar_position_hints(const std::string& sidebar_field);
+    void render_sidebar_rotation_hints(const std::string& sidebar_field);
     //BBS: GUI refactor: add uniform_scale from gizmo
-    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const;
-    void render_sidebar_layers_hints(const std::string& sidebar_field) const;
+    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale);
+    void render_sidebar_layers_hints(const std::string& sidebar_field);
 
 public:
     enum SyncRotationType {

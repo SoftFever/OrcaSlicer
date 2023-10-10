@@ -3,7 +3,8 @@
 
 #include "GLTexture.hpp"
 #include "3DScene.hpp"
-#include "GLModel.hpp"
+#include "CoordAxes.hpp"
+#include "MeshUtils.hpp"
 
 #include <libslic3r/BuildVolume.hpp>
 
@@ -70,7 +71,7 @@ public:
             m_arrow.reset();
         }
         float get_total_length() const { return m_stem_length + DefaultTipLength; }
-        void render() const;
+        void render();
     };
 
 public:
@@ -96,7 +97,7 @@ private:
     GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
     //GLTexture m_temp_texture;
-    GLModel m_model;
+    PickingModel m_model;
     Vec3d m_model_offset{ Vec3d::Zero() };
     unsigned int m_vbo_id{ 0 };
     Axes m_axes;
@@ -142,8 +143,10 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes);
-    //void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+    void render(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor, bool show_axes);
+    void render_axes();
+    void render_for_picking(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor);
+
 
     void on_change_color_mode(bool is_dark);
 
@@ -155,17 +158,24 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     void update_model_offset() const;
     //BBS: with offset
-    GeometryBuffer update_bed_triangles() const;
+    GeometryBuffer update_bed_triangles();
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
-    void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
-        bool show_axes);
-    void render_axes() const;
-    void render_system(GLCanvas3D& canvas, bool bottom) const;
+    void render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
+
+    void render_internal(GLCanvas3D        &canvas,
+                         const Transform3d &view_matrix,
+                         const Transform3d &projection_matrix,
+                         bool               bottom,
+                         float              scale_factor,
+                         bool               show_axes,
+                         bool               picking);
     //void render_texture(bool bottom, GLCanvas3D& canvas) const;
-    void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom) const;
-    void render_default(bool bottom) const;
+    void render_model(const Transform3d& view_matrix, const Transform3d& projection_matrix);
+    // void render_model();
+    void render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool picking);
+    void render_default(bool bottom, bool picking, const Transform3d& view_matrix, const Transform3d& projection_matrix);
     void release_VBOs();
+    void register_raycasters_for_picking(const GLModel::Geometry& geometry, const Transform3d& trafo);
 };
 
 } // GUI

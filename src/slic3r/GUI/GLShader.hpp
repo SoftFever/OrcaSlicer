@@ -9,6 +9,9 @@
 
 namespace Slic3r {
 
+class ColorRGB;
+class ColorRGBA;
+
 class GLShaderProgram
 {
 public:
@@ -61,7 +64,11 @@ public:
     void set_uniform(const char* name, const Matrix3d& value) const;
     bool set_uniform(const char* name, const Vec3f& value) const;
     bool set_uniform(const char* name, const Vec3d& value) const;
+    void set_uniform(const char* name, const ColorRGB& value) const { set_uniform(get_uniform_location(name), value); }
+    void set_uniform(const char* name, const ColorRGBA& value) const { set_uniform(get_uniform_location(name), value); }
 
+    void set_uniform(int id, const ColorRGB& value) const;
+    void set_uniform(int id, const ColorRGBA& value) const;
     void set_uniform(int id, int value) const;
     void set_uniform(int id, bool value) const;
     void set_uniform(int id, float value) const;

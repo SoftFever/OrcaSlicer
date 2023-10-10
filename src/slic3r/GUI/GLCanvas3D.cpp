@@ -1,3 +1,4 @@
+#include "libslic3r/Point.hpp"
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
 
@@ -884,50 +885,45 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
         const size_t vertices_count = 3 * triangles_count;
 
         if (m_render_fill) {
-            GLModel::InitializationData         fill_data;
-            GLModel::InitializationData::Entity entity;
-            entity.type  = GLModel::PrimitiveType::Triangles;
-            entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
-            entity.positions.reserve(vertices_count);
-            entity.normals.reserve(vertices_count);
-            entity.indices.reserve(vertices_count);
+            GLModel::Geometry fill_data;
+            fill_data.format = {GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3};
+            fill_data.color  = {0.3333f, 0.0f, 0.0f, 0.5f};
 
-            const ExPolygons polygons_union = union_ex(polygons);
+            // vertices + indices
+            const ExPolygons polygons_union   = union_ex(polygons);
+            unsigned int     vertices_counter = 0;
             for (const ExPolygon &poly : polygons_union) {
                 const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
                 for (const Vec3d &v : triangulation) {
-                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                    const size_t positions_count = entity.positions.size();
-                    if (positions_count % 3 == 0) {
-                        entity.indices.emplace_back(positions_count - 3);
-                        entity.indices.emplace_back(positions_count - 2);
-                        entity.indices.emplace_back(positions_count - 1);
-                    }
+                    fill_data.add_vertex(
+                        (Vec3f) (v.cast<float>() + 0.0125f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
+                    ++vertices_counter;
+                    if (vertices_counter % 3 == 0)
+                        fill_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
                 }
             }
 
-            fill_data.entities.emplace_back(entity);
-            m_fill.init_from(fill_data);
+            m_fill.init_from(std::move(fill_data));
         }
 
-        GLModel::InitializationData perimeter_data;
+        GLModel::Geometry perimeter_data;
+        perimeter_data.format = {GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3N3};
         for (const Polygon &poly : polygons) {
-            GLModel::InitializationData::Entity ent;
-            ent.type = GLModel::PrimitiveType::LineLoop;
-            ent.positions.reserve(poly.points.size());
-            ent.indices.reserve(poly.points.size());
+            // GLModel::Geometry::Entity ent;
+            // ent.type = GLModel::EPrimitiveType::LineLoop;
+            // ent.positions.reserve(poly.points.size());
+            // ent.indices.reserve(poly.points.size());
+            perimeter_data.reserve_vertices(perimeter_data.vertices_count() + poly.points.size());
+            perimeter_data.reserve_indices(perimeter_data.indices_count() + poly.points.size());
             unsigned int id_count = 0;
             for (const Point &p : poly.points) {
-                ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f); // add a small positive z to avoid z-fighting
-                ent.normals.emplace_back(Vec3f::UnitZ());
-                ent.indices.emplace_back(id_count++);
+                perimeter_data.add_vertex(Vec3f(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f),
+                                          Vec3f(0, 0, 1)); // add a small positive z to avoid z-fighting
+                perimeter_data.indices.emplace_back(id_count++);
             }
-
-            perimeter_data.entities.emplace_back(ent);
         }
 
-        m_perimeter.init_from(perimeter_data);
+        m_perimeter.init_from(std::move(perimeter_data));
     }
 
     //BBS: add the height limit compute logic
@@ -936,32 +932,27 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
         for (const auto &poly : height_polygons) { height_triangles_count += poly.first.points.size() - 2; }
         const size_t height_vertices_count = 3 * height_triangles_count;
 
-        GLModel::InitializationData         height_fill_data;
-        GLModel::InitializationData::Entity height_entity;
-        height_entity.type  = GLModel::PrimitiveType::Triangles;
-        height_entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
-        height_entity.positions.reserve(height_vertices_count);
-        height_entity.normals.reserve(height_vertices_count);
-        height_entity.indices.reserve(height_vertices_count);
+        GLModel::Geometry         height_fill_data;
+        height_fill_data.format = {GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3};
+        height_fill_data.color  = {0.8f, 0.8f, 1.0f, 0.5f};
+        height_fill_data.reserve_vertices(height_vertices_count);
+        height_fill_data.reserve_indices(height_vertices_count);
 
         for (const auto &poly : height_polygons) {
             ExPolygon                ex_poly(poly.first);
             const std::vector<Vec3d> height_triangulation = triangulate_expolygon_3d(ex_poly);
             for (const Vec3d &v : height_triangulation) {
                 Vec3d point{v.x(), v.y(), poly.second};
-                height_entity.positions.emplace_back(point.cast<float>());
-                height_entity.normals.emplace_back(Vec3f::UnitZ());
-                const size_t height_positions_count = height_entity.positions.size();
+                height_fill_data.add_vertex(point.cast<float>(), Vec3f(0,0,1)); // add a small positive z to avoid z-fighting
+                const size_t height_positions_count = height_fill_data.vertices_count();
                 if (height_positions_count % 3 == 0) {
-                    height_entity.indices.emplace_back(height_positions_count - 3);
-                    height_entity.indices.emplace_back(height_positions_count - 2);
-                    height_entity.indices.emplace_back(height_positions_count - 1);
+                    height_fill_data.add_triangle(height_positions_count - 3, height_positions_count - 2,
+                                              height_positions_count - 1);
                 }
             }
         }
 
-        height_fill_data.entities.emplace_back(height_entity);
-        m_height_limit.init_from(height_fill_data);
+        m_height_limit.init_from(std::move(height_fill_data));
     }
 }
 
@@ -981,11 +972,11 @@ void GLCanvas3D::SequentialPrintClearance::render()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    m_perimeter.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
+    m_perimeter.set_color(m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
     m_perimeter.render();
     m_fill.render();
     //BBS: add height limit
-    m_height_limit.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
+    m_height_limit.set_color(m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
     m_height_limit.render();
 
     glsafe(::glDisable(GL_BLEND));
@@ -1868,14 +1859,20 @@ void GLCanvas3D::render(bool only_init)
     wxGetApp().imgui()->new_frame();
 
     if (m_picking_enabled) {
-        if (m_rectangle_selection.is_dragging())
+        if (m_rectangle_selection.is_dragging() && !m_rectangle_selection.is_empty())
             // picking pass using rectangle selection
             _rectangular_selection_picking_pass();
-        //BBS: enable picking when no volumes for partplate logic
-        //else if (!m_volumes.empty())
-        else
+        else if (!m_volumes.empty())
             // regular picking pass
             _picking_pass();
+#if ENABLE_RAYCAST_PICKING_DEBUG
+        else {
+            ImGuiWrapper& imgui = *wxGetApp().imgui();
+            imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
+            imgui.text("Picking disabled");
+            imgui.end();
+        }
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
     }
 
 #if ENABLE_RENDER_PICKING_PASS
@@ -1903,7 +1900,7 @@ void GLCanvas3D::render(bool only_init)
         _render_sla_slices();
         _render_selection();
         if (!no_partplate)
-            _render_bed(!camera.is_looking_downward(), show_axes);
+            _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
             _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id, true);
         _render_objects(GLVolumeCollection::ERenderType::Transparent, !m_gizmos.is_running());
@@ -1913,7 +1910,7 @@ void GLCanvas3D::render(bool only_init)
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         _render_sla_slices();
         _render_selection();
-        _render_bed(!camera.is_looking_downward(), show_axes);
+        _render_bed(camera.get_view_matrix(), camera.get_projection_matrix(), !camera.is_looking_downward(), show_axes);
         _render_platelist(!camera.is_looking_downward(), only_current, true, hover_id);
         // BBS: GUI refactor: add canvas size as parameters
         _render_gcode(cnv_size.get_width(), cnv_size.get_height());
@@ -2684,6 +2681,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     else
         m_selection.volumes_changed(map_glvolume_old_to_new);
 
+    // @Enrico suggest this solution to preven accessing pointer on caster without data
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Volume);
     m_gizmos.update_data();
     m_gizmos.update_assemble_view_data();
     m_gizmos.refresh_on_off_state();
@@ -2737,6 +2736,22 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             manip->set_dirty();
 #endif
     }
+    
+    // refresh volume raycasters for picking
+    for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
+        const GLVolume* v = m_volumes.volumes[i];
+        assert(v->mesh_raycaster != nullptr);
+        std::shared_ptr<SceneRaycasterItem> raycaster = add_raycaster_for_picking(SceneRaycaster::EType::Volume, i, *v->mesh_raycaster, v->world_matrix());
+        raycaster->set_active(v->is_active);
+    }
+    // refresh gizmo elements raycasters for picking
+    GLGizmoBase* curr_gizmo = m_gizmos.get_current();
+    if (curr_gizmo != nullptr)
+        curr_gizmo->unregister_raycasters_for_picking();
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Gizmo);
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::FallbackGizmo);
+    if (curr_gizmo != nullptr && !m_selection.is_empty())
+        curr_gizmo->register_raycasters_for_picking();
 
     // and force this canvas to be redrawn.
     m_dirty = true;
@@ -6472,93 +6487,165 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
-    std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
-    std::vector<int>* hover_plate_idxs = const_cast<std::vector<int>*>(&m_hover_plate_idxs);
+    if (!m_picking_enabled || m_mouse.dragging || m_mouse.position == Vec2d(DBL_MAX, DBL_MAX) || m_gizmos.is_dragging()) {
+#if ENABLE_RAYCAST_PICKING_DEBUG
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+        imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
+        imgui.text("Picking disabled");
+        imgui.end();
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
+        return;
+    }
 
-    if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
-        hover_volume_idxs->clear();
-        hover_plate_idxs->clear();
+    m_hover_volume_idxs.clear();
 
-        // Render the object for picking.
-        // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
-        // Better to use software ray - casting on a bounding - box hierarchy.
-
-        if (m_multisample_allowed)
-        	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
-            glsafe(::glDisable(GL_MULTISAMPLE));
-
-        glsafe(::glDisable(GL_BLEND));
-        glsafe(::glEnable(GL_DEPTH_TEST));
-
-        glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-        //BBS: only render plate in view 3D
-        if (m_canvas_type == ECanvasType::CanvasView3D) {
-            _render_plates_for_picking();
-        }
-
-        m_camera_clipping_plane = m_gizmos.get_clipping_plane();
-        if (m_camera_clipping_plane.is_active()) {
-            ::glClipPlane(GL_CLIP_PLANE0, (GLdouble*)m_camera_clipping_plane.get_data());
-            ::glEnable(GL_CLIP_PLANE0);
-        }
-        _render_volumes_for_picking();
-        if (m_camera_clipping_plane.is_active())
-            ::glDisable(GL_CLIP_PLANE0);
-
-        //BBS: remove the bed picking logic
-        //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
-
-        m_gizmos.render_current_gizmo_for_picking_pass();
-
-        if (m_multisample_allowed)
-            glsafe(::glEnable(GL_MULTISAMPLE));
-
-        int volume_id = -1;
-        int gizmo_id = -1;
-
-        GLubyte color[4] = { 0, 0, 0, 0 };
-        const Size& cnv_size = get_canvas_size();
-        bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
-        if (inside) {
-            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
-            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
-                // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-                // we reserve color = (0,0,0) for occluders (as the printbed)
-                // volumes' id are shifted by 1
-                // see: _render_volumes_for_picking()
-                //BBS: remove the bed picking logic
-                //volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
-                volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
-                // gizmos' id are instead properly encoded by the color
-                gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
-            }
-        }
-        else
-            m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
-
-        //BBS: add plate picking logic
-        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
-        if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
-            wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
-            hover_plate_idxs->emplace_back(plate_hover_id);
-            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
-        }
-        else {
-            wxGetApp().plater()->get_partplate_list().reset_hover_id();
-            if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
-                // do not add the volume id if any gizmo is active and CTRL is pressed
-                if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
-                    hover_volume_idxs->emplace_back(volume_id);
-                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+    const ClippingPlane clipping_plane = m_gizmos.get_clipping_plane().inverted_normal();
+    const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(m_mouse.position, wxGetApp().plater()->get_camera(), &clipping_plane);
+    if (hit.is_valid()) {
+        switch (hit.type)
+        {
+        case SceneRaycaster::EType::Volume:
+        {
+            if (0 <= hit.raycaster_id && hit.raycaster_id < (int)m_volumes.volumes.size()) {
+                const GLVolume* volume = m_volumes.volumes[hit.raycaster_id];
+                if (volume->is_active && !volume->disabled && (volume->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
+                    // do not add the volume id if any gizmo is active and CTRL is pressed
+                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+                        m_hover_volume_idxs.emplace_back(hit.raycaster_id);
+                    m_gizmos.set_hover_id(-1);
+                }
             }
             else
-                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
-        }
+                assert(false);
 
-        _update_volumes_hover_state();
+            break;
+        }
+        case SceneRaycaster::EType::Gizmo:
+        case SceneRaycaster::EType::FallbackGizmo:
+        {
+            const Size& cnv_size = get_canvas_size();
+            const bool inside = 0 <= m_mouse.position.x() && m_mouse.position.x() < cnv_size.get_width() &&
+                0 <= m_mouse.position.y() && m_mouse.position.y() < cnv_size.get_height();
+            m_gizmos.set_hover_id(inside ? hit.raycaster_id : -1);
+            break;
+        }
+        case SceneRaycaster::EType::Bed:
+        {
+            m_gizmos.set_hover_id(-1);
+            break;
+        }
+        default:
+        {
+            assert(false);
+            break;
+        }
+        }
     }
+    else
+        m_gizmos.set_hover_id(-1);
+
+    _update_volumes_hover_state();
+
+#if ENABLE_RAYCAST_PICKING_DEBUG
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
+    std::string object_type = "None";
+    switch (hit.type)
+    {
+    case SceneRaycaster::EType::Bed:   { object_type = "Bed"; break; }
+    case SceneRaycaster::EType::Gizmo: { object_type = "Gizmo element"; break; }
+    case SceneRaycaster::EType::FallbackGizmo: { object_type = "Gizmo2 element"; break; }
+    case SceneRaycaster::EType::Volume:
+    {
+        if (m_volumes.volumes[hit.raycaster_id]->is_wipe_tower)
+            object_type = "Volume (Wipe tower)";
+        else if (m_volumes.volumes[hit.raycaster_id]->volume_idx() == -int(slaposPad))
+            object_type = "Volume (SLA pad)";
+        else if (m_volumes.volumes[hit.raycaster_id]->volume_idx() == -int(slaposSupportTree))
+            object_type = "Volume (SLA supports)";
+        else if (m_volumes.volumes[hit.raycaster_id]->is_modifier)
+            object_type = "Volume (Modifier)";
+        else
+            object_type = "Volume (Part)";
+        break;
+    }
+    default: { break; }
+    }
+
+    auto add_strings_row_to_table = [&imgui](const std::string& col_1, const ImVec4& col_1_color, const std::string& col_2, const ImVec4& col_2_color,
+        const std::string& col_3 = "", const ImVec4& col_3_color = ImGui::GetStyleColorVec4(ImGuiCol_Text)) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        imgui.text_colored(col_1_color, col_1.c_str());
+        ImGui::TableSetColumnIndex(1);
+        imgui.text_colored(col_2_color, col_2.c_str());
+        if (!col_3.empty()) {
+            ImGui::TableSetColumnIndex(2);
+            imgui.text_colored(col_3_color, col_3.c_str());
+        }
+    };
+
+    char buf[1024];
+    if (hit.type != SceneRaycaster::EType::None) {
+        if (ImGui::BeginTable("Hit", 2)) {
+            add_strings_row_to_table("Object ID", ImGuiWrapper::COL_ORANGE_LIGHT, std::to_string(hit.raycaster_id), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            add_strings_row_to_table("Type", ImGuiWrapper::COL_ORANGE_LIGHT, object_type, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            sprintf(buf, "%.3f, %.3f, %.3f", hit.position.x(), hit.position.y(), hit.position.z());
+            add_strings_row_to_table("Position", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            sprintf(buf, "%.3f, %.3f, %.3f", hit.normal.x(), hit.normal.y(), hit.normal.z());
+            add_strings_row_to_table("Normal", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            ImGui::EndTable();
+        }
+    }
+    else
+        imgui.text("NO HIT");
+
+    ImGui::Separator();
+    imgui.text("Registered for picking:");
+    if (ImGui::BeginTable("Raycasters", 2)) {
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.beds_count(), (int)m_scene_raycaster.active_beds_count());
+        add_strings_row_to_table("Beds", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.volumes_count(), (int)m_scene_raycaster.active_volumes_count());
+        add_strings_row_to_table("Volumes", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.gizmos_count(), (int)m_scene_raycaster.active_gizmos_count());
+        add_strings_row_to_table("Gizmo elements", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.fallback_gizmos_count(), (int)m_scene_raycaster.active_fallback_gizmos_count());
+        add_strings_row_to_table("Gizmo2 elements", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        ImGui::EndTable();
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* gizmo_raycasters = m_scene_raycaster.get_raycasters(SceneRaycaster::EType::Gizmo);
+    if (gizmo_raycasters != nullptr && !gizmo_raycasters->empty()) {
+        ImGui::Separator();
+        imgui.text("Gizmo raycasters IDs:");
+        if (ImGui::BeginTable("GizmoRaycasters", 3)) {
+            for (size_t i = 0; i < gizmo_raycasters->size(); ++i) {
+                add_strings_row_to_table(std::to_string(i), ImGuiWrapper::COL_ORANGE_LIGHT,
+                    std::to_string(SceneRaycaster::decode_id(SceneRaycaster::EType::Gizmo, (*gizmo_raycasters)[i]->get_id())), ImGui::GetStyleColorVec4(ImGuiCol_Text),
+                    to_string(Geometry::Transformation((*gizmo_raycasters)[i]->get_transform()).get_offset()), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            }
+            ImGui::EndTable();
+        }
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* gizmo2_raycasters = m_scene_raycaster.get_raycasters(SceneRaycaster::EType::FallbackGizmo);
+    if (gizmo2_raycasters != nullptr && !gizmo2_raycasters->empty()) {
+        ImGui::Separator();
+        imgui.text("Gizmo2 raycasters IDs:");
+        if (ImGui::BeginTable("Gizmo2Raycasters", 3)) {
+            for (size_t i = 0; i < gizmo2_raycasters->size(); ++i) {
+                add_strings_row_to_table(std::to_string(i), ImGuiWrapper::COL_ORANGE_LIGHT,
+                    std::to_string(SceneRaycaster::decode_id(SceneRaycaster::EType::FallbackGizmo, (*gizmo2_raycasters)[i]->get_id())), ImGui::GetStyleColorVec4(ImGuiCol_Text),
+                    to_string(Geometry::Transformation((*gizmo2_raycasters)[i]->get_transform()).get_offset()), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            }
+            ImGui::EndTable();
+        }
+    }
+
+    imgui.end();
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
 }
+
 
 void GLCanvas3D::_rectangular_selection_picking_pass()
 {
@@ -6701,35 +6788,26 @@ void GLCanvas3D::_render_background() const
     glsafe(::glPopMatrix());
 }
 
-void GLCanvas3D::_render_bed(bool bottom, bool show_axes)
+void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool show_axes)
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
 
-    /*
-    bool show_texture = ! bottom ||
-            (m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
-          && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
-          && m_gizmos.get_current_type() != GLGizmosManager::Hollow
-          && m_gizmos.get_current_type() != GLGizmosManager::Seam
-          && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation);
-    */
-    //bool show_texture = true;
-    //BBS set axes mode
     m_bed.set_axes_mode(m_main_toolbar.is_enabled());
-    m_bed.render(*this, bottom, scale_factor, show_axes);
+    m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
-void GLCanvas3D::_render_bed_for_picking(bool bottom)
+
+void GLCanvas3D::_render_bed_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
     scale_factor = m_retina_helper->get_scale_factor();
 #endif // ENABLE_RETINA_GL
 
-    //m_bed.render_for_picking(*this, bottom, scale_factor);
+    m_bed.render_for_picking(*this, view_matrix, projection_matrix, bottom, scale_factor);
 }
 
 void GLCanvas3D::_render_platelist(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali) const
@@ -6822,7 +6900,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         default:
         case GLVolumeCollection::ERenderType::Opaque:
         {
-            const GLGizmosManager& gm = get_gizmos_manager();
+            GLGizmosManager& gm = get_gizmos_manager();
             if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr)
             {
                 if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
@@ -6935,7 +7013,7 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
     }
 }
 
-void GLCanvas3D::_render_selection() const
+void GLCanvas3D::_render_selection()
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
@@ -8220,7 +8298,7 @@ void GLCanvas3D::_render_sla_slices()
     }
 }
 
-void GLCanvas3D::_render_selection_sidebar_hints() const
+void GLCanvas3D::_render_selection_sidebar_hints()
 {
     m_selection.render_sidebar_hints(m_sidebar_field, m_gizmos.get_uniform_scaling());
 }
@@ -8334,21 +8412,17 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     if (m_canvas == nullptr)
         return Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
 
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    Matrix4d modelview = camera.get_view_matrix().matrix();
-    Matrix4d projection= camera.get_projection_matrix().matrix();
-    Vec4i viewport(camera.get_viewport().data());
-
-    GLint y = viewport[3] - (GLint)mouse_pos(1);
-    GLfloat mouse_z;
-    if (z == nullptr)
-        glsafe(::glReadPixels((GLint)mouse_pos(0), y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z));
-    else
-        mouse_z = *z;
-
-    Vec3d out;
-    igl::unproject(Vec3d(mouse_pos(0), y, mouse_z), modelview, projection, viewport, out);
-    return out;
+    if (z == nullptr) {
+        const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(mouse_pos.cast<double>(), wxGetApp().plater()->get_camera(), nullptr);
+        return hit.is_valid() ? hit.position.cast<double>() : _mouse_to_bed_3d(mouse_pos);
+    }
+    else {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Vec4i viewport(camera.get_viewport().data());
+        Vec3d out;
+        igl::unproject(Vec3d(mouse_pos.x(), viewport[3] - mouse_pos.y(), *z), camera.get_view_matrix().matrix(), camera.get_projection_matrix().matrix(), viewport, out);
+        return out;
+    }
 }
 
 Vec3d GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)

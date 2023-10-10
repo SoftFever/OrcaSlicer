@@ -56,6 +56,8 @@ public:
     void set_offset(double offset) { m_data[3] = offset; }
     double get_offset() const { return m_data[3]; }
     Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
+    void invert_normal() { m_data[0] *= -1.0; m_data[1] *= -1.0; m_data[2] *= -1.0; }
+    ClippingPlane inverted_normal() const { return ClippingPlane(-get_normal(), get_offset()); }
     bool is_active() const { return m_data[3] != DBL_MAX; }
     static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
     const double* get_data() const { return m_data; }
@@ -129,19 +131,23 @@ private:
 // whether certain points are visible or obscured by the mesh etc.
 class MeshRaycaster {
 public:
-    // The class references extern TriangleMesh, which must stay alive
-    // during MeshRaycaster existence.
-    MeshRaycaster(const TriangleMesh& mesh)
-        : m_emesh(mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
-        , m_normals(its_face_normals(mesh.its))
+    explicit MeshRaycaster(std::shared_ptr<const TriangleMesh> mesh)
+        : m_mesh(std::move(mesh))
+        , m_emesh(*m_mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
+        , m_normals(its_face_normals(m_mesh->its))
     {
+        assert(m_mesh);
     }
 
+    explicit MeshRaycaster(const TriangleMesh &mesh)
+        : MeshRaycaster(std::make_unique<TriangleMesh>(mesh))
+    {}
     static void line_from_mouse_pos_static(const Vec2d &mouse_pos, const Transform3d &trafo,
         const Camera &camera, Vec3d &point, Vec3d &direction);
-
-    void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                             Vec3d& point, Vec3d& direction) const;
+        
+    // DEPRICATED - use CameraUtils::ray_from_screen_pos
+    static void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+        Vec3d& point, Vec3d& direction);
 
     // Given a mouse position, this returns true in case it is on the mesh.
     bool unproject_on_mesh(
@@ -152,8 +158,14 @@ public:
         Vec3f& normal, // normal of the triangle that was hit
         const ClippingPlane* clipping_plane = nullptr, // clipping plane (if active)
         size_t* facet_idx = nullptr, // index of the facet hit
-        bool sinking_limit = true
+bool sinking_limit = true
     ) const;
+    
+    const AABBMesh &get_aabb_mesh() const { return m_emesh; }
+
+    // Given a point and direction in world coords, returns whether the respective line
+    // intersects the mesh if it is transformed into world by trafo.
+    bool intersects_line(Vec3d point, Vec3d direction, const Transform3d& trafo) const;
 
     // Given a vector of points in woorld coordinates, this returns vector
     // of indices of points that are visible (i.e. not cut by clipping plane
@@ -165,11 +177,6 @@ public:
         const ClippingPlane* clipping_plane = nullptr // clipping plane (if active)
     ) const;
 
-    // Given a point in world coords, the method returns closest point on the mesh.
-    // The output is in mesh coords.
-    // normal* can be used to also get normal of the respective triangle.
-
-    Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
     // Returns true if the ray, built from mouse position and camera direction, intersects the mesh.
     // In this case, position and normal contain the position and normal, in model coordinates, of the intersection closest to the camera,
     // depending on the position/orientation of the clipping_plane, if specified 
@@ -182,16 +189,22 @@ public:
         const ClippingPlane* clipping_plane = nullptr, // clipping plane (if active)
         size_t* facet_idx = nullptr // index of the facet hit
     ) const;
+
+    // Given a point in world coords, the method returns closest point on the mesh.
+    // The output is in mesh coords.
+    // normal* can be used to also get normal of the respective triangle.
+    Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
+
     // Given a point in mesh coords, the method returns the closest facet from mesh.
     int get_closest_facet(const Vec3f &point) const;
 
     Vec3f get_triangle_normal(size_t facet_idx) const;
 
 private:
+    std::shared_ptr<const TriangleMesh> m_mesh;
     AABBMesh m_emesh;
     std::vector<stl_normal> m_normals;
 };
-
 struct PickingModel
 {
     GLModel model;
