@@ -299,20 +299,15 @@ typedef struct _cli_callback_mgr {
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start enter.";
         m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
         while (m_pipe_fd < 0) {
-            BOOST_LOG_TRIVIAL(warning) << boost::format("could not open pipe for %1%, errno %2%, retry_count = %3%")%pipe_name %errno %retry_count;
-            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-                retry_count ++;
-                if (retry_count >= 10) {
-                    BOOST_LOG_TRIVIAL(warning) << boost::format("reach max retry_count, failed to open pipe");
-                    return false;
-                }
-                boost::this_thread::sleep(boost::posix_time::milliseconds(20));
-                m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
-            }
-            else {
-                BOOST_LOG_TRIVIAL(warning) << boost::format("Failed to open pipe, reason: %1%")%strerror(errno);
+            if ((retry_count%10) == 0)
+                BOOST_LOG_TRIVIAL(warning) << boost::format("could not open pipe for %1%, errno %2%, reason: %3%, retry_count = %4%")%pipe_name %errno %strerror(errno) %retry_count;
+            retry_count ++;
+            if (retry_count >= 50) {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("reach max retry_count, failed to open pipe");
                 return false;
             }
+            boost::this_thread::sleep(boost::posix_time::milliseconds(20));
+            m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
         }
         std::unique_lock<std::mutex> lck(m_mutex);
         m_thread = create_thread([this]{
