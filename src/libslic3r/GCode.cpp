@@ -1875,6 +1875,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     } else
 	    m_enable_extrusion_role_markers = false;
 
+    // if thumbnail type of BIQU, insert above header
+    // if not, it is inserted under the header in its normal spot
+    const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
+    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BIQU)
+        GCodeThumbnails::export_thumbnails_to_file(
+            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+            m_gcode_thumbnail_format,
+            [&file](const char *sz) { file.write(sz); },
+            [&print]() { print.throw_if_canceled(); });
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -1934,11 +1943,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
-        GCodeThumbnails::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-            print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format"),
-            [&file](const char *sz) { file.write(sz); },
-            [&print]() { print.throw_if_canceled(); });
+        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BIQU)
+          GCodeThumbnails::export_thumbnails_to_file(
+              thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+              m_gcode_thumbnail_format,
+              [&file](const char *sz) { file.write(sz); },
+              [&print]() { print.throw_if_canceled(); });
       }
     }
 

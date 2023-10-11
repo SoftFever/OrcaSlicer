@@ -31,6 +31,12 @@ struct CompressedQOI : CompressedImageBuffer
     std::string_view tag() const override { return "thumbnail_QOI"sv; }
 };
 
+struct CompressedBIQU : CompressedImageBuffer
+{
+    ~CompressedBIQU() override { free(data); }
+    std::string_view tag() const override { return "thumbnail_BIQU"sv; }
+};
+
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail_png(const ThumbnailData &data)
 {
     auto out = std::make_unique<CompressedPNG>();
@@ -107,6 +113,69 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_qoi(const ThumbnailDat
     return out;
 }
 
+std::unique_ptr<CompressedImageBuffer> compress_thumbnail_biqu(const ThumbnailData &data) {
+
+    // Take vector of RGBA pixels and flip the image vertically
+    std::vector<unsigned char> rgba_pixels(data.pixels.size());
+    const unsigned int row_size = data.width * 4;
+    for (unsigned int y = 0; y < data.height; ++y) {
+        ::memcpy(rgba_pixels.data() + (data.height - y - 1) * row_size, data.pixels.data() + y * row_size, row_size);
+    }
+
+    auto out = std::make_unique<CompressedBIQU>();
+
+    out->size = data.height * (2 + data.width * 4) + 1;
+    out->data = malloc(out->size);
+
+    std::stringstream out_data;
+    typedef struct {unsigned char r, g, b, a;} pixel;
+    pixel px;
+    for (int ypos = 0; ypos < data.height; ypos++) {
+        std::stringstream qrgb;
+        qrgb << ";";
+        for (int xpos = 0; xpos < row_size; xpos+=4) {
+            px.r = rgba_pixels[ypos * row_size + xpos];
+            px.g = rgba_pixels[ypos * row_size + xpos + 1];
+            px.b = rgba_pixels[ypos * row_size + xpos + 2];
+            px.a = rgba_pixels[ypos * row_size + xpos + 3];
+
+            // Uses modified algorithm from PyQt5/Qt (the native BTT plugin for Cura uses this)
+            unsigned int QRgb = ((px.a & 0xffu) << 24) | ((px.r & 0xffu) << 16) | ((px.g & 0xffu) << 8) | (px.b & 0xffu);
+            unsigned int t = (QRgb & 0xff00ff) * px.a;
+            t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;
+            t &= 0xff00ff;
+
+            QRgb = ((QRgb >> 8) & 0xff) * px.a;
+            QRgb = (QRgb + ((QRgb >> 8) & 0xff) + 0x80);
+            QRgb &= 0xff00;
+            QRgb = QRgb | t | (px.a << 24);
+
+            auto dummy = rjust(get_hex(((QRgb & 0x00F80000) >> 8 ) | ((QRgb & 0x0000FC00) >> 5 ) | ((QRgb & 0x000000F8) >> 3 )), 4, '0');
+            if (dummy == "0020" || dummy == "0841" || dummy == "0861")
+                dummy = "0000";
+            qrgb << dummy;
+        }
+        out_data << qrgb.str() << std::endl;
+        qrgb.clear();
+    }
+    ::memcpy(out->data, (const void*) out_data.str().c_str(), out->size);
+    return out;
+}
+
+std::string get_hex(const unsigned int input) {
+    std::stringstream stream;
+    stream << std::hex << input;
+    return stream.str();
+}
+
+std::string rjust(std::string input, unsigned int width, char fill_char) {
+    std::stringstream stream;
+    stream.fill(fill_char);
+    stream.width(width);
+    stream << input;
+    return stream.str();
+}
+
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &data, GCodeThumbnailsFormat format)
 {
     switch (format) {
@@ -117,6 +186,8 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &d
         return compress_thumbnail_jpg(data);
     case GCodeThumbnailsFormat::QOI:
         return compress_thumbnail_qoi(data);
+    case GCodeThumbnailsFormat::BIQU:
+        return compress_thumbnail_biqu(data);
     }
 }
 

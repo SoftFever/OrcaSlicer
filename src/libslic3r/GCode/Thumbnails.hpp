@@ -25,6 +25,8 @@ struct CompressedImageBuffer
     virtual std::string_view tag() const = 0;
 };
 
+std::string get_hex(const unsigned int input);
+std::string rjust(std::string input, unsigned int width, char fill_char);
 std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &data, GCodeThumbnailsFormat format);
 
 template<typename WriteToOutput, typename ThrowIfCanceledCallback>
@@ -34,28 +36,42 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
     if (thumbnail_cb != nullptr) {
         static constexpr const size_t max_row_length = 78;
         ThumbnailsList thumbnails = thumbnail_cb(ThumbnailsParams{ sizes, true, true, true, true, plate_id });
-        for (const ThumbnailData& data : thumbnails)
+        short i = 0;
+        for (const ThumbnailData& data : thumbnails) {
             if (data.is_valid()) {
                 auto compressed = compress_thumbnail(data, format);
                 if (compressed->data && compressed->size) {
-                    std::string encoded;
-                    encoded.resize(boost::beast::detail::base64::encoded_size(compressed->size));
-                    encoded.resize(boost::beast::detail::base64::encode((void*)encoded.data(), (const void*)compressed->data, compressed->size));
+                    if (format == GCodeThumbnailsFormat::BIQU) {
+                        // write BIQU header
+                        output((";" + rjust(get_hex(data.width), 4, '0') + rjust(get_hex(data.height), 4, '0') + "\n").c_str());
+                        output((char *) compressed->data);
+                        if (i == (thumbnails.size() - 1))
+                            output("; bigtree thumbnail end\n\n");
+                    } else {
+                        std::string encoded;
+                        encoded.resize(boost::beast::detail::base64::encoded_size(compressed->size));
+                        encoded.resize(boost::beast::detail::base64::encode((void *) encoded.data(), (const void *) compressed->data,
+                                                                            compressed->size));
 
-                    output((boost::format("\n;\n; %s begin %dx%d %d\n") % compressed->tag() % data.width % data.height % encoded.size()).str().c_str());
+                        output((boost::format("\n;\n; %s begin %dx%d %d\n") % compressed->tag() % data.width % data.height % encoded.size())
+                                   .str()
+                                   .c_str());
 
-                    while (encoded.size() > max_row_length) {
-                        output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
-                        encoded = encoded.substr(max_row_length);
+                        while (encoded.size() > max_row_length) {
+                            output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
+                            encoded = encoded.substr(max_row_length);
+                        }
+
+                        if (encoded.size() > 0)
+                            output((boost::format("; %s\n") % encoded).str().c_str());
+
+                        output((boost::format("; %s end\n;\n") % compressed->tag()).str().c_str());
                     }
-
-                    if (encoded.size() > 0)
-                        output((boost::format("; %s\n") % encoded).str().c_str());
-
-                    output((boost::format("; %s end\n;\n") % compressed->tag()).str().c_str());
+                    throw_if_canceled();
                 }
-                throw_if_canceled();
+                i++;
             }
+        }
     }
 }
 

@@ -234,7 +234,7 @@ enum RetractLiftEnforceType {
 };
 
 enum class GCodeThumbnailsFormat {
-    PNG, JPG, QOI
+    PNG, JPG, QOI, BIQU
 };
 
 static std::string bed_type_to_gcode_string(const BedType type)
