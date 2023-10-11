@@ -43,38 +43,6 @@ public:
 class Bed3D
 {
 public:
-    static std::array<float, 4> AXIS_X_COLOR;
-    static std::array<float, 4> AXIS_Y_COLOR;
-    static std::array<float, 4> AXIS_Z_COLOR;
-
-    static void update_render_colors();
-    static void load_render_colors();
-
-    class Axes
-    {
-    public:
-        static const float DefaultStemRadius;
-        static const float DefaultStemLength;
-        static const float DefaultTipRadius;
-        static const float DefaultTipLength;
-
-    private:
-        Vec3d m_origin{ Vec3d::Zero() };
-        float m_stem_length{ DefaultStemLength };
-        GLModel m_arrow;
-
-    public:
-        const Vec3d& get_origin() const { return m_origin; }
-        void set_origin(const Vec3d& origin) { m_origin = origin; }
-        void set_stem_length(float length) {
-            m_stem_length = length;
-            m_arrow.reset();
-        }
-        float get_total_length() const { return m_stem_length + DefaultTipLength; }
-        void render();
-    };
-
-public:
     enum class Type : unsigned char
     {
         // The print bed model and texture are available from some printer preset.
@@ -100,7 +68,7 @@ private:
     PickingModel m_model;
     Vec3d m_model_offset{ Vec3d::Zero() };
     unsigned int m_vbo_id{ 0 };
-    Axes m_axes;
+    CoordAxes m_axes;
 
     float m_scale_factor{ 1.0f };
     //BBS: add part plate related logic

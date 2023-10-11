@@ -133,67 +133,6 @@ const float* GeometryBuffer::get_vertices_data() const
     return (m_vertices.size() > 0) ? (const float*)m_vertices.data() : nullptr;
 }
 
-const float Bed3D::Axes::DefaultStemRadius = 0.5f;
-const float Bed3D::Axes::DefaultStemLength = 25.0f;
-const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
-const float Bed3D::Axes::DefaultTipLength = 5.0f;
-
-std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#FF0000");
-std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#00FF00");
-std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0000FF");
-
-void Bed3D::update_render_colors()
-{
-    Bed3D::AXIS_X_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_X]);
-    Bed3D::AXIS_Y_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_Y]);
-    Bed3D::AXIS_Z_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_Z]);
-}
-
-void Bed3D::load_render_colors()
-{
-    RenderColor::colors[RenderCol_Axis_X] = IMColor(Bed3D::AXIS_X_COLOR);
-    RenderColor::colors[RenderCol_Axis_Y] = IMColor(Bed3D::AXIS_Y_COLOR);
-    RenderColor::colors[RenderCol_Axis_Z] = IMColor(Bed3D::AXIS_Z_COLOR);
-}
-
-void Bed3D::Axes::render()
-{
-    auto render_axis = [this](const Transform3f& transform) {
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixf(transform.data()));
-        m_arrow.render();
-        glsafe(::glPopMatrix());
-    };
-
-    if (!m_arrow.is_initialized())
-        const_cast<GLModel*>(&m_arrow)->init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
-
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (shader == nullptr)
-        return;
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-
-    shader->start_using();
-    shader->set_uniform("emission_factor", 0.0f);
-
-    // x axis
-    const_cast<GLModel*>(&m_arrow)->set_color(AXIS_X_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
-
-    // y axis
-    const_cast<GLModel*>(&m_arrow)->set_color(AXIS_Y_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
-
-    // z axis
-    const_cast<GLModel*>(&m_arrow)->set_color(AXIS_Z_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin).cast<float>());
-
-    shader->stop_using();
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-}
-
 //BBS: add part plate logic
 bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_height, const std::string& custom_model, bool force_as_custom,
     const Vec2d position, bool with_reset)
@@ -407,7 +346,7 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) cons
     Vec3d offset{ m_position.x(), m_position.y(), 0.f };
     //out.merge(m_axes.get_origin() + offset + m_axes.get_total_length() * Vec3d::Ones());
     out.merge(Vec3d(0.f, 0.f, GROUND_Z) + offset + m_axes.get_total_length() * Vec3d::Ones());
-    out.merge(out.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, out.max.z()));
+    out.merge(out.min + Vec3d(-m_axes.get_tip_radius(), -m_axes.get_tip_radius(), out.max.z()));
     //BBS: add part plate related logic.
     if (consider_model_offset) {
         // extend to contain model, if any
@@ -489,7 +428,7 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
 void Bed3D::render_axes()
 {
     if (m_build_volume.valid())
-        m_axes.render();
+        m_axes.render(Transform3d::Identity(), 0.25f);
 }
 
 void Bed3D::render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)

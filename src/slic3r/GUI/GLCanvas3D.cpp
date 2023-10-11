@@ -7305,7 +7305,6 @@ void GLCanvas3D::_render_style_editor()
                     PartPlate::update_render_colors();
                     GLGizmoBase::update_render_colors();
                     GLCanvas3D::update_render_colors();
-                    Bed3D::update_render_colors();
                 }
                 ImGui::SameLine(0.0f, 3.0f);
                 ImGui::TextUnformatted(name);

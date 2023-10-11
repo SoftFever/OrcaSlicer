@@ -3244,7 +3244,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if (load_config) {
                             if (translate_old) {
                                 //set the size back
-                                partplate_list.reset_size(current_width + Bed3D::Axes::DefaultTipRadius, current_depth + Bed3D::Axes::DefaultTipRadius, current_height, false);
+                                partplate_list.reset_size(current_width + CoordAxes::DefaultTipRadius, current_depth + CoordAxes::DefaultTipRadius, current_height, false);
                             }
                             partplate_list.load_from_3mf_structure(plate_data);
                             partplate_list.update_slice_context_to_current_plate(background_process);
@@ -7131,7 +7131,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
         double z = config->opt_float("printable_height");
 
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
-        partplate_list.reset_size(max.x() - min.x() - Bed3D::Axes::DefaultTipRadius, max.y() - min.y() - Bed3D::Axes::DefaultTipRadius, z);
+        partplate_list.reset_size(max.x() - min.x() - CoordAxes::DefaultTipRadius, max.y() - min.y() - CoordAxes::DefaultTipRadius, z);
         partplate_list.set_shapes(shape, exclude_areas, custom_texture, height_to_lid, height_to_rod);
 
         Vec2d new_shape_position = partplate_list.get_current_shape_position();
