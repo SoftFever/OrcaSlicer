@@ -59,11 +59,11 @@ static const int PARTPLATE_TEXT_OFFSET_X2 = 1;
 static const int PARTPLATE_TEXT_OFFSET_Y = 1;
 static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 
-static const float WIPE_TOWER_DEFAULT_X_POS = 165.;
-static const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
+const float WIPE_TOWER_DEFAULT_X_POS = 165.;
+const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
 
-static const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
-static const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
+const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
+const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
 
 std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
@@ -1627,7 +1627,7 @@ std::vector<int> PartPlate::get_used_extruders()
 	return used_extruders;
 }
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int plate_extruder_size, bool use_global_objects) const
 {
 	Vec3d wipe_tower_size;
 
@@ -1650,7 +1650,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 		return wipe_tower_size;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-		if (!contain_instance_totally(obj_idx, 0))
+		if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
 			continue;
 
 		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
@@ -1701,14 +1701,14 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
 	return wipe_tower_size;
 }
 
-arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, int plate_extruder_size) const
+arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, int plate_extruder_size, bool use_global_objects) const
 {
 	float x = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_x"))->get_at(plate_index);
 	float y = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"))->get_at(plate_index);
 	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
 	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
 	float v = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_volume"))->value;
-	Vec3d wipe_tower_size = estimate_wipe_tower_size(config, w, v, plate_extruder_size);
+	Vec3d wipe_tower_size = estimate_wipe_tower_size(config, w, v, plate_extruder_size, use_global_objects);
 	int plate_width=m_width, plate_depth=m_depth;
 	float depth = wipe_tower_size(1);
 	float margin = WIPE_TOWER_MARGIN, wp_brim_width = 0.f;

@@ -522,7 +522,7 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
-    
+
     // temporary workaround for compatibility with older Slicer
     {
         def = this->add("preset_name", coString);
@@ -5208,7 +5208,7 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def = this->add("no_check", coBool);
     def->label = L("No check");
     def->tooltip = L("Do not run any validity checks, such as gcode path conflicts check.");
-    def->set_default_value(new ConfigOptionBool(false)); 
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("normative_check", coBool);
     def->label = L("Normative check");
@@ -5308,12 +5308,13 @@ CLITransformConfigDef::CLITransformConfigDef()
 
     /*def = this->add("duplicate_grid", coPoint);
     def->label = L("Duplicate by grid");
-    def->tooltip = L("Multiply copies by creating a grid.");
+    def->tooltip = L("Multiply copies by creating a grid.");*/
 
     def = this->add("assemble", coBool);
     def->label = L("Assemble");
     def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
-    def->cli = "merge|m";*/
+    //def->cli = "merge|m";
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("convert_unit", coBool);
     def->label = L("Convert Unit");
@@ -5406,6 +5407,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"3,5,10,77\"";
     def->set_default_value(new ConfigOptionInts());
 
+    def = this->add("clone_objects", coInts);
+    def->label = L("Clone Objects");
+    def->tooltip = L("Clone objects in the load list");
+    def->cli_params = "\"1,3,1,10\"";
+    def->set_default_value(new ConfigOptionInts());
+
     def = this->add("uptodate_settings", coStrings);
     def->label = L("load uptodate process/machine settings when using uptodate");
     def->tooltip = L("load uptodate process/machine settings from the specified file when using uptodate");
@@ -5454,6 +5461,17 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Load custom gcode from json");
     def->cli_params = "custom_gcode_toolchange.json";
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("load_filament_ids", coInts);
+    def->label = L("Load filament ids");
+    def->tooltip = L("Load filament ids for each object");
+    def->cli_params = "\"1,2,3,1\"";
+    def->set_default_value(new ConfigOptionInts());
+
+    def = this->add("allow_multicolor_oneplate", coBool);
+    def->label = L("Allow multiple color on one plate");
+    def->tooltip = L("If enabled, the arrange will allow multiple color on one plate ");
+    def->set_default_value(new ConfigOptionBool(true));
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;

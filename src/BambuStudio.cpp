@@ -97,6 +97,7 @@ using namespace Slic3r;
     std::string message;
 }error_message;*/
 
+#define MAX_CLONEABLE_SIZE 512
 
 std::map<int, std::string> cli_errors = {
     {CLI_SUCCESS, "Success."},
@@ -743,6 +744,43 @@ int CLI::run(int argc, char **argv)
     if (custom_gcode_option)
         custom_gcode_file = custom_gcode_option->value;
 
+    bool allow_multicolor_oneplate = m_config.option<ConfigOptionBool>("allow_multicolor_oneplate", true)->value;
+    const std::vector<int>  loaded_filament_ids  = m_config.option<ConfigOptionInts>("load_filament_ids", true)->values;
+    const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
+    //when load objects from stl/obj, the total used filaments set
+    std::set<int> used_filament_set;
+    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, loaded_filament_ids size %2%, clone_objects size %3%")%allow_multicolor_oneplate %loaded_filament_ids.size() %clone_objects.size();
+    if (clone_objects.size() > 0)
+    {
+        if (clone_objects.size() != m_input_files.size())
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("clone_objects size %1% should be the same with input files size %2%")%clone_objects.size() %m_input_files.size();
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+        else if (load_filaments.size() == 0)
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("clone_objects should be used with load_filaments together");
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+    }
+    if (loaded_filament_ids.size() > 0)
+    {
+        if (loaded_filament_ids.size() != m_input_files.size())
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("loaded_filament_ids size %1% should be the same with input files size %2%")%loaded_filament_ids.size() %m_input_files.size();
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+        else if (load_filaments.size() == 0)
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("loaded_filament_ids should be used with load_filaments together");
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+    }
+
     /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
@@ -750,6 +788,7 @@ int CLI::run(int argc, char **argv)
             break;
         }*/
     BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%, use_first_fila_as_default=%3%")%plate_to_slice %normative_check %use_first_fila_as_default;
+    unsigned int input_index = 0;
     //if (!start_as_gcodeviewer) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
@@ -770,11 +809,18 @@ int CLI::run(int argc, char **argv)
                 is_bbl_3mf = false;
                 LoadStrategy strategy;
                 if (boost::algorithm::iends_with(file, ".3mf") && first_file) {
+                    if ((clone_objects.size() > 0) || (loaded_filament_ids.size() > 0))
+                    {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("can not load 3mf when set loaded_filament_ids or clone_objects");
+                        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                        flush_and_exit(CLI_INVALID_PARAMS);
+                    }
                     strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances | LoadStrategy::LoadAuxiliary;
                     //load_aux = true;
                 }
-                else
+                else {
                     strategy = LoadStrategy::LoadModel | LoadStrategy::AddDefaultInstances;
+                }
                 // BBS: adjust whebackup
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
@@ -789,11 +835,11 @@ int CLI::run(int argc, char **argv)
                     }
                     BOOST_LOG_TRIVIAL(info) << boost::format("the first file is a 3mf, version %1%, got plate count %2%") %file_version.to_string() %plate_data_src.size();
                     need_arrange = false;
-                    for (ModelObject* o : model.objects)
+                    /*for (ModelObject* o : model.objects)
                     {
                         orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << ", from bbl 3mf\n";
-                    }
+                    }*/
 
                     Semver old_version(1, 5, 9), old_version2(1, 5, 9);
                     if ((file_version < old_version) && !config.empty()) {
@@ -896,9 +942,56 @@ int CLI::run(int argc, char **argv)
                 else
                 {
                     need_arrange = true;
+                    int object_extruder_id = 0, clone_count = 1;
+                    if (loaded_filament_ids.size() > input_index) {
+                        if (loaded_filament_ids[input_index] > 0) {
+                            if (loaded_filament_ids[input_index] > load_filaments.size()) {
+                                BOOST_LOG_TRIVIAL(error) << boost::format("invalid filament id %1% at index %2%, max %3%")%loaded_filament_ids[input_index] % (input_index + 1) %load_filaments.size();
+                                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                flush_and_exit(CLI_INVALID_PARAMS);
+                            }
+                            object_extruder_id = loaded_filament_ids[input_index];
+                            used_filament_set.emplace(object_extruder_id);
+                        }
+                    }
+
+                    if (clone_objects.size() > input_index) {
+                        if (clone_objects[input_index] > 0) {
+                            if (clone_objects[input_index] > MAX_CLONEABLE_SIZE) {
+                                BOOST_LOG_TRIVIAL(error) << boost::format("invalid clone count %1% at index %2%, max %3%")%clone_objects[input_index] % (input_index + 1) %MAX_CLONEABLE_SIZE;
+                                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                flush_and_exit(CLI_INVALID_PARAMS);
+                            }
+                            clone_count = clone_objects[input_index];
+                        }
+                    }
+
+                    //clone objects process
+                    if (clone_count > 1)
+                    {
+                        unsigned int object_count = model.objects.size();
+
+                        for (unsigned int obj_index = 0; obj_index < object_count; obj_index++)
+                        {
+                            ModelObject* object = model.objects[obj_index];
+
+                            for (unsigned int clone_index = 1; clone_index < clone_count; clone_index++)
+                            {
+                                ModelObject* newObj = model.add_object(*object);
+                                newObj->name = object->name +"_"+ std::to_string(clone_index+1);
+                            }
+                            object->name = object->name +"_"+ std::to_string(1);
+                        }
+                    }
+
                     for (ModelObject* o : model.objects)
                     {
-                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, true));
+                        if (object_extruder_id != 0) {
+                            o->config.set_key_value("extruder", new ConfigOptionInt(object_extruder_id));
+                        }
+
+                        //default not orient for all, if need to orient use the action
+                        //orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
                         BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :"  << o->id().id << ", from stl or other 3mf\n";
                         o->ensure_on_bed();
                     }
@@ -923,6 +1016,7 @@ int CLI::run(int argc, char **argv)
                 // config is applied to m_print_config before the current m_config values.
                 config += std::move(m_print_config);
                 m_print_config = std::move(config);
+                input_index++;
             }
             catch (std::exception& e) {
                 boost::nowide::cerr << file << ": " << e.what() << std::endl;
@@ -1994,8 +2088,8 @@ int CLI::run(int argc, char **argv)
             {
                 ModelObject* new_object = m.add_object(*o);
                 //BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :" << o->id().id << "\n";
-                orients_requirement.emplace(new_object->id().id, orients_requirement[o->id().id]);
-                orients_requirement.erase(o->id().id);
+                //orients_requirement.emplace(new_object->id().id, orients_requirement[o->id().id]);
+                //orients_requirement.erase(o->id().id);
             }
         m.add_default_instances();
         m_models.clear();
@@ -2199,22 +2293,27 @@ int CLI::run(int argc, char **argv)
 
     for (auto const &opt_key : m_transforms) {
         BOOST_LOG_TRIVIAL(info) << "process transform " << opt_key << "\n";
-        if (opt_key == "merge") {
-            //BBS: always merge, do nothing here
-            /*Model m;
-            for (auto& model : m_models)
-                for (ModelObject* o : model.objects)
-                    m.add_object(*o);
-            // Rearrange instances unless --dont-arrange is supplied
-            if (!m_config.opt_bool("dont_arrange")) {
-                m.add_default_instances();
-                if (this->has_print_action())
-                    arrange_objects(m, bed, arrange_cfg);
-                else
-                    arrange_objects(m, InfiniteBed{}, arrange_cfg);
+        if (opt_key == "assemble") {
+            if (clone_objects.size() > 0) {
+                BOOST_LOG_TRIVIAL(error) << "Invalid params: can not set assemble and clone_objects together." << std::endl;
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
             }
+            Model m;
+            ModelObject* new_object = m.add_object();
+            new_object->name = _u8L("Assembly");
+            new_object->add_instance();
+            int idx = 0;
+            for (auto& model : m_models)
+                for (ModelObject* o : model.objects) {
+                    for (auto volume : o->volumes) {
+                        ModelVolume* new_volume = new_object->add_volume(*volume);
+                        // set extruder id
+                        new_volume->config.set_key_value("extruder", new ConfigOptionInt(o->config.extruder()));
+                    }
+                }
             m_models.clear();
-            m_models.emplace_back(std::move(m));*/
+            m_models.emplace_back(std::move(m));
         }
         else if (opt_key == "repetitions") {
             int repetitions_count = m_config.option<ConfigOptionInt>("repetitions")->value;
@@ -2257,7 +2356,7 @@ int CLI::run(int argc, char **argv)
 
             if (orient_option == 0)
             {
-                orients_requirement.clear();
+                //orients_requirement.clear();
                 for (auto& model : m_models)
                     for (ModelObject* o : model.objects)
                     {
@@ -2268,7 +2367,7 @@ int CLI::run(int argc, char **argv)
             else if (orient_option == 1)
             {
                 //force orient
-                orients_requirement.clear();
+                //orients_requirement.clear();
                 for (auto& model : m_models)
                     for (ModelObject* o : model.objects)
                     {
@@ -2675,6 +2774,48 @@ int CLI::run(int argc, char **argv)
 
                     //add the virtual object into unselect list if has
                     partplate_list.preprocess_exclude_areas(unselected);
+
+                    if (used_filament_set.size() > 0)
+                    {
+                        //prepare the wipe tower
+                        int plate_count = partplate_list.get_plate_count();
+                        int extruder_size = used_filament_set.size();
+
+                        auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                        // set the default position, the same with print config(left top)
+                        float x = WIPE_TOWER_DEFAULT_X_POS;
+                        float y = WIPE_TOWER_DEFAULT_Y_POS;
+                        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+                            x = I3_WIPE_TOWER_DEFAULT_X_POS;
+                            y = I3_WIPE_TOWER_DEFAULT_Y_POS;
+                        }
+                        ConfigOptionFloat wt_x_opt(x);
+                        ConfigOptionFloat wt_y_opt(y);
+
+                        //create the options using default if neccessary
+                        ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                        ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+                        ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
+                        ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
+                        ConfigOptionFloat* volume_option = m_print_config.option<ConfigOptionFloat>("prime_volume", true);
+
+                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %volume_option->value ;
+
+
+                        for (int bedid = 0; bedid < MAX_PLATE_COUNT; bedid++) {
+                            int plate_index_valid = std::min(bedid, plate_count - 1);
+                            if (bedid < plate_count) {
+                                wipe_x_option->set_at(&wt_x_opt, plate_index_valid, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_index_valid, 0);
+                            }
+
+
+                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, extruder_size, true);
+
+                            wipe_tower_ap.bed_idx = bedid;
+                            unselected.emplace_back(wipe_tower_ap);
+                        }
+                    }
                 }
                 else {
                     //only arrange current plate
@@ -2798,7 +2939,7 @@ int CLI::run(int argc, char **argv)
 
                 //Step-2:prepare the arrange params
                 arrange_cfg.allow_rotations  = true;
-                arrange_cfg.allow_multi_materials_on_same_plate = true;
+                arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
                 arrange_cfg.avoid_extrusion_cali_region         = false;
                 arrange_cfg.clearance_height_to_rod             = height_to_rod;
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
@@ -2824,7 +2965,7 @@ int CLI::run(int argc, char **argv)
 
                 {
                     BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
-                    BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< arrange_cfg.to_json();
+                    BOOST_LOG_TRIVIAL(info)<< "Arrange full params: "<< arrange_cfg.to_json();
                     BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%")%selected.size();
                     for (auto item : selected)
                         BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
