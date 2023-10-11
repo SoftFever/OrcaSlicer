@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
 
 msgid "Supports Painting"
-msgstr "Onderteuning (Support) tekenen"
+msgstr "Ondersteuning (Support) tekenen"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + muiswiel"
@@ -20,7 +20,7 @@ msgid "Section view"
 msgstr "Doorsnede"
 
 msgid "Reset direction"
-msgstr "Richting resetten"
+msgstr "Richting terugzetten"
 
 msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + muiswiel"
@@ -32,13 +32,13 @@ msgid "Left mouse button"
 msgstr "Linker muisknop"
 
 msgid "Enforce supports"
-msgstr "Support afdwingen"
+msgstr "Ondersteuning afdwingen"
 
 msgid "Right mouse button"
 msgstr "Rechter muisknop"
 
 msgid "Block supports"
-msgstr "Support blokkeren"
+msgstr "Ondersteuning blokkeren"
 
 msgid "Shift + Left mouse button"
 msgstr "Shift + linker muisknop"
@@ -53,16 +53,16 @@ msgid "Highlight overhang areas"
 msgstr "Overhangende gebieden markeren"
 
 msgid "Gap fill"
-msgstr "Gat vullen"
+msgstr "Gatvulling"
 
 msgid "Perform"
 msgstr "Uitvoeren"
 
 msgid "Gap area"
-msgstr "Gap gebied"
+msgstr "Gat gebied"
 
 msgid "Tool type"
-msgstr "Gereedschap type"
+msgstr "Hulpmiddel type"
 
 msgid "Smart fill angle"
 msgstr "Slim vullen hoek"
@@ -71,7 +71,7 @@ msgid "On overhangs only"
 msgstr "Alleen op overhangen"
 
 msgid "Auto support threshold angle: "
-msgstr "Maximale hoek automatische support: "
+msgstr "Maximale hoek automatische ondersteuning: "
 
 msgid "Circle"
 msgstr "Cirkel"
@@ -93,13 +93,13 @@ msgid "Highlight faces according to overhang angle."
 msgstr "Gebieden markeren op basis van overhangende hoek."
 
 msgid "No auto support"
-msgstr "Geen automatisch support"
+msgstr "Geen automatische ondersteuning"
 
 msgid "Support Generated"
-msgstr "Support gegenereerd"
+msgstr "Ondersteuning gegenereerd"
 
 msgid "Lay on face"
-msgstr "Deze zijde op de printplaat plaatsen"
+msgstr "Op deze zijde neerleggen."
 
 #, boost-format
 msgid ""
@@ -107,7 +107,7 @@ msgid ""
 "the first %1% filaments will be available in painting tool."
 msgstr ""
 "Het aantal filamenten overschrijdt het maximale aantal dat het "
-"tekengereedschap ondersteunt. alleen de eerste %1% filamenten zijn "
+"tekengereedschap ondersteunt. Alleen de eerste %1% filamenten zijn "
 "beschikbaar in de tekentool."
 
 msgid "Color Painting"
@@ -150,7 +150,7 @@ msgid "Ctrl + Shift + Enter"
 msgstr "Ctrl + Shift + Enter"
 
 msgid "Toggle Wireframe"
-msgstr "Schakel Wireframe in of uit"
+msgstr "Schakel draadmodel in of uit"
 
 msgid "Shortcut Key "
 msgstr "Sneltoest "
@@ -162,20 +162,20 @@ msgid "Height Range"
 msgstr "Hoogtebereik"
 
 msgid "Remove painted color"
-msgstr "Getekende kleur verwijderen"
+msgstr "Geschilderd kleur verwijderen"
 
 #, boost-format
 msgid "Painted using: Filament %1%"
-msgstr "Getekend met filament %1%"
+msgstr "Geschilderd met filament %1%"
 
 msgid "Move"
-msgstr "Verplaatsen"
+msgstr "Verplaats"
 
 msgid "Rotate"
-msgstr "Roteren"
+msgstr "Draai"
 
 msgid "Optimize orientation"
-msgstr "Orientatie optimaliseren"
+msgstr "Oriëntatie optimaliseren"
 
 msgid "Apply"
 msgstr "Toepassen"
@@ -184,10 +184,10 @@ msgid "Scale"
 msgstr "Schalen"
 
 msgid "Error: Please close all toolbar menus first"
-msgstr "Fout: sluit eerst alle openstaande gereedschap menu's"
+msgstr "Fout: sluit eerst alle openstaande hulpmiddelmenu's"
 
 msgid "Tool-Lay on Face"
-msgstr "Gereedschap op zijde plaatsen"
+msgstr "Hulpmiddel op zijde plaatsen"
 
 msgid "in"
 msgstr "in"
@@ -232,7 +232,7 @@ msgid "Reset Rotation"
 msgstr "Rotatie herstellen"
 
 msgid "World coordinates"
-msgstr "Wereld coördinaten"
+msgstr "Wereldcoördinaten"
 
 msgid "°"
 msgstr "°"
@@ -247,37 +247,37 @@ msgid "uniform scale"
 msgstr "Uniform schalen"
 
 msgid "Left click"
-msgstr "Left click"
+msgstr "Linker muisklik"
 
 msgid "Add connector"
-msgstr "Add connector"
+msgstr "Verbinding toevoegen"
 
 msgid "Right click"
-msgstr "Right click"
+msgstr "Rechter muisklik"
 
 msgid "Remove connector"
-msgstr "Remove connector"
+msgstr "Verbinding verwijderen"
 
 msgid "Drag"
-msgstr "Drag"
+msgstr "Sleep"
 
 msgid "Move connector"
-msgstr "Move connector"
+msgstr "Verbinding verplaatsen"
 
 msgid "Add connector to selection"
-msgstr "Add connector to selection"
+msgstr "Verbinding toevoegen aan selectie"
 
 msgid "Remove connector from selection"
-msgstr "Remove connector from selection"
+msgstr "Verbinding verwijderen uit selectie"
 
 msgid "Select all connectors"
-msgstr "Select all connectors"
+msgstr "Selecteer alle verbindingen"
 
 msgid "Cut"
 msgstr "Knippen"
 
 msgid "Connector"
-msgstr "Connector"
+msgstr "Verbinding"
 
 msgid "Movement:"
 msgstr "Beweging:"
@@ -289,28 +289,28 @@ msgid "Height"
 msgstr "Hoogte"
 
 msgid "Edit connectors"
-msgstr "Edit connectors"
+msgstr "Verbindingen bewerken"
 
 msgid "Add connectors"
-msgstr "Add connectors"
+msgstr "Verbindingen toevoegen"
 
 msgid "Upper part"
-msgstr "Upper part"
+msgstr "Bovenste deel"
 
 msgid "Lower part"
-msgstr "Lower part"
+msgstr "Onderste deel"
 
 msgid "Keep"
-msgstr "Keep"
+msgstr "Behouden"
 
 msgid "Place on cut"
-msgstr "Place on cut"
+msgstr "Op kniplijn plaatsen"
 
 msgid "Flip"
-msgstr "Flip"
+msgstr "Omdraaien"
 
 msgid "After cut"
-msgstr "After cut"
+msgstr "Na knippen"
 
 msgid "Cut to parts"
 msgstr "In delen knippen"
@@ -325,7 +325,7 @@ msgid "Reset"
 msgstr "Terugzetten"
 
 msgid "Connectors"
-msgstr "Connectors"
+msgstr "Verbindingen"
 
 msgid "Type"
 msgstr "Type"
@@ -337,25 +337,25 @@ msgid "Shape"
 msgstr "Vorm"
 
 msgid "Depth ratio"
-msgstr "Depth ratio"
+msgstr "Diepteratio"
 
 msgid "Remove connectors"
-msgstr "Remove connectors"
+msgstr "Verbindingen verwijderen"
 
 msgid "Prizm"
-msgstr "Prizm"
+msgstr "Prisma"
 
 msgid "Frustum"
 msgstr "Frustum"
 
 msgid "Square"
-msgstr "Square"
+msgstr "Vierkant"
 
 msgid "Hexagon"
-msgstr "Hexagon"
+msgstr "Zeskant"
 
 msgid "Confirm connectors"
-msgstr "Confirm connectors"
+msgstr "Verbindingen bevestigen"
 
 msgid "Cancel"
 msgstr "Annuleren"
@@ -364,41 +364,42 @@ msgid "Warning"
 msgstr "Waarschuwing"
 
 msgid "Invalid connectors detected"
-msgstr "Invalid connectors detected"
+msgstr "Onjuiste verbindingen gevonden"
 
 msgid "connector is out of cut contour"
-msgstr "connector is out of cut contour"
+msgstr "Verbinding ligt buiten knipcontour"
 
 msgid "connectors are out of cut contour"
-msgstr "connectors are out of cut contour"
+msgstr "Verbindingen liggen buiten knipcontour"
 
 msgid "connector is out of object"
-msgstr "connector is out of object"
+msgstr "Verbinding ligt buiten object"
 
+# Source and destination string both English, but different. Please clarify!
 msgid "connectors is out of object"
 msgstr "Connectors must be on object surface."
 
 msgid "Some connectors are overlapped"
-msgstr "Some connectors are overlapped"
+msgstr "Sommige verbindingen overlappen"
 
 msgid ""
 "Invalid state. \n"
 "No one part is selected for keep after cut"
 msgstr ""
-"Invalid state. \n"
-"No one part is selected to keep after cut"
+"Foutieve staat. \n"
+"Geen onderdelen geselecteerd om te behouden na knippen"
 
 msgid "Plug"
 msgstr "Plug"
 
 msgid "Dowel"
-msgstr "Dowel"
+msgstr "Deuvel"
 
 msgid "Tolerance"
-msgstr "Tolerance"
+msgstr "Speling"
 
 msgid "Mesh name"
-msgstr "Constructie name"
+msgstr "Meshnaam"
 
 msgid "Detail level"
 msgstr "Detailniveau"
@@ -422,7 +423,7 @@ msgstr "Vereenvoudigen"
 
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr ""
-"Vereenvoudiging is momenteel alleen toegestaan wanneer een enkel onderdeel "
+"Vereenvoudiging is momenteel alleen toegestaan wanneer één enkel onderdeel "
 "is geselecteerd"
 
 msgid "Error"
@@ -445,7 +446,7 @@ msgstr "Extra laag"
 
 #, c-format, boost-format
 msgid "%d triangles"
-msgstr "%d -driehoeken"
+msgstr "%d driehoeken"
 
 msgid "Show wireframe"
 msgstr "Draadmodel tonen"
@@ -455,7 +456,7 @@ msgid "%1%"
 msgstr "%1%"
 
 msgid "Can't apply when proccess preview."
-msgstr "Toepassen is niet mogelijk bij een voorvertoning."
+msgstr "Kan niet toepassen bij een voorvertoning."
 
 msgid "Operation already cancelling. Please wait few seconds."
 msgstr "De toepassing wordt al geannuleerd. Wacht even alstublieft."
@@ -477,18 +478,19 @@ msgstr "Naad versterken"
 
 msgid "Block seam"
 msgstr "Bloknaad"
+# msgstr "Blokkeer naad" # in case of "to block"
 
 msgid "Seam painting"
 msgstr "Naad schilderen"
 
 msgid "Remove selection"
-msgstr "Verwijder selectie"
+msgstr "Selectie verwijderen"
 
 msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
+msgstr "Shift + Muis op of neer"
 
 msgid "Rotate text"
-msgstr "Rotate text"
+msgstr "Draai tekst"
 
 msgid "Text shape"
 msgstr "Tekstvorm"
@@ -502,14 +504,15 @@ msgstr "Dikte"
 msgid "Input text"
 msgstr "Tekst invoeren"
 
+# Source and destination string both English but don't match!
 msgid "Embeded"
 msgstr "Embedded"
 
 msgid "Text Gap"
-msgstr "Text Gap"
+msgstr "Tekstruimte"
 
 msgid "Angle"
-msgstr "Angle"
+msgstr "Hoek"
 
 msgid ""
 "Embeded\n"
@@ -517,10 +520,10 @@ msgid ""
 msgstr "Embedded depth"
 
 msgid "Surface"
-msgstr "Surface"
+msgstr "Oppervlak"
 
 msgid "Horizontal text"
-msgstr "Horizontal text"
+msgstr "Horizontale tekst"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -533,10 +536,10 @@ msgstr "Niet gedefinieerd"
 
 #, boost-format
 msgid "%1% was replaced with %2%"
-msgstr "%1% is vervangen door %2%"
+msgstr "%1% werd vervangen door %2%"
 
 msgid "The configuration may be generated by a newer version of OrcaSlicer."
-msgstr ""
+msgstr "De configuratie was mogelijks met een nieuwere versie Orcaslicer gemaakt."
 
 msgid "Some values have been replaced. Please check them:"
 msgstr "Sommige waarden zijn aangepast. Controleer deze alstublieft:"
@@ -552,13 +555,13 @@ msgstr "Machine"
 
 msgid "Configuration package was loaded, but some values were not recognized."
 msgstr ""
-"Het onfiguratiepakket is geladen, maar sommige waarden zijn niet herkend."
+"Het onfiguratiepakket werd geladen, maar sommige waarden werden niet herkend."
 
 #, boost-format
 msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
-"Het configuratiebestand “%1%” is geladen, maar sommige waarden zijn niet "
+"Configuratiebestand “%1%” werd geladen, maar sommige waarden werden niet "
 "herkend."
 
 msgid "V"
@@ -568,6 +571,8 @@ msgid ""
 "OrcaSlicer will terminate because of running out of memory.It may be a bug. "
 "It will be appreciated if you report the issue to our team."
 msgstr ""
+"OrcaSlicer zal sluiten, omdat het geen geheugen meer heeft. Dit kan een bug zijn. "
+"Ons team een rapport schrijven over deze fout wordt erg gewaardeerd."
 
 msgid "Fatal error"
 msgstr "Fatale fout"
@@ -576,19 +581,21 @@ msgid ""
 "OrcaSlicer will terminate because of a localization error. It will be "
 "appreciated if you report the specific scenario this issue happened."
 msgstr ""
+"OrcaSlicer zal sluiten door een vertalingsfout. Ons team een rapport "
+"schrijven over de situatie waar dit zich voor deed wordt erg gewaardeerd."
 
 msgid "Critical error"
-msgstr "Kritische fout"
+msgstr "Kritieke fout"
 
 #, boost-format
 msgid "OrcaSlicer got an unhandled exception: %1%"
-msgstr ""
+msgstr "OrcaSlicer kreeg een onbehandelde uitzondering: %1%"
 
 msgid "Downloading Bambu Network Plug-in"
 msgstr "Bambu Netwerk Plug-in downloaden"
 
 msgid "Login information expired. Please login again."
-msgstr "Uw inlog is verlopen. Log alstublieft opnieuw in."
+msgstr "Uw login informatie is verlopen. Log alstublieft opnieuw in."
 
 msgid "Incorrect password"
 msgstr "Onjuist wachtwoord"
@@ -602,14 +609,19 @@ msgid ""
 "features.\n"
 "Click Yes to install it now."
 msgstr ""
+"OrcaSlicer heeft het MicroSoft WebView2 Runtime nodig om bepaalde "
+"functies in werking te stellen.\n"
+"Klik Ja om het nu te installeren."
 
 msgid "WebView2 Runtime"
-msgstr ""
+msgstr "WebView2 Runtime"
 
 msgid ""
 "OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
 "Please delete the file and try again."
 msgstr ""
+"OrcaSlicer configuratiebestand is mogelijks corrupt, en kan niet verwerkt worden."
+"Verwijder het configuratiebestand en probeer het opnieuw."
 
 #, c-format, boost-format
 msgid ""
@@ -649,16 +661,16 @@ msgid "Loading a mode view"
 msgstr "Een modusweergave laden"
 
 msgid "Choose one file (3mf):"
-msgstr "Kies een bestand (3mf):"
+msgstr "Kies één bestand (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr ""
+msgstr "Kies één of meer bestanden (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "Kies een of meer bestanden (3mf/step/stl/svg/obj/amf):"
+msgstr "Kies één of meer bestanden (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose one file (gcode/3mf):"
-msgstr ""
+msgstr "Kies één bestand (gcode/3mf):"
 
 msgid "Some presets are modified."
 msgstr "Sommige voorinstellingen zijn aangepast."
@@ -720,7 +732,7 @@ msgid "Select a G-code file:"
 msgstr "Selecteer een G-code bestand:"
 
 msgid "Import File"
-msgstr "Import File"
+msgstr "Importeer bestand"
 
 msgid "Delete"
 msgstr "Verwijderen"
@@ -729,7 +741,7 @@ msgid "Choose files"
 msgstr "Kies bestanden"
 
 msgid "New Folder"
-msgstr "New Folder"
+msgstr "Nieuwe map"
 
 msgid "Open"
 msgstr "Open"
@@ -742,22 +754,22 @@ msgstr "Initialisatie van Orca Slicer GUI is mislukt"
 
 #, boost-format
 msgid "Fatal error, exception catched: %1%"
-msgstr "Fatale fout, uitzondering: %1%"
+msgstr "Fatale fout, uitzondering tegengehouden: %1%"
 
 msgid "Quality"
 msgstr "Kwaliteit"
 
 msgid "Shell"
-msgstr "Schaal"
+msgstr "Buitenlaag"
 
 msgid "Infill"
 msgstr "Vulling"
 
 msgid "Support"
-msgstr "Support"
+msgstr "Ondersteuning"
 
 msgid "Flush options"
-msgstr "Flush-opties"
+msgstr "Uitspoel-opties"
 
 msgid "Speed"
 msgstr "Snelheid"
@@ -766,28 +778,28 @@ msgid "Strength"
 msgstr "Sterkte"
 
 msgid "Top Solid Layers"
-msgstr "Aantal solide  bovenste lagen"
+msgstr "Aantal solide bovenste lagen"
 
 msgid "Top Minimum Shell Thickness"
-msgstr "Minimale dikte van de toplaag"
+msgstr "Minimale dikte van de bovenste laag"
 
 msgid "Bottom Solid Layers"
-msgstr "Aantal gesloten bodem lagen"
+msgstr "Aantal gesloten bodemlagen"
 
 msgid "Bottom Minimum Shell Thickness"
-msgstr "Minimale bodem dikte"
+msgstr "Minimale bodemdikte"
 
 msgid "Ironing"
 msgstr "Strijken"
 
 msgid "Fuzzy Skin"
-msgstr "Fuzzy skin"
+msgstr "Vage buitenkant"
 
 msgid "Extruders"
 msgstr "Extruders"
 
 msgid "Extrusion Width"
-msgstr "Extrusie breedte"
+msgstr "Extrusiebreedte"
 
 msgid "Wipe options"
 msgstr "Veeg opties"
@@ -808,10 +820,10 @@ msgid "Add modifier"
 msgstr "Aanpasser toevoegen"
 
 msgid "Add support blocker"
-msgstr "Support blokkering toevoegen"
+msgstr "Ondersteuningsblokkade toevoegen"
 
 msgid "Add support enforcer"
-msgstr "Support toevoegen"
+msgstr "Ondersteuning toevoegen"
 
 msgid "Select settings"
 msgstr "Selecteer instellingen"
@@ -829,22 +841,22 @@ msgid "Delete the selected object"
 msgstr "Verwijder het geselecteerde object"
 
 msgid "Edit Text"
-msgstr "Edit Text"
+msgstr "Pas tekst aan"
 
 msgid "Load..."
 msgstr "Laden..."
 
 msgid "Orca Cube"
-msgstr ""
+msgstr "Orca-kubus"
 
 msgid "3DBenchy"
-msgstr ""
+msgstr "3DBenchy"
 
 msgid "Autodesk FDM Test"
-msgstr ""
+msgstr "Autodesk FDM Test"
 
 msgid "Voron Cube"
-msgstr ""
+msgstr "Voron-kubus"
 
 msgid "Cube"
 msgstr "Kubus"
@@ -856,7 +868,7 @@ msgid "Cone"
 msgstr "Kegel"
 
 msgid "Height range Modifier"
-msgstr "Height Range Modifier"
+msgstr "Hoogtebereikaanpasser"
 
 msgid "Add settings"
 msgstr "Instellingen toevoegen"
@@ -871,10 +883,10 @@ msgid "Set as individual objects"
 msgstr "Instellen als individuele objecten"
 
 msgid "Fill bed with copies"
-msgstr "Fill bed with copies"
+msgstr "Vul bed met kopieën"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "Fill the remaining area of bed with copies of the selected object"
+msgstr "Vul de overige ruimte met kopieën van het geselecteerde object"
 
 msgid "Printable"
 msgstr "Afdrukbaar"
@@ -883,7 +895,7 @@ msgid "Fix model"
 msgstr "Repareer model"
 
 msgid "Export as STL"
-msgstr "Exporteer als STL bestand"
+msgstr "Exporteer als STL-bestand"
 
 msgid "Reload from disk"
 msgstr "Opnieuw laden vanaf schijf"
@@ -914,34 +926,34 @@ msgid "active"
 msgstr "Actief"
 
 msgid "Scale to build volume"
-msgstr "Schaal aanpassen aan printbed formaat"
+msgstr "Schalen naar bruikbaar volume"
 
 msgid "Scale an object to fit the build volume"
-msgstr "Object schalen zodat het op het prinbed past"
+msgstr "Object schalen zodat het in het bruikbaar volume past"
 
 msgid "Flush Options"
-msgstr "Flush-opties"
+msgstr "Uitspoel-opties"
 
 msgid "Flush into objects' infill"
-msgstr "Flush in de opvulling van objecten"
+msgstr "Uitspoelen in de opvulling van objecten"
 
 msgid "Flush into this object"
-msgstr "Flush in dit object"
+msgstr "Uitspoelen in dit object"
 
 msgid "Flush into objects' support"
-msgstr "Flush in de support van objecten"
+msgstr "Uitspoelen in de ondersteuning van objecten"
 
 msgid "Edit in Parameter Table"
 msgstr "Bewerken in de parametertabel"
 
 msgid "Convert from inch"
-msgstr "Converenten vanuit inch"
+msgstr "Omzetten vanuit inch"
 
 msgid "Restore to inch"
 msgstr "Terugzetten naar inch"
 
 msgid "Convert from meter"
-msgstr "Converteren vanuit meter"
+msgstr "Omzetten vanuit meter"
 
 msgid "Restore to meter"
 msgstr "Terugzetten naar meter"
@@ -958,10 +970,10 @@ msgstr ""
 "Monteer de geselecteerde objecten tot een object bestaande uit 1 onderdeel"
 
 msgid "Mesh boolean"
-msgstr ""
+msgstr "Mesh booleaan"
 
 msgid "Mesh boolean operations including union and subtraction"
-msgstr ""
+msgstr "Booleane mesh-operaties inclusief samenvoegen en aftrekken"
 
 msgid "Along X axis"
 msgstr "Langs de X as"
@@ -988,7 +1000,7 @@ msgid "Mirror object"
 msgstr "Spiegel object"
 
 msgid "Invalidate cut info"
-msgstr "Invalidate cut info"
+msgstr "Invalideer knipsnede-info"
 
 msgid "Add Primitive"
 msgstr "Primitief toevoegen"
@@ -1052,7 +1064,7 @@ msgid "auto rotate current plate"
 msgstr "Huidig printbed automatisch roteren"
 
 msgid "Delete Plate"
-msgstr "Delete Plate"
+msgstr "Verwijder printbed"
 
 msgid "Remove the selected plate"
 msgstr "Verwijder het huidige printbed"
@@ -1088,7 +1100,7 @@ msgid "Lock"
 msgstr "Vergrendelen"
 
 msgid "Edit Plate Name"
-msgstr ""
+msgstr "Pas printbed naam aan"
 
 msgid "Name"
 msgstr "Naam"
@@ -1119,11 +1131,11 @@ msgstr[1] "%1$d non-manifold edges@%1$d non-manifold edges"
 
 msgid "Right click the icon to fix model object"
 msgstr ""
-"Klik met de rechtermuisknop op het pictogram om het modelobject te repareren"
+"Klik met de rechter muisknop op het pictogram om het modelobject te repareren"
 
 msgid "Right button click the icon to drop the object settings"
 msgstr ""
-"Klik met de rechtermuisknop op het pictogram om de objectinstellingen te "
+"Klik met de rechter muisknop op het pictogram om de objectinstellingen te "
 "verwijderen"
 
 msgid "Click the icon to reset all settings of the object"
@@ -1131,7 +1143,7 @@ msgstr "Klik op het icoon om alle instellingen van het object terug te zetten"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr ""
-"Klik met de rechtermuisknop op het pictogram om de printbare eigenschap van "
+"Klik met de rechter muisknop op het pictogram om de printbare eigenschap van "
 "het object te verwijderen"
 
 msgid "Click the icon to toggle printable property of the object"
@@ -1145,7 +1157,7 @@ msgid "Click the icon to edit color painting of the object"
 msgstr "Klik op het pictogram om de kleur van het object te bewerken"
 
 msgid "Click the icon to shift this object to the bed"
-msgstr "Click the icon to shift this object to the bed"
+msgstr "Klik op het pictogram om dit object te verschuiven op het printbed"
 
 msgid "Loading file"
 msgstr "Bestand laden"
@@ -1154,7 +1166,7 @@ msgid "Error!"
 msgstr "Fout!"
 
 msgid "Failed to get the model data in the current file."
-msgstr ""
+msgstr "Kon de modelinformatie niet laden uit het huidige bestand."
 
 msgid "Generic"
 msgstr "Algemeen"
@@ -1175,20 +1187,20 @@ msgstr ""
 "geselecteerde objecten te bewerken."
 
 msgid "Delete connector from object which is a part of cut"
-msgstr "Delete connector from object which is a part of cut"
+msgstr "Verwijder verbinding van object dat deel is van een knipbewerking"
 
 msgid "Delete solid part from object which is a part of cut"
-msgstr "Delete solid part from object which is a part of cut"
+msgstr "Verwijder vast onderdeel van object dat deel is van een knipbewerking"
 
 msgid "Delete negative volume from object which is a part of cut"
-msgstr "Delete negative volume from object which is a part of cut"
+msgstr "Verwijder negatief volume van object dat deel is van een knipbewerking"
 
 msgid ""
 "To save cut correspondence you can delete all connectors from all related "
 "objects."
 msgstr ""
-"To save cut correspondence you can delete all connectors from all related "
-"objects."
+"Om de knipovereenkomst op te slaan kan je alle verbindingen verwijderen uit "
+"gerelateerde objecten."
 
 msgid ""
 "This action will break a cut correspondence.\n"
@@ -1204,7 +1216,7 @@ msgstr ""
 "cut information first."
 
 msgid "Delete all connectors"
-msgstr "Delete all connectors"
+msgstr "Verwijder alle vberbindingen"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Het is niet toegestaand om het laaste vaste deel te verwijderen."
@@ -1221,31 +1233,31 @@ msgid "Cut Connectors information"
 msgstr "Cut Connectors information"
 
 msgid "Object manipulation"
-msgstr "Object manipulation"
+msgstr "Objectmanipulatie"
 
 msgid "Group manipulation"
-msgstr "Group manipulation"
+msgstr "Groupsmanipulatie"
 
 msgid "Object Settings to modify"
-msgstr "Object Settings to Modify"
+msgstr "Voorwerpopties om aan te passen"
 
 msgid "Part Settings to modify"
-msgstr "Part Settings to Modify"
+msgstr "Onderdeelopties om aan te passen"
 
 msgid "Layer range Settings to modify"
-msgstr "Layer Range Settings to Modify"
+msgstr "lagenreeksopties om aan te passen"
 
 msgid "Part manipulation"
-msgstr "Part manipulation"
+msgstr "Onderdeelmanipulatie"
 
 msgid "Instance manipulation"
-msgstr "Instance manipulation"
+msgstr "Instantiemanipulatie"
 
 msgid "Height ranges"
-msgstr "Height ranges"
+msgstr "Hoogtebereiken"
 
 msgid "Settings for height range"
-msgstr "Settings for height range"
+msgstr "Instellingen voor hoogtebereik"
 
 msgid "Object"
 msgstr "Voorwerp"
@@ -1283,10 +1295,10 @@ msgid "Modifier"
 msgstr "Aanpasser"
 
 msgid "Support Blocker"
-msgstr "Support blokkade"
+msgstr "Ondersteuningsblokkade"
 
 msgid "Support Enforcer"
-msgstr "Support handhaven"
+msgstr "Ondersteuning handhaven"
 
 msgid "Type:"
 msgstr "Type:"
