@@ -4975,6 +4975,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->bind_state     = bind_state;
             obj->bind_sec_link  = sec_link;
             obj->dev_connection_name = connection_name;
+            obj->m_is_online = true;
 
             //load access code
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
