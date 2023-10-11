@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-30 10:27+0800\n"
+"POT-Creation-Date: 2023-10-11 22:28+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4353,6 +4353,24 @@ msgstr "Filament beállítások"
 msgid "Printer settings"
 msgstr "Nyomtató beállítások"
 
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Lock current plate"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Névtelen"
 
@@ -7226,6 +7244,19 @@ msgstr ""
 "Zsugorítja a kezdőréteget a tárgyasztalon, hogy kompenzálja az elefántláb-"
 "hatást"
 
+msgid "Elephant foot compensation layers"
+msgstr ""
+
+msgid ""
+"The number of layers on which the elephant foot compensation will be active. "
+"The first layer will be shrunk by the elephant foot compensation value, then "
+"the next layers will be linearly shrunk less, up to the layer indicated by "
+"this value."
+msgstr ""
+
+msgid "layers"
+msgstr "réteg"
+
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
@@ -7771,9 +7802,6 @@ msgid ""
 msgstr ""
 "Kikapcsolja a hűtést a megadott első pár rétegnél. A hűtés kikapcsolása "
 "segítheti a jobb tárgyasztalhoz való tapadást"
-
-msgid "layers"
-msgstr "réteg"
 
 msgid "Don't support bridges"
 msgstr "Ne támassza alá az áthidalásokat"
@@ -8798,6 +8826,9 @@ msgstr "Összes szilárd réteg"
 msgid "Ironing Pattern"
 msgstr "Ironing Pattern"
 
+msgid "The pattern that will be used when ironing"
+msgstr ""
+
 msgid "Ironing flow"
 msgstr "Vasalás áramlási sebesség"
 
@@ -8819,6 +8850,14 @@ msgstr "Vasalás sebessége"
 
 msgid "Print speed of ironing lines"
 msgstr "A vasalási vonalak nyomtatási sebessége"
+
+msgid "Ironing angle"
+msgstr ""
+
+msgid ""
+"The angle ironing is done at. A negative number disables this function and "
+"uses the default method."
+msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
@@ -10209,6 +10248,34 @@ msgstr ""
 "zsugorodik. Pozitív érték esetén a kontúr nagyobb lesz, negatív érték esetén "
 "kisebb. Ez a funkció a méret kismértékű módosítására szolgál, ha a "
 "kinyomtatott tárggyal összeszerelési problémák akadnak"
+
+msgid "Convert holes to polyholes"
+msgstr ""
+
+msgid ""
+"Search for almost-circular holes that span more than one layer and convert "
+"the geometry to polyholes. Use the nozzle size and the (biggest) diameter to "
+"compute the polyhole.\n"
+"See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
+msgstr ""
+
+msgid "Polyhole detection margin"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Maximum defection of a point to the estimated radius of the circle.\n"
+"As cylinders are often exported as triangles of varying size, points may not "
+"be on the circle circumference. This setting allows you some leway to "
+"broaden the detection.\n"
+"In mm or in % of the radius."
+msgstr ""
+
+msgid "Polyhole twist"
+msgstr ""
+
+msgid "Rotate the polyhole every layer."
+msgstr ""
 
 msgid "G-code thumbnails"
 msgstr ""

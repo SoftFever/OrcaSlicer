@@ -2835,12 +2835,12 @@ void TabFilament::build()
 
         optgroup->append_single_option_line("activate_air_filtration");
 
-        line = {L("During print"), L("")};
+        line = {L("During print"), ""};
         line.append_option(optgroup->get_option("during_print_exhaust_fan_speed"));
         optgroup->append_line(line);
 
 
-        line = {L("Complete print"), L("")};
+        line = {L("Complete print"), ""};
         line.append_option(optgroup->get_option("complete_print_exhaust_fan_speed"));
         optgroup->append_line(line);
         //BBS

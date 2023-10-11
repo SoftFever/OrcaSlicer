@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-30 10:27+0800\n"
+"POT-Creation-Date: 2023-10-11 22:28+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Chun <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -4232,6 +4232,24 @@ msgstr "線材設置"
 msgid "Printer settings"
 msgstr "３Ｄ列印機設置"
 
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Lock current plate"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
+
 msgid "Untitled"
 msgstr "未命名"
 
@@ -6934,6 +6952,19 @@ msgid ""
 "effect"
 msgstr "將首層收縮用於補償象腳效應"
 
+msgid "Elephant foot compensation layers"
+msgstr ""
+
+msgid ""
+"The number of layers on which the elephant foot compensation will be active. "
+"The first layer will be shrunk by the elephant foot compensation value, then "
+"the next layers will be linearly shrunk less, up to the layer indicated by "
+"this value."
+msgstr ""
+
+msgid "layers"
+msgstr "層"
+
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
@@ -7431,9 +7462,6 @@ msgid ""
 "layer used to be closed to get better build plate adhesion"
 msgstr ""
 "對開始的一些層關閉所有的部件冷卻風扇。通常關閉首層冷卻用來獲得更好的熱床黏接"
-
-msgid "layers"
-msgstr "層"
 
 msgid "Don't support bridges"
 msgstr "不支撐橋接"
@@ -8414,6 +8442,9 @@ msgstr "所有實心層"
 msgid "Ironing Pattern"
 msgstr "熨燙模式"
 
+msgid "The pattern that will be used when ironing"
+msgstr ""
+
 msgid "Ironing flow"
 msgstr "熨燙流量"
 
@@ -8433,6 +8464,14 @@ msgstr "熨燙速度"
 
 msgid "Print speed of ironing lines"
 msgstr "熨燙的列印速度"
+
+msgid "Ironing angle"
+msgstr ""
+
+msgid ""
+"The angle ironing is done at. A negative number disables this function and "
+"uses the default method."
+msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "在每次換層抬升Z高度之後插入這段G-code。"
@@ -9730,6 +9769,34 @@ msgid ""
 msgstr ""
 "模型外輪廓的尺寸將在X-Y方向收縮或拓展特定值。正值代表擴大。負值代表縮小。這個"
 "功能通常在模型有裝配問題時微調尺寸"
+
+msgid "Convert holes to polyholes"
+msgstr ""
+
+msgid ""
+"Search for almost-circular holes that span more than one layer and convert "
+"the geometry to polyholes. Use the nozzle size and the (biggest) diameter to "
+"compute the polyhole.\n"
+"See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
+msgstr ""
+
+msgid "Polyhole detection margin"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Maximum defection of a point to the estimated radius of the circle.\n"
+"As cylinders are often exported as triangles of varying size, points may not "
+"be on the circle circumference. This setting allows you some leway to "
+"broaden the detection.\n"
+"In mm or in % of the radius."
+msgstr ""
+
+msgid "Polyhole twist"
+msgstr ""
+
+msgid "Rotate the polyhole every layer."
+msgstr ""
 
 msgid "G-code thumbnails"
 msgstr "G-code縮圖尺寸"

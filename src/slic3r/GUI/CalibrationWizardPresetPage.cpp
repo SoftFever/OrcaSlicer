@@ -1542,7 +1542,7 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                 values.push_back(_L("0.005"));
                 m_custom_range_panel->set_values(values);
 
-                m_custom_range_panel->set_unit(_L(""));
+                m_custom_range_panel->set_unit("");
                 m_custom_range_panel->Show();
             }
         }
