@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-30 10:27+0800\n"
+"POT-Creation-Date: 2023-10-11 22:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4142,6 +4142,24 @@ msgstr ""
 msgid "Printer settings"
 msgstr ""
 
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Lock current plate"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
+
 msgid "Untitled"
 msgstr ""
 
@@ -6769,6 +6787,19 @@ msgid ""
 "effect"
 msgstr ""
 
+msgid "Elephant foot compensation layers"
+msgstr ""
+
+msgid ""
+"The number of layers on which the elephant foot compensation will be active. "
+"The first layer will be shrunk by the elephant foot compensation value, then "
+"the next layers will be linearly shrunk less, up to the layer indicated by "
+"this value."
+msgstr ""
+
+msgid "layers"
+msgstr ""
+
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
@@ -7232,9 +7263,6 @@ msgstr ""
 msgid ""
 "Close all cooling fan for the first certain layers. Cooling fan of the first "
 "layer used to be closed to get better build plate adhesion"
-msgstr ""
-
-msgid "layers"
 msgstr ""
 
 msgid "Don't support bridges"
@@ -8171,6 +8199,9 @@ msgstr ""
 msgid "Ironing Pattern"
 msgstr ""
 
+msgid "The pattern that will be used when ironing"
+msgstr ""
+
 msgid "Ironing flow"
 msgstr ""
 
@@ -8189,6 +8220,14 @@ msgid "Ironing speed"
 msgstr ""
 
 msgid "Print speed of ironing lines"
+msgstr ""
+
+msgid "Ironing angle"
+msgstr ""
+
+msgid ""
+"The angle ironing is done at. A negative number disables this function and "
+"uses the default method."
 msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
@@ -9427,6 +9466,34 @@ msgid ""
 "value. Positive value makes contour bigger. Negative value makes contour "
 "smaller. This function is used to adjust size slightly when the object has "
 "assembling issue"
+msgstr ""
+
+msgid "Convert holes to polyholes"
+msgstr ""
+
+msgid ""
+"Search for almost-circular holes that span more than one layer and convert "
+"the geometry to polyholes. Use the nozzle size and the (biggest) diameter to "
+"compute the polyhole.\n"
+"See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
+msgstr ""
+
+msgid "Polyhole detection margin"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Maximum defection of a point to the estimated radius of the circle.\n"
+"As cylinders are often exported as triangles of varying size, points may not "
+"be on the circle circumference. This setting allows you some leway to "
+"broaden the detection.\n"
+"In mm or in % of the radius."
+msgstr ""
+
+msgid "Polyhole twist"
+msgstr ""
+
+msgid "Rotate the polyhole every layer."
 msgstr ""
 
 msgid "G-code thumbnails"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-30 10:27+0800\n"
+"POT-Creation-Date: 2023-10-11 22:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -4422,6 +4422,24 @@ msgstr "Réglages du filament"
 msgid "Printer settings"
 msgstr "Paramètres de l'imprimante"
 
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Lock current plate"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Sans_Titre"
 
@@ -7390,6 +7408,19 @@ msgstr ""
 "Rétrécis la couche initiale sur le plateau pour compenser l'effet de pied "
 "d'éléphant"
 
+msgid "Elephant foot compensation layers"
+msgstr ""
+
+msgid ""
+"The number of layers on which the elephant foot compensation will be active. "
+"The first layer will be shrunk by the elephant foot compensation value, then "
+"the next layers will be linearly shrunk less, up to the layer indicated by "
+"this value."
+msgstr ""
+
+msgid "layers"
+msgstr "couches"
+
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
@@ -7956,9 +7987,6 @@ msgstr ""
 "Arrêter tous les ventilateurs de refroidissement pour certaines premières "
 "couches. Un arrêt des ventilateurs permet d’obtenir une meilleure adhérence "
 "de la première couche sur le plateau"
-
-msgid "layers"
-msgstr "couches"
 
 msgid "Don't support bridges"
 msgstr "Ne pas supporter les ponts"
@@ -9085,6 +9113,9 @@ msgstr "Toutes les couches solides"
 msgid "Ironing Pattern"
 msgstr "Modèle de repassage"
 
+msgid "The pattern that will be used when ironing"
+msgstr ""
+
 msgid "Ironing flow"
 msgstr "Débit de lissage"
 
@@ -9107,6 +9138,14 @@ msgstr "Vitesse de lissage"
 
 msgid "Print speed of ironing lines"
 msgstr "Vitesse d'impression des lignes de lissage"
+
+msgid "Ironing angle"
+msgstr ""
+
+msgid ""
+"The angle ironing is done at. A negative number disables this function and "
+"uses the default method."
+msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
@@ -10538,6 +10577,34 @@ msgstr ""
 "valeur définie. Une valeur positive agrandit les contours. Une valeur "
 "négative rend les contours plus petits. Cette fonction est utilisée pour "
 "ajuster légèrement la taille lorsque l'objet a un problème d'assemblage"
+
+msgid "Convert holes to polyholes"
+msgstr ""
+
+msgid ""
+"Search for almost-circular holes that span more than one layer and convert "
+"the geometry to polyholes. Use the nozzle size and the (biggest) diameter to "
+"compute the polyhole.\n"
+"See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
+msgstr ""
+
+msgid "Polyhole detection margin"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Maximum defection of a point to the estimated radius of the circle.\n"
+"As cylinders are often exported as triangles of varying size, points may not "
+"be on the circle circumference. This setting allows you some leway to "
+"broaden the detection.\n"
+"In mm or in % of the radius."
+msgstr ""
+
+msgid "Polyhole twist"
+msgstr ""
+
+msgid "Rotate the polyhole every layer."
+msgstr ""
 
 msgid "G-code thumbnails"
 msgstr "Vignette G-code"

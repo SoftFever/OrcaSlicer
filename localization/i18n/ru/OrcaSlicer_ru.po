@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.7beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-30 10:27+0800\n"
+"POT-Creation-Date: 2023-10-11 22:28+0800\n"
 "PO-Revision-Date: 2023-09-21 14:29+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -4435,6 +4435,24 @@ msgstr "Настройки прутка"
 msgid "Printer settings"
 msgstr "Настройки принтера"
 
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Lock current plate"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Без названия"
 
@@ -7378,6 +7396,19 @@ msgstr ""
 "Уменьшение первого слоя в плоскости XY на заданное значение, чтобы "
 "компенсировать эффект слоновьей ноги."
 
+msgid "Elephant foot compensation layers"
+msgstr ""
+
+msgid ""
+"The number of layers on which the elephant foot compensation will be active. "
+"The first layer will be shrunk by the elephant foot compensation value, then "
+"the next layers will be linearly shrunk less, up to the layer indicated by "
+"this value."
+msgstr ""
+
+msgid "layers"
+msgstr "слой(-я)"
+
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
@@ -7956,9 +7987,6 @@ msgstr ""
 "Вы можете задать положительное значение, чтобы отключить все вентиляторы "
 "охлаждения модели при печати первых нескольких слоёв, чтобы не ухудшить "
 "адгезию к столу."
-
-msgid "layers"
-msgstr "слой(-я)"
 
 msgid "Don't support bridges"
 msgstr "Не печатать поддержки под мостами"
@@ -9108,6 +9136,9 @@ msgstr "Все сплошные поверхности"
 msgid "Ironing Pattern"
 msgstr "Шаблон разглаживания"
 
+msgid "The pattern that will be used when ironing"
+msgstr ""
+
 msgid "Ironing flow"
 msgstr "Поток"
 
@@ -9129,6 +9160,14 @@ msgstr "Скорость разглаживания"
 
 msgid "Print speed of ironing lines"
 msgstr "Скорость разглаживания"
+
+msgid "Ironing angle"
+msgstr ""
+
+msgid ""
+"The angle ironing is done at. A negative number disables this function and "
+"uses the default method."
+msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
@@ -10631,6 +10670,34 @@ msgstr ""
 "XY на заданное значение. Положительное значение увеличивает контур. "
 "Отрицательное значение уменьшает контур. Эта функция используется для "
 "небольшой корректировки размера, когда возникают проблемы со сборкой."
+
+msgid "Convert holes to polyholes"
+msgstr ""
+
+msgid ""
+"Search for almost-circular holes that span more than one layer and convert "
+"the geometry to polyholes. Use the nozzle size and the (biggest) diameter to "
+"compute the polyhole.\n"
+"See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
+msgstr ""
+
+msgid "Polyhole detection margin"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Maximum defection of a point to the estimated radius of the circle.\n"
+"As cylinders are often exported as triangles of varying size, points may not "
+"be on the circle circumference. This setting allows you some leway to "
+"broaden the detection.\n"
+"In mm or in % of the radius."
+msgstr ""
+
+msgid "Polyhole twist"
+msgstr ""
+
+msgid "Rotate the polyhole every layer."
+msgstr ""
 
 msgid "G-code thumbnails"
 msgstr "Эскизы G-кода"

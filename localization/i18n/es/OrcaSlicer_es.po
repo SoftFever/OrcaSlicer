@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-30 10:27+0800\n"
+"POT-Creation-Date: 2023-10-11 22:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -4426,6 +4426,24 @@ msgstr "Ajustes del filamento"
 msgid "Printer settings"
 msgstr "Ajustes de la impresora"
 
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Lock current plate"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
+
 msgid "Untitled"
 msgstr "Sin título"
 
@@ -7359,6 +7377,19 @@ msgstr ""
 "Contraer la primera capa en la bandeja de impresión para compensar el efecto "
 "de la pata de elefante"
 
+msgid "Elephant foot compensation layers"
+msgstr ""
+
+msgid ""
+"The number of layers on which the elephant foot compensation will be active. "
+"The first layer will be shrunk by the elephant foot compensation value, then "
+"the next layers will be linearly shrunk less, up to the layer indicated by "
+"this value."
+msgstr ""
+
+msgid "layers"
+msgstr "capas"
+
 msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
@@ -7945,9 +7976,6 @@ msgstr ""
 "Desactivar todos los ventiladores de refrigeración en las primeras capas. El "
 "ventilador de la primera capa debe estar apagado para conseguir una mejor "
 "adhesión de la bandeja de impresión"
-
-msgid "layers"
-msgstr "capas"
 
 msgid "Don't support bridges"
 msgstr "No soportar puentes"
@@ -9107,6 +9135,9 @@ msgstr "Todas la capas sólidas"
 msgid "Ironing Pattern"
 msgstr "Patrón de Alisado"
 
+msgid "The pattern that will be used when ironing"
+msgstr ""
+
 msgid "Ironing flow"
 msgstr "Flujo de alisado"
 
@@ -9129,6 +9160,14 @@ msgstr "Velocidad de alisado"
 
 msgid "Print speed of ironing lines"
 msgstr "Velocidad de impresión de las líneas de alisado"
+
+msgid "Ironing angle"
+msgstr ""
+
+msgid ""
+"The angle ironing is done at. A negative number disables this function and "
+"uses the default method."
+msgstr ""
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
@@ -10626,6 +10665,34 @@ msgstr ""
 "configurado. Un valor positivo hace que el contorno sea más grande. Un valor "
 "negativo hace que el contorno sea más pequeño. Esta función se utiliza para "
 "ajustar el tamaño ligeramente cuando el objeto tiene problemas de ensamblaje"
+
+msgid "Convert holes to polyholes"
+msgstr ""
+
+msgid ""
+"Search for almost-circular holes that span more than one layer and convert "
+"the geometry to polyholes. Use the nozzle size and the (biggest) diameter to "
+"compute the polyhole.\n"
+"See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
+msgstr ""
+
+msgid "Polyhole detection margin"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Maximum defection of a point to the estimated radius of the circle.\n"
+"As cylinders are often exported as triangles of varying size, points may not "
+"be on the circle circumference. This setting allows you some leway to "
+"broaden the detection.\n"
+"In mm or in % of the radius."
+msgstr ""
+
+msgid "Polyhole twist"
+msgstr ""
+
+msgid "Rotate the polyhole every layer."
+msgstr ""
 
 msgid "G-code thumbnails"
 msgstr "Miniaturas de G-Code"
