@@ -93,7 +93,8 @@ bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
 
     double k_value = 0.0;
     try {
-        k_text.ToDouble(&k_value);
+        if(!k_text.ToDouble(&k_value))
+            return false;
     }
     catch (...) {
         ;
