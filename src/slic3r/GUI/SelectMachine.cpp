@@ -2379,8 +2379,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
             if ((obj_->get_printer_is_enclosed())){
-                confirm_text.push_back(Plater::get_slice_warning_string(warning) + "\n");
-                has_slice_warnings = true;
+                // confirm_text.push_back(Plater::get_slice_warning_string(warning) + "\n");
+                // has_slice_warnings = true;
             }
         }
         else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
