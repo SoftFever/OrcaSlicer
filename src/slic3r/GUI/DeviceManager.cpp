@@ -16,10 +16,17 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "fast_float/fast_float.h"
 
 #define CALI_DEBUG
 
 namespace pt = boost::property_tree;
+
+float string_to_float(const std::string& str_value) {
+    float value = 0.0;
+    fast_float::from_chars(str_value.c_str(), str_value.c_str() + str_value.size(), value);
+    return value;
+}
 
 const int PRINTING_STAGE_COUNT = 32;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
@@ -3351,7 +3358,7 @@ int MachineObject::parse_json(std::string payload)
                             if (jj["nozzle_diameter"].is_number_float()) {
                                 nozzle_diameter = jj["nozzle_diameter"].get<float>();
                             } else if (jj["nozzle_diameter"].is_string()) {
-                                nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                                nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                             }
                         }
                     }
@@ -4266,7 +4273,7 @@ int MachineObject::parse_json(std::string payload)
                             pa_calib_tab_nozzle_dia = jj["nozzle_diameter"].get<float>();
                         }
                         else if (jj["nozzle_diameter"].is_string()) {
-                            pa_calib_tab_nozzle_dia = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                            pa_calib_tab_nozzle_dia = string_to_float(jj["nozzle_diameter"].get<std::string>());
                         }
                         else {
                             assert(false);
@@ -4293,18 +4300,18 @@ int MachineObject::parse_json(std::string payload)
                                 if (jj["nozzle_diameter"].is_number_float()) {
                                     pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
                                 } else if (jj["nozzle_diameter"].is_string()) {
-                                    pa_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                                    pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                 }
 
                                 if ((*it)["k_value"].is_number_float())
                                     pa_calib_result.k_value = (*it)["k_value"].get<float>();
                                 else if ((*it)["k_value"].is_string())
-                                    pa_calib_result.k_value = stof((*it)["k_value"].get<std::string>().c_str());
+                                    pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
 
                                 if ((*it)["n_coef"].is_number_float())
                                     pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
                                 else if ((*it)["n_coef"].is_string())
-                                    pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+                                    pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
 
                                 if (check_pa_result_validation(pa_calib_result))
                                     pa_calib_tab.push_back(pa_calib_result);
@@ -4340,18 +4347,18 @@ int MachineObject::parse_json(std::string payload)
                                 if (jj["nozzle_diameter"].is_number_float()) {
                                     pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
                                 } else if (jj["nozzle_diameter"].is_string()) {
-                                    pa_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                                    pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                 }
 
                                 if ((*it)["k_value"].is_number_float())
                                     pa_calib_result.k_value = (*it)["k_value"].get<float>();
                                 else if ((*it)["k_value"].is_string())
-                                    pa_calib_result.k_value = stof((*it)["k_value"].get<std::string>().c_str());
+                                    pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
 
                                 if ((*it)["n_coef"].is_number_float())
                                     pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
                                 else if ((*it)["n_coef"].is_string())
-                                    pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+                                    pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
 
                                 if (it->contains("confidence")) {
                                     pa_calib_result.confidence = (*it)["confidence"].get<int>();
@@ -4387,8 +4394,8 @@ int MachineObject::parse_json(std::string payload)
                                 flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
                                 flow_ratio_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
                                 flow_ratio_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
-                                flow_ratio_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
-                                flow_ratio_calib_result.flow_ratio  = stof((*it)["flow_ratio"].get<std::string>().c_str());
+                                flow_ratio_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
+                                flow_ratio_calib_result.flow_ratio      = string_to_float((*it)["flow_ratio"].get<std::string>());
                                 if (it->contains("confidence")) {
                                     flow_ratio_calib_result.confidence = (*it)["confidence"].get<int>();
                                 } else {
@@ -4723,8 +4730,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                                 FilamentInfo f;
                                 f.color = filament["color"].get<std::string>();
                                 f.type = filament["type"].get<std::string>();
-                                f.used_g = stof(filament["used_g"].get<std::string>());
-                                f.used_m = stof(filament["used_m"].get<std::string>());
+                                f.used_g = string_to_float(filament["used_g"].get<std::string>());
+                                f.used_m = string_to_float(filament["used_m"].get<std::string>());
                                 slice_info->filaments_info.push_back(f);
                             }
                         }
