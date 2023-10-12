@@ -46,15 +46,14 @@ function HandleModelList(pVal) {
 	if (!pVal.hasOwnProperty("model"))
 		return;
 
-    pModel=pVal['model'];
+    pModel = pVal['model'];
 	
-	let nTotal=pModel.length;
-	let ModelHtml={};
-	for(let n=0;n<nTotal;n++)
-	{
-		let OneModel=pModel[n];
+	let nTotal = pModel.length;
+	let ModelHtml = {};
+	for (let n = 0; n < nTotal; n++) {
+		let OneModel = pModel[n];
 		
-		let strVendor=OneModel['vendor'];
+		let strVendor = OneModel['vendor'];
 		
 		//Add Vendor Html Node
 		if ($(".OneVendorBlock[vendor='" + strVendor + "']").length == 0) {

@@ -8,7 +8,7 @@
 <link rel="stylesheet" type="text/css" href="../css/common.css" />	
 <link rel="stylesheet" type="text/css" href="24.css" />
 <link rel="stylesheet" type="text/css" href="../css/dark.css" />	
-<!-- <script type="text/javascript" src="test.js"></script>	 -->
+<!-- <script type="text/javascript" src="test.js"></script> -->
 <script type="text/javascript" src="../js/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>	
 <script type="text/javascript" src="../../data/text.js"></script>	
@@ -26,7 +26,7 @@
 		<input type="text" class="searchTerm" placeholder="Device keyword" oninput="textInput(this)">
 	</div>
 </div>
-<div id="Content"  class="ZScrol">
+<div id="Content" class="ZScrol" s>
 
 		<!--<div class="OneVendorBlock" Vendor="BBL">	
 <div class="BlockBanner">
@@ -98,18 +98,7 @@
 	
 </body>
 <script>
-	// document.onkeydown = function (event) {
-	// 	var e = event || window.event || arguments.callee.caller.arguments[0];
-
-	// 	if (e.keyCode == 27)
-	// 		ClosePage();
-
-	// 	if (window.event) {
-	// 		try { e.keyCode = 0; } catch (e) { }
-	// 		e.returnValue = false;
-	// 	}
-	// };
-	let pModel;
+		let pModel;
 	function textInput(obj) {
 		FilterModelList(obj.value);
 	}
