@@ -951,6 +951,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         cali_page->clear_last_job_status();
     }
     else if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
+        CalibrationFlowCoarseSavePage* coarse_page = (static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page));
         CalibInfo calib_info;
         calib_info.dev_id            = curr_obj->dev_id;
         Preset* temp_filament_preset = nullptr;
@@ -979,16 +980,17 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             temp_filament_preset->config = preset->config;
 
             calib_info.bed_type = plate_type;
-            calib_info.process_bar = preset_page->get_sending_progress_bar();
             calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, nozzle_dia);
             calib_info.print_prest = preset_page->get_print_preset();
             calib_info.params.mode = CalibMode::Calib_Flow_Rate;
 
             if (stage == CaliPresetStage::CALI_MANUAL_STAGE_1) {
                 cali_stage = 1;
+                calib_info.process_bar = preset_page->get_sending_progress_bar();
             }
             else if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 cali_stage = 2;
+                calib_info.process_bar = coarse_page->get_sending_progress_bar();
                 temp_filament_preset->config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ cali_value });
             }
             calib_info.filament_prest = temp_filament_preset;
@@ -1008,17 +1010,18 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             msg_dlg.ShowModal();
             return;
         }
-        preset_page->on_cali_start_job();
         if (temp_filament_preset)
             delete temp_filament_preset;
 
         if (cali_stage == 1) {
             CalibrationCaliPage *cali_coarse_page = (static_cast<CalibrationCaliPage *>(cali_coarse_step->page));
             cali_coarse_page->clear_last_job_status();
+            preset_page->on_cali_start_job();
         }
         else if (cali_stage == 2) {
             CalibrationCaliPage *cali_fine_page = (static_cast<CalibrationCaliPage *>(cali_fine_step->page));
             cali_fine_page->clear_last_job_status();
+            coarse_page->on_cali_start_job();
         }
     } else {
         assert(false);
@@ -1197,17 +1200,19 @@ void FlowRateWizard::on_cali_job_finished(wxString evt_data)
         if (cali_stage == 1) {
             if (m_curr_step != cali_coarse_step)
                 show_step(cali_coarse_step);
+            // change ui, hide
+            static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
         }
         else if (cali_stage == 2) {
             if (m_curr_step != cali_fine_step) {
                 show_step(cali_fine_step);
             }
+            // change ui, hide
+            static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page)->on_cali_finished_job();
         }
         else
             show_step(cali_coarse_step);
     }
-    // change ui, hide
-    static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
 }
 
 void FlowRateWizard::cache_coarse_info(MachineObject *obj)

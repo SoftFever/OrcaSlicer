@@ -239,6 +239,8 @@ public:
 
     virtual bool Show(bool show = true) override;
 
+    void update_print_error_info(int code, const std::string& msg, const std::string& extra) { m_sending_panel->update_print_error_info(code, msg, extra); }
+
     void on_cali_start_job();
 
     void on_cali_finished_job();

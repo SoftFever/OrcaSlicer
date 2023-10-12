@@ -754,13 +754,17 @@ void CaliPageActionPanel::enable_button(CaliPageActionType action_type, bool ena
     }
 }
 
-CaliPageSendingPanel::CaliPageSendingPanel(wxWindow* parent, /*CalibMode cali_mode, CaliPageType page_type, */wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+CaliPageSendingPanel::CaliPageSendingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+    : wxPanel(parent, id, pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
     SetMinSize({ FromDIP(475), FromDIP(200) });
     SetMaxSize({ FromDIP(475), FromDIP(200) });
 
     create(this);
+
+    Layout();
+    Fit();
 
     Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
         show_send_failed_info(true);

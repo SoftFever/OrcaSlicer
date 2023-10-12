@@ -226,8 +226,6 @@ class CaliPageSendingPanel : public wxPanel
 {
 public:
     CaliPageSendingPanel(wxWindow* parent,
-        //CalibMode cali_mode,
-        //CaliPageType page_type,
         wxWindowID id = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,

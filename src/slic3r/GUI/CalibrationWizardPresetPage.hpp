@@ -129,14 +129,12 @@ enum CaliPresetPageStatus
 {
     CaliPresetStatusInit = 0,
     CaliPresetStatusNormal,
-    //CaliPresetStatusSending,
     CaliPresetStatusNoUserLogin,
     CaliPresetStatusInvalidPrinter,
     CaliPresetStatusConnectingServer,
     CaliPresetStatusInUpgrading,
     CaliPresetStatusInSystemPrinting,
     CaliPresetStatusInPrinting,
-    //CaliPresetStatusSendingCanceled,
     CaliPresetStatusLanModeNoSdcard,
     CaliPresetStatusNoSdcard,
     CaliPresetStatusNeedForceUpgrading,
@@ -167,9 +165,7 @@ public:
 
     void on_device_connected(MachineObject* obj) override;
 
-    //void update_print_error_info(int code, const std::string& msg, const std::string& extra);
-
-    //void show_send_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    void update_print_error_info(int code, const std::string& msg, const std::string& extra) { m_sending_panel->update_print_error_info(code, msg, extra); }
 
     void set_cali_filament_mode(CalibrationFilamentMode mode) override;
 
@@ -214,7 +210,6 @@ protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
     void create_ext_spool_panel(wxWindow* parent);
-    //void create_sending_panel(wxWindow* parent);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
@@ -246,8 +241,6 @@ protected:
     void update_show_status();
     void show_status(CaliPresetPageStatus status);
     void Enable_Send_Button(bool enable);
-    void prepare_mode();
-    //void sending_mode();
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
     
@@ -281,15 +274,6 @@ protected:
     FilamentComboBoxList m_filament_comboBox_list;
     FilamentComboBox*    m_virtual_tray_comboBox;
 
-    // m_sending panel widgets
-    //std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;
-    //wxScrolledWindow*                 m_sw_print_failed_info { nullptr };
-    //Label*                            m_st_txt_error_code { nullptr };
-    //Label*                            m_st_txt_error_desc { nullptr };
-    //Label*                            m_st_txt_extra_info { nullptr };
-    //int                               m_print_error_code;
-    //std::string                       m_print_error_msg;
-    //std::string                       m_print_error_extra;
     
     std::vector<AMSItem*> m_ams_item_list;
 

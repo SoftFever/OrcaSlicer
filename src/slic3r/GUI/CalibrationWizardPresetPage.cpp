@@ -688,14 +688,6 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     m_sending_panel = new CaliPageSendingPanel(parent);
     m_sending_panel->get_sending_progress_bar()->set_cancel_callback_fina([this]() {
-        BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
-        if (CalibUtils::print_job) {
-            if (CalibUtils::print_job->is_running()) {
-                BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
-                CalibUtils::print_job->cancel();
-            }
-            CalibUtils::print_job->join();
-        }
         on_cali_cancel_job();
         });
     m_sending_panel->Hide();
@@ -1289,12 +1281,6 @@ void CalibrationPresetPage::Enable_Send_Button(bool enable)
     m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_CALI, enable);
 }
 
-void CalibrationPresetPage::prepare_mode()
-{
-    Enable_Send_Button(true);
-    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
-}
-
 float CalibrationPresetPage::get_nozzle_value()
 {
     double nozzle_value = 0.0;
@@ -1430,10 +1416,21 @@ void CalibrationPresetPage::on_cali_finished_job()
     update_print_status_msg(wxEmptyString, false);
     Enable_Send_Button(true);
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
+    Layout();
+    Fit();
 }
 
 void CalibrationPresetPage::on_cali_cancel_job()
 {
+    BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
+    if (CalibUtils::print_job) {
+        if (CalibUtils::print_job->is_running()) {
+            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+            CalibUtils::print_job->cancel();
+        }
+        CalibUtils::print_job->join();
+    }
+
     m_sending_panel->reset();
     m_sending_panel->Show(false);
     update_print_status_msg(wxEmptyString, false);
