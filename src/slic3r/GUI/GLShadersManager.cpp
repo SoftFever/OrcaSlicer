@@ -46,6 +46,7 @@ std::pair<bool, std::string> GLShadersManager::init()
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
+    valid &= append_shader("flat", { "flat.vs", "flat.fs" });
 
     // used to render objects in 3d editor
     //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {

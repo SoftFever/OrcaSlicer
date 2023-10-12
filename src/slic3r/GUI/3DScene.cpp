@@ -1284,9 +1284,12 @@ int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_suppo
     return  support_threshold_angle ;
 }
 
-//BBS: add outline drawing logic
-void GLVolumeCollection::render(
-    GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d &view_matrix, std::function<bool(const GLVolume &)> filter_func, bool with_outline) const
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
+                                bool                                  disable_cullface,
+                                const Transform3d                    &view_matrix,
+                                const Transform3d                    &projection_matrix,
+                                std::function<bool(const GLVolume &)> filter_func,
+                                bool                                  with_outline) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -1306,6 +1309,8 @@ void GLVolumeCollection::render(
         glsafe(::glDisable(GL_CULL_FACE));
 
     for (GLVolumeWithIdAndZ& volume : to_render) {
+        const Transform3d& world_matrix = volume.first->world_matrix();
+
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
         if (type == ERenderType::Transparent) {
             volume.first->force_transparent = true;
@@ -1360,7 +1365,11 @@ void GLVolumeCollection::render(
     
         float normal_z  = -::cos(Geometry::deg2rad((float) support_threshold_angle));
   
-        shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
+        const Transform3d model_matrix = world_matrix;
+        shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
         shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", normal_z);
