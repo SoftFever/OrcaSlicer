@@ -254,7 +254,7 @@ static wxBoxSizer *create_select_filament_preset_checkbox(wxWindow *            
     combobox->SetBackgroundColor(PRINTER_LIST_COLOUR);
     combobox->SetBorderColor(*wxWHITE);
     combobox->SetLabel(_L("Select filament preset"));
-    combobox->Bind(wxEVT_COMBOBOX, [combobox, checkbox, presets, &machine_filament_preset, &compatible_printer](wxCommandEvent &e) {
+    combobox->Bind(wxEVT_COMBOBOX, [combobox, checkbox, presets, &machine_filament_preset, compatible_printer](wxCommandEvent &e) {
         combobox->SetLabelColor(*wxBLACK);
         wxString preset_name = combobox->GetStringSelection();
         checkbox->SetValue(true);
@@ -3666,7 +3666,7 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
 
     main_sizer->Add(create_selected_printer_preset_sizer(), 0, wxALL, FromDIP(10));
     main_sizer->Add(create_selected_filament_preset_sizer(), 0, wxALL, FromDIP(10));
-    main_sizer->Add(create_button_sizer(), 0, wxALL, FromDIP(10));
+    main_sizer->Add(create_button_sizer(), 0, wxEXPAND | wxALL, FromDIP(10));
 
     this->SetSizer(main_sizer);
     this->Layout();
