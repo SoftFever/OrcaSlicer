@@ -201,7 +201,7 @@ protected:
 
 private:
     void update_render_data();
-    void render(int buffer_idx, int position_id = -1, int barycentric_id = -1);
+    void render(int buffer_idx, int position_id = -1, bool show_wireframe=false);
 };
 
 

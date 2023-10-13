@@ -134,7 +134,7 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["height_range"]         = _L("Height range");
 
     //add toggle wire frame hint
-    m_desc["toggle_wireframe_caption"]        = _L("Ctrl + Shift + Enter");
+    m_desc["toggle_wireframe_caption"]        = _L("Alt + Shift + Enter");
     m_desc["toggle_wireframe"]                = _L("Toggle Wireframe");
 
     init_extruders_data();
