@@ -410,7 +410,7 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
     m_last_mode = mode;
 }
 
-extern wxString hide_passwd(wxString url, std::vector<std::string> const &passwords);
+extern wxString hide_passwd(wxString url, std::vector<wxString> const &passwords);
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {

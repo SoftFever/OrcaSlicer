@@ -1218,7 +1218,7 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
 }
 
 namespace Slic3r { namespace GUI {
-    extern wxString hide_passwd(wxString url, std::vector<std::string> const &passwords);
+    extern wxString hide_passwd(wxString url, std::vector<wxString> const &passwords);
 }}
 
 void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int result)

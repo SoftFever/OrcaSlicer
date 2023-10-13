@@ -139,15 +139,18 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         SetStatus("", false);
 }
 
-wxString hide_passwd(wxString url, std::vector<std::string> const &passwords)
+wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
 {
     for (auto &p : passwords) {
         auto i = url.find(p);
+        if (i == wxString::npos)
+            continue;
         auto j = i + p.length();
         if (p[p.length() - 1] == '=') {
             i = j;
             j = url.find('&', i);
-            if (j == wxString::npos) j = url.length();
+            if (j == wxString::npos)
+                j = url.length();
         }
         auto l = size_t(j - i);
         if (j == url.length() || url[j] == '@' || url[j] == '&')
