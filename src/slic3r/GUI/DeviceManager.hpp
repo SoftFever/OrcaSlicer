@@ -507,7 +507,6 @@ public:
     bool has_ams() { return ams_exist_bits != 0; }
     bool can_unload_filament();
     bool is_support_ams_mapping();
-    static bool is_support_ams_mapping_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
     bool is_valid_mapping_result(std::vector<FilamentInfo>& result, bool check_empty_slot = false);
