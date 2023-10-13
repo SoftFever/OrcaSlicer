@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-10 20:13+0800\n"
+"POT-Creation-Date: 2023-10-13 11:22+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4427,9 +4427,6 @@ msgstr "打印板类型"
 
 msgid "Flushing volumes"
 msgstr "冲刷体积"
-
-msgid "Create Filament"
-msgstr "创建材料"
 
 msgid "Add one filament"
 msgstr "增加一个材料"
@@ -10528,23 +10525,20 @@ msgstr ""
 "\n"
 "你想重写预设吗"
 
-msgid "You have not selected a filament preset, please choose."
-msgstr "你还没选择材料预设，请选择。"
-
 msgid "Create Printer/Nozzle"
 msgstr "创建打印机/喷嘴"
-
-msgid "Create from template"
-msgstr "从模板中创建"
-
-msgid "Create based on current printer"
-msgstr "基于当前打印机创建"
 
 msgid "Create Printer"
 msgstr "创建打印机"
 
 msgid "Create Nozzle for existing printer"
 msgstr "为现存的打印机创建喷嘴"
+
+msgid "Create from template"
+msgstr "从模板中创建"
+
+msgid "Create based on current printer"
+msgstr "基于当前打印机创建"
 
 msgid "wiki"
 msgstr ""
@@ -10591,6 +10585,18 @@ msgstr "热床SVG图片"
 msgid "Max print height"
 msgstr "最大打印高度"
 
+msgid "Preset path is not find, please reselect vendor."
+msgstr "预设路径未找到，请重新选择供应商。"
+
+msgid "The printer model was not found, please reselect."
+msgstr ""
+
+msgid "The nozzle diameter is not fond, place reselect."
+msgstr ""
+
+msgid "The printer preset is not fond, place reselect."
+msgstr "打印机预设未找到，请重新选择。"
+
 msgid "Printer preset"
 msgstr "打印机预设"
 
@@ -10607,13 +10613,13 @@ msgid "Process preset template"
 msgstr "工艺预设模板"
 
 msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
-msgstr "自定义打印机和模型还没有输入，请返回第一页去输入。"
-
-msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr "您尚未选择要基于哪个打印机预设来创建。请先选择打印机的供应商和型号。"
+
+msgid ""
+"The custom printer and model are not inputed, place return page 1 to input."
+msgstr "自定义打印机和模型还没有输入，请返回第一页去输入。"
 
 msgid ""
 "The preset you created already has a preset with the same name. Do you want "
@@ -10645,25 +10651,10 @@ msgstr "供应商未找到，请重新选择。"
 msgid "Current vendor has no models, please reselect."
 msgstr "当前的供应商没有模型，请重新选择。"
 
-msgid "Preset path is not find, please reselect vendor."
-msgstr "预设路径未找到，请重新选择供应商。"
-
-msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
-
-msgid "The printer preset is not fond, place reselect."
-msgstr "打印机预设未找到，请重新选择。"
-
 msgid ""
 "You have not selected the vendor and model or inputed the custom vendor and "
 "model."
 msgstr "您还没有选择供应商和模型，或者没有输入自定义供应商和模型。"
-
-msgid "You have not upload bed texture."
-msgstr "您还没有上传热床纹理。"
-
-msgid "You have not upload bed model."
-msgstr "您还没有上传热床模型。"
 
 msgid "Please check bed shape input."
 msgstr "请检查热床形状输入。"
@@ -10781,6 +10772,45 @@ msgstr ""
 
 msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
+
+msgid "Edit Filament"
+msgstr ""
+
+msgid "Basic Information"
+msgstr ""
+
+msgid "Filament presets under this filament"
+msgstr ""
+
+msgid "+ Add Preset"
+msgstr ""
+
+msgid "Delete Filament"
+msgstr ""
+
+msgid ""
+"Delete filament?\n"
+"Delete filament would deleted all the attatched filament presets"
+msgstr ""
+
+msgid "Delete filament"
+msgstr ""
+
+msgid "Add Preset"
+msgstr ""
+
+msgid "Add preset for new printer"
+msgstr ""
+
+msgid "Copy preset from filament"
+msgstr ""
+
+msgid ""
+"The printer preset you selected does not have a name, please reselect it"
+msgstr ""
+
+msgid "The filament choice not find filament preset, please reselect it"
+msgstr ""
 
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
@@ -11037,6 +11067,29 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+"什么时候需要打开机箱门打印\n"
+"在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更多信息，请参阅Wiki。"
+
+#~ msgid "Create Filament"
+#~ msgstr "创建材料"
+
+#~ msgid "You have not selected a filament preset, please choose."
+#~ msgstr "你还没选择材料预设，请选择。"
+
+#~ msgid "You have not upload bed texture."
+#~ msgstr "您还没有上传热床纹理。"
+
+#~ msgid "You have not upload bed model."
+#~ msgstr "您还没有上传热床模型。"
 
 #~ msgid ""
 #~ "The current hot bed temperature is relatively high.The nozzle may be "

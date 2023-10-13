@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-10 20:13+0800\n"
+"POT-Creation-Date: 2023-10-13 11:22+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4570,9 +4570,6 @@ msgstr "Тип кровати"
 
 msgid "Flushing volumes"
 msgstr "Промывочные объемы"
-
-msgid "Create Filament"
-msgstr ""
 
 msgid "Add one filament"
 msgstr "Добавьте один филамент"
@@ -10925,22 +10922,19 @@ msgid ""
 "Do you want to rewrite it?"
 msgstr ""
 
-msgid "You have not selected a filament preset, please choose."
-msgstr ""
-
 msgid "Create Printer/Nozzle"
-msgstr ""
-
-msgid "Create from template"
-msgstr ""
-
-msgid "Create based on current printer"
 msgstr ""
 
 msgid "Create Printer"
 msgstr ""
 
 msgid "Create Nozzle for existing printer"
+msgstr ""
+
+msgid "Create from template"
+msgstr ""
+
+msgid "Create based on current printer"
 msgstr ""
 
 msgid "wiki"
@@ -10988,6 +10982,18 @@ msgstr ""
 msgid "Max print height"
 msgstr ""
 
+msgid "Preset path is not find, please reselect vendor."
+msgstr ""
+
+msgid "The printer model was not found, please reselect."
+msgstr ""
+
+msgid "The nozzle diameter is not fond, place reselect."
+msgstr ""
+
+msgid "The printer preset is not fond, place reselect."
+msgstr ""
+
 msgid "Printer preset"
 msgstr ""
 
@@ -11004,12 +11010,12 @@ msgid "Process preset template"
 msgstr ""
 
 msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+"You have not yet chosen which printer preset to create based on. Please "
+"choose the vendor and model of the printer"
 msgstr ""
 
 msgid ""
-"You have not yet chosen which printer preset to create based on. Please "
-"choose the vendor and model of the printer"
+"The custom printer and model are not inputed, place return page 1 to input."
 msgstr ""
 
 msgid ""
@@ -11038,24 +11044,9 @@ msgstr ""
 msgid "Current vendor has no models, please reselect."
 msgstr ""
 
-msgid "Preset path is not find, please reselect vendor."
-msgstr ""
-
-msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
-
-msgid "The printer preset is not fond, place reselect."
-msgstr ""
-
 msgid ""
 "You have not selected the vendor and model or inputed the custom vendor and "
 "model."
-msgstr ""
-
-msgid "You have not upload bed texture."
-msgstr ""
-
-msgid "You have not upload bed model."
 msgstr ""
 
 msgid "Please check bed shape input."
@@ -11162,6 +11153,45 @@ msgid ""
 msgstr ""
 
 msgid "Please select a type you want to export"
+msgstr ""
+
+msgid "Edit Filament"
+msgstr ""
+
+msgid "Basic Information"
+msgstr ""
+
+msgid "Filament presets under this filament"
+msgstr ""
+
+msgid "+ Add Preset"
+msgstr ""
+
+msgid "Delete Filament"
+msgstr ""
+
+msgid ""
+"Delete filament?\n"
+"Delete filament would deleted all the attatched filament presets"
+msgstr ""
+
+msgid "Delete filament"
+msgstr ""
+
+msgid "Add Preset"
+msgstr ""
+
+msgid "Add preset for new printer"
+msgstr ""
+
+msgid "Copy preset from filament"
+msgstr ""
+
+msgid ""
+"The printer preset you selected does not have a name, please reselect it"
+msgstr ""
+
+msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
 msgid "The start, end or step is not valid value."
@@ -11433,6 +11463,15 @@ msgstr ""
 "Повышение прочности\n"
 "Знаете ли вы, что для повышения прочности модели можно использовать больше "
 "периметров и более высокую плотность заполнения?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "
