@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-10 08:26+0800\n"
+"POT-Creation-Date: 2023-10-13 10:29+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -9776,4 +9776,8 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
+msgid "When need to print with the printer door opened\nOpening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
