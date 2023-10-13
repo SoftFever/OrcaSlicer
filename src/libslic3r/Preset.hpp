@@ -21,6 +21,7 @@
 #define PRESET_SLA_PRINT_NAME  "sla_print"
 #define PRESET_SLA_MATERIALS_NAME "sla_materials"
 #define PRESET_PROFILES_DIR "profiles"
+#define PRESET_PROFILES_TEMOLATE_DIR "profiles_template"
 #define PRESET_TEMPLATE_DIR "Template"
 
 //BBS: iot preset type strings

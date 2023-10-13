@@ -1634,8 +1634,8 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
     } else {
         selected_vendor_id = PRESET_TEMPLATE_DIR;
         preset_path.clear();
-        if (boost::filesystem::exists(boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_DIR / selected_vendor_id)) {
-            preset_path = (boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_DIR).string();
+        if (boost::filesystem::exists(boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_TEMOLATE_DIR / selected_vendor_id)) {
+            preset_path = (boost::filesystem::path(Slic3r::resources_dir()) / PRESET_PROFILES_TEMOLATE_DIR).string();
         }
         if (preset_path.empty()) {
             BOOST_LOG_TRIVIAL(info) << "Preset path is not find";
