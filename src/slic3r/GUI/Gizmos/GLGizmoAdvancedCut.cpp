@@ -118,7 +118,6 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     : GLGizmoRotate3D(parent, icon_filename, sprite_id, nullptr)
     , m_movement(0.0)
     , m_buffered_movement(0.0)
-    , m_last_active_id(0)
     , m_keep_upper(true)
     , m_keep_lower(true)
     , m_cut_to_parts(false)
@@ -385,7 +384,6 @@ void GLGizmoAdvancedCut::reset_cut_plane()
 
     m_movement = 0.0;
     m_height = box.size()[2] / 2.0;
-    m_height_delta = 0;
     m_rotation.setZero();
 
     m_buffered_movement = 0.0;
@@ -594,7 +592,6 @@ void GLGizmoAdvancedCut::on_stop_dragging()
     m_plane_center_drag_start = m_plane_center;
     reset_cut_by_contours();
     m_movement     = 0.0;
-    m_height_delta = 0.0;
     m_rotation.setZero();
 }
 
@@ -640,13 +637,11 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
         double move = calc_projection(m_drag_pos_start, data.mouse_ray, m_plane_normal);
         m_movement  = m_start_movement + move;
         update_plate_center(Axis::Z, move, true);
-        m_height = m_plane_center.z();
     } // move x
     else if (m_hover_id == c_cube_x_move_id && m_cut_mode == CutMode::cutTongueAndGroove) {
         double move = calc_projection(m_drag_pos_start, data.mouse_ray, m_plane_x_direction);
         m_movement  = m_start_movement + move;
         update_plate_center(Axis::X, move, true);
-        m_height = m_plane_center.z();
     } // dragging connectors
     else if (m_connectors_editing && m_hover_id >= c_connectors_group_id) {
         CutConnectors &connectors = m_c->selection_info()->model_object()->cut_connectors;
@@ -1782,14 +1777,13 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     float        rotate_cap        = m_imgui->calc_text_size(_L("Rotate")).x;
     float        caption_size      = std::max(movement_cap, rotate_cap) + 2 * space_size;
     m_imperial_units               = wxGetApp().app_config->get("use_inches") == "1";
-    unsigned int current_active_id = ImGui::GetActiveID();
 
-    Vec3d rotation = {Geometry::rad2deg(m_buffered_rotation(0)), Geometry::rad2deg(m_buffered_rotation(1)), Geometry::rad2deg(m_buffered_rotation(2))};
+    m_buffered_rotation = {Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2))};
     char  buf[3][64];
     float buf_size[3];
     float vec_max = 0, unit_size = 0;
     for (int i = 0; i < 3; i++) {
-        ImGui::DataTypeFormatString(buf[i], IM_ARRAYSIZE(buf[i]), ImGuiDataType_Double, (void *) &rotation[i], "%.2f");
+        ImGui::DataTypeFormatString(buf[i], IM_ARRAYSIZE(buf[i]), ImGuiDataType_Double, (void *) &m_buffered_rotation[i], "%.2f");
         buf_size[i] = ImGui::CalcTextSize(buf[i]).x;
         vec_max     = std::max(buf_size[i], vec_max);
     }
@@ -1830,56 +1824,45 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     m_imgui->text(_L("Rotation") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::BBLInputDouble("##cut_rotation_x", &rotation[0], 0.0f, 0.0f, "%.2f");
+    ImGui::BBLInputDouble("##cut_rotation_x", &m_buffered_rotation[0], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue);
     ImGui::SameLine(caption_size + 1 * unit_size + 2 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::BBLInputDouble("##cut_rotation_y", &rotation[1], 0.0f, 0.0f, "%.2f");
+    ImGui::BBLInputDouble("##cut_rotation_y", &m_buffered_rotation[1], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue);
     ImGui::SameLine(caption_size + 2 * unit_size + 3 * space_size);
     ImGui::PushItemWidth(unit_size);
-    ImGui::BBLInputDouble("##cut_rotation_z", &rotation[2], 0.0f, 0.0f, "%.2f");
-    if (current_active_id != m_last_active_id) {
-        if (std::abs(Geometry::rad2deg(m_rotation(0)) - m_buffered_rotation(0)) > EPSILON || std::abs(Geometry::rad2deg(m_rotation(1)) - m_buffered_rotation(1)) > EPSILON ||
-            std::abs(Geometry::rad2deg(m_rotation(2)) - m_buffered_rotation(2)) > EPSILON) {
-            m_rotation = m_buffered_rotation;
-            m_buffered_rotation.setZero();
-            update_plate_normal_boundingbox_clipper(m_rotation);
-            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
-        }
-    } else {
-        m_buffered_rotation(0) = Geometry::deg2rad(rotation(0));
-        m_buffered_rotation(1) = Geometry::deg2rad(rotation(1));
-        m_buffered_rotation(2) = Geometry::deg2rad(rotation(2));
+    ImGui::BBLInputDouble("##cut_rotation_z", &m_buffered_rotation[2], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue);
+    if (std::abs(Geometry::rad2deg(m_rotation(0)) - m_buffered_rotation(0)) > EPSILON || std::abs(Geometry::rad2deg(m_rotation(1)) - m_buffered_rotation(1)) > EPSILON ||
+        std::abs(Geometry::rad2deg(m_rotation(2)) - m_buffered_rotation(2)) > EPSILON) {
+        m_rotation(0) = Geometry::deg2rad(m_buffered_rotation(0));
+        m_rotation(1) = Geometry::deg2rad(m_buffered_rotation(1));
+        m_rotation(2) = Geometry::deg2rad(m_buffered_rotation(2));
+        update_plate_normal_boundingbox_clipper(m_rotation);
+        reset_cut_by_contours();
+        m_rotation.setZero();
     }
 
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 10.0f));
     // Movement input box
-    double movement = m_movement;
+    m_buffered_movement = m_movement;
     ImGui::PushItemWidth(caption_size);
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Movement") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
-    ImGui::BBLInputDouble("##cut_movement", &movement, 0.0f, 0.0f, "%.2f");
-    if (current_active_id != m_last_active_id) {
-        if (std::abs(m_buffered_movement - m_movement) > EPSILON) {
-            m_movement          = m_buffered_movement;
-            m_buffered_movement = 0.0;
-
-            // update absolute height
-            m_height_delta = m_plane_normal(2) * m_movement;
-            m_height += m_height_delta;
-            m_buffered_height = m_height;
-
-            update_plate_center(Axis::Z, m_movement, false);
-            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
-        }
-    } else {
-        m_buffered_movement = movement;
+    ImGui::BBLInputDouble("##cut_movement", &m_buffered_movement, 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue);
+  
+    if (std::abs(m_buffered_movement - m_movement) > EPSILON) {
+        m_movement          = m_buffered_movement;
+        // update absolute height
+        update_plate_center(Axis::Z, m_movement, false);
+        reset_cut_by_contours();
+        m_movement = 0.0;
     }
 
     // height input box
-    double height = m_height;
+    m_height          = m_plane_center.z();
+    m_buffered_height = m_plane_center.z();
     ImGui::PushItemWidth(caption_size);
     ImGui::AlignTextToFramePadding();
     // only allow setting height when cut plane is horizontal
@@ -1888,16 +1871,10 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     m_imgui->text(_L("Height") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
-    ImGui::BBLInputDouble("##cut_height", &height, 0.0f, 0.0f, "%.2f");
-    if (current_active_id != m_last_active_id) {
-        if (std::abs(m_buffered_height - m_height) > EPSILON) {
-            m_height_delta = m_buffered_height - m_height;
-            m_height       = m_buffered_height;
-            update_plate_center(Axis::Z, m_height - m_plane_center.z(), false);
-            m_parent.post_event(SimpleEvent(wxEVT_PAINT));
-        }
-    } else {
-        m_buffered_height = height;
+    ImGui::BBLInputDouble("##cut_height", &m_buffered_height, 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_EnterReturnsTrue);
+    if (std::abs(m_buffered_height - m_height) > EPSILON) {
+        update_plate_center(Axis::Z, m_buffered_height - m_height, false);
+        reset_cut_by_contours();
     }
     ImGui::PopStyleVar(1);
     m_imgui->disabled_end();
@@ -2009,8 +1986,6 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     ImGui::SameLine();
     const bool reset_clicked = m_imgui->button(_L("Reset"));
     if (reset_clicked) { reset_all(); }
-
-    m_last_active_id = current_active_id;
 }
 
 void GLGizmoAdvancedCut::init_connectors_input_window_data()

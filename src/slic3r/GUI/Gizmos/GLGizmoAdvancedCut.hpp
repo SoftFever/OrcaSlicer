@@ -93,7 +93,6 @@ private:
 
     mutable double m_movement;
     mutable double m_height;  // height of cut plane to heatbed
-    mutable double m_height_delta;  // height of cut plane to heatbed
     double m_start_movement;
     double m_start_height;
 
@@ -119,8 +118,6 @@ private:
 
     mutable Grabber m_move_z_grabber;
     mutable Grabber m_move_x_grabber;
-
-    unsigned int m_last_active_id;
 
     bool m_connectors_editing{false};
     std::vector<size_t> m_invalid_connectors_idxs;
