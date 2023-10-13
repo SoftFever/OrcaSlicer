@@ -2553,7 +2553,7 @@ ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
-    m_main_sizer->Add(create_txport_config_item(this), 0, wxEXPAND | wxALL, FromDIP(5));
+    m_main_sizer->Add(create_export_config_item(this), 0, wxEXPAND | wxALL, FromDIP(5));
     m_main_sizer->Add(create_select_printer(this), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_main_sizer->Add(create_button_item(this), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
 
@@ -2740,7 +2740,7 @@ std::string ExportConfigsDialog::initial_file_name(const wxString &path, const s
     return export_path;
 }
 
-wxBoxSizer *ExportConfigsDialog::create_txport_config_item(wxWindow *parent)
+wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -2754,11 +2754,15 @@ wxBoxSizer *ExportConfigsDialog::create_txport_config_item(wxWindow *parent)
 
     radioBoxSizer->Add(create_radio_item(m_exprot_type.preset_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxALL, 0);
     radioBoxSizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    wxStaticText *static_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belongs to the printer. \nCan be share in makerworld."), wxDefaultPosition, wxDefaultSize);
-    static_text->SetFont(Label::Body_12);
-    static_text->SetForegroundColour(wxColour("#6B6B6B"));
-    radioBoxSizer->Add(static_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
+    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belongs to the printer. \nCan be share in MakerWorld."), wxDefaultPosition, wxDefaultSize);
+    static_export_printer_preset_bundle_text->SetFont(Label::Body_12);
+    static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
+    radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.filament_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
+    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's fillment preset set. \nCan be share in MakerWorld."), wxDefaultPosition, wxDefaultSize);
+    static_export_filament_preset_bundle_text->SetFont(Label::Body_12);
+    static_export_filament_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
+    radioBoxSizer->Add(static_export_filament_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.printer_preset, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.filament_preset, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.process_preset, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));

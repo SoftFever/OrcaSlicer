@@ -247,7 +247,7 @@ private:
     void        show_export_result(const ExportCase &export_case);
     std::string initial_file_path(const wxString &path, const std::string &sub_file_path);
     std::string initial_file_name(const wxString &path, const std::string file_name);
-    wxBoxSizer *create_txport_config_item(wxWindow *parent);
+    wxBoxSizer *create_export_config_item(wxWindow *parent);
     wxBoxSizer *create_button_item(wxWindow *parent);
     wxBoxSizer *create_select_printer(wxWindow *parent);
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
