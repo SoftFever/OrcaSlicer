@@ -729,12 +729,14 @@ void PrintingTaskPanel::market_scoring_show()
 { 
     m_score_staticline->Show();
     m_score_subtask_info->Show();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show market scoring page";
 }
 
 void PrintingTaskPanel::market_scoring_hide()
 {
     m_score_staticline->Hide();
     m_score_subtask_info->Hide();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "hide market scoring page";
 }
 
 void PrintingTaskPanel::set_star_count(int star_count)

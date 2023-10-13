@@ -2947,7 +2947,7 @@ void Plater::priv::update(unsigned int flags)
 void Plater::priv::select_view(const std::string& direction)
 {
     if (current_panel == view3D) {
-        BOOST_LOG_TRIVIAL(info) << "select view3D";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "select view3D";
         view3D->select_view(direction);
         wxGetApp().update_ui_from_settings();
     }
@@ -3022,7 +3022,7 @@ void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
 {
     if (name == "3D") {
-        BOOST_LOG_TRIVIAL(info) << "select view3D";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "select view3D";
         if (q->only_gcode_mode() || q->using_exported_file()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("goto preview page when loading gcode/exported_3mf");
         }
@@ -4379,6 +4379,7 @@ void Plater::priv::reset(bool apply_presets_change)
     clear_warnings();
 
     set_project_filename("");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: empty";
 
     if (view3D->is_layers_editing_enabled())
         view3D->get_canvas3d()->force_main_toolbar_left_action(view3D->get_canvas3d()->get_main_toolbar_item_id("layersediting"));
@@ -6979,6 +6980,7 @@ wxString Plater::priv::get_project_name()
 //BBS
 void Plater::priv::set_project_name(const wxString& project_name)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " project is:" << project_name;
     m_project_name = project_name;
     //update topbar title
     wxGetApp().mainframe->SetTitle(m_project_name);
@@ -7008,6 +7010,7 @@ void Plater::priv::set_project_filename(const wxString& filename)
     full_path.replace_extension("");
 
     m_project_folder = full_path.parent_path();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " project folder is:" << m_project_folder.string();
 
     //BBS
     wxString project_name = from_u8(full_path.filename().string());
@@ -8098,6 +8101,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
 void Plater::load_project(wxString const& filename2,
     wxString const& originfile)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "filename is: " << filename2 << "and originfile is: " << originfile; 
     auto filename = filename2;
     auto check = [&filename, this] (bool yes_or_no) {
         if (!yes_or_no && !wxGetApp().check_and_save_current_preset_changes(_L("Load project"),
@@ -8163,14 +8167,19 @@ void Plater::load_project(wxString const& filename2,
 
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << load_restore ? originfile : filename;
         p->set_project_filename(load_restore ? originfile : filename);
-        if (load_restore && originfile.IsEmpty())
-            p->set_project_name(_L("Untitled"));
+        if (load_restore && originfile.IsEmpty()) {
+        p->set_project_name(_L("Untitled"));
+        }
+            
     } else {
-        if (using_exported_file())
+        if (using_exported_file()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " using ecported set project filename: " << filename;
             p->set_project_filename(filename);
+        }
+            
     }
-
 
     // BBS set default 3D view and direction after loading project
     //p->select_view_3D("3D");
@@ -8200,6 +8209,7 @@ void Plater::load_project(wxString const& filename2,
 
     wxGetApp().params_panel()->switch_to_object_if_has_object_configs();
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " load project done";
     m_loading_project = false;
 }
 
@@ -8228,6 +8238,7 @@ int Plater::save_project(bool saveAs)
     Slic3r::remove_backup(model(), false);
 
     p->set_project_filename(filename);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << filename;
 
     up_to_date(true, false);
     up_to_date(true, true);
@@ -8251,6 +8262,8 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(wxString download_info)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " download info: " << download_info;
+
     wxString download_origin_url = download_info;
     wxString download_url;
     wxString filename;
@@ -8444,7 +8457,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
         // show save new project
-        p->set_project_filename(filename);
+        p->set_project_filename(target_path.wstring());
         p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
@@ -9012,6 +9025,7 @@ void Plater::load_gcode()
 //BBS: remove GCodeViewer as seperate APP logic
 void Plater::load_gcode(const wxString& filename)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " entry and filename: " << filename;
     if (! is_gcode_file(into_u8(filename))
         || (m_last_loaded_gcode == filename && m_only_gcode)
         )
@@ -9090,9 +9104,10 @@ void Plater::load_gcode(const wxString& filename)
         MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("does not contain valid gcode."),
             wxString(GCODEVIEWER_APP_NAME) + " - " + _L("Error occurs while loading G-code file"), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         set_project_filename(DEFAULT_PROJECT_NAME);
-    }
-    else
+    } else {
         set_project_filename(filename);
+    }
+        
 }
 
 void Plater::reload_gcode_from_disk()
@@ -9706,6 +9721,7 @@ int Plater::get_3mf_file_count(std::vector<fs::path> paths)
 
 void Plater::add_file()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " entry";
     wxArrayString input_files;
     wxGetApp().import_model(this, input_files);
     if (input_files.empty()) return;
@@ -9749,6 +9765,7 @@ void Plater::add_file()
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) {
             if (get_project_name() == _L("Untitled") && paths.size() > 0) {
                 p->set_project_filename(wxString::FromUTF8(paths[0].string()));
+
             }
             wxGetApp().mainframe->update_title();
         }
@@ -10822,6 +10839,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
         if (!(store_params.strategy & SaveStrategy::Silence)) {
             // Success
             p->set_project_filename(path);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: " << path;
         }
     }
     else {

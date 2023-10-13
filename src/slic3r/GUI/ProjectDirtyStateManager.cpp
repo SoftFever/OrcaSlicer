@@ -41,7 +41,8 @@ void ProjectDirtyStateManager::update_from_presets()
                 m_presets_dirty |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
             }
         }
-
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "project file name is empty";
     }
     m_presets_dirty |= app.has_unsaved_preset_changes();
     m_project_config_dirty = m_initial_project_config != app.preset_bundle->project_config;
