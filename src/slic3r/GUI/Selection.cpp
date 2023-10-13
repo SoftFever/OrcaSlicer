@@ -458,10 +458,12 @@ void Selection::remove_curr_plate()
 
 void Selection::clone(int numbers)
 {
-    if (numbers > 0)
-        wxGetApp().plater()->take_snapshot(std::string("Selection-clone"));
+    if (numbers <= 0)
+        return;
+
+    wxGetApp().plater()->take_snapshot(std::string("Selection-clone"));
+    copy_to_clipboard();
     for (int i = 0; i < numbers; i++) {
-        copy_to_clipboard();
         paste_from_clipboard();
     }
 }
@@ -2722,7 +2724,7 @@ void Selection::paste_objects_from_clipboard()
     {
         const ModelObject *src_object = src_objects[i];
         ModelObject* dst_object = m_model->add_object(*src_object);
-        
+
         // BBS: find an empty cell to put the copied object
         BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
 

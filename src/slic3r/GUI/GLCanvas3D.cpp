@@ -4909,8 +4909,8 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Ve
     Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
     BoundingBoxf bbox(vmin, vmax);
     std::vector<Vec2f> cells;
-    for (float x = bbox.min.x(); x < bbox.max.x(); x += step(0))
-        for (float y = bbox.min.y(); y < bbox.max.y(); y += step(1))
+    for (float x = bbox.min.x()+step(0)/2; x < bbox.max.x()-step(0)/2; x += step(0))
+        for (float y = bbox.min.y()+step(1)/2; y < bbox.max.y()-step(1)/2; y += step(1))
         {
             cells.emplace_back(x, y);
         }
