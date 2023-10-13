@@ -124,39 +124,41 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_biqu(const ThumbnailDa
 
     auto out = std::make_unique<CompressedBIQU>();
 
-    out->size = data.height * (2 + data.width * 4) + 1;
+    // get the output size of the data
+    // add 4 bytes to the row_size to account for end of line (\r\n)
+    // add 1 byte for the 0 of the c_str
+    out->size = data.height * (row_size + 4) + 1;
     out->data = malloc(out->size);
 
     std::stringstream out_data;
     typedef struct {unsigned char r, g, b, a;} pixel;
     pixel px;
     for (int ypos = 0; ypos < data.height; ypos++) {
-        std::stringstream qrgb;
-        qrgb << ";";
+        std::stringstream line;
+        line << ";";
         for (int xpos = 0; xpos < row_size; xpos+=4) {
             px.r = rgba_pixels[ypos * row_size + xpos];
             px.g = rgba_pixels[ypos * row_size + xpos + 1];
             px.b = rgba_pixels[ypos * row_size + xpos + 2];
             px.a = rgba_pixels[ypos * row_size + xpos + 3];
 
-            // Uses modified algorithm from PyQt5/Qt (the native BTT plugin for Cura uses this)
-            unsigned int QRgb = ((px.a & 0xffu) << 24) | ((px.r & 0xffu) << 16) | ((px.g & 0xffu) << 8) | (px.b & 0xffu);
-            unsigned int t = (QRgb & 0xff00ff) * px.a;
-            t = (t + ((t >> 8) & 0xff00ff) + 0x800080) >> 8;
-            t &= 0xff00ff;
+            // calculate values for RGB with alpha
+            const uint8_t rv = ((px.a * px.r) / 255);
+            const uint8_t gv = ((px.a * px.g) / 255);
+            const uint8_t bv = ((px.a * px.b) / 255);
 
-            QRgb = ((QRgb >> 8) & 0xff) * px.a;
-            QRgb = (QRgb + ((QRgb >> 8) & 0xff) + 0x80);
-            QRgb &= 0xff00;
-            QRgb = QRgb | t | (px.a << 24);
+            // convert the RGB values to RGB565 hex that is right justified (same algorithm BTT firmware uses)
+            auto color_565 = rjust(get_hex(((rv >> 3) << 11) | ((gv >> 2) << 5) | (bv >> 3)), 4, '0');
 
-            auto dummy = rjust(get_hex(((QRgb & 0x00F80000) >> 8 ) | ((QRgb & 0x0000FC00) >> 5 ) | ((QRgb & 0x000000F8) >> 3 )), 4, '0');
-            if (dummy == "0020" || dummy == "0841" || dummy == "0861")
-                dummy = "0000";
-            qrgb << dummy;
+            //BTT original converter specifies these values should be '0000'
+            if (color_565 == "0020" || color_565 == "0841" || color_565 == "0861")
+                color_565 = "0000";
+            //add the color to the line
+            line << color_565;
         }
-        out_data << qrgb.str() << std::endl;
-        qrgb.clear();
+        // output line and end line (\r\n is important. BTT firmware requires it)
+        out_data << line.str() << "\r\n";
+        line.clear();
     }
     ::memcpy(out->data, (const void*) out_data.str().c_str(), out->size);
     return out;

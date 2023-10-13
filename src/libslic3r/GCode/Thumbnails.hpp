@@ -43,10 +43,10 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                 if (compressed->data && compressed->size) {
                     if (format == GCodeThumbnailsFormat::BIQU) {
                         // write BIQU header
-                        output((";" + rjust(get_hex(data.width), 4, '0') + rjust(get_hex(data.height), 4, '0') + "\n").c_str());
+                        output((";" + rjust(get_hex(data.width), 4, '0') + rjust(get_hex(data.height), 4, '0') + "\r\n").c_str());
                         output((char *) compressed->data);
                         if (i == (thumbnails.size() - 1))
-                            output("; bigtree thumbnail end\n\n");
+                            output("; bigtree thumbnail end\r\n\r\n");
                     } else {
                         std::string encoded;
                         encoded.resize(boost::beast::detail::base64::encoded_size(compressed->size));
