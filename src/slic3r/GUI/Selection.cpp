@@ -822,6 +822,196 @@ const BoundingBoxf3& Selection::get_scaled_instance_bounding_box() const
     return *m_scaled_instance_bounding_box;
 }
 
+
+const BoundingBoxf3& Selection::get_full_unscaled_instance_bounding_box() const
+{
+    assert(is_single_full_instance());
+
+    if (!m_full_unscaled_instance_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* bbox = const_cast<std::optional<BoundingBoxf3>*>(&m_full_unscaled_instance_bounding_box);
+        *bbox = BoundingBoxf3();
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                const GLVolume& volume = *(*m_volumes)[i];
+                Transform3d trafo = volume.get_instance_transformation().get_matrix_no_scaling_factor() * volume.get_volume_transformation().get_matrix();
+                trafo.translation().z() += volume.get_sla_shift_z();
+                (*bbox)->merge(volume.transformed_convex_hull_bounding_box(trafo));
+            }
+        }
+    }
+    return *m_full_unscaled_instance_bounding_box;
+}
+
+const BoundingBoxf3& Selection::get_full_scaled_instance_bounding_box() const
+{
+    assert(is_single_full_instance());
+
+    if (!m_full_scaled_instance_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* bbox = const_cast<std::optional<BoundingBoxf3>*>(&m_full_scaled_instance_bounding_box);
+        *bbox = BoundingBoxf3();
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                const GLVolume& volume = *(*m_volumes)[i];
+                Transform3d trafo = volume.get_instance_transformation().get_matrix() * volume.get_volume_transformation().get_matrix();
+                trafo.translation().z() += volume.get_sla_shift_z();
+                (*bbox)->merge(volume.transformed_convex_hull_bounding_box(trafo));
+            }
+        }
+    }
+    return *m_full_scaled_instance_bounding_box;
+}
+
+const BoundingBoxf3& Selection::get_full_unscaled_instance_local_bounding_box() const
+{
+    assert(is_single_full_instance());
+
+    if (!m_full_unscaled_instance_local_bounding_box.has_value()) {
+        std::optional<BoundingBoxf3>* bbox = const_cast<std::optional<BoundingBoxf3>*>(&m_full_unscaled_instance_local_bounding_box);
+        *bbox = BoundingBoxf3();
+        if (m_valid) {
+            for (unsigned int i : m_list) {
+                const GLVolume& volume = *(*m_volumes)[i];
+                Transform3d trafo = volume.get_volume_transformation().get_matrix();
+                trafo.translation().z() += volume.get_sla_shift_z();
+                (*bbox)->merge(volume.transformed_convex_hull_bounding_box(trafo));
+            }
+        }
+    }
+    return *m_full_unscaled_instance_local_bounding_box;
+}
+
+const std::pair<BoundingBoxf3, Transform3d>& Selection::get_bounding_box_in_current_reference_system() const
+{
+    static int last_coordinates_type = -1;
+
+    assert(!is_empty());
+
+    ECoordinatesType coordinates_type = ECoordinatesType::World;//wxGetApp().obj_manipul()->get_coordinates_type();
+    if (m_mode == Instance && coordinates_type == ECoordinatesType::Local)
+        coordinates_type = ECoordinatesType::World;
+
+    if (last_coordinates_type != int(coordinates_type))
+        const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>>*>(&m_bounding_box_in_current_reference_system)->reset();
+
+    if (!m_bounding_box_in_current_reference_system.has_value()) {
+        last_coordinates_type = int(coordinates_type);
+        *const_cast<std::optional<std::pair<BoundingBoxf3, Transform3d>>*>(&m_bounding_box_in_current_reference_system) = get_bounding_box_in_reference_system(coordinates_type);
+    }
+
+    return *m_bounding_box_in_current_reference_system;
+}
+
+std::pair<BoundingBoxf3, Transform3d> Selection::get_bounding_box_in_reference_system(ECoordinatesType type) const
+{
+    //
+    // trafo to current reference system
+    //
+    Transform3d trafo;
+    switch (type)
+    {
+    case ECoordinatesType::World:    { trafo = Transform3d::Identity(); break; }
+    case ECoordinatesType::Instance: { trafo = get_first_volume()->get_instance_transformation().get_matrix(); break; }
+    case ECoordinatesType::Local:    { trafo = get_first_volume()->world_matrix(); break; }
+    }
+
+    //
+    // trafo basis in world coordinates
+    //
+    Geometry::Transformation t(trafo);
+    t.reset_scaling_factor();
+    const Transform3d basis_trafo = t.get_matrix_no_offset();
+    std::vector<Vec3d> axes = { Vec3d::UnitX(), Vec3d::UnitY(), Vec3d::UnitZ() };
+    for (size_t i = 0; i < axes.size(); ++i) {
+        axes[i] = basis_trafo * axes[i];
+    }
+
+    //
+    // calculate bounding box aligned to trafo basis
+    //
+    Vec3d min = { DBL_MAX, DBL_MAX, DBL_MAX };
+    Vec3d max = { -DBL_MAX, -DBL_MAX, -DBL_MAX };
+    for (unsigned int id : m_list) {
+        const GLVolume& vol = *get_volume(id);
+        const Transform3d vol_world_rafo = vol.world_matrix();
+        const TriangleMesh* mesh = vol.convex_hull();
+        if (mesh == nullptr)
+            mesh = &m_model->objects[vol.object_idx()]->volumes[vol.volume_idx()]->mesh();
+        assert(mesh != nullptr);
+        for (const stl_vertex& v : mesh->its.vertices) {
+            const Vec3d world_v = vol_world_rafo * v.cast<double>();
+            for (int i = 0; i < 3; ++i) {
+                const double i_comp = world_v.dot(axes[i]);
+                min(i) = std::min(min(i), i_comp);
+                max(i) = std::max(max(i), i_comp);
+            }
+        }
+    }
+
+    const Vec3d box_size = max - min;
+    Vec3d half_box_size = 0.5 * box_size;
+    Geometry::Transformation out_trafo(trafo);
+    Vec3d center = 0.5 * (min + max);
+
+    // Fix for non centered volume 
+    // by move with calculated center(to volume center) and extend half box size
+    // e.g. for right aligned embossed text
+    if (m_list.size() == 1 &&
+        type == ECoordinatesType::Local) {
+        const GLVolume& vol = *get_volume(*m_list.begin());
+        const Transform3d vol_world_trafo = vol.world_matrix();
+        Vec3d world_zero = vol_world_trafo * Vec3d::Zero();
+        for (size_t i = 0; i < 3; i++){
+            // move center to local volume zero
+            center[i] = world_zero.dot(axes[i]);
+            // extend half size to bigger distance from center
+            half_box_size[i] = std::max(
+                abs(center[i] - min[i]),
+                abs(center[i] - max[i]));
+        }
+    }
+    
+    const BoundingBoxf3 out_box(-half_box_size, half_box_size);
+    out_trafo.set_offset(basis_trafo * center);
+    return { out_box, out_trafo.get_matrix_no_scaling_factor() };
+}
+
+BoundingBoxf Selection::get_screen_space_bounding_box()
+{
+    BoundingBoxf ss_box;
+    if (!is_empty()) {
+        const auto& [box, box_trafo] = get_bounding_box_in_current_reference_system();
+
+        // vertices
+        std::vector<Vec3d> vertices = {
+            { box.min.x(), box.min.y(), box.min.z() },
+            { box.max.x(), box.min.y(), box.min.z() },
+            { box.max.x(), box.max.y(), box.min.z() },
+            { box.min.x(), box.max.y(), box.min.z() },
+            { box.min.x(), box.min.y(), box.max.z() },
+            { box.max.x(), box.min.y(), box.max.z() },
+            { box.max.x(), box.max.y(), box.max.z() },
+            { box.min.x(), box.max.y(), box.max.z() }
+        };
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Matrix4d projection_view_matrix = camera.get_projection_matrix().matrix() * camera.get_view_matrix().matrix();
+        const std::array<int, 4>& viewport = camera.get_viewport();
+
+        const double half_w = 0.5 * double(viewport[2]);
+        const double h = double(viewport[3]);
+        const double half_h = 0.5 * h;
+        for (const Vec3d& v : vertices) {
+            const Vec3d world = box_trafo * v;
+            const Vec4d clip = projection_view_matrix * Vec4d(world.x(), world.y(), world.z(), 1.0);
+            const Vec3d ndc = Vec3d(clip.x(), clip.y(), clip.z()) / clip.w();
+            const Vec2d ss = Vec2d(half_w * ndc.x() + double(viewport[0]) + half_w, h - (half_h * ndc.y() + double(viewport[1]) + half_h));
+            ss_box.merge(ss);
+        }
+    }
+
+    return ss_box;
+}
+
 void Selection::start_dragging()
 {
     if (!m_valid)

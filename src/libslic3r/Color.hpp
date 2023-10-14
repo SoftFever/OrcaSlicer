@@ -130,6 +130,7 @@ public:
 	static const ColorRGBA REDISH()      { return { 1.0f, 0.5f, 0.5f, 1.0f }; }
 	static const ColorRGBA YELLOW()      { return { 1.0f, 1.0f, 0.0f, 1.0f }; }
 	static const ColorRGBA WHITE()       { return { 1.0f, 1.0f, 1.0f, 1.0f }; }
+	static const ColorRGBA ORCA()        { return { 0.0f, 150.f/255.0f, 136.0f/255, 1.0f }; }
 
 	static const ColorRGBA X()           { return { 0.75f, 0.0f, 0.0f, 1.0f }; }
 	static const ColorRGBA Y()           { return { 0.0f, 0.75f, 0.0f, 1.0f }; }

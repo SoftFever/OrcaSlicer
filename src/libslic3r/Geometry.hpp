@@ -411,8 +411,11 @@ public:
     void set_offset(const Vec3d& offset);
     void set_offset(Axis axis, double offset);
 
+    Transform3d get_offset_matrix() const;
+
     const Vec3d& get_rotation() const { return m_rotation; }
     double get_rotation(Axis axis) const { return m_rotation(axis); }
+    void reset_offset() { set_offset(Vec3d::Zero()); }
 
     Transform3d get_rotation_matrix() const;
 
@@ -421,6 +424,7 @@ public:
 
     const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
     double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
+    Transform3d get_matrix_no_offset() const;
 
     void set_scaling_factor(const Vec3d& scaling_factor);
     void set_scaling_factor(Axis axis, double scaling_factor);
@@ -438,6 +442,9 @@ public:
     void reset();
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+
+    Transform3d get_matrix_no_scaling_factor() const;
+    void reset_scaling_factor();
 
     Transformation operator * (const Transformation& other) const;
 
@@ -462,7 +469,24 @@ private:
 		ar(construct.ptr()->m_offset, construct.ptr()->m_rotation, construct.ptr()->m_scaling_factor, construct.ptr()->m_mirror);
 	}
 };
+struct TransformationSVD
+{
+    Matrix3d u{ Matrix3d::Identity() };
+    Matrix3d s{ Matrix3d::Identity() };
+    Matrix3d v{ Matrix3d::Identity() };
 
+    bool mirror{ false };
+    bool scale{ false };
+    bool anisotropic_scale{ false };
+    bool rotation{ false };
+    bool rotation_90_degrees{ false };
+    bool skew{ false };
+
+    explicit TransformationSVD(const Transformation& trafo) : TransformationSVD(trafo.get_matrix()) {}
+    explicit TransformationSVD(const Transform3d& trafo);
+
+    Eigen::DiagonalMatrix<double, 3, 3> mirror_matrix() const { return Eigen::DiagonalMatrix<double, 3, 3>(this->mirror ? -1. : 1., 1., 1.); }
+};
 // For parsing a transformation matrix from 3MF / AMF.
 extern Transform3d transform3d_from_string(const std::string& transform_str);
 

@@ -162,6 +162,18 @@ private:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     std::optional<BoundingBoxf3> m_unscaled_instance_bounding_box;
     std::optional<BoundingBoxf3> m_scaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_scaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_local_bounding_box;
+    // Bounding box aligned to the axis of the currently selected reference system (World/Object/Part)
+    // and transform to place and orient it in world coordinates
+    std::optional<std::pair<BoundingBoxf3, Transform3d>> m_bounding_box_in_current_reference_system;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLModel m_vbo_sphere;
@@ -277,6 +289,24 @@ public:
     // is useful for absolute scaling of tilted objects in world coordinate space.
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3& get_full_unscaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    const BoundingBoxf3& get_full_scaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3& get_full_unscaled_instance_local_bounding_box() const;
+    // Returns the bounding box aligned to the axes of the currently selected reference system (World/Object/Part)
+    // and the transform to place and orient it in world coordinates
+    const std::pair<BoundingBoxf3, Transform3d>& get_bounding_box_in_current_reference_system() const;
+    // Returns the bounding box aligned to the axes of the given reference system
+    // and the transform to place and orient it in world coordinates
+    std::pair<BoundingBoxf3, Transform3d> get_bounding_box_in_reference_system(ECoordinatesType type) const;
+
+    // Returns the screen space bounding box
+    BoundingBoxf get_screen_space_bounding_box();
 
     void start_dragging();
     void stop_dragging() { m_dragging = false; }
@@ -352,7 +382,16 @@ private:
     void do_remove_volume(unsigned int volume_idx);
     void do_remove_instance(unsigned int object_idx, unsigned int instance_idx);
     void do_remove_object(unsigned int object_idx);
-    void set_bounding_boxes_dirty() { m_bounding_box.reset(); m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset(); }
+    void set_bounding_boxes_dirty()
+    {
+        m_bounding_box.reset();
+        m_unscaled_instance_bounding_box.reset();
+        m_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_bounding_box.reset();
+        m_full_scaled_instance_bounding_box.reset();
+        m_full_unscaled_instance_local_bounding_box.reset();
+        m_bounding_box_in_current_reference_system.reset();
+    }
     void render_selected_volumes();
     void render_synchronized_volumes();
     void render_bounding_box(const BoundingBoxf3& box, float* color);

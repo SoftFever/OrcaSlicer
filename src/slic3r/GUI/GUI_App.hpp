@@ -129,6 +129,7 @@ enum CameraMenuIDs {
 
 class Tab;
 class ConfigWizard;
+class GizmoObjectManipulation;
 
 static wxString dots("...", wxConvUTF8);
 
@@ -529,6 +530,7 @@ private:
 #endif /* __APPLE */
 
     Sidebar&             sidebar();
+    GizmoObjectManipulation*  obj_manipul();
     ObjectSettings*      obj_settings();
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();

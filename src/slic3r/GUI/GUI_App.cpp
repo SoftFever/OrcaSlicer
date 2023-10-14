@@ -5865,6 +5865,12 @@ Sidebar& GUI_App::sidebar()
     return plater_->sidebar();
 }
 
+GizmoObjectManipulation* GUI_App::obj_manipul()
+{
+    // If this method is called before plater_ has been initialized, return nullptr (to avoid a crash)
+    return (plater_ != nullptr) ? &plater_->get_view3D_canvas3D()->get_gizmos_manager().get_object_manipulation() : nullptr;
+}
+
 ObjectSettings* GUI_App::obj_settings()
 {
     return sidebar().obj_settings();
