@@ -764,7 +764,7 @@ var LangText={
 		"t107":"Модели в сети"
 	},
 	"ko_KR": {
-		"t1": "Welcome to Orca Slicer",
+		"t1": "Orca Slicer에 오신 것을 환영합니다",
 		"t2": "Orca Slicer는 여러 단계로 설정됩니다. 시작!",
 		"t3": "사용자 약관",
 		"t4": "거부",
