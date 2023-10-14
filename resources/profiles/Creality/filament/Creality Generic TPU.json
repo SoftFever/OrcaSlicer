@@ -1,0 +1,20 @@
+{
+    "type": "filament",
+    "filament_id": "GFU99",
+    "setting_id": "GFSA04",
+    "name": "Creality Generic TPU",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+    "filament_max_volumetric_speed": [
+        "3.2"
+    ],
+    "compatible_printers": [
+        "Creality K1 (0.4 nozzle)",
+        "Creality K1 (0.6 nozzle)",
+        "Creality K1 (0.8 nozzle)",
+        "Creality K1 Max (0.4 nozzle)",
+        "Creality K1 Max (0.6 nozzle)",
+        "Creality K1 Max (0.8 nozzle)"
+    ]
+}
