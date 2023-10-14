@@ -336,7 +336,7 @@ void AppConfig::set_defaults()
 // #endif
 
     if (get("allow_ip_resolve").empty())
-        set("allow_ip_resolve", "1");
+        set_bool("allow_ip_resolve", true);
 
     if (get("presets", "filament_colors").empty()) {
         set_str("presets", "filament_colors", "#F2754E");
