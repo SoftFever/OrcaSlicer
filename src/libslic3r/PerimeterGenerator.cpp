@@ -233,9 +233,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // Note that we set loop role to ContourInternalPerimeter
             // also when loop is both internal and external (i.e.
             // there's only one contour loop).
-            loop_role = elrContourInternalPerimeter;
+            loop_role = elrInternal;
         } else {
-            loop_role = elrDefault;
+            loop_role = loop.is_contour? elrDefault : elrHole;
         }
         
         // detect overhanging/bridging perimeters
@@ -379,16 +379,15 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             out.entities.reserve(out.entities.size() + children.entities.size() + 1);
             ExtrusionLoop *eloop = static_cast<ExtrusionLoop*>(coll.entities[idx.first]);
             coll.entities[idx.first] = nullptr;
+            if (perimeter_generator.layer_id % 2 == 1) {
+                eloop->make_clockwise();
+            } else {
+                eloop->make_counter_clockwise();
+            }
             if (loop.is_contour) {
-                if (perimeter_generator.layer_id % 2 == 1) {
-                    eloop->make_clockwise();
-                } else {
-                    eloop->make_counter_clockwise();
-                }
                 out.append(std::move(children.entities));
                 out.entities.emplace_back(eloop);
             } else {
-                eloop->make_clockwise();
                 out.entities.emplace_back(eloop);
                 out.append(std::move(children.entities));
             }
@@ -723,17 +722,13 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         // Append paths to collection.
         if (!paths.empty()) {
             if (extrusion->is_closed) {
-                ExtrusionLoop extrusion_loop(std::move(paths));
+                ExtrusionLoop extrusion_loop(std::move(paths), pg_extrusion.is_contour ? elrDefault : elrHole);
                 // Restore the orientation of the extrusion loop.
-                if (pg_extrusion.is_contour) {
-                    if (perimeter_generator.layer_id % 2 == 1) {
-                        extrusion_loop.make_clockwise();
-                    } else {
-                        extrusion_loop.make_counter_clockwise();
-                    }
-                }
-                else
+                if (perimeter_generator.layer_id % 2 == 1) {
                     extrusion_loop.make_clockwise();
+                } else {
+                    extrusion_loop.make_counter_clockwise();
+                }
 
                 for (auto it = std::next(extrusion_loop.paths.begin()); it != extrusion_loop.paths.end(); ++it) {
                     assert(it->polyline.points.size() >= 2);
