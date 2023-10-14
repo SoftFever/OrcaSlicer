@@ -380,7 +380,11 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             ExtrusionLoop *eloop = static_cast<ExtrusionLoop*>(coll.entities[idx.first]);
             coll.entities[idx.first] = nullptr;
             if (loop.is_contour) {
-                eloop->make_counter_clockwise();
+                if (perimeter_generator.layer_id % 2 == 1) {
+                    eloop->make_clockwise();
+                } else {
+                    eloop->make_counter_clockwise();
+                }
                 out.append(std::move(children.entities));
                 out.entities.emplace_back(eloop);
             } else {
@@ -721,8 +725,13 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             if (extrusion->is_closed) {
                 ExtrusionLoop extrusion_loop(std::move(paths));
                 // Restore the orientation of the extrusion loop.
-                if (pg_extrusion.is_contour)
-                    extrusion_loop.make_counter_clockwise();
+                if (pg_extrusion.is_contour) {
+                    if (perimeter_generator.layer_id % 2 == 1) {
+                        extrusion_loop.make_clockwise();
+                    } else {
+                        extrusion_loop.make_counter_clockwise();
+                    }
+                }
                 else
                     extrusion_loop.make_clockwise();
 
