@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -168,6 +168,12 @@ msgstr "Трикутник"
 
 msgid "Height Range"
 msgstr "Переключити каркас"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Видалити зафарбований колір"
@@ -4998,6 +5004,12 @@ msgid ""
 msgstr ""
 "Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Показувати повідомлення \"Рада дня\" після запуску"
 
@@ -8639,9 +8651,7 @@ msgstr "Відфільтрувати крихітні зазори"
 msgid "Layers and Perimeters"
 msgstr "Шари та периметри"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
 
 msgid ""
@@ -10774,12 +10784,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Оптимізація траєкторії інструменту"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "Порожні шари навколо дна замінюються найближчими нормальними шарами."
-
-msgid "The model has too many empty layers."
-msgstr "У моделі занадто багато порожніх шарів."
-
 msgid "Slicing mesh"
 msgstr "Нарізка сітки"
 
@@ -11863,6 +11867,13 @@ msgstr ""
 "Підвищення міцності\n"
 "Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
 "більшепериметрів та вищу щільність заповнення?"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Порожні шари навколо дна замінюються найближчими нормальними шарами."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "У моделі занадто багато порожніх шарів."
 
 #~ msgid "Cali"
 #~ msgstr "Калі"

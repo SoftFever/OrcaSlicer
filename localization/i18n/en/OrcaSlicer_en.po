@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -162,6 +162,12 @@ msgstr "Triangle"
 
 msgid "Height Range"
 msgstr "Height Range"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Remove painted color"
@@ -4926,6 +4932,12 @@ msgstr ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Show \"Tip of the day\" notification after start"
 
@@ -8499,9 +8511,7 @@ msgstr ""
 msgid "Layers and Perimeters"
 msgstr "Layers and Perimeters"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
 
 msgid ""
@@ -10579,12 +10589,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Optimizing toolpath"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "Empty layers around bottom are replaced by nearest normal layers."
-
-msgid "The model has too many empty layers."
-msgstr "The model has too many empty layers."
-
 msgid "Slicing mesh"
 msgstr "Slicing mesh"
 
@@ -11581,6 +11585,12 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr "Empty layers around bottom are replaced by nearest normal layers."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "The model has too many empty layers."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"

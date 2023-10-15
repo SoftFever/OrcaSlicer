@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -160,6 +160,12 @@ msgstr "Driehoek"
 
 msgid "Height Range"
 msgstr "Hoogtebereik"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Geschilderd kleur verwijderen"
@@ -5015,6 +5021,12 @@ msgstr ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Toon de melding 'Tip van de dag' na het starten"
 
@@ -8672,9 +8684,7 @@ msgstr ""
 msgid "Layers and Perimeters"
 msgstr "Lagen en perimeters"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
 
 msgid ""
@@ -10794,14 +10804,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Optimaliseren van het pad"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr ""
-"Lege lagen in de buurt van de bodem worden vervangen door de dichtsbijzijnde "
-"normale lagen."
-
-msgid "The model has too many empty layers."
-msgstr "Het model heeft te veel lege lagen."
-
 msgid "Slicing mesh"
 msgstr "Slicing mesh"
 
@@ -11871,6 +11873,14 @@ msgstr ""
 "Stekte verbeteren\n"
 "Wist je dat je meer wandlussen en een hogere dunne invuldichtheid kunt "
 "gebruiken om de sterkte van het model te verbeteren?"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Lege lagen in de buurt van de bodem worden vervangen door de "
+#~ "dichtsbijzijnde normale lagen."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "Het model heeft te veel lege lagen."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"

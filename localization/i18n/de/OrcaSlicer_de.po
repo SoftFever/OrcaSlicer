@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -164,6 +164,12 @@ msgstr "Dreieck"
 
 msgid "Height Range"
 msgstr "Höhenreichweite"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Gemalte Farbe entfernen"
@@ -5128,6 +5134,12 @@ msgstr ""
 "Vergrößere die Ansicht in Richtung der Mauszeigerposition im 3D-Modus "
 "anstatt auf das Zentrum des 2D-Fensters."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Benachrichtigung \"Tipp des Tages\" nach dem Start anzeigen"
 
@@ -8975,12 +8987,8 @@ msgstr "Filtert winzige Lücken aus"
 msgid "Layers and Perimeters"
 msgstr "Schichten und Perimeter"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
-"Filtert Lücken aus, die kleiner als der festgelegte Schwellenwert sind. "
-"Diese Einstellung beeinflusst die obersten/untersten Schichten nicht"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -11318,14 +11326,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Optimieren des Werkzeugwegs"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr ""
-"Die leeren Ebenen im unteren Bereich werden durch die nächstgelegenen "
-"normalen Ebenen ersetzt."
-
-msgid "The model has too many empty layers."
-msgstr "Das Modell hat zu viele leere Ebenen."
-
 msgid "Slicing mesh"
 msgstr "Slicen des Netzes"
 
@@ -12552,6 +12552,21 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandschleifen "
 "und eine höhere Dichte der Füllung verbessern können?"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr ""
+#~ "Filtert Lücken aus, die kleiner als der festgelegte Schwellenwert sind. "
+#~ "Diese Einstellung beeinflusst die obersten/untersten Schichten nicht"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Die leeren Ebenen im unteren Bereich werden durch die nächstgelegenen "
+#~ "normalen Ebenen ersetzt."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "Das Modell hat zu viele leere Ebenen."
 
 #~ msgid "Cali"
 #~ msgstr "Kalibrierung"

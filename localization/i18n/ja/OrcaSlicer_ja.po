@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -161,6 +161,12 @@ msgstr "三角形"
 
 msgid "Height Range"
 msgstr "高さ範囲"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "塗った色を消去"
@@ -4848,6 +4854,12 @@ msgstr ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "起動後「毎日のヒント」を表示"
 
@@ -8289,9 +8301,7 @@ msgstr ""
 msgid "Layers and Perimeters"
 msgstr "積層と境界"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
 
 msgid ""
@@ -10295,12 +10305,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "ツールパスを最適化"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "底面との隙間があります、レイヤーを入れ替えました"
-
-msgid "The model has too many empty layers."
-msgstr "このモデルには空層があります。"
-
 msgid "Slicing mesh"
 msgstr "メッシュをスライス中"
 
@@ -11346,6 +11350,12 @@ msgid ""
 msgstr ""
 "強度の向上\n"
 "壁面層数やインフィルの充填密度を増やして造形強度を向上できます。"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr "底面との隙間があります、レイヤーを入れ替えました"
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "このモデルには空層があります。"
 
 #~ msgid "Cali"
 #~ msgstr "標定"
