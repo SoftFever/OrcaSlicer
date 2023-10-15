@@ -21,10 +21,6 @@ static const double narrow_loop_length_threshold = 10;
 //we think it's small detail area and will generate smaller line width for it
 static constexpr double SMALLER_EXT_INSET_OVERLAP_TOLERANCE = 0.22;
 
-// Overhang width greater than this will be consider as steep overhang
-// This is a percentage of the extrusion width
-static constexpr double overhang_steep_width = 0.5; // TODO: make this configurable
-
 namespace Slic3r {
 
 // Hierarchy of perimeters.
@@ -221,16 +217,18 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
 }
 
 template<class _T>
-static bool detect_steep_overhang(bool               is_contour,
-                                  const BoundingBox &extrusion_bboxs,
-                                  double             extrusion_width,
-                                  const _T           extrusion,
-                                  const ExPolygons  *lower_slices,
-                                  bool              &steep_overhang_contour,
-                                  bool              &steep_overhang_hole)
+static bool detect_steep_overhang(const PrintRegionConfig *config,
+                                  bool                     is_contour,
+                                  const BoundingBox       &extrusion_bboxs,
+                                  double                   extrusion_width,
+                                  const _T                 extrusion,
+                                  const ExPolygons        *lower_slices,
+                                  bool                    &steep_overhang_contour,
+                                  bool                    &steep_overhang_hole)
 {
+    double threshold = config->overhang_reverse_threshold.get_abs_value(extrusion_width);
     // Special case: reverse on every odd layer
-    if (overhang_steep_width < EPSILON) {
+    if (threshold < EPSILON) {
         if (is_contour) {
             steep_overhang_contour = true;
         } else {
@@ -242,8 +240,8 @@ static bool detect_steep_overhang(bool               is_contour,
 
     Polygons lower_slcier_chopped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*lower_slices, extrusion_bboxs, true);
 
-    // All we need to check is whether we have lines outside `overhang_steep_width`
-    double off = (overhang_steep_width - 0.5) * extrusion_width;
+    // All we need to check is whether we have lines outside `threshold`
+    double off = threshold - 0.5 * extrusion_width;
 
     auto limiton_polygons = offset(lower_slcier_chopped, float(scale_(off)));
 
@@ -270,7 +268,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     Polygon                     fuzzified;
     
     // Detect steep overhangs
-    bool overhangs_reverse = perimeter_generator.layer_id % 2 == 1 // Only calculate overhang degree on odd layers
+    bool overhangs_reverse = perimeter_generator.config->overhang_reverse
+                             && perimeter_generator.layer_id % 2 == 1 // Only calculate overhang degree on odd layers
                              && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None; // and not fuzzy skin
 
     for (const PerimeterGeneratorLoop &loop : loops) {
@@ -331,7 +330,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // Skip the check if we already found steep overhangs
             bool found_steep_overhang = (loop.is_contour && steep_overhang_contour) || (!loop.is_contour && steep_overhang_hole);
             if (overhangs_reverse && !found_steep_overhang) {
-                detect_steep_overhang(loop.is_contour, bbox, extrusion_width, Polygons{polygon}, perimeter_generator.lower_slices,
+                detect_steep_overhang(perimeter_generator.config, loop.is_contour, bbox, extrusion_width, Polygons{polygon}, perimeter_generator.lower_slices,
                                       steep_overhang_contour, steep_overhang_hole);
             }
 
@@ -627,7 +626,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
     // Detect steep overhangs
-    bool overhangs_reverse = perimeter_generator.layer_id % 2 == 1 // Only calculate overhang degree on odd layers
+    bool overhangs_reverse = perimeter_generator.config->overhang_reverse
+                             && perimeter_generator.layer_id % 2 == 1 // Only calculate overhang degree on odd layers
                              && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None; // and not fuzzy skin
 
     ExtrusionEntityCollection extrusion_coll;
@@ -696,7 +696,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
                     BoundingBox extrusion_bboxs = get_extents(be_clipped);
 
-                    if (detect_steep_overhang(pg_extrusion.is_contour, extrusion_bboxs, it.first, be_clipped, perimeter_generator.lower_slices,
+                    if (detect_steep_overhang(perimeter_generator.config, pg_extrusion.is_contour, extrusion_bboxs, it.first, be_clipped, perimeter_generator.lower_slices,
                         steep_overhang_contour, steep_overhang_hole)) {
                         break;
                     }
