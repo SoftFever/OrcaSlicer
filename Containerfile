@@ -18,7 +18,7 @@
 #
 # TODO: bind mount BambuStudio to inside the container instead of COPY to enable faster rebuilds during dev work.
 
-FROM docker.io/ubuntu:20.04
+FROM docker.io/ubuntu:22.04
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
 ARG BUILD_LINUX_EXTRA_ARGS=""
 
@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install  -y \
     libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev libgstreamerd-3-dev \
     libmspack-dev \
     libosmesa6-dev \
-    libssl-dev libcurl4-openssl-dev libsecret-1-dev \
+    libssl3 libssl-dev libcurl4-openssl-dev libsecret-1-dev \
     libudev-dev \
     curl \
     wget \

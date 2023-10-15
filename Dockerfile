@@ -1,4 +1,4 @@
-FROM docker.io/ubuntu:20.04
+FROM docker.io/ubuntu:22.04
 LABEL maintainer "DeftDawg <DeftDawg@gmail.com>"
 
 # Disable interactive package configuration
@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install  -y \
     libosmesa6-dev \
     libsecret-1-dev \
     libsoup2.4-dev \
+    libssl3 \
     libssl-dev \
     libudev-dev \
     libwayland-dev \
