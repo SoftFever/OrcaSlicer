@@ -160,10 +160,8 @@ void AppConfig::set_defaults()
     if (get("use_perspective_camera").empty())
         set_bool("use_perspective_camera", true);
 
-#ifdef SUPPORT_FREE_CAMERA
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
-#endif
 
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
