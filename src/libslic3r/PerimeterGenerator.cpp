@@ -229,6 +229,17 @@ static bool detect_steep_overhang(bool               is_contour,
                                   bool              &steep_overhang_contour,
                                   bool              &steep_overhang_hole)
 {
+    // Special case: reverse on every odd layer
+    if (overhang_steep_width < EPSILON) {
+        if (is_contour) {
+            steep_overhang_contour = true;
+        } else {
+            steep_overhang_hole = true;
+        }
+
+        return true;
+    }
+
     Polygons lower_slcier_chopped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*lower_slices, extrusion_bboxs, true);
 
     // All we need to check is whether we have lines outside `overhang_steep_width`
