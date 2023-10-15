@@ -1,6 +1,5 @@
 <!doctype html>
 <html>
-
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="max-age=7200" />
@@ -8,27 +7,21 @@
 <link rel="stylesheet" type="text/css" href="../css/common.css" />	
 <link rel="stylesheet" type="text/css" href="24.css" />
 <link rel="stylesheet" type="text/css" href="../css/dark.css" />	
-<!-- <script type="text/javascript" src="test.js"></script> -->
+<script type="text/javascript" src="test.js"></script>	
 <script type="text/javascript" src="../js/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>	
 <script type="text/javascript" src="../../data/text.js"></script>	
 <script type="text/javascript" src="../js/globalapi.js"></script>	
-<!-- <script type="text/javascript" src="../js/common.js"></script> -->
+<script type="text/javascript" src="../js/common.js"></script>
 <script type="text/javascript" src="24.js"></script>		
 </head>
-
 <body onLoad="OnInit()">
 <div id="Title">
 	<div class="trans" tid="t10">Printer Selection</div>
 </div>
-<div class="wrap">
-	<div class="search">
-		<input type="text" class="searchTerm" placeholder="Device keyword" oninput="textInput(this)">
-	</div>
-</div>
-<div id="Content" class="ZScrol" s>
+<div id="Content"  class="ZScrol"s>
 
-		<!--<div class="OneVendorBlock" Vendor="BBL">	
+<!--<div class="OneVendorBlock" Vendor="BBL">	
 <div class="BlockBanner">
 	<div class="BannerBtns">
 		<div class="SmallBtn_Green" onClick="SelectPrinterAll('BBL')">所有</div>
@@ -87,21 +80,37 @@
 </div>		
 
 </div>-->
-
+	
+</div>
+<div id="AcceptArea">
+	<div class="NormalBtn trans" tid="t39" id="AcceptBtn"  onclick="ConfirmSelect()">Confirm</div>	
+	<div class="GrayBtn trans" tid="t38" id="PreBtn"  onclick="CancelSelect()">Cancel</div>
+</div>
+	
+<div id="NoticeMask"></div>
+<div id="NoticeBody">
+	<div id="NoticeBar" class="trans" tid="t18">error</div>
+	<div id="NoticeContent">
+	<div id="NoticeText" class="trans" tid="t37">At least one printer must be selected.</div>
+	<div id="NoticeBtns">
+		<div class="SmallBtn trans" tid="t36" onClick="ShowNotice(0)">ok</div>
 	</div>
-	<div id="AcceptArea">
-		<div class="NormalBtn trans" tid="t39" id="AcceptBtn" onclick="ConfirmSelect()">Confirm</div>
-		<div class="GrayBtn trans" tid="t38" id="PreBtn" onclick="CancelSelect()">Cancel</div>
 	</div>
 </div>	
 	
 	
 </body>
 <script>
-		let pModel;
-	function textInput(obj) {
-		FilterModelList(obj.value);
-	}
-</script>
+	document.onkeydown = function (event) {
+		var e = event || window.event || arguments.callee.caller.arguments[0];
 
+		if (e.keyCode == 27)
+			ClosePage();
+
+		if (window.event) {
+			try { e.keyCode = 0; } catch (e) { }
+			e.returnValue = false;
+		}
+	};
+</script>
 </html>
