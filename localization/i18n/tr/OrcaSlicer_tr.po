@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 09:46+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: 2023-10-07 12:57+0300\n"
 "Last-Translator: Sadri Ercan\n"
 "Language-Team: Türkçe\n"
@@ -168,6 +168,12 @@ msgstr "Üçgen"
 
 msgid "Height Range"
 msgstr "Yükseklik Aralığı"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Boyalı rengi kaldır"
