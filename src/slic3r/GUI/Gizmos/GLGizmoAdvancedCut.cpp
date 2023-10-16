@@ -512,62 +512,6 @@ void GLGizmoAdvancedCut::on_render()
     render_cut_line();
 }
 
-void GLGizmoAdvancedCut::on_render_for_picking()
-{
-    GLGizmoRotate3D::on_render_for_picking();
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
-    std::array<float, 4> color = picking_color_component(0);
-    m_move_grabber.color[0] = color[0];
-    m_move_grabber.color[1] = color[1];
-    m_move_grabber.color[2] = color[2];
-    m_move_grabber.color[3] = color[3];
-    m_move_grabber.render_for_picking(mean_size);
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    auto inst_id = m_c->selection_info()->get_active_instance();
-    if (inst_id < 0)
-        return;
-
-    const ModelObject *mo      = m_c->selection_info()->model_object();
-    const ModelInstance *mi              = mo->instances[inst_id];
-    const Vec3d &        instance_offset = mi->get_offset();
-    const double         sla_shift       = double(m_c->selection_info()->get_sla_shift());
-
-    const CutConnectors &connectors = mo->cut_connectors;
-    for (int i = 0; i < connectors.size(); ++i) {
-        CutConnector connector = connectors[i];
-        Vec3d pos = connector.pos + instance_offset + sla_shift * Vec3d::UnitZ();
-        float height = connector.height;
-
-        const Camera &camera = wxGetApp().plater()->get_camera();
-        if (connector.attribs.type == CutConnectorType::Dowel && connector.attribs.style == CutConnectorStyle::Prizm) {
-            pos -= height * m_cut_plane_normal;
-            height *= 2;
-        } else if (!is_looking_forward())
-            pos -= 0.05 * m_cut_plane_normal;
-
-        Transform3d translate_tf = Transform3d::Identity();
-        translate_tf.translate(pos);
-
-        Transform3d scale_tf = Transform3d::Identity();
-        scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
-
-        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
-
-
-        std::array<float, 4> color = picking_color_component(i+1);
-        render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
-    }
-}
 
 void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_limit)
 {
@@ -926,23 +870,24 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     else
         render_color = GrabberColor;
 
-    GLModel &cube = m_move_grabber.get_cube();
-    // BBS set to fixed size grabber
-    // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
+    // Orca todo
+    // GLModel &cube = m_move_grabber.get_cube();
+    // // BBS set to fixed size grabber
+    // // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
+    // float fullsize = 8.0f;
+    // if (GLGizmoBase::INV_ZOOM > 0) {
+    //     fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+    // }
 
-    cube.set_color(render_color);
+    // cube.set_color(render_color);
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
-    glsafe(::glMultMatrixd(m_rotate_matrix.data()));
+    // glsafe(::glPushMatrix());
+    // glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
+    // glsafe(::glMultMatrixd(m_rotate_matrix.data()));
 
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
-    cube.render();
-    glsafe(::glPopMatrix());
+    // glsafe(::glScaled(fullsize, fullsize, fullsize));
+    // cube.render();
+    // glsafe(::glPopMatrix());
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     set_center(m_cut_plane_center);

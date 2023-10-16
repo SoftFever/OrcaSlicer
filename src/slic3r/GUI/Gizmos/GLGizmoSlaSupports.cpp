@@ -102,13 +102,6 @@ void GLGizmoSlaSupports::on_render()
 }
 
 
-void GLGizmoSlaSupports::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-    //glsafe(::glEnable(GL_DEPTH_TEST));
-    render_points(selection, true);
-}
-
 void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 {
     size_t cache_size = m_editing_mode ? m_editing_cache.size() : m_normal_cache.size();
@@ -146,9 +139,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             continue;
 
         // First decide about the color of the point.
-        if (picking)
-            render_color = picking_color_component(i);
-        else {
+        if (picking) {
+            // orca todo
+            // render_color = picking_color_component(i);
+        } else {
             if (size_t(m_hover_id) == i && m_editing_mode) // ignore hover state unless editing mode is active
                 render_color = { 0.f, 1.f, 1.f, 1.f };
             else { // neigher hover nor picking

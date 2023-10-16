@@ -37,6 +37,19 @@ public:
     static const unsigned int BASE_ID = 255 * 255 * 254;
     static const unsigned int GRABBER_ELEMENTS_MAX_COUNT = 7;
 
+    enum class EGrabberExtension {
+        None = 0,
+        PosX = 1 << 0,
+        NegX = 1 << 1,
+        PosY = 1 << 2,
+        NegY = 1 << 3,
+        PosZ = 1 << 4,
+        NegZ = 1 << 5,
+    };
+
+    // Represents NO key(button on keyboard) value
+    static const int NO_SHORTCUT_KEY_VALUE = 0;
+
     static float INV_ZOOM;
 
     //BBS colors
@@ -62,35 +75,35 @@ protected:
         static const float SizeFactor;
         static const float MinHalfSize;
         static const float DraggingScaleFactor;
-        static const float FixedGrabberSize;
-        static const float FixedRadiusSize;
 
-        Vec3d center;
-        Vec3d angles;
-        std::array<float, 4> color;
-        std::array<float, 4> hover_color;
-        bool enabled;
-        bool dragging;
-        int picking_id{ -1 };
-        std::array<std::shared_ptr<SceneRaycasterItem>, GRABBER_ELEMENTS_MAX_COUNT> raycasters = { nullptr };
+        bool              enabled{true};
+        bool              dragging{false};
+        Vec3d             center{Vec3d::Zero()};
+        Vec3d             angles{Vec3d::Zero()};
+        Transform3d       matrix{Transform3d::Identity()};
+        ColorRGBA         color{ColorRGBA::WHITE()};
+        ColorRGBA         hover_color{ColorRGBA::ORCA()};
+        EGrabberExtension extensions{EGrabberExtension::None};
+        // the picking id shared by all the elements
+        int                                                                         picking_id{-1};
+        std::array<std::shared_ptr<SceneRaycasterItem>, GRABBER_ELEMENTS_MAX_COUNT> raycasters = {nullptr};
 
-        Grabber();
+        Grabber() = default;
+        ~Grabber();
 
-        void render(bool hover, float size);
-        void render_for_picking(float size) { render(size, color, true); }
+        void render(bool hover, float size) { render(size, hover ? complementary(color) : color); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
-        GLModel& get_cube();
 
         void register_raycasters_for_picking(int id);
         void unregister_raycasters_for_picking();
 
     private:
-        void render(float size, const std::array<float, 4>& render_color, bool picking);
+        void render(float size, const ColorRGBA &render_color);
 
-        GLModel cube;
-        bool cube_initialized = false;
+        static PickingModel s_cube;
+        static PickingModel s_cone;
     };
 
 public:
@@ -192,7 +205,6 @@ public:
     bool update_items_state();
 
     void render() { m_tooltip.clear(); on_render(); }
-    void render_for_picking() { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
     virtual void on_change_color_mode(bool is_dark) {  m_is_dark_mode = is_dark; }
 
@@ -237,7 +249,6 @@ protected:
     virtual void on_stop_dragging() {}
     virtual void on_update(const UpdateData& data) {}
     virtual void on_render() = 0;
-    virtual void on_render_for_picking() = 0;
     virtual void on_render_input_window(float x, float y, float bottom_limit) {}
     void register_grabbers_for_picking();
     void unregister_grabbers_for_picking();
@@ -249,10 +260,10 @@ protected:
     void GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)
-    std::array<float, 4> picking_color_component(unsigned int id) const;
-    void render_grabbers(const BoundingBoxf3& box) const;
+
+    void render_grabbers(const BoundingBoxf3 &box) const;
     void render_grabbers(float size) const;
-    void render_grabbers_for_picking(const BoundingBoxf3& box) const;
+    void render_grabbers(size_t first, size_t last, float size, bool force_hover) const;
 
     std::string format(float value, unsigned int decimals) const;
 

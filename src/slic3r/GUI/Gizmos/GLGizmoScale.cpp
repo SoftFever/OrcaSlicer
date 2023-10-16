@@ -252,12 +252,6 @@ void GLGizmoScale3D::on_render()
     render_grabbers(grabber_mean_size);
 }
 
-void GLGizmoScale3D::on_render_for_picking()
-{
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
-}
-
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {
     unsigned int grabbers_count = (unsigned int)m_grabbers.size();

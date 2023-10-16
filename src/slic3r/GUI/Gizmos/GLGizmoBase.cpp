@@ -14,14 +14,6 @@ namespace GUI {
 
 float GLGizmoBase::INV_ZOOM = 1.0f;
 
-
-const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
-const float GLGizmoBase::Grabber::MinHalfSize = 4.0f;
-const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
-const float GLGizmoBase::Grabber::FixedGrabberSize = 16.0f;
-const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
-
-
 std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 std::array<float, 4> GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
@@ -68,27 +60,20 @@ void GLGizmoBase::load_render_colors()
     RenderColor::colors[RenderCol_Flatten_Plane] = IMColor(GLGizmoBase::FLATTEN_COLOR);
     RenderColor::colors[RenderCol_Flatten_Plane_Hover] = IMColor(GLGizmoBase::FLATTEN_HOVER_COLOR);
 }
+const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
+const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
+const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
-GLGizmoBase::Grabber::Grabber()
-    : center(Vec3d::Zero())
-    , angles(Vec3d::Zero())
-    , dragging(false)
-    , enabled(true)
+PickingModel GLGizmoBase::Grabber::s_cube;
+PickingModel GLGizmoBase::Grabber::s_cone;
+
+GLGizmoBase::Grabber::~Grabber()
 {
-    color = GRABBER_NORMAL_COL;
-    hover_color = GRABBER_HOVER_COL;
-}
+    if (s_cube.model.is_initialized())
+        s_cube.model.reset();
 
-void GLGizmoBase::Grabber::render(bool hover, float size)
-{
-    std::array<float, 4> render_color;
-    if (hover) {
-        render_color = hover_color;
-    }
-    else
-        render_color = color;
-
-    render(size, render_color, false);
+    if (s_cone.model.is_initialized())
+        s_cone.model.reset();
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -100,6 +85,7 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
 {
     return get_half_size(size) * DraggingScaleFactor;
 }
+
 void GLGizmoBase::Grabber::register_raycasters_for_picking(int id)
 {
     picking_id = id;
@@ -113,50 +99,101 @@ void GLGizmoBase::Grabber::unregister_raycasters_for_picking()
     raycasters = { nullptr };
 }
 
-GLModel& GLGizmoBase::Grabber::get_cube()
+void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color)
 {
-    if (! cube_initialized) {
+    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
+    if (!s_cube.model.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
-        indexed_triangle_set mesh = its_make_cube(1., 1., 1.);
-        its_translate(mesh, Vec3f(-0.5, -0.5, -0.5));
-        cube.init_from(mesh);
-        cube_initialized = true;
+        indexed_triangle_set its = its_make_cube(1.0, 1.0, 1.0);
+        its_translate(its, -0.5f * Vec3f::Ones());
+        s_cube.model.init_from(its);
+        s_cube.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
     }
-    return cube;
+
+    if (!s_cone.model.is_initialized()) {
+        indexed_triangle_set its = its_make_cone(0.375, 1.5, double(PI) / 18.0);
+        s_cone.model.init_from(its);
+        s_cone.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
+    }
+
+    const float half_size = dragging ? get_dragging_half_size(size) : get_half_size(size);
+
+    s_cube.model.set_color(render_color);
+    s_cone.model.set_color(render_color);
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Matrix3d view_matrix_no_offset = view_matrix.matrix().block(0, 0, 3, 3);
+    std::vector<Transform3d> elements_matrices(GRABBER_ELEMENTS_MAX_COUNT, Transform3d::Identity());
+    elements_matrices[0] = matrix * Geometry::translation_transform(center) * Geometry::rotation_transform(angles) * Geometry::scale_transform(2.0 * half_size);
+    Transform3d view_model_matrix = view_matrix * elements_matrices[0];
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    Matrix3d view_normal_matrix = view_matrix_no_offset * elements_matrices[0].matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
+    s_cube.model.render();
+
+    auto render_extension = [&view_matrix, &view_matrix_no_offset, shader](const Transform3d& matrix) {
+        const Transform3d view_model_matrix = view_matrix * matrix;
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix_no_offset * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        s_cone.model.render();
+    };
+
+    if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosX)) != 0) {
+        elements_matrices[1] = elements_matrices[0] * Geometry::translation_transform(Vec3d::UnitX()) * Geometry::rotation_transform({ 0.0, 0.5 * double(PI), 0.0 });
+        render_extension(elements_matrices[1]);
+    }
+    if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegX)) != 0) {
+        elements_matrices[2] = elements_matrices[0] * Geometry::translation_transform(-Vec3d::UnitX()) * Geometry::rotation_transform({ 0.0, -0.5 * double(PI), 0.0 });
+        render_extension(elements_matrices[2]);
+    }
+    if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosY)) != 0) {
+        elements_matrices[3] = elements_matrices[0] * Geometry::translation_transform(Vec3d::UnitY()) * Geometry::rotation_transform({ -0.5 * double(PI), 0.0, 0.0 });
+        render_extension(elements_matrices[3]);
+    }
+    if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegY)) != 0) {
+        elements_matrices[4] = elements_matrices[0] * Geometry::translation_transform(-Vec3d::UnitY()) * Geometry::rotation_transform({ 0.5 * double(PI), 0.0, 0.0 });
+        render_extension(elements_matrices[4]);
+    }
+    if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosZ)) != 0) {
+        elements_matrices[5] = elements_matrices[0] * Geometry::translation_transform(Vec3d::UnitZ());
+        render_extension(elements_matrices[5]);
+    }
+    if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegZ)) != 0) {
+        elements_matrices[6] = elements_matrices[0] * Geometry::translation_transform(-Vec3d::UnitZ()) * Geometry::rotation_transform({ double(PI), 0.0, 0.0 });
+        render_extension(elements_matrices[6]);
+    }
+
+    if (raycasters[0] == nullptr) {
+        GLCanvas3D& canvas = *wxGetApp().plater()->canvas3D();
+        raycasters[0] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cube.mesh_raycaster, elements_matrices[0]);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosX)) != 0)
+            raycasters[1] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cone.mesh_raycaster, elements_matrices[1]);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegX)) != 0)
+            raycasters[2] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cone.mesh_raycaster, elements_matrices[2]);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosY)) != 0)
+            raycasters[3] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cone.mesh_raycaster, elements_matrices[3]);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegY)) != 0)
+            raycasters[4] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cone.mesh_raycaster, elements_matrices[4]);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosZ)) != 0)
+            raycasters[5] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cone.mesh_raycaster, elements_matrices[5]);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegZ)) != 0)
+            raycasters[6] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *s_cone.mesh_raycaster, elements_matrices[6]);
+    }
+    else {
+        for (size_t i = 0; i < GRABBER_ELEMENTS_MAX_COUNT; ++i) {
+            if (raycasters[i] != nullptr)
+                raycasters[i]->set_transform(elements_matrices[i]);
+        }
+    }
 }
-
-void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking)
-{
-    if (! cube_initialized) {
-        // This cannot be done in constructor, OpenGL is not yet
-        // initialized at that point (on Linux at least).
-        indexed_triangle_set mesh = its_make_cube(1., 1., 1.);
-        its_translate(mesh, Vec3f(-0.5, -0.5, -0.5));
-        cube.init_from(mesh);
-        cube_initialized = true;
-    }
-
-    //BBS set to fixed size grabber
-    //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
-
-
-    cube.set_color(render_color);
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(center.x(), center.y(), center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(angles.z()), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles.y()), 0.0, 1.0, 0.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles.x()), 1.0, 0.0, 0.0));
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
-    cube.render();
-    glsafe(::glPopMatrix());
-}
-
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : m_parent(parent)
@@ -290,63 +327,31 @@ void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float 
     m_imgui->set_next_window_pos(x, y, flag, pivot_x, pivot_y);
 }
 
-std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
-{
-    static const float INV_255 = 1.0f / 255.0f;
-
-    id = BASE_ID - id;
-
-    if (m_group_id > -1)
-        id -= m_group_id;
-
-    // color components are encoded to match the calculation of volume_id made into GLCanvas3D::_picking_pass()
-    return std::array<float, 4> {
-		float((id >> 0) & 0xff) * INV_255, // red
-		float((id >> 8) & 0xff) * INV_255, // green
-		float((id >> 16) & 0xff) * INV_255, // blue
-		float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255 // checksum for validating against unwanted alpha blending and multi sampling
-	};
-}
-
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
-#if ENABLE_FIXED_GRABBER
-    render_grabbers((float)(GLGizmoBase::Grabber::FixedGrabberSize));
-#else
     render_grabbers((float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
-#endif
 }
 
 void GLGizmoBase::render_grabbers(float size) const
+{
+    render_grabbers(0, m_grabbers.size() - 1, size, false);
+}
+
+void GLGizmoBase::render_grabbers(size_t first, size_t last, float size, bool force_hover) const
 {
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
     shader->start_using();
     shader->set_uniform("emission_factor", 0.1f);
-    for (int i = 0; i < (int)m_grabbers.size(); ++i) {
+    glsafe(::glDisable(GL_CULL_FACE));
+    for (size_t i = first; i <= last; ++i) {
         if (m_grabbers[i].enabled)
-            m_grabbers[i].render(m_hover_id == i, size);
+            m_grabbers[i].render(force_hover ? true : m_hover_id == (int)i, size);
     }
+    glsafe(::glEnable(GL_CULL_FACE));
     shader->stop_using();
-}
-
-void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
-{
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
-        if (m_grabbers[i].enabled) {
-            std::array<float, 4> color = picking_color_component(i);
-            m_grabbers[i].color = color;
-            m_grabbers[i].render_for_picking(mean_size);
-        }
-    }
 }
 
 std::string GLGizmoBase::format(float value, unsigned int decimals) const

@@ -147,7 +147,6 @@ protected:
     virtual void on_stop_dragging() override;
     virtual void on_update(const UpdateData& data);
     virtual void on_render();
-    virtual void on_render_for_picking();
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
     void show_tooltip_information(float x, float y);

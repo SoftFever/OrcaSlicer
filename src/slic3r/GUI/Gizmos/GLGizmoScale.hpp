@@ -63,7 +63,6 @@ protected:
     virtual void on_start_dragging() override;
     virtual void on_update(const UpdateData& data) override;
     virtual void on_render() override;
-    virtual void on_render_for_picking() override;
     //BBS: GUI refactor: add object manipulation
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 

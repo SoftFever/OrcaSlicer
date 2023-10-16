@@ -596,7 +596,9 @@ Vec3d GLGizmosManager::get_flattening_normal() const
     if (!m_enabled || m_gizmos.empty())
         return Vec3d::Zero();
 
-    return dynamic_cast<GLGizmoFlatten*>(m_gizmos[Flatten].get())->get_flattening_normal();
+    // Orca todo: this function is not available in GLGizmoFlatten anymore
+    return Vec3d::Zero();
+    // return dynamic_cast<GLGizmoFlatten*>(m_gizmos[Flatten].get())->get_flattening_normal();
 }
 
 void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
@@ -604,7 +606,8 @@ void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
     if (!m_enabled || m_gizmos.empty())
         return;
 
-    dynamic_cast<GLGizmoFlatten*>(m_gizmos[Flatten].get())->set_flattening_data(model_object);
+    // Orca todo: revisit instance id
+    dynamic_cast<GLGizmoFlatten*>(m_gizmos[Flatten].get())->set_flattening_data(model_object,0);
 }
 
 void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
@@ -719,14 +722,14 @@ void GLGizmosManager::render_painter_assemble_view() const
         m_assemble_view_data->model_objects_clipper()->render_cut();
 }
 
-void GLGizmosManager::render_current_gizmo_for_picking_pass() const
-{
-    if (! m_enabled || m_current == Undefined)
+// void GLGizmosManager::render_current_gizmo_for_picking_pass() const
+// {
+//     if (! m_enabled || m_current == Undefined)
 
-        return;
+//         return;
 
-    m_gizmos[m_current]->render_for_picking();
-}
+//     m_gizmos[m_current]->render_for_picking();
+// }
 
 void GLGizmosManager::render_overlay()
 {

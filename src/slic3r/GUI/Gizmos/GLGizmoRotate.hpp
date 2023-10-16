@@ -61,7 +61,6 @@ protected:
     void on_start_dragging() override;
     void on_update(const UpdateData& data) override;
     void on_render() override;
-    void on_render_for_picking() override;
 
 private:
     void render_circle() const;
@@ -70,7 +69,7 @@ private:
     void render_reference_radius() const;
     void render_angle() const;
     void render_grabber(const BoundingBoxf3& box) const;
-    void render_grabber_extension(const BoundingBoxf3& box, bool picking);
+    // void render_grabber_extension(const BoundingBoxf3& box, bool picking);
 
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
@@ -144,13 +143,6 @@ protected:
         }
     }
     void on_render() override;
-    void on_render_for_picking() override
-    {
-        for (GLGizmoRotate& g : m_gizmos) {
-            g.render_for_picking();
-        }
-    }
-
     void on_render_input_window(float x, float y, float bottom_limit) override;
 
 private:

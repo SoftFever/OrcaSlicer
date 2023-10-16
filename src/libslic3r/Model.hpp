@@ -1325,6 +1325,7 @@ public:
     void transform_polygon(Polygon* polygon) const;
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
+    Transform3d get_matrix_no_offset() const { return m_transformation.get_matrix_no_offset(); }
 
     bool is_printable() const { return object->printable && printable && (print_volume_state == ModelInstancePVS_Inside); }
     bool is_assemble_initialized() { return m_assemble_initialized; }

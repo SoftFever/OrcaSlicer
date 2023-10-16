@@ -287,7 +287,7 @@ public:
 
     void on_change_color_mode(bool is_dark);
     void render_current_gizmo() const;
-    void render_current_gizmo_for_picking_pass() const;
+    // void render_current_gizmo_for_picking_pass() const;
     void render_painter_gizmo();
     void render_painter_assemble_view() const;
 

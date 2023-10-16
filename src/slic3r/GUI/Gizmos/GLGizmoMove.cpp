@@ -74,12 +74,10 @@ bool GLGizmoMove3D::on_is_activable() const
 void GLGizmoMove3D::on_start_dragging()
 {
     if (m_hover_id != -1) {
-        m_displacement = Vec3d::Zero();
-        const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-        m_starting_drag_position = m_grabbers[m_hover_id].center;
-        m_starting_box_center = box.center();
-        m_starting_box_bottom_center = box.center();
-        m_starting_box_bottom_center(2) = box.min(2);
+        m_displacement               = Vec3d::Zero();
+        m_starting_drag_position     = m_grabbers[m_hover_id].matrix * m_grabbers[m_hover_id].center;
+        m_starting_box_center        = m_center;
+        m_starting_box_bottom_center = Vec3d(m_center.x(), m_center.y(), m_bounding_box.min.z());
     }
 }
 
@@ -100,85 +98,133 @@ void GLGizmoMove3D::on_update(const UpdateData& data)
 
 void GLGizmoMove3D::on_render()
 {
-    const Selection& selection = m_parent.get_selection();
-
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    const Vec3d& center = box.center();
-    float space_size = 20.f *INV_ZOOM;
-
-#if ENABLE_FIXED_GRABBER
-    // x axis
-    m_grabbers[0].center = { box.max.x() + space_size, center.y(), center.z() };
-    // y axis
-    m_grabbers[1].center = { center.x(), box.max.y() + space_size, center.z() };
-    // z axis
-    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + space_size };
+    const Selection& selection = m_parent.get_selection();
+    const auto& [box, box_trafo] = selection.get_bounding_box_in_current_reference_system();
+    m_bounding_box = box;
+    m_center = box_trafo.translation();
+    const Transform3d base_matrix = box_trafo;
 
     for (int i = 0; i < 3; ++i) {
-        m_grabbers[i].color       = AXES_COLOR[i];
-        m_grabbers[i].hover_color = AXES_HOVER_COLOR[i];
+        m_grabbers[i].matrix = base_matrix;
     }
-#else
+
+    const Vec3d zero = Vec3d::Zero();
+    const Vec3d half_box_size = 0.5 * m_bounding_box.size();
+
     // x axis
-    m_grabbers[0].center = { box.max.x() + Offset, center.y(), center.z() };
+    m_grabbers[0].center = { half_box_size.x() + Offset, 0.0, 0.0 };
     m_grabbers[0].color = AXES_COLOR[0];
 
     // y axis
-    m_grabbers[1].center = { center.x(), box.max.y() + Offset, center.z() };
+    m_grabbers[1].center = { 0.0, half_box_size.y() + Offset, 0.0 };
     m_grabbers[1].color = AXES_COLOR[1];
 
     // z axis
-    m_grabbers[2].center = { center.x(), center.y(), box.max.z() + Offset };
+    m_grabbers[2].center = { 0.0, 0.0, half_box_size.z() + Offset };
     m_grabbers[2].color = AXES_COLOR[2];
-#endif
 
-    glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
+#if ENABLE_GL_CORE_PROFILE
+    if (!OpenGLManager::get_gl_info().is_core_profile())
+#endif // ENABLE_GL_CORE_PROFILE
+        glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    // draw grabbers
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled) render_grabber_extension((Axis) i, box, false);
+    auto render_grabber_connection = [this, &zero](unsigned int id) {
+        if (m_grabbers[id].enabled) {
+            if (!m_grabber_connections[id].model.is_initialized() || !m_grabber_connections[id].old_center.isApprox(m_grabbers[id].center)) {
+                m_grabber_connections[id].old_center = m_grabbers[id].center;
+                m_grabber_connections[id].model.reset();
+
+                GLModel::Geometry init_data;
+                init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+                init_data.color = AXES_COLOR[id];
+                init_data.vertices.reserve(2);
+                init_data.indices.reserve(2);
+
+                // vertices
+                init_data.add_vertex((Vec3f)zero.cast<float>());
+                init_data.add_vertex((Vec3f)m_grabbers[id].center.cast<float>());
+
+                // indices
+                init_data.add_line(0, 1);
+
+                m_grabber_connections[id].model.init_from(std::move(init_data));
+            }
+
+            m_grabber_connections[id].model.render();
+        }
+    };
+
+    if (m_hover_id == -1) {
+#if ENABLE_GL_CORE_PROFILE
+        GLShaderProgram* shader = OpenGLManager::get_gl_info().is_core_profile() ? wxGetApp().get_shader("dashed_thick_lines") : wxGetApp().get_shader("flat");
+#else
+        GLShaderProgram* shader = wxGetApp().get_shader("flat");
+#endif // ENABLE_GL_CORE_PROFILE
+        if (shader != nullptr) {
+            shader->start_using();
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix() * base_matrix);
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+#if ENABLE_GL_CORE_PROFILE
+            const std::array<int, 4>& viewport = camera.get_viewport();
+            shader->set_uniform("viewport_size", Vec2d(double(viewport[2]), double(viewport[3])));
+            shader->set_uniform("width", 0.25f);
+            shader->set_uniform("gap_size", 0.0f);
+#endif // ENABLE_GL_CORE_PROFILE
+
+            // draw axes
+            for (unsigned int i = 0; i < 3; ++i) {
+                render_grabber_connection(i);
+            }
+
+            shader->stop_using();
+        }
+
+        // draw grabbers
+        render_grabbers(m_bounding_box);
     }
+    else {
+        // draw axis
+#if ENABLE_GL_CORE_PROFILE
+        GLShaderProgram* shader = OpenGLManager::get_gl_info().is_core_profile() ? wxGetApp().get_shader("dashed_thick_lines") : wxGetApp().get_shader("flat");
+#else
+        GLShaderProgram* shader = wxGetApp().get_shader("flat");
+#endif // ENABLE_GL_CORE_PROFILE
+        if (shader != nullptr) {
+            shader->start_using();
 
-    // draw axes line
-    // draw axes
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled) {
-            glsafe(::glColor4fv(AXES_COLOR[i].data()));
-            glLineStipple(1, 0x0FFF);
-            glEnable(GL_LINE_STIPPLE);
-            ::glBegin(GL_LINES);
-            ::glVertex3dv(center.data());
-            // use extension center
-            ::glVertex3dv(m_grabbers[i].center.data());
-            glsafe(::glEnd());
-            glDisable(GL_LINE_STIPPLE);
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix()* base_matrix);
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+#if ENABLE_GL_CORE_PROFILE
+            const std::array<int, 4>& viewport = camera.get_viewport();
+            shader->set_uniform("viewport_size", Vec2d(double(viewport[2]), double(viewport[3])));
+            shader->set_uniform("width", 0.5f);
+            shader->set_uniform("gap_size", 0.0f);
+#endif // ENABLE_GL_CORE_PROFILE
+
+            render_grabber_connection(m_hover_id);
+            shader->stop_using();
+        }
+
+        shader = wxGetApp().get_shader("gouraud_light");
+        if (shader != nullptr) {
+            shader->start_using();
+            shader->set_uniform("emission_factor", 0.1f);
+            glsafe(::glDisable(GL_CULL_FACE));
+            // draw grabber
+            const Vec3d box_size = m_bounding_box.size();
+            const float mean_size = (float)((box_size.x() + box_size.y() + box_size.z()) / 3.0);
+            m_grabbers[m_hover_id].render(true, mean_size);
+            glsafe(::glEnable(GL_CULL_FACE));
+            shader->stop_using();
         }
     }
 }
 
-void GLGizmoMove3D::on_render_for_picking()
-{
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    //BBS donot render base grabber for picking
-    //render_grabbers_for_picking(box);
-
-    //get picking colors only
-    for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
-        if (m_grabbers[i].enabled) {
-            std::array<float, 4> color = picking_color_component(i);
-            m_grabbers[i].color        = color;
-        }
-    }
-
-    render_grabber_extension(X, box, true);
-    render_grabber_extension(Y, box, true);
-    render_grabber_extension(Z, box, true);
-}
 
 //BBS: add input window for move
 void GLGizmoMove3D::on_render_input_window(float x, float y, float bottom_limit)
@@ -212,49 +258,6 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
         projection = m_snap_step * (double)std::round(projection / m_snap_step);
 
     return projection;
-}
-
-void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking)
-{
-#if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-
-    std::array<float, 4> color = m_grabbers[axis].color;
-    if (!picking && m_hover_id != -1) {
-        if (m_hover_id == axis) {
-            color = m_grabbers[axis].hover_color;
-        }
-    }
-
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (shader == nullptr)
-        return;
-
-    m_vbo_cone.set_color(color);
-    if (!picking) {
-        shader->start_using();
-        shader->set_uniform("emission_factor", 0.1f);
-    }
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
-    if (axis == X)
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-    else if (axis == Y)
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-
-    //glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
-    m_vbo_cone.render();
-    glsafe(::glPopMatrix());
-
-    if (! picking)
-        shader->stop_using();
 }
 
 

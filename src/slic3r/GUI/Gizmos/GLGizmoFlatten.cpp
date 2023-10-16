@@ -1,6 +1,12 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoFlatten.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
@@ -13,17 +19,48 @@
 namespace Slic3r {
 namespace GUI {
 
+static const Slic3r::ColorRGBA DEFAULT_PLANE_COLOR       = { 0.9f, 0.9f, 0.9f, 0.5f };
+static const Slic3r::ColorRGBA DEFAULT_HOVER_PLANE_COLOR = { 0.9f, 0.9f, 0.9f, 0.75f };
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_normal(Vec3d::Zero())
-    , m_starting_center(Vec3d::Zero())
+{}
+
+bool GLGizmoFlatten::on_mouse(const wxMouseEvent &mouse_event)
 {
+    if (mouse_event.LeftDown()) {
+        if (m_hover_id != -1) {
+            Selection &selection = m_parent.get_selection();
+            if (selection.is_single_full_instance()) {
+                // Rotate the object so the normal points downward:
+                selection.flattening_rotate(m_planes[m_hover_id].normal);
+                m_parent.do_rotate(L("Gizmo-Place on Face"));
+                wxGetApp().obj_manipul()->set_dirty();
+            }
+            return true;
+        }
+    }
+    else if (mouse_event.LeftUp())
+        return m_hover_id != -1;
+
+    return false;
+}
+
+void GLGizmoFlatten::data_changed(bool is_serializing)
+{
+    const Selection &  selection    = m_parent.get_selection();
+    const ModelObject *model_object = nullptr;
+    int                instance_id = -1;
+    if (selection.is_single_full_instance() ||
+        selection.is_from_single_object() ) {        
+        model_object = selection.get_model()->objects[selection.get_object_idx()];
+        instance_id = selection.get_instance_idx();
+    }    
+    set_flattening_data(model_object, instance_id);
 }
 
 bool GLGizmoFlatten::on_init()
 {
-    // BBS
     m_shortcut_key = WXK_CONTROL_F;
     return true;
 }
@@ -39,7 +76,7 @@ CommonGizmosDataID GLGizmoFlatten::on_get_requirements() const
 
 std::string GLGizmoFlatten::on_get_name() const
 {
-    return _u8L("Lay on face");
+    return _u8L("Place on face");
 }
 
 bool GLGizmoFlatten::on_is_activable() const
@@ -49,18 +86,15 @@ bool GLGizmoFlatten::on_is_activable() const
     return m_parent.get_selection().is_single_full_instance();
 }
 
-void GLGizmoFlatten::on_start_dragging()
-{
-    if (m_hover_id != -1) {
-        assert(m_planes_valid);
-        m_normal = m_planes[m_hover_id].normal;
-        m_starting_center = m_parent.get_selection().get_bounding_box().center();
-    }
-}
-
 void GLGizmoFlatten::on_render()
 {
     const Selection& selection = m_parent.get_selection();
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+    
+    shader->start_using();
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
@@ -68,58 +102,57 @@ void GLGizmoFlatten::on_render()
     glsafe(::glEnable(GL_BLEND));
 
     if (selection.is_single_full_instance()) {
-        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
-        glsafe(::glMultMatrixd(m.data()));
+        const Transform3d& inst_matrix = selection.get_first_volume()->get_instance_transformation().get_matrix();
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d model_matrix = Geometry::translation_transform(selection.get_first_volume()->get_sla_shift_z() * Vec3d::UnitZ()) * inst_matrix;
+        const Transform3d view_model_matrix = camera.get_view_matrix() * model_matrix;
+
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-            if (i == m_hover_id)
-                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_HOVER_COLOR.data()));
-            else
-                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_COLOR.data()));
-
-            if (m_planes[i].vbo.has_VBOs())
-                m_planes[i].vbo.render();
+            m_planes[i].vbo.model.set_color(i == m_hover_id ? DEFAULT_HOVER_PLANE_COLOR : DEFAULT_PLANE_COLOR);
+            m_planes[i].vbo.model.render();
         }
-        glsafe(::glPopMatrix());
     }
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
+
+    shader->stop_using();
 }
 
-void GLGizmoFlatten::on_render_for_picking()
+void GLGizmoFlatten::on_register_raycasters_for_picking()
 {
-    const Selection& selection = m_parent.get_selection();
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_BLEND));
+    assert(m_planes_casters.empty());
 
-    if (selection.is_single_full_instance() && !wxGetKeyState(WXK_CONTROL)) {
-        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
-        glsafe(::glMultMatrixd(m.data()));
-        if (this->is_plane_update_necessary())
-            update_planes();
+    if (!m_planes.empty()) {
+        const Selection& selection = m_parent.get_selection();
+        const Transform3d matrix = Geometry::translation_transform(selection.get_first_volume()->get_sla_shift_z() * Vec3d::UnitZ()) *
+            selection.get_first_volume()->get_instance_transformation().get_matrix();
+
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-            glsafe(::glColor4fv(picking_color_component(i).data()));
-            m_planes[i].vbo.render();
+            m_planes_casters.emplace_back(m_parent.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, i, *m_planes[i].vbo.mesh_raycaster, matrix));
         }
-        glsafe(::glPopMatrix());
     }
-
-    glsafe(::glEnable(GL_CULL_FACE));
 }
 
-void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
+void GLGizmoFlatten::on_unregister_raycasters_for_picking()
 {
-    m_starting_center = Vec3d::Zero();
-    if (model_object != m_old_model_object) {
+    m_parent.remove_raycasters_for_picking(SceneRaycaster::EType::Gizmo);
+    m_parent.set_raycaster_gizmos_on_top(false);
+    m_planes_casters.clear();
+}
+
+void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object, int instance_id)
+{
+    if (model_object != m_old_model_object || instance_id != m_old_instance_id) {
         m_planes.clear();
-        m_planes_valid = false;
+        on_unregister_raycasters_for_picking();
     }
 }
 
@@ -136,12 +169,12 @@ void GLGizmoFlatten::update_planes()
     }
     ch = ch.convex_hull_3d();
     m_planes.clear();
-    const Transform3d& inst_matrix = mo->instances.front()->get_matrix(true);
+    on_unregister_raycasters_for_picking();
+    const Transform3d inst_matrix = mo->instances.front()->get_matrix_no_offset();
 
     // Following constants are used for discarding too small polygons.
     const float minimal_area = 5.f; // in square mm (world coordinates)
     const float minimal_side = 1.f; // mm
-    const float minimal_angle = 1.f; // degree, initial value was 10, but cause bugs
 
     // Now we'll go through all the facets and append Points of facets sharing the same normal.
     // This part is still performed in mesh coordinate system.
@@ -152,7 +185,7 @@ void GLGizmoFlatten::update_planes()
     std::vector<bool>        facet_visited(num_of_facets, false);
     int                      facet_queue_cnt = 0;
     const stl_normal*        normal_ptr      = nullptr;
-    int                      facet_idx       = 0;
+    int facet_idx = 0;
     while (1) {
         // Find next unvisited triangle:
         for (; facet_idx < num_of_facets; ++ facet_idx)
@@ -196,9 +229,7 @@ void GLGizmoFlatten::update_planes()
     }
 
     // Let's prepare transformation of the normal vector from mesh to instance coordinates.
-    Geometry::Transformation t(inst_matrix);
-    Vec3d scaling = t.get_scaling_factor();
-    t.set_scaling_factor(Vec3d(1./scaling(0), 1./scaling(1), 1./scaling(2)));
+    const Matrix3d normal_matrix = inst_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
 
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
     for (unsigned int polygon_id=0; polygon_id < m_planes.size(); ++polygon_id) {
@@ -206,7 +237,7 @@ void GLGizmoFlatten::update_planes()
         const Vec3d& normal = m_planes[polygon_id].normal;
 
         // transform the normal according to the instance matrix:
-        Vec3d normal_transformed = t.get_matrix() * normal;
+        const Vec3d normal_transformed = normal_matrix * normal;
 
         // We are going to rotate about z and y to flatten the plane
         Eigen::Quaterniond q;
@@ -219,7 +250,7 @@ void GLGizmoFlatten::update_planes()
         // And yes, it is a nasty thing to do. Whoever has time is free to refactor.
         Vec3d bb_size = BoundingBoxf3(polygon).size();
         float sf = std::min(1./bb_size(0), 1./bb_size(1));
-        Transform3d tr = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(sf, sf, 1.f));
+        Transform3d tr = Geometry::scale_transform({ sf, sf, 1.f });
         polygon = transform(polygon, tr);
         polygon = Slic3r::Geometry::convex_hull(polygon);
         polygon = transform(polygon, tr.inverse());
@@ -236,7 +267,7 @@ void GLGizmoFlatten::update_planes()
             discard = true;
         else {
             // We also check the inner angles and discard polygons with angles smaller than the following threshold
-            const double angle_threshold = ::cos(minimal_angle * (double)PI / 180.0);
+            const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
 
             for (unsigned int i = 0; i < polygon.size(); ++i) {
                 const Vec3d& prec = polygon[(i == 0) ? polygon.size() - 1 : i - 1];
@@ -324,25 +355,37 @@ void GLGizmoFlatten::update_planes()
     m_first_instance_scale = mo->instances.front()->get_scaling_factor();
     m_first_instance_mirror = mo->instances.front()->get_mirror();
     m_old_model_object = mo;
+    m_old_instance_id = m_c->selection_info()->get_active_instance();
 
     // And finally create respective VBOs. The polygon is convex with
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
-        plane.vbo.reserve(plane.vertices.size());
-        for (const auto& vert : plane.vertices)
-            plane.vbo.push_geometry(vert, plane.normal);
-        for (size_t i=1; i<plane.vertices.size()-1; ++i)
-            plane.vbo.push_triangle(0, i, i+1); // triangle fan
-        plane.vbo.finalize_geometry(true);
-        // FIXME: vertices should really be local, they need not
-        // persist now when we use VBOs
-        plane.vertices.clear();
-        plane.vertices.shrink_to_fit();
+        indexed_triangle_set its;
+        its.vertices.reserve(plane.vertices.size());
+        its.indices.reserve(plane.vertices.size() / 3);
+        for (size_t i = 0; i < plane.vertices.size(); ++i) {
+            its.vertices.emplace_back((Vec3f)plane.vertices[i].cast<float>());
+        }
+        for (size_t i = 1; i < plane.vertices.size() - 1; ++i) {
+            its.indices.emplace_back(0, i, i + 1); // triangle fan
+        }
+
+        plane.vbo.model.init_from(its);
+        if (Geometry::Transformation(inst_matrix).is_left_handed()) {
+            // we need to swap face normals in case the object is mirrored
+            // for the raycaster to work properly
+            for (stl_triangle_vertex_indices& face : its.indices) {
+                if (its_face_normal(its, face).cast<double>().dot(plane.normal) < 0.0)
+                    std::swap(face[1], face[2]);
+            }
+        }
+        plane.vbo.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
+        // vertices are no more needed, clear memory
+        plane.vertices = std::vector<Vec3d>();
     }
 
-    m_planes_valid = true;
+    on_register_raycasters_for_picking();
 }
-
 
 bool GLGizmoFlatten::is_plane_update_necessary() const
 {
@@ -350,8 +393,8 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_state != On || ! mo || mo->instances.empty())
         return false;
 
-    if (! m_planes_valid || mo != m_old_model_object
-     || mo->volumes.size() != m_volumes_matrices.size())
+    if (m_planes.empty() || mo != m_old_model_object
+        || mo->volumes.size() != m_volumes_matrices.size())
         return true;
 
     // We want to recalculate when the scale changes - some planes could (dis)appear.
@@ -365,14 +408,6 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
             return true;
 
     return false;
-}
-
-Vec3d GLGizmoFlatten::get_flattening_normal() const
-{
-    Vec3d out = m_normal;
-    m_normal = Vec3d::Zero();
-    m_starting_center = Vec3d::Zero();
-    return out;
 }
 
 } // namespace GUI

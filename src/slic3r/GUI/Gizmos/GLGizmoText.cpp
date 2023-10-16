@@ -431,24 +431,25 @@ void GLGizmoText::on_render()
             return;
     }
 
-    if (m_is_modify && m_grabbers.size() == 1) {
-        std::vector<Transform3d> trafo_matrices;
-        for (const ModelVolume *mv : mo->volumes) {
-            if (mv->is_model_part()) {
-                trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
-            }
-        }
+// orca todo
+    // if (m_is_modify && m_grabbers.size() == 1) {
+    //     std::vector<Transform3d> trafo_matrices;
+    //     for (const ModelVolume *mv : mo->volumes) {
+    //         if (mv->is_model_part()) {
+    //             trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
+    //         }
+    //     }
 
-        m_mouse_position_world = trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
+    //     m_mouse_position_world = trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
 
-        float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
+    //     float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
 
-        m_grabbers[0].center       = m_mouse_position_world;
-        m_grabbers[0].enabled      = true;
-        std::array<float, 4> color = picking_color_component(0);
-        m_grabbers[0].color        = color;
-        m_grabbers[0].render_for_picking(mean_size);
-    }
+    //     m_grabbers[0].center       = m_mouse_position_world;
+    //     m_grabbers[0].enabled      = true;
+    //     std::array<float, 4> color = picking_color_component(0);
+    //     m_grabbers[0].color        = color;
+    //     m_grabbers[0].render_for_picking(mean_size);
+    // }
     
     delete_temp_preview_text_volume();
 
@@ -457,44 +458,6 @@ void GLGizmoText::on_render()
 
     generate_text_volume();
     plater->update();
-}
-
-void GLGizmoText::on_render_for_picking()
-{
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    int          obejct_idx, volume_idx;
-    ModelVolume *model_volume = get_selected_single_volume(obejct_idx, volume_idx);
-    if (model_volume && !model_volume->get_text_info().m_text.empty()) {
-        if (m_grabbers.size() == 1) {
-            ModelObject *mo = m_c->selection_info()->model_object();
-            if (m_is_modify) {
-                const Selection &selection = m_parent.get_selection();
-                mo                         = selection.get_model()->objects[m_object_idx];
-            }
-            if (mo == nullptr) return;
-
-            const Selection &    selection = m_parent.get_selection();
-            const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
-
-            // Precalculate transformations of individual meshes.
-            std::vector<Transform3d> trafo_matrices;
-            for (const ModelVolume *mv : mo->volumes) {
-                if (mv->is_model_part()) {
-                    trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
-                }
-            }
-
-            m_mouse_position_world = trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
-
-            float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
-            m_grabbers[0].center       = m_mouse_position_world;
-            m_grabbers[0].enabled      = true;
-            std::array<float, 4> color = picking_color_component(0);
-            m_grabbers[0].color        = color;
-            m_grabbers[0].render_for_picking(mean_size);
-        }
-    }
 }
 
 void GLGizmoText::on_update(const UpdateData &data)

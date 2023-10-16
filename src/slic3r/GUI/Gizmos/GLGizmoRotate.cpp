@@ -165,27 +165,11 @@ void GLGizmoRotate::on_render()
         render_angle();
 
     render_grabber(box);
-    render_grabber_extension(box, false);
+    // render_grabber_extension(box, false);
 
     glsafe(::glPopMatrix());
 }
 
-void GLGizmoRotate::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-
-    transform_to_local(selection);
-
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    render_grabbers_for_picking(box);
-    render_grabber_extension(box, true);
-
-    glsafe(::glPopMatrix());
-}
 
 //BBS: add input window for move
 void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
@@ -325,50 +309,50 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
     render_grabbers(box);
 }
 
-void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking)
-{
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
-    //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
+// void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking)
+// {
+//     double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+//     //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
+//     //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
-    std::array<float, 4> color = m_grabbers[0].color;
-    if (!picking && m_hover_id != -1) {
-        color = m_grabbers[0].hover_color;
-        //color[0] = 1.0f - color[0];
-        //color[1] = 1.0f - color[1];
-        //color[2] = 1.0f - color[2];
-    }
+//     std::array<float, 4> color = m_grabbers[0].color;
+//     if (!picking && m_hover_id != -1) {
+//         color = m_grabbers[0].hover_color;
+//         //color[0] = 1.0f - color[0];
+//         //color[1] = 1.0f - color[1];
+//         //color[2] = 1.0f - color[2];
+//     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (shader == nullptr)
-        return;
+//     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+//     if (shader == nullptr)
+//         return;
 
-    m_cone.set_color(color);
-    if (!picking) {
-        shader->start_using();
-        shader->set_uniform("emission_factor", 0.1f);
-    }
+//     m_cone.set_color(color);
+//     if (!picking) {
+//         shader->start_using();
+//         shader->set_uniform("emission_factor", 0.1f);
+//     }
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
-    m_cone.render();
-    glsafe(::glPopMatrix());
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
-    m_cone.render();
-    glsafe(::glPopMatrix());
+//     glsafe(::glPushMatrix());
+//     glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
+//     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
+//     glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
+//     glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
+//     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+//     m_cone.render();
+//     glsafe(::glPopMatrix());
+//     glsafe(::glPushMatrix());
+//     glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
+//     glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
+//     glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+//     glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
+//     glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
+//     m_cone.render();
+//     glsafe(::glPopMatrix());
 
-    if (! picking)
-        shader->stop_using();
-}
+//     if (! picking)
+//         shader->stop_using();
+// }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const
 {

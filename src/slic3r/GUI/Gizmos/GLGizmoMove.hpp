@@ -16,7 +16,8 @@ class GLGizmoMove3D : public GLGizmoBase
     static const double Offset;
 
     Vec3d m_displacement;
-
+    Vec3d m_center{ Vec3d::Zero() };
+    BoundingBoxf3 m_bounding_box;
     double m_snap_step;
 
     Vec3d m_starting_drag_position;
@@ -27,6 +28,12 @@ class GLGizmoMove3D : public GLGizmoBase
 
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
+    struct GrabberConnection
+    {
+        GLModel model;
+        Vec3d   old_center{Vec3d::Zero()};
+    };
+    std::array<GrabberConnection, 3> m_grabber_connections;
 
 public:
     //BBS: add obj manipulation logic
@@ -49,13 +56,11 @@ protected:
     virtual void on_stop_dragging() override;
     virtual void on_update(const UpdateData& data) override;
     virtual void on_render() override;
-    virtual void on_render_for_picking() override;
     //BBS: GUI refactor: add object manipulation
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
 private:
     double calc_projection(const UpdateData& data) const;
-    void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking);
 };
 
 

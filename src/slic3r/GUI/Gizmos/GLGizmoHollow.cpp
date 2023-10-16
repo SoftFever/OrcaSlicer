@@ -88,16 +88,16 @@ void GLGizmoHollow::on_render()
 }
 
 
-void GLGizmoHollow::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-//#if ENABLE_RENDER_PICKING_PASS
-//    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-//#endif
+// void GLGizmoHollow::on_render_for_picking()
+// {
+//     const Selection& selection = m_parent.get_selection();
+// //#if ENABLE_RENDER_PICKING_PASS
+// //    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+// //#endif
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    render_points(selection, true);
-}
+//     glsafe(::glEnable(GL_DEPTH_TEST));
+//     render_points(selection, true);
+// }
 
 void GLGizmoHollow::render_points(const Selection& selection, bool picking)
 {
@@ -127,8 +127,8 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking)
 
         // First decide about the color of the point.
         if (picking) {
-            std::array<float, 4> color = picking_color_component(i);
-            render_color = color;
+            // std::array<float, 4> color = picking_color_component(i);
+            // render_color = color;
         }
         else {
             if (size_t(m_hover_id) == i) {

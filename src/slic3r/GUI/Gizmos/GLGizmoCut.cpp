@@ -146,12 +146,6 @@ void GLGizmoCut::on_render()
     glsafe(::glPopMatrix());
 }
 
-void GLGizmoCut::on_render_for_picking()
-{
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
-}
-
 void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
 {
     //static float last_y = 0.0f;
