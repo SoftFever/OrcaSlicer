@@ -1878,6 +1878,8 @@ void GUI_App::init_networking_callbacks()
                     obj->is_tunnel_mqtt = tunnel;
                     obj->command_request_push_all(true);
                     obj->command_get_version();
+                    obj->erase_user_access_code();
+                    obj->command_get_access_code();
                     GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
                 }
                 });

@@ -1461,6 +1461,16 @@ int MachineObject::command_get_version(bool with_retry)
     return this->publish_json(j.dump(), 1);
 }
 
+int MachineObject::command_get_access_code() {
+    BOOST_LOG_TRIVIAL(info) << "command_get_access_code";
+    json j;
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["command"] = "get_access_code";
+    
+    return this->publish_json(j.dump());
+}
+
+
 int MachineObject::command_request_push_all(bool request_now)
 {
     auto curr_time = std::chrono::system_clock::now();
@@ -2677,7 +2687,18 @@ int MachineObject::parse_json(std::string payload)
                 }
             }
         }
-
+        if (j_pre.contains("system")) {
+            if (j_pre["system"].contains("command")) {
+                if (j_pre["system"]["command"].get<std::string>() == "get_access_code") {
+                    if (j_pre["system"].contains("access_code")) {
+                        std::string access_code = j_pre["system"]["access_code"].get<std::string>();
+                        if (!access_code.empty()) {
+                            set_access_code(access_code);
+                        }
+                    }
+                }
+            }
+        }
         if (!restored_json) {
             j = j_pre;
         }

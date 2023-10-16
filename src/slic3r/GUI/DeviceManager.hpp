@@ -791,6 +791,8 @@ public:
     int command_pushing(std::string cmd);
     int command_clean_print_error(std::string task_id, int print_error);
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
+    int command_get_access_code();
+
 
     /* command upgrade */
     int command_upgrade_confirm();
