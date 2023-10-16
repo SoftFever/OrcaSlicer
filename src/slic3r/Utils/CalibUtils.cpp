@@ -913,7 +913,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
 
         ThumbnailData* thumbnail_data = &plate_data_list[0]->plate_thumbnail;
         unsigned int thumbnail_width = 512, thumbnail_height = 512;
-        const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0};
+        const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0, ThumbnailsParams::get_thumbnail_zoom_modifier(full_config)};
         GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
 
         for (unsigned int obj_idx = 0; obj_idx < (unsigned int)model->objects.size(); ++ obj_idx) {

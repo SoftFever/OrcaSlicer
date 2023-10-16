@@ -1664,15 +1664,16 @@ namespace DoExport {
 	}
 
     //BBS: add plate id for thumbnail generate param
+    //Orca: Consolidate the number of parameters by passing reference to print and geting values inside the method
 	template<typename WriteToOutput, typename ThrowIfCanceledCallback>
-	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, int plate_id, const std::vector<Vec2d> &sizes, WriteToOutput output, ThrowIfCanceledCallback throw_if_canceled)
+	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, Print &print, WriteToOutput output, ThrowIfCanceledCallback throw_if_canceled)
 	{
 	    // Write thumbnails using base64 encoding
 	    if (thumbnail_cb != nullptr)
 	    {
 	        const size_t max_row_length = 78;
             //BBS: add plate id for thumbnail generate param
-            ThumbnailsList thumbnails = thumbnail_cb(ThumbnailsParams{ sizes, true, true, true, true, plate_id });
+            ThumbnailsList thumbnails = thumbnail_cb(ThumbnailsParams{ print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true, print.get_plate_index(), (float)print.config().thumbnails_zoom_modifier.getFloat()/100 });
 	        for (const ThumbnailData& data : thumbnails)
 	        {
 	            if (data.is_valid())
@@ -1978,7 +1979,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
         DoExport::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+            thumbnail_cb, print,
             [&file](const char *sz) { file.write(sz); },
             [&print]() { print.throw_if_canceled(); });
       }

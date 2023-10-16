@@ -2406,7 +2406,7 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
-                                    const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i};
+                                    const ThumbnailsParams thumbnail_params = {{}, false, true, true, true, i, ThumbnailsParams::get_thumbnail_zoom_modifier(plate_data->config)};
 
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
                                     switch (Slic3r::GUI::OpenGLManager::get_framebuffers_type())
@@ -2478,7 +2478,7 @@ int CLI::run(int argc, char **argv)
                                 }
                                 else {
                                     unsigned int thumbnail_width = 512, thumbnail_height = 512;
-                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                                    const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i, ThumbnailsParams::get_thumbnail_zoom_modifier(plate_data->config) };
 
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s top/pick thumbnail missed, need to regenerate")%(i+1);
 

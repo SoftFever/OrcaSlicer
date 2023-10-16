@@ -5606,6 +5606,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         camera.apply_projection(plate_build_volume);
     }
 
+    camera.set_zoom(camera.get_zoom() * thumbnail_params.zoom_modifier);
+
     camera.apply_view_matrix();
 
     camera.apply_projection(plate_build_volume);

@@ -1,3 +1,4 @@
+#include <PrintConfig.hpp>
 #include "ThumbnailData.hpp"
 
 namespace Slic3r {
@@ -29,4 +30,10 @@ bool ThumbnailData::is_valid() const
     return (width != 0) && (height != 0) && ((unsigned int)pixels.size() == 4 * width * height);
 }
 
+float ThumbnailsParams::get_thumbnail_zoom_modifier(const DynamicPrintConfig &config) {
+    if (config.has("thumbnails_zoom_modifier"))
+        return (float)config.option<ConfigOptionPercent>("thumbnails_zoom_modifier")->getFloat()/100;
+    else
+        return 1.f;
+}
 } // namespace Slic3r

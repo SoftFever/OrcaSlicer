@@ -38,6 +38,8 @@ struct ThumbnailsParams
 	bool 			show_bed;
 	bool 			transparent_background;
     int             plate_id;
+    float           zoom_modifier;
+    static float get_thumbnail_zoom_modifier(const DynamicPrintConfig &config);
 };
 
 typedef std::function<ThumbnailsList(const ThumbnailsParams&)> ThumbnailsGeneratorCallback;

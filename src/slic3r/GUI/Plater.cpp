@@ -1780,6 +1780,7 @@ struct Plater::priv
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
     Slic3r::GCodeProcessorResult gcode_result;
+    float thumbnails_zoom_modifier;
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -2338,7 +2339,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "enable_support", "support_filament", "support_interface_filament",
         "support_top_z_distance", "support_bottom_z_distance", "raft_layers",
         "wipe_tower_rotation_angle", "wipe_tower_cone_angle", "wipe_tower_extra_spacing", "wipe_tower_extruder",
-        "best_object_pos"
+        "best_object_pos", "thumbnails_zoom_modifier"
         }))
     , sidebar(new Sidebar(q))
     , notification_manager(std::make_unique<NotificationManager>(q))
@@ -8874,7 +8875,7 @@ void Plater::update_all_plate_thumbnails(bool force_update)
 {
     for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
         PartPlate* plate = get_partplate_list().get_plate(i);
-        ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
+        ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i, ThumbnailsParams::get_thumbnail_zoom_modifier(*config()) };
         if (force_update || !plate->thumbnail_data.is_valid()) {
             get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
         }
@@ -10417,7 +10418,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate thumbnail for plate %1%") % i;
-                const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
+                const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i, ThumbnailsParams::get_thumbnail_zoom_modifier(*config()) };
                 p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
                                     thumbnail_params, Camera::EType::Ortho);
             }
@@ -10436,7 +10437,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate top_thumbnail for plate %1%") % i;
-                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i, ThumbnailsParams::get_thumbnail_zoom_modifier(*config()) };
                 p->generate_thumbnail(p->partplate_list.get_plate(i)->top_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
                                     thumbnail_params, Camera::EType::Ortho, true, false);
             }
@@ -10449,7 +10450,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate pick_thumbnail for plate %1%") % i;
-                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i };
+                const ThumbnailsParams thumbnail_params = { {}, false, true, false, true, i, ThumbnailsParams::get_thumbnail_zoom_modifier(*config()) };
                 p->generate_thumbnail(p->partplate_list.get_plate(i)->pick_thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second,
                                     thumbnail_params, Camera::EType::Ortho, true, true);
             }

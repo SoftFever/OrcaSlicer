@@ -4188,6 +4188,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{Vec2d(300, 300)});
 
+    def = this->add("thumbnails_zoom_modifier", coPercent);
+    def->label = L("Thumbnails zoom modifier");
+    def->tooltip = L("Specify zoom amount in thumbnails");
+    def->mode    = comAdvanced;
+    def->sidetext = "%";
+    def->set_default_value(new ConfigOptionPercent(100));
+
     def = this->add("use_relative_e_distances", coBool);
     def->label = L("Use relative E distances");
     def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
