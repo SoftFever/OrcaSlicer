@@ -4204,7 +4204,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("PNG");
     def->enum_values.push_back("JPG");
     def->enum_values.push_back("QOI");
-    def->enum_values.push_back("BTT_TFT");
+    def->enum_values.push_back("BTT TFT");
     def->set_default_value(new ConfigOptionEnum<GCodeThumbnailsFormat>(GCodeThumbnailsFormat::PNG));
 
     def = this->add("use_relative_e_distances", coBool);
