@@ -1324,8 +1324,8 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_system_fil
 VendorProfile PresetBundle::get_custom_vendor_models() const
 {
     VendorProfile vendor;
-    vendor.name = "Custom";
-    vendor.id = "Custom";
+    vendor.name = PRESET_CUSTOM_VENDOR;
+    vendor.id   = PRESET_CUSTOM_VENDOR;
     for (auto &preset : printers.get_presets()) {
         if (preset.is_system) continue;
         if (printers.get_preset_base(preset) != &preset) continue;
@@ -1336,7 +1336,9 @@ VendorProfile PresetBundle::get_custom_vendor_models() const
         });
         if (iter_model == vendor.models.end()) {
             iter_model = vendor.models.emplace(vendor.models.end(), VendorProfile::PrinterModel{});
-            iter_model->name = model;
+            iter_model->id       = model;
+            iter_model->name     = model;
+            iter_model->variants = {VendorProfile::PrinterVariant(variant)};
         }
     }
     return vendor;

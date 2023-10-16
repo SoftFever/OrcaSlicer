@@ -120,6 +120,7 @@ protected:
 
 /**********************************************************    Data Interaction    *******************************************************/
     bool          data_init();
+    void          set_current_visible_printer();
     void          select_curr_radiobox(std::vector<std::pair<RadioBox *, wxString>> &radiobox_list, int btn_idx);
     void          select_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates);
     void          deselect_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates);
@@ -153,6 +154,7 @@ private:
     std::vector<std::pair<RadioBox *, wxString>>       m_create_presets_btns;
     std::vector<std::pair<CheckBox *, Preset *>>       m_filament_preset;
     std::vector<std::pair<CheckBox *, Preset *>>       m_process_preset;
+    std::unordered_map<std::string, std::shared_ptr<Preset>> m_printer_name_to_preset;
     VendorProfile                                      m_printer_preset_vendor_selected;
     Slic3r::VendorProfile::PrinterModel                m_printer_preset_model_selected;
     bool                                               rewritten                        = false;
@@ -173,7 +175,8 @@ private:
     ComboBox *                                         m_select_printer                 = nullptr;
     CheckBox *                                         m_can_not_find_vendor_combox     = nullptr;
     wxStaticText *                                     m_can_not_find_vendor_text       = nullptr;
-    wxTextCtrl *                                       m_custom_vendor_model            = nullptr;
+    wxTextCtrl *                                       m_custom_vendor_text_ctrl        = nullptr;
+    wxTextCtrl *                                       m_custom_model_text_ctrl         = nullptr;
     ComboBox *                                         m_nozzle_diameter                = nullptr;
     ComboBox *                                         m_printer_vendor                 = nullptr;
     ComboBox *                                         m_printer_model                  = nullptr;
@@ -187,7 +190,9 @@ private:
     wxPanel *                                          m_filament_preset_panel          = nullptr;
     wxPanel *                                          m_process_preset_panel           = nullptr;
     wxPanel *                                          m_preset_template_panel          = nullptr;
+    wxPanel *                                          m_printer_info_panel             = nullptr;
     wxBoxSizer *                                       m_page1_sizer                    = nullptr;
+    wxBoxSizer *                                       m_printer_info_sizer             = nullptr;
     wxBoxSizer *                                       m_page2_sizer                    = nullptr;
     std::string                                        m_custom_texture;
     std::string                                        m_custom_model;

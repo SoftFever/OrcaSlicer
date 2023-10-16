@@ -2150,7 +2150,7 @@ bool PresetCollection::create_presets_from_template_for_printer(std::vector<Pres
                                                                 bool                                    force_rewritten)
 {
     return clone_presets(templates, failures, [printer, create_filament_id](Preset &preset, Preset::Type &type) {
-            preset.name = preset.name.substr(0, preset.name.find("@")) + " @" + printer;
+            preset.name = preset.name.substr(0, preset.name.find(" @")) + " @" + printer;
         auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
         preset.is_visible           = true;
@@ -2873,6 +2873,21 @@ const Preset* PrinterPresetCollection::find_system_preset_by_model_and_variant(c
 
     const auto it = std::find_if(cbegin(), cend(), [&](const Preset &preset) {
         if (!preset.is_system || preset.config.opt_string("printer_model") != model_id)
+            return false;
+        if (variant.empty())
+            return true;
+        return preset.config.opt_string("printer_variant") == variant;
+    });
+
+    return it != cend() ? &*it : nullptr;
+}
+
+const Preset *PrinterPresetCollection::find_custom_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const
+{
+    if (model_id.empty()) { return nullptr; }
+
+    const auto it = std::find_if(cbegin(), cend(), [&](const Preset &preset) {
+        if (preset.config.opt_string("printer_model") != model_id)
             return false;
         if (variant.empty())
             return true;

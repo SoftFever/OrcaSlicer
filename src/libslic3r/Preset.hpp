@@ -23,6 +23,7 @@
 #define PRESET_PROFILES_DIR "profiles"
 #define PRESET_PROFILES_TEMOLATE_DIR "profiles_template"
 #define PRESET_TEMPLATE_DIR "Template"
+#define PRESET_CUSTOM_VENDOR "Custom"
 
 //BBS: iot preset type strings
 #define PRESET_IOT_PRINTER_TYPE     "printer"
@@ -777,6 +778,7 @@ public:
     const Preset&   default_preset_for(const DynamicPrintConfig &config) const override;
 
     const Preset*   find_system_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
+    const Preset*   find_custom_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
 
     bool            only_default_printers() const;
 private:
