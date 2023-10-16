@@ -1875,10 +1875,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     } else
 	    m_enable_extrusion_role_markers = false;
 
-    // if thumbnail type of BIQU, insert above header
+    // if thumbnail type of BTT_TFT, insert above header
     // if not, it is inserted under the header in its normal spot
     const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
-    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BIQU)
+    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
         GCodeThumbnails::export_thumbnails_to_file(
             thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
             m_gcode_thumbnail_format,
@@ -1943,7 +1943,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BIQU)
+        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
           GCodeThumbnails::export_thumbnails_to_file(
               thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
               m_gcode_thumbnail_format,

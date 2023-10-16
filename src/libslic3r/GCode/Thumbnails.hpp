@@ -41,8 +41,8 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
             if (data.is_valid()) {
                 auto compressed = compress_thumbnail(data, format);
                 if (compressed->data && compressed->size) {
-                    if (format == GCodeThumbnailsFormat::BIQU) {
-                        // write BIQU header
+                    if (format == GCodeThumbnailsFormat::BTT_TFT) {
+                        // write BTT_TFT header
                         output((";" + rjust(get_hex(data.width), 4, '0') + rjust(get_hex(data.height), 4, '0') + "\r\n").c_str());
                         output((char *) compressed->data);
                         if (i == (thumbnails.size() - 1))

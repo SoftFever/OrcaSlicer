@@ -113,7 +113,7 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail_qoi(const ThumbnailDat
     return out;
 }
 
-std::unique_ptr<CompressedImageBuffer> compress_thumbnail_biqu(const ThumbnailData &data) {
+std::unique_ptr<CompressedImageBuffer> compress_thumbnail_btt_tft(const ThumbnailData &data) {
 
     // Take vector of RGBA pixels and flip the image vertically
     std::vector<unsigned char> rgba_pixels(data.pixels.size());
@@ -188,8 +188,8 @@ std::unique_ptr<CompressedImageBuffer> compress_thumbnail(const ThumbnailData &d
         return compress_thumbnail_jpg(data);
     case GCodeThumbnailsFormat::QOI:
         return compress_thumbnail_qoi(data);
-    case GCodeThumbnailsFormat::BIQU:
-        return compress_thumbnail_biqu(data);
+    case GCodeThumbnailsFormat::BTT_TFT:
+        return compress_thumbnail_btt_tft(data);
     }
 }
 
