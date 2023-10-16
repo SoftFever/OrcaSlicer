@@ -4054,7 +4054,7 @@ int MachineObject::parse_json(std::string payload)
                             tray_id = jj["tray_id"].get<int>();
                         }
                         if (ams_id == 255 && tray_id == VIRTUAL_TRAY_ID) {
-                            BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
+                            BOOST_LOG_TRIVIAL(info) << "ams_filament_setting, parse tray info";
                             vt_tray.nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
                             vt_tray.nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
                             vt_tray.color = jj["tray_color"].get<std::string>();
