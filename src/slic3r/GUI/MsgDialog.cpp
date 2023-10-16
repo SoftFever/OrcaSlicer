@@ -55,12 +55,11 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     topsizer->Add(LOGO_GAP, 0, 0, wxEXPAND, 0);
 	topsizer->Add(rightsizer, 1, wxTOP | wxEXPAND, BORDER);
 
-    btn_sizer->AddStretchSpacer();
-
     main_sizer->Add(topsizer, 1, wxEXPAND);
 
     m_dsa_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->Add(m_dsa_sizer,1,wxEXPAND,0);
+    btn_sizer->Add(0, 0, 0, wxLEFT, FromDIP(120));
+    btn_sizer->Add(m_dsa_sizer, 0, wxEXPAND,0);
     btn_sizer->Add(0, 0, 1, wxEXPAND, 5);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 

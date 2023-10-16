@@ -794,7 +794,7 @@ Sidebar::Sidebar(Plater *parent)
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
-    
+
     bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     bSizer39->Hide(p->m_flushing_volume_btn);
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
@@ -3474,25 +3474,40 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     if (!config.empty()) {
                         Preset::normalize(config);
                         PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-                        // BBS: first validate the printer
-                        // validate the system profiles
-                        std::set<std::string> modified_gcodes;
-                        int validated = preset_bundle->validate_presets(filename.string(), config, modified_gcodes);
-                        if (validated == VALIDATE_PRESETS_MODIFIED_GCODES) {
-                            std::string warning_message;
-                            warning_message += "\n";
-                            for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
-                                warning_message += "-" + *it + "\n";
-                            warning_message += "\n";
-                            show_info(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
-                        }
-                        else if ((validated == VALIDATE_PRESETS_PRINTER_NOT_FOUND) || (validated == VALIDATE_PRESETS_FILAMENTS_NOT_FOUND)) {
-                            std::string warning_message;
-                            warning_message += "\n";
-                            for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
-                                warning_message += "-" + *it + "\n";
-                            warning_message += "\n";
-                            show_info(q, _L("The 3mf has following customized filament or printer presets:") + warning_message + _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
+
+                        auto choise = wxGetApp().app_config->get("no_warn_when_modified_gcodes");
+                        if (choise.empty() || choise != "true") {
+                            // BBS: first validate the printer
+                            // validate the system profiles
+                            std::set<std::string> modified_gcodes;
+                            int validated = preset_bundle->validate_presets(filename.string(), config, modified_gcodes);
+                            if (validated == VALIDATE_PRESETS_MODIFIED_GCODES) {
+                                std::string warning_message;
+                                warning_message += "\n";
+                                for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
+                                    warning_message += "-" + *it + "\n";
+                                warning_message += "\n";
+                                //show_info(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
+
+                                MessageDialog dlg(q, _L("The 3mf has following modified G-codes in filament or printer presets:") + warning_message+ _L("Please confirm that these modified G-codes are safe to prevent any damage to the machine!"), _L("Modified G-codes"));
+                                dlg.show_dsa_button();
+                                auto  res = dlg.ShowModal();
+                                if (dlg.get_checkbox_state())
+                                    wxGetApp().app_config->set("no_warn_when_modified_gcodes", "true");
+                            }
+                            else if ((validated == VALIDATE_PRESETS_PRINTER_NOT_FOUND) || (validated == VALIDATE_PRESETS_FILAMENTS_NOT_FOUND)) {
+                                std::string warning_message;
+                                warning_message += "\n";
+                                for (std::set<std::string>::iterator it=modified_gcodes.begin(); it!=modified_gcodes.end(); ++it)
+                                    warning_message += "-" + *it + "\n";
+                                warning_message += "\n";
+                                //show_info(q, _L("The 3mf has following customized filament or printer presets:") + warning_message + _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
+                                MessageDialog dlg(q, _L("The 3mf has following customized filament or printer presets:") + warning_message+ _L("Please confirm that the G-codes within these presets are safe to prevent any damage to the machine!"), _L("Customized Preset"));
+                                dlg.show_dsa_button();
+                                auto  res = dlg.ShowModal();
+                                if (dlg.get_checkbox_state())
+                                    wxGetApp().app_config->set("no_warn_when_modified_gcodes", "true");
+                            }
                         }
 
                         //always load config
