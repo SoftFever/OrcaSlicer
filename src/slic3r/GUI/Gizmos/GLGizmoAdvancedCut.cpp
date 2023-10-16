@@ -374,6 +374,7 @@ void GLGizmoAdvancedCut::reset_cut_plane()
     m_transformed_bounding_box = transformed_bounding_box(m_bb_center);
     set_center(m_bb_center);
     m_start_dragging_m = m_rotate_matrix = Transform3d::Identity();
+    update_plane_normal();
     m_ar_plane_center  = m_plane_center;
 
     reset_cut_by_contours();
@@ -1008,18 +1009,24 @@ void GLGizmoAdvancedCut::put_connectors_on_cut_plane(const Vec3d &cp_normal, dou
     }
 }
 
-void GLGizmoAdvancedCut::update_clipper()
+void GLGizmoAdvancedCut::update_plane_normal()
 {
     // update cut_normal
     Vec3d normal        = m_rotate_matrix * Vec3d::UnitZ();
     m_plane_normal      = normal;                           // core
     m_plane_x_direction = m_rotate_matrix * Vec3d::UnitX(); // core
+    m_clp_normal        = normal;
+}
+
+void GLGizmoAdvancedCut::update_clipper()
+{
+    update_plane_normal();
+    auto normal = m_plane_normal;
     // calculate normal and offset for clipping plane
     Vec3d beg = m_bb_center;
     beg[Z] -= m_radius;
     rotate_vec3d_around_plane_center(beg, m_rotate_matrix, m_plane_center);
 
-    m_clp_normal  = normal;
     double offset = normal.dot(m_plane_center);
     double dist   = normal.dot(beg);
 
