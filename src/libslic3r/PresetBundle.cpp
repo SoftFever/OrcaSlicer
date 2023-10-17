@@ -518,6 +518,7 @@ std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_n
 
 PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule substitution_rule)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " entry and user is: " << user;
     PresetsConfigSubstitutions substitutions;
     std::string errors_cummulative;
 
@@ -642,6 +643,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                                                         std::function<int(std::string const &)> override_confirm,
                                                         ForwardCompatibilitySubstitutionRule    rule)
 {
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " entry";
     PresetsConfigSubstitutions substitutions;
     int overwrite = 0;
     std::vector<std::string>   result;
