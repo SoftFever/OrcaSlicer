@@ -805,6 +805,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt, top_shell_layers))
     ((ConfigOptionFloat, top_shell_thickness))
     ((ConfigOptionFloat, top_surface_speed))
+    ((ConfigOptionFloatOrPercent, small_perimeter_speed))
+    ((ConfigOptionFloat, small_perimeter_threshold))
     //BBS
     ((ConfigOptionBool, enable_overhang_speed))
     ((ConfigOptionFloat, overhang_1_4_speed))

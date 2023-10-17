@@ -1439,6 +1439,7 @@ struct GlobalSpeedMap
     double solidInfillSpeed;
     double topSolidInfillSpeed;
     double supportSpeed;
+    double smallPerimeterSpeed;
     double maxSpeed;
     Polygon bed_poly;
 };

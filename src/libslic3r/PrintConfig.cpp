@@ -1168,6 +1168,28 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
+
+    def = this->add("small_perimeter_speed", coFloatOrPercent);
+    def->label = L("Small perimeters");
+    def->category = L("Speed");
+    def->tooltip  = L("This setting will affect the speed of perimeters having radius <= small perimeter threshold"
+                       "(usually holes). If expressed as percentage (for example: 80%) it will be calculated on"
+                       "the outer wall speed setting above. Set to zero for auto.");
+    def->sidetext   = L("mm/s or %");
+    def->ratio_over = "outer_wall_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+
+    def = this->add("small_perimeter_threshold", coFloat);
+    def->label = L("Small perimter threshold");
+    def->category = L("Speed");
+    def->tooltip = L("This sets the threshold for small perimeter length. Default threshold is 0mm");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("wall_sequence", coEnum);
     def->label = L("Order of walls");
     def->category = L("Quality");
@@ -4465,7 +4487,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         // BBS
         , "support_sharp_tails","support_remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution", "tree_support_with_infill",
-        "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
+        "max_volumetric_speed", "max_print_speed",
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
