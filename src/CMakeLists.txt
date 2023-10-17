@@ -17,6 +17,7 @@ add_subdirectory(semver)
 add_subdirectory(libigl)
 add_subdirectory(hints)
 add_subdirectory(mcut)
+add_subdirectory(qoi)
 
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)
