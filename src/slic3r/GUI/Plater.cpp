@@ -10768,9 +10768,17 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     // get type and color for platedata
     auto* filament_color = dynamic_cast<const ConfigOptionStrings*>(cfg.option("filament_colour"));
+    auto* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats*>(cfg.option("nozzle_diameter"));
+    std::string nozzle_diameter_str;
+    if (nozzle_diameter_option)
+        nozzle_diameter_str = nozzle_diameter_option->serialize();
+
+    std::string printer_model_id = preset_bundle.printers.get_edited_preset().get_printer_type(&preset_bundle);
 
     for (int i = 0; i < plate_data_list.size(); i++) {
         PlateData *plate_data = plate_data_list[i];
+        plate_data->printer_model_id = printer_model_id;
+        plate_data->nozzle_diameters = nozzle_diameter_str;
         for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
             std::string display_filament_type;
             it->type  = cfg.get_filament_type(display_filament_type, it->id);

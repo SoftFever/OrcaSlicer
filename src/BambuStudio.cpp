@@ -477,6 +477,43 @@ const float bed3d_ax3s_default_stem_length = 25.0f;
 const float bed3d_ax3s_default_tip_radius = 2.5f * bed3d_ax3s_default_stem_radius;
 const float bed3d_ax3s_default_tip_length = 5.0f;
 
+static int load_key_values_from_json(const std::string &file, std::map<std::string, std::string>& key_values)
+{
+    json j;
+    CNumericLocalesSetter locales_setter;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< ": begin to parse "<<file;
+    try {
+        boost::nowide::ifstream ifs(file);
+        ifs >> j;
+        ifs.close();
+
+        //parse the json elements
+        for (auto it = j.begin(); it != j.end(); it++) {
+            if (boost::iequals(it.key(),BBL_JSON_KEY_MODEL_ID)) {
+                key_values.emplace(BBL_JSON_KEY_MODEL_ID, it.value());
+            }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
+                key_values.emplace(BBL_JSON_KEY_NAME, it.value());
+            }
+        }
+    }
+    catch (const std::ifstream::failure &err)  {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a ifstream error, reason = " << err.what();
+        return -1;
+    }
+    catch(nlohmann::detail::parse_error &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        return -2;
+    }
+    catch(std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file<<" got a generic exception, reason = " << err.what();
+        return -3;
+    }
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< ": finished parse, key_values size "<<key_values.size();
+    return 0;
+}
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -647,7 +684,7 @@ int CLI::run(int argc, char **argv)
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
-    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name;//, printer_inherits, print_inherits;
+    std::string new_printer_name, current_printer_name, new_process_name, current_process_name, current_printer_system_name, current_process_system_name, new_process_system_name, new_printer_system_name, printer_model_id;//, printer_inherits, print_inherits;
     std::vector<std::string> upward_compatible_printers, new_print_compatible_printers, current_print_compatible_printers, current_different_settings;
     std::vector<std::string> current_filaments_name, current_filaments_system_name, current_inherits_group;
     DynamicPrintConfig load_process_config, load_machine_config;
@@ -1025,9 +1062,26 @@ int CLI::run(int argc, char **argv)
                 new_printer_config_is_system = false;
             }
             config.set("printer_settings_id", new_printer_name, true);
+
+            //get printer_model_id
+            std::string printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
+            if (!printer_model.empty()) {
+                std::string printer_model_path = resources_dir() + "/profiles/BBL/machine_full/"+printer_model+".json";
+                if (boost::filesystem::exists(printer_model_path))
+                {
+                    std::map<std::string, std::string> key_values;
+
+                    load_key_values_from_json(printer_model_path, key_values);
+                    if (key_values.find("model_id") != key_values.end()) {
+                        printer_model_id = key_values["model_id"];
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, load printer_model_id %2% from current printer model %3%")%__LINE__ %printer_model_id %printer_model;
+                    }
+                }
+            }
+
             //printer_inherits = config.option<ConfigOptionString>("inherits", true)->value;
             load_machine_config = std::move(config);
-            BOOST_LOG_TRIVIAL(info) << boost::format("loaded machine config %1%, type %2%, name %3%, inherits %4%")%file %config_name %config_from % new_printer_system_name;
+            BOOST_LOG_TRIVIAL(info) << boost::format("loaded machine config %1%, type %2%, name %3%, inherits %4%, printer_model_id %5%")%file %config_name %config_from % new_printer_system_name %printer_model_id;
         }
         else if (config_type == "process") {
             if (!new_process_name.empty()) {
@@ -1191,6 +1245,23 @@ int CLI::run(int argc, char **argv)
                     if (new_printer_name.empty() && !current_printer_system_name.empty())
                     {
                         config.set("printer_settings_id", config_name, true);
+
+                        //get printer_model_id
+                        std::string printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
+                        if (!printer_model.empty()) {
+                            std::string printer_model_path = resources_dir() + "/profiles/BBL/machine_full/"+printer_model+".json";
+                            if (boost::filesystem::exists(printer_model_path))
+                            {
+                                std::map<std::string, std::string> key_values;
+
+                                load_key_values_from_json(printer_model_path, key_values);
+                                if (key_values.find("model_id") != key_values.end()) {
+                                    printer_model_id = key_values["model_id"];
+                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, load printer_model_id %2% from current printer model %3%")%__LINE__ %printer_model_id %printer_model;
+                                }
+                            }
+                        }
+
                         load_machine_config = std::move(config);
                     }
                 }
@@ -1253,6 +1324,23 @@ int CLI::run(int argc, char **argv)
                     }
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     config.set("printer_settings_id", config_name, true);
+
+                    //get printer_model_id
+                    std::string printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
+                    if (!printer_model.empty()) {
+                        std::string printer_model_path = resources_dir() + "/profiles/BBL/machine_full/"+printer_model+".json";
+                        if (boost::filesystem::exists(printer_model_path))
+                        {
+                            std::map<std::string, std::string> key_values;
+
+                            load_key_values_from_json(printer_model_path, key_values);
+                            if (key_values.find("model_id") != key_values.end()) {
+                                printer_model_id = key_values["model_id"];
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, load printer_model_id %2% from current printer model %3%")%__LINE__ %printer_model_id %printer_model;
+                            }
+                        }
+                    }
+
                     load_machine_config = std::move(config);
                 }
             }
@@ -3542,12 +3630,20 @@ int CLI::run(int argc, char **argv)
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
         const ConfigOptionStrings* filament_color = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_colour"));
         //auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));
+        const ConfigOptionFloats* nozzle_diameter_option = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("nozzle_diameter"));
+        std::string nozzle_diameter_str;
+        if (nozzle_diameter_option)
+            nozzle_diameter_str = nozzle_diameter_option->serialize();
 
         for (int i = 0; i < plate_data_list.size(); i++) {
             PlateData *plate_data = plate_data_list[i];
             bool skip_this_plate = ((plate_to_slice != 0) && (plate_to_slice != (i + 1)))?true:false;
 
             plate_data->skipped_objects = plate_skipped_objects[i];
+            if (!printer_model_id.empty())
+                plate_data->printer_model_id = printer_model_id;
+            if (!nozzle_diameter_str.empty())
+                plate_data->nozzle_diameters = nozzle_diameter_str;
 
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
                 //it->filament_id = filament_id?filament_id->get_at(it->id):"unknown";
