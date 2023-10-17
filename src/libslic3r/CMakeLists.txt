@@ -411,6 +411,8 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
+        GCode/Thumbnails.cpp
+        GCode/Thumbnails.hpp
 )
 
 if (APPLE)
@@ -473,6 +475,8 @@ set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
+find_package(JPEG REQUIRED)
+
 set(OCCT_LIBS
     TKXDESTEP
     TKSTEP
@@ -525,6 +529,8 @@ target_link_libraries(libslic3r
     ${OCCT_LIBS}
     Clipper2
     mcut
+    JPEG::JPEG
+    qoi
     )
 
 if(NOT WIN32)

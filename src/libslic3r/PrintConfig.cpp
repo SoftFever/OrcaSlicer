@@ -327,6 +327,14 @@ static const t_config_enum_values s_keys_map_RetractLiftEnforceType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(RetractLiftEnforceType)
 
+static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
+    { "PNG", int(GCodeThumbnailsFormat::PNG) },
+    { "JPG", int(GCodeThumbnailsFormat::JPG) },
+    { "QOI", int(GCodeThumbnailsFormat::QOI) },
+    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -4187,6 +4195,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{Vec2d(300, 300)});
+
+    def = this->add("thumbnails_format", coEnum);
+    def->label = L("Format of G-code thumbnails");
+    def->tooltip = L("Format of G-code thumbnails: PNG for best quality, JPG for smallest size, QOI for low memory firmware");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<GCodeThumbnailsFormat>::get_enum_values();
+    def->enum_values.push_back("PNG");
+    def->enum_values.push_back("JPG");
+    def->enum_values.push_back("QOI");
+    def->enum_values.push_back("BTT TFT");
+    def->set_default_value(new ConfigOptionEnum<GCodeThumbnailsFormat>(GCodeThumbnailsFormat::PNG));
 
     def = this->add("use_relative_e_distances", coBool);
     def->label = L("Use relative E distances");

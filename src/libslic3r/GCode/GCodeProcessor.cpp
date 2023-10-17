@@ -668,7 +668,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 if (eol) {
                     ++line_id;
 
-                    gcode_line += "\n";
+                    // determine the end of line character and pass to output
+                    gcode_line += *it_end;
+                    if(*it_end == '\r' && *(++ it_end) == '\n')
+                        gcode_line += '\n';
                     // replace placeholder lines
                     auto [processed, lines_added_count] = process_placeholders(gcode_line);
                     if (processed && lines_added_count > 0)
