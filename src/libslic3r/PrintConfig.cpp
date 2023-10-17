@@ -3326,10 +3326,10 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("manual_filament_change", coBool);
     def->label = L("Manual Filament Change");
-    def->tooltip = L("Perform filament changes by pausing print (must be set in custom g-code) for the manual swap of the filament. "
-                     "The tool change command is no longer emitted at all and custom g-code is not called during the pre-print phase.");
+    def->tooltip = L("Enabling this option will skip the emission of the tool change command(e.g. T0) and custom Change filament G-code"
+                     " at the beginning of the print. This is useful for those who print multi-material manually.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("purge_in_prime_tower", coBool);
     def->label = L("Purge in prime tower");
