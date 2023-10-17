@@ -5,8 +5,6 @@
     "from": "system",
     "setting_id": "GP007",
     "instantiation": "true",
-    "default_acceleration": "5000",
-    "outer_wall_acceleration": "2500",
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",
         "Bambu Lab X1 0.2 nozzle",
