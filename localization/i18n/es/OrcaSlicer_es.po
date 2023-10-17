@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -163,6 +163,12 @@ msgstr "Triángulo"
 
 msgid "Height Range"
 msgstr "Rango de altura"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Eliminar color pintado"
@@ -5050,6 +5056,12 @@ msgstr ""
 "Hacer zoom hacia la posición del puntero de ratón en la vista 3D, en vez del "
 "centro de la ventana 2D."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Mostrar la notificación \"Consejo del Día\" después de empezar"
 
@@ -8846,12 +8858,8 @@ msgstr "Filtrar pequeños huecos"
 msgid "Layers and Perimeters"
 msgstr "Capas y Perímetros"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
-"Filtrar espacios menores que el umbral especificado. Esta configuración no "
-"afectará en las capas superior/inferior"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -11115,13 +11123,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Optimización de la trayectoria de la herramienta"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr ""
-"Las capas vacías del fondo se sustituyen por las capas normales más cercanas."
-
-msgid "The model has too many empty layers."
-msgstr "El modelo tiene demasiadas capas vacías."
-
 msgid "Slicing mesh"
 msgstr "Malla de corte"
 
@@ -12328,6 +12329,21 @@ msgstr ""
 "Mejorar la resistencia\n"
 "¿Sabías que puedes utilizar más bucles de perímetro y mayor densidad de "
 "relleno de baja densidad para mejorar la resistencia del modelo?"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr ""
+#~ "Filtrar espacios menores que el umbral especificado. Esta configuración "
+#~ "no afectará en las capas superior/inferior"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Las capas vacías del fondo se sustituyen por las capas normales más "
+#~ "cercanas."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "El modelo tiene demasiadas capas vacías."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"

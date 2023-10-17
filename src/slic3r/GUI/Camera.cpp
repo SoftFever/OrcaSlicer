@@ -226,9 +226,7 @@ void Camera::debug_render() const
 
     std::string type = get_type_as_string();
     if (wxGetApp().plater()->get_mouse3d_controller().connected()
-#ifdef SUPPORT_FREE_CAMERA
-        || (wxGetApp().app_config->get("use_free_camera") == "1")
-#endif
+        || (wxGetApp().app_config->get_bool("use_free_camera"))
         )
         type += "/free";
     else

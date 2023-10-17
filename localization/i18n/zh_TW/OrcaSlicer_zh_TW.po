@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Chun <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -160,6 +160,12 @@ msgstr "三角形"
 
 msgid "Height Range"
 msgstr "高度範圍"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "移除已繪製的顏色"
@@ -4804,6 +4810,12 @@ msgid ""
 "2D window center."
 msgstr "在 3D 視角放大到滑鼠位置，而不是 2D 窗口的中心。"
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "啟動後顯示“每日小建議”通知"
 
@@ -8198,10 +8210,8 @@ msgstr "忽略微小間隙"
 msgid "Layers and Perimeters"
 msgstr "層和牆"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
-msgstr "小於指定臨界值的微小間隙不填充。本設置不會對頂/底層起作用"
+msgid "Filter out gaps smaller than the threshold specified"
+msgstr ""
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -10180,12 +10190,6 @@ msgstr "似乎對象%s有%s。請重新調整對象的方向或啟用支援產�
 msgid "Optimizing toolpath"
 msgstr "正在最佳化走線"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "底部出現空層，已被最近的正常層替換。"
-
-msgid "The model has too many empty layers."
-msgstr "模型有太多空層。"
-
 msgid "Slicing mesh"
 msgstr "正在切片網格"
 
@@ -11285,6 +11289,17 @@ msgid ""
 msgstr ""
 "提高強度\n"
 "你知道嗎？你可以使用更多的牆層數和更高的疏散填充密度來提高模型的強度。"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr "小於指定臨界值的微小間隙不填充。本設置不會對頂/底層起作用"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr "底部出現空層，已被最近的正常層替換。"
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "模型有太多空層。"
 
 #~ msgid "Cali"
 #~ msgstr "校準"
