@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -146,8 +146,8 @@ msgstr "Emmer vullen"
 msgid "Height range"
 msgstr "Hoogtebereik"
 
-msgid "Ctrl + Shift + Enter"
-msgstr "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Schakel Wireframe in of uit"
@@ -5268,6 +5268,9 @@ msgstr "Maximum count of recent projects"
 msgid "Clear my choice on the unsaved projects."
 msgstr "Clear my choice on the unsaved projects."
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Automatisch backup maken"
 
@@ -8056,27 +8059,26 @@ msgstr ""
 "Dit is de snelheid voor de buitenste wand die zichtbaar is. Deze wordt "
 "langzamer geprint dan de binnenste wanden om een betere kwaliteit te krijgen."
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "Volgorde binnenwand/buitenwand/opvulling (infill)"
-
-msgid "Print sequence of inner wall, outer wall and infill. "
+msgid "Order of walls"
 msgstr ""
-"Dit is de afdrukvolgorde van binnenwanden, buitenwanden en vulling (infill)."
 
-msgid "inner/outer/infill"
-msgstr "binnenste/buitenste/vulling (infill)"
+msgid "Print sequence of inner wall and outer wall. "
+msgstr ""
 
-msgid "outer/inner/infill"
-msgstr "buitenste/binnenste/vulling (infill)"
+msgid "inner/outer"
+msgstr ""
 
-msgid "infill/inner/outer"
-msgstr "Vulling (infill)/binnenste/buitenste"
+msgid "outer/inner"
+msgstr ""
 
-msgid "infill/outer/inner"
-msgstr "Vulling (infill)/buitenste/binnenste"
+msgid "inner wall/outer wall/inner wall"
+msgstr ""
 
-msgid "inner-outer-inner/infill"
-msgstr "binnen-buiten-binnen/infill"
+msgid "Print infill first"
+msgstr ""
+
+msgid "Order of wall/infill. false means print wall first. "
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Hoogte tot geleider"
@@ -11090,10 +11092,10 @@ msgstr ""
 msgid "Select printer"
 msgstr ""
 
-msgid "Can't find my printer model"
+msgid "Input custom model"
 msgstr ""
 
-msgid "Input Printer Vendor and Model"
+msgid "Can't find my printer model"
 msgstr ""
 
 msgid "Rectangle"
@@ -11144,13 +11146,15 @@ msgstr ""
 msgid "Process preset template"
 msgstr ""
 
+msgid "Back Page 1"
+msgstr ""
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+msgid "The custom printer or model is not inputed, place input."
 msgstr ""
 
 msgid ""
@@ -11185,6 +11189,10 @@ msgid ""
 msgstr ""
 
 msgid "Please check bed shape input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -11257,7 +11265,12 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
+"Can be share in MakerWorld."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
 msgstr ""
 
 msgid ""
@@ -11616,6 +11629,32 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Ctrl + Shift + Enter"
+#~ msgstr "Ctrl + Shift + Enter"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "Volgorde binnenwand/buitenwand/opvulling (infill)"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr ""
+#~ "Dit is de afdrukvolgorde van binnenwanden, buitenwanden en vulling "
+#~ "(infill)."
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "binnenste/buitenste/vulling (infill)"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "buitenste/binnenste/vulling (infill)"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "Vulling (infill)/binnenste/buitenste"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "Vulling (infill)/buitenste/binnenste"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "binnen-buiten-binnen/infill"
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "

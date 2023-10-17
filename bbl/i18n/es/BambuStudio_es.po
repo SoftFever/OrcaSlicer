@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -149,8 +149,8 @@ msgstr "Relleno de cubos"
 msgid "Height range"
 msgstr "Rango de altura"
 
-msgid "Ctrl + Shift + Enter"
-msgstr "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Alternar estructura alámbrica"
@@ -5262,6 +5262,9 @@ msgstr "Maximum count of recent projects"
 msgid "Clear my choice on the unsaved projects."
 msgstr "Clear my choice on the unsaved projects."
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Copia de seguridad automática"
 
@@ -8043,27 +8046,26 @@ msgstr ""
 "para ser más lento que la velocidad de la pared interior para obtener una "
 "mejor calidad."
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "Orden de la pared interior/pared exterior/relleno"
-
-msgid "Print sequence of inner wall, outer wall and infill. "
+msgid "Order of walls"
 msgstr ""
-"Imprimir la secuencia de la pared interior, la pared exterior y el relleno. "
 
-msgid "inner/outer/infill"
-msgstr "interior/exterior/relleno"
+msgid "Print sequence of inner wall and outer wall. "
+msgstr ""
 
-msgid "outer/inner/infill"
-msgstr "exterior/interior/relleno"
+msgid "inner/outer"
+msgstr ""
 
-msgid "infill/inner/outer"
-msgstr "relleno/interior/exterior"
+msgid "outer/inner"
+msgstr ""
 
-msgid "infill/outer/inner"
-msgstr "relleno/exterior/interior"
+msgid "inner wall/outer wall/inner wall"
+msgstr ""
 
-msgid "inner-outer-inner/infill"
-msgstr "interior-exterior-interior/relleno"
+msgid "Print infill first"
+msgstr ""
+
+msgid "Order of wall/infill. false means print wall first. "
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Altura a la barra"
@@ -11066,10 +11068,10 @@ msgstr ""
 msgid "Select printer"
 msgstr ""
 
-msgid "Can't find my printer model"
+msgid "Input custom model"
 msgstr ""
 
-msgid "Input Printer Vendor and Model"
+msgid "Can't find my printer model"
 msgstr ""
 
 msgid "Rectangle"
@@ -11120,13 +11122,15 @@ msgstr ""
 msgid "Process preset template"
 msgstr ""
 
+msgid "Back Page 1"
+msgstr ""
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+msgid "The custom printer or model is not inputed, place input."
 msgstr ""
 
 msgid ""
@@ -11161,6 +11165,10 @@ msgid ""
 msgstr ""
 
 msgid "Please check bed shape input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -11233,7 +11241,12 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
+"Can be share in MakerWorld."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
 msgstr ""
 
 msgid ""
@@ -11592,6 +11605,32 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Ctrl + Shift + Enter"
+#~ msgstr "Ctrl + Shift + Enter"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "Orden de la pared interior/pared exterior/relleno"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr ""
+#~ "Imprimir la secuencia de la pared interior, la pared exterior y el "
+#~ "relleno. "
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "interior/exterior/relleno"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "exterior/interior/relleno"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "relleno/interior/exterior"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "relleno/exterior/interior"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "interior-exterior-interior/relleno"
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "

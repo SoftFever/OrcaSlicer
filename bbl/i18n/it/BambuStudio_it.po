@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -146,8 +146,8 @@ msgstr "Riempimento Secchio"
 msgid "Height range"
 msgstr "Intervallo altezza"
 
-msgid "Ctrl + Shift + Enter"
-msgstr "Ctrl + Shift + Invio"
+msgid "Alt + Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Attiva Wireframe"
@@ -5251,6 +5251,9 @@ msgstr "Numero massimo di progetti recenti"
 msgid "Clear my choice on the unsaved projects."
 msgstr "Cancella la mia scelta sui progetti non salvati."
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Backup automatico"
 
@@ -8033,27 +8036,26 @@ msgstr ""
 "generalmente stampate più lentamente delle pareti interne per ottenere una "
 "qualità superiore."
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "Ordine di parete interna/esterna/riempimento"
-
-msgid "Print sequence of inner wall, outer wall and infill. "
+msgid "Order of walls"
 msgstr ""
-"È la sequenza di stampa di pareti interne, pareti esterne e dei riempimenti."
 
-msgid "inner/outer/infill"
-msgstr "interno/esterno/riempimento"
+msgid "Print sequence of inner wall and outer wall. "
+msgstr ""
 
-msgid "outer/inner/infill"
-msgstr "esterno/interno/riempimento"
+msgid "inner/outer"
+msgstr ""
 
-msgid "infill/inner/outer"
-msgstr "riempimento/interno/esterno"
+msgid "outer/inner"
+msgstr ""
 
-msgid "infill/outer/inner"
-msgstr "riempimento/esterno/interno"
+msgid "inner wall/outer wall/inner wall"
+msgstr ""
 
-msgid "inner-outer-inner/infill"
-msgstr "interno-esterno-interno/riempimento"
+msgid "Print infill first"
+msgstr ""
+
+msgid "Order of wall/infill. false means print wall first. "
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Altezza asta"
@@ -11069,10 +11071,10 @@ msgstr ""
 msgid "Select printer"
 msgstr ""
 
-msgid "Can't find my printer model"
+msgid "Input custom model"
 msgstr ""
 
-msgid "Input Printer Vendor and Model"
+msgid "Can't find my printer model"
 msgstr ""
 
 msgid "Rectangle"
@@ -11123,13 +11125,15 @@ msgstr ""
 msgid "Process preset template"
 msgstr ""
 
+msgid "Back Page 1"
+msgstr ""
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+msgid "The custom printer or model is not inputed, place input."
 msgstr ""
 
 msgid ""
@@ -11164,6 +11168,10 @@ msgid ""
 msgstr ""
 
 msgid "Please check bed shape input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -11236,7 +11244,12 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
+"Can be share in MakerWorld."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
 msgstr ""
 
 msgid ""
@@ -11596,6 +11609,32 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Ctrl + Shift + Enter"
+#~ msgstr "Ctrl + Shift + Invio"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "Ordine di parete interna/esterna/riempimento"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr ""
+#~ "È la sequenza di stampa di pareti interne, pareti esterne e dei "
+#~ "riempimenti."
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "interno/esterno/riempimento"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "esterno/interno/riempimento"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "riempimento/interno/esterno"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "riempimento/esterno/interno"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "interno-esterno-interno/riempimento"
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "

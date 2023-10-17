@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -145,8 +145,8 @@ msgstr "Bucket fill"
 msgid "Height range"
 msgstr "Height range"
 
-msgid "Ctrl + Shift + Enter"
-msgstr "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Toggle Wireframe"
@@ -5187,6 +5187,9 @@ msgstr "Maximum count of recent projects"
 msgid "Clear my choice on the unsaved projects."
 msgstr "Clear my choice on the unsaved projects."
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Auto-Backup"
 
@@ -7903,26 +7906,26 @@ msgstr ""
 "This is the printing speed for the outer walls of parts. These are generally "
 "printed slower than inner walls for higher quality."
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "Order of inner wall/outer wall/infill"
+msgid "Order of walls"
+msgstr ""
 
-msgid "Print sequence of inner wall, outer wall and infill. "
-msgstr "This is the print sequence of inner walls, outer walls, and infill."
+msgid "Print sequence of inner wall and outer wall. "
+msgstr ""
 
-msgid "inner/outer/infill"
-msgstr "inner/outer/infill"
+msgid "inner/outer"
+msgstr ""
 
-msgid "outer/inner/infill"
-msgstr "outer/inner/infill"
+msgid "outer/inner"
+msgstr ""
 
-msgid "infill/inner/outer"
-msgstr "infill/inner/outer"
+msgid "inner wall/outer wall/inner wall"
+msgstr ""
 
-msgid "infill/outer/inner"
-msgstr "infill/outer/inner"
+msgid "Print infill first"
+msgstr ""
 
-msgid "inner-outer-inner/infill"
-msgstr "inner-outer-inner/infill"
+msgid "Order of wall/infill. false means print wall first. "
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Height to rod"
@@ -10883,10 +10886,10 @@ msgstr ""
 msgid "Select printer"
 msgstr ""
 
-msgid "Can't find my printer model"
+msgid "Input custom model"
 msgstr ""
 
-msgid "Input Printer Vendor and Model"
+msgid "Can't find my printer model"
 msgstr ""
 
 msgid "Rectangle"
@@ -10937,13 +10940,15 @@ msgstr ""
 msgid "Process preset template"
 msgstr ""
 
+msgid "Back Page 1"
+msgstr ""
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+msgid "The custom printer or model is not inputed, place input."
 msgstr ""
 
 msgid ""
@@ -10978,6 +10983,10 @@ msgid ""
 msgstr ""
 
 msgid "Please check bed shape input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -11050,7 +11059,12 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
+"Can be share in MakerWorld."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
 msgstr ""
 
 msgid ""
@@ -11408,6 +11422,30 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Ctrl + Shift + Enter"
+#~ msgstr "Ctrl + Shift + Enter"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "Order of inner wall/outer wall/infill"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr "This is the print sequence of inner walls, outer walls, and infill."
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "inner/outer/infill"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "outer/inner/infill"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "infill/inner/outer"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "infill/outer/inner"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "inner-outer-inner/infill"
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "

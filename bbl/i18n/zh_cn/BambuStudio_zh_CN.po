@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -151,7 +151,7 @@ msgstr "批量填充"
 msgid "Height range"
 msgstr "高度范围"
 
-msgid "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
 msgstr ""
 
 msgid "Toggle Wireframe"
@@ -3614,7 +3614,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Quit %s"
-msgstr ""
+msgstr "退出 %s"
 
 msgid "&File"
 msgstr ""
@@ -5077,6 +5077,9 @@ msgstr "近期项目的最大计数"
 msgid "Clear my choice on the unsaved projects."
 msgstr "清除我对未保存的项目的选择。"
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr "加载具有修改的 G-Code 的 3MF 时不会出现警告"
+
 msgid "Auto-Backup"
 msgstr "自动备份"
 
@@ -5085,7 +5088,7 @@ msgid ""
 msgstr "定期备份你的项目，以便从偶尔的崩溃中恢复过来。"
 
 msgid "every"
-msgstr ""
+msgstr "每"
 
 msgid "The peroid of backup in seconds."
 msgstr "备份的周期"
@@ -7650,26 +7653,26 @@ msgid ""
 "than inner wall speed to get better quality."
 msgstr "外墙的打印速度。它通常使用比内壁速度慢的速度，以获得更好的质量。"
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "内墙/外墙/填充的顺序"
+msgid "Order of walls"
+msgstr "墙顺序"
 
-msgid "Print sequence of inner wall, outer wall and infill. "
-msgstr "内圈墙/外圈墙/填充的打印顺序"
+msgid "Print sequence of inner wall and outer wall. "
+msgstr "内圈墙/外圈墙的打印顺序"
 
-msgid "inner/outer/infill"
-msgstr "内墙/外墙/填充"
+msgid "inner/outer"
+msgstr "内墙/外墙"
 
-msgid "outer/inner/infill"
-msgstr "外墙/内墙/填充"
+msgid "outer/inner"
+msgstr "外墙/内墙"
 
-msgid "infill/inner/outer"
-msgstr "填充/内墙/外墙"
+msgid "inner wall/outer wall/inner wall"
+msgstr "内墙/外墙/内墙"
 
-msgid "infill/outer/inner"
-msgstr "填充/外墙/内墙"
+msgid "Print infill first"
+msgstr "首先打印填充"
 
-msgid "inner-outer-inner/infill"
-msgstr "内墙/外墙/内墙/填充"
+msgid "Order of wall/infill. false means print wall first. "
+msgstr "墙/填充的顺序。False 表示首先打印墙。"
 
 msgid "Height to rod"
 msgstr "到横杆高度"
@@ -9472,7 +9475,7 @@ msgid "Repetions count of the whole model"
 msgstr "整个模型的重复次数"
 
 msgid "Ensure on bed"
-msgstr ""
+msgstr "确保在热床上"
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
@@ -10054,7 +10057,7 @@ msgid "Calibration Type"
 msgstr "校准类型"
 
 msgid "Complete Calibration"
-msgstr "完成校准"
+msgstr "完整校准"
 
 msgid "Fine Calibration based on flow ratio"
 msgstr "基于流量比的精细校准"
@@ -10308,7 +10311,7 @@ msgstr "如有需要，请使用正斜杠（/）作为目录分隔符。"
 
 #, c-format, boost-format
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
+msgstr "上传的文件名不以 \"%s\" 结尾。您是否希望继续？"
 
 msgid "Simulate"
 msgstr ""
@@ -10558,11 +10561,11 @@ msgstr "选择模型"
 msgid "Select printer"
 msgstr "选择打印机"
 
+msgid "Input custom model"
+msgstr "输入自定义型号"
+
 msgid "Can't find my printer model"
 msgstr "不能找到我的打印机模型"
-
-msgid "Input Printer Vendor and Model"
-msgstr "输入打印机供应商和模型"
 
 msgid "Rectangle"
 msgstr "矩形"
@@ -10589,10 +10592,10 @@ msgid "Preset path is not find, please reselect vendor."
 msgstr "预设路径未找到，请重新选择供应商。"
 
 msgid "The printer model was not found, please reselect."
-msgstr ""
+msgstr "未找到打印机型号，请重新选择。"
 
 msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
+msgstr "未找到喷嘴直径，请重新选择。"
 
 msgid "The printer preset is not fond, place reselect."
 msgstr "打印机预设未找到，请重新选择。"
@@ -10612,14 +10615,16 @@ msgstr "全部取消选中"
 msgid "Process preset template"
 msgstr "工艺预设模板"
 
+msgid "Back Page 1"
+msgstr "返回第一页"
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr "您尚未选择要基于哪个打印机预设来创建。请先选择打印机的供应商和型号。"
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
-msgstr "自定义打印机和模型还没有输入，请返回第一页去输入。"
+msgid "The custom printer or model is not inputed, place input."
+msgstr "自定义打印机或型号未输入，请输入。"
 
 msgid ""
 "The preset you created already has a preset with the same name. Do you want "
@@ -10658,6 +10663,10 @@ msgstr "您还没有选择供应商和模型，或者没有输入自定义供应
 
 msgid "Please check bed shape input."
 msgstr "请检查热床形状输入。"
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
+msgstr "您尚未选择要更换喷嘴的打印机，请进行选择。"
 
 msgid "Create Printer Successful"
 msgstr "创建打印机成功"
@@ -10731,10 +10740,13 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
-msgstr ""
-"打印机以及所有属于该打印机的材料和工艺预设。\n"
-"可以在 MakerWorld 中共享。"
+"Can be share in MakerWorld."
+msgstr "用户的材料预设集。\n可以在MakerWorld中共享。"
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
+msgstr "用户的材料预设集。\n可以在MakerWorld中共享。"
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
@@ -10774,43 +10786,43 @@ msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
 
 msgid "Edit Filament"
-msgstr ""
+msgstr "编辑材料"
 
 msgid "Basic Information"
-msgstr ""
+msgstr "基本信息"
 
 msgid "Filament presets under this filament"
-msgstr ""
+msgstr "此材料下的所有材料预设"
 
 msgid "+ Add Preset"
-msgstr ""
+msgstr "+ 添加预设"
 
 msgid "Delete Filament"
-msgstr ""
+msgstr "删除材料"
 
 msgid ""
 "Delete filament?\n"
 "Delete filament would deleted all the attatched filament presets"
-msgstr ""
+msgstr "删除材料？\n删除材料将删除所有附属的材料预设。"
 
 msgid "Delete filament"
-msgstr ""
+msgstr "删除材料"
 
 msgid "Add Preset"
-msgstr ""
+msgstr "添加预设"
 
 msgid "Add preset for new printer"
-msgstr ""
+msgstr "为新打印机添加预设"
 
 msgid "Copy preset from filament"
-msgstr ""
+msgstr "从材料中复制预设"
 
 msgid ""
 "The printer preset you selected does not have a name, please reselect it"
-msgstr ""
+msgstr "您选择的打印机预设没有名称，请重新选择。"
 
 msgid "The filament choice not find filament preset, please reselect it"
-msgstr ""
+msgstr "您选择的材料未找到材料预设，请重新选择。"
 
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
@@ -11077,7 +11089,45 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 "什么时候需要打开机箱门打印\n"
-"在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更多信息，请参阅Wiki。"
+"在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更"
+"多信息，请参阅Wiki。"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "内墙/外墙/填充的顺序"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr "内圈墙/外圈墙/填充的打印顺序"
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "内墙/外墙/填充"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "外墙/内墙/填充"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "填充/内墙/外墙"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "填充/外墙/内墙"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "内墙/外墙/内墙/填充"
+
+#~ msgid "Input Printer Vendor and Model"
+#~ msgstr "输入打印机供应商和模型"
+
+#~ msgid ""
+#~ "The custom printer and model are not inputed, place return page 1 to "
+#~ "input."
+#~ msgstr "自定义打印机和模型还没有输入，请返回第一页去输入。"
+
+#~ msgid ""
+#~ "Printer and all the filament&process presets that belongs to the "
+#~ "printer. \n"
+#~ "Can be share in makerworld."
+#~ msgstr ""
+#~ "打印机以及所有属于该打印机的材料和工艺预设。\n"
+#~ "可以在 MakerWorld 中共享。"
 
 #~ msgid "Create Filament"
 #~ msgstr "创建材料"

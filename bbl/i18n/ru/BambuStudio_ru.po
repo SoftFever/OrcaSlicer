@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -155,8 +155,8 @@ msgstr "Заливка ведра"
 msgid "Height range"
 msgstr "Диапазон высот"
 
-msgid "Ctrl + Shift + Enter"
-msgstr "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Переключение каркаса"
@@ -5236,6 +5236,9 @@ msgstr "Максимальное количество последних про�
 msgid "Clear my choice on the unsaved projects."
 msgstr "Очистить мой выбор для несохраненных проектов."
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Автобэкап"
 
@@ -7964,28 +7967,26 @@ msgstr ""
 "Это раньше было медленнее, чем скорость внутреннего периметра, чтобы "
 "получить лучшее качество."
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "Порядок внутренние периметры/внешние периметры/заполнение"
-
-msgid "Print sequence of inner wall, outer wall and infill. "
+msgid "Order of walls"
 msgstr ""
-"Распечатайте последовательность внутреннего периметра, внешнего периметра и "
-"заполнения "
 
-msgid "inner/outer/infill"
-msgstr "внутренний/внешний/заполнение"
+msgid "Print sequence of inner wall and outer wall. "
+msgstr ""
 
-msgid "outer/inner/infill"
-msgstr "внешний/внутренний/заполнение"
+msgid "inner/outer"
+msgstr ""
 
-msgid "infill/inner/outer"
-msgstr "заполнение/внутренний/внешний"
+msgid "outer/inner"
+msgstr ""
 
-msgid "infill/outer/inner"
-msgstr "заполнение/внешний/внутренний"
+msgid "inner wall/outer wall/inner wall"
+msgstr ""
 
-msgid "inner-outer-inner/infill"
-msgstr "внутренний-внешний-внутренний/заполнение"
+msgid "Print infill first"
+msgstr ""
+
+msgid "Order of wall/infill. false means print wall first. "
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Высота до стержня"
@@ -10955,10 +10956,10 @@ msgstr ""
 msgid "Select printer"
 msgstr ""
 
-msgid "Can't find my printer model"
+msgid "Input custom model"
 msgstr ""
 
-msgid "Input Printer Vendor and Model"
+msgid "Can't find my printer model"
 msgstr ""
 
 msgid "Rectangle"
@@ -11009,13 +11010,15 @@ msgstr ""
 msgid "Process preset template"
 msgstr ""
 
+msgid "Back Page 1"
+msgstr ""
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+msgid "The custom printer or model is not inputed, place input."
 msgstr ""
 
 msgid ""
@@ -11050,6 +11053,10 @@ msgid ""
 msgstr ""
 
 msgid "Please check bed shape input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -11122,7 +11129,12 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
+"Can be share in MakerWorld."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
 msgstr ""
 
 msgid ""
@@ -11472,6 +11484,32 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Ctrl + Shift + Enter"
+#~ msgstr "Ctrl + Shift + Enter"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "Порядок внутренние периметры/внешние периметры/заполнение"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr ""
+#~ "Распечатайте последовательность внутреннего периметра, внешнего периметра "
+#~ "и заполнения "
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "внутренний/внешний/заполнение"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "внешний/внутренний/заполнение"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "заполнение/внутренний/внешний"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "заполнение/внешний/внутренний"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "внутренний-внешний-внутренний/заполнение"
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-13 11:22+0800\n"
+"POT-Creation-Date: 2023-10-17 16:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -151,7 +151,7 @@ msgstr ""
 msgid "Height range"
 msgstr ""
 
-msgid "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
 msgstr ""
 
 msgid "Toggle Wireframe"
@@ -4940,6 +4940,9 @@ msgstr ""
 msgid "Clear my choice on the unsaved projects."
 msgstr ""
 
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr ""
 
@@ -7411,25 +7414,25 @@ msgid ""
 "than inner wall speed to get better quality."
 msgstr ""
 
-msgid "Order of inner wall/outer wall/infil"
+msgid "Order of walls"
 msgstr ""
 
-msgid "Print sequence of inner wall, outer wall and infill. "
+msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer/infill"
+msgid "inner/outer"
 msgstr ""
 
-msgid "outer/inner/infill"
+msgid "outer/inner"
 msgstr ""
 
-msgid "infill/inner/outer"
+msgid "inner wall/outer wall/inner wall"
 msgstr ""
 
-msgid "infill/outer/inner"
+msgid "Print infill first"
 msgstr ""
 
-msgid "inner-outer-inner/infill"
+msgid "Order of wall/infill. false means print wall first. "
 msgstr ""
 
 msgid "Height to rod"
@@ -10125,10 +10128,10 @@ msgstr ""
 msgid "Select printer"
 msgstr ""
 
-msgid "Can't find my printer model"
+msgid "Input custom model"
 msgstr ""
 
-msgid "Input Printer Vendor and Model"
+msgid "Can't find my printer model"
 msgstr ""
 
 msgid "Rectangle"
@@ -10179,13 +10182,15 @@ msgstr ""
 msgid "Process preset template"
 msgstr ""
 
+msgid "Back Page 1"
+msgstr ""
+
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
 
-msgid ""
-"The custom printer and model are not inputed, place return page 1 to input."
+msgid "The custom printer or model is not inputed, place input."
 msgstr ""
 
 msgid ""
@@ -10220,6 +10225,10 @@ msgid ""
 msgstr ""
 
 msgid "Please check bed shape input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
 
 msgid "Create Printer Successful"
@@ -10292,7 +10301,12 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in makerworld."
+"Can be share in MakerWorld."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be share in MakerWorld."
 msgstr ""
 
 msgid ""
