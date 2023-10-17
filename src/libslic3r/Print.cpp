@@ -184,6 +184,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         // SoftFever
         "chamber_temperature",
         "thumbnails",
+        "thumbnails_format",
         "seam_gap",
         "role_based_wipe_speed",
         "wipe_speed",
