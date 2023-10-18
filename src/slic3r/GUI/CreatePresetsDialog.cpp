@@ -1726,6 +1726,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
         if (i == btn_idx) {
             radiobox_list[i].first->SetValue(true);
             wxString curr_selected_type = radiobox_list[i].second;
+            this->Freeze();
             if (curr_selected_type == m_create_type.base_template) {
                 if (m_printer_model->GetValue() == _L("Select model")) {
                     m_filament_preset_template_sizer->Clear(true);
@@ -1773,6 +1774,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
                 m_select_printer->Show();
                 m_page1->SetSizerAndFit(m_page1_sizer);
             }
+            this->Thaw();
         } else {
             radiobox_list[i].first->SetValue(false);
         }
@@ -1781,6 +1783,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
     //m_page1->SetSizerAndFit(m_page1_sizer);
     //m_page2->SetSizerAndFit(m_page2_sizer);
     Fit();
+    Refresh();
     int screen_height = (int) wxGetDisplaySize().GetHeight() * 4 / 5;
     if (this->GetSize().GetHeight() > screen_height) {
         this->SetSize(-1, screen_height);
@@ -2347,11 +2350,6 @@ void CreatePrinterPresetDialog::deselect_all_preset_template(std::vector<std::pa
 
 void CreatePrinterPresetDialog::update_presets_list(bool just_template)
 {
-    if (PRESET_CUSTOM_VENDOR == m_printer_preset_vendor_selected.name || PRESET_CUSTOM_VENDOR == m_printer_preset_vendor_selected.id) {
-    
-    } else {
-
-    }
     PresetBundle temp_preset_bundle;
     if (!load_system_and_user_presets_with_curr_model(temp_preset_bundle, just_template)) return;
 
@@ -2527,8 +2525,10 @@ void CreatePrinterPresetDialog::on_preset_model_value_change(wxCommandEvent &e)
     }
     rewritten = false;
 
-    Layout();
+    this->Freeze();
     m_page2->SetSizerAndFit(m_page2_sizer);
+    Layout();
+    this->Thaw();
     Fit();
     int screen_height = (int) wxGetDisplaySize().GetHeight() * 4 / 5;
     if (this->GetSize().GetHeight() > screen_height) {
