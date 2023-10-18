@@ -1,20 +1,11 @@
 {
   "type": "filament",
-  "filament_id": "",
-  "setting_id": "",
-  "name": "Flashforge HS PLA",
+  "filament_id": "GFL99",
+  "setting_id": "GFSA04",
+  "name": "Flashforge Generic HS PLA",
   "from": "system",
-  "instantiation": "false",
+  "instantiation": "true",
   "inherits": "fdm_filament_pla",
-  "compatible_printers": [
-    "Flashforge Adventurer 5M 0.4 Nozzle",
-    "Flashforge Adventurer 5M Pro 0.4 Nozzle",
-    "Flashforge Adventurer 5M 0.6 Nozzle",
-    "Flashforge Adventurer 5M Pro 0.6 Nozzle"
-  ],
-  "additional_cooling_fan_speed": [
-    "100"
-  ],
   "bed_temperature_difference": [
     "10"
   ],
@@ -24,6 +15,15 @@
   "close_fan_the_first_x_layers": [
     "1"
   ],
+  "compatible_printers": [
+    "Flashforge Adventurer 5M 0.4 Nozzle",
+    "Flashforge Adventurer 5M Pro 0.4 Nozzle",
+    "Flashforge Adventurer 5M 0.6 Nozzle",
+    "Flashforge Adventurer 5M Pro 0.6 Nozzle"
+  ],
+  "compatible_printers_condition": "",
+  "compatible_prints": [],
+  "compatible_prints_condition": "",
   "cool_plate_temp": [
     "60"
   ],
@@ -76,7 +76,7 @@
     "1.75"
   ],
   "filament_end_gcode": [
-    "; filament end gcode \nSET_PRESSURE_ADVANCE ADVANCE=0.025"
+    "; filament end gcode \n"
   ],
   "filament_flow_ratio": [
     "0.97"
@@ -151,7 +151,7 @@
     "0"
   ],
   "filament_start_gcode": [
-    "; filament start gcode\nSET_PRESSURE_ADVANCE ADVANCE=0.035"
+    "; filament start gcode\n;right_extruder_material: PLA\n"
   ],
   "filament_toolchange_delay": [
     "0"
@@ -183,18 +183,15 @@
   "filament_z_hop_types": [
     "nil"
   ],
-  "from": "",
   "full_fan_speed_layer": [
     "0"
   ],
-  "hot_plate_temp": [
-    "35"
-  ],
   "hot_plate_temp_initial_layer": [
-    "35"
+    "45"
   ],
-  "inherits": "My Generic PLA",
-  "name": "Flashforge HS PLA",
+  "hot_plate_temp": [
+    "45"
+  ],
   "nozzle_temperature": [
     "220"
   ],
@@ -225,15 +222,6 @@
   "slow_down_for_layer_cooling": [
     "1"
   ],
-  "slow_down_layer_time": [
-    "6"
-  ],
-  "slow_down_min_speed": [
-    "20"
-  ],
-  "support_material_interface_fan_speed": [
-    "100"
-  ],
   "temperature_vitrification": [
     "60"
   ],
@@ -243,5 +231,16 @@
   "textured_plate_temp_initial_layer": [
     "60"
   ],
-  "version": "1.5.1.2"
+  "slow_down_layer_time": [
+    "6"
+  ],
+  "slow_down_min_speed": [
+    "20"
+  ],
+  "support_material_interface_fan_speed": [
+    "100"
+  ],
+  "additional_cooling_fan_speed": [
+    "100"
+  ]
 }
