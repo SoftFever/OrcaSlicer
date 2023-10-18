@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.7beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: 2023-09-21 14:29+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -169,6 +169,12 @@ msgstr "Треугольник"
 
 msgid "Height Range"
 msgstr "Диапазон высоты слоёв"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Удаление окрашенного участка"
@@ -5053,6 +5059,12 @@ msgstr ""
 "Увеличивать масштаб по направлению к курсору в 3D-виде, а не к центру 2D-"
 "окна."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Показывать уведомление с полезным советом при запуске приложения"
 
@@ -8851,12 +8863,8 @@ msgstr "Игнорировать небольшие пробелы"
 msgid "Layers and Perimeters"
 msgstr "Слои и периметры"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
-"Небольшие промежутки меньше указанного порога не будут заполняться. Этот "
-"параметр не влияет на верхнюю/нижнюю поверхность."
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -11127,14 +11135,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Оптимизация траектории инструмента"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr ""
-"Пустые слои обнаруженные на дне модели были заменены ближайшими нормальными "
-"слоями."
-
-msgid "The model has too many empty layers."
-msgstr "Модель имеет слишком много пустых слоев."
-
 msgid "Slicing mesh"
 msgstr "Нарезка сетки"
 
@@ -12329,6 +12329,21 @@ msgstr ""
 "Увеличение прочности\n"
 "Знаете ли вы, что для повышения прочности модели можно увеличить количество "
 "периметров и плотность заполнения?"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr ""
+#~ "Небольшие промежутки меньше указанного порога не будут заполняться. Этот "
+#~ "параметр не влияет на верхнюю/нижнюю поверхность."
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Пустые слои обнаруженные на дне модели были заменены ближайшими "
+#~ "нормальными слоями."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "Модель имеет слишком много пустых слоев."
 
 #~ msgid "AMS %s"
 #~ msgstr "АСПП №%s"

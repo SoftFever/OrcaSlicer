@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
-"PO-Revision-Date: 2023-10-09 12:04+0900\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"PO-Revision-Date: 2023-10-13 13:25+0900\n"
 "Last-Translator: Hotsolidinfill, crwusiz <crwusiz@naver.com>\n"
 "Language-Team: \n"
 "Language: ko_KR\n"
@@ -167,6 +167,12 @@ msgstr "삼각형"
 
 msgid "Height Range"
 msgstr "높이 범위"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "칠한 색 제거"
@@ -4340,22 +4346,22 @@ msgid "Printer settings"
 msgstr "프린터 설정"
 
 msgid "Remove current plate (if not last one)"
-msgstr ""
+msgstr "현재 플레이트 제거(마지막 플레이트가 아닌 경우)"
 
 msgid "Auto orient objects on current plate"
-msgstr ""
+msgstr "현재 플레이트의 개체 자동 방향 지정"
 
 msgid "Arrange objects on current plate"
-msgstr ""
+msgstr "현재 플레이트의 개체 정렬"
 
 msgid "Unlock current plate"
-msgstr ""
+msgstr "현재 플레이트 잠금 해제"
 
 msgid "Lock current plate"
-msgstr ""
+msgstr "현재 플레이트 잠금"
 
 msgid "Customize current plate"
-msgstr ""
+msgstr "현재 플레이트 사용자 설정"
 
 msgid "Untitled"
 msgstr "제목 없음"
@@ -4941,6 +4947,12 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "2D 윈도우 중앙이 아닌 3D 보기에서 마우스 포인터의 위치로 확대합니다."
+
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "시작 후 \"오늘의 팁\" 알림 표시"
@@ -7188,7 +7200,7 @@ msgstr ""
 "이어를 축소합니다"
 
 msgid "Elephant foot compensation layers"
-msgstr ""
+msgstr "코끼리 발 보정 레이어"
 
 msgid ""
 "The number of layers on which the elephant foot compensation will be active. "
@@ -7196,6 +7208,9 @@ msgid ""
 "the next layers will be linearly shrunk less, up to the layer indicated by "
 "this value."
 msgstr ""
+"코끼리 발 보정이 활성화될 레이어 수입니다. 첫 번째 레이어는 코끼리 발 보정 값"
+"만큼 축소되고, 다음 레이어부터 이 값으로 표시된 레이어까지 선형적으로 덜 축소"
+"됩니다."
 
 msgid "layers"
 msgstr "레이어"
@@ -8557,12 +8572,8 @@ msgstr "작은 갭 필터링"
 msgid "Layers and Perimeters"
 msgstr "레이어와 윤곽선"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
-"지정된 임계값보다 작은 갭을 필터링합니다. 이 설정은 상단 표면/하단 표면 레이"
-"어에 영향을 주지 않습니다"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -8834,7 +8845,7 @@ msgid "Ironing Pattern"
 msgstr "다림질 패턴"
 
 msgid "The pattern that will be used when ironing"
-msgstr ""
+msgstr "다림질할 때 사용할 패턴"
 
 msgid "Ironing flow"
 msgstr "다림질 유량"
@@ -8859,12 +8870,14 @@ msgid "Print speed of ironing lines"
 msgstr "다림질 선의 출력 속도"
 
 msgid "Ironing angle"
-msgstr ""
+msgstr "다림질 각도"
 
 msgid ""
 "The angle ironing is done at. A negative number disables this function and "
 "uses the default method."
 msgstr ""
+"다림질이 해당 각도에서 실행됩니다. 음수는 이 기능을 비활성화하고 기본값을 사"
+"용합니다."
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr "이 G코드는 Z올리기 이후 모든 레이어 변경에 삽입됩니다"
@@ -10320,7 +10333,7 @@ msgstr ""
 "의 조립 문제가 있을 때 크기를 약간 조정하는 데 사용됩니다"
 
 msgid "Convert holes to polyholes"
-msgstr ""
+msgstr "구멍을 폴리홀로 변환"
 
 msgid ""
 "Search for almost-circular holes that span more than one layer and convert "
@@ -10328,9 +10341,14 @@ msgid ""
 "compute the polyhole.\n"
 "See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
 msgstr ""
+"두 개 이상의 레이어에 걸쳐 있는 원통형 구멍을 검색하고 형상을 폴리홀로 변환합"
+"니다(원을 분할하여 작은 삼각형을 만들 때, 꼭지점 수를 늘리고 모서리를 절단하"
+"여 공차를 줄임_by MMT). 노즐 크기의 (가장 큰) 직경을 사용하여 폴리홀을 계산합"
+"니다.\n"
+"http://hydraraptor.blogspot.com/2011/02/polyholes.html을 참조하세요"
 
 msgid "Polyhole detection margin"
-msgstr ""
+msgstr "폴리홀 감지 마진"
 
 #, c-format, boost-format
 msgid ""
@@ -10340,12 +10358,17 @@ msgid ""
 "broaden the detection.\n"
 "In mm or in % of the radius."
 msgstr ""
+"원의 추정 반경에 대한 모서리의 최대 변위.\n"
+"원통은 다양한 크기의 삼각형으로 내보내지는 경우가 많기 때문에 모서리가 원 둘"
+"레에 위치하지 않을 수 있습니다. 이 설정을 사용하면 감지 범위를 넓힐 수 있습니"
+"다.\n"
+"mm 또는 반경의 % o단위입니다."
 
 msgid "Polyhole twist"
-msgstr ""
+msgstr "폴리홀 회전"
 
 msgid "Rotate the polyhole every layer."
-msgstr ""
+msgstr "레이어마다 폴리홀을 회전시킵니다."
 
 msgid "G-code thumbnails"
 msgstr "G코드 미리보기(썸네일)"
@@ -10749,12 +10772,6 @@ msgstr ""
 
 msgid "Optimizing toolpath"
 msgstr "툴 경로 최적화"
-
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "바닥 주변의 빈 레이어는 가장 가까운 일반 레이어로 대체됩니다."
-
-msgid "The model has too many empty layers."
-msgstr "모델에 빈 레이어가 너무 많습니다."
 
 msgid "Slicing mesh"
 msgstr "슬라이싱 메쉬"
@@ -11926,6 +11943,19 @@ msgstr ""
 "강도 향상\n"
 "모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 내부 채움 밀도를 "
 "사용할 수 있다는 것을 알고 있습니까?"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr ""
+#~ "지정된 임계값보다 작은 갭을 필터링합니다. 이 설정은 상단 표면/하단 표면 레"
+#~ "이어에 영향을 주지 않습니다"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr "바닥 주변의 빈 레이어는 가장 가까운 일반 레이어로 대체됩니다."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "모델에 빈 레이어가 너무 많습니다."
 
 #~ msgid "Cali"
 #~ msgstr "교정"

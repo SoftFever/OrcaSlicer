@@ -712,6 +712,18 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     }
 
     ImGui::Separator();
+    if(m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only)){
+        if(m_vertical_only){
+            m_horizontal_only = false;
+        }
+    }
+    if(m_imgui->bbl_checkbox(_L("Horizontal"), m_horizontal_only)){
+        if(m_horizontal_only){
+            m_vertical_only = false;
+        }
+    }
+
+    ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);

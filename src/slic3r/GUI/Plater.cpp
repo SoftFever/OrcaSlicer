@@ -2862,11 +2862,7 @@ void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
         camera.set_type(Camera::EType::Perspective);
     else
         camera.set_type(Camera::EType::Ortho);
-    if (apply
-#ifdef SUPPORT_FREE_CAMERA
-        && wxGetApp().app_config->get("use_free_camera") != "1"
-#endif
-        )
+    if (apply && wxGetApp().app_config->get_bool("use_free_camera"))
         camera.recover_from_free_camera();
 }
 
