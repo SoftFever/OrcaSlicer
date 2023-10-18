@@ -6408,7 +6408,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id;
             else
                 stream << "    <" << COMPONENT_TAG << " p:path=\"" << xml_escape(*ppath) << "\" objectid=\"" << volume_id; // << "\"/>\n";
-            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) volume_id} << COMPONENT_UUID_SUFFIX;
+            if (m_production_ext)
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) volume_id} << COMPONENT_UUID_SUFFIX;
             const Transform3d &transf = volume->get_matrix();
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c) {
