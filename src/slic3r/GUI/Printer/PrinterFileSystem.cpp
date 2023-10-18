@@ -1038,8 +1038,11 @@ void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const &callback)
 {
     if (m_session.tunnel == nullptr) {
-        boost::unique_lock l(m_mutex);
-        m_cond.notify_all();
+        {
+            boost::unique_lock l(m_mutex);
+            m_cond.notify_all();
+        }
+        callback(ERROR_PIPE, json(), nullptr);
         return 0;
     }
     boost::uint32_t seq = m_sequence + m_callbacks.size();
@@ -1085,23 +1088,28 @@ void PrinterFileSystem::CancelRequests(std::vector<boost::uint32_t> const &seqs)
 
 void PrinterFileSystem::CancelRequests2(std::vector<boost::uint32_t> const &seqs)
 {
-    std::deque<callback_t2> callbacks;
+    std::vector<std::pair<boost::uint32_t, callback_t2>> callbacks;
     boost::unique_lock      l(m_mutex);
     for (auto &f : seqs) {
         boost::uint32_t seq = f;
         seq -= m_sequence;
-        if (size_t(seq) >= m_callbacks.size()) continue;
+        if (size_t(seq) >= m_callbacks.size())
+            continue;
         auto &c = m_callbacks[seq];
-        if (c == nullptr) continue;
-        callbacks.push_back(c);
-        m_callbacks[seq] = callback_t2();
+        if (c == nullptr)
+            continue;
+        callbacks.emplace_back(f, c);
+        c = nullptr;
     }
     while (!m_callbacks.empty() && m_callbacks.front() == nullptr) {
         m_callbacks.pop_front();
         ++m_sequence;
     }
     l.unlock();
-    for (auto &c : callbacks) c(ERROR_CANCEL, json(), nullptr);
+    for (auto &c : callbacks) {
+        wxLogInfo("PrinterFileSystem::CancelRequests2: %u\n", c.first);
+        c.second(ERROR_CANCEL, json(), nullptr);
+    }
 }
 
 void PrinterFileSystem::RecvMessageThread()
