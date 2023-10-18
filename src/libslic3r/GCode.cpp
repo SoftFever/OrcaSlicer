@@ -1904,6 +1904,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Set extruder(s) temperature before and after start G-code.
         this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, false);
     }
+
+    // BBS: chamber temp control for 3rd printers
+    if (!is_BBL_Printer() && print.config().support_chamber_temp_control.value && max_chamber_temp > 0 ){
+        file.write(m_writer.set_chamber_temperature(max_chamber_temp,true));
+    }
+
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
@@ -2193,7 +2199,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
-    file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
+    if (print.config().support_chamber_temp_control.value && max_chamber_temp>0)
+        file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
 
 
     // adds tags for time estimators
