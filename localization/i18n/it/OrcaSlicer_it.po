@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -159,6 +159,12 @@ msgstr "Triangle"
 
 msgid "Height Range"
 msgstr "Height Range"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Rimuovi colore dipinto"
@@ -4952,6 +4958,12 @@ msgstr ""
 "Ingrandisci verso la posizione del puntatore del mouse nella vista 3D, "
 "anziché verso il centro della finestra 2D."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Mostra \"Suggerimento del giorno\" dopo l'avvio"
 
@@ -8551,9 +8563,7 @@ msgstr ""
 msgid "Layers and Perimeters"
 msgstr "Layers e Perimetri"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
 
 msgid ""
@@ -10649,12 +10659,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Optimizing toolpath"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "Empty layers around bottom are replaced by nearest normal layers."
-
-msgid "The model has too many empty layers."
-msgstr "Il modello ha troppi layers vuoti."
-
 msgid "Slicing mesh"
 msgstr "Slicing mesh"
 
@@ -11728,6 +11732,12 @@ msgstr ""
 "Migliorare la resistenza\n"
 "Sapevate che è possibile utilizzare un maggior numero di anelli a parete e "
 "una maggiore densità riempimento per migliorare la resistenza del modello?"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr "Empty layers around bottom are replaced by nearest normal layers."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "Il modello ha troppi layers vuoti."
 
 #~ msgid "Cali"
 #~ msgstr "Calib."

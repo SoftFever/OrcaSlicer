@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: 2023-10-07 12:57+0300\n"
 "Last-Translator: Sadri Ercan\n"
 "Language-Team: Türkçe\n"
@@ -168,6 +168,12 @@ msgstr "Üçgen"
 
 msgid "Height Range"
 msgstr "Yükseklik Aralığı"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Boyalı rengi kaldır"
@@ -5019,6 +5025,12 @@ msgstr ""
 "2B pencere merkezi yerine, 3B görünümde fare işaretçisinin konumuna doğru "
 "yakınlaştırın."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Başlangıçtan sonra \"Günün ipucu\" bildirimini göster"
 
@@ -8743,12 +8755,8 @@ msgstr "Küçük boşlukları filtrele"
 msgid "Layers and Perimeters"
 msgstr "Katmanlar ve Çevreler"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
-"Belirtilen eşikten daha küçük boşlukları filtreleyin. Bu ayar üst/alt "
-"katmanları etkilemez"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -11019,12 +11027,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Takım yolunu optimize etme"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "Alt kısımdaki boş katmanların yerini en yakın normal katmanlar alır."
-
-msgid "The model has too many empty layers."
-msgstr "Modelde çok fazla boş katman var."
-
 msgid "Slicing mesh"
 msgstr "Mesh dilimleme"
 
@@ -12210,6 +12212,20 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek "
 "dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr ""
+#~ "Belirtilen eşikten daha küçük boşlukları filtreleyin. Bu ayar üst/alt "
+#~ "katmanları etkilemez"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Alt kısımdaki boş katmanların yerini en yakın normal katmanlar alır."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "Modelde çok fazla boş katman var."
 
 #~ msgid "Total Time Estimation"
 #~ msgstr "Toplam Süre Tahmini"

@@ -245,7 +245,7 @@ void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&c
         // BBS: improve details for large cursor radius
         TriangleSelector::HeightRange* hr_cursor = dynamic_cast<TriangleSelector::HeightRange*>(m_cursor.get());
         if (hr_cursor == nullptr) {
-            set_edge_limit(std::min(std::sqrt(m_cursor->radius_sqr) / 5.f, 0.2f));
+            set_edge_limit(std::min(std::sqrt(m_cursor->radius_sqr) / 5.f, 0.05f));
             m_old_cursor_radius_sqr = m_cursor->radius_sqr;
         }
         else {
