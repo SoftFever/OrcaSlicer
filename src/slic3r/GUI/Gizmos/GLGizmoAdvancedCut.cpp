@@ -28,31 +28,12 @@ const float UndefFloat = -999.f;
 
 // connector colors
 
-using ColorRGBA = std::array<float, 4>;
-
-static const ColorRGBA BLACK() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA BLUE() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA BLUEISH() { return {0.5f, 0.5f, 1.0f, 1.0f}; }
-static const ColorRGBA CYAN() { return {0.0f, 1.0f, 1.0f, 1.0f}; }
-static const ColorRGBA DARK_GRAY() { return {0.25f, 0.25f, 0.25f, 1.0f}; }
-static const ColorRGBA DARK_YELLOW() { return {0.5f, 0.5f, 0.0f, 1.0f}; }
-static const ColorRGBA GRAY() { return {0.5f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA GREEN() { return {0.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA GREENISH() { return {0.5f, 1.0f, 0.5f, 1.0f}; }
-static const ColorRGBA LIGHT_GRAY() { return {0.75f, 0.75f, 0.75f, 1.0f}; }
-static const ColorRGBA MAGENTA() { return {1.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA ORANGE() { return {0.923f, 0.504f, 0.264f, 1.0f}; }
-static const ColorRGBA RED() { return {1.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA REDISH() { return {1.0f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA YELLOW() { return {1.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA WHITE() { return {1.0f, 1.0f, 1.0f, 1.0f}; }
-
-static const ColorRGBA PLAG_COLOR           = YELLOW();
-static const ColorRGBA DOWEL_COLOR          = DARK_YELLOW();
-static const ColorRGBA HOVERED_PLAG_COLOR   = CYAN();
+static const ColorRGBA PLAG_COLOR           = ColorRGBA::YELLOW();
+static const ColorRGBA DOWEL_COLOR          = ColorRGBA::DARK_YELLOW();
+static const ColorRGBA HOVERED_PLAG_COLOR   = ColorRGBA::CYAN();
 static const ColorRGBA HOVERED_DOWEL_COLOR  = {0.0f, 0.5f, 0.5f, 1.0f};
-static const ColorRGBA SELECTED_PLAG_COLOR  = GRAY();
-static const ColorRGBA SELECTED_DOWEL_COLOR = GRAY(); // DARK_GRAY();
+static const ColorRGBA SELECTED_PLAG_COLOR  = ColorRGBA::GRAY();
+static const ColorRGBA SELECTED_DOWEL_COLOR = ColorRGBA::GRAY(); // DARK_GRAY();
 static const ColorRGBA CONNECTOR_DEF_COLOR  = {1.0f, 1.0f, 1.0f, 0.5f};
 static const ColorRGBA CONNECTOR_ERR_COLOR  = {1.0f, 0.3f, 0.3f, 0.5f};
 static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
@@ -954,7 +935,7 @@ void GLGizmoAdvancedCut::render_connectors()
 
         const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        render_connector_model(m_shapes[connector.attribs], render_color, view_model_matrix);
+        render_connector_model(m_shapes[connector.attribs], render_color.data_array(), view_model_matrix);
     }
 }
 
