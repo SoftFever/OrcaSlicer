@@ -36,6 +36,7 @@
 #include "I18N.hpp"
 #include "NotificationManager.hpp"
 #include "format.hpp"
+#include "DailyTips.hpp"
 
 #if ENABLE_RETINA_GL
 #include "slic3r/Utils/RetinaHelper.hpp"
@@ -1266,6 +1267,8 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
     wxGetApp().imgui()->on_change_color_mode(is_dark);
     // Notification
     wxGetApp().plater()->get_notification_manager()->on_change_color_mode(is_dark);
+    // DailyTips Window
+    wxGetApp().plater()->get_dailytips()->on_change_color_mode(is_dark);
     // Preview Slider
     IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
     IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
@@ -1984,6 +1987,7 @@ void GLCanvas3D::render(bool only_init)
             bottom_margin = SLIDER_BOTTOM_MARGIN;
         }
         wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+        wxGetApp().plater()->get_dailytips()->render();
     }
 
     wxGetApp().imgui()->render();
@@ -7003,6 +7007,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
         auto* m_notification = wxGetApp().plater()->get_notification_manager();
         m_notification->set_scale(sc);
+        wxGetApp().plater()->get_dailytips()->set_scale(sc);
 
 #endif
         return;
@@ -7028,6 +7033,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
+    wxGetApp().plater()->get_dailytips()->set_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);

@@ -82,6 +82,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AuxiliaryDialog.hpp
     GUI/Auxiliary.cpp
     GUI/Auxiliary.hpp
+    GUI/DailyTips.cpp
+    GUI/DailyTips.hpp
     GUI/Project.cpp
     GUI/Project.hpp
     GUI/BackgroundSlicingProcess.cpp
@@ -103,6 +105,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
     GUI/Selection.cpp
+    GUI/SlicingProgressNotification.cpp
+    GUI/SlicingProgressNotification.hpp
     GUI/Gizmos/GLGizmosManager.cpp
     GUI/Gizmos/GLGizmosManager.hpp
     GUI/Gizmos/GLGizmosCommon.cpp
@@ -271,7 +275,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
-	GUI/CameraUtils.cpp
+    GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
     GUI/wxExtensions.hpp
@@ -374,7 +378,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/DragCanvas.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
-	GUI/RecenterDialog.cpp
+    GUI/RecenterDialog.cpp
     GUI/RecenterDialog.hpp
     GUI/PrivacyUpdateDialog.cpp
     GUI/PrivacyUpdateDialog.hpp
@@ -402,13 +406,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/CalibrationWizard.cpp
     GUI/CalibrationWizardPage.cpp
     GUI/CalibrationWizardPage.hpp
-	GUI/CalibrationWizardStartPage.cpp
+    GUI/CalibrationWizardStartPage.cpp
     GUI/CalibrationWizardStartPage.hpp
-	GUI/CalibrationWizardPresetPage.cpp
+    GUI/CalibrationWizardPresetPage.cpp
     GUI/CalibrationWizardPresetPage.hpp
-	GUI/CalibrationWizardCaliPage.cpp
+    GUI/CalibrationWizardCaliPage.cpp
     GUI/CalibrationWizardCaliPage.hpp
-	GUI/CalibrationWizardSavePage.cpp
+    GUI/CalibrationWizardSavePage.cpp
     GUI/CalibrationWizardSavePage.hpp
     GUI/calib_dlg.cpp
     GUI/calib_dlg.hpp

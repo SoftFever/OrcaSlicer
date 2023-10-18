@@ -18,7 +18,15 @@ struct HintData
 	std::string        enabled_tags;
 	bool               runtime_disable; // if true - hyperlink will check before every click if not in disabled mode
 	std::string        documentation_link;
+	std::string        image_url;
 	std::function<void(void)> callback{ nullptr };
+};
+
+enum class HintDataNavigation {
+	Curr,
+	Prev,
+	Next,
+	Random,
 };
 
 class HintDatabase
@@ -40,7 +48,8 @@ public:
 	void operator=(HintDatabase const&) = delete;
 
 	// return true if HintData filled;
-	HintData* get_hint(bool new_hint = true);
+	HintData* get_hint(HintDataNavigation nav);
+	size_t	  get_index() { return m_hint_id; }
 	size_t    get_count() {
 		if (!m_initialized)
 			return 0;
@@ -51,12 +60,15 @@ public:
 	void    uninit();
 private:
 	void	init();
+	void	init_random_hint_id();
 	void	load_hints_from_file(const boost::filesystem::path& path);
 	bool    is_used(const std::string& id);
 	void    set_used(const std::string& id);
 	void    clear_used();
 	// Returns position in m_loaded_hints with next hint chosed randomly with weights
-	size_t  get_next();
+	size_t  get_next_hint_id();
+	size_t	get_prev_hint_id();
+	size_t  get_random_next();
 	size_t						m_hint_id;
 	bool						m_initialized{ false };
 	std::vector<HintData>       m_loaded_hints;

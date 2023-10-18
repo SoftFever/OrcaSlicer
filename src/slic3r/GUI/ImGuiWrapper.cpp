@@ -54,8 +54,8 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::MinimalizeHoverButton , "notification_minimalize_hover" },
     {ImGui::RightArrowButton      , "notification_right"            },
     {ImGui::RightArrowHoverButton , "notification_right_hover"      },
-    {ImGui::PreferencesButton      , "notification_preferences"      },
-    {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
+    //{ImGui::PreferencesButton      , "notification_preferences"      },
+    //{ImGui::PreferencesHoverButton , "notification_preferences_hover"},
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     {ImGui::SliderFloatEditBtnIcon, "edit_button"                    },
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
@@ -73,8 +73,8 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::MinimalizeHoverDarkButton  , "notification_minimalize_hover_dark" },
     {ImGui::RightArrowDarkButton       , "notification_right_dark"            },
     {ImGui::RightArrowHoverDarkButton  , "notification_right_hover_dark"      },
-    {ImGui::PreferencesDarkButton      , "notification_preferences_dark"      },
-    {ImGui::PreferencesHoverDarkButton , "notification_preferences_hover_dark"},
+    //{ImGui::PreferencesDarkButton      , "notification_preferences_dark"      },
+    //{ImGui::PreferencesHoverDarkButton , "notification_preferences_hover_dark"},
 
     {ImGui::CircleButtonDarkIcon       , "circle_paint_dark"                  },
     {ImGui::TriangleButtonDarkIcon     , "triangle_paint_dark"                },
@@ -93,6 +93,10 @@ static const std::map<const wchar_t, std::string> font_icons = {
 
     {ImGui::CloseBlockNotifButton      , "block_notification_close"           },
     {ImGui::CloseBlockNotifHoverButton , "block_notification_close_hover"     },
+
+    {ImGui::CollapseArrowIcon,            "notification_collapse"             },
+    {ImGui::ExpandArrowIcon,              "notification_expand"               },
+    {ImGui::OpenArrowIcon,                "notification_arrow_open"           },
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -110,15 +114,19 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
 //    {ImGui::CustomSeamMarker        , "seam"                            },
 //    {ImGui::MmuSegmentationMarker   , "mmu_segmentation"                },
 //    {ImGui::VarLayerHeightMarker    , "layers"                          },
-    {ImGui::DocumentationButton     , "notification_documentation"      },
-    {ImGui::DocumentationHoverButton, "notification_documentation_hover"},
+    //{ImGui::DocumentationButton     , "notification_documentation"      },
+    //{ImGui::DocumentationHoverButton, "notification_documentation_hover"},
     //{ImGui::InfoMarker              , "notification_info"               },
     // dark mode icon
     {ImGui::CloseNotifDarkButton        , "notification_close_dark"              },
     {ImGui::CloseNotifHoverDarkButton   , "notification_close_hover_dark"        },
-    {ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
-    {ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
+    //{ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
+    //{ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
     {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
+    {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
+    {ImGui::PrevArrowHoverBtnIcon,        "notification_arrow_left_hovered"      },
+    {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
+    {ImGui::NextArrowHoverBtnIcon,        "notification_arrow_right_hovered"     },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {

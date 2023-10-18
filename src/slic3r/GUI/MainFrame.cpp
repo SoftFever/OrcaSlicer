@@ -58,6 +58,7 @@
 #include "NetworkTestDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "Widgets/WebView.hpp"
+#include "DailyTips.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -2119,7 +2120,7 @@ static wxMenu* generate_help_menu()
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
 
     append_menu_item(helpMenu, wxID_ANY, _L("Show Tip of the Day"), _L("Show Tip of the Day"), [](wxCommandEvent&) {
-        wxGetApp().plater()->get_notification_manager()->push_hint_notification(false);
+        wxGetApp().plater()->get_dailytips()->open();
         wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
         });
 

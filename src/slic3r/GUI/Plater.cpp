@@ -134,6 +134,7 @@
 #include "PhysicalPrinterDialog.hpp"
 #include "PrintHostDialogs.hpp"
 #include "PlateSettingsDialog.hpp"
+#include "DailyTips.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -12869,6 +12870,12 @@ Mouse3DController& Plater::get_mouse3d_controller()
 NotificationManager * Plater::get_notification_manager()
 {
     return p->notification_manager.get();
+}
+
+DailyTipsWindow* Plater::get_dailytips() const
+{
+    static DailyTipsWindow* dailytips_win = new DailyTipsWindow();
+    return dailytips_win;
 }
 
 const NotificationManager * Plater::get_notification_manager() const

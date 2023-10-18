@@ -1150,14 +1150,6 @@ void GUI_App::post_init()
             this->mainframe->load_config(this->init_params->extra_config);
     }*/
 
-    // BBS: to be checked
-#if 1
-    // show "Did you know" notification
-    if (app_config->get("show_hints") == "true" && !is_gcode_viewer()) {
-        plater_->get_notification_manager()->push_hint_notification(false);
-    }
-#endif
-
     //BBS: check crash log
     auto log_dir_path = boost::filesystem::path(data_dir()) / "log";
     if (boost::filesystem::exists(log_dir_path))
