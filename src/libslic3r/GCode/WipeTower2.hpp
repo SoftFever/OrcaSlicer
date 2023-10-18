@@ -255,9 +255,6 @@ private:
     // Goes through m_plan, calculates border and finish_layer extrusions and subtracts them from last wipe
     void save_on_last_wipe();
 
-	// Orca: temp help function to set temperature
-    std::string set_preheat_temperature(unsigned int temperature, bool wait, int tool);
-
     // to store information about tool changes for a given layer
 	struct WipeTowerInfo{
 		struct ToolChange {

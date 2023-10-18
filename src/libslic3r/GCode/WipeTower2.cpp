@@ -781,49 +781,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower2::prime(
 
 	return results;
 }
-#define FLAVOR_IS(val) this->m_gcode_flavor == val
-#define FLAVOR_IS_NOT(val) this->m_gcode_flavor != val
 
-std::string WipeTower2::set_preheat_temperature(unsigned int temperature, bool wait, int tool) 
-{
-    if (wait && (FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)))
-        return "";
-    
-    std::string code, comment;
-    if (wait && FLAVOR_IS_NOT(gcfTeacup) && FLAVOR_IS_NOT(gcfRepRapFirmware)) {
-        code = "M109";
-        comment = "set nozzle temperature and wait for it to be reached";
-    } else {
-        if (FLAVOR_IS(gcfRepRapFirmware)) { // M104 is deprecated on RepRapFirmware
-            code = "G10";
-        } else {
-            code = "M104";
-        }
-        comment = "preheat next nozzle";
-    }
-    
-    std::ostringstream gcode;
-    gcode << code << " ";
-    if (FLAVOR_IS(gcfMach3) || FLAVOR_IS(gcfMachinekit)) {
-        gcode << "P";
-    } else {
-        gcode << "S";
-    }
-    gcode << temperature;
-    if (tool != -1) {
-        if (FLAVOR_IS(gcfRepRapFirmware)) {
-            gcode << " P" << tool;
-        } else {
-            gcode << " T" << tool;
-        }
-    }
-    gcode << " ; " << comment << "\n";
-    
-    if ((FLAVOR_IS(gcfTeacup) || FLAVOR_IS(gcfRepRapFirmware)) && wait)
-        gcode << "M116 ; wait for temperature to be reached\n";
-    
-    return gcode.str();
-}
 WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
 {
     size_t old_tool = m_current_tool;
@@ -879,8 +837,6 @@ WipeTower::ToolChangeResult WipeTower2::tool_change(size_t tool)
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (tool != (unsigned int)-1){ 			// This is not the last change.
         auto new_tool_temp = is_first_layer() ? m_filpar[tool].first_layer_temperature : m_filpar[tool].temperature;
-        // Orca: pre-heat next tool, it's a temperary solution before impelment the proper preheat.
-        writer.append(set_preheat_temperature(new_tool_temp, false, tool));
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material,
                           (is_first_layer() ? m_filpar[m_current_tool].first_layer_temperature : m_filpar[m_current_tool].temperature),
                           new_tool_temp);

@@ -2935,6 +2935,30 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
     return final_path;
 }
 
+const std::string PrintStatistics::FilamentUsedG     = "filament used [g]";
+const std::string PrintStatistics::FilamentUsedGMask = "; filament used [g] =";
+
+const std::string PrintStatistics::TotalFilamentUsedG          = "total filament used [g]";
+const std::string PrintStatistics::TotalFilamentUsedGMask      = "; total filament used [g] =";
+const std::string PrintStatistics::TotalFilamentUsedGValueMask = "; total filament used [g] = %.2lf\n";
+
+const std::string PrintStatistics::FilamentUsedCm3     = "filament used [cm3]";
+const std::string PrintStatistics::FilamentUsedCm3Mask = "; filament used [cm3] =";
+
+const std::string PrintStatistics::FilamentUsedMm     = "filament used [mm]";
+const std::string PrintStatistics::FilamentUsedMmMask = "; filament used [mm] =";
+
+const std::string PrintStatistics::FilamentCost     = "filament cost";
+const std::string PrintStatistics::FilamentCostMask = "; filament cost =";
+
+const std::string PrintStatistics::TotalFilamentCost          = "total filament cost";
+const std::string PrintStatistics::TotalFilamentCostMask      = "; total filament cost =";
+const std::string PrintStatistics::TotalFilamentCostValueMask = "; total filament cost = %.2lf\n";
+
+const std::string PrintStatistics::TotalFilamentUsedWipeTower     = "total filament used for wipe tower [g]";
+const std::string PrintStatistics::TotalFilamentUsedWipeTowerValueMask = "; total filament used for wipe tower [g] = %.2lf\n";
+
+
 /*add json export/import related functions */
 #define JSON_POLYGON_CONTOUR                "contour"
 #define JSON_POLYGON_HOLES                  "holes"

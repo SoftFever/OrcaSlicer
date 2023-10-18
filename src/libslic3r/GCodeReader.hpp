@@ -79,6 +79,16 @@ public:
             return strncmp(cmd, cmd_test, len) == 0 && GCodeReader::is_end_of_word(cmd[len]);
         }
 
+        static bool cmd_starts_with(const std::string& gcode_line, const char* cmd_test) {
+            return strncmp(GCodeReader::skip_whitespaces(gcode_line.c_str()), cmd_test, strlen(cmd_test)) == 0;
+        }
+
+        static std::string extract_cmd(const std::string& gcode_line) {
+            GCodeLine temp;
+            temp.m_raw = gcode_line;
+            const std::string_view cmd = temp.cmd();
+            return { cmd.begin(), cmd.end() };
+        }
     private:
         std::string      m_raw;
         float            m_axis[NUM_AXES];

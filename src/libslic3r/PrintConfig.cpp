@@ -7677,6 +7677,22 @@ bool has_skirt(const DynamicPrintConfig& cfg)
 float get_real_skirt_dist(const DynamicPrintConfig& cfg) {
     return has_skirt(cfg) ? cfg.opt_float("skirt_distance") : 0;
 }
+static bool is_XL_printer(const std::string& printer_notes)
+{
+    return boost::algorithm::contains(printer_notes, "PRINTER_VENDOR_PRUSA3D")
+        && boost::algorithm::contains(printer_notes, "PRINTER_MODEL_XL");
+}
+
+bool is_XL_printer(const DynamicPrintConfig &cfg)
+{
+    auto *printer_notes = cfg.opt<ConfigOptionString>("printer_notes");
+    return printer_notes && is_XL_printer(printer_notes->value);
+}
+
+bool is_XL_printer(const PrintConfig &cfg)
+{
+    return is_XL_printer(cfg.printer_notes.value);
+}
 } // namespace Slic3r
 
 #include <cereal/types/polymorphic.hpp>
