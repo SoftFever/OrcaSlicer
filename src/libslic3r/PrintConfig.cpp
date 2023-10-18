@@ -1564,7 +1564,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("accel_to_decel_factor", coPercent);
     def->label = L("accel_to_decel");
-    def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this % of acceleration");
+    def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this percent of acceleration");
     def->sidetext = L("%");
     def->min = 1;
     def->max = 100;
