@@ -30,7 +30,8 @@
 #include "FillRectilinear.hpp"
 #include "FillAdaptive.hpp"
 #include "FillLightning.hpp"
-#include "FillEnsuring.hpp"
+// BBS: new infill pattern header
+#include "FillConcentricInternal.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -63,7 +64,8 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipSupportCubic:        return new FillAdaptive::Filler();
     case ipSupportBase:         return new FillSupportBase();
     case ipLightning:           return new FillLightning::Filler();
-    case ipEnsuring:            return new FillEnsuring();
+    // BBS: for internal solid infill only
+    case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
     default: throw Slic3r::InvalidArgument("unknown type");
