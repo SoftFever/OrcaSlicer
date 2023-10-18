@@ -60,7 +60,7 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
-    " CHANGE_TOOL ",
+    " MANUAL_TOOL_CHANGE ",
     "_DURING_PRINT_EXHAUST_FAN"
 };
 
@@ -78,7 +78,7 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
-    " CHANGE_TOOL "
+    " MANUAL_TOOL_CHANGE "
 };
 
 
