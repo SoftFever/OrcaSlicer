@@ -20,6 +20,8 @@ namespace Slic3r {
 // slice warnings enum strings
 #define NOZZLE_HRC_CHECKER                                          "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
+#define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
+#define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
 
     enum class EMoveType : unsigned char
     {
@@ -179,6 +181,8 @@ namespace Slic3r {
         bool toolpath_outside;
         //BBS: add object_label_enabled
         bool label_object_enabled;
+        int timelapse_warning_code {0};
+        bool support_traditional_timelapse{true};
         float printable_height;
         SettingsIds settings_ids;
         size_t extruders_count;
@@ -212,6 +216,7 @@ namespace Slic3r {
             bed_exclude_area = other.bed_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            timelapse_warning_code = other.timelapse_warning_code;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             extruders_count = other.extruders_count;
@@ -255,7 +260,8 @@ namespace Slic3r {
             First_Line_M73_Placeholder,
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
-            Total_Layer_Number_Placeholder
+            Total_Layer_Number_Placeholder,
+            During_Print_Exhaust_Fan
         };
 
         static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
@@ -357,6 +363,7 @@ namespace Slic3r {
             float time() const;
         };
 
+
     private:
         struct TimeMachine
         {
@@ -452,6 +459,7 @@ namespace Slic3r {
             // Additional load / unload times for a filament exchange sequence.
             float filament_load_times;
             float filament_unload_times;
+
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
 
             void reset();
@@ -617,7 +625,6 @@ namespace Slic3r {
 
     private:
         GCodeReader m_parser;
-
         EUnits m_units;
         EPositioningType m_global_positioning_type;
         EPositioningType m_e_local_positioning_type;
@@ -711,6 +718,7 @@ namespace Slic3r {
         void reset();
 
         const GCodeProcessorResult& get_result() const { return m_result; }
+        GCodeProcessorResult& result() { return m_result; }
         GCodeProcessorResult&& extract_result() { return std::move(m_result); }
 
         // Load a G-code into a stand-alone G-code viewer.
@@ -828,6 +836,9 @@ namespace Slic3r {
 
         //BBS: wait bed temperature
         void process_M190(const GCodeReader::GCodeLine& line);
+
+        //BBS: wait chamber temperature
+        void process_M191(const GCodeReader::GCodeLine& line);
 
         // Set max printing acceleration
         void process_M201(const GCodeReader::GCodeLine& line);

@@ -1349,6 +1349,10 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             opt_key == "sparse_infill_pattern",
             opt_idx);
     }
+    case coPoint: {
+        Vec2d val = config.opt<ConfigOptionPoint>(opt_key)->value;
+        return from_u8((boost::format("[%1%]") % ConfigOptionPoint(val).serialize()).str());
+    }
     case coPoints: {
         //BBS: add bed_exclude_area
         if (opt_key == "printable_area" || opt_key == "thumbnails") {
@@ -1359,7 +1363,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         else if (opt_key == "bed_exclude_area") {
             return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         }
-
+        else if (opt_key == "thumbnails") {
+            return get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        }
         Vec2d val = config.opt<ConfigOptionPoints>(opt_key)->get_at(opt_idx);
         return from_u8((boost::format("[%1%]") % ConfigOptionPoint(val).serialize()).str());
     }

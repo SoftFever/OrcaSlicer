@@ -9,6 +9,7 @@
 #include "EdgeGrid.hpp"
 #include "Geometry/ConvexHull.hpp"
 #include "GCode/PrintExtents.hpp"
+#include "GCode/Thumbnails.hpp"
 #include "GCode/WipeTower.hpp"
 #include "ShortestPath.hpp"
 #include "Print.hpp"
@@ -665,6 +666,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         Vec2f wipe_tower_offset   = tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos;
         float wipe_tower_rotation = tcr.priming ? 0.f : alpha;
+        Vec2f plate_origin_2d(m_plate_origin(0), m_plate_origin(1));
+
 
         std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
@@ -688,7 +691,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // then we could simplify the condition and make it more readable.
             gcode += gcodegen.retract();
             gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
-            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos), erMixed, "Travel to a Wipe Tower");
+            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
         } else {
             // When this is multiextruder printer without any ramming, we can just change
@@ -802,8 +805,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         // A phony move to the end position at the wipe tower.
-        gcodegen.writer().travel_to_xy(end_pos.cast<double>());
-        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
+        gcodegen.writer().travel_to_xy((end_pos + plate_origin_2d).cast<double>());
+        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
         if (!is_approx(z, current_z)) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
@@ -978,6 +981,33 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         return gcode;
+    }
+
+    bool WipeTowerIntegration::is_empty_wipe_tower_gcode(GCode &gcodegen, int extruder_id, bool finish_layer)
+    {
+        assert(m_layer_idx >= 0);
+        if (m_layer_idx >= (int) m_tool_changes.size())
+            return true;
+
+        bool   ignore_sparse = false;
+        if (gcodegen.config().wipe_tower_no_sparse_layers.value) {
+            ignore_sparse = (m_tool_changes[m_layer_idx].size() == 1 && m_tool_changes[m_layer_idx].front().initial_tool == m_tool_changes[m_layer_idx].front().new_tool);
+        }
+
+        if (m_enable_timelapse_print && m_is_first_print) {
+            return false;
+        }
+
+        if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
+            if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
+                throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+
+            if (!ignore_sparse) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Print is finished. Now it remains to unload the filament safely with ramming over the wipe tower.
@@ -1286,10 +1316,11 @@ namespace DoExport {
 //            get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
 //    }
 
-    static void update_print_estimated_stats(const GCodeProcessor& processor, const std::vector<Extruder>& extruders, PrintStatistics& print_statistics)
+    static void update_print_estimated_stats(const GCodeProcessor& processor, const std::vector<Extruder>& extruders, PrintStatistics& print_statistics, const PrintConfig& config)
     {
         const GCodeProcessorResult& result = processor.get_result();
-        print_statistics.estimated_normal_print_time = get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+        double normal_print_time = result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time;
+        print_statistics.estimated_normal_print_time = get_time_dhms(normal_print_time);
         print_statistics.estimated_silent_print_time = processor.is_stealth_time_estimator_enabled() ?
             get_time_dhms(result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Stealth)].time) : "N/A";
 
@@ -1327,7 +1358,9 @@ namespace DoExport {
             total_weight        += weight;
             total_cost          += weight * extruder->filament_cost() * 0.001;
         }
-
+       
+        total_cost += config.time_cost.getFloat() * (normal_print_time/3600.0);
+        
         print_statistics.total_extruded_volume = total_extruded_volume;
         print_statistics.total_used_filament   = total_used_filament;
         print_statistics.total_weight          = total_weight;
@@ -1364,6 +1397,7 @@ namespace DoExport {
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Machine end G-code")), config.machine_end_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Before layer change G-code")), config.before_layer_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Layer change G-code")), config.layer_change_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Time lapse G-code")), config.time_lapse_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change filament G-code")), config.change_filament_gcode.value);
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
@@ -1486,9 +1520,19 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     BOOST_LOG_TRIVIAL(debug) << "Start processing gcode, " << log_memory_info();
     // Post-process the G-code to update time stamps.
+
+    m_timelapse_warning_code = 0;
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && m_spiral_vase) {
+        m_timelapse_warning_code += 1;
+    }
+    if (m_config.printer_structure.value == PrinterStructure::psI3 && print->config().print_sequence == PrintSequence::ByObject) {
+        m_timelapse_warning_code += (1 << 1);
+    }
+    m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
+    m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
-    DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
+    DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics, print->config());
     if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
         // set the filename to the correct value
@@ -1618,53 +1662,6 @@ namespace DoExport {
 	                    points          => $gcodegen->ooze_prevention->standby_points,
 	                );
 	#endif
-	        }
-	    }
-	}
-
-    //BBS: add plate id for thumbnail generate param
-	template<typename WriteToOutput, typename ThrowIfCanceledCallback>
-	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, int plate_id, const std::vector<Vec2d> &sizes, WriteToOutput output, ThrowIfCanceledCallback throw_if_canceled)
-	{
-	    // Write thumbnails using base64 encoding
-	    if (thumbnail_cb != nullptr)
-	    {
-	        const size_t max_row_length = 78;
-            //BBS: add plate id for thumbnail generate param
-            ThumbnailsList thumbnails = thumbnail_cb(ThumbnailsParams{ sizes, true, true, true, true, plate_id });
-	        for (const ThumbnailData& data : thumbnails)
-	        {
-	            if (data.is_valid())
-	            {
-	                size_t png_size = 0;
-	                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
-	                if (png_data != nullptr)
-	                {
-	                    std::string encoded;
-	                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
-	                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
-
-                        output("; THUMBNAIL_BLOCK_START\n");
-	                    output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
-
-	                    unsigned int row_count = 0;
-	                    while (encoded.size() > max_row_length)
-	                    {
-	                        output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
-	                        encoded = encoded.substr(max_row_length);
-	                        ++row_count;
-	                    }
-
-	                    if (encoded.size() > 0)
-	                    	output((boost::format("; %s\n") % encoded).str().c_str());
-
-	                    output("; thumbnail end\n");
-                        output("; THUMBNAIL_BLOCK_END\n\n");
-
-	                    mz_free(png_data);
-	                }
-	            }
-	            throw_if_canceled();
 	        }
 	    }
 	}
@@ -1880,6 +1877,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     } else
 	    m_enable_extrusion_role_markers = false;
 
+    // if thumbnail type of BTT_TFT, insert above header
+    // if not, it is inserted under the header in its normal spot
+    const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
+    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
+        GCodeThumbnails::export_thumbnails_to_file(
+            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+            m_gcode_thumbnail_format,
+            [&file](const char *sz) { file.write(sz); },
+            [&print]() { print.throw_if_canceled(); });
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -1939,13 +1945,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
-        DoExport::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-            [&file](const char *sz) { file.write(sz); },
-            [&print]() { print.throw_if_canceled(); });
+        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
+          GCodeThumbnails::export_thumbnails_to_file(
+              thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+              m_gcode_thumbnail_format,
+              [&file](const char *sz) { file.write(sz); },
+              [&print]() { print.throw_if_canceled(); });
       }
     }
-    
+
 
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
@@ -2195,7 +2203,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
-        //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
+        //add during_print_exhaust_fan_speed
+        std::vector<int> during_print_exhaust_fan_speed_num;
+        during_print_exhaust_fan_speed_num.reserve(m_config.during_print_exhaust_fan_speed.size());
+        for (const auto& item : m_config.during_print_exhaust_fan_speed.values)
+            during_print_exhaust_fan_speed_num.emplace_back((int)(item / 100.0 * 255));
+        this->placeholder_parser().set("during_print_exhaust_fan_speed_num",new ConfigOptionInts(during_print_exhaust_fan_speed_num));
+
+        // calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
@@ -2245,8 +2260,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.writeln(this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values[initial_extruder_id], initial_extruder_id, &config));
     }
 */
-    if (is_bbl_printers)
+    if (is_bbl_printers) {
         this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
+        if (m_config.support_air_filtration.getBool() && m_config.activate_air_filtration.get_at(initial_extruder_id)) {
+            file.write(m_writer.set_exhaust_fan(m_config.during_print_exhaust_fan_speed.get_at(initial_extruder_id), true));
+        }
+    }
     print.throw_if_canceled();
 
     // Set other general things.
@@ -2509,6 +2528,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
+    if (print.config().support_chamber_temp_control.value || print.config().chamber_temperature.values[0] > 0)
+        file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
+
+
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
     file.write_format("; EXECUTABLE_BLOCK_END\n\n");
@@ -2557,6 +2580,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     }
     file.write("\n");
+
+    bool activate_air_filtration = false;
+    for (const auto& extruder : m_writer.extruders())
+        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
+    activate_air_filtration &= m_config.support_air_filtration.getBool();
+
+    if (activate_air_filtration) {
+        int complete_print_exhaust_fan_speed = 0;
+        for (const auto& extruder : m_writer.extruders())
+            if (m_config.activate_air_filtration.get_at(extruder.id()))
+                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
+        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
+    }
 
     print.throw_if_canceled();
 }
@@ -2897,6 +2933,7 @@ int GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer,
     const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
     return bed_temp_opt->get_at(extruder_id);
 }
+
 
 // Write 1st layer bed temperatures into the G-code.
 // Only do that if the start G-code does not already contain any M-code controlling an extruder temperature.
@@ -3333,10 +3370,45 @@ LayerResult GCode::process_layer(
             + "\n";
     }
 
+    PrinterStructure printer_structure           = m_config.printer_structure.value;
+    bool need_insert_timelapse_gcode_for_traditional = false;
+    if (printer_structure == PrinterStructure::psI3 &&
+        !m_spiral_vase &&
+        (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) &&
+        print.config().print_sequence == PrintSequence::ByLayer) {
+        need_insert_timelapse_gcode_for_traditional = true;
+    }
+    bool has_insert_timelapse_gcode = false;
+    bool has_wipe_tower             = (layer_tools.has_wipe_tower && m_wipe_tower);
+
+    auto insert_timelapse_gcode = [this, print_z, &print]() -> std::string {
+        std::string gcode_res;
+        if (!print.config().time_lapse_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            gcode_res = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.extruder()->id(), &config) + "\n";
+        }
+        return gcode_res;
+    };
+
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
+    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
+        std::string timepals_gcode = insert_timelapse_gcode();
+        gcode += timepals_gcode;
+        m_writer.set_current_position_clear(false);
+        //BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2) = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
+    }
     if (! print.config().layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
@@ -3646,9 +3718,29 @@ LayerResult GCode::process_layer(
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
-        gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
-            m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back()) :
-            this->set_extruder(extruder_id, print_z);
+        if (has_wipe_tower) {
+            if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
+                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+                    gcode += this->retract(false, false, LiftType::NormalLift);
+                    m_writer.add_object_change_labels(gcode);
+
+                    std::string timepals_gcode = insert_timelapse_gcode();
+                    gcode += timepals_gcode;
+                    m_writer.set_current_position_clear(false);
+                    //BBS: check whether custom gcode changes the z position. Update if changed
+                    double temp_z_after_timepals_gcode;
+                    if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                        Vec3d pos = m_writer.get_position();
+                        pos(2) = temp_z_after_timepals_gcode;
+                        m_writer.set_position(pos);
+                    }
+                    has_insert_timelapse_gcode = true;
+                }
+                gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
+            }
+        } else {
+            gcode += this->set_extruder(extruder_id, print_z);
+        }
 
         // let analyzer tag generator aware of a role type change
         if (layer_tools.has_wipe_tower && m_wipe_tower)
@@ -3842,11 +3934,11 @@ LayerResult GCode::process_layer(
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
-                        gcode += this->extrude_infill(print, by_region_specific, false);
+                                                gcode += this->extrude_infill(print, by_region_specific, false);
                         gcode += this->extrude_perimeters(print, by_region_specific);
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific);
-                        gcode += this->extrude_infill(print,by_region_specific, false);
+                                                gcode += this->extrude_infill(print,by_region_specific, false);
                     }
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
@@ -3896,6 +3988,25 @@ LayerResult GCode::process_layer(
 
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
+
+    if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+        if (m_support_traditional_timelapse)
+            m_support_traditional_timelapse = false;
+
+        gcode += this->retract(false, false, LiftType::NormalLift);
+        m_writer.add_object_change_labels(gcode);
+
+        std::string timepals_gcode = insert_timelapse_gcode();
+        gcode += timepals_gcode;
+        m_writer.set_current_position_clear(false);
+        //BBS: check whether custom gcode changes the z position. Update if changed
+        double temp_z_after_timepals_gcode;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2) = temp_z_after_timepals_gcode;
+            m_writer.set_position(pos);
+        }
+    }
 
     result.gcode = std::move(gcode);
     result.cooling_buffer_flush = object_layer || raft_layer || last_layer;

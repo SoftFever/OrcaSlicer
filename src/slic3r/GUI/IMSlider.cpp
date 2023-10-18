@@ -101,19 +101,19 @@ static std::string short_and_splitted_time(const std::string &time)
     // Format the dhm time.
     char buffer[64];
     if (days > 0)
-        ::sprintf(buffer, "%dd%dh\n%dm", days, hours, minutes);
+        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0) {
         if (hours < 10 && minutes < 10 && seconds < 10)
             ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if (hours > 10 && minutes > 10 && seconds > 10)
-            ::sprintf(buffer, "%dh\n%dm\n%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else if ((minutes < 10 && seconds > 10) || (minutes > 10 && seconds < 10))
-            ::sprintf(buffer, "%dh\n%dm%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
         else
-            ::sprintf(buffer, "%dh%dm\n%ds", hours, minutes, seconds);
+            ::sprintf(buffer, "%dh%dm%ds", hours, minutes, seconds);
     } else if (minutes > 0) {
         if (minutes > 10 && seconds > 10)
-            ::sprintf(buffer, "%dm\n%ds", minutes, seconds);
+            ::sprintf(buffer, "%dm%ds", minutes, seconds);
         else
             ::sprintf(buffer, "%dm%ds", minutes, seconds);
     } else
@@ -234,7 +234,7 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
     m_ticks.ticks.clear();
     const std::vector<CustomGCode::Item> &heights = custom_gcode_per_print_z.gcodes;
     for (auto h : heights) {
-        int tick = get_tick_from_value(h.print_z);
+        int tick = get_tick_from_value(h.print_z, true);
         if (tick >= 0) m_ticks.ticks.emplace(TickCode{tick, h.type, h.extruder, h.color, h.extra});
     }
 
@@ -404,8 +404,9 @@ void IMSlider::add_code_as_tick(Type type, int selected_extruder)
 }
 
 void IMSlider::delete_tick(const TickCode& tick) {
+    Type t = tick.type; // Avoid Use-After-Free issue, which resets the tick.type to 0
     m_ticks.ticks.erase(tick);
-    post_ticks_changed_event(tick.type);
+    post_ticks_changed_event(t);
 }
 
 bool IMSlider::check_ticks_changed_event(Type type)
@@ -662,10 +663,8 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
             ImGui::RenderFrame(right_hover_box.Min, right_hover_box.Max, tick_hover_box_clr, false);
 
             show_tooltip(*tick_it);
-            if (context.IO.MouseClicked[0]) {
-                m_tick_value = tick_it->tick;
-                m_tick_rect = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
-            }
+            m_tick_value = tick_it->tick;
+            m_tick_rect = ImVec4(tick_hover_box.Min.x, tick_hover_box.Min.y, tick_hover_box.Max.x, tick_hover_box.Max.y);
         }
         ++tick_it;
     }
@@ -725,25 +724,76 @@ void IMSlider::show_tooltip(const std::string tooltip) {
 }
 
 void IMSlider::show_tooltip(const TickCode& tick){
+    // Use previous layer's complete time as current layer's tick time,
+    // since ticks are added at the beginning of current layer
+    std::string time_str = "";
+    // TODO: support first layer
+    if (tick.tick > 0) {
+        time_str = get_label(tick.tick - 1, ltEstimatedTime);
+    }
+    if (!time_str.empty()) {
+        time_str += "\n";
+    }
+    
     switch (tick.type)
     {
     case CustomGCode::ColorChange:
         break;
     case CustomGCode::PausePrint:
-        show_tooltip(_u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
+        show_tooltip(time_str + _u8L("Pause:") + " \"" + gcode(PausePrint) + "\"");
         break;
     case CustomGCode::ToolChange:
-        show_tooltip(_u8L("Change Filament"));
+        show_tooltip(time_str + _u8L("Change Filament"));
         break;
     case CustomGCode::Template:
-        show_tooltip(_u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
+        show_tooltip(time_str + _u8L("Custom Template:") + " \"" + gcode(Template) + "\"");
         break;
     case CustomGCode::Custom:
-        show_tooltip(_u8L("Custom G-code:") + " \"" + tick.extra + "\"");
+        show_tooltip(time_str + _u8L("Custom G-code:") + " \"" + tick.extra + "\"");
         break;
     default:
         break;
     }
+}
+
+int IMSlider::get_tick_near_point(int v_min, int v_max, const ImVec2& pt, const ImRect& rect) {
+    ImS32 v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
+    
+    const ImGuiAxis axis = is_horizontal() ? ImGuiAxis_X : ImGuiAxis_Y;
+    const float region_usable_sz = (rect.Max[axis] - rect.Min[axis]);
+    const float region_usable_pos_min = rect.Min[axis];
+    
+    const float abs_pos = pt[axis];
+    
+    float pos_ratio = (region_usable_sz > 0.0f) ? ImClamp((abs_pos - region_usable_pos_min) / region_usable_sz, 0.0f, 1.0f) : 0.0f;
+    if (axis == ImGuiAxis_Y)
+        pos_ratio = 1.0f - pos_ratio;
+    
+    return v_min + (ImS32)(v_range * pos_ratio + 0.5f);
+}
+
+void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
+    int v_min = GetMinValue();
+    int v_max = GetMaxValue();
+    ImGuiContext& context = *GImGui;
+    
+    int tick = get_tick_near_point(v_min, v_max, context.IO.MousePos, slideable_region);
+    
+    //draw tick
+    ImVec2 tick_offset   = ImVec2(22.0f, 14.0f) * m_scale;
+    float  tick_width    = 1.0f * m_scale;
+
+    const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
+
+    float tick_pos = get_pos_from_value(v_min, v_max, tick, slideable_region);
+    ImRect tick_left  = ImRect(slideable_region.GetCenter().x - tick_offset.x, tick_pos - tick_width, slideable_region.GetCenter().x - tick_offset.y, tick_pos);
+    ImRect tick_right = ImRect(slideable_region.GetCenter().x + tick_offset.y, tick_pos - tick_width, slideable_region.GetCenter().x + tick_offset.x, tick_pos);
+    ImGui::RenderFrame(tick_left.Min, tick_left.Max, tick_clr, false);
+    ImGui::RenderFrame(tick_right.Min, tick_right.Max, tick_clr, false);
+    
+    // draw layer time
+    std::string label = get_label(tick, ltEstimatedTime);
+    show_tooltip(label);
 }
 
 bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower_value, std::string& higher_label, std::string& lower_label,int v_min, int v_max, const ImVec2& size, SelectedSlider& selection, bool one_layer_flag, float scale)
@@ -914,6 +964,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         pos_3 = pos_1 + triangle_offsets[2];
         window->DrawList->AddTriangleFilled(pos_1, pos_2, pos_3, white_bg);
         ImGui::RenderText(text_start + text_padding, lower_label.c_str());
+        
+        // draw mouse position
+        if (hovered) {
+            draw_tick_on_mouse_position(h_selected ? higher_slideable_region : lower_slideable_region);
+        }
     }
     if (one_layer_flag) 
     {
@@ -953,6 +1008,11 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
         ImRect text_rect = ImRect(text_start, text_start + text_size);
         ImGui::RenderFrame(text_rect.Min, text_rect.Max, white_bg, false, text_frame_rounding);
         ImGui::RenderText(text_start + text_padding, higher_label.c_str());
+        
+        // draw mouse position
+        if (hovered) {
+            draw_tick_on_mouse_position(one_slideable_region);
+        }
     }
 
     return value_changed;

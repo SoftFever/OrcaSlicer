@@ -178,8 +178,6 @@ set(lisbslic3r_sources
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
     Int128.hpp
-    InternalBridgeDetector.cpp
-    InternalBridgeDetector.hpp
     KDTreeIndirect.hpp
     Layer.cpp
     Layer.hpp
@@ -413,11 +411,15 @@ set(lisbslic3r_sources
     Shape/TextShape.cpp
     calib.hpp
     calib.cpp
+        GCode/Thumbnails.cpp
+        GCode/Thumbnails.hpp
 )
 
 if (APPLE)
     list(APPEND lisbslic3r_sources
 			MacUtils.mm
+            Format/ModelIO.hpp
+            Format/ModelIO.mm
         )
 endif ()
 
@@ -473,6 +475,8 @@ set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
+find_package(JPEG REQUIRED)
+
 set(OCCT_LIBS
     TKXDESTEP
     TKSTEP
@@ -525,6 +529,8 @@ target_link_libraries(libslic3r
     ${OCCT_LIBS}
     Clipper2
     mcut
+    JPEG::JPEG
+    qoi
     )
 
 if(NOT WIN32)
@@ -533,6 +539,12 @@ if(NOT WIN32)
         target_link_libraries(libslic3r fontconfig)
     endif()
 endif()
+
+if (APPLE)
+    find_library(FOUNDATION Foundation REQUIRED)
+    find_library(MODELIO ModelIO REQUIRED)
+    target_link_libraries(libslic3r ${FOUNDATION} ${MODELIO})
+endif ()
 
 if (TARGET OpenVDB::openvdb)
     target_link_libraries(libslic3r OpenVDB::openvdb)

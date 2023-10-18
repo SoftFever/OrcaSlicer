@@ -87,6 +87,19 @@ wxString StepCtrlBase::GetItemText(unsigned int item) const
     return item < steps.size() ? steps[item] : wxString{};
 }
 
+int StepCtrlBase::GetItemUseText(wxString txt) const
+{
+    for(int i = 0; i < steps.size(); i++){
+        if (steps[i] == txt) {
+            return i;
+        }
+        else {
+            continue;
+        }
+    }
+    return 0;
+}
+
 void StepCtrlBase::SetItemText(unsigned int item, wxString const &value)
 {
     if (item >= steps.size()) return;

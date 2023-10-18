@@ -209,6 +209,15 @@ enum NozzleType {
 };
 
 // BBS
+enum PrinterStructure {
+    psUndefine=0,
+    psCoreXY,
+    psI3,
+    psHbot,
+    psDelta
+};
+
+// BBS
 enum ZHopType {
     zhtAuto = 0,
     zhtNormal,
@@ -222,6 +231,10 @@ enum RetractLiftEnforceType {
     rletTopOnly,
     rletBottomOnly,
     rletTopAndBottom
+};
+
+enum class GCodeThumbnailsFormat {
+    PNG, JPG, QOI, BTT_TFT
 };
 
 static std::string bed_type_to_gcode_string(const BedType type)
@@ -306,6 +319,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TimelapseType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeThumbnailsFormat)
 
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
@@ -643,6 +657,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               brim_ears_max_angle))
     ((ConfigOptionBool,                bridge_no_support))
     ((ConfigOptionFloat,               elefant_foot_compensation))
+    ((ConfigOptionInt,                 elefant_foot_compensation_layers))
     ((ConfigOptionFloat,               max_bridge_length))
     ((ConfigOptionFloatOrPercent,      line_width))
     // Force the generation of solid shells between adjacent materials/volumes.
@@ -711,7 +726,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
-    ((ConfigOptionFloat,              internal_bridge_support_thickness))
     ((ConfigOptionEnum<PerimeterGeneratorType>, wall_generator))
     ((ConfigOptionPercent,            wall_transition_length))
     ((ConfigOptionPercent,            wall_transition_filter_deviation))
@@ -766,6 +780,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent, ironing_flow))
     ((ConfigOptionFloat, ironing_spacing))
     ((ConfigOptionFloat, ironing_speed))
+    ((ConfigOptionFloat, ironing_angle))
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
     ((ConfigOptionInt, wall_filament))
@@ -815,6 +830,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 make_overhang_printable))
     ((ConfigOptionBool,                 extra_perimeters_on_overhangs))
     ((ConfigOptionBool,                 slowdown_for_curled_perimeters))
+    ((ConfigOptionBool,                 hole_to_polyhole))
+    ((ConfigOptionFloatOrPercent,       hole_to_polyhole_threshold))
+    ((ConfigOptionBool,                 hole_to_polyhole_twisted))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -880,7 +898,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                bbl_bed_temperature_gcode))
     ((ConfigOptionEnum<GCodeFlavor>,   gcode_flavor))
 
+    ((ConfigOptionFloat,               time_cost)) 
     ((ConfigOptionString,              layer_change_gcode))
+    ((ConfigOptionString,              time_lapse_gcode))
 
     ((ConfigOptionFloat,               max_volumetric_extrusion_rate_slope))
     ((ConfigOptionInt,               max_volumetric_extrusion_rate_slope_segment_length))
@@ -912,6 +932,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
+    ((ConfigOptionBool,                support_air_filtration))
+    ((ConfigOptionEnum<PrinterStructure>,printer_structure))
+    ((ConfigOptionBool,                support_chamber_temp_control))
+
+
     // SoftFever
     ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                use_relative_e_distances))
@@ -995,6 +1020,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatOrPercent,     bridge_acceleration))
     ((ConfigOptionFloat,              travel_acceleration))
     ((ConfigOptionFloatOrPercent,     sparse_infill_acceleration))
+    ((ConfigOptionBools,              activate_air_filtration))
+    ((ConfigOptionInts,               during_print_exhaust_fan_speed))
+    ((ConfigOptionInts,               complete_print_exhaust_fan_speed))
     ((ConfigOptionFloatOrPercent,     internal_solid_infill_acceleration))
     ((ConfigOptionFloatOrPercent,     initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
@@ -1016,6 +1044,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               fan_min_speed))
     ((ConfigOptionFloats,             min_layer_height))
     ((ConfigOptionFloat,              printable_height))
+    ((ConfigOptionPoint,              best_object_pos))
     ((ConfigOptionFloats,             slow_down_min_speed))
     ((ConfigOptionFloats,             nozzle_diameter))
     ((ConfigOptionBool,               reduce_infill_retraction))
@@ -1037,7 +1066,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts ,               chamber_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
-    ((ConfigOptionInts,               bed_temperature_difference))
     ((ConfigOptionInts,               nozzle_temperature_range_low))
     ((ConfigOptionInts,               nozzle_temperature_range_high))
     ((ConfigOptionFloats,             wipe_distance))
@@ -1385,6 +1413,8 @@ Points get_bed_shape(const DynamicPrintConfig &cfg);
 Points get_bed_shape(const PrintConfig &cfg);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
 Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg);
+bool has_skirt(const DynamicPrintConfig& cfg);
+float get_real_skirt_dist(const DynamicPrintConfig& cfg);
 
 // ModelConfig is a wrapper around DynamicPrintConfig with an addition of a timestamp.
 // Each change of ModelConfig is tracked by assigning a new timestamp from a global counter.

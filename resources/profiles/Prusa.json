@@ -27,12 +27,44 @@
             "sub_path": "process/process_common_mk4.json"
         },
         {
+            "name": "process_common_mk3",
+            "sub_path": "process/process_common_mk3.json"
+        },
+        {
+            "name": "0.05mm UltraDetail @MK3S",
+            "sub_path": "process/0.05mm UltraDetail @MK3S.json"
+        },
+        {
+            "name": "0.07mm UltraDetail @MK3S",
+            "sub_path": "process/0.07mm UltraDetail @MK3S.json"
+        },
+        {
+            "name": "0.10mm Detail @MK3S",
+            "sub_path": "process/0.10mm Detail @MK3S.json"
+        },
+        {
+            "name": "0.15mm Quality @MK3S",
+            "sub_path": "process/0.15mm Quality @MK3S.json"
+        },
+        {
+            "name": "0.15mm Speed @MK3S",
+            "sub_path": "process/0.15mm Speed @MK3S.json"
+        },
+        {
+            "name": "0.20mm Quality @MK3S",
+            "sub_path": "process/0.20mm Quality @MK3S.json"
+        },
+        {
             "name": "0.20mm Standard @MK3S",
             "sub_path": "process/0.20mm Standard @MK3S.json"
         },
         {
-            "name": "0.20mm Standard @MINI",
-            "sub_path": "process/0.20mm Standard @MINI.json"
+            "name": "0.20mm Speed @MK3S",
+            "sub_path": "process/0.20mm Speed @MK3S.json"
+        },
+        {
+            "name": "0.30mm Draft @MK3S",
+            "sub_path": "process/0.30mm Draft @MK3S.json"
         },
         {
             "name": "0.08mm Standard @MK4",

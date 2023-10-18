@@ -4181,29 +4181,25 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         // do not process the dragging if the left mouse was set down in another canvas
         else if (evt.LeftIsDown()) {
+            // Orca: Sphere rotation for painting view 
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports ||
                     m_gizmos.get_current_type() == GLGizmosManager::Seam || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
-                    //BBS rotate around target
                     Camera& camera = wxGetApp().plater()->get_camera();
                     Vec3d rotate_target = Vec3d::Zero();
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
                     else
                         rotate_target = volumes_bounding_box().center();
-                    //BBS do not limit rotate in assemble view
-                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
+                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
                 }
                 else {
-#ifdef SUPPORT_FEEE_CAMERA
-                    if (wxGetApp().app_config->get("use_free_camera") == "1")
+                    if (wxGetApp().app_config->get_bool("use_free_camera"))
                         // Virtual track ball (similar to the 3DConnexion mouse).
                         wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                     else {
-#endif
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                         // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                         // which checks an atomics (flushes CPU caches).
@@ -4211,38 +4207,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         Camera& camera = wxGetApp().plater()->get_camera();
 
                         bool rotate_limit = current_printer_technology() != ptSLA;
-                        Vec3d rotate_target = m_selection.get_bounding_box().center();
 
                         camera.recover_from_free_camera();
-                        //BBS modify rotation
-                        //if (m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
-                        //    || m_gizmos.get_current_type() == GLGizmosManager::Seam
-                        //    || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
-                        //    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                        //    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
-                        //}
-                        //else
                         if (evt.ControlDown() || evt.CmdDown()) {
                             if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
                                 auto canvas_w = float(get_canvas_size().get_width());
                                 auto canvas_h = float(get_canvas_size().get_height());
                                 Point screen_center(canvas_w/2, canvas_h/2);
-                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
                                 m_rotation_center = _mouse_to_3d(screen_center);
                                 m_rotation_center(2) = 0.f;
                             }
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
                         } else {
-                            //BBS rotate with current plate center
-                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                            if (plate)
-                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
-                            else
                                 camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                         }
-#ifdef SUPPORT_FEEE_CAMERA
                     }
-#endif
                 }
 
                 m_dirty = true;
@@ -4257,16 +4236,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
                 Camera& camera = wxGetApp().plater()->get_camera();
-#ifdef SUPPORT_FREE_CAMERA
                 if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
-                    if (wxGetApp().app_config->get("use_free_camera") != "1")
+                    if (wxGetApp().app_config->get_bool("use_free_camera"))
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                         // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                         // which checks an atomics (flushes CPU caches).
                         // See GH issue #3816.
                         camera.recover_from_free_camera();
                 }
-#endif
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;
@@ -5379,6 +5356,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     std::string bed_shrink_x_key = "bed_shrink_x", bed_shrink_y_key = "bed_shrink_y";
     std::string multi_material_key = "allow_multi_materials_on_same_plate";
     std::string avoid_extrusion_key = "avoid_extrusion_cali_region";
+    std::string align_to_y_axis_key = "align_to_y_axis";
     std::string postfix;
     //BBS:
     bool seq_print = false;
@@ -5394,7 +5372,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
             //BBS:
             seq_print = true;
         } else {
-            dist_min     = 0.1f;
+            dist_min     = 0.0f;
             postfix     = "_fff";
         }
     }
@@ -5446,6 +5424,22 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_out.avoid_extrusion_cali_region = false;
     }
 
+    // Align to Y axis. Only enable this option when auto rotation not enabled
+    {
+        if (settings_out.enable_rotation) {  // do not allow align to Y axis if rotation is enabled
+            imgui->disabled_begin(true);
+            settings_out.align_to_y_axis = false;
+        }
+
+        if (imgui->bbl_checkbox(_L("Align to Y axis"), settings.align_to_y_axis)) {
+            settings_out.align_to_y_axis = settings.align_to_y_axis;
+            appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
+            settings_changed = true;
+        }
+
+        if (settings_out.enable_rotation == true) { imgui->disabled_end(); }
+    }
+
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(15.0f, 10.0f));
     if (imgui->button(_L("Arrange"))) {
@@ -5460,8 +5454,16 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         settings_out.distance = std::max(dist_min, settings_out.distance);
         //BBS: add specific arrange settings
         if (seq_print) settings_out.is_seq_print = true;
-        appcfg->set("arrange", dist_key.c_str(), float_to_string_decimal_point(settings_out.distance));
-        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
+
+        if (auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+            settings_out.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
+        }
+        else
+            settings_out.align_to_y_axis = false;
+
+        appcfg->set("arrange", dist_key, float_to_string_decimal_point(settings_out.distance));
+        appcfg->set("arrange", rot_key, settings_out.enable_rotation ? "1" : "0");
+        appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
         settings_changed = true;
     }
     ImGui::PopStyleVar(1);

@@ -31,6 +31,7 @@ namespace Slic3r { namespace GUI {
     m_wifi_weak_img     = ScalableBitmap(this, "monitor_signal_weak", 18);
     m_wifi_middle_img   = ScalableBitmap(this, "monitor_signal_middle", 18);
     m_wifi_strong_img   = ScalableBitmap(this, "monitor_signal_strong", 18);
+    m_network_wired_img = ScalableBitmap(this, "monitor_network_wired", 18);
 
     m_intetval_timer = new wxTimer();
     m_intetval_timer->SetOwner(this);
@@ -204,6 +205,7 @@ void SideToolsPanel::doRender(wxDC &dc)
         if (m_wifi_type == WifiSignal::WEAK) dc.DrawBitmap(m_wifi_weak_img.bmp(), left, (size.y - m_wifi_weak_img.GetBmpSize().y) / 2);
         if (m_wifi_type == WifiSignal::MIDDLE) dc.DrawBitmap(m_wifi_middle_img.bmp(), left, (size.y - m_wifi_middle_img.GetBmpSize().y) / 2);
         if (m_wifi_type == WifiSignal::STRONG) dc.DrawBitmap(m_wifi_strong_img.bmp(), left, (size.y - m_wifi_strong_img.GetBmpSize().y) / 2);
+        if (m_wifi_type == WifiSignal::WIRED)  dc.DrawBitmap(m_network_wired_img.bmp(), left, (size.y - m_network_wired_img.GetBmpSize().y) / 2);
     }
 
     if (m_hover) {
@@ -452,7 +454,10 @@ void SideTools::update_status(MachineObject* obj)
         m_side_tools->set_current_printer_signal(WifiSignal::NONE);
     }
     else {
-        if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
+        if (obj->network_wired) {
+            m_side_tools->set_current_printer_signal(WifiSignal::WIRED);
+        }
+        else if (!obj->wifi_signal.empty() && boost::ends_with(obj->wifi_signal, "dBm")) {
             try {
                 wifi_signal_val = std::stoi(obj->wifi_signal.substr(0, obj->wifi_signal.size() - 3));
             }

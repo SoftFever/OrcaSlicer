@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "name": "Generic PPA-CF @base",
+    "inherits": "fdm_filament_ppa",
+    "from": "system",
+    "filament_id": "GFN97",
+    "instantiation": "false",
+    "filament_max_volumetric_speed": [
+        "6"
+    ],
+    "filament_type": [
+        "PPA-CF"
+    ],
+    "filament_vendor": [
+        "Generic"
+    ]
+}

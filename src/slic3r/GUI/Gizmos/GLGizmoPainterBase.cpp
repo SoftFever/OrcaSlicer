@@ -25,6 +25,8 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
     // Make sphere and save it into a vertex buffer.
     m_vbo_sphere.load_its_flat_shading(its_make_sphere(1., (2*M_PI)/24.));
     m_vbo_sphere.finalize_geometry(true);
+    m_vertical_only = false;
+    m_horizontal_only = false;
 }
 
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
@@ -527,6 +529,7 @@ std::vector<GLGizmoPainterBase::ProjectedHeightRange> GLGizmoPainterBase::get_pr
 // concludes that the event was not intended for it, it should return false.
 bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down)
 {
+    Vec2d _mouse_position = mouse_position;
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
@@ -648,7 +651,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // BBS
         if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::HEIGHT_RANGE)
         {
-            std::vector<ProjectedHeightRange> projected_height_range_by_mesh = get_projected_height_range(mouse_position, 1., part_volumes, trafo_matrices);
+            std::vector<ProjectedHeightRange> projected_height_range_by_mesh = get_projected_height_range(_mouse_position, 1., part_volumes, trafo_matrices);
             m_last_mouse_click = Vec2d::Zero();
 
             for (int i = 0; i < projected_height_range_by_mesh.size(); i++) {
@@ -675,13 +678,20 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
 
                 m_triangle_selectors[mesh_idx]->request_update_render_data(true);
-                m_last_mouse_click = mouse_position;
+                m_last_mouse_click = _mouse_position;
             }
 
             return true;
         }
 
-        std::vector<std::vector<ProjectedMousePosition>> projected_mouse_positions_by_mesh = get_projected_mouse_positions(mouse_position, 1., trafo_matrices);
+        if (action == SLAGizmoEventType::Dragging && m_tool_type == ToolType::BRUSH ){
+            if(m_vertical_only)
+                _mouse_position.x() = m_last_mouse_click.x();
+            else if(m_horizontal_only)
+                _mouse_position.y() = m_last_mouse_click.y();
+        }
+        
+        std::vector<std::vector<ProjectedMousePosition>> projected_mouse_positions_by_mesh = get_projected_mouse_positions(_mouse_position, 1., trafo_matrices);
         m_last_mouse_click = Vec2d::Zero(); // only actual hits should be saved
 
         for (const std::vector<ProjectedMousePosition> &projected_mouse_positions : projected_mouse_positions_by_mesh) {
@@ -749,7 +759,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
             m_triangle_selectors[mesh_idx]->request_update_render_data(true);
 
-            m_last_mouse_click = mouse_position;
+            m_last_mouse_click = _mouse_position;
         }
 
         return true;
@@ -787,7 +797,7 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             }
 
         // Now "click" into all the prepared points and spill paint around them.
-        update_raycast_cache(mouse_position, camera, trafo_matrices);
+        update_raycast_cache(_mouse_position, camera, trafo_matrices);
 
         auto seed_fill_unselect_all = [this]() {
             for (auto &triangle_selector : m_triangle_selectors) {

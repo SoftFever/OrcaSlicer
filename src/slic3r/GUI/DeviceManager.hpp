@@ -52,6 +52,11 @@ using namespace nlohmann;
 namespace Slic3r {
 
 
+enum PrinterArch {
+    ARCH_CORE_XY,
+    ARCH_I3,
+};
+
 enum PrinterSeries {
     SERIES_X1 = 0,
     SERIES_P1P,
@@ -100,10 +105,13 @@ enum PrinterFunction {
     FUNC_SEND_TO_SDCARD,
     FUNC_AUTO_SWITCH_FILAMENT,
     FUNC_CHAMBER_FAN,
+    FUNC_AUX_FAN,
     FUNC_EXTRUSION_CALI,
+    FUNC_PROMPT_SOUND,
     FUNC_VIRTUAL_TYAY,
     FUNC_PRINT_ALL,
     FUNC_FILAMENT_BACKUP,
+    FUNC_MOTOR_NOISE_CALI,
     FUNC_MAX
 };
 
@@ -164,6 +172,11 @@ enum AmsOptionType {
     AMS_OP_STARTUP_READ,
     AMS_OP_TRAY_READ,
     AMS_OP_CALIBRATE_REMAIN
+};
+
+enum ManualPaCaliMethod {
+    PA_LINE = 0,
+    PA_PATTERN,
 };
 
 class AmsTray {
@@ -431,6 +444,7 @@ public:
     float       nozzle_diameter { 0.0f };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
+    std::string dev_connection_name;    /* lan | eth */
     void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !get_access_code().empty(); }
     std::string get_ftp_folder();
@@ -446,6 +460,7 @@ public:
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
     PrinterSeries get_printer_series() const;
+    PrinterArch get_printer_arch() const;
 
     std::string printer_thumbnail_img;
     std::string monitor_upgrade_printer_img;
@@ -529,6 +544,7 @@ public:
     bool can_unload_filament();
     bool is_U0_firmware();
     bool is_support_ams_mapping();
+    bool is_support_command_ams_switch();
     static bool is_support_ams_mapping_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
@@ -549,6 +565,7 @@ public:
     float  bed_temp;
     float  bed_temp_target;
     float  chamber_temp;
+    float  chamber_temp_target;
     float  frame_temp;
 
     /* cooling */
@@ -562,6 +579,7 @@ public:
     std::string wifi_signal;
     std::string link_th;
     std::string link_ams;
+    bool        network_wired { false };
 
     /* lights */
     LIGHT_EFFECT chamber_light;
@@ -632,6 +650,7 @@ public:
     float                      cache_flow_ratio { 0.0 };
     bool                       cali_finished = true;
 
+    ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };
     std::vector<PACalibResult> pa_calib_tab;
     float                      pa_calib_tab_nozzle_dia;
@@ -711,7 +730,9 @@ public:
     int  xcam_buildplate_marker_hold_count = 0;
     bool xcam_support_recovery_step_loss { true };
     bool xcam_auto_recovery_step_loss{ false };
+    bool xcam_allow_prompt_sound{ false };
     int  xcam_auto_recovery_hold_count = 0;
+    int  xcam_prompt_sound_hold_count = 0;
     int  ams_print_option_count = 0;
 
     /*not support U2*/
@@ -786,6 +807,7 @@ public:
     int command_task_resume();
     int command_set_bed(int temp);
     int command_set_nozzle(int temp);
+    int command_set_chamber(int temp);
     // ams controls
     int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
@@ -806,15 +828,18 @@ public:
     // set printing speed
     int command_set_printing_speed(PrintingSpeedLevel lvl);
 
+    //set pormpt sound
+    int command_set_prompt_sound(bool prompt_sound);
+
     // set print option
     int command_set_printing_option(bool auto_recovery);
 
     // axis string is X, Y, Z, E
-    int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
+    int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);
 
     // calibration printer
     bool is_support_command_calibration();
-    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
+    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali, bool motor_noise);
 
     // PA calibration
     int command_start_pa_calibration(const X1CCalibInfos& pa_data, int mode = 0);  // 0: automatic mode; 1: manual mode. default: automatic mode
@@ -839,6 +864,7 @@ public:
     int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
     int command_xcam_control_buildplate_marker_detector(bool on_off);
     int command_xcam_control_auto_recovery_step_loss(bool on_off);
+    int command_xcam_control_allow_prompt_sound(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }
@@ -851,6 +877,7 @@ public:
     bool is_in_printing();
     bool is_in_prepare();
     bool is_printing_finished();
+    bool is_core_xy();
     void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);
@@ -944,11 +971,13 @@ public:
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
+    static PrinterArch get_printer_arch(std::string type_str);
     static std::string get_ftp_folder(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
 
     static bool get_bed_temperature_limit(std::string type_str, int& limit);
+    static bool get_nozzle_max_temperature(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
     static bool load_filaments_blacklist_config(std::string config_file);
     static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
