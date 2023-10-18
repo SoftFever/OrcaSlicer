@@ -100,7 +100,7 @@ bool CalibUtils::validate_input_k_value(wxString k_text, float* output_value)
         ;
     }
 
-    if (k_value < 0 || k_value > 0.5) {
+    if (k_value < 0 || k_value > 0.3) {
         *output_value = default_k;
         return false;
     }
