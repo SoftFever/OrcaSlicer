@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSG99_01",
     "name": "Generic PETG @0.2 nozzle",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "Generic PETG @base",
+    "from": "system",
+    "setting_id": "GFSG99_01",
+    "instantiation": "true",
     "filament_max_volumetric_speed": [
         "1"
     ],
@@ -12,6 +12,5 @@
         "Bambu Lab X1 Carbon 0.2 nozzle",
         "Bambu Lab X1 0.2 nozzle",
         "Bambu Lab P1S 0.2 nozzle"
-    ],
-    "version": "01.07.00.18"
+    ]
 }

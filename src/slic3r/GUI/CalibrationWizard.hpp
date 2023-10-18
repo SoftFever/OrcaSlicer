@@ -105,6 +105,9 @@ class PressureAdvanceWizard : public CalibrationWizard {
 public:
     PressureAdvanceWizard(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~PressureAdvanceWizard() {};
+
+    void on_cali_job_finished(wxString evt_data) override;
+
 protected:
     void create_pages();
 

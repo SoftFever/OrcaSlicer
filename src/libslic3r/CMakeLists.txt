@@ -178,8 +178,6 @@ set(lisbslic3r_sources
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
     Int128.hpp
-    InternalBridgeDetector.cpp
-    InternalBridgeDetector.hpp
     KDTreeIndirect.hpp
     Layer.cpp
     Layer.hpp
@@ -418,6 +416,8 @@ set(lisbslic3r_sources
 if (APPLE)
     list(APPEND lisbslic3r_sources
 			MacUtils.mm
+            Format/ModelIO.hpp
+            Format/ModelIO.mm
         )
 endif ()
 
@@ -533,6 +533,12 @@ if(NOT WIN32)
         target_link_libraries(libslic3r fontconfig)
     endif()
 endif()
+
+if (APPLE)
+    find_library(FOUNDATION Foundation REQUIRED)
+    find_library(MODELIO ModelIO REQUIRED)
+    target_link_libraries(libslic3r ${FOUNDATION} ${MODELIO})
+endif ()
 
 if (TARGET OpenVDB::openvdb)
     target_link_libraries(libslic3r OpenVDB::openvdb)

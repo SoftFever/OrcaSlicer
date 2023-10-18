@@ -80,20 +80,196 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 const double BIG_ITEM_TRESHOLD = 0.02;
 #define VITRIFY_TEMP_DIFF_THRSH 15  // bed temp can be higher than vitrify temp, but not higher than this thresh
 
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& print_cfg, const ArrangePolygons& selected)
+{
+    double                             skirt_distance = get_real_skirt_dist(print_cfg);
+    // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
+    // So we can't do max but do adding instead.
+    params.brim_skirt_distance = skirt_distance;
+    params.bed_shrink_x = params.brim_skirt_distance;
+    params.bed_shrink_y = params.brim_skirt_distance;
+    // for sequential print, we need to inflate the bed because cleareance_radius is so large
+    if (params.is_seq_print) {
+        float shift_dist = params.cleareance_radius / 2 - 5;
+        params.bed_shrink_x -= shift_dist;
+        params.bed_shrink_y -= shift_dist;
+    }
+}
+
+void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, ArrangeParams& params) {
+    // do not inflate brim_width. Objects are allowed to have overlapped brim.
+    Points      bedpts = get_shrink_bedpts(print_cfg, params);
+    BoundingBox bedbb = Polygon(bedpts).bounding_box();
+    // set obj distance for auto seq_print
+    if (params.min_obj_distance == 0 && params.is_seq_print)
+        params.min_obj_distance = scaled(params.cleareance_radius + 0.001);
+    double brim_max = 0;
+    bool plate_has_tree_support = false;
+    std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
+        brim_max = std::max(brim_max, ap.brim_width);
+        if (ap.has_tree_support) plate_has_tree_support = true; });
+    std::for_each(selected.begin(), selected.end(), [&](ArrangePolygon& ap) {
+        // 1. if user input a distance, use it
+        // 2. if there is an object with tree support, all objects use the max tree branch radius (brim_max=branch diameter)
+        // 3. otherwise, use each object's own brim width
+        ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 :
+            plate_has_tree_support ? scaled(brim_max / 2) : scaled(ap.brim_width);
+        BoundingBox apbb = ap.poly.contour.bounding_box();
+        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
+        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
+        if (diffx > 0 && diffy > 0) {
+            auto min_diff = std::min(diffx, diffy);
+            ap.inflation = std::min(min_diff / 2, ap.inflation);
+        }
+        });
+}
+
+void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
+{
+    if (params.is_seq_print) {
+        float shift_dist = params.cleareance_radius / 2 - 5;
+        // dont forget to move the excluded region
+        for (auto& region : unselected) {
+            if (region.is_virt_object) region.poly.translate(-scaled(shift_dist), -scaled(shift_dist));
+        }
+    }
+    // For occulusion regions, inflation should be larger to prevent genrating brim on them.
+    // However, extrusion cali regions are exceptional, since we can allow brim overlaps them.
+    // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
+    // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
+    // 其他物体的膨胀轮廓是可以跟它们重叠的。
+    double scaled_exclusion_gap = scale_(1);
+    std::for_each(unselected.begin(), unselected.end(),
+        [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
+        : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
+}
+
+void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
+{
+    // now only need to consider "Align to x axis"
+    if (!params.align_to_y_axis)
+        return;
+
+    for (ArrangePolygon& ap : selected) {
+        bool   validResult = false;
+        double angle = 0.0;
+        {
+            const auto& pts = ap.transformed_poly().contour;
+            int         lpt = pts.size();
+            double      a00 = 0, a10 = 0, a01 = 0, a20 = 0, a11 = 0, a02 = 0, a30 = 0, a21 = 0, a12 = 0, a03 = 0;
+            double      xi, yi, xi2, yi2, xi_1, yi_1, xi_12, yi_12, dxy, xii_1, yii_1;
+            xi_1 = pts.back().x();
+            yi_1 = pts.back().y();
+
+            xi_12 = xi_1 * xi_1;
+            yi_12 = yi_1 * yi_1;
+
+            for (int i = 0; i < lpt; i++) {
+                xi = pts[i].x();
+                yi = pts[i].y();
+
+                xi2 = xi * xi;
+                yi2 = yi * yi;
+                dxy = xi_1 * yi - xi * yi_1;
+                xii_1 = xi_1 + xi;
+                yii_1 = yi_1 + yi;
+
+                a00 += dxy;
+                a10 += dxy * xii_1;
+                a01 += dxy * yii_1;
+                a20 += dxy * (xi_1 * xii_1 + xi2);
+                a11 += dxy * (xi_1 * (yii_1 + yi_1) + xi * (yii_1 + yi));
+                a02 += dxy * (yi_1 * yii_1 + yi2);
+                a30 += dxy * xii_1 * (xi_12 + xi2);
+                a03 += dxy * yii_1 * (yi_12 + yi2);
+                a21 += dxy * (xi_12 * (3 * yi_1 + yi) + 2 * xi * xi_1 * yii_1 + xi2 * (yi_1 + 3 * yi));
+                a12 += dxy * (yi_12 * (3 * xi_1 + xi) + 2 * yi * yi_1 * xii_1 + yi2 * (xi_1 + 3 * xi));
+                xi_1 = xi;
+                yi_1 = yi;
+                xi_12 = xi2;
+                yi_12 = yi2;
+            }
+
+            if (std::abs(a00) > EPSILON) {
+                double db1_2, db1_6, db1_12, db1_24, db1_20, db1_60;
+                double m00, m10, m01, m20, m11, m02, m30, m21, m12, m03;
+                if (a00 > 0) {
+                    db1_2 = 0.5;
+                    db1_6 = 0.16666666666666666666666666666667;
+                    db1_12 = 0.083333333333333333333333333333333;
+                    db1_24 = 0.041666666666666666666666666666667;
+                    db1_20 = 0.05;
+                    db1_60 = 0.016666666666666666666666666666667;
+                }
+                else {
+                    db1_2 = -0.5;
+                    db1_6 = -0.16666666666666666666666666666667;
+                    db1_12 = -0.083333333333333333333333333333333;
+                    db1_24 = -0.041666666666666666666666666666667;
+                    db1_20 = -0.05;
+                    db1_60 = -0.016666666666666666666666666666667;
+                }
+                m00 = a00 * db1_2;
+                m10 = a10 * db1_6;
+                m01 = a01 * db1_6;
+                m20 = a20 * db1_12;
+                m11 = a11 * db1_24;
+                m02 = a02 * db1_12;
+                m30 = a30 * db1_20;
+                m21 = a21 * db1_60;
+                m12 = a12 * db1_60;
+                m03 = a03 * db1_20;
+
+                double cx = m10 / m00;
+                double cy = m01 / m00;
+
+                double a = m20 / m00 - cx * cx;
+                double b = m11 / m00 - cx * cy;
+                double c = m02 / m00 - cy * cy;
+
+                //if a and c are close, there is no dominant axis, then do not rotate
+                if (std::abs(a) < 1.5*std::abs(c) && std::abs(c) < 1.5*std::abs(a)) {
+                    validResult = false;
+                }
+                else {
+                    angle = std::atan2(2 * b, (a - c)) / 2;
+                    validResult = true;
+                }
+            }
+        }
+        if (validResult) { ap.rotation += (PI / 2 - angle); }
+    }
+}
+
+//it will bed accurate after call update_params
+Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
+{
+    Points bedpts = get_bed_shape(*print_cfg);
+    // shrink bed by moving to center by dist
+    auto shrinkFun = [](Points& bedpts, double dist, int direction) {
+#define SGN(x) ((x) >= 0 ? 1 : -1)
+        Point center = Polygon(bedpts).bounding_box().center();
+        for (auto& pt : bedpts) pt[direction] += dist * SGN(center[direction] - pt[direction]);
+    };
+    shrinkFun(bedpts, scaled(params.bed_shrink_x), 0);
+    shrinkFun(bedpts, scaled(params.bed_shrink_y), 1);
+    return bedpts;
+}
+
 // Fill in the placer algorithm configuration with values carefully chosen for
 // Slic3r.
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
-
-    if (params.is_seq_print) {
-        // Start placing the items from the center of the print bed
-        pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
-    }
-    else {
-        // Start placing the items from the center of the print bed
-        pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
-    }
-
+    
+        if (params.is_seq_print) {
+            // Start placing the items from the center of the print bed
+            pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
+        }
+        else {
+            // Start placing the items from the center of the print bed
+            pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
+        }
+    
     if (params.do_final_align) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
@@ -495,6 +671,14 @@ public:
         m_norm = std::sqrt(m_bin_area);
         fill_config(m_pconf, params);
         this->params = params;
+
+        // if best object center is not bed center, specify starting point here
+        if (std::abs(this->params.align_center.x() - 0.5) > 0.001 || std::abs(this->params.align_center.y() - 0.5) > 0.001) {
+            auto binbb = sl::boundingBox(m_bin);
+            m_pconf.best_object_pos = binbb.minCorner() + Point{ binbb.width() * this->params.align_center.x(), binbb.height() * this->params.align_center.y() };
+            m_pconf.alignment = PConfig::Alignment::USER_DEFINED;
+        }
+
         for (auto& region : m_pconf.m_excluded_regions) {
             Box  bb = region.boundingBox();
             m_excluded_and_extruCali_regions.emplace_back(bb);
@@ -551,6 +735,7 @@ public:
             for (Item itm : items) {
                 if (itm.is_wipe_tower) {
                     starting_point = itm.boundingBox().center();
+                    BOOST_LOG_TRIVIAL(debug) << "arrange we have wipe tower, change starting point to: " << starting_point;
                     break;
                 }
             }
@@ -575,15 +760,13 @@ public:
                         if (on_packed)
                             on_packed(ap);
                         BOOST_LOG_TRIVIAL(debug) << "arrange " + last_packed.name + " succeed!"
-                            << ", plate id=" << ap.bed_idx;
+                            << ", plate id=" << ap.bed_idx << ", pos=" << last_packed.translation();
                     }
                 });
 
-        if (progressind) {
-            m_pck.unfitIndicator([this, progressind](std::string name) {
-                BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
+        m_pck.unfitIndicator([this](std::string name) {
+            BOOST_LOG_TRIVIAL(debug) << "arrange progress: " + name;
                 });
-        }
 
         if (stopcond) m_pck.stopCondition(stopcond);
 

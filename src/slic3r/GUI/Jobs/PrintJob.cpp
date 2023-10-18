@@ -31,7 +31,8 @@ static wxString sending_over_cloud_str      = _L("Sending print job through clou
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
-    m_dev_id(dev_id)
+    m_dev_id(dev_id),
+    m_is_calibration_task(false)
 {
     m_print_job_completed_id = plater->get_print_finished_event();
 }
@@ -208,7 +209,7 @@ void PrintJob::process()
         params.filename = job_data._temp_path.string();
         params.connection_type = this->connection_type;
 
-        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr, nullptr);
         if (result != 0) {
             BOOST_LOG_TRIVIAL(error) << "access code is invalid";
             m_enter_ip_address_fun_fail();
@@ -279,6 +280,11 @@ void PrintJob::process()
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
+
+    if (m_is_calibration_task) {
+        params.project_name = m_project_name;
+        params.origin_model_id = "";
+    }
 
     wxString error_text;
     wxString msg_text;
@@ -385,6 +391,12 @@ void PrintJob::process()
             return was_canceled();
         };
 
+    auto wait_fn = [this](int state, std::string job_info) {
+            // TODO
+            return true;
+    };
+
+
     if (params.connection_type != "lan") {
         if (params.dev_ip.empty())
             params.comments = "no_ip";
@@ -407,7 +419,7 @@ void PrintJob::process()
                 BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
                 is_try_lan_mode = true;
-                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
                 if (result < 0) {
                     error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
                     // try to send with cloud
@@ -423,7 +435,7 @@ void PrintJob::process()
                 // try to send local with record
                 BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
                 this->update_status(curr_percent, _L("Sending print job over LAN"));
-                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn, wait_fn);
                 if (result == 0) {
                     params.comments = "";
                 }
@@ -438,13 +450,13 @@ void PrintJob::process()
                     // try to send with cloud
                     BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
                     this->update_status(curr_percent, _L("Sending print job through cloud service"));
-                    result = m_agent->start_print(params, update_fn, cancel_fn);
+                    result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
                 }
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
                 this->update_status(curr_percent, _L("Sending print job through cloud service"));
-                result = m_agent->start_print(params, update_fn, cancel_fn);
+                result = m_agent->start_print(params, update_fn, cancel_fn, wait_fn);
             }
         } 
     } else {
@@ -483,6 +495,8 @@ void PrintJob::process()
         
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
+        // wait for printer mqtt ready the same job id
+
         wxGetApp().plater()->record_slice_preset("print");
 
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";
@@ -534,5 +548,9 @@ void PrintJob::connect_to_local_mqtt()
     this->update_status(0, wxEmptyString);
 }
 
+void PrintJob::set_calibration_task(bool is_calibration)
+{
+    m_is_calibration_task = is_calibration;
+}
 
 }} // namespace Slic3r::GUI

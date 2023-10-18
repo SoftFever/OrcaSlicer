@@ -91,6 +91,13 @@ ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
+
+#ifdef __linux__
+    // Temporary fix for incorrect dark mode application regarding list item's text color.
+    // See: https://github.com/SoftFever/OrcaSlicer/issues/2086
+    this->SetForegroundColour(*wxBLACK);
+#endif
+
     SetFont(Label::sysFont(13));
 #ifdef __WXMSW__
     GenericGetHeader()->SetFont(Label::sysFont(13));

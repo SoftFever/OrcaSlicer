@@ -229,7 +229,7 @@ private:
 #endif
 
 //import model from mall 
-    std::string     m_download_file_url;
+    wxString       m_download_file_url;
    
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
@@ -627,6 +627,7 @@ private:
     bool            check_networking_version();
     void            cancel_networking_install();
     void            restart_networking();
+    void            check_config_updates_from_updater() { check_updates(false); }
 
 private:
     int             updating_bambu_networking();

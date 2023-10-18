@@ -62,7 +62,7 @@ then
     cmake --build . --config Release --target deps 
     if [ "1." == "$PACK_DEPS". ];
     then
-        tar -zcvf OrcaSlicer_dep_mac_${ARCH}_$(date +"%d-%m-%Y").tar.gz OrcaSlicer_dep_$ARCH
+        tar -zcvf OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz OrcaSlicer_dep_$ARCH
     fi
 fi
 

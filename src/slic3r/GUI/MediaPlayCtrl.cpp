@@ -153,7 +153,7 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     NetworkAgent *agent = wxGetApp().getAgent();
     std::string  agent_version = agent ? agent->get_version() : "";
-    if (m_lan_proto > 0 && (m_lan_mode ||!m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
+    if (m_lan_proto > 0 && (m_lan_mode || m_lan_proto == 1 || !m_remote_support) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_support && !m_lan_mode; // try remote next time
         if (m_lan_proto == 1)
             m_url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
@@ -161,7 +161,7 @@ void MediaPlayCtrl::Play()
             m_url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
         else if (m_lan_proto == 3)
             m_url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?device=" + m_machine + "&version=" + agent_version;
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << m_url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << m_url.substr(0, 16);
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
@@ -207,7 +207,7 @@ void MediaPlayCtrl::Play()
                 url += "&device=" + m;
                 url += "&version=" + v;
             }
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << url.substr(0, 16) << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << m;
@@ -263,6 +263,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     }
 
 
+    bool remote = m_url.find("/local/") == wxString::npos && m_url.find("/rtsp") == wxString::npos;
     if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0 
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
@@ -273,7 +274,6 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         j["result"]         = "failed";
         j["user_triggered"] = m_user_triggered;
         j["failed_retry"]   = m_failed_retry;
-        bool remote         = m_url.find("/local/") == wxString::npos;
         j["tunnel"]         = remote ? "remote" : "local";
         j["code"]           = m_failed_code;
         if (remote)
@@ -285,7 +285,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
 
     m_url.clear();
     ++m_failed_retry;
-    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && (!m_remote_support || m_lan_mode) && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && !remote && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
@@ -384,7 +384,7 @@ void MediaPlayCtrl::ToggleStream()
             url += "&device=" + m;
             url += "&version=" + v;
         }
-        BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::ToggleStream: " << url.substr(0, 16);
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {

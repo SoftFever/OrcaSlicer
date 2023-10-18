@@ -786,6 +786,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
     try {
         boost::nowide::ifstream ifs(file);
         ifs >> j;
+        ifs.close();
 
         const ConfigDef* config_def = this->def();
         if (config_def == nullptr) {

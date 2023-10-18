@@ -100,6 +100,87 @@ bool decode_png(IStream &in_buf, ImageGreyscale &out_img)
     return true;
 }
 
+bool decode_colored_png(IStream &in_buf, ImageColorscale &out_img)
+{
+    static const constexpr int PNG_SIG_BYTES = 8;
+
+    std::vector<png_byte> sig(PNG_SIG_BYTES, 0);
+    in_buf.read(sig.data(), PNG_SIG_BYTES);
+    if (!png_check_sig(sig.data(), PNG_SIG_BYTES)) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_check_sig failed");
+        return false;
+    }
+
+    PNGDescr dsc;
+    dsc.png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr,
+                                     nullptr);
+
+    if(!dsc.png) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_create_read_struct failed");
+        return false;
+    }
+
+    dsc.info = png_create_info_struct(dsc.png);
+    if(!dsc.info) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("decode_colored_png: png_create_info_struct failed");
+        png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
+        return false;
+    }
+
+    png_set_read_fn(dsc.png, static_cast<void *>(&in_buf), png_read_callback);
+
+    // Tell that we have already read the first bytes to check the signature
+    png_set_sig_bytes(dsc.png, PNG_SIG_BYTES);
+
+    png_read_info(dsc.png, dsc.info);
+
+    out_img.cols = png_get_image_width(dsc.png, dsc.info);
+    out_img.rows = png_get_image_height(dsc.png, dsc.info);
+    size_t color_type = png_get_color_type(dsc.png, dsc.info);
+    size_t bit_depth  = png_get_bit_depth(dsc.png, dsc.info);
+    unsigned long rowbytes = png_get_rowbytes(dsc.png, dsc.info);
+
+    switch(color_type)
+    {
+        case PNG_COLOR_TYPE_RGB:
+            out_img.bytes_per_pixel = 3;
+            break;
+        case PNG_COLOR_TYPE_RGB_ALPHA:
+            out_img.bytes_per_pixel = 4;
+            break;
+        default: //not supported currently
+            png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
+            return false;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("png's cols %1%, rows %2%, color_type %3%, bit_depth %4%, bytes_per_pixel %5%, rowbytes %6%")%out_img.cols %out_img.rows %color_type %bit_depth %out_img.bytes_per_pixel %rowbytes;
+    out_img.buf.resize(out_img.rows * rowbytes);
+
+    int filter_type = png_get_filter_type(dsc.png, dsc.info);
+    int compression_type = png_get_compression_type(dsc.png, dsc.info);
+    int interlace_type = png_get_interlace_type(dsc.png, dsc.info);
+    BOOST_LOG_TRIVIAL(info) << boost::format("filter_type %1%, compression_type %2%, interlace_type %3%, rowbytes %4%")%filter_type %compression_type %interlace_type %rowbytes;
+
+    auto readbuf = static_cast<png_bytep>(out_img.buf.data());
+    for (size_t r = out_img.rows; r > 0; r--)
+    {
+        png_read_row(dsc.png, readbuf + (r - 1) * rowbytes, nullptr);
+    }
+
+    png_read_end(dsc.png, dsc.info);
+    png_destroy_read_struct(&dsc.png, &dsc.info, NULL);
+
+    return true;
+}
+
+bool decode_colored_png(const ReadBuf &in_buf, ImageColorscale &out_img)
+{
+    struct ReadBufStream stream{in_buf};
+
+    return decode_colored_png(stream, out_img);
+}
+
+
 // Down to earth function to store a packed RGB image to file. Mostly useful for debugging purposes.
 // Based on https://www.lemoda.net/c/write-png/
 // png_color_type is PNG_COLOR_TYPE_RGB or PNG_COLOR_TYPE_GRAY
@@ -112,7 +193,7 @@ static bool write_rgb_or_gray_to_file(const char *file_name_utf8, size_t width, 
     png_structp  png_ptr      = nullptr;
     png_infop    info_ptr     = nullptr;
     png_byte   **row_pointers = nullptr;
- 
+
     FILE        *fp = boost::nowide::fopen(file_name_utf8, "wb");
     if (! fp) {
         BOOST_LOG_TRIVIAL(error) << "write_png_file: File could not be opened for writing: " << file_name_utf8;

@@ -155,17 +155,11 @@ void CalibrationPAStartPage::on_device_connected(MachineObject* obj)
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         }
     }
-    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
+    else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P || obj->get_printer_arch() == PrinterArch::ARCH_I3) {
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, false);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
-
-        if (!obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
-            m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
-        }
-        else {
-            m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
-        }
+        m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, false);
     }
 
     //is support auto cali

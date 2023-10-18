@@ -1,10 +1,10 @@
 {
     "type": "filament",
-    "setting_id": "GFSB60_04",
     "name": "PolyLite ABS @BBL P1P",
-    "from": "system",
-    "instantiation": "true",
     "inherits": "PolyLite ABS @base",
+    "from": "system",
+    "setting_id": "GFSB60_04",
+    "instantiation": "true",
     "fan_max_speed": [
         "20"
     ],
@@ -27,6 +27,5 @@
         "Bambu Lab P1P 0.8 nozzle",
         "Bambu Lab P1P 0.6 nozzle",
         "Bambu Lab P1P 0.4 nozzle"
-    ],
-    "version": "01.07.00.18"
+    ]
 }

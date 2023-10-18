@@ -63,6 +63,8 @@ public:
     std::string m_print_type;
     std::string m_dst_path;
 
+    bool m_is_calibration_task = false;
+
     int         m_print_from_sdc_plate_idx = 0;
     
     bool        m_local_use_ssl_for_mqtt { true };
@@ -106,6 +108,7 @@ public:
     void connect_to_local_mqtt();
     wxString get_http_error_msg(unsigned int status, std::string body);
     std::string truncate_string(const std::string& str, size_t maxLength);
+    void set_calibration_task(bool is_calibration);
 
 };
 

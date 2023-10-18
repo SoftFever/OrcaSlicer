@@ -78,6 +78,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
             case coEnums:
                 m_fields.emplace(id, Choice::Create<Choice>(this->ctrl_parent(), opt, id));
 				break;
+            case coPoint:
             case coPoints:
                 m_fields.emplace(id, PointCtrl::Create<PointCtrl>(this->ctrl_parent(), opt, id));
 				break;
@@ -1033,6 +1034,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
     case coEnums:
         ret = config.opt_int(opt_key, idx);
         break;
+    case coPoint:
+        ret = config.option<ConfigOptionPoint>(opt_key)->value;
+        break;
 	case coPoints:
 		if (opt_key == "printable_area")
 			ret = config.option<ConfigOptionPoints>(opt_key)->values;
@@ -1144,6 +1148,9 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
         break;
     case coEnums:
         ret = config.opt_int(opt_key, idx);
+        break;
+    case coPoint:
+        ret = config.option<ConfigOptionPoint>(opt_key)->value;
         break;
     case coPoints:
         if (opt_key == "printable_area")
