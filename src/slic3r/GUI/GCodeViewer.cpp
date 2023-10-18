@@ -4995,8 +4995,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
         append_item(EItemType::None, Travel_Colors[0], { {_u8L("travel"), offsets[0] }}, true, travel_visible, [this, travel_visible]() {
             m_buffers[buffer_id(EMoveType::Travel)].visible = !m_buffers[buffer_id(EMoveType::Travel)].visible;
-            // update buffers' render paths
-            refresh_render_paths(false, false);
+            // update buffers' render paths, and update m_tools.m_tool_colors and m_extrusions.ranges
+            refresh(*m_gcode_result, wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result));
             update_moves_slider();
             wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
             });
