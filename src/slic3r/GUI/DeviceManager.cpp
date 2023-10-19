@@ -2591,12 +2591,11 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
 std::string MachineObject::setting_id_to_type(std::string setting_id, std::string tray_type)
 {
     std::string type;
-
     PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
 
-            if (it->filament_id.compare(setting_id) == 0) {
+            if (it->filament_id.compare(setting_id) == 0 && it->is_system) {
                 std::string display_filament_type;
                 it->config.get_filament_type(display_filament_type);
                 type = display_filament_type;
@@ -2606,8 +2605,8 @@ std::string MachineObject::setting_id_to_type(std::string setting_id, std::strin
     }
 
     if (tray_type != type || type.empty()) {
-        if (type.empty()) {type = tray_type;}
-        BOOST_LOG_TRIVIAL(info) << "The values of tray_info_idx and tray_type do not match tray_info_idx " << setting_id << " tray_type " << tray_type;
+        if (type.empty()) { type = tray_type; }
+        BOOST_LOG_TRIVIAL(info) << "The values of tray_info_idx and tray_type do not match tray_info_idx " << setting_id << " tray_type " << tray_type << " system_type" << type;
     }
 
     return type;
