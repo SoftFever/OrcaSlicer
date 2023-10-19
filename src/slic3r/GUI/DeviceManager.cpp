@@ -4631,77 +4631,105 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
         BOOST_LOG_TRIVIAL(trace) << "slice_info: start";
         slice_info = new BBLSliceInfo();
         get_slice_info_thread = new boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
-                int plate_index = -1;
+            int plate_index = -1;
 
-                if (!m_agent) return;
+            if (!m_agent) return;
 
-                if (plate_idx >= 0) {
-                    plate_index = plate_idx;
-                } else {
+            if (plate_idx >= 0) {
+                plate_index = plate_idx;
+            }
+            else {
 
-                    std::string subtask_json;
-                    unsigned http_code = 0;
-                    std::string http_body;
-                    if (m_agent->get_subtask_info(subtask_id, &subtask_json, &http_code, &http_body) == 0) {
-                        try  {
-                            if (!subtask_json.empty()){
+                std::string subtask_json;
+                unsigned http_code = 0;
+                std::string http_body;
+                if (m_agent->get_subtask_info(subtask_id, &subtask_json, &http_code, &http_body) == 0) {
+                    try {
+                        if (!subtask_json.empty()) {
 
-                                json task_j = json::parse(subtask_json);
-                                if (task_j.contains("content")) {
-                                    std::string content_str = task_j["content"].get<std::string>();
-                                    json content_j = json::parse(content_str);
-                                    plate_index = content_j["info"]["plate_idx"].get<int>();
-                                }
+                            json task_j = json::parse(subtask_json);
+                            if (task_j.contains("content")) {
+                                std::string content_str = task_j["content"].get<std::string>();
+                                json content_j = json::parse(content_str);
+                                plate_index = content_j["info"]["plate_idx"].get<int>();
+                            }
 
-                                if (task_j.contains("context") && task_j["context"].contains("plates")) {
-                                    for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
-                                        if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
+                            if (task_j.contains("context") && task_j["context"].contains("plates")) {
+                                for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
+                                    if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
+                                        if (task_j["context"]["plates"][i].contains("thumbnail") && task_j["context"]["plates"][i]["thumbnail"].contains("url")) {
                                             slice_info->thumbnail_url = task_j["context"]["plates"][i]["thumbnail"]["url"].get<std::string>();
-                                            BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
                                         }
+                                        if (task_j["context"]["plates"][i].contains("prediction")) {
+                                            slice_info->prediction = task_j["context"]["plates"][i]["prediction"].get<int>();
+                                        }
+                                        if (task_j["context"]["plates"][i].contains("weight")) {
+                                            slice_info->weight = task_j["context"]["plates"][i]["weight"].get<float>();
+                                        }
+                                        if (!task_j["context"]["plates"][i]["filaments"].is_null()) {
+                                            for (auto filament : task_j["context"]["plates"][i]["filaments"]) {
+                                                FilamentInfo f;
+                                                if(filament.contains("color")){
+                                                    f.color = filament["color"].get<std::string>();
+                                                }
+                                                if (filament.contains("type")) {
+                                                    f.type = filament["type"].get<std::string>();
+                                                }
+                                                if (filament.contains("used_g")) {
+                                                    f.used_g = stof(filament["used_g"].get<std::string>());
+                                                }
+                                                if (filament.contains("used_m")) {
+                                                    f.used_m = stof(filament["used_m"].get<std::string>());
+                                                }
+                                                slice_info->filaments_info.push_back(f);
+                                            }
+                                        }
+                                        BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
                                     }
                                 }
-                                else {
-                                    BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
-                                }
+                            }
+                            else {
+                                BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
                             }
                         }
-                        catch(...) {
-                        }
-                    } else {
-                        BOOST_LOG_TRIVIAL(error) << "task_info: get subtask id failed!";
+                    }
+                    catch (...) {
                     }
                 }
+                else {
+                    BOOST_LOG_TRIVIAL(error) << "task_info: get subtask id failed!";
+                }
+            }
+            //if (plate_index >= 0) {
+            //    std::string slice_json;
+            //    m_agent->get_slice_info(project_id, profile_id, plate_index, &slice_json);
+            //    if (slice_json.empty()) return;
+            //    //parse json
+            //    try {
+            //        json j = json::parse(slice_json);
+            //        if (!j["prediction"].is_null())
+            //            slice_info->prediction = j["prediction"].get<int>();
+            //        if (!j["weight"].is_null())
+            //            slice_info->weight = j["weight"].get<float>();
+            //        if (!j["thumbnail"].is_null()) {
+            //            //slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
+            //            BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
+            //        }
+            //        if (!j["filaments"].is_null()) {
+            //            for (auto filament : j["filaments"]) {
+            //                FilamentInfo f;
+            //                f.color = filament["color"].get<std::string>();
+            //                f.type = filament["type"].get<std::string>();
+            //                f.used_g = stof(filament["used_g"].get<std::string>());
+            //                f.used_m = stof(filament["used_m"].get<std::string>());
+            //                slice_info->filaments_info.push_back(f);
+            //            }
+            //        }
+            //    } catch(...) {
+            //        ;
+            //    }
+            //}
 
-                if (plate_index >= 0) {
-                    std::string slice_json;
-                    m_agent->get_slice_info(project_id, profile_id, plate_index, &slice_json);
-                    if (slice_json.empty()) return;
-                    //parse json
-                    try {
-                        json j = json::parse(slice_json);
-                        if (!j["prediction"].is_null())
-                            slice_info->prediction = j["prediction"].get<int>();
-                        if (!j["weight"].is_null())
-                            slice_info->weight = j["weight"].get<float>();
-                        if (!j["thumbnail"].is_null()) {
-                            //slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
-                            BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
-                        }
-                        if (!j["filaments"].is_null()) {
-                            for (auto filament : j["filaments"]) {
-                                FilamentInfo f;
-                                f.color = filament["color"].get<std::string>();
-                                f.type = filament["type"].get<std::string>();
-                                f.used_g = string_to_float(filament["used_g"].get<std::string>());
-                                f.used_m = string_to_float(filament["used_m"].get<std::string>());
-                                slice_info->filaments_info.push_back(f);
-                            }
-                        }
-                    } catch(...) {
-                        ;
-                    }
-                }
             });
     }
 }
