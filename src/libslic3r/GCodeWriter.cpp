@@ -309,7 +309,7 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
 
 std::string GCodeWriter::toolchange_prefix() const
 {
-    return config.manual_filament_change ? ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Tool_Change) + "T" :
+    return config.manual_filament_change ? ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::MANUAL_TOOL_CHANGE):
            FLAVOR_IS(gcfMakerWare) ? "M135 T" :
            FLAVOR_IS(gcfSailfish)  ? "M108 T" : "T";
 }

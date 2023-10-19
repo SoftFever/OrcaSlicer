@@ -2118,9 +2118,9 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
         }
-        // tool change tag
-        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::Tool_Change))) {
-            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::Tool_Change).length());
+        // Orca: manual tool change tag
+        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::MANUAL_TOOL_CHANGE))) {
+            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::MANUAL_TOOL_CHANGE).length());
             if (boost::starts_with(tool_change_cmd, "T")) {
                 process_T(tool_change_cmd);
             }

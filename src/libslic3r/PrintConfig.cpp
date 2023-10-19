@@ -3334,8 +3334,9 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("manual_filament_change", coBool);
     def->label = L("Manual Filament Change");
-    def->tooltip = L("Enabling this option will skip the emission of the tool change command(e.g. T0) and custom Change filament G-code"
-                     " at the beginning of the print. This is useful for those who print multi-material manually.");
+    def->tooltip = L("Enable this option to omit the custom Change filament G-code only at the beginning of the print. "
+                    "The tool change command (e.g., T0) will be skipped throughout the entire print. "
+                    "This is useful for manual multi-material printing, where we use M600/PAUSE to trigger the manual filament change action.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
