@@ -1,3 +1,24 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, David Kocík @kocikdav, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2023 Pedro Lamas @PedroLamas
+///|/ Copyright (c) 2023 Mimoja @Mimoja
+///|/ Copyright (c) 2020 - 2021 Sergey Kovalev @RandoMan70
+///|/ Copyright (c) 2021 Niall Sheridan @nsheridan
+///|/ Copyright (c) 2021 Martin Budden
+///|/ Copyright (c) 2021 Ilya @xorza
+///|/ Copyright (c) 2020 Paul Arden @ardenpm
+///|/ Copyright (c) 2020 rongith
+///|/ Copyright (c) 2019 Spencer Owen @spuder
+///|/ Copyright (c) 2019 Stephan Reichhelm @stephanr
+///|/ Copyright (c) 2018 Martin Loidl @LoidlM
+///|/ Copyright (c) SuperSlicer 2018 Remi Durand @supermerill
+///|/ Copyright (c) 2016 - 2017 Joseph Lenox @lordofhyphens
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2016 Vanessa Ezekowitz @VanessaE
+///|/ Copyright (c) 2015 Alexander Rössler @machinekoder
+///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "PrintConfig.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
@@ -1140,14 +1161,6 @@ void PrintConfigDef::init_fff_params()
     def->height = 120;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
-
-    def = this->add("ensure_vertical_shell_thickness", coBool);
-    def->label = L("Ensure vertical shell thickness");
-    def->category = L("Strength");
-    def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
-        "(top+bottom solid layers)");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
@@ -4346,15 +4359,6 @@ def = this->add("filament_loading_speed", coFloats);
         default: assert(false);
         }
     }
-
-    def = this->add("detect_narrow_internal_solid_infill", coBool);
-    def->label = L("Detect narrow internal solid infill");
-    def->category = L("Strength");
-    def->tooltip = L("This option will auto detect narrow internal solid infill area."
-                   " If enabled, concentric pattern will be used for the area to speed printing up."
-                   " Otherwise, rectilinear pattern is used defaultly.");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
 }
 
 void PrintConfigDef::init_extruder_option_keys()
@@ -5155,7 +5159,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
-        "z_hop_type", "z_lift_type", "bed_temperature_difference"
+        "z_hop_type", "z_lift_type", "bed_temperature_difference",
+        "detect_narrow_internal_solid_infill", "ensure_vertical_shell_thickness",
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

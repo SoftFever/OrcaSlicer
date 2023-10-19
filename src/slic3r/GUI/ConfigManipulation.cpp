@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Pavel Mikuš @Godrak, Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 // #include "libslic3r/GCodeSender.hpp"
 #include "ConfigManipulation.hpp"
 #include "I18N.hpp"
@@ -273,7 +277,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            sparse_infill_density == 0 &&
            ! config->opt_bool("enable_support") &&
            config->opt_int("enforce_support_layers") == 0 &&
-           config->opt_bool("ensure_vertical_shell_thickness") &&
            ! config->opt_bool("detect_thin_wall") &&
             config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
@@ -300,7 +303,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
             new_conf.set_key_value("enable_support", new ConfigOptionBool(false));
             new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
             new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             sparse_infill_density = 0;
@@ -520,7 +522,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     }
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
-    for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
+    for (auto el : { "extra_perimeters_on_overhangs", "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "staggered_inner_seams", "wall_infill_order", "outer_wall_line_width",
                     "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);

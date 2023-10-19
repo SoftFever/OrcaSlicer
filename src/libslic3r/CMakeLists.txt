@@ -1,3 +1,10 @@
+#/|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, David Kocík @kocikdav, Vojtěch Král @vojtechkral
+#/|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
+#/|/ Copyright (c) 2023 Mimoja @Mimoja
+#/|/ Copyright (c) 2022 ole00 @ole00
+#/|/
+#/|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+#/|/
 cmake_minimum_required(VERSION 3.13)
 project(libslic3r)
 
@@ -26,6 +33,9 @@ set(lisbslic3r_sources
     AABBTreeLines.hpp
     AABBMesh.hpp
     AABBMesh.cpp
+    Algorithm/PathSorting.hpp
+    Algorithm/RegionExpansion.hpp
+    Algorithm/RegionExpansion.cpp
     AnyPtr.hpp
     BoundingBox.cpp
     BoundingBox.hpp
@@ -45,6 +55,7 @@ set(lisbslic3r_sources
     ClipperUtils.hpp
     Clipper2Utils.cpp
     Clipper2Utils.hpp
+    ClipperZUtils.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
