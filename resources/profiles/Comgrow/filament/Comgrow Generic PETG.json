@@ -16,12 +16,12 @@
 	"slow_down_min_speed": ["10"],
 	"slow_down_layer_time": ["8"],
 	"filament_flow_ratio": ["0.95"],
-	"filament_max_volumetric_speed": ["10"],
+	"filament_max_volumetric_speed": ["30"],
+	"filament_retraction_length": ["0.5"],
 	"filament_start_gcode": ["; filament start gcode\n"],
 	"compatible_printers": [
 		"Comgrow T500 0.4 nozzle",
 		"Comgrow T500 0.6 nozzle",
 		"Comgrow T500 0.8 nozzle"
-		
 	]
 }
