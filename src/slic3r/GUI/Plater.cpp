@@ -12012,7 +12012,7 @@ void Plater::clone_selection()
     long res = wxGetNumberFromUser("",
         _L("Clone"),
         _L("Number of copies:"),
-        1, 0, 100, this);
+        1, 0, 1000, this);
     wxString msg;
     if (res == -1) {
         msg = _L("Invalid number");
