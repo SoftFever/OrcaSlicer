@@ -39,7 +39,7 @@
             "support_chamber_temp_edit":true,
             "support_extrusion_cali":false,
             "bed_temperature_limit": 110,
-            "nozzle_max_temperature": 330
+            "nozzle_max_temperature": 320
         },
         "model_id": "C13",
         "compatible_machine":["BL-P001", "BL-P002", "C11", "C12"],
