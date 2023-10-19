@@ -141,9 +141,6 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
 #ifndef NDEBUG
         const PrintObjectConfig &object_config = print_object.config();
 #endif // NDEBUG
-        // Support must be enabled and set to Tree style.
-        assert(object_config.support_material || object_config.support_material_enforce_layers > 0);
-        assert(object_config.support_material_style == smsTree || object_config.support_material_style == smsOrganic);
 
         bool found_existing_group = false;
         TreeSupportSettings next_settings{ TreeSupportMeshGroupSettings{ print_object }, print_object.slicing_parameters() };
@@ -3537,7 +3534,6 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
                 draw_areas(*print.get_object(processing.second.front()), volumes, config, overhangs, move_bounds, 
                     bottom_contacts, top_contacts, intermediate_layers, layer_storage, throw_on_cancel);
             else {
-                assert(print_object.config().support_material_style == smsOrganic);
                 organic_draw_branches(
                     *print.get_object(processing.second.front()), volumes, config, move_bounds, 
                     bottom_contacts, top_contacts, interface_placer, intermediate_layers, layer_storage, 

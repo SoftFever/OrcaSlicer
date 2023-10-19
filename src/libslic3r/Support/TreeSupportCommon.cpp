@@ -21,10 +21,6 @@ TreeSupportMeshGroupSettings::TreeSupportMeshGroupSettings(const PrintObject &pr
     const SlicingParameters &slicing_params     = print_object.slicing_parameters();
 //    const std::vector<unsigned int>  printing_extruders = print_object.object_extruders();
 
-    // Support must be enabled and set to Tree style.
-    assert(config.support_material || config.support_material_enforce_layers > 0);
-    assert(config.support_material_style == smsTree || config.support_material_style == smsOrganic);
-
     // Calculate maximum external perimeter width over all printing regions, taking into account the default layer height.
     coordf_t external_perimeter_width = 0.;
     for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
