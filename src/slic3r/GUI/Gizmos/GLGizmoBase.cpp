@@ -161,9 +161,6 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     m_base_color = DEFAULT_BASE_COLOR;
     m_drag_color = DEFAULT_DRAG_COLOR;
     m_highlight_color = DEFAULT_HIGHLIGHT_COLOR;
-    m_cone.init_from(its_make_cone(1., 1., 2 * PI / 24));
-    m_sphere.init_from(its_make_sphere(1., (2 * M_PI) / 24.));
-    m_cylinder.init_from(its_make_cylinder(1., 1., 2 * PI / 24.));
 }
 
 void GLGizmoBase::set_icon_filename(const std::string &filename) {

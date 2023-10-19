@@ -80,6 +80,10 @@ private:
     void render_points(const Selection& selection, bool picking = false) const;
     bool unsaved_changes() const;
 
+    GLModel m_cone;
+    GLModel m_cylinder;
+    GLModel m_sphere;
+
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
     float m_new_point_head_diameter;        // Size of a new point.

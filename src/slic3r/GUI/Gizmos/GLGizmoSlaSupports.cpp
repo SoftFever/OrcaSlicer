@@ -28,9 +28,7 @@ namespace GUI {
 
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-{
-}
-
+{}
 
 bool GLGizmoSlaSupports::on_init()
 {
@@ -48,6 +46,10 @@ bool GLGizmoSlaSupports::on_init()
     m_desc["manual_editing"]   = _L("Manual editing");
     m_desc["clipping_of_view"] = _L("Clipping of view")+ ": ";
     m_desc["reset_direction"]  = _L("Reset direction");
+        
+    m_cone.init_from(its_make_cone(1., 1., 2 * PI / 24));
+    m_cylinder.init_from(its_make_cylinder(1., 1., 2 * PI / 24.));
+    m_sphere.init_from(its_make_sphere(1., (2 * M_PI) / 24.));
 
     return true;
 }
