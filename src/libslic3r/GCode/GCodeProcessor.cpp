@@ -2119,8 +2119,8 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
             return;
         }
         // Orca: manual tool change tag
-        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::MANUAL_TOOL_CHANGE))) {
-            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::MANUAL_TOOL_CHANGE).length());
+        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::Manual_Tool_Change))) {
+            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::Manual_Tool_Change).length());
             if (boost::starts_with(tool_change_cmd, "T")) {
                 process_T(tool_change_cmd);
             }

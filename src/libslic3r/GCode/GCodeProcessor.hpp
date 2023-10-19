@@ -261,7 +261,7 @@ namespace Slic3r {
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
             Total_Layer_Number_Placeholder,
-            MANUAL_TOOL_CHANGE,
+            Manual_Tool_Change,
             During_Print_Exhaust_Fan
         };
 
