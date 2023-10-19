@@ -147,3 +147,31 @@
 	display: flex;
 	justify-content:space-around;
 }
+
+.search {
+	width: 100%;
+	position: relative;
+	display: flex;
+  }
+  
+  .searchTerm {
+	width: 100%;
+	border: 3px solid #009688;
+	/*border-right: none;*/
+	padding: 5px;
+	height: 20px;
+	border-radius: 5px 5px 5px 5px;
+	outline: none;
+	color: #9DBFAF;
+  }
+  
+  .searchTerm:focus{
+	color: #009688;
+  }
+  
+  /*Resize the wrap to see the search bar change!*/
+  .wrap{
+	width: 30%;
+	padding-bottom: 5px;
+	padding-left: 42px;
+  }

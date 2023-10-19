@@ -7,17 +7,22 @@
 <link rel="stylesheet" type="text/css" href="../css/common.css" />	
 <link rel="stylesheet" type="text/css" href="24.css" />
 <link rel="stylesheet" type="text/css" href="../css/dark.css" />	
-<script type="text/javascript" src="test.js"></script>	
+<!-- <script type="text/javascript" src="test.js"></script> -->
 <script type="text/javascript" src="../js/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="../js/json2.js"></script>	
 <script type="text/javascript" src="../../data/text.js"></script>	
 <script type="text/javascript" src="../js/globalapi.js"></script>	
-<script type="text/javascript" src="../js/common.js"></script>
+<!-- <script type="text/javascript" src="../js/common.js"></script> -->
 <script type="text/javascript" src="24.js"></script>		
 </head>
 <body onLoad="OnInit()">
 <div id="Title">
 	<div class="trans" tid="t10">Printer Selection</div>
+</div>
+<div class="wrap">
+	<div class="search">
+		<input type="text" class="searchTerm" placeholder="Device keyword" oninput="textInput(this)">
+	</div>
 </div>
 <div id="Content"  class="ZScrol"s>
 
@@ -109,8 +114,13 @@
 
 		if (window.event) {
 			try { e.keyCode = 0; } catch (e) { }
-			e.returnValue = false;
+			e.returnValue = true;
 		}
 	};
+	let pModel = {};
+	let ModelNozzleSelected = {};
+	function textInput(obj) {
+		FilterModelList(obj.value);
+	}
 </script>
 </html>
