@@ -3900,30 +3900,24 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.position = pos.cast<double>();
 
-        if (evt.Dragging() && current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
-            switch (m_gizmos.get_current_type())
-            {
-            case GLGizmosManager::EType::Move:
-            case GLGizmosManager::EType::Scale:
-            case GLGizmosManager::EType::Rotate:
-            {
-                update_sequential_clearance();
-                break;
-            }
-            default: { break; }
-            }
-        }
-        else if (evt.Dragging()) {
-            switch (m_gizmos.get_current_type())
-            {
-            case GLGizmosManager::EType::Move:
-            case GLGizmosManager::EType::Scale:
-            case GLGizmosManager::EType::Rotate:
-            {
-                show_sinking_contours();
-                break;
-            }
-            default: { break; }
+        // It should be detection of volume change
+        // Not only detection of some modifiers !!!
+        if (evt.Dragging()) {
+            if (current_printer_technology() == ptFFF &&
+                (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
+                switch (m_gizmos.get_current_type()) {
+                case GLGizmosManager::EType::Move:
+                case GLGizmosManager::EType::Scale:
+                case GLGizmosManager::EType::Rotate:
+                    update_sequential_clearance();
+                }
+            } else {
+                switch (m_gizmos.get_current_type()) {
+                case GLGizmosManager::EType::Move:
+                case GLGizmosManager::EType::Scale:
+                case GLGizmosManager::EType::Rotate: 
+                    show_sinking_contours();
+                }
             }
         }
         else if (evt.LeftUp() &&
