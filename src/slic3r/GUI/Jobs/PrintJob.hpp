@@ -10,7 +10,7 @@ namespace fs = boost::filesystem;
 namespace Slic3r {
 namespace GUI {
 
-#define PRINT_JOB_SENDING_TIMEOUT   10
+#define PRINT_JOB_SENDING_TIMEOUT   25
 
 class PrintPrepareData
 {
