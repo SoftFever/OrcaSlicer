@@ -43,6 +43,8 @@ private:
     mutable float m_snap_fine_in_radius;
     mutable float m_snap_fine_out_radius;
 
+    GLModel m_cone;
+
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
     GLGizmoRotate(const GLGizmoRotate& other);

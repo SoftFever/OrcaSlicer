@@ -76,6 +76,7 @@ std::string GLGizmoRotate::get_tooltip() const
 
 bool GLGizmoRotate::on_init()
 {
+    m_cone.init_from(its_make_cone(1., 1., 2 * PI / 24));
     m_grabbers.push_back(Grabber());
     return true;
 }
