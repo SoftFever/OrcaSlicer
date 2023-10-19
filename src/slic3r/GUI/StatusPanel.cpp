@@ -1958,8 +1958,13 @@ void StatusPanel::update(MachineObject *obj)
         if (obj->is_support_chamber_edit) {
             m_tempCtrl_chamber->SetReadOnly(false);
             m_tempCtrl_chamber->Enable();
+            wxCursor cursor(wxCURSOR_IBEAM);
+            m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
         } else {
             m_tempCtrl_chamber->SetReadOnly(true);
+
+            wxCursor cursor(wxCURSOR_ARROW);
+            m_tempCtrl_chamber->GetTextCtrl()->SetCursor(cursor);
 
             if (obj->get_printer_series() == PrinterSeries::SERIES_X1) {
                 m_tempCtrl_chamber->SetTagTemp(TEMP_BLANK_STR);
@@ -1969,7 +1974,8 @@ void StatusPanel::update(MachineObject *obj)
                 m_tempCtrl_chamber->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
             }
 
-            m_tempCtrl_chamber->Disable();
+            //m_tempCtrl_chamber->Disable();
+
         }
 
         if (!obj->dev_connection_type.empty()) {
