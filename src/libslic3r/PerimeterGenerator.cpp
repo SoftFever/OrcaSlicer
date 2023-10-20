@@ -275,9 +275,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
     Polygon                     fuzzified;
     
     // Detect steep overhangs
-    bool overhangs_reverse = perimeter_generator.config->overhang_reverse
-                             && perimeter_generator.layer_id % 2 == 1 // Only calculate overhang degree on odd layers
-                             && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None; // and not fuzzy skin
+    bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
+                             perimeter_generator.layer_id % 2 == 1; // Only calculate overhang degree on odd layers
 
     for (const PerimeterGeneratorLoop &loop : loops) {
         bool is_external = loop.is_external();
@@ -332,7 +331,15 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // prepare grown lower layer slices for overhang detection
             BoundingBox bbox(polygon.points);
             bbox.offset(SCALED_EPSILON);
-            
+
+            // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
+            if (overhangs_reverse && perimeter_generator.config->fuzzy_skin != FuzzySkinType::None) {
+                if (loop.is_contour) {
+                    steep_overhang_contour = true;
+                } else if (perimeter_generator.config->fuzzy_skin != FuzzySkinType::External) {
+                    steep_overhang_hole = true;
+                }
+            }
             // Detect steep overhang
             // Skip the check if we already found steep overhangs
             bool found_steep_overhang = (loop.is_contour && steep_overhang_contour) || (!loop.is_contour && steep_overhang_hole);
@@ -635,9 +642,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
     bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
     // Detect steep overhangs
-    bool overhangs_reverse = perimeter_generator.config->overhang_reverse
-                             && perimeter_generator.layer_id % 2 == 1 // Only calculate overhang degree on odd layers
-                             && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None; // and not fuzzy skin
+    bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
+                             perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on odd layers
 
     ExtrusionEntityCollection extrusion_coll;
     for (PerimeterGeneratorArachneExtrusion& pg_extrusion : pg_extrusions) {
@@ -684,7 +690,15 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // get non-overhang paths by intersecting this loop with the grown lower slices
             extrusion_paths_append(temp_paths, clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctIntersection), role,
                                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
-                    
+
+            // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
+            if (overhangs_reverse && perimeter_generator.config->fuzzy_skin != FuzzySkinType::None) {
+                if (pg_extrusion.is_contour) {
+                    steep_overhang_contour = true;
+                } else if (perimeter_generator.config->fuzzy_skin != FuzzySkinType::External) {
+                    steep_overhang_hole = true;
+                }
+            }
             // Detect steep overhang
             // Skip the check if we already found steep overhangs
             bool found_steep_overhang = (pg_extrusion.is_contour && steep_overhang_contour) || (!pg_extrusion.is_contour && steep_overhang_hole);
