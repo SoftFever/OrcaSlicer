@@ -58,11 +58,11 @@ bool GLGizmoMmuSegmentation::on_is_activable() const
 }
 
 //BBS: use the global one in 3DScene.cpp
-/*static std::vector<std::array<float, 4>> get_extruders_colors()
+/*static std::vector<ColorRGBA> get_extruders_colors()
 {
     unsigned char                     rgb_color[3] = {};
     std::vector<std::string>          colors       = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::vector<std::array<float, 4>> colors_out(colors.size());
+    std::vector<ColorRGBA> colors_out(colors.size());
     for (const std::string &color : colors) {
         Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
         size_t color_idx      = &color - &colors.front();
@@ -276,17 +276,13 @@ bool GLGizmoMmuSegmentation::on_key_down_select_tool_type(int keyCode) {
     return true;
 }
 
-static void render_extruders_combo(const std::string                       &label,
-                                   const std::vector<std::string>          &extruders,
-                                   const std::vector<std::array<float, 4>> &extruders_colors,
-                                   size_t                                  &selection_idx)
+static void render_extruders_combo(const std::string& label,
+                                   const std::vector<std::string>& extruders,
+                                   const std::vector<ColorRGBA>& extruders_colors,
+                                   size_t& selection_idx)
 {
     assert(!extruders_colors.empty());
     assert(extruders_colors.size() == extruders_colors.size());
-
-    auto convert_to_imu32 = [](const std::array<float, 4> &color) -> ImU32 {
-        return IM_COL32(uint8_t(color[0] * 255.f), uint8_t(color[1] * 255.f), uint8_t(color[2] * 255.f), uint8_t(color[3] * 255.f));
-    };
 
     size_t selection_out = selection_idx;
     // It is necessary to use BeginGroup(). Otherwise, when using SameLine() is called, then other items will be drawn inside the combobox.
@@ -303,7 +299,7 @@ static void render_extruders_combo(const std::string                       &labe
             ImGui::SameLine();
             ImGuiStyle &style  = ImGui::GetStyle();
             float       height = ImGui::GetTextLineHeight();
-            ImGui::GetWindowDrawList()->AddRectFilled(start_position, ImVec2(start_position.x + height + height / 2, start_position.y + height), convert_to_imu32(extruders_colors[extruder_idx]));
+            ImGui::GetWindowDrawList()->AddRectFilled(start_position, ImVec2(start_position.x + height + height / 2, start_position.y + height), ImGuiWrapper::to_ImU32(extruders_colors[extruder_idx]));
             ImGui::GetWindowDrawList()->AddRect(start_position, ImVec2(start_position.x + height + height / 2, start_position.y + height), IM_COL32_BLACK);
 
             ImGui::SetCursorScreenPos(ImVec2(start_position.x + height + height / 2 + style.FramePadding.x, start_position.y));
@@ -321,7 +317,7 @@ static void render_extruders_combo(const std::string                       &labe
     ImVec2 p      = ImGui::GetCursorScreenPos();
     float  height = ImGui::GetTextLineHeight();
 
-    ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + height + height / 2, p.y + height), convert_to_imu32(extruders_colors[selection_idx]));
+    ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + height + height / 2, p.y + height), ImGuiWrapper::to_ImU32(extruders_colors[selection_idx]));
     ImGui::GetWindowDrawList()->AddRect(p, ImVec2(p.x + height + height / 2, p.y + height), IM_COL32_BLACK);
 
     ImGui::SetCursorScreenPos(ImVec2(p.x + height + height / 2 + style.FramePadding.x, p.y));
@@ -448,8 +444,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float item_spacing = m_imgui->scaled(0.8f);
     size_t n_extruder_colors = std::min((size_t)EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
     for (int extruder_idx = 0; extruder_idx < n_extruder_colors; extruder_idx++) {
-        const std::array<float, 4> &extruder_color = m_extruders_colors[extruder_idx];
-        ImVec4 color_vec(extruder_color[0], extruder_color[1], extruder_color[2], extruder_color[3]);
+        const ColorRGBA &extruder_color = m_extruders_colors[extruder_idx];
+        ImVec4           color_vec      = ImGuiWrapper::to_ImVec4(extruder_color);
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
         std::string item_text = std::to_string(extruder_idx + 1);
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
@@ -486,7 +482,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (extruder_idx < 9 && ImGui::IsItemHovered()) m_imgui->tooltip(_L("Shortcut Key ") + std::to_string(extruder_idx + 1), max_tooltip_width);
 
         // draw filament id
-        float gray = 0.299 * extruder_color[0] + 0.587 * extruder_color[1] + 0.114 * extruder_color[2];
+        float gray = 0.299 * extruder_color.r() + 0.587 * extruder_color.g() + 0.114 * extruder_color.b();
         ImGui::SameLine(button_offset + (button_size.x - label_size.x) / 2.f);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {10.0,15.0});
         if (gray * 255.f < 80.f)
@@ -811,7 +807,7 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
             continue;
 
         int extruder_idx = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
-        std::vector<std::array<float, 4>> ebt_colors;
+        std::vector<ColorRGBA> ebt_colors;
         ebt_colors.push_back(m_extruders_colors[size_t(extruder_idx)]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
 
@@ -833,7 +829,7 @@ void GLGizmoMmuSegmentation::update_triangle_selectors_colors()
         TriangleSelectorPatch* selector = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
         int extruder_idx = m_volumes_extruder_idxs[i];
         int extruder_color_idx = std::max(0, extruder_idx - 1);
-        std::vector<std::array<float, 4>> ebt_colors;
+        std::vector<ColorRGBA> ebt_colors;
         ebt_colors.push_back(m_extruders_colors[extruder_color_idx]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
         selector->set_ebt_colors(ebt_colors);
@@ -871,7 +867,7 @@ PainterGizmoType GLGizmoMmuSegmentation::get_painter_type() const
 }
 
 // BBS
-std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_hover_color() const
+ColorRGBA GLGizmoMmuSegmentation::get_cursor_hover_color() const
 {
     if (m_selected_extruder_idx < m_extruders_colors.size())
         return m_extruders_colors[m_selected_extruder_idx];

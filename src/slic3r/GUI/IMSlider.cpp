@@ -586,8 +586,8 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     };
     //draw main colored band
     const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
-    std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
-    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+    ColorRGBA rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
+    ImU32     band_clr          = ImGuiWrapper::to_ImU32(rgba);
     draw_main_band(band_clr);
 
     static float tick_pos;
@@ -605,8 +605,8 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
                 const std::string clr_str = m_mode == SingleExtruder ? tick_it->color : get_color_for_tool_change_tick(tick_it);
 
                 if (!clr_str.empty()) {
-                    std::array<float, 4>rgba = decode_color_to_float_array(clr_str);
-                    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    ColorRGBA rgba = decode_color_to_float_array(clr_str);
+                    ImU32     band_clr = ImGuiWrapper::to_ImU32(rgba);
                     if (tick_it->tick == 0)
                         draw_main_band(band_clr);
                     else
@@ -1323,9 +1323,9 @@ void IMSlider::render_add_menu()
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
-                    std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
-                    ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                    if (rgba[3] == 0)
+                    ColorRGBA rgba     = decode_color_to_float_array(m_extruder_colors[i]);
+                    ImU32                icon_clr = ImGuiWrapper::to_ImU32(rgba);
+                    if (rgba.a() == 0)
                         icon_clr = 0;
                     if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
                     if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
@@ -1373,8 +1373,8 @@ void IMSlider::render_edit_menu(const TickCode& tick)
                 }
                 else if (begin_menu(_u8L("Change Filament").c_str())) {
                     for (int i = 0; i < extruder_num; i++) {
-                        std::array<float, 4> rgba = decode_color_to_float_array(m_extruder_colors[i]);
-                        ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                        ColorRGBA rgba = decode_color_to_float_array(m_extruder_colors[i]);
+                        ImU32     icon_clr = ImGuiWrapper::to_ImU32(rgba);
                         if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
                     }
                     end_menu();

@@ -56,6 +56,8 @@ set(lisbslic3r_sources
     Clipper2Utils.cpp
     Clipper2Utils.hpp
     ClipperZUtils.hpp
+    Color.cpp
+    Color.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp

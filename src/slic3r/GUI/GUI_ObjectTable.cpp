@@ -2812,13 +2812,13 @@ int ObjectTablePanel::init_filaments_and_colors()
     }
 
     unsigned int i = 0;
-    unsigned char rgb[3];
+    ColorRGB rgb;
     while (i < m_filaments_count) {
         const std::string& txt_color = global_config->opt_string("filament_colour", i);
         if (i < color_count) {
-            if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+            if (decode_color(txt_color, rgb))
             {
-                m_filaments_colors[i] = wxColour(rgb[0], rgb[1], rgb[2]);
+                m_filaments_colors[i] = wxColour(rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar());
             }
             else
             {

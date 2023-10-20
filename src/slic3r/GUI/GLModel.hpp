@@ -3,6 +3,7 @@
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Color.hpp"
 #include <vector>
 #include <string>
 
@@ -33,7 +34,7 @@ namespace GUI {
             unsigned int vbo_id{ 0 };
             unsigned int ibo_id{ 0 };
             size_t indices_count{ 0 };
-            std::array<float, 4> color{ 1.0f, 1.0f, 1.0f, 1.0f };
+            ColorRGBA color;
         };
 
         struct InitializationData
@@ -44,7 +45,7 @@ namespace GUI {
                 std::vector<Vec3f> positions;
                 std::vector<Vec3f> normals;
                 std::vector<unsigned int> indices;
-                std::array<float, 4> color{ 1.0f, 1.0f, 1.0f, 1.0f };
+                ColorRGBA color;
             };
 
             std::vector<Entity> entities;
@@ -74,7 +75,7 @@ namespace GUI {
         bool init_from_file(const std::string& filename);
 
         // if entity_id == -1 set the color of all entities
-        void set_color(int entity_id, const std::array<float, 4>& color);
+        void set_color(int entity_id, const ColorRGBA& color);
 
         void reset();
         void render() const;

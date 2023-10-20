@@ -199,14 +199,6 @@ class GLCanvas3D
     static const double DefaultCameraZoomToBedMarginFactor;
     static const double DefaultCameraZoomToPlateMarginFactor;
 
-
-    static float DEFAULT_BG_LIGHT_COLOR[3];
-    static float ERROR_BG_LIGHT_COLOR[3];
-    static float DEFAULT_BG_LIGHT_COLOR_LIGHT[3];
-    static float ERROR_BG_LIGHT_COLOR_LIGHT[3];
-    static float DEFAULT_BG_LIGHT_COLOR_DARK[3];
-    static float ERROR_BG_LIGHT_COLOR_DARK[3];
-
     static void update_render_colors();
     static void load_render_colors();
 
@@ -857,15 +849,15 @@ public:
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
-        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
         GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     // render thumbnail using an off-screen framebuffer
     static void render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
         GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
     static void render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
         GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
 
     //BBS use gcoder viewer render calibration thumbnails
@@ -1155,7 +1147,7 @@ private:
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
     // render thumbnail using the default framebuffer
-    void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
+    void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
 
     void _update_volumes_hover_state();
 
@@ -1201,8 +1193,6 @@ private:
 
     // BBS FIXME
     float get_overlay_window_width() { return 0; /*LayersEditing::get_overlay_window_width();*/ }
-
-    static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
 };
 
 } // namespace GUI

@@ -909,9 +909,9 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     //draw thumbnails
     {
         GLVolumeCollection glvolume_collection;
-        std::vector<std::array<float, 4>> colors_out(1);
+        std::vector<ColorRGBA> colors_out(1);
         unsigned char  rgb_color[4] = {255, 255, 255, 255};
-        std::array<float, 4> new_color {1.0f, 1.0f, 1.0f, 1.0f};
+        ColorRGBA new_color {1.0f, 1.0f, 1.0f, 1.0f};
         colors_out.push_back(new_color);
 
         ThumbnailData* thumbnail_data = &plate_data_list[0]->plate_thumbnail;
@@ -927,7 +927,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
                 for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                     const ModelInstance &model_instance = *model_object.instances[instance_idx];
                     glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
-                    glvolume_collection.volumes.back()->set_render_color( new_color[0], new_color[1], new_color[2], new_color[3]);
+                    glvolume_collection.volumes.back()->set_render_color(new_color);
                     glvolume_collection.volumes.back()->set_color(new_color);
                     //glvolume_collection.volumes.back()->printable = model_instance.printable;
                 }

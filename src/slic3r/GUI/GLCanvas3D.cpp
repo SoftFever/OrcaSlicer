@@ -78,23 +78,25 @@
 
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
-float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[3] = { 0.906f, 0.906f, 0.906f };
-float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR_DARK[3] = { 0.329f, 0.329f, 0.353f };
-float GLCanvas3D::ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
-float GLCanvas3D::ERROR_BG_LIGHT_COLOR_DARK[3] = { 0.753f, 0.192f, 0.039f };
+static Slic3r::ColorRGB DEFAULT_BG_LIGHT_COLOR      = {0.906f, 0.906f, 0.906f};
+static Slic3r::ColorRGB DEFAULT_BG_LIGHT_COLOR_DARK = {0.329f, 0.329f, 0.353f};
+static Slic3r::ColorRGB ERROR_BG_LIGHT_COLOR        = {0.753f, 0.192f, 0.039f};
+static Slic3r::ColorRGB ERROR_BG_LIGHT_COLOR_DARK   = {0.753f, 0.192f, 0.039f};
 
 void GLCanvas3D::update_render_colors()
 {
-    GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[0] = RenderColor::colors[RenderCol_3D_Background].x;
-    GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[1] = RenderColor::colors[RenderCol_3D_Background].y;
-    GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[2] = RenderColor::colors[RenderCol_3D_Background].z;
+    DEFAULT_BG_LIGHT_COLOR = {
+        RenderColor::colors[RenderCol_3D_Background].x,
+        RenderColor::colors[RenderCol_3D_Background].y,
+        RenderColor::colors[RenderCol_3D_Background].z,
+    };
 }
 
 void GLCanvas3D::load_render_colors()
 {
-    RenderColor::colors[RenderCol_3D_Background] = ImVec4(GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[0],
-                                                          GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[1],
-                                                          GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[2],
+    RenderColor::colors[RenderCol_3D_Background] = ImVec4(DEFAULT_BG_LIGHT_COLOR.r(),
+                                                          DEFAULT_BG_LIGHT_COLOR.g(),
+                                                          DEFAULT_BG_LIGHT_COLOR.b(),
                                                           1.0f);
 }
 
@@ -967,8 +969,8 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
 
 void GLCanvas3D::SequentialPrintClearance::render()
 {
-    std::array<float, 4> FILL_COLOR = { 0.7f, 0.7f, 1.0f, 0.5f };
-    std::array<float, 4> NO_FILL_COLOR = { 0.75f, 0.75f, 0.75f, 0.75f };
+    const ColorRGBA FILL_COLOR = { 0.7f, 0.7f, 1.0f, 0.5f };
+    const ColorRGBA NO_FILL_COLOR = { 0.75f, 0.75f, 0.75f, 0.75f };
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -2068,7 +2070,7 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 {
     GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
-    std::vector<std::array<float, 4>> colors = ::get_extruders_colors();
+    std::vector<ColorRGBA> colors = ::get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
     {
     case OpenGLManager::EFramebufferType::Arb:
@@ -2130,8 +2132,8 @@ void GLCanvas3D::set_selected_visible(bool visible)
     for (unsigned int i : m_selection.get_volume_idxs()) {
         GLVolume* volume = const_cast<GLVolume*>(m_selection.get_volume(i));
         volume->visible = visible;
-        volume->color[3] = visible ? 1.f : GLVolume::MODEL_HIDDEN_COL[3];
-        volume->render_color[3] = volume->color[3];
+        volume->color.a(visible ? 1.f : GLVolume::MODEL_HIDDEN_COL.a());
+        volume->render_color.a(volume->color.a());
         volume->force_native_color = !visible;
     }
 }
@@ -5526,7 +5528,7 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
 void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params,
-    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
     GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     //BBS modify visible calc function
@@ -5563,9 +5565,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         return ret;
     };
 
-    static std::array<float, 4> curr_color;
-    static const std::array<float, 4> orange = { 0.923f, 0.504f, 0.264f, 1.0f };
-    static const std::array<float, 4> gray   = { 0.64f, 0.64f, 0.64f, 1.0f };
+    static ColorRGBA curr_color;
 
     GLVolumePtrs visible_volumes;
 
@@ -5702,12 +5702,9 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         shader->set_uniform("emission_factor", 0.1f);
         for (GLVolume* vol : visible_volumes) {
             //BBS set render color for thumbnails
-            curr_color[0] = vol->color[0];
-            curr_color[1] = vol->color[1];
-            curr_color[2] = vol->color[2];
-            curr_color[3] = vol->color[3];
+            curr_color = vol->color;
 
-            std::array<float, 4> new_color = adjust_color_for_rendering(curr_color);
+            ColorRGBA new_color = adjust_color_for_rendering(curr_color);
             shader->set_uniform("uniform_color", new_color);
             shader->set_uniform("volume_world_matrix", vol->world_matrix());
             //BBS set all volume to orange
@@ -5739,7 +5736,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 }
 
 void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
     GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     thumbnail_data.set(w, h);
@@ -5847,7 +5844,7 @@ void GLCanvas3D::render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, uns
 }
 
 void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
     GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
     thumbnail_data.set(w, h);
@@ -5949,7 +5946,7 @@ void GLCanvas3D::render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data,
     //    glsafe(::glDisable(GL_MULTISAMPLE));
 }
 
-void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type)
+void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList &partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type)
 {
     // check that thumbnail size does not exceed the default framebuffer size
     const Size& cnv_size = get_canvas_size();
@@ -6519,21 +6516,22 @@ void GLCanvas3D::_picking_pass()
         int volume_id = -1;
         int gizmo_id = -1;
 
-        GLubyte color[4] = { 0, 0, 0, 0 };
+        std::array<GLubyte, 4> color = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
         bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
         if (inside) {
-            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color));
+            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position.y() - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color.data()));
             if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
                 // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
                 // we reserve color = (0,0,0) for occluders (as the printbed)
                 // volumes' id are shifted by 1
                 // see: _render_volumes_for_picking()
+                unsigned int id = picking_encode(color[0], color[1], color[2]);
                 //BBS: remove the bed picking logic
-                //volume_id = color[0] + (color[1] << 8) + (color[2] << 16) - 1;
-                volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+                //volume_id = id - 1;
+                volume_id = id;
                 // gizmos' id are instead properly encoded by the color
-                gizmo_id = color[0] + (color[1] << 8) + (color[2] << 16);
+                gizmo_id = id;
             }
         }
         else
@@ -6676,21 +6674,21 @@ void GLCanvas3D::_render_background() const
 
     ::glBegin(GL_QUADS);
 
-    float* background_color = m_is_dark ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
-    float* error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
+    ColorRGB background_color = m_is_dark ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
+    ColorRGB error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
 
     if (use_error_color)
-        ::glColor3fv(error_background_color);
+        ::glColor3fv(error_background_color.data());
     else
-        ::glColor3fv(background_color);
+        ::glColor3fv(background_color.data());
 
     ::glVertex2f(-1.0f, -1.0f);
     ::glVertex2f(1.0f, -1.0f);
 
     if (use_error_color)
-        ::glColor3fv(error_background_color);
+        ::glColor3fv(error_background_color.data());
     else
-        ::glColor3fv(background_color);
+        ::glColor3fv(background_color.data());
 
     ::glVertex2f(1.0f, 1.0f);
     ::glVertex2f(-1.0f, 1.0f);
@@ -7249,8 +7247,6 @@ void GLCanvas3D::_render_style_editor()
 
 void GLCanvas3D::_render_volumes_for_picking() const
 {
-    static const GLfloat INV_255 = 1.0f / 255.0f;
-
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
@@ -7266,13 +7262,9 @@ void GLCanvas3D::_render_volumes_for_picking() const
                 // we reserve color = (0,0,0) for occluders (as the printbed)
                 // so we shift volumes' id by 1 to get the proper color
                 //BBS: remove the bed picking logic
-                unsigned int id = volume.second.first;
-                //unsigned int id = 1 + volume.second.first;
-                unsigned int r = (id & (0x000000FF << 0)) << 0;
-		        unsigned int g = (id & (0x000000FF << 8)) >> 8;
-		        unsigned int b = (id & (0x000000FF << 16)) >> 16;
-		        unsigned int a = picking_checksum_alpha_channel(r, g, b);
-                glsafe(::glColor4f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255, (GLfloat)a * INV_255));
+                const unsigned int id = volume.second.first;
+                //const unsigned int id = 1 + volume.second.first;
+				glsafe(::glColor4fv(picking_decode(id).data()));
 	            volume.first->render();
 	        }
 	}
@@ -7870,15 +7862,15 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiContext& context = *GImGui;
     bool disabled = !wxGetApp().plater()->can_fillcolor();
-    unsigned char rgb[3];
+    ColorRGBA rgba;
 
     for (int i = 0; i < extruder_num; i++) {
         if (i > 0)
             ImGui::SameLine();
-        Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(rgb[0], rgb[1], rgb[2]).Value);
+        decode_color(colors[i], rgba);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGuiWrapper::to_ImVec4(rgba));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::to_ImVec4(rgba));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGuiWrapper::to_ImVec4(rgba));
         if (disabled)
             ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
         if (ImGui::Button(("##filament_button" + std::to_string(i)).c_str(), button_size)) {
@@ -7899,9 +7891,9 @@ void GLCanvas3D::_render_paint_toolbar() const
     }
 
     const float text_offset_y = 4.0f * em_unit * f_scale;
-    for (int i = 0; i < extruder_num; i++){
-        Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
-        float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
+    for (int i = 0; i < extruder_num; i++) {
+        decode_color(colors[i], rgba);
+        float  gray       = 0.299 * rgba.r_uchar() + 0.587 * rgba.g_uchar() + 0.114 * rgba.b_uchar();
         ImVec4 text_color = gray < 80 ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(0, 0, 0, 1.0f);
 
         imgui.push_bold_font();
@@ -8375,7 +8367,7 @@ void GLCanvas3D::_load_print_toolpaths(const BuildVolume &build_volume)
     if (!print->has_skirt() && !print->has_brim())
         return;
 
-    const std::array<float, 4> color = { 0.5f, 1.0f, 0.5f, 1.0f }; // greenish
+    const ColorRGBA color = ColorRGBA::GREENISH();
 
     // number of skirt layers
     size_t total_layer_count = 0;
@@ -8421,7 +8413,8 @@ void GLCanvas3D::_load_print_toolpaths(const BuildVolume &build_volume)
 
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const BuildVolume& build_volume, const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
 {
-    std::vector<std::array<float, 4>> tool_colors = _parse_colors(str_tool_colors);
+    std::vector<ColorRGBA> tool_colors;
+    decode_colors(str_tool_colors, tool_colors);
 
     struct Ctxt
     {
@@ -8430,20 +8423,20 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         bool                         has_perimeters;
         bool                         has_infill;
         bool                         has_support;
-        const std::vector<std::array<float, 4>>* tool_colors;
+        const std::vector<ColorRGBA>* tool_colors;
         bool                         is_single_material_print;
         int                          filaments_cnt;
         const std::vector<CustomGCode::Item>*   color_print_values;
 
-        static const std::array<float, 4>& color_perimeters() { static std::array<float, 4> color = { 1.0f, 1.0f, 0.0f, 1.f }; return color; } // yellow
-        static const std::array<float, 4>& color_infill() { static std::array<float, 4> color = { 1.0f, 0.5f, 0.5f, 1.f }; return color; } // redish
-        static const std::array<float, 4>& color_support() { static std::array<float, 4> color = { 0.5f, 1.0f, 0.5f, 1.f }; return color; } // greenish
-        static const std::array<float, 4>& color_pause_or_custom_code() { static std::array<float, 4> color = { 0.5f, 0.5f, 0.5f, 1.f }; return color; } // gray
+        static ColorRGBA color_perimeters()           { return ColorRGBA::YELLOW(); }
+        static ColorRGBA color_infill()               { return ColorRGBA::REDISH(); }
+        static ColorRGBA color_support()              { return ColorRGBA::GREENISH(); }
+        static ColorRGBA color_pause_or_custom_code() { return ColorRGBA::GRAY(); }
 
         // For cloring by a tool, return a parsed color.
         bool                         color_by_tool() const { return tool_colors != nullptr; }
         size_t                       number_tools() const { return color_by_tool() ? tool_colors->size() : 0; }
-        const std::array<float, 4>&  color_tool(size_t tool) const { return (*tool_colors)[tool]; }
+        const ColorRGBA&             color_tool(size_t tool) const { return (*tool_colors)[tool]; }
 
         // For coloring by a color_print(M600), return a parsed color.
         bool                         color_by_color_print() const { return color_print_values!=nullptr; }
@@ -8583,7 +8576,7 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     //FIXME Improve the heuristics for a grain size.
     size_t          grain_size = std::max(ctxt.layers.size() / 16, size_t(1));
     tbb::spin_mutex new_volume_mutex;
-    auto            new_volume = [this, &new_volume_mutex](const std::array<float, 4>& color) {
+    auto            new_volume = [this, &new_volume_mutex](const ColorRGBA& color) {
         // Allocate the volume before locking.
 		GLVolume *volume = new GLVolume(color);
 		volume->is_extrusion_path = true;
@@ -8725,21 +8718,22 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
     if (!print->is_step_done(psWipeTower))
         return;
 
-    std::vector<std::array<float, 4>> tool_colors = _parse_colors(str_tool_colors);
+    std::vector<ColorRGBA> tool_colors;
+    decode_colors(str_tool_colors, tool_colors);
 
     struct Ctxt
     {
         const Print                 *print;
-        const std::vector<std::array<float, 4>>* tool_colors;
+        const std::vector<ColorRGBA>* tool_colors;
         Vec2f                        wipe_tower_pos;
         float                        wipe_tower_angle;
 
-        static const std::array<float, 4>& color_support() { static std::array<float, 4> color = { 0.5f, 1.0f, 0.5f, 1.f }; return color; } // greenish
+        static ColorRGBA color_support() { return ColorRGBA::GREENISH(); }
 
         // For cloring by a tool, return a parsed color.
         bool                         color_by_tool() const { return tool_colors != nullptr; }
         size_t                       number_tools() const { return this->color_by_tool() ? tool_colors->size() : 0; }
-        const std::array<float, 4>&  color_tool(size_t tool) const { return (*tool_colors)[tool]; }
+        const ColorRGBA&             color_tool(size_t tool) const { return (*tool_colors)[tool]; }
         int                          volume_idx(int tool, int feature) const {
             return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(tool, 0)) : feature;
         }
@@ -8779,7 +8773,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
     size_t          n_items = print->wipe_tower_data().tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
     size_t          grain_size = std::max(n_items / 128, size_t(1));
     tbb::spin_mutex new_volume_mutex;
-    auto            new_volume = [this, &new_volume_mutex](const std::array<float, 4>& color) {
+    auto            new_volume = [this, &new_volume_mutex](const ColorRGBA& color) {
         auto *volume = new GLVolume(color);
 		volume->is_extrusion_path = true;
         tbb::spin_mutex::scoped_lock lock;
@@ -8898,7 +8892,7 @@ void GLCanvas3D::_load_sla_shells()
         return;
 
     auto add_volume = [this](const SLAPrintObject &object, int volume_id, const SLAPrintObject::Instance& instance,
-        const TriangleMesh& mesh, const std::array<float, 4>& color, bool outside_printer_detection_enabled) {
+        const TriangleMesh& mesh, const ColorRGBA& color, bool outside_printer_detection_enabled) {
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
 #if ENABLE_SMOOTH_NORMALS
@@ -8968,28 +8962,6 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
     }
 
     _set_warning_notification(warning, show);
-}
-
-std::vector<std::array<float, 4>> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
-{
-    static const float INV_255 = 1.0f / 255.0f;
-
-    std::vector<std::array<float, 4>> output(colors.size(), { 1.0f, 1.0f, 1.0f, 1.0f });
-    for (size_t i = 0; i < colors.size(); ++i) {
-        const std::string& color = colors[i];
-        const char* c = color.data() + 1;
-        if (color.size() == 7 && color.front() == '#') {
-            for (size_t j = 0; j < 3; ++j) {
-                int digit1 = hex_digit_to_int(*c++);
-                int digit2 = hex_digit_to_int(*c++);
-                if (digit1 == -1 || digit2 == -1)
-                    break;
-
-                output[i][j] = float(digit1 * 16 + digit2) * INV_255;
-            }
-        }
-    }
-    return output;
 }
 
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)

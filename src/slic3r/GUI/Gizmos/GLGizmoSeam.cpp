@@ -388,7 +388,7 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
     m_triangle_selectors.clear();
 
     int volume_id = -1;
-    std::vector<std::array<float, 4>> ebt_colors;
+    std::vector<ColorRGBA> ebt_colors;
     ebt_colors.push_back(GLVolume::NEUTRAL_COLOR);
     ebt_colors.push_back(TriangleSelectorGUI::enforcers_color);
     ebt_colors.push_back(TriangleSelectorGUI::blockers_color);

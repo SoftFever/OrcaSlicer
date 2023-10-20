@@ -11,6 +11,7 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Color.hpp"
 #include "format.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -60,8 +61,7 @@ static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
 static std::string def_text_color()
 {
     wxColour def_colour = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-    auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), def_colour.Red(), def_colour.Green(), def_colour.Blue());
-    return clr_str.ToStdString();
+    return encode_color(ColorRGB(def_colour.Red(), def_colour.Green(), def_colour.Blue()));
 }
 static std::string grey     = "#808080";
 static std::string orange   = "#ed6b21";
@@ -126,8 +126,8 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
     const int icon_height   = lround(1.6 * em);
 
     BitmapCache bmp_cache;
-    unsigned char rgb[3];
-    BitmapCache::parse_color(into_u8(color), rgb);
+    ColorRGB rgb;
+    decode_color(into_u8(color), rgb);
     // there is no need to scale created solid bitmap
 #ifndef __linux__
     return bmp_cache.mksolid(icon_width, icon_height, rgb, true);

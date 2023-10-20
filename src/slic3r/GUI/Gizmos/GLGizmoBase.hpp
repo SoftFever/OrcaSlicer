@@ -2,6 +2,7 @@
 #define slic3r_GLGizmoBase_hpp_
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Color.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GLModel.hpp"
@@ -38,18 +39,18 @@ public:
     static float INV_ZOOM;
 
     //BBS colors
-    static std::array<float, 4> DEFAULT_BASE_COLOR;
-    static std::array<float, 4> DEFAULT_DRAG_COLOR;
-    static std::array<float, 4> DEFAULT_HIGHLIGHT_COLOR;
-    static std::array<std::array<float, 4>, 3> AXES_COLOR;
-    static std::array<std::array<float, 4>, 3> AXES_HOVER_COLOR;
-    static std::array<float, 4> CONSTRAINED_COLOR;
-    static std::array<float, 4> FLATTEN_COLOR;
-    static std::array<float, 4> FLATTEN_HOVER_COLOR;
-    static std::array<float, 4> GRABBER_NORMAL_COL;
-    static std::array<float, 4> GRABBER_HOVER_COL;
-    static std::array<float, 4> GRABBER_UNIFORM_COL;
-    static std::array<float, 4> GRABBER_UNIFORM_HOVER_COL;
+    static ColorRGBA DEFAULT_BASE_COLOR;
+    static ColorRGBA DEFAULT_DRAG_COLOR;
+    static ColorRGBA DEFAULT_HIGHLIGHT_COLOR;
+    static std::array<ColorRGBA, 3> AXES_COLOR;
+    static std::array<ColorRGBA, 3> AXES_HOVER_COLOR;
+    static ColorRGBA CONSTRAINED_COLOR;
+    static ColorRGBA FLATTEN_COLOR;
+    static ColorRGBA FLATTEN_HOVER_COLOR;
+    static ColorRGBA GRABBER_NORMAL_COL;
+    static ColorRGBA GRABBER_HOVER_COL;
+    static ColorRGBA GRABBER_UNIFORM_COL;
+    static ColorRGBA GRABBER_UNIFORM_HOVER_COL;
 
     static void update_render_colors();
     static void load_render_colors();
@@ -65,8 +66,8 @@ protected:
 
         Vec3d center;
         Vec3d angles;
-        std::array<float, 4> color;
-        std::array<float, 4> hover_color;
+        ColorRGBA color;
+        ColorRGBA hover_color;
         bool enabled;
         bool dragging;
 
@@ -80,7 +81,7 @@ protected:
         const GLModel& get_cube() const;
 
     private:
-        void render(float size, const std::array<float, 4>& render_color, bool picking) const;
+        void render(float size, const ColorRGBA& render_color, bool picking) const;
 
         GLModel cube;
         bool cube_initialized = false;
@@ -114,9 +115,9 @@ protected:
     unsigned int m_sprite_id;
     int m_hover_id;
     bool m_dragging;
-    std::array<float, 4> m_base_color;
-    std::array<float, 4> m_drag_color;
-    std::array<float, 4> m_highlight_color;
+    ColorRGBA m_base_color;
+    ColorRGBA m_drag_color;
+    ColorRGBA m_highlight_color;
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
     bool m_first_input_window_render;
@@ -169,7 +170,7 @@ public:
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
 
-    void set_highlight_color(const std::array<float, 4>& color);
+    void set_highlight_color(const ColorRGBA& color) { m_highlight_color = color; }
 
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
@@ -219,7 +220,7 @@ protected:
     void GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)
-    std::array<float, 4> picking_color_component(unsigned int id) const;
+    ColorRGBA picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
     void render_grabbers_for_picking(const BoundingBoxf3& box) const;
@@ -234,11 +235,6 @@ private:
     bool m_dirty;
     int count = 0;
 };
-
-
-// Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
-// were not interpolated by alpha blending or multi sampling.
-extern unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue);
 
 } // namespace GUI
 } // namespace Slic3r

@@ -139,7 +139,7 @@ private:
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
 
-    mutable float m_grabber_color[4];
+    mutable ColorRGBA m_grabber_color;
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -175,23 +175,23 @@ private:
     void render_logo(bool bottom, bool render_cali = true) const;
     void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
     void render_exclude_area(bool force_default_color) const;
-    //void render_background_for_picking(const float* render_color) const;
+    //void render_background_for_picking(const ColorRGBA render_color) const;
     void render_grid(bool bottom) const;
     void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH) const;
     void render_label(GLCanvas3D& canvas) const;
-    void render_grabber(const float* render_color, bool use_lighting) const;
+    void render_grabber(const ColorRGBA render_color, bool use_lighting) const;
     void render_face(float x_size, float y_size) const;
-    void render_arrows(const float* render_color, bool use_lighting) const;
-    void render_left_arrow(const float* render_color, bool use_lighting) const;
-    void render_right_arrow(const float* render_color, bool use_lighting) const;
+    void render_arrows(const ColorRGBA render_color, bool use_lighting) const;
+    void render_left_arrow(const ColorRGBA render_color, bool use_lighting) const;
+    void render_right_arrow(const ColorRGBA render_color, bool use_lighting) const;
     void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
     void show_tooltip(const std::string tooltip);
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
     void render_only_numbers(bool bottom) const;
     void render_plate_name_texture(int position_id, int tex_coords_id);
-    void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
+    void render_rectangle_for_picking(const GeometryBuffer &buffer, const ColorRGBA render_color) const;
     void on_render_for_picking() const;
-    std::array<float, 4> picking_color_component(int idx) const;
+    ColorRGBA picking_color_component(int idx) const;
     void release_opengl_resource();
 
 public:
@@ -199,17 +199,17 @@ public:
     static const unsigned int PLATE_NAME_HOVER_ID = 6;
     static const unsigned int GRABBER_COUNT = 7;
 
-    static std::array<float, 4> SELECT_COLOR;
-    static std::array<float, 4> UNSELECT_COLOR;
-    static std::array<float, 4> UNSELECT_DARK_COLOR;
-    static std::array<float, 4> DEFAULT_COLOR;
-    static std::array<float, 4> LINE_BOTTOM_COLOR;
-    static std::array<float, 4> LINE_TOP_COLOR;
-    static std::array<float, 4> LINE_TOP_DARK_COLOR;
-    static std::array<float, 4> LINE_TOP_SEL_COLOR;
-    static std::array<float, 4> LINE_TOP_SEL_DARK_COLOR;
-    static std::array<float, 4> HEIGHT_LIMIT_BOTTOM_COLOR;
-    static std::array<float, 4> HEIGHT_LIMIT_TOP_COLOR;
+    static ColorRGBA SELECT_COLOR;
+    static ColorRGBA UNSELECT_COLOR;
+    static ColorRGBA UNSELECT_DARK_COLOR;
+    static ColorRGBA DEFAULT_COLOR;
+    static ColorRGBA LINE_BOTTOM_COLOR;
+    static ColorRGBA LINE_TOP_COLOR;
+    static ColorRGBA LINE_TOP_DARK_COLOR;
+    static ColorRGBA LINE_TOP_SEL_COLOR;
+    static ColorRGBA LINE_TOP_SEL_DARK_COLOR;
+    static ColorRGBA HEIGHT_LIMIT_BOTTOM_COLOR;
+    static ColorRGBA HEIGHT_LIMIT_TOP_COLOR;
 
     static void update_render_colors();
     static void load_render_colors();

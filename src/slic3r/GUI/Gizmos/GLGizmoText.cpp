@@ -445,7 +445,7 @@ void GLGizmoText::on_render()
 
         m_grabbers[0].center       = m_mouse_position_world;
         m_grabbers[0].enabled      = true;
-        std::array<float, 4> color = picking_color_component(0);
+        ColorRGBA color = picking_color_component(0);
         m_grabbers[0].color        = color;
         m_grabbers[0].render_for_picking(mean_size);
     }
@@ -490,7 +490,7 @@ void GLGizmoText::on_render_for_picking()
             float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
             m_grabbers[0].center       = m_mouse_position_world;
             m_grabbers[0].enabled      = true;
-            std::array<float, 4> color = picking_color_component(0);
+            ColorRGBA color = picking_color_component(0);
             m_grabbers[0].color        = color;
             m_grabbers[0].render_for_picking(mean_size);
         }

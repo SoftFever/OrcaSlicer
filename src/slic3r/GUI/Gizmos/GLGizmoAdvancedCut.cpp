@@ -28,8 +28,6 @@ const float UndefFloat = -999.f;
 
 // connector colors
 
-using ColorRGBA = std::array<float, 4>;
-
 static const ColorRGBA BLACK() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
 static const ColorRGBA BLUE() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
 static const ColorRGBA BLUEISH() { return {0.5f, 0.5f, 1.0f, 1.0f}; }
@@ -103,8 +101,8 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
 
 const double GLGizmoAdvancedCut::Offset = 10.0;
 const double GLGizmoAdvancedCut::Margin = 20.0;
-const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
-const std::array<float, 4> GLGizmoAdvancedCut::GrabberHoverColor = { 0.7, 0.7, 0.0, 1.0};
+const ColorRGBA GLGizmoAdvancedCut::GrabberColor      = { 1.0f, 1.0f, 0.0f, 1.0f };
+const ColorRGBA GLGizmoAdvancedCut::GrabberHoverColor = { 0.7f, 0.7f, 0.0f, 1.0f };
 
 GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoRotate3D(parent, icon_filename, sprite_id, nullptr)
@@ -525,11 +523,7 @@ void GLGizmoAdvancedCut::on_render_for_picking()
     float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 #endif
 
-    std::array<float, 4> color = picking_color_component(0);
-    m_move_grabber.color[0] = color[0];
-    m_move_grabber.color[1] = color[1];
-    m_move_grabber.color[2] = color[2];
-    m_move_grabber.color[3] = color[3];
+    m_move_grabber.color = picking_color_component(0);
     m_move_grabber.render_for_picking(mean_size);
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -564,7 +558,7 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
 
-        std::array<float, 4> color = picking_color_component(i+1);
+        ColorRGBA color = picking_color_component(i+1);
         render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
     }
 }
@@ -919,7 +913,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     // m_move_grabber.hover_color = GrabberHoverColor;
     // m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
     bool hover = (m_hover_id == get_group_id());
-    std::array<float, 4> render_color;
+    ColorRGBA render_color;
     if (hover) {
         render_color = GrabberHoverColor;
     }
@@ -1036,7 +1030,7 @@ void GLGizmoAdvancedCut::render_cut_line()
     glDisable(GL_LINE_STIPPLE);
 }
 
-void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
+void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA &color, Transform3d view_model_matrix, bool for_picking)
 {
     glPushMatrix();
     GLShaderProgram *shader = nullptr;

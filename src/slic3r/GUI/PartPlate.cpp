@@ -64,17 +64,17 @@ namespace GUI {
 
 class Bed3D;
 
-std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
-std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
-std::array<float, 4> PartPlate::UNSELECT_DARK_COLOR		= { 0.384f, 0.384f, 0.412f, 1.0f };
-std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_DARK_COLOR		= { 0.431f, 0.431f, 0.463f, 1.0f };
-std::array<float, 4> PartPlate::LINE_TOP_SEL_COLOR  = { 0.5294f, 0.5451, 0.5333f, 1.0f};
-std::array<float, 4> PartPlate::LINE_TOP_SEL_DARK_COLOR = { 0.298f, 0.298f, 0.3333f, 1.0f};
-std::array<float, 4> PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
-std::array<float, 4> PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
-std::array<float, 4> PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
+ColorRGBA PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
+ColorRGBA PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
+ColorRGBA PartPlate::UNSELECT_DARK_COLOR		= { 0.384f, 0.384f, 0.412f, 1.0f };
+ColorRGBA PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
+ColorRGBA PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
+ColorRGBA PartPlate::LINE_TOP_DARK_COLOR		= { 0.431f, 0.431f, 0.463f, 1.0f };
+ColorRGBA PartPlate::LINE_TOP_SEL_COLOR  = { 0.5294f, 0.5451, 0.5333f, 1.0f};
+ColorRGBA PartPlate::LINE_TOP_SEL_DARK_COLOR = { 0.298f, 0.298f, 0.3333f, 1.0f};
+ColorRGBA PartPlate::LINE_BOTTOM_COLOR	= { 0.8f, 0.8f, 0.8f, 0.4f };
+ColorRGBA PartPlate::HEIGHT_LIMIT_TOP_COLOR		= { 0.6f, 0.6f, 1.0f, 1.0f };
+ColorRGBA PartPlate::HEIGHT_LIMIT_BOTTOM_COLOR	= { 0.4f, 0.4f, 1.0f, 1.0f };
 
 // get text extent with wxMemoryDC
 void get_text_extent(const wxString &msg, wxCoord &w, wxCoord &h, wxFont *font)
@@ -116,20 +116,20 @@ wxFont* find_font(const std::string& text_str, int max_size = 32)
 }
 void PartPlate::update_render_colors()
 {
-	PartPlate::SELECT_COLOR			= GLColor(RenderColor::colors[RenderCol_Plate_Selected]);
-	PartPlate::UNSELECT_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Unselected]);
-	PartPlate::DEFAULT_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Default]);
-	PartPlate::LINE_TOP_COLOR		= GLColor(RenderColor::colors[RenderCol_Plate_Line_Top]);
-	PartPlate::LINE_BOTTOM_COLOR	= GLColor(RenderColor::colors[RenderCol_Plate_Line_Bottom]);
+	PartPlate::SELECT_COLOR			= ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Selected]);
+    PartPlate::UNSELECT_COLOR		= ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Unselected]);
+    PartPlate::DEFAULT_COLOR        = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Default]);
+    PartPlate::LINE_TOP_COLOR       = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Line_Top]);
+    PartPlate::LINE_BOTTOM_COLOR    = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Plate_Line_Bottom]);
 }
 
 void PartPlate::load_render_colors()
 {
-	RenderColor::colors[RenderCol_Plate_Selected] = IMColor(SELECT_COLOR);
-	RenderColor::colors[RenderCol_Plate_Unselected] = IMColor(UNSELECT_COLOR);
-	RenderColor::colors[RenderCol_Plate_Default] = IMColor(DEFAULT_COLOR);
-	RenderColor::colors[RenderCol_Plate_Line_Top] = IMColor(LINE_TOP_COLOR);
-	RenderColor::colors[RenderCol_Plate_Line_Bottom] = IMColor(LINE_BOTTOM_COLOR);
+    RenderColor::colors[RenderCol_Plate_Selected]    = ImGuiWrapper::to_ImVec4(SELECT_COLOR);
+    RenderColor::colors[RenderCol_Plate_Unselected]  = ImGuiWrapper::to_ImVec4(UNSELECT_COLOR);
+    RenderColor::colors[RenderCol_Plate_Default]     = ImGuiWrapper::to_ImVec4(DEFAULT_COLOR);
+    RenderColor::colors[RenderCol_Plate_Line_Top]    = ImGuiWrapper::to_ImVec4(LINE_TOP_COLOR);
+    RenderColor::colors[RenderCol_Plate_Line_Bottom] = ImGuiWrapper::to_ImVec4(LINE_BOTTOM_COLOR);
 }
 
 
@@ -708,9 +708,9 @@ void PartPlate::render_exclude_area(bool force_default_color) const {
 		return;
 
 	unsigned int triangles_vcount = m_exclude_triangles.get_vertices_count();
-	std::array<float, 4> select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
-	std::array<float, 4> unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
-	std::array<float, 4> default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA select_color{ 0.765f, 0.7686f, 0.7686f, 1.0f };
+	ColorRGBA unselect_color{ 0.9f, 0.9f, 0.9f, 1.0f };
+	ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
 
 	// draw exclude area
 	glsafe(::glDepthMask(GL_FALSE));
@@ -729,7 +729,7 @@ void PartPlate::render_exclude_area(bool force_default_color) const {
 }
 
 
-/*void PartPlate::render_background_for_picking(const float* render_color) const
+/*void PartPlate::render_background_for_picking(const ColorRGBA render_color) const
 {
 	unsigned int triangles_vcount = m_triangles.get_vertices_count();
 
@@ -1000,13 +1000,13 @@ void PartPlate::render_only_numbers(bool bottom) const
     }
 }
 
-void PartPlate::render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const
+void PartPlate::render_rectangle_for_picking(const GeometryBuffer &buffer, const ColorRGBA render_color) const
 {
 	unsigned int triangles_vcount = buffer.get_vertices_count();
 
 	//glsafe(::glDepthMask(GL_FALSE));
 	glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-	glsafe(::glColor4fv(render_color));
+	glsafe(::glColor4fv(render_color.data()));
 	glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
 	glsafe(::glVertexPointer(3, GL_FLOAT, buffer.get_vertex_data_size(), (GLvoid*)buffer.get_vertices_data()));
 	glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
@@ -1058,14 +1058,14 @@ void PartPlate::render_label(GLCanvas3D& canvas) const {
 
 }
 
-void PartPlate::render_grabber(const float* render_color, bool use_lighting) const
+void PartPlate::render_grabber(const ColorRGBA render_color, bool use_lighting) const
 {
 	BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
 	const Vec3d& center = m_grabber_box.center();
 
 	if (use_lighting)
 		glsafe(::glEnable(GL_LIGHTING));
-	glsafe(::glColor4fv(render_color));
+	glsafe(::glColor4fv(render_color.data()));
 	glsafe(::glPushMatrix());
 
 	glsafe(::glTranslated(center(0), center(1), center(2)));
@@ -1138,7 +1138,7 @@ void PartPlate::render_face(float x_size, float y_size) const
 	glsafe(::glEnd());
 }
 
-void PartPlate::render_arrows(const float* render_color, bool use_lighting) const
+void PartPlate::render_arrows(const ColorRGBA render_color, bool use_lighting) const
 {
 #if 0
 	if (m_quadric == nullptr)
@@ -1176,7 +1176,7 @@ void PartPlate::render_arrows(const float* render_color, bool use_lighting) cons
 #endif
 }
 
-void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) const
+void PartPlate::render_left_arrow(const ColorRGBA render_color, bool use_lighting) const
 {
 #if 0
 	if (m_quadric == nullptr)
@@ -1203,7 +1203,7 @@ void PartPlate::render_left_arrow(const float* render_color, bool use_lighting) 
 		glsafe(::glDisable(GL_LIGHTING));
 #endif
 }
-void PartPlate::render_right_arrow(const float* render_color, bool use_lighting) const
+void PartPlate::render_right_arrow(const ColorRGBA render_color, bool use_lighting) const
 {
 #if 0
 	if (m_quadric == nullptr)
@@ -1233,58 +1233,40 @@ void PartPlate::render_right_arrow(const float* render_color, bool use_lighting)
 void PartPlate::on_render_for_picking() const {
 	//glsafe(::glDisable(GL_DEPTH_TEST));
 	int hover_id = 0;
-	std::array<float, 4> color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+	ColorRGBA color	= picking_color_component(hover_id);
+    m_grabber_color = color;
 	//render_grabber(m_grabber_color, false);
 	render_rectangle_for_picking(m_triangles, m_grabber_color);
 	hover_id = 1;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+    color           = picking_color_component(hover_id);
+    m_grabber_color = color;
 	//render_left_arrow(m_grabber_color, false);
 	render_rectangle_for_picking(m_del_icon, m_grabber_color);
 	hover_id = 2;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+    color           = picking_color_component(hover_id);
+    m_grabber_color = color;
 	render_rectangle_for_picking(m_orient_icon, m_grabber_color);
     hover_id = 3;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+    color           = picking_color_component(hover_id);
+    m_grabber_color = color;
 	render_rectangle_for_picking(m_arrange_icon, m_grabber_color);
 	hover_id = 4;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+    color           = picking_color_component(hover_id);
+    m_grabber_color = color;
 	//render_right_arrow(m_grabber_color, false);
 	render_rectangle_for_picking(m_lock_icon, m_grabber_color);
 	hover_id = 5;
-	color = picking_color_component(hover_id);
-	m_grabber_color[0] = color[0];
-	m_grabber_color[1] = color[1];
-	m_grabber_color[2] = color[2];
-	m_grabber_color[3] = color[3];
+    color           = picking_color_component(hover_id);
+    m_grabber_color = color;
     if (m_partplate_list->render_plate_settings)
         render_rectangle_for_picking(m_plate_settings_icon, m_grabber_color);
 }
 
-std::array<float, 4> PartPlate::picking_color_component(int idx) const
+ColorRGBA PartPlate::picking_color_component(int idx) const
 {
 	static const float INV_255 = 1.0f / 255.0f;
 	unsigned int id = PLATE_BASE_ID - this->m_plate_index * GRABBER_COUNT - idx;
-	return std::array<float, 4> {
+	return ColorRGBA {
 		float((id >> 0) & 0xff)* INV_255, // red
 			float((id >> 8) & 0xff)* INV_255, // greeen
 			float((id >> 16) & 0xff)* INV_255, // blue

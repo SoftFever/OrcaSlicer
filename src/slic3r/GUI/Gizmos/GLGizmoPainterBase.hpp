@@ -84,8 +84,8 @@ public:
     };
 
     // BBS
-    static constexpr std::array<float, 4> enforcers_color{ 0.5f, 1.f, 0.5f, 1.f };
-    static constexpr std::array<float, 4> blockers_color{ 1.f, 0.5f, 0.5f, 1.f };
+    static ColorRGBA enforcers_color;
+    static ColorRGBA blockers_color;
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
@@ -98,7 +98,7 @@ protected:
     // BBS
     bool m_paint_changed = true;
 
-    static std::array<float, 4> get_seed_fill_color(const std::array<float, 4> &base_color);
+    static ColorRGBA get_seed_fill_color(const ColorRGBA &base_color);
 
 private:
     void update_render_data();
@@ -128,7 +128,7 @@ struct TrianglePatch {
 
 class TriangleSelectorPatch : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> ebt_colors, float edge_limit = 0.6f)
+    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<ColorRGBA> ebt_colors, float edge_limit = 0.6f)
         : TriangleSelectorGUI(mesh, edge_limit), m_ebt_colors(ebt_colors) {}
     virtual ~TriangleSelectorPatch() = default;
 
@@ -141,7 +141,7 @@ public:
     void update_selector_triangles();
     void update_triangles_per_patch();
 
-    void set_ebt_colors(const std::vector<std::array<float, 4>> ebt_colors) { m_ebt_colors = ebt_colors; }
+    void set_ebt_colors(const std::vector<ColorRGBA> ebt_colors) { m_ebt_colors = ebt_colors; }
     void set_filter_state(bool is_filter_state);
 
     constexpr static float GapAreaMin = 0.f;
@@ -195,7 +195,7 @@ protected:
     std::vector<unsigned int>   m_vertices_VBO_ids;
     std::vector<unsigned int>   m_triangle_indices_VBO_ids;
 
-    std::vector<std::array<float, 4>> m_ebt_colors;
+    std::vector<ColorRGBA> m_ebt_colors;
 
     bool                        m_filter_state = false;
 
@@ -247,10 +247,10 @@ protected:
     virtual void update_model_object() = 0;
     virtual void update_from_model_object(bool first_update) = 0;
 
-    virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
-    virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
+    virtual ColorRGBA get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
+    virtual ColorRGBA get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
     // BBS
-    virtual std::array<float, 4> get_cursor_hover_color() const { return { 0.f, 0.f, 0.f, 0.25f }; }
+    virtual ColorRGBA get_cursor_hover_color() const { return { 0.f, 0.f, 0.f, 0.25f }; }
 
     virtual EnforcerBlockerType get_left_button_state_type() const { return EnforcerBlockerType::ENFORCER; }
     virtual EnforcerBlockerType get_right_button_state_type() const { return EnforcerBlockerType::BLOCKER; }
