@@ -34,7 +34,6 @@ static const float SLIDER_BOTTOM_MARGIN = 64.0f;
 class GCodeViewer
 {
     using IBufferType = unsigned short;
-    using Color = std::array<float, 4>;
     using VertexBuffer = std::vector<float>;
     using MultiVertexBuffer = std::vector<VertexBuffer>;
     using IndexBuffer = std::vector<IBufferType>;
@@ -43,12 +42,12 @@ class GCodeViewer
     using InstanceIdBuffer = std::vector<size_t>;
     using InstancesOffsets = std::vector<Vec3f>;
 
-    static const std::vector<Color> Extrusion_Role_Colors;
-    static const std::vector<Color> Options_Colors;
-    static const std::vector<Color> Travel_Colors;
-    static const std::vector<Color> Range_Colors;
-    static const Color              Wipe_Color;
-    static const Color              Neutral_Color;
+    static const std::vector<ColorRGBA> Extrusion_Role_Colors;
+    static const std::vector<ColorRGBA> Options_Colors;
+    static const std::vector<ColorRGBA> Travel_Colors;
+    static const std::vector<ColorRGBA> Range_Colors;
+    static const ColorRGBA              Wipe_Color;
+    static const ColorRGBA              Neutral_Color;
 
     enum class EOptionsColors : unsigned char
     {
@@ -133,7 +132,7 @@ class GCodeViewer
                 // vbo id
                 unsigned int vbo{ 0 };
                 // Color to apply to the instances
-                Color color;
+                ColorRGBA color;
             };
 
             std::vector<Range> ranges;
@@ -256,7 +255,7 @@ class GCodeViewer
         // Index of the parent tbuffer
         unsigned char               tbuffer_id;
         // Render path property
-        Color                       color;
+        ColorRGBA                       color;
         // Index of the buffer in TBuffer::indices
         unsigned int                ibuffer_id;
         // Render path content
@@ -276,12 +275,10 @@ class GCodeViewer
         bool operator() (const RenderPath &l, const RenderPath &r) const {
             if (l.tbuffer_id < r.tbuffer_id)
                 return true;
-            for (int i = 0; i < 3; ++i) {
-                if (l.color[i] < r.color[i])
-                    return true;
-                else if (l.color[i] > r.color[i])
-                    return false;
-            }
+            if (l.color < r.color)
+                return true;
+            else if (l.color > r.color)
+                return false;
             return l.ibuffer_id < r.ibuffer_id;
         }
     };
@@ -312,7 +309,7 @@ class GCodeViewer
         struct Model
         {
             GLModel model;
-            Color color;
+            ColorRGBA color;
             InstanceVBuffer instances;
             GLModel::InitializationData data;
 
@@ -416,7 +413,7 @@ class GCodeViewer
             void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = log; }
 
             float step_size() const;
-            Color get_color_at(float value) const;
+            ColorRGBA get_color_at(float value) const;
             float get_value_at_step(int step) const;
 
         };
@@ -519,7 +516,7 @@ Range layer_duration_log;
         TBuffer* buffer{ nullptr };
         unsigned int ibo{ 0 };
         unsigned int vbo{ 0 };
-        Color color;
+        ColorRGBA color;
 
         ~SequentialRangeCap();
         bool is_renderable() const { return buffer != nullptr; }
@@ -717,7 +714,7 @@ public:
 
     struct ETools
     {
-        std::vector<Color> m_tool_colors;
+        std::vector<ColorRGBA> m_tool_colors;
         std::vector<bool>  m_tool_visibles;
     };
 
@@ -920,7 +917,7 @@ private:
     }
     bool is_visible(const Path& path) const { return is_visible(path.role); }
     void log_memory_used(const std::string& label, int64_t additional = 0) const;
-    Color option_color(EMoveType move_type) const;
+    ColorRGBA option_color(EMoveType move_type) const;
 };
 
 } // namespace GUI

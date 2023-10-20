@@ -23,7 +23,8 @@ namespace GUI {
 
 const double GLGizmoCut::Offset = 10.0;
 const double GLGizmoCut::Margin = 20.0;
-const std::array<float, 4> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0, 1.0 };
+static const ColorRGBA GRABBER_COLOR = ColorRGBA::ORANGE();
+static const ColorRGBA PLANE_COLOR   = { 0.8f, 0.8f, 0.8f, 0.5f };
 
 GLGizmoCut::GLGizmoCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -103,7 +104,7 @@ void GLGizmoCut::on_render()
 
     // Draw the cutting plane
     ::glBegin(GL_QUADS);
-    ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glColor4fv(PLANE_COLOR.data());
     ::glVertex3f(min_x, min_y, plane_center.z());
     ::glVertex3f(max_x, min_y, plane_center.z());
     ::glVertex3f(max_x, max_y, plane_center.z());
@@ -134,7 +135,7 @@ void GLGizmoCut::on_render()
     shader->start_using();
     shader->set_uniform("emission_factor", 0.1f);
 
-    m_grabbers[0].color = GrabberColor;
+    m_grabbers[0].color = GRABBER_COLOR;
     m_grabbers[0].render(m_hover_id == 0, (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0));
 
     shader->stop_using();

@@ -165,7 +165,7 @@ bool GLModel::init_from_file(const std::string& filename)
     return true;
 }
 
-void GLModel::set_color(int entity_id, const std::array<float, 4>& color)
+void GLModel::set_color(int entity_id, const ColorRGBA& color)
 {
     for (size_t i = 0; i < m_render_data.size(); ++i) {
         if (entity_id == -1 || static_cast<int>(i) == entity_id)

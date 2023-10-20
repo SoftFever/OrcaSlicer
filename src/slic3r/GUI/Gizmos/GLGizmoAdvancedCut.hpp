@@ -27,8 +27,8 @@ struct Rotate_data {
 private:
     static const double Offset;
     static const double Margin;
-    static const std::array<float, 4> GrabberColor;
-    static const std::array<float, 4> GrabberHoverColor;
+    static const ColorRGBA GrabberColor;
+    static const ColorRGBA GrabberHoverColor;
 
     mutable double m_movement;
     mutable double m_height;  // height of cut plane to heatbed
@@ -201,7 +201,7 @@ private:
     void render_connectors();
     void render_clipper_cut();
     void render_cut_line();
-    void render_connector_model(GLModel &model, const std::array<float, 4>& color, Transform3d view_model_matrix, bool for_picking = false);
+    void render_connector_model(GLModel &model, const ColorRGBA& color, Transform3d view_model_matrix, bool for_picking = false);
 
     void clear_selection();
     void init_connector_shapes();

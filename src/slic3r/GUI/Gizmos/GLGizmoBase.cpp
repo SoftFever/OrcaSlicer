@@ -21,51 +21,51 @@ const float GLGizmoBase::Grabber::FixedGrabberSize = 16.0f;
 const float GLGizmoBase::Grabber::FixedRadiusSize = 80.0f;
 
 
-std::array<float, 4> GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
-std::array<float, 4> GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
-std::array<float, 4> GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = { 1.0f, 0.38f, 0.0f, 1.0f };
-std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_HOVER_COLOR = {{
+ColorRGBA GLGizmoBase::DEFAULT_BASE_COLOR = { 0.625f, 0.625f, 0.625f, 1.0f };
+ColorRGBA GLGizmoBase::DEFAULT_DRAG_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
+ColorRGBA GLGizmoBase::DEFAULT_HIGHLIGHT_COLOR = {1.0f, 0.38f, 0.0f, 1.0f};
+std::array<ColorRGBA, 3> GLGizmoBase::AXES_HOVER_COLOR = {{
                                                                 { 0.7f, 0.0f, 0.0f, 1.0f },
                                                                 { 0.0f, 0.7f, 0.0f, 1.0f },
                                                                 { 0.0f, 0.0f, 0.7f, 1.0f }
                                                                 }};
 
-std::array<std::array<float, 4>, 3> GLGizmoBase::AXES_COLOR = { {
+std::array<ColorRGBA, 3> GLGizmoBase::AXES_COLOR = {{
                                                                 { 1.0, 0.0f, 0.0f, 1.0f },
                                                                 { 0.0f, 1.0f, 0.0f, 1.0f },
                                                                 { 0.0f, 0.0f, 1.0f, 1.0f }
                                                                 }};
 
-std::array<float, 4> GLGizmoBase::CONSTRAINED_COLOR = { 0.5f, 0.5f, 0.5f, 1.0f };
-std::array<float, 4> GLGizmoBase::FLATTEN_COLOR = { 0.96f, 0.93f, 0.93f, 0.5f };
-std::array<float, 4> GLGizmoBase::FLATTEN_HOVER_COLOR = { 1.0f, 1.0f, 1.0f, 0.75f };
+ColorRGBA            GLGizmoBase::CONSTRAINED_COLOR   = {0.5f, 0.5f, 0.5f, 1.0f};
+ColorRGBA            GLGizmoBase::FLATTEN_COLOR       = {0.96f, 0.93f, 0.93f, 0.5f};
+ColorRGBA            GLGizmoBase::FLATTEN_HOVER_COLOR = {1.0f, 1.0f, 1.0f, 0.75f};
 
 // new style color
-std::array<float, 4> GLGizmoBase::GRABBER_NORMAL_COL = {1.0f, 1.0f, 1.0f, 1.0f};
-std::array<float, 4> GLGizmoBase::GRABBER_HOVER_COL  = {0.863f, 0.125f, 0.063f, 1.0f};
-std::array<float, 4> GLGizmoBase::GRABBER_UNIFORM_COL = {0, 1.0, 1.0, 1.0f};
-std::array<float, 4> GLGizmoBase::GRABBER_UNIFORM_HOVER_COL = {0, 0.7, 0.7, 1.0f};
+ColorRGBA            GLGizmoBase::GRABBER_NORMAL_COL        = {1.0f, 1.0f, 1.0f, 1.0f};
+ColorRGBA            GLGizmoBase::GRABBER_HOVER_COL         = {0.863f, 0.125f, 0.063f, 1.0f};
+ColorRGBA            GLGizmoBase::GRABBER_UNIFORM_COL       = {0, 1.0, 1.0, 1.0f};
+ColorRGBA            GLGizmoBase::GRABBER_UNIFORM_HOVER_COL = {0, 0.7, 0.7, 1.0f};
 
 
 void GLGizmoBase::update_render_colors()
 {
     GLGizmoBase::AXES_COLOR = { {
-                                GLColor(RenderColor::colors[RenderCol_Grabber_X]),
-                                GLColor(RenderColor::colors[RenderCol_Grabber_Y]),
-                                GLColor(RenderColor::colors[RenderCol_Grabber_Z])
+                                ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Grabber_X]),
+                                ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Grabber_Y]),
+                                ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Grabber_Z])
                                 } };
 
-    GLGizmoBase::FLATTEN_COLOR = GLColor(RenderColor::colors[RenderCol_Flatten_Plane]);
-    GLGizmoBase::FLATTEN_HOVER_COLOR = GLColor(RenderColor::colors[RenderCol_Flatten_Plane_Hover]);
+    GLGizmoBase::FLATTEN_COLOR       = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Flatten_Plane]);
+    GLGizmoBase::FLATTEN_HOVER_COLOR = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Flatten_Plane_Hover]);
 }
 
 void GLGizmoBase::load_render_colors()
 {
-    RenderColor::colors[RenderCol_Grabber_X] = IMColor(GLGizmoBase::AXES_COLOR[0]);
-    RenderColor::colors[RenderCol_Grabber_Y] = IMColor(GLGizmoBase::AXES_COLOR[1]);
-    RenderColor::colors[RenderCol_Grabber_Z] = IMColor(GLGizmoBase::AXES_COLOR[2]);
-    RenderColor::colors[RenderCol_Flatten_Plane] = IMColor(GLGizmoBase::FLATTEN_COLOR);
-    RenderColor::colors[RenderCol_Flatten_Plane_Hover] = IMColor(GLGizmoBase::FLATTEN_HOVER_COLOR);
+    RenderColor::colors[RenderCol_Grabber_X]           = ImGuiWrapper::to_ImVec4(GLGizmoBase::AXES_COLOR[0]);
+    RenderColor::colors[RenderCol_Grabber_Y]           = ImGuiWrapper::to_ImVec4(GLGizmoBase::AXES_COLOR[1]);
+    RenderColor::colors[RenderCol_Grabber_Z]           = ImGuiWrapper::to_ImVec4(GLGizmoBase::AXES_COLOR[2]);
+    RenderColor::colors[RenderCol_Flatten_Plane]       = ImGuiWrapper::to_ImVec4(GLGizmoBase::FLATTEN_COLOR);
+    RenderColor::colors[RenderCol_Flatten_Plane_Hover] = ImGuiWrapper::to_ImVec4(GLGizmoBase::FLATTEN_HOVER_COLOR);
 }
 
 GLGizmoBase::Grabber::Grabber()
@@ -80,7 +80,7 @@ GLGizmoBase::Grabber::Grabber()
 
 void GLGizmoBase::Grabber::render(bool hover, float size) const
 {
-    std::array<float, 4> render_color;
+    ColorRGBA render_color;
     if (hover) {
         render_color = hover_color;
     }
@@ -113,7 +113,7 @@ const GLModel& GLGizmoBase::Grabber::get_cube() const
     return cube;
 }
 
-void GLGizmoBase::Grabber::render(float size, const std::array<float, 4>& render_color, bool picking) const
+void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking) const
 {
     if (! cube_initialized) {
         // This cannot be done in constructor, OpenGL is not yet
@@ -179,10 +179,6 @@ void GLGizmoBase::set_hover_id(int id)
     }
 }
 
-void GLGizmoBase::set_highlight_color(const std::array<float, 4>& color)
-{
-    m_highlight_color = color;
-}
 
 void GLGizmoBase::enable_grabber(unsigned int id)
 {
@@ -265,22 +261,13 @@ void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float 
     m_imgui->set_next_window_pos(x, y, flag, pivot_x, pivot_y);
 }
 
-std::array<float, 4> GLGizmoBase::picking_color_component(unsigned int id) const
+ColorRGBA GLGizmoBase::picking_color_component(unsigned int id) const
 {
-    static const float INV_255 = 1.0f / 255.0f;
-
     id = BASE_ID - id;
-
     if (m_group_id > -1)
         id -= m_group_id;
 
-    // color components are encoded to match the calculation of volume_id made into GLCanvas3D::_picking_pass()
-    return std::array<float, 4> {
-		float((id >> 0) & 0xff) * INV_255, // red
-		float((id >> 8) & 0xff) * INV_255, // green
-		float((id >> 16) & 0xff) * INV_255, // blue
-		float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255 // checksum for validating against unwanted alpha blending and multi sampling
-	};
+    return picking_decode(id);
 }
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
@@ -316,8 +303,7 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
-            std::array<float, 4> color = picking_color_component(i);
-            m_grabbers[i].color = color;
+            m_grabbers[i].color = picking_color_component(i);
             m_grabbers[i].render_for_picking(mean_size);
         }
     }
@@ -353,24 +339,6 @@ std::string GLGizmoBase::get_name(bool include_shortcut) const
         out += std::string(" [") + char(int('A') + key - int(WXK_CONTROL_A)) + "]";
     return out;
 }
-
-
-
-// Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
-// were not interpolated by alpha blending or multi sampling.
-unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue)
-{
-	// 8 bit hash for the color
-	unsigned char b = ((((37 * red) + green) & 0x0ff) * 37 + blue) & 0x0ff;
-	// Increase enthropy by a bit reversal
-	b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-	b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-	b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-	// Flip every second bit to increase the enthropy even more.
-	b ^= 0x55;
-	return b;
-}
-
 
 } // namespace GUI
 } // namespace Slic3r

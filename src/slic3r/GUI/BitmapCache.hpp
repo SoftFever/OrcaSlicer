@@ -9,9 +9,11 @@
     #include <wx/wx.h>
 #endif
 
+#include "libslic3r/Color.hpp"
 struct NSVGimage;
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r { 
+namespace GUI {
 
 class BitmapCache
 {
@@ -44,11 +46,8 @@ public:
     wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, const bool grayscale = false, const bool dark_mode = false, const std::string& new_color = "", const float scale_in_center = 0.f);
 
 	wxBitmap 		mksolid(size_t width, size_t height, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, bool suppress_scaling = false, size_t border_width = 0, bool dark_mode = false);
-	wxBitmap 		mksolid(size_t width, size_t height, const unsigned char rgb[3], bool suppress_scaling = false, size_t border_width = 0, bool dark_mode = false) { return mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE, suppress_scaling, border_width, dark_mode); }
+	wxBitmap 		mksolid(size_t width, size_t height, const ColorRGB& rgb, bool suppress_scaling = false, size_t border_width = 0, bool dark_mode = false) { return mksolid(width, height, rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar(), wxALPHA_OPAQUE, suppress_scaling, border_width, dark_mode); }
 	wxBitmap 		mkclear(size_t width, size_t height) { return mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT); }
-
-	static bool     parse_color(const std::string& scolor, unsigned char* rgb_out);
-	static bool     parse_color4(const std::string& scolor, unsigned char* rgba_out);
 
 private:
     std::map<std::string, wxBitmap*>	m_map;

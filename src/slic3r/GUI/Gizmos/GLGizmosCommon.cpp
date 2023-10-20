@@ -221,8 +221,8 @@ void InstancesHider::render_cut() const
         if (mv->is_model_part())
             glsafe(::glColor3f(0.8f, 0.3f, 0.0f));
         else {
-            const std::array<float, 4>& c = color_from_model_volume(*mv);
-            glsafe(::glColor4f(c[0], c[1], c[2], c[3]));
+            const ColorRGBA color = color_from_model_volume(*mv);
+            glsafe(::glColor4fv(color.data()));
         }
         glsafe(::glPushAttrib(GL_DEPTH_TEST));
         glsafe(::glDisable(GL_DEPTH_TEST));

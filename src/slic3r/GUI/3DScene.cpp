@@ -70,36 +70,27 @@ void glAssertRecentCallImpl(const char* file_name, unsigned int line, const char
 #endif // HAS_GLSAFE
 
 // BBS
-std::vector<std::array<float, 4>> get_extruders_colors()
+std::vector<Slic3r::ColorRGBA> get_extruders_colors()
 {
-    unsigned char                     rgba_color[4] = {};
-    std::vector<std::string>          colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    std::vector<std::array<float, 4>> colors_out(colors.size());
+    Slic3r::ColorRGBA              rgba_color;
+    std::vector<std::string>       colors        = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<Slic3r::ColorRGBA> colors_out(colors.size());
     for (const std::string &color : colors) {
-        Slic3r::GUI::BitmapCache::parse_color4(color, rgba_color);
+        Slic3r::decode_color(color, rgba_color);
         size_t color_idx      = &color - &colors.front();
-        colors_out[color_idx] = {
-            float(rgba_color[0]) / 255.f,
-            float(rgba_color[1]) / 255.f,
-            float(rgba_color[2]) / 255.f,
-            float(rgba_color[3]) / 255.f,
-        };
+        colors_out[color_idx] = rgba_color;
     }
 
     return colors_out;
 }
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
-std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colors)
+
+Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 {
-   if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
-                std::array<float, 4> new_color;
-                new_color[0] = 1;
-                new_color[1] = 1;
-                new_color[2] = 1;
-                new_color[3] = FullTransparentModdifiedToFixAlpha;
-                return new_color;
-    } 
+    if (colors.a() < FullyTransparentMaterialThreshold) { // completely transparent
+        return {1, 1, 1, FullTransparentModdifiedToFixAlpha};
+    }
     return colors;
 }
 
@@ -383,21 +374,21 @@ void GLVolume::SinkingContours::update()
         m_model.reset();
 }
 
-std::array<float, 4> GLVolume::DISABLED_COLOR    = { 0.25f, 0.25f, 0.25f, 1.0f };
-std::array<float, 4> GLVolume::SLA_SUPPORT_COLOR = { 0.75f, 0.75f, 0.75f, 1.0f };
-std::array<float, 4> GLVolume::SLA_PAD_COLOR     = { 0.0f, 0.2f, 0.0f, 1.0f };
+ColorRGBA GLVolume::DISABLED_COLOR    = ColorRGBA::DARK_GRAY();
+ColorRGBA GLVolume::SLA_SUPPORT_COLOR = ColorRGBA::LIGHT_GRAY();
+ColorRGBA GLVolume::SLA_PAD_COLOR     = { 0.0f, 0.2f, 0.0f, 1.0f };
 // BBS
-std::array<float, 4> GLVolume::NEUTRAL_COLOR     = { 0.8f, 0.8f, 0.8f, 1.0f };
-std::array<float, 4> GLVolume::UNPRINTABLE_COLOR = { 0.0f, 0.0f, 0.0f, 0.5f };
+ColorRGBA GLVolume::NEUTRAL_COLOR     = { 0.8f, 0.8f, 0.8f, 1.0f };
+ColorRGBA GLVolume::UNPRINTABLE_COLOR = { 0.0f, 0.0f, 0.0f, 0.5f };
 
-std::array<float, 4> GLVolume::MODEL_MIDIFIER_COL   = {1.0f, 1.0f, 0.0f, 0.6f};
-std::array<float, 4> GLVolume::MODEL_NEGTIVE_COL    = {0.3f, 0.3f, 0.3f, 0.4f};
-std::array<float, 4> GLVolume::SUPPORT_ENFORCER_COL = {0.3f, 0.3f, 1.0f, 0.4f};
-std::array<float, 4> GLVolume::SUPPORT_BLOCKER_COL  = {1.0f, 0.3f, 0.3f, 0.4f};
+ColorRGBA GLVolume::MODEL_MIDIFIER_COL   = {1.0f, 1.0f, 0.0f, 0.6f};
+ColorRGBA GLVolume::MODEL_NEGTIVE_COL    = {0.3f, 0.3f, 0.3f, 0.4f};
+ColorRGBA GLVolume::SUPPORT_ENFORCER_COL = {0.3f, 0.3f, 1.0f, 0.4f};
+ColorRGBA GLVolume::SUPPORT_BLOCKER_COL  = {1.0f, 0.3f, 0.3f, 0.4f};
 
-std::array<float, 4> GLVolume::MODEL_HIDDEN_COL  = {0.f, 0.f, 0.f, 0.3f};
+ColorRGBA GLVolume::MODEL_HIDDEN_COL  = {0.f, 0.f, 0.f, 0.3f};
 
-std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
+std::array<ColorRGBA, 5> GLVolume::MODEL_COLOR = { {
     { 1.0f, 1.0f, 0.0f, 1.f },
     { 1.0f, 0.5f, 0.5f, 1.f },
     { 0.5f, 1.0f, 0.5f, 1.f },
@@ -407,25 +398,25 @@ std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
 
 void GLVolume::update_render_colors()
 {
-    GLVolume::DISABLED_COLOR    = GLColor(RenderColor::colors[RenderCol_Model_Disable]);
-    GLVolume::NEUTRAL_COLOR     = GLColor(RenderColor::colors[RenderCol_Model_Neutral]);
-    GLVolume::MODEL_COLOR[0]    = GLColor(RenderColor::colors[RenderCol_Modifier]);
-    GLVolume::MODEL_COLOR[1]    = GLColor(RenderColor::colors[RenderCol_Negtive_Volume]);
-    GLVolume::MODEL_COLOR[2]    = GLColor(RenderColor::colors[RenderCol_Support_Enforcer]);
-    GLVolume::MODEL_COLOR[3]    = GLColor(RenderColor::colors[RenderCol_Support_Blocker]);
-    GLVolume::UNPRINTABLE_COLOR = GLColor(RenderColor::colors[RenderCol_Model_Unprintable]);
+    GLVolume::DISABLED_COLOR    = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Model_Disable]);
+    GLVolume::NEUTRAL_COLOR     = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Model_Neutral]);
+    GLVolume::MODEL_COLOR[0]    = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Modifier]);
+    GLVolume::MODEL_COLOR[1]    = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Negtive_Volume]);
+    GLVolume::MODEL_COLOR[2]    = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Support_Enforcer]);
+    GLVolume::MODEL_COLOR[3]    = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Support_Blocker]);
+    GLVolume::UNPRINTABLE_COLOR = GUI::ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Model_Unprintable]);
 
 }
 
 void GLVolume::load_render_colors()
 {
-    RenderColor::colors[RenderCol_Model_Disable]    = IMColor(GLVolume::DISABLED_COLOR);
-    RenderColor::colors[RenderCol_Model_Neutral]    = IMColor(GLVolume::NEUTRAL_COLOR);
-    RenderColor::colors[RenderCol_Modifier]         = IMColor(GLVolume::MODEL_COLOR[0]);
-    RenderColor::colors[RenderCol_Negtive_Volume]   = IMColor(GLVolume::MODEL_COLOR[1]);
-    RenderColor::colors[RenderCol_Support_Enforcer] = IMColor(GLVolume::MODEL_COLOR[2]);
-    RenderColor::colors[RenderCol_Support_Blocker]  = IMColor(GLVolume::MODEL_COLOR[3]);
-    RenderColor::colors[RenderCol_Model_Unprintable]= IMColor(GLVolume::UNPRINTABLE_COLOR);
+    RenderColor::colors[RenderCol_Model_Disable]    = GUI::ImGuiWrapper::to_ImVec4(GLVolume::DISABLED_COLOR);
+    RenderColor::colors[RenderCol_Model_Neutral]    = GUI::ImGuiWrapper::to_ImVec4(GLVolume::NEUTRAL_COLOR);
+    RenderColor::colors[RenderCol_Modifier]         = GUI::ImGuiWrapper::to_ImVec4(GLVolume::MODEL_COLOR[0]);
+    RenderColor::colors[RenderCol_Negtive_Volume]   = GUI::ImGuiWrapper::to_ImVec4(GLVolume::MODEL_COLOR[1]);
+    RenderColor::colors[RenderCol_Support_Enforcer] = GUI::ImGuiWrapper::to_ImVec4(GLVolume::MODEL_COLOR[2]);
+    RenderColor::colors[RenderCol_Support_Blocker]   = GUI::ImGuiWrapper::to_ImVec4(GLVolume::MODEL_COLOR[3]);
+    RenderColor::colors[RenderCol_Model_Unprintable] = GUI::ImGuiWrapper::to_ImVec4(GLVolume::UNPRINTABLE_COLOR);
 }
 
 GLVolume::GLVolume(float r, float g, float b, float a)
@@ -459,24 +450,10 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     mmuseg_ts = 0;
 }
 
-void GLVolume::set_color(const std::array<float, 4>& rgba)
-{
-    color = rgba;
-}
 
 // BBS
 float GLVolume::explosion_ratio = 1.0;
 float GLVolume::last_explosion_ratio = 1.0;
-
-void GLVolume::set_render_color(float r, float g, float b, float a)
-{
-    render_color = { r, g, b, a };
-}
-
-void GLVolume::set_render_color(const std::array<float, 4>& rgba)
-{
-    render_color = rgba;
-}
 
 void GLVolume::set_render_color()
 {
@@ -514,57 +491,45 @@ void GLVolume::set_render_color()
 #endif
         else {
             //to make black not too hard too see
-            std::array<float, 4> new_color = adjust_color_for_rendering(color);
+            ColorRGBA new_color = adjust_color_for_rendering(color);
             set_render_color(new_color);
         }
     }
 
     if (force_transparent) {
-        if (color[3] < FullyTransparentMaterialThreshold) {
-            render_color[3] = FullTransparentModdifiedToFixAlpha;
+        if (color.a() < FullyTransparentMaterialThreshold) {
+            render_color.a(FullTransparentModdifiedToFixAlpha);
         } else {
-            render_color[3] = color[3];
+            render_color.a(color.a());
         }
     }
 
     //BBS set unprintable color
     if (!printable) {
-        render_color[0] = UNPRINTABLE_COLOR[0];
-        render_color[1] = UNPRINTABLE_COLOR[1];
-        render_color[2] = UNPRINTABLE_COLOR[2];
-        render_color[3] = UNPRINTABLE_COLOR[3];
+        render_color = UNPRINTABLE_COLOR;
     }
 
     //BBS set invisible color
     if (!visible) {
-        render_color[0] = MODEL_HIDDEN_COL[0];
-        render_color[1] = MODEL_HIDDEN_COL[1];
-        render_color[2] = MODEL_HIDDEN_COL[2];
-        render_color[3] = MODEL_HIDDEN_COL[3];
+        render_color = MODEL_HIDDEN_COL;
     }
 }
 
-std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
+ColorRGBA color_from_model_volume(const ModelVolume& model_volume)
 {
-    std::array<float, 4> color = {0.0f, 0.0f, 0.0f, 1.0f};
-    if (model_volume.is_negative_volume()) {
+    ColorRGBA color;
+    if (model_volume.is_negative_volume())
         return GLVolume::MODEL_NEGTIVE_COL;
-    }
-    else if (model_volume.is_modifier()) {
+    else if (model_volume.is_modifier())
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
         return GLVolume::MODEL_MIDIFIER_COL;
 #else
-        color[0] = 0.2f;
-        color[1] = 1.0f;
-        color[2] = 0.2f;
+		color = { 0.2f, 1.0f, 0.2f, 1.0f };
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
-    }
-    else if (model_volume.is_support_blocker()) {
+    else if (model_volume.is_support_blocker())
         return GLVolume::SUPPORT_BLOCKER_COL;
-    }
-    else if (model_volume.is_support_enforcer()) {
+    else if (model_volume.is_support_enforcer())
         return GLVolume::SUPPORT_ENFORCER_COL;
-    }
     return color;
 }
 
@@ -713,12 +678,12 @@ void GLVolume::render(bool with_outline) const
 
         if (color_volume) {
             GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
-            std::vector<std::array<float, 4>> colors = get_extruders_colors();
+            std::vector<ColorRGBA> colors = get_extruders_colors();
 
             //when force_transparent, we need to keep the alpha
-            if (force_native_color && (render_color[3] < 1.0)) {
-                for (int index = 0; index < colors.size(); index ++)
-                    colors[index][3] = render_color[3];
+            if (force_native_color && (render_color.is_transparent())) {
+                for (int index = 0; index < colors.size(); index++)
+                    colors[index].a(render_color.a());
             }
             glsafe(::glMultMatrixd(world_matrix().data()));
             for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
@@ -733,20 +698,20 @@ void GLVolume::render(bool with_outline) const
                         int extruder_id = mv->extruder_id();
                         //shader->set_uniform("uniform_color", colors[extruder_id - 1]);
                         //to make black not too hard too see
-                        std::array<float, 4> new_color = adjust_color_for_rendering(colors[extruder_id - 1]);
+                        ColorRGBA new_color = adjust_color_for_rendering(colors[extruder_id - 1]);
                         shader->set_uniform("uniform_color", new_color);
                     }
                     else {
                         if (idx <= colors.size()) {
                             //shader->set_uniform("uniform_color", colors[idx - 1]);
                             //to make black not too hard too see
-                            std::array<float, 4> new_color = adjust_color_for_rendering(colors[idx - 1]);
+                            ColorRGBA new_color = adjust_color_for_rendering(colors[idx - 1]);
                             shader->set_uniform("uniform_color", new_color);
                         }
                         else {
                             //shader->set_uniform("uniform_color", colors[0]);
                             //to make black not too hard too see
-                            std::array<float, 4> new_color = adjust_color_for_rendering(colors[0]);
+                            ColorRGBA new_color = adjust_color_for_rendering(colors[0]);
                             shader->set_uniform("uniform_color", new_color);
                         }
                     }
@@ -794,7 +759,7 @@ void GLVolume::render(bool with_outline) const
             shader->stop_using();
             outline_shader->start_using();
             //float scale_ratio = 1.02f;
-            std::array<float, 4> outline_color = { 0.0f, 1.0f, 0.0f, 1.0f };
+            ColorRGBA outline_color = { 0.0f, 1.0f, 0.0f, 1.0f };
 
             outline_shader->set_uniform("uniform_color", outline_color);*/
 #if 0 //dump stencil buffer
@@ -868,7 +833,7 @@ void GLVolume::render(bool with_outline) const
             glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
             glStencilMask(0x00);
             float scale = 1.02f;
-            std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
+            ColorRGBA body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
 
             shader->set_uniform("uniform_color", body_color);
             shader->set_uniform("is_outline", true);
@@ -900,7 +865,7 @@ void GLVolume::render(bool with_outline) const
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors) const
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors) const
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -947,20 +912,20 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
                 if (idx == 0) {
                     int extruder_id = model_volume->extruder_id();
                     //to make black not too hard too see
-                    std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
+                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
                     shader->set_uniform("uniform_color", new_color);
                 }
                 else {
                     if (idx <= extruder_colors.size()) {
                         //shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
                         //to make black not too hard too see
-                        std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
+                        ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
                         shader->set_uniform("uniform_color", new_color);
                     }
                     else {
                         //shader->set_uniform("uniform_color", extruder_colors[0]);
                         //to make black not too hard too see
-                        std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[0]);
+                        ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[0]);
                         shader->set_uniform("uniform_color", new_color);
                     }
                 }
@@ -999,7 +964,7 @@ void GLVolume::render_sinking_contours()
     m_sinking_contours.render();
 }
 
-GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<std::array<float, 4>>& colors)
+GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<ColorRGBA>& colors)
     : GLVolume()
 {
     m_colors = colors;
@@ -1022,7 +987,7 @@ void GLWipeTowerVolume::render(bool with_outline) const
     GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
     for (int i = 0; i < m_colors.size(); i++) {
         if (shader) {
-            std::array<float, 4> new_color = adjust_color_for_rendering(m_colors[i]);
+            ColorRGBA new_color = adjust_color_for_rendering(m_colors[i]);
             shader->set_uniform("uniform_color", new_color);
         }
         this->iva_per_colors[i].render();
@@ -1035,7 +1000,7 @@ void GLWipeTowerVolume::render(bool with_outline) const
 
 bool GLWipeTowerVolume::IsTransparent() { 
     for (size_t i = 0; i < m_colors.size(); i++) {
-        if (m_colors[i][3] < 1.0f) { 
+        if (m_colors[i].is_transparent()) { 
             return true;
         }
     }
@@ -1070,8 +1035,8 @@ int GLVolumeCollection::load_object_volume(
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
     const TriangleMesh  &mesh 		  = model_volume->mesh();
-    std::array<float, 4> color = GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4];
-    color[3] = model_volume->is_model_part() ? 0.7f : 0.4f;
+    ColorRGBA color = GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4];
+    color.a(model_volume->is_model_part() ? 0.7f : 0.4f);
     this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));
@@ -1164,8 +1129,8 @@ int GLVolumeCollection::load_wipe_tower_preview(
     if (height == 0.0f)
         height = 0.1f;
 
-    std::vector<std::array<float, 4>> extruder_colors = get_extruders_colors();
-    std::vector<std::array<float, 4>> colors;
+    std::vector<ColorRGBA> extruder_colors = get_extruders_colors();
+    std::vector<ColorRGBA> colors;
     GUI::PartPlateList& ppl = GUI::wxGetApp().plater()->get_partplate_list();
     std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);
     TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
@@ -1185,7 +1150,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
 
     // Orca: make it transparent
     for(auto& color : colors)
-        color[3] = 0.66f;
+        color.a(0.66f);
     volumes.emplace_back(new GLWipeTowerVolume(colors));
     GLWipeTowerVolume& v = *dynamic_cast<GLWipeTowerVolume*>(volumes.back());
     v.iva_per_colors.resize(colors.size());
@@ -1208,14 +1173,14 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(volumes.size() - 1);
 }
 
-GLVolume* GLVolumeCollection::new_toolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats)
+GLVolume* GLVolumeCollection::new_toolpath_volume(const ColorRGBA& rgba, size_t reserve_vbo_floats)
 {
 	GLVolume *out = new_nontoolpath_volume(rgba, reserve_vbo_floats);
 	out->is_extrusion_path = true;
 	return out;
 }
 
-GLVolume* GLVolumeCollection::new_nontoolpath_volume(const std::array<float, 4>& rgba, size_t reserve_vbo_floats)
+GLVolume* GLVolumeCollection::new_nontoolpath_volume(const ColorRGBA& rgba, size_t reserve_vbo_floats)
 {
 	GLVolume *out = new GLVolume(rgba);
 	out->is_extrusion_path = false;
@@ -1232,7 +1197,7 @@ GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCo
 
     for (unsigned int i = 0; i < (unsigned int)volumes.size(); ++i) {
         GLVolume* volume = volumes[i];
-        bool is_transparent = (volume->render_color[3] < 1.0f);
+        bool is_transparent = volume->render_color.is_transparent();
         auto tempGlwipeTowerVolume = dynamic_cast<GLWipeTowerVolume *>(volume);
         if (tempGlwipeTowerVolume) { 
             is_transparent = tempGlwipeTowerVolume->IsTransparent();
@@ -1539,83 +1504,53 @@ void GLVolumeCollection::reset_outside_state()
 
 void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig *config, bool is_update_alpha)
 {
-    static const float inv_255 = 1.0f / 255.0f;
+    
+    using ColorItem = std::pair<std::string, ColorRGBA>;
+    std::vector<ColorItem> colors;
 
-    struct Color
-    {
-        std::string text;
-        unsigned char rgba[4];
-
-        Color()
-            : text("")
-        {
-            rgba[0] = 255;
-            rgba[1] = 255;
-            rgba[2] = 255;
-            rgba[3] = 255;
-        }
-
-        void set(const std::string& text, unsigned char* rgba)
-        {
-            this->text = text;
-            ::memcpy((void*)this->rgba, (const void*)rgba, 4 * sizeof(unsigned char));
-        }
-    };
-
-    if (config == nullptr)
-        return;
-
-    unsigned char rgba[4];
-    std::vector<Color> colors;
-
-    if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA)
-    {
+    if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA) {
         const std::string& txt_color = config->opt_string("material_colour").empty() ?
                                        print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value :
                                        config->opt_string("material_colour");
-        if (Slic3r::GUI::BitmapCache::parse_color4(txt_color, rgba)) {
-            colors.resize(1);
-            colors[0].set(txt_color, rgba);
-        }
+        ColorRGBA rgba;
+        if (decode_color(txt_color, rgba))
+            colors.push_back({ txt_color, rgba });
     }
-    else
-    {
+    else {
         const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("filament_colour"));
         if (filamemts_opt == nullptr)
             return;
 
-        unsigned int colors_count = (unsigned int)filamemts_opt->values.size();
+        size_t colors_count = (size_t)filamemts_opt->values.size();
         if (colors_count == 0)
             return;
         colors.resize(colors_count);
 
         for (unsigned int i = 0; i < colors_count; ++i) {
-            const std::string& txt_color = config->opt_string("filament_colour", i);
-            if (Slic3r::GUI::BitmapCache::parse_color4(txt_color, rgba))
-                colors[i].set(txt_color, rgba);
+            ColorRGBA rgba;
+            const std::string& fil_color = config->opt_string("filament_colour", i);
+            if (decode_color(fil_color, rgba))
+                colors[i] = { fil_color, rgba };
         }
     }
 
     for (GLVolume* volume : volumes) {
-        if (volume == nullptr || volume->is_modifier || volume->is_wipe_tower || (volume->volume_idx() < 0))
+        if (volume == nullptr || volume->is_modifier || volume->is_wipe_tower || volume->volume_idx() < 0)
             continue;
 
         int extruder_id = volume->extruder_id - 1;
         if (extruder_id < 0 || (int)colors.size() <= extruder_id)
             extruder_id = 0;
 
-        const Color& color = colors[extruder_id];
-        if (!color.text.empty()) {
-            for (int i = 0; i < 4; ++i) {
-                if (is_update_alpha == false) { 
-                    if (i < 3) { 
-                        volume->color[i] = (float) color.rgba[i] * inv_255;
-                    }
-                    continue;
-                }
-                volume->color[i] = (float) color.rgba[i] * inv_255;
-            }
-        }
+        const ColorItem& color = colors[extruder_id];
+        if (!color.first.empty()) {
+			if (!is_update_alpha) {
+                float old_a   = color.second.a();
+                volume->color = color.second;
+                volume->color.a(old_a);
+			}
+            volume->color = color.second;
+		}
     }
 }
 
@@ -1625,7 +1560,7 @@ void GLVolumeCollection::set_transparency(float alpha)
         if (volume == nullptr || volume->is_modifier || volume->is_wipe_tower || (volume->volume_idx() < 0))
             continue;
 
-        volume->color[3] = alpha;
+        volume->color.a(alpha);
     }
 }
 

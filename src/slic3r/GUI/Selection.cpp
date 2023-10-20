@@ -23,7 +23,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 
-static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f, 1.0f };
+static const Slic3r::ColorRGBA UNIFORM_SCALE_COLOR     = Slic3r::ColorRGBA::ORANGE();
+static const Slic3r::ColorRGBA SOLID_PLANE_COLOR       = {0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f};
+static const Slic3r::ColorRGBA TRANSPARENT_PLANE_COLOR = { 0.8f, 0.8f, 0.8f, 0.5f };
 
 namespace Slic3r {
 namespace GUI {
@@ -572,11 +574,11 @@ void Selection::clear()
     for (unsigned int i : m_list) {
         GLVolume& volume = *(*m_volumes)[i];
         volume.selected = false;
-        bool transparent = volume.color[3] < 1.0f;
-        if (transparent)
+        bool is_transparent = volume.color.is_transparent();
+        if (is_transparent)
             volume.force_transparent = true;
         volume.set_render_color();
-        if (transparent)
+        if (is_transparent)
             volume.force_transparent = false;
     }
 #else
@@ -2212,12 +2214,9 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) cons
     glsafe(::glEnd());
 }
 
-static std::array<float, 4> get_color(Axis axis)
+static ColorRGBA get_color(Axis axis)
 {
-    return { GLGizmoBase::AXES_COLOR[axis][0],
-            GLGizmoBase::AXES_COLOR[axis][1],
-            GLGizmoBase::AXES_COLOR[axis][2],
-            GLGizmoBase::AXES_COLOR[axis][3] };
+    return GLGizmoBase::AXES_COLOR[axis];
 };
 
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
@@ -2351,10 +2350,8 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     ::glBegin(GL_QUADS);
-    if ((camera_on_top && type == 1) || (!camera_on_top && type == 2))
-        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
-    else
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glColor4fv((camera_on_top && type == 1) || (!camera_on_top && type == 2) ?
+        SOLID_PLANE_COLOR.data() : TRANSPARENT_PLANE_COLOR.data());
     ::glVertex3f(min_x, min_y, z1);
     ::glVertex3f(max_x, min_y, z1);
     ::glVertex3f(max_x, max_y, z1);
@@ -2362,10 +2359,8 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     glsafe(::glEnd());
 
     ::glBegin(GL_QUADS);
-    if ((camera_on_top && type == 2) || (!camera_on_top && type == 1))
-        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
-    else
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glColor4fv((camera_on_top && type == 2) || (!camera_on_top && type == 1) ?
+        SOLID_PLANE_COLOR.data() : TRANSPARENT_PLANE_COLOR.data());
     ::glVertex3f(min_x, min_y, z2);
     ::glVertex3f(max_x, min_y, z2);
     ::glVertex3f(max_x, max_y, z2);

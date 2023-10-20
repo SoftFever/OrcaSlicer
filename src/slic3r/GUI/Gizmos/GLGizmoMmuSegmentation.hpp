@@ -87,7 +87,7 @@ public:
 
 protected:
     // BBS
-    std::array<float, 4> get_cursor_hover_color() const override;
+    ColorRGBA get_cursor_hover_color() const override;
     void on_set_state() override;
 
     EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_selected_extruder_idx + 1); }
@@ -107,7 +107,7 @@ protected:
 
     // BBS
     size_t                            m_selected_extruder_idx = 0;
-    std::vector<std::array<float, 4>> m_extruders_colors;
+    std::vector<ColorRGBA>            m_extruders_colors;
     std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS

@@ -170,7 +170,7 @@ void GLGizmoMove3D::on_render_for_picking()
     //get picking colors only
     for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
         if (m_grabbers[i].enabled) {
-            std::array<float, 4> color = picking_color_component(i);
+            ColorRGBA color = picking_color_component(i);
             m_grabbers[i].color        = color;
         }
     }
@@ -224,7 +224,7 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
 
     double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
 
-    std::array<float, 4> color = m_grabbers[axis].color;
+    ColorRGBA color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
         if (m_hover_id == axis) {
             color = m_grabbers[axis].hover_color;

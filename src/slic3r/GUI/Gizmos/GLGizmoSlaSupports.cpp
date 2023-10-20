@@ -137,7 +137,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     glsafe(::glTranslated(0.0, 0.0, z_shift));
     glsafe(::glMultMatrixd(instance_matrix.data()));
 
-    std::array<float, 4> render_color;
+    ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
         const sla::SupportPoint& support_point = m_editing_mode ? m_editing_cache[i].support_point : m_normal_cache[i];
         const bool& point_selected = m_editing_mode ? m_editing_cache[i].selected : false;
@@ -219,10 +219,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
     // Now render the drain holes:
     if (has_holes && ! picking) {
-        render_color[0] = 0.7f;
-        render_color[1] = 0.7f;
-        render_color[2] = 0.7f;
-        render_color[3] = 0.7f;
+        render_color = { 0.7f, 0.7f, 0.7f, 0.7f };
         const_cast<GLModel*>(&m_cylinder)->set_color(-1, render_color);
         if (shader)
             shader->set_uniform("emission_factor", 0.5f);

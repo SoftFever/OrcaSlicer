@@ -2279,12 +2279,12 @@ int CLI::run(int argc, char **argv)
             else
                 colors.push_back("#FFFFFF");
 
-            std::vector<std::array<float, 4>> colors_out(colors.size());
-            unsigned char rgb_color[3] = {};
+            std::vector<ColorRGBA> colors_out(colors.size());
+            ColorRGBA rgb_color;
             for (const std::string& color : colors) {
-                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+                Slic3r::decode_color(color, rgb_color);
                 size_t color_idx = &color - &colors.front();
-                colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+                colors_out[color_idx] = rgb_color;
             }
 
             int gl_major, gl_minor, gl_verbos;
@@ -2357,15 +2357,12 @@ int CLI::run(int argc, char **argv)
                                 //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
                                 std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
 
-                                unsigned char  rgb_color[3] = {};
-                                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-                                glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
+                                ColorRGBA rgb_color;
+                                Slic3r::decode_color(color, rgb_color);
+                                glvolume_collection.volumes.back()->set_render_color(rgb_color);
 
-                                std::array<float, 4> new_color;
-                                new_color[0] = float(rgb_color[0]) / 255.f;
-                                new_color[1] = float(rgb_color[1]) / 255.f;
-                                new_color[2] = float(rgb_color[2]) / 255.f;
-                                new_color[3] = 1.f;
+                                ColorRGBA new_color;
+                                new_color = rgb_color;
                                 glvolume_collection.volumes.back()->set_color(new_color);
                                 glvolume_collection.volumes.back()->printable = model_instance.printable;
                             }
