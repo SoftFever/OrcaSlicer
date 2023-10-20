@@ -4219,6 +4219,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             }
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
                         } else {
+                            Vec3d rotate_target = Vec3d::Zero();
+                            if (m_canvas_type == ECanvasType::CanvasPreview) {
+                                PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+                                if (plate)
+                                    rotate_target = plate->get_bounding_box().center();
+                            }
+                            else {
+                                if (!m_selection.is_empty())
+                                    rotate_target = m_selection.get_bounding_box().center();
+                                else
+                                    rotate_target = volumes_bounding_box().center();
+                            }
+
+                            if (!rotate_target.isZero())
+                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
+                            else
                                 camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                         }
                     }
