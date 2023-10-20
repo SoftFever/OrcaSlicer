@@ -6935,7 +6935,7 @@ void GLCanvas3D::_render_gcode(int canvas_width, int canvas_height)
     }
 }
 
-void GLCanvas3D::_render_selection() const
+void GLCanvas3D::_render_selection()
 {
     float scale_factor = 1.0;
 #if ENABLE_RETINA_GL
@@ -6966,7 +6966,7 @@ void GLCanvas3D::_render_sequential_clearance()
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
-void GLCanvas3D::_render_selection_center() const
+void GLCanvas3D::_render_selection_center()
 {
     m_selection.render_center(m_gizmos.is_dragging());
 }
