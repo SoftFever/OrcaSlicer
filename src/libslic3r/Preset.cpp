@@ -2413,7 +2413,7 @@ const Preset* PresetCollection::get_preset_parent(const Preset& child) const
 
 const Preset *PresetCollection::get_preset_base(const Preset &child) const
 {
-    if (child.is_system)
+    if (child.is_system || child.is_default)
         return &child;
     // Handle user preset
     if (child.inherits().empty())
