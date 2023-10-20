@@ -1508,12 +1508,19 @@ void GLCanvas3D::refresh_camera_scene_box()
     wxGetApp().plater()->get_camera().set_scene_box(scene_bounding_box());
 }
 
-BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
+BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool current_plate_only) const
 {
     BoundingBoxf3 bb;
-    for (const GLVolume* volume : m_volumes.volumes) {
-        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes))
-            bb.merge(volume->transformed_bounding_box());
+    PartPlate    *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+
+    for (const GLVolume *volume : m_volumes.volumes) {
+        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
+                const auto plate_bb = plate->get_bounding_box();
+                const auto v_bb     = volume->transformed_bounding_box();
+                if (!plate_bb.overlap(v_bb))
+                    continue;
+                bb.merge(v_bb);
+        }
     }
     return bb;
 }
@@ -4228,8 +4235,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             else {
                                 if (!m_selection.is_empty())
                                     rotate_target = m_selection.get_bounding_box().center();
-                                else
-                                    rotate_target = volumes_bounding_box().center();
+                                else 
+                                    rotate_target = volumes_bounding_box(true).center();
                             }
 
                             if (!rotate_target.isZero())
