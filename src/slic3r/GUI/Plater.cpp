@@ -7536,13 +7536,10 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
     FilamentInfomation *       filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
     EditFilamentPresetDialog dlg(wxGetApp().mainframe, filament_info);
     int                        res = dlg.ShowModal();
-    if (wxID_OK == res) {
-        wxGetApp().mainframe->update_side_preset_ui();
-        update_ui_from_settings();
-        sidebar->update_all_preset_comboboxes();
-        /*CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::FILAMENT);
-        int                          res = success_dlg.ShowModal();*/
-    }
+
+    wxGetApp().mainframe->update_side_preset_ui();
+    update_ui_from_settings();
+    sidebar->update_all_preset_comboboxes();
 }
 
 void Plater::priv::enter_gizmos_stack()
