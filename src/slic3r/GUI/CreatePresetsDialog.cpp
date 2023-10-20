@@ -2808,6 +2808,18 @@ void ExportConfigsDialog::show_export_result(const ExportCase &export_case)
     }
 }
 
+bool ExportConfigsDialog::has_check_box_selected()
+{
+    for (std::pair<CheckBox *, Preset *> checkbox_preset : m_preset) {
+        if (checkbox_preset.first->GetValue()) return true;
+    }
+    for (std::pair<CheckBox *, std::string> checkbox_filament_name : m_printer_name) {
+        if (checkbox_filament_name.first->GetValue()) return true;
+    }
+
+    return false;
+}
+
 std::string ExportConfigsDialog::initial_file_path(const wxString &path, const std::string &sub_file_path)
 {
     std::string             export_path         = into_u8(path);
@@ -3007,7 +3019,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::save_presets_to_zip(const s
         std::string preset_name = config_path.first;
 
         // Add a file to the ZIP file
-        status = mz_zip_writer_add_file(&zip_archive, encode_path((preset_name).c_str()).c_str(), encode_path(config_path.second.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
+        status = mz_zip_writer_add_file(&zip_archive, (preset_name).c_str(), encode_path(config_path.second.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
         // status = mz_zip_writer_add_mem(&zip_archive, ("printer/" + printer_preset->name + ".json").c_str(), json_contents, strlen(json_contents), MZ_DEFAULT_COMPRESSION);
         if (MZ_FALSE == status) {
             BOOST_LOG_TRIVIAL(info) << preset_name << " Filament preset failed to add file to ZIP archive";
@@ -3126,7 +3138,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
 
             // Add a file to the ZIP file
             std::string printer_config_file_name = "printer/" + pronter_file_path.filename().string();
-            status = mz_zip_writer_add_file(&zip_archive, encode_path(printer_config_file_name.c_str()).c_str(), encode_path(preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
+            status = mz_zip_writer_add_file(&zip_archive, printer_config_file_name.c_str(), encode_path(preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
             //status = mz_zip_writer_add_mem(&zip_archive, ("printer/" + printer_preset->name + ".json").c_str(), json_contents, strlen(json_contents), MZ_DEFAULT_COMPRESSION);
             if (MZ_FALSE == status) {
                 BOOST_LOG_TRIVIAL(info) << printer_preset->name << " Failed to add file to ZIP archive";
@@ -3148,7 +3160,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
                     }
 
                     std::string filament_config_file_name = "filament/" + filament_file_path.filename().string();
-                    status = mz_zip_writer_add_file(&zip_archive, encode_path(filament_config_file_name.c_str()).c_str(), encode_path(filament_preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
+                    status = mz_zip_writer_add_file(&zip_archive, filament_config_file_name.c_str(), encode_path(filament_preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
                     if (MZ_FALSE == status) {
                         BOOST_LOG_TRIVIAL(info) << preset->name << " Failed to add file to ZIP archive";
                         mz_zip_writer_end(&zip_archive);
@@ -3170,7 +3182,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
                     }
 
                     std::string process_config_file_name = "process/" + process_file_path.filename().string();
-                    status = mz_zip_writer_add_file(&zip_archive, encode_path(process_config_file_name.c_str()).c_str(), encode_path(process_preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
+                    status = mz_zip_writer_add_file(&zip_archive, process_config_file_name.c_str(), encode_path(process_preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
                     if (MZ_FALSE == status) {
                         BOOST_LOG_TRIVIAL(info) << preset->name << " Failed to add file to ZIP archive";
                         mz_zip_writer_end(&zip_archive);
@@ -3254,7 +3266,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 }
                 // Add a file to the ZIP file
                 std::string file_name = printer_vendor + "/" + filament_preset->name + ".json";
-                status                = mz_zip_writer_add_file(&zip_archive, encode_path(file_name.c_str()).c_str(), encode_path(preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
+                status                = mz_zip_writer_add_file(&zip_archive, file_name.c_str(), encode_path(preset_path.c_str()).c_str(), NULL, 0, MZ_DEFAULT_COMPRESSION);
                 // status = mz_zip_writer_add_mem(&zip_archive, ("printer/" + printer_preset->name + ".json").c_str(), json_contents, strlen(json_contents), MZ_DEFAULT_COMPRESSION);
                 if (MZ_FALSE == status) {
                     BOOST_LOG_TRIVIAL(info) << filament_preset->name << " Failed to add file to ZIP archive";
@@ -3425,6 +3437,13 @@ wxBoxSizer *ExportConfigsDialog::create_button_item(wxWindow* parent)
     bSizer_button->Add(m_button_ok, 0, wxRIGHT, FromDIP(10));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        if (!has_check_box_selected()) {
+            MessageDialog dlg(this, _L("Please select at least one printer or filament."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return;
+        }
+
         wxDirDialog dlg(this, _L("Choose a directory"), from_u8(wxGetApp().app_config->get_last_dir()), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
         wxString    path;
         if (dlg.ShowModal() == wxID_OK) path = dlg.GetPath();
@@ -3532,7 +3551,9 @@ void ExportConfigsDialog::data_init()
     for (const Preset &filament_preset : filament_presets) {
         if (filament_preset.is_system || "Default Filament" == filament_preset.name) continue;
         Preset *new_filament_preset = new Preset(filament_preset);
-        std::string filament_preset_name = filament_preset.name;
+        const Preset *base_filament_preset = preset_bundle.filaments.get_preset_base(*new_filament_preset);
+
+        std::string filament_preset_name = base_filament_preset->name;
         std::string machine_name         = get_machine_name(filament_preset_name);
         m_filament_name_to_presets[get_filament_name(filament_preset_name)].push_back(std::make_pair(get_vendor_name(machine_name), new_filament_preset));
     }
