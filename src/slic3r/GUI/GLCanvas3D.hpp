@@ -1142,7 +1142,7 @@ private:
     void _render_camera_target() const;
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices();
-    void _render_selection_sidebar_hints() const;
+    void _render_selection_sidebar_hints();
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
