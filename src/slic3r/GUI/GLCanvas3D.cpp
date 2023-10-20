@@ -8213,7 +8213,7 @@ void GLCanvas3D::_render_sla_slices()
     }
 }
 
-void GLCanvas3D::_render_selection_sidebar_hints() const
+void GLCanvas3D::_render_selection_sidebar_hints()
 {
     m_selection.render_sidebar_hints(m_sidebar_field, m_gizmos.get_uniform_scaling());
 }

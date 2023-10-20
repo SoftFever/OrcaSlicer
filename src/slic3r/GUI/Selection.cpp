@@ -1589,8 +1589,8 @@ void Selection::render_center(bool gizmo_is_dragging)
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
 //BBS: GUI refactor, add uniform scale from gizmo
-void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const
-//void Selection::render_sidebar_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale)
+//void Selection::render_sidebar_hints(const std::string& sidebar_field)
 {
     if (sidebar_field.empty())
         return;
@@ -1615,7 +1615,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
 
         // BBS
         if (is_single_full_instance()/* && !wxGetApp().obj_manipul()->get_world_coordinates()*/) {
-            glsafe(::glTranslated(center(0), center(1), center(2)));
+            glsafe(::glTranslated(center.x(), center.y(), center.z()));
             if (!boost::starts_with(sidebar_field, "position")) {
                 Transform3d orient_matrix = Transform3d::Identity();
                 if (boost::starts_with(sidebar_field, "scale"))
@@ -1635,7 +1635,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
                 glsafe(::glMultMatrixd(orient_matrix.data()));
             }
         } else if (is_single_volume() || is_single_modifier()) {
-            glsafe(::glTranslated(center(0), center(1), center(2)));
+            glsafe(::glTranslated(center.x(), center.y(), center.z()));
             Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             if (!boost::starts_with(sidebar_field, "position"))
                 orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
@@ -2159,17 +2159,17 @@ void Selection::render_synchronized_volumes()
     }
 }
 
+static bool is_approx(const Vec3d& v1, const Vec3d& v2)
+{
+    for (int i = 0; i < 3; ++i) {
+        if (std::abs(v1[i] - v2[i]) > EPSILON)
+            return false;
+    }
+    return true;
+}
+
 void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color)
 {
-
-    auto is_approx = [](const Vec3d& v1, const Vec3d& v2) {
-        for (int i = 0; i < 3; ++i) {
-            if (std::abs(v1[i] - v2[i]) > EPSILON)
-                return false;
-        }
-        return true;
-    };
-
     const BoundingBoxf3& curr_box = m_box.get_bounding_box();
     if (!m_box.is_initialized() || !is_approx(box.min, curr_box.min) || !is_approx(box.max, curr_box.max)) {
         m_box.reset();
@@ -2272,25 +2272,25 @@ static ColorRGBA get_color(Axis axis)
     return GLGizmoBase::AXES_COLOR[axis];
 }
 
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_position_hints(const std::string& sidebar_field)
 {
     if (boost::ends_with(sidebar_field, "x")) {
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(X));
+        m_arrow.set_color(-1, get_color(X));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Y));
+        m_arrow.set_color(-1, get_color(Y));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Z));
+        m_arrow.set_color(-1, get_color(Z));
         m_arrow.render();
     }
 }
 
-void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field)
 {
     auto render_sidebar_rotation_hint = [this]() {
         m_curved_arrow.render();
@@ -2300,29 +2300,29 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) 
 
     if (boost::ends_with(sidebar_field, "x")) {
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(X));
+        m_curved_arrow.set_color(-1, get_color(X));
         render_sidebar_rotation_hint();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Y));
+        m_curved_arrow.set_color(-1, get_color(Y));
         render_sidebar_rotation_hint();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Z));
+        m_curved_arrow.set_color(-1, get_color(Z));
         render_sidebar_rotation_hint();
     }
 }
 
 //BBS: GUI refactor: add gizmo uniform_scale
-void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const
+void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale)
 {
     // BBS
     //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
     bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
+        m_arrow.set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("emission_factor", 0.0f);
@@ -2356,9 +2356,9 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, boo
     }
 }
 
-void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_layers_hints(const std::string& sidebar_field)
 {
-    static const double Margin = 10.0;
+    static const float Margin = 10.0f;
 
     std::string field = sidebar_field;
 
@@ -2367,7 +2367,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    double max_z = string_to_double_decimal_point(field.substr(pos + 1));
+    const float max_z = float(string_to_double_decimal_point(field.substr(pos + 1)));
 
     // extract min_z
     field = field.substr(0, pos);
@@ -2375,7 +2375,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    const double min_z = string_to_double_decimal_point(field.substr(pos + 1));
+    const float min_z = float(string_to_double_decimal_point(field.substr(pos + 1)));
 
     // extract type
     field = field.substr(0, pos);
@@ -2387,38 +2387,83 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 
     const BoundingBoxf3& box = get_bounding_box();
 
-    const float min_x = box.min(0) - Margin;
-    const float max_x = box.max(0) + Margin;
-    const float min_y = box.min(1) - Margin;
-    const float max_y = box.max(1) + Margin;
-
     // view dependend order of rendering to keep correct transparency
-    bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
+    const bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
     const float z1 = camera_on_top ? min_z : max_z;
     const float z2 = camera_on_top ? max_z : min_z;
+
+    const Vec3f p1 = { float(box.min.x()) - Margin, float(box.min.y()) - Margin, z1 };
+    const Vec3f p2 = { float(box.max.x()) + Margin, float(box.max.y()) + Margin, z2 };
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    ::glBegin(GL_QUADS);
-    ::glColor4fv((camera_on_top && type == 1) || (!camera_on_top && type == 2) ?
-        SOLID_PLANE_COLOR.data() : TRANSPARENT_PLANE_COLOR.data());
-    ::glVertex3f(min_x, min_y, z1);
-    ::glVertex3f(max_x, min_y, z1);
-    ::glVertex3f(max_x, max_y, z1);
-    ::glVertex3f(min_x, max_y, z1);
-    glsafe(::glEnd());
+    if (!m_planes.models[0].is_initialized() || !is_approx(m_planes.check_points[0].cast<double>(), p1.cast<double>())) {
+        m_planes.check_points[0] = p1;
+        m_planes.models[0].reset();
 
-    ::glBegin(GL_QUADS);
-    ::glColor4fv((camera_on_top && type == 2) || (!camera_on_top && type == 1) ?
-        SOLID_PLANE_COLOR.data() : TRANSPARENT_PLANE_COLOR.data());
-    ::glVertex3f(min_x, min_y, z2);
-    ::glVertex3f(max_x, min_y, z2);
-    ::glVertex3f(max_x, max_y, z2);
-    ::glVertex3f(min_x, max_y, z2);
-    glsafe(::glEnd());
+        GLModel::InitializationData init_data;
+        GUI::GLModel::InitializationData::Entity entity;
+        entity.type = GUI::GLModel::PrimitiveType::Triangles;
+        entity.positions.reserve(4);
+        entity.positions.emplace_back(Vec3f(p1.x(), p1.y(), z1));
+        entity.positions.emplace_back(Vec3f(p2.x(), p1.y(), z1));
+        entity.positions.emplace_back(Vec3f(p2.x(), p2.y(), z1));
+        entity.positions.emplace_back(Vec3f(p1.x(), p2.y(), z1));
+
+        entity.normals.reserve(4);
+        for (size_t i = 0; i < 4; ++i) {
+            entity.normals.emplace_back(Vec3f::UnitZ());
+        }
+
+        entity.indices.reserve(6);
+        entity.indices.emplace_back(0);
+        entity.indices.emplace_back(1);
+        entity.indices.emplace_back(2);
+        entity.indices.emplace_back(2);
+        entity.indices.emplace_back(3);
+        entity.indices.emplace_back(0);
+
+        init_data.entities.emplace_back(entity);
+        m_planes.models[0].init_from(init_data);
+    }
+
+    if (!m_planes.models[1].is_initialized() || !is_approx(m_planes.check_points[1].cast<double>(), p2.cast<double>())) {
+        m_planes.check_points[1] = p2;
+        m_planes.models[1].reset();
+
+        GLModel::InitializationData init_data;
+        GUI::GLModel::InitializationData::Entity entity;
+        entity.type = GUI::GLModel::PrimitiveType::Triangles;
+        entity.positions.reserve(4);
+        entity.positions.emplace_back(Vec3f(p1.x(), p1.y(), z2));
+        entity.positions.emplace_back(Vec3f(p2.x(), p1.y(), z2));
+        entity.positions.emplace_back(Vec3f(p2.x(), p2.y(), z2));
+        entity.positions.emplace_back(Vec3f(p1.x(), p2.y(), z2));
+
+        entity.normals.reserve(4);
+        for (size_t i = 0; i < 4; ++i) {
+            entity.normals.emplace_back(Vec3f::UnitZ());
+        }
+
+        entity.indices.reserve(6);
+        entity.indices.emplace_back(0);
+        entity.indices.emplace_back(1);
+        entity.indices.emplace_back(2);
+        entity.indices.emplace_back(2);
+        entity.indices.emplace_back(3);
+        entity.indices.emplace_back(0);
+
+        init_data.entities.emplace_back(entity);
+        m_planes.models[1].init_from(init_data);
+    }
+
+    m_planes.models[0].set_color(-1, (camera_on_top && type == 1) || (!camera_on_top && type == 2) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
+    m_planes.models[0].render();
+    m_planes.models[1].set_color(-1, (camera_on_top && type == 2) || (!camera_on_top && type == 1) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
+    m_planes.models[1].render();
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
