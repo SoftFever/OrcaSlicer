@@ -71,8 +71,10 @@ void wxMediaCtrl2::Load(wxURI url)
         return;
     }
     {
-        wxRegKey key1(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
-        wxString path = key1.Exists() ? key1.QueryDefaultValue() : wxString{};
+        wxRegKey key11(wxRegKey::HKCU, L"SOFTWARE\\Classes\\CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
+        wxRegKey key12(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
+        wxString path = key11.Exists() ? key11.QueryDefaultValue() 
+                                       : key12.Exists() ? key12.QueryDefaultValue() : wxString{};
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
         if (key2.Exists())
@@ -108,7 +110,7 @@ void wxMediaCtrl2::Load(wxURI url)
         if (path != dll_path) {
             static bool notified = false;
             if (!notified) CallAfter([dll_path] {
-                int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly!"), _L("Warning"), wxOK | wxICON_WARNING);
+                int res = wxMessageBox(_L("Using a BambuSource from a different install, video play may not work correctly! Press Yes to re-register it."), _L("Warning"), wxYES_NO | wxICON_WARNING);
                 if (res == wxYES) {
                     SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE};
                     ::ShellExecuteEx(&info);
