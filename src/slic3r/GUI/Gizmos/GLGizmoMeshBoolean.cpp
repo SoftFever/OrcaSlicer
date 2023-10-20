@@ -131,8 +131,8 @@ void GLGizmoMeshBoolean::on_render()
         }
     }
 
-    float src_color[3] = { 1.0f, 1.0f, 1.0f };
-    float tool_color[3] = { 0.0f, 150.0f / 255.0f, 136.0f / 255.0f };
+    ColorRGB src_color = { 1.0f, 1.0f, 1.0f };
+    ColorRGB tool_color = {0.0f, 150.0f / 255.0f, 136.0f / 255.0f};
     m_parent.get_selection().render_bounding_box(src_bb, src_color, m_parent.get_scale());
     m_parent.get_selection().render_bounding_box(tool_bb, tool_color, m_parent.get_scale());
 }

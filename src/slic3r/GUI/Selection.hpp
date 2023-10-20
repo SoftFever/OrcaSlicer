@@ -220,6 +220,7 @@ private:
 
     GLModel m_arrow;
     GLModel m_curved_arrow;
+    GLModel m_box;
 
     float m_scale_factor;
     bool m_dragging;
@@ -353,16 +354,16 @@ public:
 
     void erase();
 
-    void render(float scale_factor = 1.0) const;
+    void render(float scale_factor = 1.0);
 #if ENABLE_RENDER_SELECTION_CENTER
-    void render_center(bool gizmo_is_dragging) const;
+    void render_center(bool gizmo_is_dragging);
 #endif // ENABLE_RENDER_SELECTION_CENTER
     //BBS: GUI refactor: add uniform scale from gizmo
     void render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const;
 
     bool requires_local_axes() const;
 
-    void render_bounding_box(const BoundingBoxf3& box, float* color, float scale) {
+    void render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color, float scale) {
         m_scale_factor = scale;
         render_bounding_box(box, color);
     }
@@ -399,9 +400,8 @@ private:
     void do_remove_instance(unsigned int object_idx, unsigned int instance_idx);
     void do_remove_object(unsigned int object_idx);
     void set_bounding_boxes_dirty() { m_bounding_box.reset(); m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset(); }
-    void render_selected_volumes() const;
-    void render_synchronized_volumes() const;
-    void render_bounding_box(const BoundingBoxf3& box, float* color) const;
+    void render_synchronized_volumes();
+    void render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color);
     void render_sidebar_position_hints(const std::string& sidebar_field) const;
     void render_sidebar_rotation_hints(const std::string& sidebar_field) const;
     //BBS: GUI refactor: add uniform_scale from gizmo

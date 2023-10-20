@@ -1115,10 +1115,10 @@ private:
     void _render_gcode(int canvas_width, int canvas_height);
     //BBS: render a plane for assemble
     void _render_plane() const;
-    void _render_selection() const;
+    void _render_selection();
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
-    void _render_selection_center() const;
+    void _render_selection_center();
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _check_and_update_toolbar_icon_scale();
     void _render_overlays();
