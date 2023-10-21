@@ -20,31 +20,31 @@
         "20"
     ],
     "cool_plate_temp" : [
-        "60"
+        "55"
     ],
     "eng_plate_temp" : [
-        "60"
+        "55"
     ],
     "hot_plate_temp" : [
-        "60"
+        "55"
     ],
     "textured_plate_temp" : [
-        "60"
+        "55"
     ],
     "cool_plate_temp_initial_layer" : [
-        "60"
+        "55"
     ],
     "eng_plate_temp_initial_layer" : [
-        "60"
+        "55"
     ],
     "hot_plate_temp_initial_layer" : [
-        "60"
+        "55"
     ],
     "textured_plate_temp_initial_layer" : [
-        "60"
+        "55"
     ],
     "nozzle_temperature_initial_layer": [
-        "220"
+        "210"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -86,6 +86,6 @@
         "4"
     ],
     "additional_cooling_fan_speed": [
-        "70"
+        "100"
     ]
 }
