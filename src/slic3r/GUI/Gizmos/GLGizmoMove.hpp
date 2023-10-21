@@ -15,15 +15,19 @@ class GLGizmoMove3D : public GLGizmoBase
 {
     static const double Offset;
 
-    Vec3d m_displacement;
-
-    double m_snap_step;
-
-    Vec3d m_starting_drag_position;
-    Vec3d m_starting_box_center;
-    Vec3d m_starting_box_bottom_center;
+    Vec3d m_displacement{ Vec3d::Zero() };
+    double m_snap_step{ 1.0 };
+    Vec3d m_starting_drag_position{ Vec3d::Zero() };
+    Vec3d m_starting_box_center{ Vec3d::Zero() };
+    Vec3d m_starting_box_bottom_center{ Vec3d::Zero() };
 
     GLModel m_vbo_cone;
+    struct GrabberConnection
+    {
+        GLModel model;
+        Vec3d old_center{ Vec3d::Zero() };
+    };
+    std::array<GrabberConnection, 3> m_grabber_connections;
 
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;

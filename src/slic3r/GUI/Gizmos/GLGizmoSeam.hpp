@@ -10,7 +10,7 @@ class GLGizmoSeam : public GLGizmoPainterBase
 public:
     GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
-    void render_painter_gizmo() const override;
+    void render_painter_gizmo() override;
 
     //BBS
     bool on_key_down_select_tool_type(int keyCode);

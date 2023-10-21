@@ -361,25 +361,23 @@ class Transformation
 {
     struct Flags
     {
-        bool dont_translate;
-        bool dont_rotate;
-        bool dont_scale;
-        bool dont_mirror;
-
-        Flags();
+        bool dont_translate{ true };
+        bool dont_rotate{ true };
+        bool dont_scale{ true };
+        bool dont_mirror{ true };
 
         bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const;
         void set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror);
     };
 
-    Vec3d m_offset;              // In unscaled coordinates
-    Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
-    Vec3d m_scaling_factor;      // Scaling factors along the three axes
-    Vec3d m_mirror;              // Mirroring along the three axes
+    Vec3d m_offset{ Vec3d::Zero() };              // In unscaled coordinates
+    Vec3d m_rotation{ Vec3d::Zero() };            // Rotation around the three axes, in radians around mesh center point
+    Vec3d m_scaling_factor{ Vec3d::Ones() };      // Scaling factors along the three axes
+    Vec3d m_mirror{ Vec3d::Ones() };              // Mirroring along the three axes
 
-    mutable Transform3d m_matrix;
+    mutable Transform3d m_matrix{ Transform3d::Identity() };
     mutable Flags m_flags;
-    mutable bool m_dirty;
+    mutable bool m_dirty{ false };
 
 public:
     Transformation();
@@ -457,7 +455,7 @@ extern double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 // Is the angle close to a multiple of 90 degrees?
 inline bool is_rotation_ninety_degrees(double a)
 {
-    a = fmod(std::abs(a), 0.5 * M_PI);
+    a = fmod(std::abs(a), 0.5 * PI);
     if (a > 0.25 * PI)
         a = 0.5 * PI - a;
     return a < 0.001;

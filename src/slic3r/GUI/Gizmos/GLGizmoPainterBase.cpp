@@ -119,7 +119,7 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 }
 
 
-void GLGizmoPainterBase::render_cursor() const
+void GLGizmoPainterBase::render_cursor()
 {
     // First check that the mouse pointer is on an object.
     const ModelObject* mo = m_c->selection_info()->model_object();
@@ -159,31 +159,22 @@ void GLGizmoPainterBase::render_cursor() const
 
 
 
-void GLGizmoPainterBase::render_cursor_circle() const
+void GLGizmoPainterBase::render_cursor_circle()
 {
     const Camera &camera   = wxGetApp().plater()->get_camera();
-    auto          zoom     = (float) camera.get_zoom();
-    float         inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    const float   zoom     = float(camera.get_zoom());
+    const float   inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    Size  cnv_size        = m_parent.get_canvas_size();
-    float cnv_half_width  = 0.5f * (float) cnv_size.get_width();
-    float cnv_half_height = 0.5f * (float) cnv_size.get_height();
-    if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
+    const Size  cnv_size        = m_parent.get_canvas_size();
+    const float cnv_half_width  = 0.5f * float(cnv_size.get_width());
+    const float cnv_half_height = 0.5f * float(cnv_size.get_height());
+    if (cnv_half_width == 0.0f || cnv_half_height == 0.0f)
         return;
-    Vec2d mouse_pos(m_parent.get_local_mouse_position()(0), m_parent.get_local_mouse_position()(1));
-    Vec2d center(mouse_pos(0) - cnv_half_width, cnv_half_height - mouse_pos(1));
+    const Vec2d mouse_pos(m_parent.get_local_mouse_position().x(), m_parent.get_local_mouse_position().y());
+    Vec2d center(mouse_pos.x() - cnv_half_width, cnv_half_height - mouse_pos.y());
     center = center * inv_zoom;
 
     glsafe(::glLineWidth(1.5f));
-
-    // BBS
-    ColorRGBA render_color = this->get_cursor_hover_color();
-    if (m_button_down == Button::Left)
-        render_color = this->get_cursor_sphere_left_button_color();
-    else if (m_button_down == Button::Right)
-        render_color = this->get_cursor_sphere_right_button_color();
-    glsafe(::glColor4fv(render_color.data()));
-
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     glsafe(::glPushMatrix());
@@ -191,17 +182,46 @@ void GLGizmoPainterBase::render_cursor_circle() const
     // ensure that the circle is renderered inside the frustrum
     glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
     // ensure that the overlay fits the frustrum near z plane
-    double gui_scale = camera.get_gui_scale();
+    const double gui_scale = camera.get_gui_scale();
     glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
     glsafe(::glPushAttrib(GL_ENABLE_BIT));
     glsafe(::glLineStipple(4, 0xAAAA));
     glsafe(::glEnable(GL_LINE_STIPPLE));
 
-    ::glBegin(GL_LINE_LOOP);
-    for (double angle=0; angle<2*M_PI; angle+=M_PI/20.)
-        ::glVertex2f(GLfloat(center.x()+m_cursor_radius*cos(angle)), GLfloat(center.y()+m_cursor_radius*sin(angle)));
-    glsafe(::glEnd());
+    if (!m_circle.is_initialized() || !m_old_center.isApprox(center) || std::abs(m_old_cursor_radius - m_cursor_radius) > EPSILON) {
+        m_old_center = center;
+        m_old_cursor_radius = m_cursor_radius;
+        m_circle.reset();
+
+        GLModel::InitializationData init_data;
+        GLModel::InitializationData::Entity entity;
+        entity.type = GLModel::PrimitiveType::LineLoop;
+        static const unsigned int StepsCount = 32;
+        static const float StepSize = 2.0f * float(PI) / float(StepsCount);
+        entity.positions.reserve(StepsCount);
+        entity.normals.reserve(StepsCount);
+        entity.indices.reserve(StepsCount);
+        for (unsigned int i = 0; i < StepsCount; ++i) {
+            const float angle = float(i * StepSize);
+            entity.positions.emplace_back(center.x() + ::cos(angle) * m_cursor_radius, center.y() + ::sin(angle) * m_cursor_radius, 0.0f);
+            entity.normals.emplace_back(Vec3f::UnitZ());
+            entity.indices.emplace_back(i);
+        }
+
+        init_data.entities.emplace_back(entity);
+        m_circle.init_from(init_data);
+    }
+
+    // BBS
+    ColorRGBA render_color = this->get_cursor_hover_color();
+    if (m_button_down == Button::Left)
+        render_color = this->get_cursor_sphere_left_button_color();
+    else if (m_button_down == Button::Right)
+        render_color = this->get_cursor_sphere_right_button_color();
+
+    m_circle.set_color(-1, render_color);
+    m_circle.render();
 
     glsafe(::glPopAttrib());
     glsafe(::glPopMatrix());

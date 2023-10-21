@@ -31,15 +31,23 @@ class CommonGizmosDataPool;
 class GizmoObjectManipulation;
 class Rect
 {
-    float m_left;
-    float m_top;
-    float m_right;
-    float m_bottom;
+    float m_left{ 0.0f };
+    float m_top{ 0.0f };
+    float m_right{ 0.0f };
+    float m_bottom{ 0.0f };
 
 public:
-    Rect() : m_left(0.0f) , m_top(0.0f) , m_right(0.0f) , m_bottom(0.0f) {}
-
+    Rect() = default;
     Rect(float left, float top, float right, float bottom) : m_left(left) , m_top(top) , m_right(right) , m_bottom(bottom) {}
+
+    bool operator == (const Rect& other) {
+        if (std::abs(m_left - other.m_left) > EPSILON) return false;
+        if (std::abs(m_top - other.m_top) > EPSILON) return false;
+        if (std::abs(m_right - other.m_right) > EPSILON) return false;
+        if (std::abs(m_bottom - other.m_bottom) > EPSILON) return false;
+        return true;
+    }
+    bool operator != (const Rect& other) { return !operator==(other); }
 
     float get_left() const { return m_left; }
     void set_left(float left) { m_left = left; }
@@ -287,7 +295,7 @@ public:
     void on_change_color_mode(bool is_dark);
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
-    void render_painter_gizmo() const;
+    void render_painter_gizmo();
     void render_painter_assemble_view() const;
 
     void render_overlay();

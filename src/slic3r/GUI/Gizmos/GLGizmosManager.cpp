@@ -692,7 +692,7 @@ void GLGizmosManager::render_current_gizmo() const
     m_gizmos[m_current]->render();
 }
 
-void GLGizmosManager::render_painter_gizmo() const
+void GLGizmosManager::render_painter_gizmo()
 {
     // This function shall only be called when current gizmo is
     // derived from GLGizmoPainterBase.
