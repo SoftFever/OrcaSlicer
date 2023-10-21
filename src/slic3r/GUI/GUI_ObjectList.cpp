@@ -304,6 +304,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 
 ObjectList::~ObjectList()
 {
+    delete m_objects_model;
 }
 
 void ObjectList::set_min_height()
