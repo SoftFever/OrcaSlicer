@@ -24,6 +24,15 @@ void GLModel::Geometry::add_vertex(const Vec2f& position)
     vertices.emplace_back(position.y());
 }
 
+void GLModel::Geometry::add_vertex(const Vec2f& position, const Vec2f& tex_coord)
+{
+    assert(format.vertex_layout == EVertexLayout::P2T2);
+    vertices.emplace_back(position.x());
+    vertices.emplace_back(position.y());
+    vertices.emplace_back(tex_coord.x());
+    vertices.emplace_back(tex_coord.y());
+}
+
 void GLModel::Geometry::add_vertex(const Vec3f& position)
 {
     assert(format.vertex_layout == EVertexLayout::P3);
@@ -331,8 +340,11 @@ bool GLModel::Geometry::has_tex_coord(const Format& format)
 
 void GLModel::init_from(Geometry&& data)
 {
-    if (is_initialized()) // call reset() if you want to reuse this model
+    if (is_initialized()) {
+        // call reset() if you want to reuse this model
+        assert(false);
         return;
+    }
 
     if (data.vertices.empty() || data.indices.empty()) {
         assert(false);
@@ -353,10 +365,18 @@ void GLModel::init_from(Geometry&& data)
     }
 }
 
+void GLModel::init_from(const TriangleMesh& mesh)
+{
+    init_from(mesh.its);
+}
+
 void GLModel::init_from(const indexed_triangle_set& its)
 {
-    if (is_initialized()) // call reset() if you want to reuse this model
+    if (is_initialized()) {
+        // call reset() if you want to reuse this model
+        assert(false);
         return;
+    }
 
     if (its.vertices.empty() || its.indices.empty()){
         assert(false);
@@ -389,8 +409,11 @@ void GLModel::init_from(const indexed_triangle_set& its)
 
 void GLModel::init_from(const Polygons& polygons, float z)
 {
-    if (is_initialized()) // call reset() if you want to reuse this model
+    if (is_initialized()) {
+        // call reset() if you want to reuse this model
+        assert(false);
         return;
+    }
 
     if (polygons.empty()) {
         assert(false);
@@ -443,8 +466,7 @@ bool GLModel::init_from_file(const std::string& filename)
         return false;
     }
 
-    const TriangleMesh mesh = model.mesh();
-    init_from(mesh.its);
+    init_from(model.mesh());
 
     m_filename = filename;
 

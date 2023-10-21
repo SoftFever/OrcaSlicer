@@ -40,14 +40,14 @@ public:
     Rect() = default;
     Rect(float left, float top, float right, float bottom) : m_left(left) , m_top(top) , m_right(right) , m_bottom(bottom) {}
 
-    bool operator == (const Rect& other) {
+    bool operator == (const Rect& other) const {
         if (std::abs(m_left - other.m_left) > EPSILON) return false;
         if (std::abs(m_top - other.m_top) > EPSILON) return false;
         if (std::abs(m_right - other.m_right) > EPSILON) return false;
         if (std::abs(m_bottom - other.m_bottom) > EPSILON) return false;
         return true;
     }
-    bool operator != (const Rect& other) { return !operator==(other); }
+    bool operator != (const Rect& other) const { return !operator==(other); }
 
     float get_left() const { return m_left; }
     void set_left(float left) { m_left = left; }

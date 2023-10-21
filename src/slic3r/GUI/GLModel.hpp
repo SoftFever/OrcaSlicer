@@ -60,6 +60,7 @@ namespace GUI {
             ColorRGBA color{ ColorRGBA::BLACK() };
 
             void add_vertex(const Vec2f& position);
+            void add_vertex(const Vec2f& position, const Vec2f& tex_coord);
             void add_vertex(const Vec3f& position);
             void add_vertex(const Vec3f& position, const Vec3f& normal);
 
@@ -141,6 +142,7 @@ namespace GUI {
         size_t indices_size_bytes() const { return indices_count() * Geometry::index_stride_bytes(m_render_data.geometry.format); }
 
         void init_from(Geometry&& data);
+        void init_from(const TriangleMesh& mesh);
         void init_from(const indexed_triangle_set& its);
         void init_from(const Polygons& polygons, float z);
         bool init_from_file(const std::string& filename);
