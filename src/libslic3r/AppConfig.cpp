@@ -160,10 +160,8 @@ void AppConfig::set_defaults()
     if (get("use_perspective_camera").empty())
         set_bool("use_perspective_camera", true);
 
-#ifdef SUPPORT_FREE_CAMERA
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
-#endif
 
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
@@ -336,7 +334,7 @@ void AppConfig::set_defaults()
 // #endif
 
     if (get("allow_ip_resolve").empty())
-        set("allow_ip_resolve", "1");
+        set_bool("allow_ip_resolve", true);
 
     if (get("presets", "filament_colors").empty()) {
         set_str("presets", "filament_colors", "#F2754E");
