@@ -8,6 +8,8 @@
 
 #include "3DScene.hpp"
 #include "OpenGLManager.hpp"
+#include "GUI_App.hpp"
+#include "GLModel.hpp"
 
 #include <GL/glew.h>
 
@@ -125,11 +127,7 @@ void GLTexture::Compressor::compress()
 GLTexture::Quad_UVs GLTexture::FullTextureUVs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
 
 GLTexture::GLTexture()
-    : m_id(0)
-    , m_width(0)
-    , m_height(0)
-    , m_source("")
-    , m_compressor(*this)
+    : m_compressor(*this)
 {
 }
 
@@ -664,12 +662,30 @@ void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right,
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id));
 
-    ::glBegin(GL_QUADS);
-    ::glTexCoord2f(uvs.left_bottom.u, uvs.left_bottom.v); ::glVertex2f(left, bottom);
-    ::glTexCoord2f(uvs.right_bottom.u, uvs.right_bottom.v); ::glVertex2f(right, bottom);
-    ::glTexCoord2f(uvs.right_top.u, uvs.right_top.v); ::glVertex2f(right, top);
-    ::glTexCoord2f(uvs.left_top.u, uvs.left_top.v); ::glVertex2f(left, top);
-    glsafe(::glEnd());
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2, GLModel::Geometry::EIndexType::USHORT };
+    init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+    init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+    // vertices
+    init_data.add_vertex(Vec2f(left, bottom),  Vec2f(uvs.left_bottom.u, uvs.left_bottom.v));
+    init_data.add_vertex(Vec2f(right, bottom), Vec2f(uvs.right_bottom.u, uvs.right_bottom.v));
+    init_data.add_vertex(Vec2f(right, top),    Vec2f(uvs.right_top.u, uvs.right_top.v));
+    init_data.add_vertex(Vec2f(left, top),     Vec2f(uvs.left_top.u, uvs.left_top.v));
+
+    // indices
+    init_data.add_ushort_triangle(0, 1, 2);
+    init_data.add_ushort_triangle(2, 3, 0);
+
+    GLModel model;
+    model.init_from(std::move(init_data));
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_texture");
+    if (shader != nullptr) {
+        shader->start_using();
+        model.render();
+        shader->stop_using();
+    }
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 

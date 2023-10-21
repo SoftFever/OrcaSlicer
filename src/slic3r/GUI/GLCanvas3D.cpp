@@ -6639,12 +6639,11 @@ void GLCanvas3D::_render_background()
     ColorRGBA error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
     const ColorRGBA bottom_color = use_error_color ? error_background_color : background_color;
 
-    if (!m_background.is_initialized() || m_background.get_color() != bottom_color) {
+    if (!m_background.is_initialized()) {
         m_background.reset();
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2, GLModel::Geometry::EIndexType::USHORT };
-        init_data.color = bottom_color;
         init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
         init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
 

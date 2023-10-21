@@ -1279,40 +1279,36 @@ void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
 
 void GLGizmosManager::render_background(float left, float top, float right, float bottom, float border) const
 {
-    unsigned int tex_id = m_background_texture.texture.get_id();
-    float tex_width = (float)m_background_texture.texture.get_width();
-    float tex_height = (float)m_background_texture.texture.get_height();
-    if ((tex_id != 0) && (tex_width > 0) && (tex_height > 0))
-    {
+    const unsigned int tex_id = m_background_texture.texture.get_id();
+    const float tex_width = float(m_background_texture.texture.get_width());
+    const float tex_height = float(m_background_texture.texture.get_height());
+    if (tex_id != 0 && tex_width > 0 && tex_height > 0) {
         //BBS: GUI refactor: remove the corners of gizmo
-        float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
-        float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
+        const float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
+        const float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
 
-        float internal_left_uv = (float)m_background_texture.metadata.left * inv_tex_width;
-        float internal_right_uv = 1.0f - (float)m_background_texture.metadata.right * inv_tex_width;
-        float internal_top_uv = 1.0f - (float)m_background_texture.metadata.top * inv_tex_height;
-        float internal_bottom_uv = (float)m_background_texture.metadata.bottom * inv_tex_height;
+        const float internal_left_uv = (float)m_background_texture.metadata.left * inv_tex_width;
+        const float internal_right_uv = 1.0f - (float)m_background_texture.metadata.right * inv_tex_width;
+        const float internal_top_uv = 1.0f - (float)m_background_texture.metadata.top * inv_tex_height;
+        const float internal_bottom_uv = (float)m_background_texture.metadata.bottom * inv_tex_height;
 
         GLTexture::render_sub_texture(tex_id, left, right, bottom, top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
 
         /*
-        float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
-        float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
-
-        float internal_left = left + border;
-        float internal_right = right - border;
-        float internal_top = top - border;
-        float internal_bottom = bottom + border;
+        const float internal_left = left + border;
+        const float internal_right = right - border;
+        const float internal_top = top - border;
+        const float internal_bottom = bottom + border;
 
         // float left_uv = 0.0f;
-        float right_uv = 1.0f;
-        float top_uv = 1.0f;
-        float bottom_uv = 0.0f;
+        const float right_uv = 1.0f;
+        const float top_uv = 1.0f;
+        const float bottom_uv = 0.0f;
 
-        float internal_left_uv = (float)m_background_texture.metadata.left * inv_tex_width;
-        float internal_right_uv = 1.0f - (float)m_background_texture.metadata.right * inv_tex_width;
-        float internal_top_uv = 1.0f - (float)m_background_texture.metadata.top * inv_tex_height;
-        float internal_bottom_uv = (float)m_background_texture.metadata.bottom * inv_tex_height;
+        const float internal_left_uv = float(m_background_texture.metadata.left) * inv_tex_width;
+        const float internal_right_uv = 1.0f - float(m_background_texture.metadata.right) * inv_tex_width;
+        const float internal_top_uv = 1.0f - float(m_background_texture.metadata.top) * inv_tex_height;
+        const float internal_bottom_uv = float(m_background_texture.metadata.bottom) * inv_tex_height;
 
         // top-left corner
         GLTexture::render_sub_texture(tex_id, left, internal_left, internal_top, top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
