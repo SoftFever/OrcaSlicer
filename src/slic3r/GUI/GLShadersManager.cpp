@@ -35,6 +35,8 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     // basic shader, used to render all what was previously rendered using the immediate mode
     valid &= append_shader("flat", { "flat.vs", "flat.fs" });
+    // used to render 3D scene background
+    valid &= append_shader("background", { "background.vs", "background.fs" });
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
    valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
     //used to render thumbnail
