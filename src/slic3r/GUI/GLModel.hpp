@@ -38,6 +38,7 @@ namespace GUI {
                 P2,   // position 2 floats
                 P2T2, // position 2 floats + texture coords 2 floats
                 P3,   // position 3 floats
+                P3T2, // position 3 floats + texture coords 2 floats
                 P3N3, // position 3 floats + normal 3 floats
             };
 
@@ -62,6 +63,7 @@ namespace GUI {
             void add_vertex(const Vec2f& position);
             void add_vertex(const Vec2f& position, const Vec2f& tex_coord);
             void add_vertex(const Vec3f& position);
+            void add_vertex(const Vec3f& position, const Vec2f& tex_coord);
             void add_vertex(const Vec3f& position, const Vec3f& normal);
 
             void add_ushort_index(unsigned short id);

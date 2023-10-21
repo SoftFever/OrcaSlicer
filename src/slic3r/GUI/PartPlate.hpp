@@ -115,28 +115,21 @@ private:
     Transform3d m_grabber_trans_matrix;
     Slic3r::Geometry::Transformation position;
     std::vector<Vec3f> positions;
-    unsigned int m_vbo_id{ 0 };
-    GeometryBuffer m_triangles;
-    GeometryBuffer m_exclude_triangles;
-    GeometryBuffer m_logo_triangles;
-    GeometryBuffer m_gridlines;
-    GeometryBuffer m_gridlines_bolder;
-    GeometryBuffer m_height_limit_common;
-    GeometryBuffer m_height_limit_bottom;
-    GeometryBuffer m_height_limit_top;
-    GeometryBuffer m_del_icon;
-    //GeometryBuffer m_del_and_background_icon;
-    mutable unsigned int m_del_vbo_id{ 0 };
-    GeometryBuffer m_arrange_icon;
-    mutable unsigned int m_arrange_vbo_id{ 0 };
-    GeometryBuffer m_orient_icon;
-    mutable unsigned int m_orient_vbo_id{ 0 };
-    GeometryBuffer m_lock_icon;
-    mutable unsigned int m_lock_vbo_id{ 0 };
-    GeometryBuffer m_plate_settings_icon;
-    mutable unsigned int m_plate_settings_vbo_id{ 0 };
-    GeometryBuffer m_plate_idx_icon;
-    mutable unsigned int m_plate_idx_vbo_id{ 0 };
+    GLModel m_triangles;
+    GLModel m_exclude_triangles;
+    GLModel m_logo_triangles;
+    GLModel m_gridlines;
+    GLModel m_gridlines_bolder;
+    GLModel m_height_limit_common;
+    GLModel m_height_limit_bottom;
+    GLModel m_height_limit_top;
+    GLModel m_del_icon;
+    //GLModel m_del_and_background_icon;
+    GLModel m_arrange_icon;
+    GLModel m_orient_icon;
+    GLModel m_lock_icon;
+    GLModel m_plate_settings_icon;
+    GLModel m_plate_idx_icon;
     GLTexture m_texture;
 
     mutable ColorRGBA m_grabber_color;
@@ -152,8 +145,7 @@ private:
     // SoftFever
     // part plate name
     std::string m_name;
-    GeometryBuffer m_plate_name_icon;
-    mutable unsigned int m_plate_name_vbo_id{ 0 };
+    GLModel m_plate_name_icon;
     GLTexture m_name_texture;
     wxCoord m_name_texture_width;
     wxCoord m_name_texture_height;
@@ -168,31 +160,30 @@ private:
     void calc_exclude_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
-    void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
-    void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
-    void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
-    void render_background(bool force_default_color = false) const;
-    void render_logo(bool bottom, bool render_cali = true) const;
-    void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
-    void render_exclude_area(bool force_default_color) const;
+    void calc_vertex_for_number(int index, bool one_number, GLModel &buffer);
+    void calc_vertex_for_icons(int index, GLModel &buffer);
+    void calc_vertex_for_icons_background(int icon_count, GLModel &buffer);
+    void render_background(bool force_default_color = false);
+    void render_logo(bool bottom, bool render_cali = true);
+    void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
+    void render_exclude_area(bool force_default_color);
     //void render_background_for_picking(const ColorRGBA render_color) const;
-    void render_grid(bool bottom) const;
-    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH) const;
-    void render_label(GLCanvas3D& canvas) const;
-    void render_grabber(const ColorRGBA render_color, bool use_lighting) const;
-    void render_face(float x_size, float y_size) const;
-    void render_arrows(const ColorRGBA render_color, bool use_lighting) const;
-    void render_left_arrow(const ColorRGBA render_color, bool use_lighting) const;
-    void render_right_arrow(const ColorRGBA render_color, bool use_lighting) const;
-    void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
+    void render_grid(bool bottom);
+    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
+    // void render_label(GLCanvas3D& canvas) const;
+    // void render_grabber(const ColorRGBA render_color, bool use_lighting) const;
+    // void render_face(float x_size, float y_size) const;
+    // void render_arrows(const ColorRGBA render_color, bool use_lighting) const;
+    // void render_left_arrow(const ColorRGBA render_color, bool use_lighting) const;
+    // void render_right_arrow(const ColorRGBA render_color, bool use_lighting) const;
+    void render_icon_texture(GLModel &buffer, GLTexture &texture);
     void show_tooltip(const std::string tooltip);
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
-    void render_only_numbers(bool bottom) const;
-    void render_plate_name_texture(int position_id, int tex_coords_id);
-    void render_rectangle_for_picking(const GeometryBuffer &buffer, const ColorRGBA render_color) const;
-    void on_render_for_picking() const;
+    void render_only_numbers(bool bottom);
+    void render_plate_name_texture();
+    void render_rectangle_for_picking(GLModel &buffer, const ColorRGBA render_color);
+    void on_render_for_picking();
     ColorRGBA picking_color_component(int idx) const;
-    void release_opengl_resource();
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
@@ -351,7 +342,7 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
-    void render_for_picking() const { on_render_for_picking(); }
+    void render_for_picking() { on_render_for_picking(); }
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
@@ -569,18 +560,16 @@ public:
             float y;
             float w;
             float h;
-            unsigned int vbo_id;
             std::string filename;
             GLTexture* texture { nullptr };
             Vec2d offset;
-            GeometryBuffer* buffer { nullptr };
+            GLModel* buffer { nullptr };
             TexturePart(float xx, float yy, float ww, float hh, std::string file){
                 x = xx; y = yy;
                 w = ww; h = hh;
                 filename = file;
                 texture = nullptr;
                 buffer = nullptr;
-                vbo_id = 0;
                 offset = Vec2d(0, 0);
             }
 
@@ -593,7 +582,6 @@ public:
                 this->buffer    = part.buffer;
                 this->filename  = part.filename;
                 this->texture   = part.texture;
-                this->vbo_id    = part.vbo_id;
             }
 
             void update_buffer();
