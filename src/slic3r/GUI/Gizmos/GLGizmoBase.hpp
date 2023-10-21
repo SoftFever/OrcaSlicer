@@ -64,27 +64,26 @@ protected:
         static const float FixedGrabberSize;
         static const float FixedRadiusSize;
 
-        Vec3d center;
-        Vec3d angles;
-        ColorRGBA color;
-        ColorRGBA hover_color;
-        bool enabled;
-        bool dragging;
+        bool enabled{ true };
+        bool dragging{ false };
+        Vec3d center{ Vec3d::Zero() };
+        Vec3d angles{ Vec3d::Zero() };
+        ColorRGBA color{GRABBER_NORMAL_COL};
+        ColorRGBA hover_color{GRABBER_HOVER_COL};
 
-        Grabber();
+        Grabber() = default;
 
-        void render(bool hover, float size) const;
-        void render_for_picking(float size) const { render(size, color, true); }
+        void render(bool hover, float size);
+        void render_for_picking(float size) { render(size, color, true); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
-        const GLModel& get_cube() const;
+        GLModel& get_cube();
 
     private:
-        void render(float size, const ColorRGBA& render_color, bool picking) const;
+        void render(float size, const ColorRGBA& render_color, bool picking);
 
-        GLModel cube;
-        bool cube_initialized = false;
+        GLModel m_cube;
     };
 
 public:

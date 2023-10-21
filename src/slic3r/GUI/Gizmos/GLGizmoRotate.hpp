@@ -82,7 +82,7 @@ private:
     void render_reference_radius(const ColorRGBA& color, bool radius_changed);
     void render_angle_arc(const ColorRGBA& color, bool radius_changed);
     void render_grabber_connection(const ColorRGBA& color, bool radius_changed);
-    void render_grabber(const BoundingBoxf3& box) const;
+    void render_grabber(const BoundingBoxf3& box);
     void render_grabber_extension(const BoundingBoxf3& box, bool picking);
 
     void transform_to_local(const Selection& selection) const;

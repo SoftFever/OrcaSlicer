@@ -70,7 +70,7 @@ public:
             m_arrow.reset();
         }
         float get_total_length() const { return m_stem_length + DefaultTipLength; }
-        void render() const;
+        void render();
     };
 
 public:
@@ -159,12 +159,12 @@ private:
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
     void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
         bool show_axes);
-    void render_axes() const;
-    void render_system(GLCanvas3D& canvas, bool bottom) const;
-    //void render_texture(bool bottom, GLCanvas3D& canvas) const;
-    void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom) const;
-    void render_default(bool bottom) const;
+    void render_axes();
+    void render_system(GLCanvas3D& canvas, bool bottom);
+    //void render_texture(bool bottom, GLCanvas3D& canvas);
+    void render_model();
+    void render_custom(GLCanvas3D& canvas, bool bottom);
+    void render_default(bool bottom);
     void release_VBOs();
 };
 

@@ -25,9 +25,7 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filenam
     : GLGizmoBase(parent, icon_filename, sprite_id)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
-{
-    m_vbo_cone.init_from(its_make_cone(1., 1., 2*PI/36));
-}
+{}
 
 std::string GLGizmoMove3D::get_tooltip() const
 {
@@ -95,6 +93,9 @@ void GLGizmoMove3D::on_update(const UpdateData& data)
 
 void GLGizmoMove3D::on_render()
 {
+    if (!m_cone.is_initialized())
+        m_cone.init_from(its_make_cone(1.0, 1.0, double(PI) / 18.0));
+
     const Selection& selection = m_parent.get_selection();
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
@@ -138,25 +139,20 @@ void GLGizmoMove3D::on_render()
                 m_grabber_connections[id].old_center = center;
                 m_grabber_connections[id].model.reset();
 
-                GLModel::InitializationData              init_data;
-                GUI::GLModel::InitializationData::Entity entity;
-                entity.type = GUI::GLModel::PrimitiveType::Lines;
-                entity.positions.reserve(2);
-                entity.positions.emplace_back(center.cast<float>());
-                entity.positions.emplace_back(m_grabbers[id].center.cast<float>());
+                GLModel::Geometry init_data;
+                init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+                init_data.color = AXES_COLOR[id];
+                init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+                init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-                entity.normals.reserve(2);
-                for (size_t j = 0; j < 2; ++j) {
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                }
+                // vertices
+                init_data.add_vertex((Vec3f)center.cast<float>());
+                init_data.add_vertex((Vec3f)m_grabbers[id].center.cast<float>());
 
-                entity.indices.reserve(2);
-                entity.indices.emplace_back(0);
-                entity.indices.emplace_back(1);
+                // indices
+                init_data.add_ushort_line(0, 1);
 
-                init_data.entities.emplace_back(entity);
-                m_grabber_connections[id].model.init_from(init_data);
-                m_grabber_connections[id].model.set_color(-1, AXES_COLOR[id]);
+                m_grabber_connections[id].model.init_from(std::move(init_data));
             }
 
             glLineStipple(1, 0x0FFF);
@@ -241,7 +237,7 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
     return projection;
 }
 
-void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const
+void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking)
 {
 #if ENABLE_FIXED_GRABBER
     float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
@@ -258,15 +254,13 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         }
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
     if (shader == nullptr)
         return;
 
-    const_cast<GLModel*>(&m_vbo_cone)->set_color(-1, color);
-    if (!picking) {
-        shader->start_using();
-        shader->set_uniform("emission_factor", 0.1f);
-    }
+    m_cone.set_color(color);
+    shader->start_using();
+    shader->set_uniform("emission_factor", 0.1f);
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
@@ -277,11 +271,10 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
 
     //glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
     glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
-    m_vbo_cone.render();
+    m_cone.render();
     glsafe(::glPopMatrix());
 
-    if (! picking)
-        shader->stop_using();
+    shader->stop_using();
 }
 
 

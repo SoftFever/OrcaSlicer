@@ -622,7 +622,7 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
         m_c->selection_info()->get_active_instance(), m_volume);
 
     if (const Selection&sel = m_parent.get_selection(); sel.get_volume_idxs().size() == 1)
-        m_glmodel.set_color(-1, sel.get_volume(*sel.get_volume_idxs().begin())->color);
+        m_glmodel.set_color(sel.get_volume(*sel.get_volume_idxs().begin())->color);
     m_triangle_count = its.indices.size();
 }
 

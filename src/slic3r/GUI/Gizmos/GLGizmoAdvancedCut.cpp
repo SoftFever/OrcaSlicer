@@ -27,30 +27,12 @@ const int c_connectors_group_id = 4;
 const float UndefFloat = -999.f;
 
 // connector colors
-
-static const ColorRGBA BLACK() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA BLUE() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA BLUEISH() { return {0.5f, 0.5f, 1.0f, 1.0f}; }
-static const ColorRGBA CYAN() { return {0.0f, 1.0f, 1.0f, 1.0f}; }
-static const ColorRGBA DARK_GRAY() { return {0.25f, 0.25f, 0.25f, 1.0f}; }
-static const ColorRGBA DARK_YELLOW() { return {0.5f, 0.5f, 0.0f, 1.0f}; }
-static const ColorRGBA GRAY() { return {0.5f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA GREEN() { return {0.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA GREENISH() { return {0.5f, 1.0f, 0.5f, 1.0f}; }
-static const ColorRGBA LIGHT_GRAY() { return {0.75f, 0.75f, 0.75f, 1.0f}; }
-static const ColorRGBA MAGENTA() { return {1.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA ORANGE() { return {0.923f, 0.504f, 0.264f, 1.0f}; }
-static const ColorRGBA RED() { return {1.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA REDISH() { return {1.0f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA YELLOW() { return {1.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA WHITE() { return {1.0f, 1.0f, 1.0f, 1.0f}; }
-
-static const ColorRGBA PLAG_COLOR           = YELLOW();
-static const ColorRGBA DOWEL_COLOR          = DARK_YELLOW();
-static const ColorRGBA HOVERED_PLAG_COLOR   = CYAN();
+static const ColorRGBA PLAG_COLOR           = ColorRGBA::YELLOW();
+static const ColorRGBA DOWEL_COLOR          = ColorRGBA::DARK_YELLOW();
+static const ColorRGBA HOVERED_PLAG_COLOR   = ColorRGBA::CYAN();
 static const ColorRGBA HOVERED_DOWEL_COLOR  = {0.0f, 0.5f, 0.5f, 1.0f};
-static const ColorRGBA SELECTED_PLAG_COLOR  = GRAY();
-static const ColorRGBA SELECTED_DOWEL_COLOR = GRAY(); // DARK_GRAY();
+static const ColorRGBA SELECTED_PLAG_COLOR  = ColorRGBA::GRAY();
+static const ColorRGBA SELECTED_DOWEL_COLOR = ColorRGBA::GRAY(); // DARK_GRAY();
 static const ColorRGBA CONNECTOR_DEF_COLOR  = {1.0f, 1.0f, 1.0f, 0.5f};
 static const ColorRGBA CONNECTOR_ERR_COLOR  = {1.0f, 0.3f, 0.3f, 0.5f};
 static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
@@ -516,6 +498,8 @@ void GLGizmoAdvancedCut::on_render_for_picking()
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
+    glsafe(::glPushMatrix());
+
     BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
 #if ENABLE_FIXED_GRABBER
     float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
@@ -523,8 +507,17 @@ void GLGizmoAdvancedCut::on_render_for_picking()
     float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 #endif
 
-    m_move_grabber.color = picking_color_component(0);
-    m_move_grabber.render_for_picking(mean_size);
+    m_move_grabber.color    = picking_color_component(0);
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+
+        m_move_grabber.render_for_picking(mean_size);
+
+        shader->stop_using();
+    }
+
+    glsafe(::glPopMatrix());
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     auto inst_id = m_c->selection_info()->get_active_instance();
@@ -876,67 +869,112 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         point += object_offset;
     }
 
-    // draw plane
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
 
-    ::glBegin(GL_QUADS);
-    ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    for (const Vec3d& point : plane_points_rot) {
-        ::glVertex3f(point(0), point(1), point(2));
+        // draw plane
+        {
+            m_plane.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+            init_data.color  = { 0.8f, 0.8f, 0.8f, 0.5f };
+            init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+            init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+            // vertices
+            for (const Vec3d &point : plane_points_rot) {
+                init_data.add_vertex((Vec3f)point.cast<float>());
+            }
+
+            // indices
+            init_data.add_ushort_triangle(0, 1, 2);
+            init_data.add_ushort_triangle(2, 3, 0);
+
+            m_plane.init_from(std::move(init_data));
+        }
+        m_plane.render();
+
+        glsafe(::glEnable(GL_CULL_FACE));
+        glsafe(::glDisable(GL_BLEND));
+
+        // Draw the grabber and the connecting line
+        Vec3d plane_center_rot = calc_plane_center(plane_points_rot);
+        m_move_grabber.center = plane_center_rot + plane_normal_rot * Offset;
+        // m_move_grabber.angles = m_current_base_rotation + m_rotation;
+
+        {
+            m_grabber_connection.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+            init_data.color  = ColorRGBA::YELLOW();
+            init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+            init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+            // vertices
+            init_data.add_vertex((Vec3f)plane_center_rot.cast<float>());
+            init_data.add_vertex((Vec3f)m_move_grabber.center.cast<float>());
+
+            // indices
+            init_data.add_ushort_line(0, 1);
+
+            m_grabber_connection.init_from(std::move(init_data));
+        }
+
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
+        glLineStipple(1, 0x0FFF);
+        glEnable(GL_LINE_STIPPLE);
+        m_grabber_connection.render();
+        glDisable(GL_LINE_STIPPLE);
+
+        shader->stop_using();
     }
-    glsafe(::glEnd());
 
-    glsafe(::glEnable(GL_CULL_FACE));
-    glsafe(::glDisable(GL_BLEND));
+    {
+        GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
+        if (shader == nullptr)
+            return;
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.1f);
+        // std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
+        // m_move_grabber.color = GrabberColor;
+        // m_move_grabber.hover_color = GrabberHoverColor;
+        // m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
+        bool hover = (m_hover_id == get_group_id());
+        ColorRGBA render_color;
+        if (hover) {
+            render_color = GrabberHoverColor;
+        }
+        else
+            render_color = GrabberColor;
 
-    // Draw the grabber and the connecting line
-    Vec3d plane_center_rot = calc_plane_center(plane_points_rot);
-    m_move_grabber.center = plane_center_rot + plane_normal_rot * Offset;
-    // m_move_grabber.angles = m_current_base_rotation + m_rotation;
+        GLModel &cube = m_move_grabber.get_cube();
+        // BBS set to fixed size grabber
+        // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
+        float fullsize = 8.0f;
+        if (GLGizmoBase::INV_ZOOM > 0) {
+            fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+        }
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
-    glsafe(::glColor3f(1.0, 1.0, 0.0));
-    glLineStipple(1, 0x0FFF);
-    glEnable(GL_LINE_STIPPLE);
-    ::glBegin(GL_LINES);
-    ::glVertex3dv(plane_center_rot.data());
-    ::glVertex3dv(m_move_grabber.center.data());
-    glsafe(::glEnd());
-    glDisable(GL_LINE_STIPPLE);
+        cube.set_color(render_color);
 
-    // std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
-    // m_move_grabber.color = GrabberColor;
-    // m_move_grabber.hover_color = GrabberHoverColor;
-    // m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
-    bool hover = (m_hover_id == get_group_id());
-    ColorRGBA render_color;
-    if (hover) {
-        render_color = GrabberHoverColor;
+        glsafe(::glPushMatrix());
+        glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
+        glsafe(::glMultMatrixd(m_rotate_matrix.data()));
+
+        glsafe(::glScaled(fullsize, fullsize, fullsize));
+        cube.render();
+        glsafe(::glPopMatrix());
+        shader->stop_using();
     }
-    else
-        render_color = GrabberColor;
-
-    const GLModel &cube = m_move_grabber.get_cube();
-    // BBS set to fixed size grabber
-    // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
-
-    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
-    glsafe(::glMultMatrixd(m_rotate_matrix.data()));
-
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
-    cube.render();
-    glsafe(::glPopMatrix());
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     set_center(m_cut_plane_center);
@@ -1043,7 +1081,7 @@ void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA 
 
         glsafe(::glMultMatrixd(view_model_matrix.data()));
 
-        model.set_color(-1, color);
+        model.set_color(color);
         model.render();
 
         shader->stop_using();

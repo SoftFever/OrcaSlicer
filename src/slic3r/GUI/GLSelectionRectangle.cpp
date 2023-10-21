@@ -80,17 +80,17 @@ namespace GUI {
         Size cnv_size = canvas.get_canvas_size();
         float cnv_half_width = 0.5f * (float)cnv_size.get_width();
         float cnv_half_height = 0.5f * (float)cnv_size.get_height();
-        if ((cnv_half_width == 0.0f) || (cnv_half_height == 0.0f))
+        if (cnv_half_width == 0.0f || cnv_half_height == 0.0f)
             return;
 
         Vec2d start(m_start_corner(0) - cnv_half_width, cnv_half_height - m_start_corner(1));
         Vec2d end(m_end_corner(0) - cnv_half_width, cnv_half_height - m_end_corner(1));
 
-        float left = (float)std::min(start(0), end(0)) * inv_zoom;
-        float top = (float)std::max(start(1), end(1)) * inv_zoom;
-        float right = (float)std::max(start(0), end(0)) * inv_zoom;
-        float bottom = (float)std::min(start(1), end(1)) * inv_zoom;
-
+        const float left = (float)std::min(start(0), end(0)) * inv_zoom;
+        const float top = (float)std::max(start(1), end(1)) * inv_zoom;
+        const float right = (float)std::max(start(0), end(0)) * inv_zoom;
+        const float bottom = (float)std::min(start(1), end(1)) * inv_zoom;
+        
         glsafe(::glLineWidth(1.5f));
 
         glsafe(::glDisable(GL_DEPTH_TEST));
@@ -100,7 +100,7 @@ namespace GUI {
         // ensure that the rectangle is renderered inside the frustrum
         glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
         // ensure that the overlay fits the frustrum near z plane
-        double gui_scale = camera.get_gui_scale();
+        const double gui_scale = camera.get_gui_scale();
         glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
         glsafe(::glPushAttrib(GL_ENABLE_BIT));
@@ -116,34 +116,28 @@ namespace GUI {
                 m_old_end_corner = m_end_corner;
                 m_rectangle.reset();
 
-                GLModel::InitializationData init_data;
-                GLModel::InitializationData::Entity entity;
-                entity.type = GLModel::PrimitiveType::LineLoop;
-                entity.positions.reserve(4);
-                entity.positions.emplace_back(left, bottom, 0.0f);
-                entity.positions.emplace_back(right, bottom, 0.0f);
-                entity.positions.emplace_back(right, top, 0.0f);
-                entity.positions.emplace_back(left, top, 0.0f);
+                GLModel::Geometry init_data;
+                init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::USHORT };
+                init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+                init_data.indices.reserve(4 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-                entity.normals.reserve(4);
-                for (size_t j = 0; j < 5; ++j) {
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                }
+                // vertices
+                init_data.add_vertex(Vec2f(left, bottom));
+                init_data.add_vertex(Vec2f(right, bottom));
+                init_data.add_vertex(Vec2f(right, top));
+                init_data.add_vertex(Vec2f(left, top));
 
-                entity.indices.reserve(6);
-                entity.indices.emplace_back(0);
-                entity.indices.emplace_back(1);
-                entity.indices.emplace_back(2);
-                entity.indices.emplace_back(2);
-                entity.indices.emplace_back(3);
-                entity.indices.emplace_back(0);
+                // indices
+                init_data.add_ushort_index(0);
+                init_data.add_ushort_index(1);
+                init_data.add_ushort_index(2);
+                init_data.add_ushort_index(3);
 
-                init_data.entities.emplace_back(entity);
-                m_rectangle.init_from(init_data);
+                m_rectangle.init_from(std::move(init_data));
             }
 
-            ColorRGBA color(0.0f, 1.0f, 0.38f, 1.0f);
-            m_rectangle.set_color(-1, color);
+            const ColorRGBA color(0.0f, 1.0f, 0.38f, 1.0f);
+            m_rectangle.set_color(color);
             m_rectangle.render();
             shader->stop_using();
         }

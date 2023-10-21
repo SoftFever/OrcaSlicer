@@ -157,7 +157,7 @@ void Bed3D::load_render_colors()
     RenderColor::colors[RenderCol_Axis_Z] = ImGuiWrapper::to_ImVec4(Bed3D::AXIS_Z_COLOR);
 }
 
-void Bed3D::Axes::render() const
+void Bed3D::Axes::render()
 {
     auto render_axis = [this](const Transform3f& transform) {
         glsafe(::glPushMatrix());
@@ -167,7 +167,7 @@ void Bed3D::Axes::render() const
     };
 
     if (!m_arrow.is_initialized())
-        const_cast<GLModel*>(&m_arrow)->init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+        m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -179,15 +179,15 @@ void Bed3D::Axes::render() const
     shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_X_COLOR);
+    m_arrow.set_color(AXIS_X_COLOR);
     render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
 
     // y axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Y_COLOR);
+    m_arrow.set_color(AXIS_Y_COLOR);
     render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
 
     // z axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Z_COLOR);
+    m_arrow.set_color(AXIS_Z_COLOR);
     render_axis(Geometry::assemble_transform(m_origin).cast<float>());
 
     shader->stop_using();
@@ -340,14 +340,14 @@ void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool sho
 void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
     bool show_axes)
 {
-    float* factor = const_cast<float*>(&m_scale_factor);
-    *factor = scale_factor;
+    m_scale_factor = scale_factor;
 
     if (show_axes)
         render_axes();
+
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_model.set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
+    m_model.set_color(m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
     switch (m_type)
     {
@@ -456,13 +456,13 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
     return { Type::Custom, {}, {} };
 }
 
-void Bed3D::render_axes() const
+void Bed3D::render_axes()
 {
     if (m_build_volume.valid())
         m_axes.render();
 }
 
-void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_system(GLCanvas3D& canvas, bool bottom)
 {
     if (!bottom)
         render_model();
@@ -471,7 +471,7 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
         render_texture(bottom, canvas);*/
 }
 
-/*void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
+/*void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas)
 {
     GLTexture* texture = const_cast<GLTexture*>(&m_texture);
     GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
@@ -656,34 +656,32 @@ GeometryBuffer Bed3D::update_bed_triangles() const
     return new_triangles;
 }
 
-void Bed3D::render_model() const
+void Bed3D::render_model()
 {
     if (m_model_filename.empty())
         return;
 
-    GLModel* model = const_cast<GLModel*>(&m_model);
-
-    if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
-        model->set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
+    if (m_model.get_filename() != m_model_filename && m_model.init_from_file(m_model_filename)) {
+        m_model.set_color(m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
         update_model_offset();
     }
 
-    if (!model->get_filename().empty()) {
+    if (!m_model.get_filename().empty()) {
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("emission_factor", 0.0f);
             glsafe(::glPushMatrix());
             glsafe(::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z()));
-            model->render();
+            m_model.render();
             glsafe(::glPopMatrix());
             shader->stop_using();
         }
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom)
 {
     if (m_model_filename.empty()) {
         render_default(bottom);
@@ -697,15 +695,15 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
         render_texture(bottom, canvas);*/
 }
 
-void Bed3D::render_default(bool bottom) const
+void Bed3D::render_default(bool bottom)
 {
     bool picking = false;
-    const_cast<GLTexture*>(&m_texture)->reset();
+    m_texture.reset();
 
-    unsigned int triangles_vcount = m_triangles.get_vertices_count();
+    const unsigned int triangles_vcount = m_triangles.get_vertices_count();
     GeometryBuffer default_triangles = update_bed_triangles();
     if (triangles_vcount > 0) {
-        bool has_model = !m_model.get_filename().empty();
+        const bool has_model = !m_model.get_filename().empty();
 
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));

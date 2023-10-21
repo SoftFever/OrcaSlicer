@@ -1595,16 +1595,11 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
     if (sidebar_field.empty())
         return;
 
-    GLShaderProgram* shader = nullptr;
+    GLShaderProgram* shader = wxGetApp().get_shader(boost::starts_with(sidebar_field, "layer") ? "flat" : "gouraud_light");
+    if (shader == nullptr)
+        return;
 
-    if (!boost::starts_with(sidebar_field, "layer")) {
-        shader = wxGetApp().get_shader("gouraud_light");
-        if (shader == nullptr)
-            return;
-
-        shader->start_using();
-        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    }
+    shader->start_using();
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
@@ -1650,6 +1645,8 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
         }
     }
 
+    if (!boost::starts_with(sidebar_field, "layer"))
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     if (boost::starts_with(sidebar_field, "position"))
         render_sidebar_position_hints(sidebar_field);
     else if (boost::starts_with(sidebar_field, "rotation"))
@@ -1662,8 +1659,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
 
     glsafe(::glPopMatrix());
 
-    if (!boost::starts_with(sidebar_field, "layer"))
-        shader->stop_using();
+    shader->stop_using();
 }
 
 bool Selection::requires_local_axes() const
@@ -2159,15 +2155,6 @@ void Selection::render_synchronized_volumes()
     }
 }
 
-static bool is_approx(const Vec3d& v1, const Vec3d& v2)
-{
-    for (int i = 0; i < 3; ++i) {
-        if (std::abs(v1[i] - v2[i]) > EPSILON)
-            return false;
-    }
-    return true;
-}
-
 void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color)
 {
     const BoundingBoxf3& curr_box = m_box.get_bounding_box();
@@ -2178,79 +2165,74 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& co
         const Vec3f b_max = box.max.cast<float>();
         const Vec3f size = 0.2f * box.size().cast<float>();
 
-        GLModel::InitializationData init_data;
-        GUI::GLModel::InitializationData::Entity entity;
-        entity.type = GUI::GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(48);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(48 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(48 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x() + size.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y() + size.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_min.z() + size.z()));
+        // vertices
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y() + size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z() + size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x() - size.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y() + size.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_min.z() + size.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y() + size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z() + size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x() - size.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y() - size.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_min.z() + size.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y() - size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z() + size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x() + size.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y() - size.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_min.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_min.z() + size.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y() - size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z() + size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x() + size.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y() + size.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_min.y(), b_max.z() - size.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y() + size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z() - size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x() - size.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y() + size.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_min.y(), b_max.z() - size.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y() + size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z() - size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x() - size.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y() - size.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_max.x(), b_max.y(), b_max.z() - size.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y() - size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z() - size.z()));
 
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x() + size.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y() - size.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_max.z()));
-        entity.positions.emplace_back(Vec3f(b_min.x(), b_max.y(), b_max.z() - size.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y() - size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z() - size.z()));
 
-        entity.normals.reserve(48);
-        for (size_t i = 0; i < 48; ++i) {
-            entity.normals.emplace_back(Vec3f::UnitZ());
+        // indices
+        for (unsigned short i = 0; i < 48; ++i) {
+            init_data.add_ushort_index(i);
         }
 
-        entity.indices.reserve(48);
-        for (size_t i = 0; i < 48; ++i) {
-            entity.indices.emplace_back(i);
-        }
-
-        init_data.entities.emplace_back(entity);
-        m_box.init_from(init_data);
+        m_box.init_from(std::move(init_data));
     }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -2262,7 +2244,7 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& co
         return;
 
     shader->start_using();
-    m_box.set_color(-1, to_rgba(color));
+    m_box.set_color(to_rgba(color));
     m_box.render();
     shader->stop_using();
 }
@@ -2276,16 +2258,16 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field)
 {
     if (boost::ends_with(sidebar_field, "x")) {
         glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        m_arrow.set_color(-1, get_color(X));
+        m_arrow.set_color(get_color(X));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        m_arrow.set_color(-1, get_color(Y));
+        m_arrow.set_color(get_color(Y));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
         glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        m_arrow.set_color(-1, get_color(Z));
+        m_arrow.set_color(get_color(Z));
         m_arrow.render();
     }
 }
@@ -2300,16 +2282,16 @@ void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field)
 
     if (boost::ends_with(sidebar_field, "x")) {
         glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        m_curved_arrow.set_color(-1, get_color(X));
+        m_curved_arrow.set_color(get_color(X));
         render_sidebar_rotation_hint();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
         glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        m_curved_arrow.set_color(-1, get_color(Y));
+        m_curved_arrow.set_color(get_color(Y));
         render_sidebar_rotation_hint();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        m_curved_arrow.set_color(-1, get_color(Z));
+        m_curved_arrow.set_color(get_color(Z));
         render_sidebar_rotation_hint();
     }
 }
@@ -2322,7 +2304,7 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, boo
     bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
     auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
-        m_arrow.set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
+        m_arrow.set_color(uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
         GLShaderProgram* shader = wxGetApp().get_current_shader();
         if (shader != nullptr)
             shader->set_uniform("emission_factor", 0.0f);
@@ -2400,69 +2382,53 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field)
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    if (!m_planes.models[0].is_initialized() || !is_approx(m_planes.check_points[0].cast<double>(), p1.cast<double>())) {
+    if (!m_planes.models[0].is_initialized() || !is_approx(m_planes.check_points[0], p1)) {
         m_planes.check_points[0] = p1;
         m_planes.models[0].reset();
 
-        GLModel::InitializationData init_data;
-        GUI::GLModel::InitializationData::Entity entity;
-        entity.type = GUI::GLModel::PrimitiveType::Triangles;
-        entity.positions.reserve(4);
-        entity.positions.emplace_back(Vec3f(p1.x(), p1.y(), z1));
-        entity.positions.emplace_back(Vec3f(p2.x(), p1.y(), z1));
-        entity.positions.emplace_back(Vec3f(p2.x(), p2.y(), z1));
-        entity.positions.emplace_back(Vec3f(p1.x(), p2.y(), z1));
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        entity.normals.reserve(4);
-        for (size_t i = 0; i < 4; ++i) {
-            entity.normals.emplace_back(Vec3f::UnitZ());
-        }
+        // vertices
+        init_data.add_vertex(Vec3f(p1.x(), p1.y(), z1));
+        init_data.add_vertex(Vec3f(p2.x(), p1.y(), z1));
+        init_data.add_vertex(Vec3f(p2.x(), p2.y(), z1));
+        init_data.add_vertex(Vec3f(p1.x(), p2.y(), z1));
 
-        entity.indices.reserve(6);
-        entity.indices.emplace_back(0);
-        entity.indices.emplace_back(1);
-        entity.indices.emplace_back(2);
-        entity.indices.emplace_back(2);
-        entity.indices.emplace_back(3);
-        entity.indices.emplace_back(0);
+        // indices
+        init_data.add_ushort_triangle(0, 1, 2);
+        init_data.add_ushort_triangle(2, 3, 0);
 
-        init_data.entities.emplace_back(entity);
-        m_planes.models[0].init_from(init_data);
+        m_planes.models[0].init_from(std::move(init_data));
     }
 
-    if (!m_planes.models[1].is_initialized() || !is_approx(m_planes.check_points[1].cast<double>(), p2.cast<double>())) {
+    if (!m_planes.models[1].is_initialized() || !is_approx(m_planes.check_points[1], p2)) {
         m_planes.check_points[1] = p2;
         m_planes.models[1].reset();
 
-        GLModel::InitializationData init_data;
-        GUI::GLModel::InitializationData::Entity entity;
-        entity.type = GUI::GLModel::PrimitiveType::Triangles;
-        entity.positions.reserve(4);
-        entity.positions.emplace_back(Vec3f(p1.x(), p1.y(), z2));
-        entity.positions.emplace_back(Vec3f(p2.x(), p1.y(), z2));
-        entity.positions.emplace_back(Vec3f(p2.x(), p2.y(), z2));
-        entity.positions.emplace_back(Vec3f(p1.x(), p2.y(), z2));
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        entity.normals.reserve(4);
-        for (size_t i = 0; i < 4; ++i) {
-            entity.normals.emplace_back(Vec3f::UnitZ());
-        }
+        // vertices
+        init_data.add_vertex(Vec3f(p1.x(), p1.y(), z2));
+        init_data.add_vertex(Vec3f(p2.x(), p1.y(), z2));
+        init_data.add_vertex(Vec3f(p2.x(), p2.y(), z2));
+        init_data.add_vertex(Vec3f(p1.x(), p2.y(), z2));
 
-        entity.indices.reserve(6);
-        entity.indices.emplace_back(0);
-        entity.indices.emplace_back(1);
-        entity.indices.emplace_back(2);
-        entity.indices.emplace_back(2);
-        entity.indices.emplace_back(3);
-        entity.indices.emplace_back(0);
+        // indices
+        init_data.add_ushort_triangle(0, 1, 2);
+        init_data.add_ushort_triangle(2, 3, 0);
 
-        init_data.entities.emplace_back(entity);
-        m_planes.models[1].init_from(init_data);
+        m_planes.models[1].init_from(std::move(init_data));
     }
 
-    m_planes.models[0].set_color(-1, (camera_on_top && type == 1) || (!camera_on_top && type == 2) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
+    m_planes.models[0].set_color((camera_on_top && type == 1) || (!camera_on_top && type == 2) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
     m_planes.models[0].render();
-    m_planes.models[1].set_color(-1, (camera_on_top && type == 2) || (!camera_on_top && type == 1) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
+    m_planes.models[1].set_color((camera_on_top && type == 2) || (!camera_on_top && type == 1) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
     m_planes.models[1].render();
 
     glsafe(::glEnable(GL_CULL_FACE));

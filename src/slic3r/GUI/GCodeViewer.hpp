@@ -311,7 +311,7 @@ class GCodeViewer
             GLModel model;
             ColorRGBA color;
             InstanceVBuffer instances;
-            GLModel::InitializationData data;
+            GLModel::Geometry data;
 
             void reset();
         };
@@ -374,7 +374,7 @@ class GCodeViewer
             }
             case ERenderPrimitiveType::InstancedModel: { return model.model.is_initialized() && !model.instances.buffer.empty(); }
             case ERenderPrimitiveType::BatchedModel: {
-                return model.data.vertices_count() > 0 && model.data.indices_count() &&
+                return !model.data.vertices.empty() && !model.data.indices.empty() &&
                     !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
             default: { return false; }
@@ -642,7 +642,7 @@ public:
             bool is_visible() const { return m_visible; }
             void set_visible(bool visible) { m_visible = visible; }
 
-            void render(int canvas_width, int canvas_height, const EViewType& view_type) const;
+            void render(int canvas_width, int canvas_height, const EViewType& view_type);
             void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
 
             void update_curr_move(const GCodeProcessorResult::MoveVertex move);
@@ -709,7 +709,7 @@ public:
         std::vector<unsigned int> gcode_ids;
         float m_scale = 1.0;
         bool m_show_gcode_window = false;
-        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const;
+        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type);
     };
 
     struct ETools

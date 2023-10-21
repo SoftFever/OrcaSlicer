@@ -77,12 +77,8 @@ private:
     void on_render() override;
     void on_render_for_picking() override;
 
-    void render_points(const Selection& selection, bool picking = false) const;
+    void render_points(const Selection& selection, bool picking = false);
     bool unsaved_changes() const;
-
-    GLModel m_cone;
-    GLModel m_cylinder;
-    GLModel m_sphere;
 
     bool m_lock_unique_islands = false;
     bool m_editing_mode = false;            // Is editing mode active?
@@ -94,6 +90,10 @@ private:
     mutable std::vector<CacheEntry> m_editing_cache; // a support point and whether it is currently selected
     std::vector<sla::SupportPoint> m_normal_cache; // to restore after discarding changes or undo/redo
     ObjectID m_old_mo_id;
+
+    GLModel m_cone;
+    GLModel m_cylinder;
+    GLModel m_sphere;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.
