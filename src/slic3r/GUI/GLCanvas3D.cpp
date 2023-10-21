@@ -78,26 +78,19 @@
 
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
-static Slic3r::ColorRGB DEFAULT_BG_LIGHT_COLOR      = {0.906f, 0.906f, 0.906f};
-static Slic3r::ColorRGB DEFAULT_BG_LIGHT_COLOR_DARK = {0.329f, 0.329f, 0.353f};
-static Slic3r::ColorRGB ERROR_BG_LIGHT_COLOR        = {0.753f, 0.192f, 0.039f};
-static Slic3r::ColorRGB ERROR_BG_LIGHT_COLOR_DARK   = {0.753f, 0.192f, 0.039f};
+static Slic3r::ColorRGBA DEFAULT_BG_LIGHT_COLOR      = { 0.906f, 0.906f, 0.906f, 1.0f };
+static Slic3r::ColorRGBA DEFAULT_BG_LIGHT_COLOR_DARK = { 0.329f, 0.329f, 0.353f, 1.0f };
+static Slic3r::ColorRGBA ERROR_BG_LIGHT_COLOR        = { 0.753f, 0.192f, 0.039f, 1.0f };
+static Slic3r::ColorRGBA ERROR_BG_LIGHT_COLOR_DARK   = { 0.753f, 0.192f, 0.039f, 1.0f };
 
 void GLCanvas3D::update_render_colors()
 {
-    DEFAULT_BG_LIGHT_COLOR = {
-        RenderColor::colors[RenderCol_3D_Background].x,
-        RenderColor::colors[RenderCol_3D_Background].y,
-        RenderColor::colors[RenderCol_3D_Background].z,
-    };
+    DEFAULT_BG_LIGHT_COLOR = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_3D_Background]);
 }
 
 void GLCanvas3D::load_render_colors()
 {
-    RenderColor::colors[RenderCol_3D_Background] = ImVec4(DEFAULT_BG_LIGHT_COLOR.r(),
-                                                          DEFAULT_BG_LIGHT_COLOR.g(),
-                                                          DEFAULT_BG_LIGHT_COLOR.b(),
-                                                          1.0f);
+    RenderColor::colors[RenderCol_3D_Background] = ImGuiWrapper::to_ImVec4(DEFAULT_BG_LIGHT_COLOR);
 }
 
 //static constexpr const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
@@ -6610,7 +6603,7 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
     _update_volumes_hover_state();
 }
 
-void GLCanvas3D::_render_background() const
+void GLCanvas3D::_render_background()
 {
     bool use_error_color = false;
     if (wxGetApp().is_editor()) {
@@ -6642,27 +6635,41 @@ void GLCanvas3D::_render_background() const
     // Draws a bottom to top gradient over the complete screen.
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    ::glBegin(GL_QUADS);
+    ColorRGBA background_color = m_is_dark ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
+    ColorRGBA error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
+    const ColorRGBA bottom_color = use_error_color ? error_background_color : background_color;
 
-    ColorRGB background_color = m_is_dark ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
-    ColorRGB error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
+    if (!m_background.is_initialized() || m_background.get_color() != bottom_color) {
+        m_background.reset();
 
-    if (use_error_color)
-        ::glColor3fv(error_background_color.data());
-    else
-        ::glColor3fv(background_color.data());
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2, GLModel::Geometry::EIndexType::USHORT };
+        init_data.color = bottom_color;
+        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-    ::glVertex2f(-1.0f, -1.0f);
-    ::glVertex2f(1.0f, -1.0f);
+        // vertices
+        init_data.add_vertex(Vec2f(-1.0f, -1.0f), Vec2f(0.0f, 0.0f));
+        init_data.add_vertex(Vec2f(1.0f, -1.0f),  Vec2f(1.0f, 0.0f));
+        init_data.add_vertex(Vec2f(1.0f, 1.0f),   Vec2f(1.0f, 1.0f));
+        init_data.add_vertex(Vec2f(-1.0f, 1.0f),  Vec2f(0.0f, 1.0f));
 
-    if (use_error_color)
-        ::glColor3fv(error_background_color.data());
-    else
-        ::glColor3fv(background_color.data());
+        // indices
+        init_data.add_ushort_triangle(0, 1, 2);
+        init_data.add_ushort_triangle(2, 3, 0);
 
-    ::glVertex2f(1.0f, 1.0f);
-    ::glVertex2f(-1.0f, 1.0f);
-    glsafe(::glEnd());
+        m_background.init_from(std::move(init_data));
+    }
+
+    GLShaderProgram* shader = wxGetApp().get_shader("background");
+    if (shader != nullptr) {
+        shader->start_using();
+        shader->set_uniform("top_color", use_error_color ? ERROR_BG_LIGHT_COLOR : DEFAULT_BG_LIGHT_COLOR);
+        shader->set_uniform("bottom_color", bottom_color);
+
+        m_background.render();
+        shader->stop_using();
+    }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 

@@ -714,6 +714,7 @@ public:
 
     CameraTarget m_camera_target;
 #endif // ENABLE_SHOW_CAMERA_TARGET
+    GLModel m_background;
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
     ~GLCanvas3D();
@@ -1119,7 +1120,7 @@ private:
 
     void _picking_pass();
     void _rectangular_selection_picking_pass();
-    void _render_background() const;
+    void _render_background();
     void _render_bed(bool bottom, bool show_axes);
     void _render_bed_for_picking(bool bottom);
     //BBS: add part plate related logic
