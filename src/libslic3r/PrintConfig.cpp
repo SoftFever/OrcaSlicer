@@ -5166,6 +5166,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "only_one_wall_top";
         value = "1";
     }
+    else if (opt_key == "initial_layer_flow_ratio") {
+        opt_key = "bottom_solid_infill_flow_ratio";
+    }
 
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
@@ -5181,7 +5184,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type", "z_lift_type", "bed_temperature_difference",
-        "detect_narrow_internal_solid_infill", "ensure_vertical_shell_thickness",
+        "detect_narrow_internal_solid_infill", "ensure_vertical_shell_thickness","extruder_type",
+        "internal_bridge_support_thickness","ensure_vertical_shell_thickness","extruder_clearance_max_radius"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
