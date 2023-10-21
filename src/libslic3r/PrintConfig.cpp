@@ -1660,8 +1660,8 @@ def = this->add("filament_loading_speed", coFloats);
 
     // BBS
     def = this->add("temperature_vitrification", coInts);
-    def->label = L("Temperature of vitrificaiton");
-    def->tooltip = L("Material becomes soft at this temperature. Thus the heatbed cannot be hotter than this tempature");
+    def->label = L("Softening temperature");
+    def->tooltip = L("The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 

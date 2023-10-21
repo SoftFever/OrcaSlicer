@@ -1,5 +1,5 @@
 #include "Arrange.hpp"
-
+#include "Print.hpp"
 #include "BoundingBox.hpp"
 
 #include <libnest2d/backends/libslic3r/geometries.hpp>
@@ -80,19 +80,18 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 const double BIG_ITEM_TRESHOLD = 0.02;
 #define VITRIFY_TEMP_DIFF_THRSH 15  // bed temp can be higher than vitrify temp, but not higher than this thresh
 
-void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig& print_cfg, const ArrangePolygons& selected)
+void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig* print_cfg, const ArrangePolygons& selected)
 {
-    double                             skirt_distance = get_real_skirt_dist(print_cfg);
+    double                             skirt_distance = get_real_skirt_dist(*print_cfg);
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
     params.brim_skirt_distance = skirt_distance;
-    params.bed_shrink_x = params.brim_skirt_distance;
-    params.bed_shrink_y = params.brim_skirt_distance;
+    params.bed_shrink_x += params.brim_skirt_distance;
+    params.bed_shrink_y += params.brim_skirt_distance;
     // for sequential print, we need to inflate the bed because cleareance_radius is so large
     if (params.is_seq_print) {
-        float shift_dist = params.cleareance_radius / 2 - 5;
-        params.bed_shrink_x -= shift_dist;
-        params.bed_shrink_y -= shift_dist;
+        params.bed_shrink_x -= params.cleareance_radius / 2;
+        params.bed_shrink_y -= params.cleareance_radius / 2;
     }
 }
 
@@ -126,11 +125,13 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
 
 void update_unselected_items_inflation(ArrangePolygons& unselected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
 {
+    float exclusion_gap = 1.f;
     if (params.is_seq_print) {
-        float shift_dist = params.cleareance_radius / 2 - 5;
+        // bed_shrink_x is typically (-params.cleareance_radius / 2+5) for seq_print
+        exclusion_gap = std::max(exclusion_gap, params.cleareance_radius / 2 + params.bed_shrink_x + 1.f);  // +1mm gap so the exclusion region is not too close
         // dont forget to move the excluded region
         for (auto& region : unselected) {
-            if (region.is_virt_object) region.poly.translate(-scaled(shift_dist), -scaled(shift_dist));
+            if (region.is_virt_object) region.poly.translate(scaled(params.bed_shrink_x), scaled(params.bed_shrink_y));
         }
     }
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
@@ -138,10 +139,9 @@ void update_unselected_items_inflation(ArrangePolygons& unselected, const Dynami
     // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
     // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
-    double scaled_exclusion_gap = scale_(1);
     std::for_each(unselected.begin(), unselected.end(),
         [&](auto& ap) { ap.inflation = !ap.is_virt_object ? (params.min_obj_distance == 0 ? scaled(ap.brim_width) : params.min_obj_distance / 2)
-        : (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap); });
+        : (ap.is_extrusion_cali_object ? 0 : scale_(exclusion_gap)); });
 }
 
 void update_selected_items_axis_align(ArrangePolygons& selected, const DynamicPrintConfig* print_cfg, const ArrangeParams& params)
@@ -260,7 +260,7 @@ Points get_shrink_bedpts(const DynamicPrintConfig* print_cfg, const ArrangeParam
 // Slic3r.
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
-    
+
         if (params.is_seq_print) {
             // Start placing the items from the center of the print bed
             pcfg.starting_point = PConf::Alignment::BOTTOM_LEFT;
@@ -269,7 +269,7 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
             // Start placing the items from the center of the print bed
             pcfg.starting_point = PConf::Alignment::TOP_RIGHT;
         }
-    
+
     if (params.do_final_align) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
@@ -286,7 +286,7 @@ void fill_config(PConf& pcfg, const ArrangeParams &params) {
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
     pcfg.accuracy = params.accuracy;
-    
+
     // Allow parallel execution.
     pcfg.parallel = params.parallel;
 
@@ -312,7 +312,7 @@ static double fixed_overfit(const std::tuple<double, Box>& result, const Box &bi
     Box fullbb  = sl::boundingBox(pilebb, binbb);
     auto diff = double(fullbb.area()) - binbb.area();
     if(diff > 0) score += diff;
-    
+
     return score;
 }
 
@@ -379,7 +379,7 @@ protected:
     std::vector<Box> m_excluded_and_extruCali_regions;  // excluded and extrusion calib regions
     size_t    m_item_count = 0; // Number of all items to be packed
     ArrangeParams params;
-    
+
     template<class T> ArithmeticOnly<T, double> norm(T val)
     {
         return double(val) / m_norm;
@@ -417,18 +417,18 @@ protected:
         const double bin_area = m_bin_area;
         const SpatIndex& spatindex = m_rtree;
         const SpatIndex& smalls_spatindex = m_smallsrtree;
-        
+
         // We will treat big items (compared to the print bed) differently
         auto isBig = [bin_area](double a) {
             return a/bin_area > BIG_ITEM_TRESHOLD ;
         };
-        
+
         // Candidate item bounding box
         auto ibb = item.boundingBox();
-        
+
         // Calculate the full bounding box of the pile with the candidate item
         auto fullbb = sl::boundingBox(m_pilebb, ibb);
-        
+
         // The bounding box of the big items (they will accumulate in the center
         // of the pile
         Box bigbb;
@@ -437,31 +437,31 @@ protected:
             auto boostbb = spatindex.bounds();
             boost::geometry::convert(boostbb, bigbb);
         }
-        
+
         // Will hold the resulting score
         double score = 0;
-        
+
         // Density is the pack density: how big is the arranged pile
         double density = 0;
-        
+
         // Distinction of cases for the arrangement scene
         enum e_cases {
             // This branch is for big items in a mixed (big and small) scene
             // OR for all items in a small-only scene.
             BIG_ITEM,
-            
+
             // This branch is for the last big item in a mixed scene
             LAST_BIG_ITEM,
-            
+
             // For small items in a mixed scene.
             SMALL_ITEM
         } compute_case;
-        
+
         bool bigitems = isBig(item.area()) || spatindex.empty();
         if(!params.is_seq_print && bigitems && !m_remaining.empty()) compute_case = BIG_ITEM;  // do not use so complicated logic for sequential printing
         else if (bigitems && m_remaining.empty()) compute_case = LAST_BIG_ITEM;
         else compute_case = SMALL_ITEM;
-        
+
         switch (compute_case) {
         case BIG_ITEM: {
             const Point& minc = ibb.minCorner(); // bottom left corner
@@ -566,7 +566,7 @@ protected:
             }
 
             break;
-        }            
+        }
         }
 
 
@@ -603,9 +603,11 @@ protected:
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
                 if (p.is_virt_object) continue;
-                score += lambda3 * (item.bed_temp - p.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
+                //score += lambda3 * (item.bed_temp - p.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
+                if (!Print::is_filaments_compatible({item.filament_temp_type,p.filament_temp_type}))
+                    score += lambda3;
             }
-            score += lambda3 * (item.bed_temp - item.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
+            //score += lambda3 * (item.bed_temp - item.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
             score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {
@@ -625,7 +627,9 @@ protected:
                     // 高度接近的件尽量摆到一起
                     score += (1- std::abs(item.height - p.height) / params.printable_height)
                         * norm(pl::distance(ibb.center(), p.boundingBox().center()));
-                    score += LARGE_COST_TO_REJECT * (item.bed_temp - p.bed_temp != 0);
+                    //score += LARGE_COST_TO_REJECT * (item.bed_temp - p.bed_temp != 0);
+                    if (!Print::is_filaments_compatible({ item.filament_temp_type,p.filament_temp_type }))
+                        score += LARGE_COST_TO_REJECT;
                 }
             }
         }
@@ -656,9 +660,9 @@ protected:
 
         return std::make_tuple(score, fullbb);
     }
-    
+
     std::function<double(const Item&, const ItemGroup&)> get_objfn();
-    
+
 public:
     AutoArranger(const TBin &                  bin,
                  const ArrangeParams           &params,
@@ -708,7 +712,7 @@ public:
 
             m_rtree.clear();
             m_smallsrtree.clear();
-            
+
             // We will treat big items (compared to the print bed) differently
             auto isBig = [this](double a) {
                 return a / m_bin_area > BIG_ITEM_TRESHOLD ;
@@ -721,7 +725,7 @@ public:
                 m_smallsrtree.insert({itm.boundingBox(), idx});
             }
         };
-        
+
         m_pconf.object_function = get_objfn();
 
         // preload fixed items (and excluded regions) on plate
@@ -746,7 +750,7 @@ public:
         };
 
         auto on_packed = params.on_packed;
-        
+
         if (progressind || on_packed)
             m_pck.progressIndicator(
                 [this, progressind, on_packed](unsigned num_finished) {
@@ -760,7 +764,8 @@ public:
                         if (on_packed)
                             on_packed(ap);
                         BOOST_LOG_TRIVIAL(debug) << "arrange " + last_packed.name + " succeed!"
-                            << ", plate id=" << ap.bed_idx << ", pos=" << last_packed.translation();
+                            << ", plate id=" << ap.bed_idx << ", pos=" << last_packed.translation()
+                            << ", temp_type=" << last_packed.filament_temp_type;
                     }
                 });
 
@@ -783,21 +788,21 @@ public:
                     (i1.extrude_ids != i2.extrude_ids ? (i1.extrude_ids.front() < i2.extrude_ids.front()) : (i1.area() > i2.area()));
             }
         };
-        
+
         m_pck.configure(m_pconf);
     }
-     
+
     template<class It> inline void operator()(It from, It to) {
         m_rtree.clear();
         m_item_count += size_t(to - from);
         m_pck.execute(from, to);
         m_item_count = 0;
     }
-    
+
     PConfig& config() { return m_pconf; }
     const PConfig& config() const { return m_pconf; }
-    
-    inline void preload(std::vector<Item>& fixeditems) {        
+
+    inline void preload(std::vector<Item>& fixeditems) {
         for(unsigned idx = 0; idx < fixeditems.size(); ++idx) {
             Item& itm = fixeditems[idx];
             itm.markAsFixedInBin(itm.binId());
@@ -813,7 +818,7 @@ template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Box
 
     return [this, origin_pack](const Item &itm, const ItemGroup&) {
         auto result = objfunc(itm, origin_pack);
-        
+
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
 
@@ -840,15 +845,15 @@ template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Cir
     auto bb = sl::boundingBox(m_bin);
     auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
     return [this, origin_pack](const Item &item, const ItemGroup&) {
-        
+
         auto result = objfunc(item, origin_pack);
-        
+
         double score = std::get<0>(result);
-        
+
         auto isBig = [this](const Item& itm) {
             return itm.area() / m_bin_area > BIG_ITEM_TRESHOLD ;
         };
-        
+
         if(isBig(item)) {
             auto mp = m_merged_pile;
             mp.push_back(item.transformedShape());
@@ -857,7 +862,7 @@ template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Cir
             if(miss < 0) miss = 0;
             score += miss*miss;
         }
-        
+
         return score;
     };
 }
@@ -873,7 +878,7 @@ std::function<double(const Item &, const ItemGroup&)> AutoArranger<ExPolygon>::g
         auto result = objfunc(itm, origin_pack);
 
         double score = std::get<0>(result);
-        
+
         auto mp = m_merged_pile;
         mp.emplace_back(itm.transformedShape());
         auto chull = sl::convexHull(mp);
@@ -930,14 +935,14 @@ void _arrange(
     // Integer ceiling the min distance from the bed perimeters
     coord_t md = params.min_obj_distance;
     md = md / 2;
-    
+
     auto corrected_bin = bin;
     //sl::offset(corrected_bin, md);
     ArrangeParams mod_params = params;
     mod_params.min_obj_distance = 0;  // items are already inflated
 
     AutoArranger<BinT> arranger{corrected_bin, mod_params, progressfn, stopfn};
-    
+
     remove_large_items(excludes, corrected_bin);
 
     // If there is something on the plate
@@ -947,7 +952,7 @@ void _arrange(
     inp.reserve(shapes.size() + excludes.size());
     for (auto &itm : shapes  ) inp.emplace_back(itm);
     for (auto &itm : excludes) inp.emplace_back(itm);
-    
+
     // Use the minimum bounding box rotation as a starting point.
     // TODO: This only works for convex hull. If we ever switch to concave
     // polygon nesting, a convex hull needs to be calculated.
@@ -987,16 +992,16 @@ inline double distance_to(const Point& p1, const Point& p2)
 static CircleBed to_circle(const Point &center, const Points& points) {
     std::vector<double> vertex_distances;
     double avg_dist = 0;
-    
+
     for (auto pt : points)
     {
         double distance = distance_to(center, pt);
         vertex_distances.push_back(distance);
         avg_dist += distance;
     }
-    
+
     avg_dist /= vertex_distances.size();
-    
+
     CircleBed ret(center, avg_dist);
     for(auto el : vertex_distances)
     {
@@ -1005,7 +1010,7 @@ static CircleBed to_circle(const Point &center, const Points& points) {
             break;
         }
     }
-    
+
     return ret;
 }
 
@@ -1039,6 +1044,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.print_temp = arrpoly.print_temp;
     item.vitrify_temp = arrpoly.vitrify_temp;
     item.inflation(arrpoly.inflation);
+    item.filament_temp_type = arrpoly.filament_temp_type;
 }
 
 template<class Fn> auto call_with_bed(const Points &bed, Fn &&fn)
@@ -1079,20 +1085,20 @@ void arrange(ArrangePolygons &      arrangables,
              const ArrangeParams &  params)
 {
     namespace clppr = Slic3r::ClipperLib;
-    
+
     std::vector<Item> items, fixeditems;
     items.reserve(arrangables.size());
-    
+
     for (ArrangePolygon &arrangeable : arrangables)
         process_arrangeable(arrangeable, items);
-    
+
     for (const ArrangePolygon &fixed: excludes)
         process_arrangeable(fixed, fixeditems);
-    
+
     for (Item &itm : fixeditems) itm.inflate(scaled(-2. * EPSILON));
-    
+
     _arrange(items, fixeditems, to_nestbin(bed), params, params.progressind, params.stopcondition);
-    
+
     for(size_t i = 0; i < items.size(); ++i) {
         Point tr = items[i].translation();
         arrangables[i].translation = {coord_t(tr.x()), coord_t(tr.y())};

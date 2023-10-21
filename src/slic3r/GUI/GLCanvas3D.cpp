@@ -1767,8 +1767,11 @@ Points GLCanvas3D::estimate_wipe_tower_points(int plate_index, bool global) cons
     float               y           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->get_at(plate_index);
     if (plate_index >= plate_count) { plate_index = 0; }
     float w               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_tower_width"))->value;
-    float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
-    Vec3d         wipe_tower_size = ppl.get_plate(plate_index)->estimate_wipe_tower_size(w, v);
+    auto part_plate = ppl.get_plate(plate_index);
+    const auto &wipe_tower_data = print.wipe_tower_data(part_plate->get_extruders(true).size());
+    // float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
+    const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    Vec3d         wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
 
     if (wipe_tower_size(1) == 0) {
         // when depth is unavailable (no items on this plate), we have to estimate the depth using the extruder number of all plates
@@ -2656,7 +2659,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const Print* print = m_process->fff_print();
                 const auto& wipe_tower_data = print->wipe_tower_data(filaments_count);
                 float brim_width = wipe_tower_data.brim_width;
-                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, wipe_tower_data.depth);
+                const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
 
                 const float margin = 15.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();

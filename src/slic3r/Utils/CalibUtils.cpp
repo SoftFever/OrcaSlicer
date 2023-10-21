@@ -11,7 +11,8 @@
 namespace Slic3r {
 namespace GUI {
 std::shared_ptr<PrintJob> CalibUtils::print_job;
-static const std::string temp_dir = fs::path(fs::temp_directory_path() / "calib").string();
+wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
+static const std::string temp_dir = wxstr_temp_dir.utf8_string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";

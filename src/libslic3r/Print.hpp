@@ -92,8 +92,8 @@ enum PrintObjectStep {
     posSlice, posPerimeters,posEstimateCurledExtrusions, posPrepareInfill,
     posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
     // BBS
-    posSimplifyInfill,
     posDetectOverhangsForLift,
+    posSimplifyWall, posSimplifyInfill,
     posCount,
 };
 
@@ -779,6 +779,12 @@ class ConstPrintRegionPtrsAdaptor : public ConstVectorOfPtrsAdaptor<PrintRegion>
 };
 */
 
+enum FilamentTempType {
+    HighTemp=0,
+    LowTemp,
+    HighLowCompatible,
+    Undefine
+};
 // The complete print tray with possibly multiple objects.
 class Print : public PrintBaseWithState<PrintStep, psCount>
 {
@@ -805,7 +811,7 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
-    void                process(bool use_cache = false) override;
+    void                process(long long *time_cost_with_cache = nullptr, bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
@@ -929,8 +935,18 @@ public:
     Vec2d translate_to_print_space(const Vec2d &point) const;
     // scaled point
     Vec2d translate_to_print_space(const Point &point) const;
-
+    static FilamentTempType get_filament_temp_type(const std::string& filament_type);
+    static int get_hrc_by_nozzle_type(const NozzleType& type);
     static bool check_multi_filaments_compatibility(const std::vector<std::string>& filament_types);
+    // similar to check_multi_filaments_compatibility, but the input is int, and may be negative (means unset)
+    static bool is_filaments_compatible(const std::vector<int>& types);
+    // get the compatible filament type of a multi-material object
+    // Rule:
+    // 1. LowTemp+HighLowCompatible=LowTemp
+    // 2. HighTemp++HighLowCompatible=HighTemp
+    // 3. LowTemp+HighTemp+...=HighLowCompatible
+    // Unset types are just ignored.
+    static int get_compatible_filament_type(const std::set<int>& types);
 
   protected:
     // Invalidates the step, and its depending steps in Print.
