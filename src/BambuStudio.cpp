@@ -122,6 +122,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_PRINTABLE_SIZE_REDUCED, "The selected printer's bed size is smaller than the bed size used in the print profile."},
     {CLI_OBJECT_ARRANGE_FAILED, "An error occurred when auto-arranging object(s)."},
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
+    {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
     {CLI_NO_SUITABLE_OBJECTS, "An empty plate was found. Please check that all plates are not empty in Bambu Studio before uploading."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
@@ -595,6 +596,7 @@ int CLI::run(int argc, char **argv)
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
     float old_max_radius = 0.f, old_height_to_rod = 0.f, old_height_to_lid = 0.f;
+    std::vector<double> old_max_layer_height, old_min_layer_height;
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     const std::vector<std::string>              &uptodate_configs          = m_config.option<ConfigOptionStrings>("uptodate_settings", true)->values;
@@ -884,6 +886,10 @@ int CLI::run(int argc, char **argv)
                         old_height_to_lid = config.opt_float("extruder_clearance_height_to_lid");
                     if (config.option<ConfigOptionFloat>("extruder_clearance_max_radius"))
                         old_max_radius = config.opt_float("extruder_clearance_max_radius");
+                    if (config.option<ConfigOptionFloats>("max_layer_height"))
+                        old_max_layer_height = config.option<ConfigOptionFloats>("max_layer_height")->values;
+                    if (config.option<ConfigOptionFloats>("min_layer_height"))
+                        old_min_layer_height = config.option<ConfigOptionFloats>("min_layer_height")->values;
                     BOOST_LOG_TRIVIAL(info) << boost::format("old printable size from 3mf: {%1%, %2%, %3%}")%old_printable_width %old_printable_depth %old_printable_height;
                     BOOST_LOG_TRIVIAL(info) << boost::format("old extruder_clearance_height_to_rod %1%, extruder_clearance_height_to_lid %2%, extruder_clearance_max_radius %3%}")%old_height_to_rod %old_height_to_lid %old_max_radius;
                 }
@@ -1302,7 +1308,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
                         flush_and_exit(ret);
                     }
-                    int orig_printable_width, orig_printable_depth, orig_printable_height;
+                    int orig_printable_width = 0, orig_printable_depth = 0, orig_printable_height = 0;
                     Pointfs orig_printable_area;
                     orig_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
                     if (orig_printable_area.size() >= 4) {
@@ -1318,8 +1324,38 @@ int CLI::run(int argc, char **argv)
                         {
                             std::string error_str = (boost::format("Invalid printable size {%1%, %2%, %3%} exceeds the default size.")%old_printable_width %old_printable_depth %old_printable_height).str();
                             BOOST_LOG_TRIVIAL(error) << error_str;
-                            record_exit_reson(outfile_dir, CLI_INVALID_VALUES_IN_3MF, 0, error_str, sliced_info);
-                            flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
+                            record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
+                            flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
+                        }
+                    }
+
+                    std::vector<double> orig_max_layer_height, orig_min_layer_height;
+                    if (config.option<ConfigOptionFloats>("max_layer_height"))
+                        orig_max_layer_height = config.option<ConfigOptionFloats>("max_layer_height")->values;
+                    if (config.option<ConfigOptionFloats>("min_layer_height"))
+                        orig_min_layer_height = config.option<ConfigOptionFloats>("min_layer_height")->values;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, check max and min layer height: old_min_layer_height size %2%, orig_min_layer_height size %3%, old_max_layer_height size %4%, orig_max_layer_height size %5%")
+                                %__LINE__ %old_min_layer_height.size() %orig_min_layer_height.size() %old_max_layer_height.size() %orig_max_layer_height.size();
+                    if ((orig_min_layer_height.size() > 0)
+                        && (orig_max_layer_height.size() == old_max_layer_height.size()) && (orig_min_layer_height.size() == old_min_layer_height.size())
+                        && (orig_max_layer_height.size() == orig_min_layer_height.size()))
+                    {
+                        for (size_t index = 0; index < orig_min_layer_height.size(); index++)
+                        {
+                            if (old_min_layer_height[index] < orig_min_layer_height[index])
+                            {
+                                std::string error_str = (boost::format("Nozzle %1%'s min layer height limits %2% exceeds the default size %3%.")%(index+1) %old_min_layer_height[index] %orig_min_layer_height[index]).str();
+                                BOOST_LOG_TRIVIAL(error) << error_str;
+                                record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
+                                flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
+                            }
+                            else if (old_max_layer_height[index] > orig_max_layer_height[index])
+                            {
+                                std::string error_str = (boost::format("Nozzle %1%'s max layer height limits %2% exceeds the default size %3%.")%(index+1) %old_max_layer_height[index] %orig_max_layer_height[index] ).str();
+                                BOOST_LOG_TRIVIAL(error) << error_str;
+                                record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
+                                flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
+                            }
                         }
                     }
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;

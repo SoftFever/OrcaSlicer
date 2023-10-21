@@ -1238,14 +1238,14 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
             if (layer_height > max_layer_height_from_nozzle ||
                 layer_height < min_layer_height_from_nozzle) {
-                return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), object, "layer_height" };
+                return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), object, "layer_height", STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT };
             }
 
             for (auto range : object->m_model_object->layer_config_ranges) {
                 double range_layer_height = range.second.opt_float("layer_height");
                 if (range_layer_height > max_layer_height_from_nozzle ||
                     range_layer_height < min_layer_height_from_nozzle)
-                    return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), nullptr, "layer_height" };
+                    return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), nullptr, "layer_height", STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT };
             }
 
             // Validate extrusion widths.
