@@ -4152,8 +4152,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
-    // extrude all loops ccw
-    bool was_clockwise = loop.make_counter_clockwise();
+    bool is_hole = (loop.loop_role() & elrHole) == elrHole;
+
+    if (m_config.spiral_mode && !is_hole) {
+        // if spiral vase, we have to ensure that all contour are in the same orientation.
+        loop.make_counter_clockwise();
+    }
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
@@ -4210,26 +4214,20 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // make a little move inwards before leaving loop
     if (m_config.wipe_on_loops.value && paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
         // detect angle between last and first segment
-        // the side depends on the original winding order of the polygon (left for contours, right for holes)
+        // the side depends on the original winding order of the polygon (inwards for contours, outwards for holes)
         //FIXME improve the algorithm in case the loop is tiny.
         //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
         Point a = paths.front().polyline.points[1];  // second point
         Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (was_clockwise) {
+        if (is_hole == loop.is_counter_clockwise()) {
             // swap points
             Point c = a; a = b; b = c;
-
-    //    double angle = paths.front().first_point().ccw_angle(a, b) / 3;
-
-    //    // turn left if contour, turn right if hole
-    //    if (was_clockwise) angle *= -1;
-
         }
 
         double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
-        // turn left if contour, turn right if hole
-        if (was_clockwise) angle *= -1;
+        // turn inwards if contour, turn outwards if hole
+        if (is_hole == loop.is_counter_clockwise()) angle *= -1;
 
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know

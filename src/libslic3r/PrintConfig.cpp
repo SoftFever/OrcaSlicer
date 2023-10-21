@@ -836,6 +836,27 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("overhang_reverse", coBool);
+    def->label = L("Reverse on odd");
+    def->full_label = L("Overhang reversal");
+    def->category = L("Quality");
+    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhang.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("overhang_reverse_threshold", coFloatOrPercent);
+    def->label = L("Reverse threshold");
+    def->full_label = L("Overhang reversal threshold");
+    def->category = L("Quality");
+    def->tooltip = L("Number of mm the overhang need to be for the reversal to be considered useful. Can be a % of the perimeter width."
+                     "\nValue 0 enables reversal on every odd layers regardless.");
+    def->sidetext = L("mm or %");
+    def->ratio_over = "line_width";
+    def->min = 0;
+    def->max_literal = 20;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+
     def = this->add("overhang_speed_classic", coBool);
     def->label = L("Classic mode");
     def->category = L("Speed");

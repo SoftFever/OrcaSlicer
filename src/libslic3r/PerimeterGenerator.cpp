@@ -223,12 +223,61 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
     }
 }
 
-static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls)
+template<class _T>
+static bool detect_steep_overhang(const PrintRegionConfig *config,
+                                  bool                     is_contour,
+                                  const BoundingBox       &extrusion_bboxs,
+                                  double                   extrusion_width,
+                                  const _T                 extrusion,
+                                  const ExPolygons        *lower_slices,
+                                  bool                    &steep_overhang_contour,
+                                  bool                    &steep_overhang_hole)
+{
+    double threshold = config->overhang_reverse_threshold.get_abs_value(extrusion_width);
+    // Special case: reverse on every odd layer
+    if (threshold < EPSILON) {
+        if (is_contour) {
+            steep_overhang_contour = true;
+        } else {
+            steep_overhang_hole = true;
+        }
+
+        return true;
+    }
+
+    Polygons lower_slcier_chopped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*lower_slices, extrusion_bboxs, true);
+
+    // All we need to check is whether we have lines outside `threshold`
+    double off = threshold - 0.5 * extrusion_width;
+
+    auto limiton_polygons = offset(lower_slcier_chopped, float(scale_(off)));
+
+    auto remain_polylines = diff_pl(extrusion, limiton_polygons);
+    if (!remain_polylines.empty()) {
+        if (is_contour) {
+            steep_overhang_contour = true;
+        } else {
+            steep_overhang_hole = true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls,
+    bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
     // loops is an arrayref of ::Loop objects
     // turn each one into an ExtrusionLoop object
     ExtrusionEntityCollection   coll;
     Polygon                     fuzzified;
+    
+    // Detect steep overhangs
+    bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
+                             perimeter_generator.layer_id % 2 == 1; // Only calculate overhang degree on odd layers
+
     for (const PerimeterGeneratorLoop &loop : loops) {
         bool is_external = loop.is_external();
         bool is_small_width = loop.is_smaller_width_perimeter;
@@ -240,9 +289,9 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // Note that we set loop role to ContourInternalPerimeter
             // also when loop is both internal and external (i.e.
             // there's only one contour loop).
-            loop_role = elrContourInternalPerimeter;
+            loop_role = elrInternal;
         } else {
-            loop_role = elrDefault;
+            loop_role = loop.is_contour? elrDefault : elrHole;
         }
         
         // detect overhanging/bridging perimeters
@@ -282,6 +331,22 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // prepare grown lower layer slices for overhang detection
             BoundingBox bbox(polygon.points);
             bbox.offset(SCALED_EPSILON);
+
+            // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
+            if (overhangs_reverse && perimeter_generator.config->fuzzy_skin != FuzzySkinType::None) {
+                if (loop.is_contour) {
+                    steep_overhang_contour = true;
+                } else if (perimeter_generator.config->fuzzy_skin != FuzzySkinType::External) {
+                    steep_overhang_hole = true;
+                }
+            }
+            // Detect steep overhang
+            // Skip the check if we already found steep overhangs
+            bool found_steep_overhang = (loop.is_contour && steep_overhang_contour) || (!loop.is_contour && steep_overhang_hole);
+            if (overhangs_reverse && !found_steep_overhang) {
+                detect_steep_overhang(perimeter_generator.config, loop.is_contour, bbox, extrusion_width, Polygons{polygon}, perimeter_generator.lower_slices,
+                                      steep_overhang_contour, steep_overhang_hole);
+            }
 
             Polylines remain_polines;
 
@@ -382,16 +447,16 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         } else {
             const PerimeterGeneratorLoop &loop = loops[idx.first];
             assert(thin_walls.empty());
-            ExtrusionEntityCollection children = traverse_loops(perimeter_generator, loop.children, thin_walls);
+            ExtrusionEntityCollection children = traverse_loops(perimeter_generator, loop.children, thin_walls, steep_overhang_contour, steep_overhang_hole);
             out.entities.reserve(out.entities.size() + children.entities.size() + 1);
             ExtrusionLoop *eloop = static_cast<ExtrusionLoop*>(coll.entities[idx.first]);
             coll.entities[idx.first] = nullptr;
+
+            eloop->make_counter_clockwise();
             if (loop.is_contour) {
-                eloop->make_counter_clockwise();
                 out.append(std::move(children.entities));
                 out.entities.emplace_back(eloop);
             } else {
-                eloop->make_clockwise();
                 out.entities.emplace_back(eloop);
                 out.append(std::move(children.entities));
             }
@@ -573,8 +638,13 @@ static void smooth_overhang_level(ExtrusionPaths &paths)
     }
 }
 
-static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions)
+static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& perimeter_generator, std::vector<PerimeterGeneratorArachneExtrusion>& pg_extrusions,
+    bool &steep_overhang_contour, bool &steep_overhang_hole)
 {
+    // Detect steep overhangs
+    bool overhangs_reverse = perimeter_generator.config->overhang_reverse &&
+                             perimeter_generator.layer_id % 2 == 1;  // Only calculate overhang degree on odd layers
+
     ExtrusionEntityCollection extrusion_coll;
     for (PerimeterGeneratorArachneExtrusion& pg_extrusion : pg_extrusions) {
         Arachne::ExtrusionLine* extrusion = pg_extrusion.extrusion;
@@ -620,6 +690,41 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             // get non-overhang paths by intersecting this loop with the grown lower slices
             extrusion_paths_append(temp_paths, clip_extrusion(extrusion_path, lower_slices_paths, ClipperLib_Z::ctIntersection), role,
                                    is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow);
+
+            // Always reverse extrusion if use fuzzy skin: https://github.com/SoftFever/OrcaSlicer/pull/2413#issuecomment-1769735357
+            if (overhangs_reverse && perimeter_generator.config->fuzzy_skin != FuzzySkinType::None) {
+                if (pg_extrusion.is_contour) {
+                    steep_overhang_contour = true;
+                } else if (perimeter_generator.config->fuzzy_skin != FuzzySkinType::External) {
+                    steep_overhang_hole = true;
+                }
+            }
+            // Detect steep overhang
+            // Skip the check if we already found steep overhangs
+            bool found_steep_overhang = (pg_extrusion.is_contour && steep_overhang_contour) || (!pg_extrusion.is_contour && steep_overhang_hole);
+            if (overhangs_reverse && !found_steep_overhang) {
+                std::map<double, ExtrusionPaths> recognization_paths;
+                for (const ExtrusionPath &path : temp_paths) {
+                    if (recognization_paths.count(path.width))
+                        recognization_paths[path.width].emplace_back(std::move(path));
+                    else
+                        recognization_paths.insert(std::pair<double, ExtrusionPaths>(path.width, {std::move(path)}));
+                }
+                for (const auto &it : recognization_paths) {
+                    Polylines be_clipped;
+
+                    for (const ExtrusionPath &p : it.second) {
+                        be_clipped.emplace_back(std::move(p.polyline));
+                    }
+
+                    BoundingBox extrusion_bboxs = get_extents(be_clipped);
+
+                    if (detect_steep_overhang(perimeter_generator.config, pg_extrusion.is_contour, extrusion_bboxs, it.first, be_clipped, perimeter_generator.lower_slices,
+                        steep_overhang_contour, steep_overhang_hole)) {
+                        break;
+                    }
+                }
+            }
 
             if (perimeter_generator.config->overhang_speed_classic && perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
 
@@ -728,13 +833,8 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         // Append paths to collection.
         if (!paths.empty()) {
             if (extrusion->is_closed) {
-                ExtrusionLoop extrusion_loop(std::move(paths));
-                // Restore the orientation of the extrusion loop.
-                if (pg_extrusion.is_contour)
-                    extrusion_loop.make_counter_clockwise();
-                else
-                    extrusion_loop.make_clockwise();
-
+                ExtrusionLoop extrusion_loop(std::move(paths), pg_extrusion.is_contour ? elrDefault : elrHole);
+                extrusion_loop.make_counter_clockwise();
                 for (auto it = std::next(extrusion_loop.paths.begin()); it != extrusion_loop.paths.end(); ++it) {
                     assert(it->polyline.points.size() >= 2);
                     assert(std::prev(it)->polyline.last_point() == it->polyline.first_point());
@@ -1303,6 +1403,23 @@ void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
     }
 }
 
+// Reorient loop direction
+static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_overhang_contour, bool steep_overhang_hole)
+{
+    if (steep_overhang_hole || steep_overhang_contour) {
+        for (auto entity : entities) {
+            if (entity->is_loop()) {
+                ExtrusionLoop *eloop = static_cast<ExtrusionLoop *>(entity);
+                // Only reverse when needed
+                bool need_reverse = ((eloop->loop_role() & elrHole) == elrHole) ? steep_overhang_hole : steep_overhang_contour;
+                if (need_reverse) {
+                    eloop->make_clockwise();
+                }
+            }
+        }
+    }
+}
+
 void PerimeterGenerator::process_classic()
 {
     // other perimeters
@@ -1590,7 +1707,10 @@ void PerimeterGenerator::process_classic()
                 }
             }
             // at this point, all loops should be in contours[0]
-            ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls);
+            bool steep_overhang_contour = false;
+            bool steep_overhang_hole    = false;
+            ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
+            reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole);
 
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
@@ -2108,11 +2228,13 @@ void PerimeterGenerator::process_arachne()
                 }
             }
         }
-
-
         
-        if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions); !extrusion_coll.empty())
+        bool steep_overhang_contour = false;
+        bool steep_overhang_hole    = false;
+        if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions, steep_overhang_contour, steep_overhang_hole); !extrusion_coll.empty()) {
+            reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole);
             this->loops->append(extrusion_coll);
+        }
 
         ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
         const coord_t spacing = (perimeters.size() == 1) ? ext_perimeter_spacing2 : perimeter_spacing;
