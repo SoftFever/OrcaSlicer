@@ -462,53 +462,48 @@ void GLCanvas3D::LayersEditing::render_curve(const Rect & bar_rect)
     const float scale_y = bar_rect.get_height() / m_object_max_z;
     const float x = bar_rect.get_left() + float(m_slicing_parameters->layer_height) * scale_x;
 
-    bool bar_rect_changed = m_profile.old_bar_rect != bar_rect;
+    const bool bar_rect_changed = m_profile.old_bar_rect != bar_rect;
     m_profile.old_bar_rect = bar_rect;
 
     // Baseline
     if (!m_profile.baseline.is_initialized() || bar_rect_changed) {
         m_profile.old_bar_rect = bar_rect;
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(2);
-        entity.positions.emplace_back(x, bar_rect.get_bottom(), 0.0f);
-        entity.positions.emplace_back(x, bar_rect.get_top(), 0.0f);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.color = ColorRGBA::BLACK();
+        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        entity.normals.reserve(2);
-        for (size_t j = 0; j < 2; ++j) {
-            entity.normals.emplace_back(Vec3f::UnitZ());
-        }
+        // vertices
+        init_data.add_vertex(Vec3f(x, bar_rect.get_bottom(), 0.0f));
+        init_data.add_vertex(Vec3f(x, bar_rect.get_top(), 0.0f));
 
-        entity.indices.reserve(2);
-        entity.indices.emplace_back(0);
-        entity.indices.emplace_back(1);
+        // indices
+        init_data.add_ushort_line(0, 1);
 
-        init_data.entities.emplace_back(entity);
-        m_profile.baseline.init_from(init_data);
-        m_profile.baseline.set_color(-1, ColorRGBA::BLACK());
+        m_profile.baseline.init_from(std::move(init_data));
     }
 
     if (!m_profile.profile.is_initialized() || bar_rect_changed || m_profile.old_layer_height_profile != m_layer_height_profile) {
         m_profile.old_layer_height_profile = m_layer_height_profile;
         m_profile.profile.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::LineStrip;
-        entity.positions.reserve(m_layer_height_profile.size());
-        entity.normals.reserve(m_layer_height_profile.size());
-        entity.indices.reserve(m_layer_height_profile.size());
-        for (unsigned int i = 0; i < unsigned int(m_layer_height_profile.size()); i += 2) {
-            entity.positions.emplace_back(bar_rect.get_left() + float(m_layer_height_profile[i + 1]) * scale_x, bar_rect.get_bottom() + float(m_layer_height_profile[i]) * scale_y, 0.0f);
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.indices.emplace_back(i / 2);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::UINT };
+        init_data.color = ColorRGBA::BLUE();
+        init_data.vertices.reserve(m_layer_height_profile.size() * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(m_layer_height_profile.size() * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+        // vertices + indices
+        for (unsigned int i = 0; i < (unsigned int)m_layer_height_profile.size(); i += 2) {
+            init_data.add_vertex(Vec3f(bar_rect.get_left() + float(m_layer_height_profile[i + 1]) * scale_x, 
+                                       bar_rect.get_bottom() + float(m_layer_height_profile[i]) * scale_y,
+                                       0.0f));
+            init_data.add_uint_index(i / 2);
         }
 
-        init_data.entities.emplace_back(entity);
-        m_profile.profile.init_from(init_data);
-        m_profile.profile.set_color(-1, ColorRGBA::BLUE());
+        m_profile.profile.init_from(std::move(init_data));
     }
 
     GLShaderProgram* shader = wxGetApp().get_shader("flat");
@@ -924,89 +919,51 @@ void GLCanvas3D::SequentialPrintClearance::set_polygons(const Polygons& polygons
     m_perimeter.reset();
     m_fill.reset();
     if (!polygons.empty()) {
-        size_t triangles_count = 0;
-        for (const Polygon &poly : polygons) { triangles_count += poly.points.size() - 2; }
-        const size_t vertices_count = 3 * triangles_count;
-
         if (m_render_fill) {
-            GLModel::InitializationData         fill_data;
-            GLModel::InitializationData::Entity entity;
-            entity.type  = GLModel::PrimitiveType::Triangles;
-            entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
-            entity.positions.reserve(vertices_count);
-            entity.normals.reserve(vertices_count);
-            entity.indices.reserve(vertices_count);
+            GLModel::Geometry fill_data;
+            fill_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::UINT };
+            fill_data.color  = { 0.8f, 0.8f, 1.0f, 0.5f };
 
+            // vertices + indices
             const ExPolygons polygons_union = union_ex(polygons);
-            for (const ExPolygon &poly : polygons_union) {
-                const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
-                for (const Vec3d &v : triangulation) {
-                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.0125f)); // add a small positive z to avoid z-fighting
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                    const size_t positions_count = entity.positions.size();
-                    if (positions_count % 3 == 0) {
-                        entity.indices.emplace_back(positions_count - 3);
-                        entity.indices.emplace_back(positions_count - 2);
-                        entity.indices.emplace_back(positions_count - 1);
-                    }
+            unsigned int vertices_counter = 0;
+            for (const ExPolygon& poly : polygons_union) {
+               const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(poly);
+                for (const Vec3d& v : triangulation) {
+                    fill_data.add_vertex((Vec3f)(v.cast<float>() + 0.0125f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
+                    ++vertices_counter;
+                    if (vertices_counter % 3 == 0)
+                        fill_data.add_uint_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
                 }
             }
 
-            fill_data.entities.emplace_back(entity);
-            m_fill.init_from(fill_data);
+            m_fill.init_from(std::move(fill_data));
         }
 
-        GLModel::InitializationData perimeter_data;
-        for (const Polygon &poly : polygons) {
-            GLModel::InitializationData::Entity ent;
-            ent.type = GLModel::PrimitiveType::LineLoop;
-            ent.positions.reserve(poly.points.size());
-            ent.indices.reserve(poly.points.size());
-            unsigned int id_count = 0;
-            for (const Point &p : poly.points) {
-                ent.positions.emplace_back(unscale<float>(p.x()), unscale<float>(p.y()), 0.025f); // add a small positive z to avoid z-fighting
-                ent.normals.emplace_back(Vec3f::UnitZ());
-                ent.indices.emplace_back(id_count++);
-            }
-
-            perimeter_data.entities.emplace_back(ent);
-        }
-
-        m_perimeter.init_from(perimeter_data);
+        m_perimeter.init_from(polygons, 0.025f); // add a small positive z to avoid z-fighting
     }
 
     //BBS: add the height limit compute logic
     if (!height_polygons.empty()) {
-        size_t height_triangles_count = 0;
-        for (const auto &poly : height_polygons) { height_triangles_count += poly.first.points.size() - 2; }
-        const size_t height_vertices_count = 3 * height_triangles_count;
+        GLModel::Geometry height_fill_data;
+        height_fill_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::UINT };
+        height_fill_data.color  = {0.8f, 0.8f, 1.0f, 0.5f};
 
-        GLModel::InitializationData         height_fill_data;
-        GLModel::InitializationData::Entity height_entity;
-        height_entity.type  = GLModel::PrimitiveType::Triangles;
-        height_entity.color = {0.8f, 0.8f, 1.0f, 0.5f};
-        height_entity.positions.reserve(height_vertices_count);
-        height_entity.normals.reserve(height_vertices_count);
-        height_entity.indices.reserve(height_vertices_count);
-
+        // vertices + indices
+        unsigned int vertices_counter = 0;
         for (const auto &poly : height_polygons) {
             ExPolygon                ex_poly(poly.first);
             const std::vector<Vec3d> height_triangulation = triangulate_expolygon_3d(ex_poly);
             for (const Vec3d &v : height_triangulation) {
-                Vec3d point{v.x(), v.y(), poly.second};
-                height_entity.positions.emplace_back(point.cast<float>());
-                height_entity.normals.emplace_back(Vec3f::UnitZ());
-                const size_t height_positions_count = height_entity.positions.size();
-                if (height_positions_count % 3 == 0) {
-                    height_entity.indices.emplace_back(height_positions_count - 3);
-                    height_entity.indices.emplace_back(height_positions_count - 2);
-                    height_entity.indices.emplace_back(height_positions_count - 1);
-                }
+                Vec3f point{(float) v.x(), (float) v.y(), poly.second};
+                height_fill_data.add_vertex(point);
+                ++vertices_counter;
+                if (vertices_counter % 3 == 0)
+                    height_fill_data.add_uint_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
             }
         }
 
-        height_fill_data.entities.emplace_back(height_entity);
-        m_height_limit.init_from(height_fill_data);
+        m_height_limit.init_from(std::move(height_fill_data));
     }
 }
 
@@ -1015,7 +972,7 @@ void GLCanvas3D::SequentialPrintClearance::render()
     const ColorRGBA FILL_COLOR = { 0.7f, 0.7f, 1.0f, 0.5f };
     const ColorRGBA NO_FILL_COLOR = { 0.75f, 0.75f, 0.75f, 0.75f };
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
@@ -1026,11 +983,11 @@ void GLCanvas3D::SequentialPrintClearance::render()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    m_perimeter.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
+    m_perimeter.set_color(m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
     m_perimeter.render();
     m_fill.render();
     //BBS: add height limit
-    m_height_limit.set_color(-1, m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
+    m_height_limit.set_color(m_render_fill ? FILL_COLOR : NO_FILL_COLOR);
     m_height_limit.render();
 
     glsafe(::glDisable(GL_BLEND));

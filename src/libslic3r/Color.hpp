@@ -48,12 +48,14 @@ public:
 	static const ColorRGB BLACK()       { return { 0.0f, 0.0f, 0.0f }; }
 	static const ColorRGB BLUE()        { return { 0.0f, 0.0f, 1.0f }; }
 	static const ColorRGB BLUEISH()     { return { 0.5f, 0.5f, 1.0f }; }
+	static const ColorRGB CYAN()        { return { 0.0f, 1.0f, 1.0f }; }
 	static const ColorRGB DARK_GRAY()   { return { 0.25f, 0.25f, 0.25f }; }
 	static const ColorRGB DARK_YELLOW() { return { 0.5f, 0.5f, 0.0f }; }
 	static const ColorRGB GRAY()        { return { 0.5f, 0.5f, 0.5f }; }
 	static const ColorRGB GREEN()       { return { 0.0f, 1.0f, 0.0f }; }
 	static const ColorRGB GREENISH()    { return { 0.5f, 1.0f, 0.5f }; }
 	static const ColorRGB LIGHT_GRAY()  { return { 0.75f, 0.75f, 0.75f }; }
+	static const ColorRGB MAGENTA()     { return { 1.0f, 0.0f, 1.0f }; }
 	static const ColorRGB ORANGE()      { return { 0.92f, 0.50f, 0.26f }; }
 	static const ColorRGB RED()         { return { 1.0f, 0.0f, 0.0f }; }
 	static const ColorRGB REDISH()      { return { 1.0f, 0.5f, 0.5f }; }
@@ -112,12 +114,14 @@ public:
 	static const ColorRGBA BLACK()       { return { 0.0f, 0.0f, 0.0f, 1.0f }; }
 	static const ColorRGBA BLUE()        { return { 0.0f, 0.0f, 1.0f, 1.0f }; }
 	static const ColorRGBA BLUEISH()     { return { 0.5f, 0.5f, 1.0f, 1.0f }; }
+	static const ColorRGBA CYAN()        { return { 0.0f, 1.0f, 1.0f, 1.0f }; }
 	static const ColorRGBA DARK_GRAY()   { return { 0.25f, 0.25f, 0.25f, 1.0f }; }
 	static const ColorRGBA DARK_YELLOW() { return { 0.5f, 0.5f, 0.0f, 1.0f }; }
 	static const ColorRGBA GRAY()		 { return { 0.5f, 0.5f, 0.5f, 1.0f }; }
 	static const ColorRGBA GREEN()		 { return { 0.0f, 1.0f, 0.0f, 1.0f }; }
 	static const ColorRGBA GREENISH()    { return { 0.5f, 1.0f, 0.5f, 1.0f }; }
 	static const ColorRGBA LIGHT_GRAY()  { return { 0.75f, 0.75f, 0.75f, 1.0f }; }
+	static const ColorRGBA MAGENTA()     { return { 1.0f, 0.0f, 1.0f, 1.0f }; }
 	static const ColorRGBA ORANGE()      { return { 0.923f, 0.504f, 0.264f, 1.0f }; }
 	static const ColorRGBA RED()         { return { 1.0f, 0.0f, 0.0f, 1.0f }; }
 	static const ColorRGBA REDISH()      { return { 1.0f, 0.5f, 0.5f, 1.0f }; }

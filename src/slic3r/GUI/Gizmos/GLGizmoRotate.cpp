@@ -228,24 +228,22 @@ void GLGizmoRotate::render_circle(const ColorRGBA& color, bool radius_changed)
     if (!m_circle.is_initialized() || radius_changed) {
         m_circle.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::LineLoop;
-        entity.positions.reserve(ScaleStepsCount);
-        entity.normals.reserve(ScaleStepsCount);
-        entity.indices.reserve(ScaleStepsCount);
-        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(ScaleStepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(ScaleStepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+        // vertices + indices
+        for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
             const float angle = float(i * ScaleStepRad);
-            entity.positions.emplace_back(::cos(angle) * m_radius, ::sin(angle) * m_radius, 0.0f);
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.indices.emplace_back(i);
+            init_data.add_vertex(Vec3f(::cos(angle) * m_radius, ::sin(angle) * m_radius, 0.0f));
+            init_data.add_ushort_index(i);
         }
 
-        init_data.entities.emplace_back(entity);
-        m_circle.init_from(init_data);
+        m_circle.init_from(std::move(init_data));
     }
 
-    m_circle.set_color(-1, color);
+    m_circle.set_color(color);
     m_circle.render();
 }
 
@@ -257,13 +255,13 @@ void GLGizmoRotate::render_scale(const ColorRGBA& color, bool radius_changed)
     if (!m_scale.is_initialized() || radius_changed) {
         m_scale.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(2 * ScaleStepsCount);
-        entity.normals.reserve(2 * ScaleStepsCount);
-        entity.indices.reserve(2 * ScaleStepsCount);
-        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(2 * ScaleStepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(2 * ScaleStepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+        // vertices + indices
+        for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
             const float angle = float(i * ScaleStepRad);
             const float cosa = ::cos(angle);
             const float sina = ::sin(angle);
@@ -272,19 +270,16 @@ void GLGizmoRotate::render_scale(const ColorRGBA& color, bool radius_changed)
             const float out_x = (i % ScaleLongEvery == 0) ? cosa * out_radius_long : cosa * out_radius_short;
             const float out_y = (i % ScaleLongEvery == 0) ? sina * out_radius_long : sina * out_radius_short;
 
-            entity.positions.emplace_back(in_x, in_y, 0.0f);
-            entity.positions.emplace_back(out_x, out_y, 0.0f);
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.indices.emplace_back(i * 2 + 0);
-            entity.indices.emplace_back(i * 2 + 1);
+            init_data.add_vertex(Vec3f(in_x, in_y, 0.0f));
+            init_data.add_vertex(Vec3f(out_x, out_y, 0.0f));
+            init_data.add_ushort_index(i * 2);
+            init_data.add_ushort_index(i * 2 + 1);
         }
 
-        init_data.entities.emplace_back(entity);
-        m_scale.init_from(init_data);
-}
+        m_scale.init_from(std::move(init_data));
+    }
 
-    m_scale.set_color(-1, color);
+    m_scale.set_color(color);
     m_scale.render();
 }
 
@@ -297,13 +292,13 @@ void GLGizmoRotate::render_snap_radii(const ColorRGBA& color, bool radius_change
     if (!m_snap_radii.is_initialized() || radius_changed) {
         m_snap_radii.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(2 * ScaleStepsCount);
-        entity.normals.reserve(2 * ScaleStepsCount);
-        entity.indices.reserve(2 * ScaleStepsCount);
-        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(2 * ScaleStepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(2 * ScaleStepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+        // vertices + indices
+        for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
             const float angle = float(i * step);
             const float cosa = ::cos(angle);
             const float sina = ::sin(angle);
@@ -312,19 +307,16 @@ void GLGizmoRotate::render_snap_radii(const ColorRGBA& color, bool radius_change
             const float out_x = cosa * out_radius;
             const float out_y = sina * out_radius;
 
-            entity.positions.emplace_back(in_x, in_y, 0.0f);
-            entity.positions.emplace_back(out_x, out_y, 0.0f);
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.indices.emplace_back(i * 2 + 0);
-            entity.indices.emplace_back(i * 2 + 1);
+            init_data.add_vertex(Vec3f(in_x, in_y, 0.0f));
+            init_data.add_vertex(Vec3f(out_x, out_y, 0.0f));
+            init_data.add_ushort_index(i * 2);
+            init_data.add_ushort_index(i * 2 + 1);
         }
 
-        init_data.entities.emplace_back(entity);
-        m_snap_radii.init_from(init_data);
+        m_snap_radii.init_from(std::move(init_data));
     }
 
-    m_snap_radii.set_color(-1, color);
+    m_snap_radii.set_color(color);
     m_snap_radii.render();
 }
 
@@ -333,24 +325,22 @@ void GLGizmoRotate::render_reference_radius(const ColorRGBA& color, bool radius_
     if (!m_reference_radius.is_initialized() || radius_changed) {
         m_reference_radius.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(2);
-        entity.positions.emplace_back(0.0f, 0.0f, 0.0f);
-        entity.positions.emplace_back(m_radius * (1.0f + GrabberOffset), 0.0f, 0.0f);
-        entity.normals.reserve(2);
-        entity.normals.emplace_back(Vec3f::UnitZ());
-        entity.normals.emplace_back(Vec3f::UnitZ());
-        entity.indices.reserve(2);
-        entity.indices.emplace_back(0);
-        entity.indices.emplace_back(1);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        init_data.entities.emplace_back(entity);
-        m_reference_radius.init_from(init_data);
+        // vertices
+        init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
+        init_data.add_vertex(Vec3f(m_radius * (1.0f + GrabberOffset), 0.0f, 0.0f));
+
+        // indices
+        init_data.add_ushort_line(0, 1);
+
+        m_reference_radius.init_from(std::move(init_data));
     }
 
-    m_reference_radius.set_color(-1, color);
+    m_reference_radius.set_color(color);
     m_reference_radius.render();
 }
 
@@ -362,24 +352,22 @@ void GLGizmoRotate::render_angle_arc(const ColorRGBA& color, bool radius_changed
     if (!m_angle_arc.is_initialized() || radius_changed) {
         m_angle_arc.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::LineStrip;
-        entity.positions.reserve(1 + AngleResolution);
-        entity.normals.reserve(1 + AngleResolution);
-        entity.indices.reserve(1 + AngleResolution);
-        for (unsigned int i = 0; i <= AngleResolution; ++i) {
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve((1 + AngleResolution) * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve((1 + AngleResolution) * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+        // vertices + indices
+        for (unsigned short i = 0; i <= AngleResolution; ++i) {
             const float angle = float(i) * step_angle;
-            entity.positions.emplace_back(::cos(angle) * ex_radius, ::sin(angle) * ex_radius, 0.0f);
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.indices.emplace_back(i);
+            init_data.add_vertex(Vec3f(::cos(angle) * ex_radius, ::sin(angle) * ex_radius, 0.0f));
+            init_data.add_ushort_index(i);
         }
 
-        init_data.entities.emplace_back(entity);
-        m_angle_arc.init_from(init_data);
+        m_angle_arc.init_from(std::move(init_data));
     }
 
-    m_angle_arc.set_color(-1, color);
+    m_angle_arc.set_color(color);
     m_angle_arc.render();
 }
 
@@ -389,28 +377,26 @@ void GLGizmoRotate::render_grabber_connection(const ColorRGBA& color, bool radiu
         m_grabber_connection.model.reset();
         m_grabber_connection.old_center = m_grabbers.front().center;
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(2);
-        entity.positions.emplace_back(0.0f, 0.0f, 0.0f);
-        entity.positions.emplace_back(m_grabbers.front().center.cast<float>());
-        entity.normals.reserve(2);
-        entity.normals.emplace_back(Vec3f::UnitZ());
-        entity.normals.emplace_back(Vec3f::UnitZ());
-        entity.indices.reserve(2);
-        entity.indices.emplace_back(0);
-        entity.indices.emplace_back(1);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        init_data.entities.emplace_back(entity);
-        m_grabber_connection.model.init_from(init_data);
+        // vertices
+        init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
+        init_data.add_vertex((Vec3f)m_grabbers.front().center.cast<float>());
+
+        // indices
+        init_data.add_ushort_line(0, 1);
+
+        m_grabber_connection.model.init_from(std::move(init_data));
     }
 
-    m_grabber_connection.model.set_color(-1, color);
+    m_grabber_connection.model.set_color(color);
     m_grabber_connection.model.render();
 }
 
-void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
+void GLGizmoRotate::render_grabber(const BoundingBoxf3& box)
 {
     m_grabbers.front().color = m_highlight_color;
     render_grabbers(box);
@@ -418,7 +404,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking)
 {
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+    const double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
     //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
     //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
 
@@ -426,15 +412,13 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     if (!picking && m_hover_id != -1)
         color = m_grabbers.front().hover_color;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
     if (shader == nullptr)
         return;
 
-    m_cone.set_color(-1, color);
-    if (!picking) {
-        shader->start_using();
-        shader->set_uniform("emission_factor", 0.1f);
-    }
+    m_cone.set_color(color);
+    shader->start_using();
+    shader->set_uniform("emission_factor", 0.1f);
 
     const Vec3d& center = m_grabbers.front().center;
 
@@ -455,13 +439,12 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     m_cone.render();
     glsafe(::glPopMatrix());
 
-    if (! picking)
-        shader->stop_using();
+    shader->stop_using();
 }
 
 void GLGizmoRotate::transform_to_local(const Selection& selection) const
 {
-    glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
+    glsafe(::glTranslated(m_center.x(), m_center.y(), m_center.z()));
 
     if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
         const Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);

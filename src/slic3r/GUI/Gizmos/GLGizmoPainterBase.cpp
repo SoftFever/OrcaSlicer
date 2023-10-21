@@ -194,23 +194,22 @@ void GLGizmoPainterBase::render_cursor_circle()
         m_old_cursor_radius = m_cursor_radius;
         m_circle.reset();
 
-        GLModel::InitializationData init_data;
-        GLModel::InitializationData::Entity entity;
-        entity.type = GLModel::PrimitiveType::LineLoop;
+        GLModel::Geometry init_data;
         static const unsigned int StepsCount = 32;
         static const float StepSize = 2.0f * float(PI) / float(StepsCount);
-        entity.positions.reserve(StepsCount);
-        entity.normals.reserve(StepsCount);
-        entity.indices.reserve(StepsCount);
-        for (unsigned int i = 0; i < StepsCount; ++i) {
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.color  = { 0.0f, 1.0f, 0.3f, 1.0f };
+        init_data.vertices.reserve(StepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(StepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+
+        // vertices + indices
+        for (unsigned short i = 0; i < StepsCount; ++i) {
             const float angle = float(i * StepSize);
-            entity.positions.emplace_back(center.x() + ::cos(angle) * m_cursor_radius, center.y() + ::sin(angle) * m_cursor_radius, 0.0f);
-            entity.normals.emplace_back(Vec3f::UnitZ());
-            entity.indices.emplace_back(i);
+            init_data.add_vertex(Vec3f(center.x() + ::cos(angle) * m_cursor_radius, center.y() + ::sin(angle) * m_cursor_radius, 0.0f));
+            init_data.add_ushort_index(i);
         }
 
-        init_data.entities.emplace_back(entity);
-        m_circle.init_from(init_data);
+        m_circle.init_from(std::move(init_data));
     }
 
     // BBS
@@ -220,8 +219,14 @@ void GLGizmoPainterBase::render_cursor_circle()
     else if (m_button_down == Button::Right)
         render_color = this->get_cursor_sphere_right_button_color();
 
-    m_circle.set_color(-1, render_color);
-    m_circle.render();
+    m_circle.set_color(render_color);
+	
+    GLShaderProgram* shader = GUI::wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        m_circle.render();
+        shader->stop_using();
+    }
 
     glsafe(::glPopAttrib());
     glsafe(::glPopMatrix());
@@ -337,7 +342,7 @@ void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cur
                 const Polygons polys = slice_mesh(m_cut_contours.mesh.its, cursor_z, slicing_params);
                 if (!polys.empty()) {
                     m_cut_contours.contours.init_from(polys, static_cast<float>(cursor_z));
-                    m_cut_contours.contours.set_color(-1, { 1.0f, 1.0f, 1.0f, 1.0f });
+                    m_cut_contours.contours.set_color({ 1.0f, 1.0f, 1.0f, 1.0f });
                 }
             }
             else if (box.center() != m_cut_contours.position) {

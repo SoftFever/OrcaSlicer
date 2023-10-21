@@ -68,26 +68,9 @@ void GLGizmoBase::load_render_colors()
     RenderColor::colors[RenderCol_Flatten_Plane_Hover] = ImGuiWrapper::to_ImVec4(GLGizmoBase::FLATTEN_HOVER_COLOR);
 }
 
-GLGizmoBase::Grabber::Grabber()
-    : center(Vec3d::Zero())
-    , angles(Vec3d::Zero())
-    , dragging(false)
-    , enabled(true)
+void GLGizmoBase::Grabber::render(bool hover, float size)
 {
-    color = GRABBER_NORMAL_COL;
-    hover_color = GRABBER_HOVER_COL;
-}
-
-void GLGizmoBase::Grabber::render(bool hover, float size) const
-{
-    ColorRGBA render_color;
-    if (hover) {
-        render_color = hover_color;
-    }
-    else
-        render_color = color;
-
-    render(size, render_color, false);
+    render(size, hover ? hover_color : color, false);
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -100,28 +83,26 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
     return get_half_size(size) * DraggingScaleFactor;
 }
 
-const GLModel& GLGizmoBase::Grabber::get_cube() const
+GLModel& GLGizmoBase::Grabber::get_cube()
 {
-    if (! cube_initialized) {
+    if (!m_cube.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
-        indexed_triangle_set mesh = its_make_cube(1., 1., 1.);
-        its_translate(mesh, Vec3f(-0.5, -0.5, -0.5));
-        const_cast<GLModel&>(cube).init_from(mesh, BoundingBoxf3{ { -0.5, -0.5, -0.5 }, { 0.5, 0.5, 0.5 } });
-        const_cast<bool&>(cube_initialized) = true;
+        indexed_triangle_set its = its_make_cube(1., 1., 1.);
+        its_translate(its, Vec3f(-0.5, -0.5, -0.5));
+        m_cube.init_from(its);
     }
-    return cube;
+    return m_cube;
 }
 
-void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking) const
+void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking)
 {
-    if (! cube_initialized) {
+    if (!m_cube.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
-        indexed_triangle_set mesh = its_make_cube(1., 1., 1.);
-        its_translate(mesh, Vec3f(-0.5, -0.5, -0.5));
-        const_cast<GLModel&>(cube).init_from(mesh, BoundingBoxf3{ { -0.5, -0.5, -0.5 }, { 0.5, 0.5, 0.5 } });
-        const_cast<bool&>(cube_initialized) = true;
+        indexed_triangle_set its = its_make_cube(1., 1., 1.);
+        its_translate(its, Vec3f(-0.5, -0.5, -0.5));
+        m_cube.init_from(its);
     }
 
     //BBS set to fixed size grabber
@@ -132,7 +113,7 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
     }
 
 
-    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
+    m_cube.set_color(render_color);
 
     glsafe(::glPushMatrix());
     glsafe(::glTranslated(center.x(), center.y(), center.z()));
@@ -140,10 +121,9 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
     glsafe(::glRotated(Geometry::rad2deg(angles.y()), 0.0, 1.0, 0.0));
     glsafe(::glRotated(Geometry::rad2deg(angles.x()), 1.0, 0.0, 0.0));
     glsafe(::glScaled(fullsize, fullsize, fullsize));
-    cube.render();
+    m_cube.render();
     glsafe(::glPopMatrix());
 }
-
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : m_parent(parent)
@@ -292,17 +272,23 @@ void GLGizmoBase::render_grabbers(float size) const
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+
 #if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+        const float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
 #else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+        const float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 #endif
 
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
-        if (m_grabbers[i].enabled) {
-            m_grabbers[i].color = picking_color_component(i);
-            m_grabbers[i].render_for_picking(mean_size);
+        for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
+            if (m_grabbers[i].enabled) {
+                m_grabbers[i].color = picking_color_component(i);
+                m_grabbers[i].render_for_picking(mean_size);
+            }
         }
+        shader->stop_using();
     }
 }
 

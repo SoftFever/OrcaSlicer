@@ -21,7 +21,7 @@ class GLGizmoMove3D : public GLGizmoBase
     Vec3d m_starting_box_center{ Vec3d::Zero() };
     Vec3d m_starting_box_bottom_center{ Vec3d::Zero() };
 
-    GLModel m_vbo_cone;
+    GLModel m_cone;
     struct GrabberConnection
     {
         GLModel model;
@@ -59,7 +59,7 @@ protected:
 
 private:
     double calc_projection(const UpdateData& data) const;
-    void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
+    void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking);
 };
 
 

@@ -447,7 +447,14 @@ void GLGizmoText::on_render()
         m_grabbers[0].enabled      = true;
         ColorRGBA color = picking_color_component(0);
         m_grabbers[0].color        = color;
-        m_grabbers[0].render_for_picking(mean_size);
+
+        GLShaderProgram *shader    = wxGetApp().get_shader("gouraud_light");
+        if (shader != nullptr) {
+            shader->start_using();
+            m_grabbers[0].render_for_picking(mean_size);
+
+            shader->stop_using();
+        }
     }
     
     delete_temp_preview_text_volume();
@@ -492,7 +499,16 @@ void GLGizmoText::on_render_for_picking()
             m_grabbers[0].enabled      = true;
             ColorRGBA color = picking_color_component(0);
             m_grabbers[0].color        = color;
-            m_grabbers[0].render_for_picking(mean_size);
+
+            GLShaderProgram *shader    = wxGetApp().get_shader("flat");
+            if (shader != nullptr) {
+                glsafe(::glPushMatrix());
+                shader->start_using();
+                m_grabbers[0].render_for_picking(mean_size);
+
+                shader->stop_using();
+                glsafe(::glPopMatrix());
+            }
         }
     }
 }

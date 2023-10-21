@@ -53,6 +53,8 @@ private:
     bool m_place_on_cut_lower{false};
     bool m_rotate_upper{false};
     bool m_rotate_lower{false};
+    GLModel m_plane;
+    GLModel m_grabber_connection;
 
     bool m_do_segment;
     double m_segment_smoothing_alpha;

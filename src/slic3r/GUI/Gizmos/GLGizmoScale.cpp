@@ -267,7 +267,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
         return -1;
     };
 
-    int id = grabber_connection(id_1, id_2);
+    const int id = grabber_connection(id_1, id_2);
     if (id == -1)
         return;
 
@@ -278,27 +278,22 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
         m_grabber_connections[id].old_v2 = m_grabbers[id_2].center;
         m_grabber_connections[id].model.reset();
 
-        GLModel::InitializationData init_data;
-        GUI::GLModel::InitializationData::Entity entity;
-        entity.type = GUI::GLModel::PrimitiveType::Lines;
-        entity.positions.reserve(2);
-        entity.positions.emplace_back(m_grabbers[id_1].center.cast<float>());
-        entity.positions.emplace_back(m_grabbers[id_2].center.cast<float>());
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
+        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
 
-        entity.normals.reserve(2);
-        for (size_t j = 0; j < 2; ++j) {
-            entity.normals.emplace_back(Vec3f::UnitZ());
-        }
+        // vertices
+        init_data.add_vertex((Vec3f)m_grabbers[id_1].center.cast<float>());
+        init_data.add_vertex((Vec3f)m_grabbers[id_2].center.cast<float>());
 
-        entity.indices.reserve(2);
-        entity.indices.emplace_back(0);
-        entity.indices.emplace_back(1);
+        // indices
+        init_data.add_ushort_line(0, 1);
 
-        init_data.entities.emplace_back(entity);
-        m_grabber_connections[id].model.init_from(init_data);
+        m_grabber_connections[id].model.init_from(std::move(init_data));
     }
 
-    m_grabber_connections[id].model.set_color(-1, color);
+    m_grabber_connections[id].model.set_color(color);
     glLineStipple(1, 0x0FFF);
     glEnable(GL_LINE_STIPPLE);
     m_grabber_connections[id].model.render();

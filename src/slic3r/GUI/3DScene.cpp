@@ -332,10 +332,10 @@ void GLVolume::SinkingContours::render()
 
 void GLVolume::SinkingContours::update()
 {
-    int object_idx = m_parent.object_idx();
-    Model& model = GUI::wxGetApp().plater()->model();
+    const int object_idx = m_parent.object_idx();
+    const Model& model = GUI::wxGetApp().plater()->model();
 
-    if (0 <= object_idx && object_idx < (int)model.objects.size() && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
+    if (0 <= object_idx && object_idx < int(model.objects.size()) && m_parent.is_sinking() && !m_parent.is_below_printbed()) {
         const BoundingBoxf3& box = m_parent.transformed_convex_hull_bounding_box();
         if (!m_old_box.size().isApprox(box.size()) || m_old_box.min.z() != box.min.z()) {
             m_old_box = box;
@@ -344,28 +344,25 @@ void GLVolume::SinkingContours::update()
             const TriangleMesh& mesh = model.objects[object_idx]->volumes[m_parent.volume_idx()]->mesh();
 
             m_model.reset();
-            GUI::GLModel::InitializationData init_data;
+            GUI::GLModel::Geometry init_data;
+            init_data.format = { GUI::GLModel::Geometry::EPrimitiveType::Triangles, GUI::GLModel::Geometry::EVertexLayout::P3, GUI::GLModel::Geometry::EIndexType::UINT };
+            init_data.color = ColorRGBA::WHITE();
+            unsigned int vertices_counter = 0;
             MeshSlicingParams slicing_params;
             slicing_params.trafo = m_parent.world_matrix();
-            Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
-            for (ExPolygon &expoly : diff_ex(expand(polygons, float(scale_(HalfWidth))), shrink(polygons, float(scale_(HalfWidth))))) {
-                GUI::GLModel::InitializationData::Entity entity;
-                entity.type = GUI::GLModel::PrimitiveType::Triangles;
+            const Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
+            for (const ExPolygon& expoly : diff_ex(expand(polygons, float(scale_(HalfWidth))), shrink(polygons, float(scale_(HalfWidth))))) {
                 const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(expoly);
+                init_data.vertices.reserve(init_data.vertices.size() + triangulation.size() * GUI::GLModel::Geometry::vertex_stride_floats(init_data.format));
+                init_data.indices.reserve(init_data.indices.size() + triangulation.size() * GUI::GLModel::Geometry::index_stride_bytes(init_data.format));
                 for (const Vec3d& v : triangulation) {
-                    entity.positions.emplace_back(v.cast<float>() + Vec3f(0.0f, 0.0f, 0.015f)); // add a small positive z to avoid z-fighting
-                    entity.normals.emplace_back(Vec3f::UnitZ());
-                    const size_t positions_count = entity.positions.size();
-                    if (positions_count % 3 == 0) {
-                        entity.indices.emplace_back(positions_count - 3);
-                        entity.indices.emplace_back(positions_count - 2);
-                        entity.indices.emplace_back(positions_count - 1);
-                    }
+                    init_data.add_vertex((Vec3f)(v.cast<float>() + 0.015f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
+                    ++vertices_counter;
+                    if (vertices_counter % 3 == 0)
+                        init_data.add_uint_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
                 }
-                init_data.entities.emplace_back(entity);
             }
-
-            m_model.init_from(init_data);
+            m_model.init_from(std::move(init_data));
         }
         else
             m_shift = box.center() - m_old_box.center();
@@ -1247,6 +1244,9 @@ void GLVolumeCollection::render(
     if (shader == nullptr)
         return;
 
+    GLShaderProgram* sink_shader  = GUI::wxGetApp().get_shader("flat");
+    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat");
+
     if (type == ERenderType::Transparent) {
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -1272,13 +1272,18 @@ void GLVolumeCollection::render(
 #endif // ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
 
         // render sinking contours of non-hovered volumes
-        if (m_show_sinking_contours)
-            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-                volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
-                shader->stop_using();
-                volume.first->render_sinking_contours();
-                shader->start_using();
+        shader->stop_using();
+        if (sink_shader != nullptr) {
+            sink_shader->start_using();
+            if (m_show_sinking_contours) {
+                if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                    volume.first->hover == GLVolume::HS_None && !volume.first->force_sinking_contours) {
+                    volume.first->render_sinking_contours();
+                }
             }
+            sink_shader->stop_using();
+        }
+        shader->start_using();
 
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
@@ -1341,17 +1346,21 @@ void GLVolumeCollection::render(
     }
 
     if (m_show_sinking_contours) {
-        for (GLVolumeWithIdAndZ& volume : to_render) {
-            // render sinking contours of hovered/displaced volumes
-            if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
-                (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
-                shader->stop_using();
-                glsafe(::glDepthFunc(GL_ALWAYS));
-                volume.first->render_sinking_contours();
-                glsafe(::glDepthFunc(GL_LESS));
-                shader->start_using();
+        shader->stop_using();
+        if (sink_shader != nullptr) {
+            sink_shader->start_using();
+            for (GLVolumeWithIdAndZ& volume : to_render) {
+                // render sinking contours of hovered/displaced volumes
+                if (volume.first->is_sinking() && !volume.first->is_below_printbed() &&
+                    (volume.first->hover != GLVolume::HS_None || volume.first->force_sinking_contours)) {
+                    glsafe(::glDepthFunc(GL_ALWAYS));
+                    volume.first->render_sinking_contours();
+                    glsafe(::glDepthFunc(GL_LESS));
+                }
             }
+            sink_shader->start_using();
         }
+        shader->start_using();
     }
 
     if (disable_cullface)
