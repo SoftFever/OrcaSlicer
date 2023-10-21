@@ -786,7 +786,7 @@ public:
 
     void refresh_camera_scene_box();
 
-    BoundingBoxf3 volumes_bounding_box() const;
+    BoundingBoxf3 volumes_bounding_box(bool current_plate_only = false) const;
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
 
