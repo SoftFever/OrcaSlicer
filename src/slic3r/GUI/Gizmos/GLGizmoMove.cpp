@@ -23,11 +23,6 @@ const double GLGizmoMove3D::Offset = 10.0;
 //BBS: GUI refactor: add obj manipulation
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_displacement(Vec3d::Zero())
-    , m_snap_step(1.0)
-    , m_starting_drag_position(Vec3d::Zero())
-    , m_starting_box_center(Vec3d::Zero())
-    , m_starting_box_bottom_center(Vec3d::Zero())
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
@@ -137,25 +132,57 @@ void GLGizmoMove3D::on_render()
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
 
-    // draw grabbers
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled) render_grabber_extension((Axis) i, box, false);
-    }
+    auto render_grabber_connection = [this, &center](unsigned int id) {
+        if (m_grabbers[id].enabled) {
+            if (!m_grabber_connections[id].model.is_initialized() || !m_grabber_connections[id].old_center.isApprox(center)) {
+                m_grabber_connections[id].old_center = center;
+                m_grabber_connections[id].model.reset();
 
-    // draw axes line
-    // draw axes
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled) {
-            glsafe(::glColor4fv(AXES_COLOR[i].data()));
+                GLModel::InitializationData              init_data;
+                GUI::GLModel::InitializationData::Entity entity;
+                entity.type = GUI::GLModel::PrimitiveType::Lines;
+                entity.positions.reserve(2);
+                entity.positions.emplace_back(center.cast<float>());
+                entity.positions.emplace_back(m_grabbers[id].center.cast<float>());
+
+                entity.normals.reserve(2);
+                for (size_t j = 0; j < 2; ++j) {
+                    entity.normals.emplace_back(Vec3f::UnitZ());
+                }
+
+                entity.indices.reserve(2);
+                entity.indices.emplace_back(0);
+                entity.indices.emplace_back(1);
+
+                init_data.entities.emplace_back(entity);
+                m_grabber_connections[id].model.init_from(init_data);
+                m_grabber_connections[id].model.set_color(-1, AXES_COLOR[id]);
+            }
+
             glLineStipple(1, 0x0FFF);
             glEnable(GL_LINE_STIPPLE);
-            ::glBegin(GL_LINES);
-            ::glVertex3dv(center.data());
-            // use extension center
-            ::glVertex3dv(m_grabbers[i].center.data());
-            glsafe(::glEnd());
+            m_grabber_connections[id].model.render();
             glDisable(GL_LINE_STIPPLE);
         }
+    };
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+		
+        // draw axes line
+        // draw axes
+        for (unsigned int i = 0; i < 3; ++i) {
+            render_grabber_connection(i);
+        }
+
+        shader->stop_using();
+    }
+	
+	// draw grabbers
+    for (unsigned int i = 0; i < 3; ++i) {
+        if (m_grabbers[i].enabled)
+            render_grabber_extension((Axis) i, box, false);
     }
 }
 

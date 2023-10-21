@@ -67,7 +67,7 @@ public:
     GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoMmuSegmentation() override = default;
 
-    void render_painter_gizmo() const override;
+    void render_painter_gizmo() override;
 
     void set_painter_gizmo_data(const Selection& selection) override;
 

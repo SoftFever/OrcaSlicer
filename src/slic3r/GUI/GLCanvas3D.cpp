@@ -462,19 +462,62 @@ void GLCanvas3D::LayersEditing::render_curve(const Rect & bar_rect)
     const float scale_y = bar_rect.get_height() / m_object_max_z;
     const float x = bar_rect.get_left() + float(m_slicing_parameters->layer_height) * scale_x;
 
-    // Baseline
-    glsafe(::glColor3f(0.0f, 0.0f, 0.0f));
-    ::glBegin(GL_LINE_STRIP);
-    ::glVertex2f(x, bar_rect.get_bottom());
-    ::glVertex2f(x, bar_rect.get_top());
-    glsafe(::glEnd());
+    bool bar_rect_changed = m_profile.old_bar_rect != bar_rect;
+    m_profile.old_bar_rect = bar_rect;
 
-    // Curve
-    glsafe(::glColor3f(0.0f, 0.0f, 1.0f));
-    ::glBegin(GL_LINE_STRIP);
-    for (unsigned int i = 0; i < m_layer_height_profile.size(); i += 2)
-        ::glVertex2f(bar_rect.get_left() + (float)m_layer_height_profile[i + 1] * scale_x, bar_rect.get_bottom() + (float)m_layer_height_profile[i] * scale_y);
-    glsafe(::glEnd());
+    // Baseline
+    if (!m_profile.baseline.is_initialized() || bar_rect_changed) {
+        m_profile.old_bar_rect = bar_rect;
+
+        GLModel::InitializationData init_data;
+        GLModel::InitializationData::Entity entity;
+        entity.type = GLModel::PrimitiveType::Lines;
+        entity.positions.reserve(2);
+        entity.positions.emplace_back(x, bar_rect.get_bottom(), 0.0f);
+        entity.positions.emplace_back(x, bar_rect.get_top(), 0.0f);
+
+        entity.normals.reserve(2);
+        for (size_t j = 0; j < 2; ++j) {
+            entity.normals.emplace_back(Vec3f::UnitZ());
+        }
+
+        entity.indices.reserve(2);
+        entity.indices.emplace_back(0);
+        entity.indices.emplace_back(1);
+
+        init_data.entities.emplace_back(entity);
+        m_profile.baseline.init_from(init_data);
+        m_profile.baseline.set_color(-1, ColorRGBA::BLACK());
+    }
+
+    if (!m_profile.profile.is_initialized() || bar_rect_changed || m_profile.old_layer_height_profile != m_layer_height_profile) {
+        m_profile.old_layer_height_profile = m_layer_height_profile;
+        m_profile.profile.reset();
+
+        GLModel::InitializationData init_data;
+        GLModel::InitializationData::Entity entity;
+        entity.type = GLModel::PrimitiveType::LineStrip;
+        entity.positions.reserve(m_layer_height_profile.size());
+        entity.normals.reserve(m_layer_height_profile.size());
+        entity.indices.reserve(m_layer_height_profile.size());
+        for (unsigned int i = 0; i < unsigned int(m_layer_height_profile.size()); i += 2) {
+            entity.positions.emplace_back(bar_rect.get_left() + float(m_layer_height_profile[i + 1]) * scale_x, bar_rect.get_bottom() + float(m_layer_height_profile[i]) * scale_y, 0.0f);
+            entity.normals.emplace_back(Vec3f::UnitZ());
+            entity.indices.emplace_back(i / 2);
+        }
+
+        init_data.entities.emplace_back(entity);
+        m_profile.profile.init_from(init_data);
+        m_profile.profile.set_color(-1, ColorRGBA::BLUE());
+    }
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        m_profile.baseline.render();
+        m_profile.profile.render();
+        shader->stop_using();
+    }
 }
 
 void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const GLVolumeCollection & volumes)//render volume and layer height texture (has mapping relation with each other)
@@ -6822,7 +6865,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         default:
         case GLVolumeCollection::ERenderType::Opaque:
         {
-            const GLGizmosManager& gm = get_gizmos_manager();
+            GLGizmosManager& gm = get_gizmos_manager();
             if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr)
             {
                 if (m_picking_enabled && m_layers_editing.is_enabled() && (m_layers_editing.last_object_id != -1) && (m_layers_editing.object_max_z() > 0.0f)) {
@@ -8070,28 +8113,59 @@ void GLCanvas3D::_render_assemble_info() const
 }
 
 #if ENABLE_SHOW_CAMERA_TARGET
-void GLCanvas3D::_render_camera_target() const
+void GLCanvas3D::_render_camera_target()
 {
-    double half_length = 5.0;
+    static const double half_length = 5.0;
 
     glsafe(::glDisable(GL_DEPTH_TEST));
-
     glsafe(::glLineWidth(2.0f));
-    ::glBegin(GL_LINES);
     const Vec3d& target = wxGetApp().plater()->get_camera().get_target();
-    // draw line for x axis
-    ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glVertex3d(target(0) - half_length, target(1), target(2));
-    ::glVertex3d(target(0) + half_length, target(1), target(2));
-    // draw line for y axis
-    ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glVertex3d(target(0), target(1) - half_length, target(2));
-    ::glVertex3d(target(0), target(1) + half_length, target(2));
-    // draw line for z axis
-    ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3d(target(0), target(1), target(2) - half_length);
-    ::glVertex3d(target(0), target(1), target(2) + half_length);
-    glsafe(::glEnd());
+    bool target_changed = !m_camera_target.target.isApprox(target);
+    m_camera_target.target = target;
+
+    for (int i = 0; i < 3; ++i) {
+        if (!m_camera_target.axis[i].is_initialized() || target_changed) {
+            m_camera_target.axis[i].reset();
+
+            GLModel::InitializationData init_data;
+            GLModel::InitializationData::Entity entity;
+            entity.type = GLModel::PrimitiveType::Lines;
+            entity.positions.reserve(2);
+            if (i == X) {
+                entity.positions.emplace_back(target.x() - half_length, target.y(), target.z());
+                entity.positions.emplace_back(target.x() + half_length, target.y(), target.z());
+            }
+            else if (i == Y) {
+                entity.positions.emplace_back(target.x(), target.y() - half_length, target.z());
+                entity.positions.emplace_back(target.x(), target.y() + half_length, target.z());
+            }
+            else {
+                entity.positions.emplace_back(target.x(), target.y(), target.z() - half_length);
+                entity.positions.emplace_back(target.x(), target.y(), target.z() + half_length);
+            }
+            entity.normals.reserve(2);
+            for (size_t j = 0; j < 2; ++j) {
+                entity.normals.emplace_back(Vec3f::UnitZ());
+            }
+
+            entity.indices.reserve(2);
+            entity.indices.emplace_back(0);
+            entity.indices.emplace_back(1);
+
+            init_data.entities.emplace_back(entity);
+            m_camera_target.axis[i].init_from(init_data);
+            m_camera_target.axis[i].set_color(-1, (i == X) ? ColorRGBA::X() : (i == Y) ? ColorRGBA::Y() : ColorRGBA::Z());
+        }
+    }
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        for (int i = 0; i < 3; ++i) {
+            m_camera_target.axis[i].render();
+        }
+        shader->stop_using();
+    }
 }
 #endif // ENABLE_SHOW_CAMERA_TARGET
 

@@ -15,7 +15,7 @@ class GLGizmoFdmSupports : public GLGizmoPainterBase
 public:
     GLGizmoFdmSupports(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
-    void render_painter_gizmo() const override;
+    void render_painter_gizmo() override;
 
     //BBS: add edit state
     enum EditState {

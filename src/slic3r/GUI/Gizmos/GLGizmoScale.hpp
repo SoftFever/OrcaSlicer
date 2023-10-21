@@ -32,10 +32,19 @@ class GLGizmoScale3D : public GLGizmoBase
     mutable Transform3d m_transform;
     // Transforms grabbers offsets to the proper reference system (world for instances, instance for volumes)
     mutable Transform3d m_offsets_transform;
-    Vec3d m_scale;
-    Vec3d m_offset;
-    double m_snap_step;
+    Vec3d m_scale{ Vec3d::Ones() };
+    Vec3d m_offset{ Vec3d::Zero() };
+    double m_snap_step{ 0.05 };
     StartingData m_starting;
+	
+	struct GrabberConnection
+    {
+        GLModel model;
+        std::pair<unsigned int, unsigned int> grabber_indices;
+        Vec3d old_v1{ Vec3d::Zero() };
+        Vec3d old_v2{ Vec3d::Zero() };
+    };
+    std::array<GrabberConnection, 7> m_grabber_connections;
 
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
@@ -68,7 +77,7 @@ protected:
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
 private:
-    void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
+    void render_grabbers_connection(unsigned int id_1, unsigned int id_2, const ColorRGBA& color);
 
     void do_scale_along_axis(Axis axis, const UpdateData& data);
     void do_scale_uniform(const UpdateData& data);

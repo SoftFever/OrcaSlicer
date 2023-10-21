@@ -24,12 +24,16 @@ Vec3d GetIntersectionOfRayAndPlane(Vec3d ray_position, Vec3d ray_dir, Vec3d plan
 //BBS: GUI refactor: add obj manipulation
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_scale(Vec3d::Ones())
-    , m_offset(Vec3d::Zero())
-    , m_snap_step(0.05)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
+    m_grabber_connections[0].grabber_indices = { 0, 1 };
+    m_grabber_connections[1].grabber_indices = { 2, 3 };
+    m_grabber_connections[2].grabber_indices = { 4, 5 };
+    m_grabber_connections[3].grabber_indices = { 6, 7 };
+    m_grabber_connections[4].grabber_indices = { 7, 8 }; 
+    m_grabber_connections[5].grabber_indices = { 8, 9 };
+    m_grabber_connections[6].grabber_indices = { 9, 6 };
 }
 
 std::string GLGizmoScale3D::get_tooltip() const
@@ -46,17 +50,17 @@ std::string GLGizmoScale3D::get_tooltip() const
         scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
 
     if (m_hover_id == 0 || m_hover_id == 1 || m_grabbers[0].dragging || m_grabbers[1].dragging)
-        return "X: " + format(scale(0), 4) + "%";
+        return "X: " + format(scale.x(), 4) + "%";
     else if (m_hover_id == 2 || m_hover_id == 3 || m_grabbers[2].dragging || m_grabbers[3].dragging)
-        return "Y: " + format(scale(1), 4) + "%";
+        return "Y: " + format(scale.y(), 4) + "%";
     else if (m_hover_id == 4 || m_hover_id == 5 || m_grabbers[4].dragging || m_grabbers[5].dragging)
-        return "Z: " + format(scale(2), 4) + "%";
+        return "Z: " + format(scale.z(), 4) + "%";
     else if (m_hover_id == 6 || m_hover_id == 7 || m_hover_id == 8 || m_hover_id == 9 || 
         m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
-        std::string tooltip = "X: " + format(scale(0), 2) + "%\n";
-        tooltip += "Y: " + format(scale(1), 2) + "%\n";
-        tooltip += "Z: " + format(scale(2), 2) + "%";
+        std::string tooltip = "X: " + format(scale.x(), 2) + "%\n";
+        tooltip += "Y: " + format(scale.y(), 2) + "%\n";
+        tooltip += "Z: " + format(scale.z(), 2) + "%";
         return tooltip;
     }
     else
@@ -71,8 +75,7 @@ void GLGizmoScale3D::enable_ununiversal_scale(bool enable)
 
 bool GLGizmoScale3D::on_init()
 {
-    for (int i = 0; i < 10; ++i)
-    {
+    for (int i = 0; i < 10; ++i) {
         m_grabbers.push_back(Grabber());
     }
 
@@ -106,8 +109,7 @@ bool GLGizmoScale3D::on_is_activable() const
 
 void GLGizmoScale3D::on_start_dragging()
 {
-    if (m_hover_id != -1)
-    {
+    if (m_hover_id != -1) {
         m_starting.drag_position = m_grabbers[m_hover_id].center;
         m_starting.plane_center = m_grabbers[4].center;
         m_starting.plane_nromal = m_grabbers[5].center - m_grabbers[4].center;
@@ -115,22 +117,22 @@ void GLGizmoScale3D::on_start_dragging()
         m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
 
         const Vec3d& center = m_starting.box.center();
-        m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max(0), center(1), center(2));
-        m_starting.pivots[1] = m_transform * Vec3d(m_starting.box.min(0), center(1), center(2));
-        m_starting.pivots[2] = m_transform * Vec3d(center(0), m_starting.box.max(1), center(2));
-        m_starting.pivots[3] = m_transform * Vec3d(center(0), m_starting.box.min(1), center(2));
-        m_starting.pivots[4] = m_transform * Vec3d(center(0), center(1), m_starting.box.max(2));
-        m_starting.pivots[5] = m_transform * Vec3d(center(0), center(1), m_starting.box.min(2));
+        m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max.x(), center.y(), center.z());
+        m_starting.pivots[1] = m_transform * Vec3d(m_starting.box.min.x(), center.y(), center.z());
+        m_starting.pivots[2] = m_transform * Vec3d(center.x(), m_starting.box.max.y(), center.z());
+        m_starting.pivots[3] = m_transform * Vec3d(center.x(), m_starting.box.min.y(), center.z());
+        m_starting.pivots[4] = m_transform * Vec3d(center.x(), center.y(), m_starting.box.max.z());
+        m_starting.pivots[5] = m_transform * Vec3d(center.x(), center.y(), m_starting.box.min.z());
     }
 }
 
 void GLGizmoScale3D::on_update(const UpdateData& data)
 {
-    if ((m_hover_id == 0) || (m_hover_id == 1))
+    if (m_hover_id == 0 || m_hover_id == 1)
         do_scale_along_axis(X, data);
-    else if ((m_hover_id == 2) || (m_hover_id == 3))
+    else if (m_hover_id == 2 || m_hover_id == 3)
         do_scale_along_axis(Y, data);
-    else if ((m_hover_id == 4) || (m_hover_id == 5))
+    else if (m_hover_id == 4 || m_hover_id == 5)
         do_scale_along_axis(Z, data);
     else if (m_hover_id >= 6)
         do_scale_uniform(data);
@@ -190,24 +192,24 @@ void GLGizmoScale3D::on_render()
     bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
 
     // x axis
-    m_grabbers[0].center = m_transform * Vec3d(m_box.min(0), center(1), m_box.min(2));
-    m_grabbers[1].center = m_transform * Vec3d(m_box.max(0), center(1), m_box.min(2));
+    m_grabbers[0].center = m_transform * Vec3d(m_box.min.x(), center.y(), m_box.min.z());
+    m_grabbers[1].center = m_transform * Vec3d(m_box.max.x(), center.y(), m_box.min.z());
 
     // y axis
-    m_grabbers[2].center = m_transform * Vec3d(center(0), m_box.min(1), m_box.min(2));
-    m_grabbers[3].center = m_transform * Vec3d(center(0), m_box.max(1), m_box.min(2));
+    m_grabbers[2].center = m_transform * Vec3d(center.x(), m_box.min.y(), m_box.min.z());
+    m_grabbers[3].center = m_transform * Vec3d(center.x(), m_box.max.y(), m_box.min.z());
 
     // z axis do not show 4
-    m_grabbers[4].center = m_transform * Vec3d(center(0), center(1), m_box.min(2));
+    m_grabbers[4].center = m_transform * Vec3d(center.x(), center.y(), m_box.min.z());
     m_grabbers[4].enabled = false;
 
-    m_grabbers[5].center = m_transform * Vec3d(center(0), center(1), m_box.max(2));
+    m_grabbers[5].center = m_transform * Vec3d(center.x(), center.y(), m_box.max.z());
 
     // uniform
-    m_grabbers[6].center = m_transform * Vec3d(m_box.min(0), m_box.min(1), m_box.min(2));
-    m_grabbers[7].center = m_transform * Vec3d(m_box.max(0), m_box.min(1), m_box.min(2));
-    m_grabbers[8].center = m_transform * Vec3d(m_box.max(0), m_box.max(1), m_box.min(2));
-    m_grabbers[9].center = m_transform * Vec3d(m_box.min(0), m_box.max(1), m_box.min(2));
+    m_grabbers[6].center = m_transform * Vec3d(m_box.min.x(), m_box.min.y(), m_box.min.z());
+    m_grabbers[7].center = m_transform * Vec3d(m_box.max.x(), m_box.min.y(), m_box.min.z());
+    m_grabbers[8].center = m_transform * Vec3d(m_box.max.x(), m_box.max.y(), m_box.min.z());
+    m_grabbers[9].center = m_transform * Vec3d(m_box.min.x(), m_box.max.y(), m_box.min.z());
 
     for (int i = 0; i < 6; ++i) {
         m_grabbers[i].color       = AXES_COLOR[i/2];
@@ -228,25 +230,22 @@ void GLGizmoScale3D::on_render()
 
     const BoundingBoxf3& selection_box = selection.get_bounding_box();
 
-    float grabber_mean_size = (float)((selection_box.size()(0) + selection_box.size()(1) + selection_box.size()(2)) / 3.0);
+    float grabber_mean_size = (float)((selection_box.size().x() + selection_box.size().y() + selection_box.size().z()) / 3.0);
 
-     //draw connections
-
-    // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
-    //if (single_instance || single_volume) {
-
-    if (m_grabbers[4].enabled && m_grabbers[5].enabled) {
-        glsafe(::glColor4fv(m_grabbers[4].color.data()));
-        render_grabbers_connection(4, 5);
+    //draw connections
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
+        //if (single_instance || single_volume) {
+        if (m_grabbers[4].enabled && m_grabbers[5].enabled)
+            render_grabbers_connection(4, 5, m_grabbers[4].color);
+        render_grabbers_connection(6, 7, m_grabbers[2].color);
+        render_grabbers_connection(7, 8, m_grabbers[2].color);
+        render_grabbers_connection(8, 9, m_grabbers[0].color);
+        render_grabbers_connection(9, 6, m_grabbers[0].color);
+        shader->stop_using();
     }
-
-    glsafe(::glColor4fv(m_grabbers[2].color.data()));
-    render_grabbers_connection(6, 7);
-    render_grabbers_connection(8, 9);
-
-    glsafe(::glColor4fv(m_grabbers[0].color.data()));
-    render_grabbers_connection(7, 8);
-    render_grabbers_connection(9, 6);
 
     // draw grabbers
     render_grabbers(grabber_mean_size);
@@ -258,19 +257,52 @@ void GLGizmoScale3D::on_render_for_picking()
     render_grabbers_for_picking(m_parent.get_selection().get_bounding_box());
 }
 
-void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
+void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2, const ColorRGBA& color)
 {
-    unsigned int grabbers_count = (unsigned int)m_grabbers.size();
-    if ((id_1 < grabbers_count) && (id_2 < grabbers_count))
-    {
-        glLineStipple(1, 0x0FFF);
-        glEnable(GL_LINE_STIPPLE);
-        ::glBegin(GL_LINES);
-        ::glVertex3dv(m_grabbers[id_1].center.data());
-        ::glVertex3dv(m_grabbers[id_2].center.data());
-        glsafe(::glEnd());
-        glDisable(GL_LINE_STIPPLE);
+    auto grabber_connection = [this](unsigned int id_1, unsigned int id_2) {
+        for (int i = 0; i < int(m_grabber_connections.size()); ++i) {
+            if (m_grabber_connections[i].grabber_indices.first == id_1 && m_grabber_connections[i].grabber_indices.second == id_2)
+                return i;
+        }
+        return -1;
+    };
+
+    int id = grabber_connection(id_1, id_2);
+    if (id == -1)
+        return;
+
+    if (!m_grabber_connections[id].model.is_initialized() ||
+        !m_grabber_connections[id].old_v1.isApprox(m_grabbers[id_1].center) ||
+        !m_grabber_connections[id].old_v2.isApprox(m_grabbers[id_2].center)) {
+        m_grabber_connections[id].old_v1 = m_grabbers[id_1].center;
+        m_grabber_connections[id].old_v2 = m_grabbers[id_2].center;
+        m_grabber_connections[id].model.reset();
+
+        GLModel::InitializationData init_data;
+        GUI::GLModel::InitializationData::Entity entity;
+        entity.type = GUI::GLModel::PrimitiveType::Lines;
+        entity.positions.reserve(2);
+        entity.positions.emplace_back(m_grabbers[id_1].center.cast<float>());
+        entity.positions.emplace_back(m_grabbers[id_2].center.cast<float>());
+
+        entity.normals.reserve(2);
+        for (size_t j = 0; j < 2; ++j) {
+            entity.normals.emplace_back(Vec3f::UnitZ());
+        }
+
+        entity.indices.reserve(2);
+        entity.indices.emplace_back(0);
+        entity.indices.emplace_back(1);
+
+        init_data.entities.emplace_back(entity);
+        m_grabber_connections[id].model.init_from(init_data);
     }
+
+    m_grabber_connections[id].model.set_color(-1, color);
+    glLineStipple(1, 0x0FFF);
+    glEnable(GL_LINE_STIPPLE);
+    m_grabber_connections[id].model.render();
+    glDisable(GL_LINE_STIPPLE);
 }
 
 //BBS: add input window for move
@@ -283,11 +315,9 @@ void GLGizmoScale3D::on_render_input_window(float x, float y, float bottom_limit
 void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
 {
     double ratio = calc_ratio(data);
-    if (ratio > 0.0)
-    {
+    if (ratio > 0.0) {
         m_scale(axis) = m_starting.scale(axis) * ratio;
-        if (m_starting.ctrl_down)
-        {
+        if (m_starting.ctrl_down) {
             double local_offset = 0.5 * (m_scale(axis) - m_starting.scale(axis)) * m_starting.box.size()(axis);
             if (m_hover_id == 2 * axis)
                 local_offset *= -1.0;
@@ -311,8 +341,7 @@ void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
 void GLGizmoScale3D::do_scale_uniform(const UpdateData& data)
 {
     double ratio = calc_ratio(data);
-    if (ratio > 0.0)
-    {
+    if (ratio > 0.0) {
         m_scale = m_starting.scale * ratio;
         m_offset = Vec3d::Zero();
     }
@@ -322,11 +351,11 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    Vec3d pivot = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.plane_center;
+    Vec3d pivot = (m_starting.ctrl_down && m_hover_id < 6) ? m_starting.pivots[m_hover_id] : m_starting.plane_center;
+
     Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec != 0.0)
-    {
+    if (len_starting_vec != 0.0) {
         Vec3d mouse_dir = data.mouse_ray.unit_vector();
         Vec3d plane_normal = m_starting.plane_nromal;
         if (m_hover_id == 5) {

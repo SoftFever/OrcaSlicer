@@ -257,6 +257,14 @@ class GLCanvas3D
         int last_object_id{ -1 };
         float last_z{ 0.0f };
         LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
+        struct Profile
+        {
+            GLModel baseline;
+            GLModel profile;
+            Rect old_bar_rect;
+            std::vector<double> old_layer_height_profile;
+        };
+        Profile m_profile;
 
         LayersEditing() = default;
         ~LayersEditing();
@@ -698,6 +706,15 @@ public:
     }
     m_gizmo_highlighter;
 
+#if ENABLE_SHOW_CAMERA_TARGET
+    struct CameraTarget
+    {
+        std::array<GLModel, 3> axis;
+        Vec3d target{ Vec3d::Zero() };
+    };
+
+    CameraTarget m_camera_target;
+#endif // ENABLE_SHOW_CAMERA_TARGET
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
     ~GLCanvas3D();
@@ -1139,7 +1156,7 @@ private:
     void _render_assemble_control() const;
     void _render_assemble_info() const;
 #if ENABLE_SHOW_CAMERA_TARGET
-    void _render_camera_target() const;
+    void _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices();
     void _render_selection_sidebar_hints();
