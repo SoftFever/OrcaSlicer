@@ -33,8 +33,7 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     bool valid = true;
 
-    // basic shader, used to render selection bbox, gizmo cut plane and grabbers connections,
-    // gizmo move grabbers connections, gizmo scale grabbers connections
+    // basic shader, used to render all what was previously rendered using the immediate mode
     valid &= append_shader("flat", { "flat.vs", "flat.fs" });
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
    valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
