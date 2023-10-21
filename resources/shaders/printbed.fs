@@ -1,6 +1,6 @@
 #version 110
 
-const vec3 back_color_dark = vec3(0.235, 0.235, 0.235);
+const vec3 back_color_dark  = vec3(0.235, 0.235, 0.235);
 const vec3 back_color_light = vec3(0.365, 0.365, 0.365);
 
 uniform sampler2D texture;
