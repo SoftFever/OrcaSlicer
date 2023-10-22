@@ -44,10 +44,11 @@ bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
     if (triangles.empty() || triangles.size() % 3 != 0)
         return false;
 
-	const GLModel::Geometry::EIndexType index_type = (triangles.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-
     GLModel::Geometry init_data;
+    const GLModel::Geometry::EIndexType index_type = (triangles.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
     init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2, index_type };
+    init_data.reserve_vertices(triangles.size());
+    init_data.reserve_indices(triangles.size() / 3);
 
     Vec2f min = triangles.front();
     Vec2f max = min;
@@ -63,6 +64,7 @@ bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
     Vec2f inv_size = size.cwiseInverse();
     inv_size.y() *= -1.0f;
 
+    // vertices + indices
     unsigned int vertices_counter = 0;
     for (const Vec2f &v : triangles) {
         const Vec3f p = {v.x(), v.y(), z};
