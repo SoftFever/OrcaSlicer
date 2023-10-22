@@ -431,8 +431,8 @@ void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
 
         // vertices
         const float l = bar_rect.get_left();
@@ -478,8 +478,8 @@ void GLCanvas3D::LayersEditing::render_profile(const Rect& bar_rect)
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::USHORT };
         init_data.color = ColorRGBA::BLACK();
-        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
 
         // vertices
         const float x = bar_rect.get_left() + float(m_slicing_parameters->layer_height) * scale_x;
@@ -499,8 +499,8 @@ void GLCanvas3D::LayersEditing::render_profile(const Rect& bar_rect)
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::UINT };
         init_data.color = ColorRGBA::BLUE();
-        init_data.vertices.reserve(m_layer_height_profile.size() * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(m_layer_height_profile.size() * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(m_layer_height_profile.size() / 2);
+        init_data.reserve_indices(m_layer_height_profile.size() / 2);
 
         // vertices + indices
         for (unsigned int i = 0; i < (unsigned int)m_layer_height_profile.size(); i += 2) {
@@ -6644,8 +6644,8 @@ void GLCanvas3D::_render_background()
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
 
         // vertices
         init_data.add_vertex(Vec2f(-1.0f, -1.0f), Vec2f(0.0f, 0.0f));

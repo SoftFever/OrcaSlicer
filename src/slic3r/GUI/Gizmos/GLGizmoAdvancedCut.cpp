@@ -885,8 +885,8 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             GLModel::Geometry init_data;
             init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
             init_data.color  = { 0.8f, 0.8f, 0.8f, 0.5f };
-            init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-            init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+            init_data.reserve_vertices(4);
+            init_data.reserve_vertices(6);
 
             // vertices
             for (const Vec3d &point : plane_points_rot) {

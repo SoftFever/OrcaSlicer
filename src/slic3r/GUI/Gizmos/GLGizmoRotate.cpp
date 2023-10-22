@@ -230,8 +230,8 @@ void GLGizmoRotate::render_circle(const ColorRGBA& color, bool radius_changed)
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(ScaleStepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(ScaleStepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(ScaleStepsCount);
+        init_data.reserve_indices(ScaleStepsCount);
 
         // vertices + indices
         for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
@@ -257,8 +257,8 @@ void GLGizmoRotate::render_scale(const ColorRGBA& color, bool radius_changed)
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(2 * ScaleStepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(2 * ScaleStepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(2 * ScaleStepsCount);
+        init_data.reserve_indices(2 * ScaleStepsCount);
 
         // vertices + indices
         for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
@@ -294,8 +294,8 @@ void GLGizmoRotate::render_snap_radii(const ColorRGBA& color, bool radius_change
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(2 * ScaleStepsCount * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(2 * ScaleStepsCount * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(2 * ScaleStepsCount);
+        init_data.reserve_indices(2 * ScaleStepsCount);
 
         // vertices + indices
         for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
@@ -327,8 +327,8 @@ void GLGizmoRotate::render_reference_radius(const ColorRGBA& color, bool radius_
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
 
         // vertices
         init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
@@ -354,8 +354,8 @@ void GLGizmoRotate::render_angle_arc(const ColorRGBA& color, bool radius_changed
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve((1 + AngleResolution) * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve((1 + AngleResolution) * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(1 + AngleResolution);
+        init_data.reserve_indices(1 + AngleResolution);
 
         // vertices + indices
         for (unsigned short i = 0; i <= AngleResolution; ++i) {
@@ -379,8 +379,8 @@ void GLGizmoRotate::render_grabber_connection(const ColorRGBA& color, bool radiu
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
 
         // vertices
         init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
