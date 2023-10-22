@@ -18,7 +18,7 @@
 
 namespace Slic3r::GUI {
 
-std::shared_ptr<GLIndexedVertexArray> GLGizmoPainterBase::s_sphere = nullptr;
+std::shared_ptr<GLModel> GLGizmoPainterBase::s_sphere = nullptr;
 
 GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -29,8 +29,8 @@ GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& ic
 
 GLGizmoPainterBase::~GLGizmoPainterBase()
 {
-    if (s_sphere != nullptr && s_sphere->has_VBOs())
-        s_sphere->release_geometry();
+    if (s_sphere != nullptr)
+        s_sphere.reset();
 }
 
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
@@ -241,10 +241,13 @@ void GLGizmoPainterBase::render_cursor_circle()
 void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
 {
     if (s_sphere == nullptr) {
-        s_sphere = std::make_shared<GLIndexedVertexArray>();
-        s_sphere->load_its_flat_shading(its_make_sphere(1.0, double(PI) / 12.0));
-        s_sphere->finalize_geometry(true);
+        s_sphere = std::make_shared<GLModel>();
+        s_sphere->init_from(its_make_sphere(1.0, double(PI) / 12.0));
     }
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
 
     const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
     const bool is_left_handed = Geometry::Transformation(trafo).is_left_handed();
@@ -265,11 +268,13 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         render_color = this->get_cursor_sphere_left_button_color();
     else if (m_button_down == Button::Right)
         render_color = this->get_cursor_sphere_right_button_color();
-    glsafe(::glColor4fv(render_color.data()));
+    shader->start_using();
 
     assert(s_sphere != nullptr);
+    s_sphere->set_color(render_color);
     s_sphere->render();
 
+    shader->stop_using();
     if (is_left_handed)
         glFrontFace(GL_CCW);
 
@@ -1066,19 +1071,16 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     shader->set_uniform("offset_depth_buffer", true);
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
                      std::make_pair(&m_iva_blockers, blockers_color)}) {
-        if (iva.first->has_VBOs()) {
-            shader->set_uniform("uniform_color", iva.second);
-            iva.first->render();
-        }
+        iva.first->set_color(iva.second);
+        iva.first->render();
     }
 
-    for (auto &iva : m_iva_seed_fills)
-        if (iva.has_VBOs()) {
-            size_t                      color_idx = &iva - &m_iva_seed_fills.front();
-            const ColorRGBA& color                = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
-                                                                                             color_idx == 2 ? blockers_color :
-                                                                                                              GLVolume::NEUTRAL_COLOR);
-            shader->set_uniform("uniform_color", color);
+    for (auto& iva : m_iva_seed_fills) {
+            size_t           color_idx = &iva - &m_iva_seed_fills.front();
+            const ColorRGBA& color     = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
+                color_idx == 2 ? blockers_color :
+                GLVolume::NEUTRAL_COLOR);
+            iva.set_color(color);
             iva.render();
         }
 
@@ -1110,11 +1112,21 @@ void TriangleSelectorGUI::update_render_data()
     int              blc_cnt = 0;
     std::vector<int> seed_fill_cnt(m_iva_seed_fills.size(), 0);
 
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->release_geometry();
+    for (auto* iva : { &m_iva_enforcers, &m_iva_blockers }) {
+        iva->reset();
+    }
 
-    for (auto &iva : m_iva_seed_fills)
-        iva.release_geometry();
+    for (auto& iva : m_iva_seed_fills) {
+        iva.reset();
+    }
+
+    GLModel::Geometry iva_enforcers_data;
+    iva_enforcers_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+    GLModel::Geometry iva_blockers_data;
+    iva_blockers_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+    std::array<GLModel::Geometry, 3> iva_seed_fills_data;
+    for (auto& data : iva_seed_fills_data)
+        data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
 
     for (const Triangle &tr : m_triangles) {
         bool is_valid = tr.valid();
@@ -1125,9 +1137,9 @@ void TriangleSelectorGUI::update_render_data()
             continue;
 
         int tr_state = int(tr.get_state());
-        GLIndexedVertexArray &iva = tr.is_selected_by_seed_fill()                   ? m_iva_seed_fills[tr_state] :
-                                    tr.get_state() == EnforcerBlockerType::ENFORCER ? m_iva_enforcers :
-                                                                                      m_iva_blockers;
+        GLModel::Geometry &iva = tr.is_selected_by_seed_fill()                   ? iva_seed_fills_data[tr_state] :
+                                 tr.get_state() == EnforcerBlockerType::ENFORCER ? iva_enforcers_data :
+                                                                                   iva_blockers_data;
         int                  &cnt = tr.is_selected_by_seed_fill()                   ? seed_fill_cnt[tr_state] :
                                     tr.get_state() == EnforcerBlockerType::ENFORCER ? enf_cnt :
                                                                                       blc_cnt;
@@ -1137,18 +1149,21 @@ void TriangleSelectorGUI::update_render_data()
         //FIXME the normal may likely be pulled from m_triangle_selectors, but it may not be worth the effort
         // or the current implementation may be more cache friendly.
         const Vec3f           n   = (v1 - v0).cross(v2 - v1).normalized();
-        iva.push_geometry(v0, n);
-        iva.push_geometry(v1, n);
-        iva.push_geometry(v2, n);
-        iva.push_triangle(cnt, cnt + 1, cnt + 2);
+        iva.add_vertex(v0, n);
+        iva.add_vertex(v1, n);
+        iva.add_vertex(v2, n);
+        iva.add_uint_triangle((unsigned int)cnt, (unsigned int)cnt + 1, (unsigned int)cnt + 2);
         cnt += 3;
     }
 
-    for (auto *iva : {&m_iva_enforcers, &m_iva_blockers})
-        iva->finalize_geometry(true);
-
-    for (auto &iva : m_iva_seed_fills)
-        iva.finalize_geometry(true);
+    if (!iva_enforcers_data.is_empty())
+        m_iva_enforcers.init_from(std::move(iva_enforcers_data));
+    if (!iva_blockers_data.is_empty())
+        m_iva_blockers.init_from(std::move(iva_blockers_data));
+    for (size_t i = 0; i < m_iva_seed_fills.size(); ++i) {
+        if (!iva_seed_fills_data[i].is_empty())
+            m_iva_seed_fills[i].init_from(std::move(iva_seed_fills_data[i]));
+    }
 
     m_paint_contour.release_geometry();
     std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
@@ -1689,59 +1704,73 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
     };
 
     for (auto& va : m_varrays)
-        va.release_geometry();
+        va.reset();
 
     std::array<int, 3> cnts;
 
     ::glScalef(1.01f, 1.01f, 1.01f);
 
+    std::array<GLModel::Geometry, 3> varrays_data;
+    for (auto& data : varrays_data)
+        data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+
     for (int tr_id=0; tr_id<int(m_triangles.size()); ++tr_id) {
         const Triangle& tr = m_triangles[tr_id];
-        GLIndexedVertexArray* va = nullptr;
+        GLModel::Geometry* va = nullptr;
         int* cnt = nullptr;
         if (tr_id < m_orig_size_indices) {
-            va = &m_varrays[ORIGINAL];
+            va = &varrays_data[ORIGINAL];
             cnt = &cnts[ORIGINAL];
         }
         else if (tr.valid()) {
-            va = &m_varrays[SPLIT];
+            va = &varrays_data[SPLIT];
             cnt = &cnts[SPLIT];
         }
         else {
             if (! m_show_invalid)
                 continue;
-            va = &m_varrays[INVALID];
+            va = &varrays_data[INVALID];
             cnt = &cnts[INVALID];
         }
 
-        for (int i=0; i<3; ++i)
-            va->push_geometry(double(m_vertices[tr.verts_idxs[i]].v[0]),
-                              double(m_vertices[tr.verts_idxs[i]].v[1]),
-                              double(m_vertices[tr.verts_idxs[i]].v[2]),
-                              0., 0., 1.);
-        va->push_triangle(*cnt,
-                          *cnt+1,
-                          *cnt+2);
+        for (int i = 0; i < 3; ++i) {
+            va->add_vertex(m_vertices[tr.verts_idxs[i]].v, Vec3f(0.0f, 0.0f, 1.0f));
+        }
+        va->add_uint_triangle((unsigned int)*cnt, (unsigned int)*cnt + 1, (unsigned int)*cnt + 2);
         *cnt += 3;
     }
 
+    for (int i = 0; i < 3; ++i) {
+        if (!varrays_data[i].is_empty())
+            m_varrays[i].init_from(std::move(varrays_data[i]));
+    }
+
+    GLShaderProgram* curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr)
+        curr_shader->stop_using();
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+
     ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     for (vtype i : {ORIGINAL, SPLIT, INVALID}) {
-        GLIndexedVertexArray& va = m_varrays[i];
-        va.finalize_geometry(true);
-        if (va.has_VBOs()) {
-            switch (i) {
-            case ORIGINAL : ::glColor3f(0.f, 0.f, 1.f); break;
-            case SPLIT    : ::glColor3f(1.f, 0.f, 0.f); break;
-            case INVALID  : ::glColor3f(1.f, 1.f, 0.f); break;
-            }
-            va.render();
+        GLModel& va = m_varrays[i];
+        switch (i) {
+        case ORIGINAL: va.set_color({ 0.0f, 0.0f, 1.0f, 1.0f }); break;
+        case SPLIT:    va.set_color({ 1.0f, 0.0f, 0.0f, 1.0f }); break;
+        case INVALID:  va.set_color({ 1.0f, 1.0f, 0.0f, 1.0f }); break;
         }
+        va.render();
     }
     ::glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+        shader->stop_using();
+    }
+
+    if (curr_shader != nullptr)
+        curr_shader->start_using();
 }
-#endif
-
-
+#endif // PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 
 } // namespace Slic3r::GUI

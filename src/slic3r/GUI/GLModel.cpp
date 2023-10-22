@@ -561,8 +561,8 @@ void GLModel::render()
 
     const Geometry& data = m_render_data.geometry;
 
-    GLenum mode = get_primitive_mode(data.format);
-    GLenum index_type = get_index_type(data.format);
+    const GLenum mode = get_primitive_mode(data.format);
+    const GLenum index_type = get_index_type(data.format);
 
     const size_t vertex_stride_bytes = Geometry::vertex_stride_bytes(data.format);
     const bool position  = Geometry::has_position(data.format);
