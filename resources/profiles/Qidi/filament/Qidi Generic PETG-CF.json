@@ -55,10 +55,10 @@
 		"270"
 	],
 	"nozzle_temperature_initial_layer": [
-		"255"
+		"280"
 	],
 	"nozzle_temperature": [
-		"255"
+		"280"
 	],
 	"filament_cost": [
 		"34.99"
@@ -86,9 +86,6 @@
 		],
 		"filament_flow_ratio": [
 			"0.95"
-		],
-		"filament_settings_id": [
-			"Qidi Generic PETG-CF - test"
 		],
 		"pressure_advance": [
 			"0.05"
