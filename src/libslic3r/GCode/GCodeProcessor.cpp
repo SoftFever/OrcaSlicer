@@ -60,6 +60,7 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    " MANUAL_TOOL_CHANGE ",
     "_DURING_PRINT_EXHAUST_FAN"
 };
 
@@ -76,7 +77,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
-    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    " MANUAL_TOOL_CHANGE "
 };
 
 
@@ -1010,7 +1012,9 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     if (spiral_vase != nullptr)
         m_spiral_vase_active = spiral_vase->value;
 
-
+    const ConfigOptionBool* manual_filament_change = config.option<ConfigOptionBool>("manual_filament_change");
+    if (manual_filament_change != nullptr)
+        m_manual_filament_change = manual_filament_change->value;
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -2107,6 +2111,13 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
             if (!parse_number(comment.substr(reserved_tag(ETags::Width).size()), m_forced_width))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
+        }
+        // Orca: manual tool change tag
+        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::Manual_Tool_Change))) {
+            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::Manual_Tool_Change).length());
+            if (boost::starts_with(tool_change_cmd, "T")) {
+                process_T(tool_change_cmd);
+            }
         }
     }
 

@@ -3480,6 +3480,8 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
                 }
             });
         };
+        optgroup->append_single_option_line("manual_filament_change");
+
         optgroup = page->new_optgroup(L("Wipe tower"));
         optgroup->append_single_option_line("purge_in_prime_tower");
         optgroup->append_single_option_line("enable_filament_ramming");
