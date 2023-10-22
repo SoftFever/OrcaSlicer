@@ -345,9 +345,9 @@ void GLGizmoFlatten::update_planes()
         for (size_t i = 0; i < plane.vertices.size(); ++i) {
             init_data.add_vertex((Vec3f)plane.vertices[i].cast<float>(), (Vec3f)plane.normal.cast<float>());
             if (index_type == GLModel::Geometry::EIndexType::USHORT)
-                init_data.add_ushort_index(i);
+                init_data.add_ushort_index((unsigned short)i);
             else
-                init_data.add_uint_index(i);
+                init_data.add_uint_index((unsigned int)i);
         }
         plane.vbo.init_from(std::move(init_data));
         // FIXME: vertices should really be local, they need not

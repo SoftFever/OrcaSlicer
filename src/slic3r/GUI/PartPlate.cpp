@@ -349,10 +349,12 @@ void PartPlate::calc_exclude_triangles(const ExPolygon &poly)
 
 static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
 {
-    const GLModel::Geometry::EIndexType index_type = (lines.size() < 65536 / 2) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
 
     GLModel::Geometry init_data;
+    const GLModel::Geometry::EIndexType index_type = (lines.size() < 65536 / 2) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
     init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, index_type };
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
 
     for (const auto &l : lines) {
         init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), z));
@@ -371,11 +373,12 @@ static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
 
 static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
 {
-    const GLModel::Geometry::EIndexType index_type = (lines.size() < 65536 / 2) ? GLModel::Geometry::EIndexType::USHORT :
-                                                                                  GLModel::Geometry::EIndexType::UINT;
 
     GLModel::Geometry init_data;
+    const GLModel::Geometry::EIndexType index_type = (lines.size() < 65536 / 2) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
     init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, index_type};
+    init_data.reserve_vertices(2 * lines.size());
+    init_data.reserve_indices(2 * lines.size());
 
     for (const auto &l : lines) {
         init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), unscale<float>(l.a.z())));
