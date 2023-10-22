@@ -118,8 +118,8 @@ namespace GUI {
 
                 GLModel::Geometry init_data;
                 init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::USHORT };
-                init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-                init_data.indices.reserve(4 * GLModel::Geometry::index_stride_bytes(init_data.format));
+                init_data.reserve_vertices(4);
+                init_data.reserve_indices(4);
 
                 // vertices
                 init_data.add_vertex(Vec2f(left, bottom));

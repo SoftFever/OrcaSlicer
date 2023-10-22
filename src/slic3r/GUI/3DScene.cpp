@@ -353,8 +353,8 @@ void GLVolume::SinkingContours::update()
             const Polygons polygons = union_(slice_mesh(mesh.its, 0.0f, slicing_params));
             for (const ExPolygon& expoly : diff_ex(expand(polygons, float(scale_(HalfWidth))), shrink(polygons, float(scale_(HalfWidth))))) {
                 const std::vector<Vec3d> triangulation = triangulate_expolygon_3d(expoly);
-                init_data.vertices.reserve(init_data.vertices.size() + triangulation.size() * GUI::GLModel::Geometry::vertex_stride_floats(init_data.format));
-                init_data.indices.reserve(init_data.indices.size() + triangulation.size() * GUI::GLModel::Geometry::index_stride_bytes(init_data.format));
+                init_data.reserve_vertices(init_data.vertices_count() + triangulation.size());
+                init_data.reserve_indices(init_data.indices_count() + triangulation.size());
                 for (const Vec3d& v : triangulation) {
                     init_data.add_vertex((Vec3f)(v.cast<float>() + 0.015f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
                     ++vertices_counter;

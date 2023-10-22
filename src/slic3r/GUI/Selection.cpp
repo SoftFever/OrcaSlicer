@@ -1559,6 +1559,7 @@ void Selection::render(float scale_factor)
         return;
 
     m_scale_factor = scale_factor;
+    // render cumulative bounding box of selected volumes
     render_bounding_box(get_bounding_box(), ColorRGB::WHITE());
     render_synchronized_volumes();
 }
@@ -2167,8 +2168,8 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& co
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(48 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(48 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(48);
+        init_data.reserve_indices(48);
 
         // vertices
         init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
@@ -2388,8 +2389,8 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field)
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
 
         // vertices
         init_data.add_vertex(Vec3f(p1.x(), p1.y(), z1));
@@ -2410,8 +2411,8 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field)
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(4 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(6 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
 
         // vertices
         init_data.add_vertex(Vec3f(p1.x(), p1.y(), z2));

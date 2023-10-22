@@ -280,8 +280,8 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
 
         GLModel::Geometry init_data;
         init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-        init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
 
         // vertices
         init_data.add_vertex((Vec3f)m_grabbers[id_1].center.cast<float>());
