@@ -135,7 +135,7 @@ void GLGizmoMove3D::on_render()
 
     auto render_grabber_connection = [this, &center](unsigned int id) {
         if (m_grabbers[id].enabled) {
-            if (!m_grabber_connections[id].model.is_initialized() || !m_grabber_connections[id].old_center.isApprox(center)) {
+            //if (!m_grabber_connections[id].model.is_initialized() || !m_grabber_connections[id].old_center.isApprox(center)) {
                 m_grabber_connections[id].old_center = center;
                 m_grabber_connections[id].model.reset();
 
@@ -153,7 +153,7 @@ void GLGizmoMove3D::on_render()
                 init_data.add_ushort_line(0, 1);
 
                 m_grabber_connections[id].model.init_from(std::move(init_data));
-            }
+            //}
 
             glLineStipple(1, 0x0FFF);
             glEnable(GL_LINE_STIPPLE);
