@@ -5,6 +5,7 @@
 //BBS
 #include "libslic3r/Print.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "slic3r/GUI/3DScene.hpp"
 
 #include <boost/thread.hpp>
 

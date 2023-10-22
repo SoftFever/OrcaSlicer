@@ -86,6 +86,8 @@ namespace GUI {
             unsigned int extract_uint_index(size_t id) const;
             unsigned short extract_ushort_index(size_t id) const;
 
+            bool is_empty() const { return vertices.empty() || indices.empty(); }
+
             size_t vertices_count() const { return vertices.size() / vertex_stride_floats(format); }
             size_t indices_count() const  { return indices.size() / index_stride_bytes(format); }
 

@@ -3,7 +3,7 @@
 
 #include "GLGizmoBase.hpp"
 
-#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/TriangleSelector.hpp"
@@ -104,10 +104,12 @@ protected:
 private:
     void update_render_data();
 
-    GLIndexedVertexArray                m_iva_enforcers;
-    GLIndexedVertexArray                m_iva_blockers;
-    std::array<GLIndexedVertexArray, 3> m_iva_seed_fills;
-    std::array<GLIndexedVertexArray, 3> m_varrays;
+    GLModel                m_iva_enforcers;
+    GLModel                m_iva_blockers;
+    std::array<GLModel, 3> m_iva_seed_fills;
+#ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+    std::array<GLModel, 3> m_varrays;
+#endif // PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 
 protected:
     GLPaintContour                      m_paint_contour;
@@ -342,7 +344,7 @@ private:
                               const Camera& camera,
                               const std::vector<Transform3d>& trafo_matrices) const;
 
-    static std::shared_ptr<GLIndexedVertexArray> s_sphere;
+    static std::shared_ptr<GLModel> s_sphere;
 
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
