@@ -7,6 +7,7 @@
 	"inherits": "fdm_elegoo_common",
 	"printer_model": "Elegoo Neptune 4",
 	"default_print_profile": "0.20mm Standard @Elegoo Neptune4 (0.2 nozzle)",
+	"gcode_flavor": "klipper",
 	"nozzle_diameter": [
 		"0.2"
 	],
@@ -36,7 +37,7 @@
 	"machine_max_jerk_y": ["12", "12"],
 	"machine_max_jerk_z": ["0.2", "0.4"],
 	"max_layer_height": [
-		"0.28"
+		"0.16"
 	],
 	"min_layer_height": [
 		"0.08"
@@ -57,7 +58,7 @@
 	"deretraction_speed": [
 		"0"
 	],
-	"single_extruder_multi_material": "0",
+	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
 	"default_filament_profile": [

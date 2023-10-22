@@ -182,7 +182,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine",
-        // SoftFever
+        // Orca
         "chamber_temperature",
         "thumbnails",
         "thumbnails_format",
@@ -200,7 +200,10 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "single_extruder_multi_material_priming",
         "activate_air_filtration",
         "during_print_exhaust_fan_speed",
-        "complete_print_exhaust_fan_speed"
+        "complete_print_exhaust_fan_speed",
+        "activate_chamber_temp_control",
+        "manual_filament_change"
+
     };
 
     static std::unordered_set<std::string> steps_ignore;

@@ -3473,13 +3473,14 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         auto page     = add_options_page(L("Multimaterial"), "printer", true);
         auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
         optgroup->append_single_option_line("single_extruder_multi_material");
-        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
-            wxTheApp->CallAfter([this, opt_key, value]() {
-                if (opt_key == "single_extruder_multi_material") {
-                    build_unregular_pages();
-                }
-            });
-        };
+        // Orca: we only support Single Extruder Multi Material, so it's always enabled
+        // optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
+        //     wxTheApp->CallAfter([this, opt_key, value]() {
+        //         if (opt_key == "single_extruder_multi_material") {
+        //             build_unregular_pages();
+        //         }
+        //     });
+        // };
         optgroup->append_single_option_line("manual_filament_change");
 
         optgroup = page->new_optgroup(L("Wipe tower"));
