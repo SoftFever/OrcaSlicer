@@ -1087,7 +1087,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               nozzle_temperature))
-    ((ConfigOptionInts ,               chamber_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionInts,               nozzle_temperature_range_low))
@@ -1136,6 +1135,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionStrings,            filament_notes))
     ((ConfigOptionString,             notes))
     ((ConfigOptionString,             printer_notes))
+
+    ((ConfigOptionBools,               activate_chamber_temp_control))
+    ((ConfigOptionInts ,               chamber_temperature))
 
 
 

@@ -164,9 +164,13 @@ std::string GCodeWriter::set_chamber_temperature(int temperature, bool wait)
 
     if (wait)
     {
-        gcode<<"M106 P2 S255 \n";
-        gcode<<"M191 S"<<std::to_string(temperature)<<" ;"<<"set chamber_temperature and wait for it to be reached\n";
-        gcode<<"M106 P2 S0 \n";
+        // Orca: should we let the M191 command to turn on the auxiliary fan?
+        if (config.auxiliary_fan)
+            gcode << "M106 P2 S255 \n";
+        gcode << "M191 S" << std::to_string(temperature) << " ;"
+              << "set chamber_temperature and wait for it to be reached\n";
+        if (config.auxiliary_fan)
+            gcode << "M106 P2 S0 \n";
     }
     else {
         code = "M141";

@@ -1108,7 +1108,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("activate_air_filtration",coBools);
     def->label = L("Activate air filtration");
-    def->tooltip = L("Activate for better air filtration");
+    def->tooltip = L("Activate for better air filtration. G-code command: M106 P3 S(0-255)");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBools{false});
 
@@ -2173,7 +2173,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");
-    def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
+    def->tooltip = L("Enable this option if machine has auxiliary part cooling fan. G-code command: M106 P2 S(0-255).");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -2217,18 +2217,19 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    // Orca: may remove this option later
     def =this->add("support_chamber_temp_control",coBool);
     def->label=L("Support control chamber temperature");
-    def->tooltip=L("This option is enabled if machine support controlling chamber temperature");
+    def->tooltip=L("This option is enabled if machine support controlling chamber temperature\nG-code command: M141 S(0-255)");
     def->mode=comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
     def->readonly=false;
 
     def =this->add("support_air_filtration",coBool);
     def->label=L("Support air filtration");
-    def->tooltip=L("Enable this if printer support air filtration");
+    def->tooltip=L("Enable this if printer support air filtration\nG-code command: M106 P3 S(0-255)");
     def->mode=comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
@@ -2661,7 +2662,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("additional_cooling_fan_speed", coInts);
     def->label = L("Fan speed");
     def->tooltip = L("Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers "
-                     "which is defined by no cooling layers");
+                     "which is defined by no cooling layers.\nPlease enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -3896,6 +3897,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("This setting specifies whether to add infill inside large hollows of tree support");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("activate_chamber_temp_control",coBools);
+    def->label = L("Activate temperature control");
+    def->tooltip = L("Enable this option for chamber temperature control. An M191 command will be added before \"machine_start_gcode\"\nG-code commands: M141/M191 S(0-255)");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBools{false});
 
     def = this->add("chamber_temperature", coInts);
     def->label = L("Chamber temperature");
