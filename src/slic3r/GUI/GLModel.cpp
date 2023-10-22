@@ -17,6 +17,16 @@
 namespace Slic3r {
 namespace GUI {
 
+void GLModel::Geometry::reserve_vertices(size_t vertices_count)
+{
+    vertices.reserve(vertices_count * vertex_stride_floats(format));
+}
+
+void GLModel::Geometry::reserve_indices(size_t indices_count)
+{
+    indices.reserve(indices_count * index_stride_bytes(format));
+}
+
 void GLModel::Geometry::add_vertex(const Vec2f& position)
 {
     assert(format.vertex_layout == EVertexLayout::P2);
@@ -403,8 +413,8 @@ void GLModel::init_from(const indexed_triangle_set& its)
 
     Geometry& data = m_render_data.geometry;
     data.format = { Geometry::EPrimitiveType::Triangles, Geometry::EVertexLayout::P3N3, Geometry::EIndexType::UINT };
-    data.vertices.reserve(3 * its.indices.size() * Geometry::vertex_stride_floats(data.format));
-    data.indices.reserve(3 * its.indices.size() * Geometry::index_stride_bytes(data.format));
+    data.reserve_vertices(3 * its.indices.size());
+    data.reserve_indices(3 * its.indices.size());
 
     // vertices + indices
     unsigned int vertices_counter = 0;
@@ -446,8 +456,8 @@ void GLModel::init_from(const Polygons& polygons, float z)
         segments_count += polygon.points.size();
     }
 
-    data.vertices.reserve(2 * segments_count * Geometry::vertex_stride_floats(data.format));
-    data.indices.reserve(2 * segments_count * Geometry::index_stride_bytes(data.format));
+    data.reserve_vertices(2 * segments_count);
+    data.reserve_indices(2 * segments_count);
 
     // vertices + indices
     unsigned int vertices_counter = 0;
@@ -713,8 +723,8 @@ GLModel::Geometry stilized_arrow(unsigned short resolution, float tip_radius, fl
 
     GLModel::Geometry data;
     data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::USHORT };
-    data.vertices.reserve((6 * resolution + 2) * GLModel::Geometry::vertex_stride_floats(data.format));
-    data.indices.reserve((6 * resolution * 3) * GLModel::Geometry::index_stride_bytes(data.format));
+    data.reserve_vertices(6 * resolution + 2);
+    data.reserve_indices(6 * resolution * 3);
 
     const float angle_step = 2.0f * float(PI) / float(resolution);
     std::vector<float> cosines(resolution);
@@ -787,6 +797,7 @@ GLModel::Geometry stilized_arrow(unsigned short resolution, float tip_radius, fl
         const unsigned short v3 = (i < resolution - 1) ? i + 5 * resolution + 3 : 5 * resolution + 2;
         append_triangle(data, 5 * resolution + 1, v3, i + 5 * resolution + 2);
     }
+
     return data;
 }
 
@@ -797,8 +808,8 @@ GLModel::Geometry circular_arrow(unsigned short resolution, float radius, float 
 
     GLModel::Geometry data;
     data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::USHORT };
-    data.vertices.reserve((8 * (resolution + 1) + 30) * GLModel::Geometry::vertex_stride_floats(data.format));
-    data.indices.reserve(((8 * resolution + 16) * 3) * GLModel::Geometry::index_stride_bytes(data.format));
+    data.reserve_vertices(8 * (resolution + 1) + 30);
+    data.reserve_indices((8 * resolution + 16) * 3);
 
     const float half_thickness = 0.5f * thickness;
     const float half_stem_width = 0.5f * stem_width;
@@ -951,6 +962,7 @@ GLModel::Geometry circular_arrow(unsigned short resolution, float radius, float 
         append_triangle(data, ii, ii + 1, ii + resolution + 2);
         append_triangle(data, ii, ii + resolution + 2, ii + resolution + 1);
     }
+
     return data;
 }
 
@@ -958,8 +970,8 @@ GLModel::Geometry straight_arrow(float tip_width, float tip_height, float stem_w
 {
     GLModel::Geometry data;
     data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::USHORT };
-    data.vertices.reserve(42 * GLModel::Geometry::vertex_stride_floats(data.format));
-    data.indices.reserve((24 * 3) * GLModel::Geometry::index_stride_bytes(data.format));
+    data.reserve_vertices(42);
+    data.reserve_indices(72);
 
     const float half_thickness = 0.5f * thickness;
     const float half_stem_width = 0.5f * stem_width;
@@ -1044,6 +1056,7 @@ GLModel::Geometry straight_arrow(float tip_width, float tip_height, float stem_w
         append_triangle(data, 14 + ii, 15 + ii, 17 + ii);
         append_triangle(data, 14 + ii, 17 + ii, 16 + ii);
     }
+
     return data;
 }
 
@@ -1054,8 +1067,8 @@ GLModel::Geometry diamond(unsigned short resolution)
 
     GLModel::Geometry data;
     data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::USHORT };
-    data.vertices.reserve((resolution + 2) * GLModel::Geometry::vertex_stride_floats(data.format));
-    data.indices.reserve(((2 * (resolution + 1)) * 3) * GLModel::Geometry::index_stride_bytes(data.format));
+    data.reserve_vertices(resolution + 2);
+    data.reserve_indices((2 * (resolution + 1)) * 3);
 
     const float step = 2.0f * float(PI) / float(resolution);
 
@@ -1082,6 +1095,7 @@ GLModel::Geometry diamond(unsigned short resolution)
         append_triangle(data, i + 0, resolution + 1, i + 1);
     }
     append_triangle(data, resolution - 1, resolution + 1, 0);
+
     return data;
 }
 
