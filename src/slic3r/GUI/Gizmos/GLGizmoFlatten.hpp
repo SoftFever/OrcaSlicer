@@ -2,7 +2,7 @@
 #define slic3r_GLGizmoFlatten_hpp_
 
 #include "GLGizmoBase.hpp"
-#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 
 namespace Slic3r {
@@ -22,7 +22,7 @@ private:
 
     struct PlaneData {
         std::vector<Vec3d> vertices; // should be in fact local in update_planes()
-        GLIndexedVertexArray vbo;
+        GLModel vbo;
         Vec3d normal;
         float area;
     };

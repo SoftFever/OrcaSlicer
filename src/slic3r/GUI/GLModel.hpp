@@ -60,6 +60,9 @@ namespace GUI {
             std::vector<unsigned char> indices;
             ColorRGBA color{ ColorRGBA::BLACK() };
 
+            void reserve_vertices(size_t vertices_count);
+            void reserve_indices(size_t indices_count);
+
             void add_vertex(const Vec2f& position);
             void add_vertex(const Vec2f& position, const Vec2f& tex_coord);
             void add_vertex(const Vec3f& position);

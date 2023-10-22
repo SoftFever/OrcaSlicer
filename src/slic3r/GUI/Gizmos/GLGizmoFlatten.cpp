@@ -1,6 +1,7 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
 #include "GLGizmoFlatten.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
@@ -62,6 +63,11 @@ void GLGizmoFlatten::on_render()
 {
     const Selection& selection = m_parent.get_selection();
 
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+    
+    shader->start_using();
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
 
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -75,24 +81,25 @@ void GLGizmoFlatten::on_render()
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-            if (i == m_hover_id)
-                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_HOVER_COLOR.data()));
-            else
-                glsafe(::glColor4fv(GLGizmoBase::FLATTEN_COLOR.data()));
-
-            if (m_planes[i].vbo.has_VBOs())
-                m_planes[i].vbo.render();
+		    m_planes[i].vbo.set_color(i == m_hover_id ? GLGizmoBase::FLATTEN_HOVER_COLOR : GLGizmoBase::FLATTEN_COLOR);
+            m_planes[i].vbo.render();
         }
         glsafe(::glPopMatrix());
     }
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
+    shader->stop_using();
 }
 
 void GLGizmoFlatten::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_BLEND));
@@ -105,13 +112,14 @@ void GLGizmoFlatten::on_render_for_picking()
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-            glsafe(::glColor4fv(picking_color_component(i).data()));
+            m_planes[i].vbo.set_color(picking_color_component(i));
             m_planes[i].vbo.render();
         }
         glsafe(::glPopMatrix());
     }
 
     glsafe(::glEnable(GL_CULL_FACE));
+    shader->stop_using();
 }
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
@@ -328,12 +336,20 @@ void GLGizmoFlatten::update_planes()
     // And finally create respective VBOs. The polygon is convex with
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
-        plane.vbo.reserve(plane.vertices.size());
-        for (const auto& vert : plane.vertices)
-            plane.vbo.push_geometry(vert, plane.normal);
-        for (size_t i=1; i<plane.vertices.size()-1; ++i)
-            plane.vbo.push_triangle(0, i, i+1); // triangle fan
-        plane.vbo.finalize_geometry(true);
+        GLModel::Geometry init_data;
+        const GLModel::Geometry::EIndexType index_type = (plane.vertices.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::TriangleFan, GLModel::Geometry::EVertexLayout::P3N3, index_type };
+        init_data.reserve_vertices(plane.vertices.size());
+        init_data.reserve_indices(plane.vertices.size());
+        // vertices + indices
+        for (size_t i = 0; i < plane.vertices.size(); ++i) {
+            init_data.add_vertex((Vec3f)plane.vertices[i].cast<float>(), (Vec3f)plane.normal.cast<float>());
+            if (index_type == GLModel::Geometry::EIndexType::USHORT)
+                init_data.add_ushort_index(i);
+            else
+                init_data.add_uint_index(i);
+        }
+        plane.vbo.init_from(std::move(init_data));
         // FIXME: vertices should really be local, they need not
         // persist now when we use VBOs
         plane.vertices.clear();
