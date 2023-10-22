@@ -3898,8 +3898,8 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("activate_chamber_heater",coBools);
-    def->label = L("Activate chamber heater");
+    def = this->add("activate_chamber_temp_control",coBools);
+    def->label = L("Activate temperature control");
     def->tooltip = L("Enable this option for chamber temperature control. An M191 command will be added before \"machine_start_gcode\"\nG-code commands: M141/M191 S(0-255)");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBools{false});

@@ -2725,12 +2725,14 @@ void TabFilament::build()
         optgroup->append_line(line);
 
 
-        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
+        optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
         optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
-        optgroup->append_single_option_line("activate_chamber_heater", "chamber-temperature");
+        optgroup->append_single_option_line("activate_chamber_temp_control", "chamber-temperature");
+
         optgroup->append_separator();
 
 
+        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));

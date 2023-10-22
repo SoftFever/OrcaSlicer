@@ -1136,7 +1136,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionString,             notes))
     ((ConfigOptionString,             printer_notes))
 
-    ((ConfigOptionBools,                activate_chamber_heater))
+    ((ConfigOptionBools,               activate_chamber_temp_control))
     ((ConfigOptionInts ,               chamber_temperature))
 
 

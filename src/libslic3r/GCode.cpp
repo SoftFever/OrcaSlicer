@@ -2241,14 +2241,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     // Orca: set chamber temperature at the beginning of gcode file
-    bool activate_chamber_heater = false;
+    bool activate_chamber_temp_control = false;
     auto max_chamber_temp = 0;
     for (const auto &extruder : m_writer.extruders()) {
-        activate_chamber_heater |= m_config.activate_chamber_heater.get_at(extruder.id());
+        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
         max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
     }
 
-    if (activate_chamber_heater && max_chamber_temp > 0)
+    if (activate_chamber_temp_control && max_chamber_temp > 0)
         file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
 
     // Write the custom start G-code
@@ -2548,7 +2548,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
-    if (activate_chamber_heater && max_chamber_temp > 0)
+    if (activate_chamber_temp_control && max_chamber_temp > 0)
         file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
 
     if (activate_air_filtration) {
