@@ -12,6 +12,7 @@
 #include <cereal/types/vector.hpp>
 #include <GL/glew.h>
 
+#include <memory>
 
 
 namespace Slic3r::GUI {
@@ -217,7 +218,7 @@ private:
     void on_render_for_picking() override {}
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    ~GLGizmoPainterBase() override = default;
+    virtual ~GLGizmoPainterBase() override;
     virtual void set_painter_gizmo_data(const Selection& selection);
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
@@ -341,7 +342,7 @@ private:
                               const Camera& camera,
                               const std::vector<Transform3d>& trafo_matrices) const;
 
-    GLIndexedVertexArray m_vbo_sphere;
+    static std::shared_ptr<GLIndexedVertexArray> s_sphere;
 
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;

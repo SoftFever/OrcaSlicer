@@ -31,20 +31,6 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_axis(axis)
 {}
 
-GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
-    , m_axis(other.m_axis)
-    , m_angle(other.m_angle)
-    , m_center(other.m_center)
-    , m_radius(other.m_radius)
-    , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
-    , m_snap_coarse_out_radius(other.m_snap_coarse_out_radius)
-    , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
-    , m_snap_fine_out_radius(other.m_snap_fine_out_radius)
-{
-}
-
-
 void GLGizmoRotate::set_angle(double angle)
 {
     if (std::abs(angle - 2.0 * double(PI)) < EPSILON)
@@ -513,13 +499,10 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
 //BBS: GUI refactor: add obj manipulation
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
+    , m_gizmos({ GLGizmoRotate(parent, GLGizmoRotate::X), GLGizmoRotate(parent, GLGizmoRotate::Y), GLGizmoRotate(parent, GLGizmoRotate::Z) })
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
-    m_gizmos.emplace_back(parent, GLGizmoRotate::X);
-    m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
-    m_gizmos.emplace_back(parent, GLGizmoRotate::Z);
-
     for (unsigned int i = 0; i < 3; ++i) {
         m_gizmos[i].set_group_id(i);
     }

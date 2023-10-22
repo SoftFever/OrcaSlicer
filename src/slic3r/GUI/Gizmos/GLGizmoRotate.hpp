@@ -57,7 +57,6 @@ private:
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
-    GLGizmoRotate(const GLGizmoRotate& other);
     virtual ~GLGizmoRotate() = default;
 
     double get_angle() const { return m_angle; }
@@ -94,7 +93,7 @@ class GLGizmoRotate3D : public GLGizmoBase
 {
 // BBS: change to protected for subclass access
 protected:
-    std::vector<GLGizmoRotate> m_gizmos;
+    std::array<GLGizmoRotate, 3> m_gizmos;
  
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;

@@ -18,15 +18,19 @@
 
 namespace Slic3r::GUI {
 
+std::shared_ptr<GLIndexedVertexArray> GLGizmoPainterBase::s_sphere = nullptr;
 
 GLGizmoPainterBase::GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
 {
-    // Make sphere and save it into a vertex buffer.
-    m_vbo_sphere.load_its_flat_shading(its_make_sphere(1., (2*M_PI)/24.));
-    m_vbo_sphere.finalize_geometry(true);
     m_vertical_only = false;
     m_horizontal_only = false;
+}
+
+GLGizmoPainterBase::~GLGizmoPainterBase()
+{
+    if (s_sphere != nullptr && s_sphere->has_VBOs())
+        s_sphere->release_geometry();
 }
 
 void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
@@ -236,6 +240,12 @@ void GLGizmoPainterBase::render_cursor_circle()
 
 void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
 {
+    if (s_sphere == nullptr) {
+        s_sphere = std::make_shared<GLIndexedVertexArray>();
+        s_sphere->load_its_flat_shading(its_make_sphere(1.0, double(PI) / 12.0));
+        s_sphere->finalize_geometry(true);
+    }
+
     const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
     const bool is_left_handed = Geometry::Transformation(trafo).is_left_handed();
 
@@ -257,7 +267,8 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         render_color = this->get_cursor_sphere_right_button_color();
     glsafe(::glColor4fv(render_color.data()));
 
-    m_vbo_sphere.render();
+    assert(s_sphere != nullptr);
+    s_sphere->render();
 
     if (is_left_handed)
         glFrontFace(GL_CCW);
