@@ -1922,18 +1922,18 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
             label_width = width;
     }
 
-    auto render_part_action_line = [this, label_width, &connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
+    auto render_part_action_line = [this, label_width,has_connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
         bool keep = true;
+        m_imgui->disabled_begin(has_connectors || m_cut_to_parts);
         ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_cut_to_parts ? _L("Part") : _L("Object") +label);
+        m_imgui->bbl_checkbox(m_cut_to_parts ? _L("Part") : _L("Object") + label, has_connectors ? keep : keep_part);
 
         float marker_size = 12;
         render_color_marker(marker_size, suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR);
-        ImGui::SameLine(label_width);
-
-        m_imgui->disabled_begin(!keep_part || m_cut_to_parts);
+        float new_label_width = label_width + (m_cut_to_parts ? 10.0f : 20.0f);
+        ImGui::SameLine(new_label_width);
         bool is_keep = !place_on_cut_part && !rotate_part;
-        if (m_imgui->bbl_checkbox(_L("Keep") + suffix, is_keep)){
+        if (m_imgui->bbl_checkbox(_L("Keep orientation") + suffix, is_keep)){
             rotate_part       = false;
             place_on_cut_part = false;
         }
