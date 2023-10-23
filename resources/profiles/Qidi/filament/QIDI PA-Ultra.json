@@ -10,13 +10,13 @@
       "3"
     ],
     "nozzle_temperature_initial_layer": [
-      "300"
+      "280"
     ],
     "nozzle_temperature": [
-      "300"
+      "280"
     ],
     "filament_max_volumetric_speed": [
-      "6"
+      "3"
     ],
     "enable_pressure_advance": [
       "1"

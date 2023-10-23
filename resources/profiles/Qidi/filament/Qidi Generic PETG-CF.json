@@ -43,7 +43,7 @@
 		"40"
 	],
 	"filament_vendor": [
-		"Bambu Lab"
+		"Other brand"
 	],
 	"filament_type": [
 		"PETG-CF"
@@ -52,7 +52,7 @@
 		"240"
 	],
 	"nozzle_temperature_range_high": [
-		"270"
+		"290"
 	],
 	"nozzle_temperature_initial_layer": [
 		"280"
@@ -67,7 +67,7 @@
 		"1.25"
 	],
 	"filament_max_volumetric_speed": [
-		"10"
+		"8"
 	],
 	"slow_down_layer_time": [
 		"6"
@@ -79,7 +79,7 @@
 			"30"
 		],
 		"fan_max_speed": [
-			"40"
+			"30"
 		],
 		"fan_min_speed": [
 			"5"
