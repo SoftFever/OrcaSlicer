@@ -334,22 +334,26 @@ void GLGizmoRotate::render_angle_arc(const ColorRGBA& color, bool radius_changed
     const float step_angle = float(m_angle) / float(AngleResolution);
     const float ex_radius = m_radius * (1.0f + GrabberOffset);
 
-    if (!m_angle_arc.is_initialized() || radius_changed) {
+    const bool angle_changed = std::abs(m_old_angle - m_angle) > EPSILON;
+    m_old_angle = m_angle;
+
+    if (!m_angle_arc.is_initialized() || radius_changed || angle_changed) {
         m_angle_arc.reset();
+        if (m_angle > 0.0f) {
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+            init_data.reserve_vertices(1 + AngleResolution);
+            init_data.reserve_indices(1 + AngleResolution);
 
-        GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
-        init_data.reserve_vertices(1 + AngleResolution);
-        init_data.reserve_indices(1 + AngleResolution);
+            // vertices + indices
+            for (unsigned short i = 0; i <= AngleResolution; ++i) {
+                const float angle = float(i) * step_angle;
+                init_data.add_vertex(Vec3f(::cos(angle) * ex_radius, ::sin(angle) * ex_radius, 0.0f));
+                init_data.add_ushort_index(i);
+            }
 
-        // vertices + indices
-        for (unsigned short i = 0; i <= AngleResolution; ++i) {
-            const float angle = float(i) * step_angle;
-            init_data.add_vertex(Vec3f(::cos(angle) * ex_radius, ::sin(angle) * ex_radius, 0.0f));
-            init_data.add_ushort_index(i);
+            m_angle_arc.init_from(std::move(init_data));
         }
-
-        m_angle_arc.init_from(std::move(init_data));
     }
 
     m_angle_arc.set_color(color);
