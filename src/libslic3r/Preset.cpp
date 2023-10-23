@@ -2104,15 +2104,14 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         modifier(preset, m_type);
         if (find_preset(preset.name)) {
             failures.push_back(preset.name);
-            continue;
         }
         preset.file                = this->path_for_preset(preset);
         if (m_type == Preset::TYPE_PRINT)
-            preset.config.option<ConfigOptionString>("print_settings_id", true)->value = preset.name;
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
         else if (m_type == Preset::TYPE_FILAMENT)
-            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
         else if (m_type == Preset::TYPE_PRINTER)
-            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
         preset.updated_time = (long long) Slic3r::Utils::get_current_time_utc();
     }
     if (!failures.empty() && !force_rewritten)
@@ -2137,7 +2136,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
 bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten)
 {
     return clone_presets(presets, failures, [printer](Preset &preset, Preset::Type &type) {
-        preset.name = preset.name.substr(0, preset.name.find("@")) + " @" + printer;
+        preset.name = preset.name.substr(0, preset.name.find(" @")) + " @" + printer;
         //preset.alias                = "";
         auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
@@ -2233,6 +2232,13 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
         }
         //BBS: add lock logic for sync preset in background
+        
+        if (m_type == Preset::TYPE_PRINT)
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
+        else if (m_type == Preset::TYPE_FILAMENT)
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
+        else if (m_type == Preset::TYPE_PRINTER)
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
         final_inherits = preset.inherits();
         unlock();
         // TODO: apply change from custom root to devided presets.
@@ -2276,11 +2282,11 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         else
             preset.is_project_embedded = false;
         if (m_type == Preset::TYPE_PRINT)
-            preset.config.option<ConfigOptionString >("print_settings_id", true)->value  = preset.name;
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
         else if (m_type == Preset::TYPE_FILAMENT)
-            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
         else if (m_type == Preset::TYPE_PRINTER)
-            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
         //BBS: add lock logic for sync preset in background
         final_inherits = inherits;
         unlock();

@@ -1341,6 +1341,8 @@ VendorProfile PresetBundle::get_custom_vendor_models() const
             iter_model->id       = model;
             iter_model->name     = model;
             iter_model->variants = {VendorProfile::PrinterVariant(variant)};
+        } else {
+            iter_model->variants.push_back(VendorProfile::PrinterVariant(variant));
         }
     }
     return vendor;
@@ -3011,7 +3013,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     PresetsConfigSubstitutions substitutions;
 
     //BBS: add config related logs
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, path %1%, compatibility_rule %2%")%path.c_str()%compatibility_rule;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, path %1%, compatibility_rule %2%")%path.c_str()%compatibility_rule;
     if (flags.has(LoadConfigBundleAttribute::ResetUserProfile) || flags.has(LoadConfigBundleAttribute::LoadSystem))
         // Reset this bundle, delete user profile files if SaveImported.
         this->reset(flags.has(LoadConfigBundleAttribute::SaveImported));
