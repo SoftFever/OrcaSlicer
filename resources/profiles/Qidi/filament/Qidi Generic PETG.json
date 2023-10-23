@@ -37,7 +37,7 @@
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "10"
+        "9"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

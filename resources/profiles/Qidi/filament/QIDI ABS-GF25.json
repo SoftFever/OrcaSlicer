@@ -18,6 +18,12 @@
     "pressure_advance": [
         "0.01"
     ],
+    "nozzle_temperature_initial_layer": [
+        "270"
+      ],
+      "nozzle_temperature": [
+        "270"
+      ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",
