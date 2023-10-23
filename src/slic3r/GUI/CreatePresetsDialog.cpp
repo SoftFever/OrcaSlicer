@@ -461,7 +461,7 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
 }
 
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
-	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
 {
 	
     m_create_type.base_filament = _L("Create based on current filamet");
@@ -1064,7 +1064,7 @@ void CreateFilamentPresetDialog::clear_filament_preset_map()
 }
 
 CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent) 
-: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Printer/Nozzle"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Printer/Nozzle"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTER)
 {
     m_create_type.create_printer    = _L("Create Printer");
     m_create_type.create_nozzle     = _L("Create Nozzle for existing printer");
@@ -1109,7 +1109,12 @@ CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)
 
     Layout();
     Fit();
-    
+
+    wxSize screen_size = wxGetDisplaySize();
+    int    dialogX     = (screen_size.GetWidth() - GetSize().GetWidth()) / 2;
+    int    dialogY     = (screen_size.GetHeight() - GetSize().GetHeight()) / 2;
+    SetPosition(wxPoint(dialogX, dialogY));
+
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
@@ -1133,19 +1138,25 @@ wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
     step_switch_sizer->Add(m_download_hyperlink, 0,  wxRIGHT | wxALIGN_RIGHT, FromDIP(5));
 
     wxBoxSizer *horizontal_sizer  = new wxBoxSizer(wxHORIZONTAL);
-    m_step_1                      = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("step_1", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
-    horizontal_sizer->Add(m_step_1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(3));
-    wxStaticText *static_create_printer_text = new wxStaticText(this, wxID_ANY, _L("Create Printer"), wxDefaultPosition, wxDefaultSize);
-    horizontal_sizer->Add(static_create_printer_text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(3));
-    auto divider_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(50), 1));
+    wxPanel *   step_switch_panel = new wxPanel(this);
+    step_switch_panel->SetBackgroundColour(*wxWHITE);
+    horizontal_sizer->Add(0, 0, 1, wxEXPAND,0);
+    m_step_1 = new wxStaticBitmap(step_switch_panel, wxID_ANY, create_scaled_bitmap("step_1", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
+    horizontal_sizer->Add(m_step_1, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
+    wxStaticText *static_create_printer_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Create Printer"), wxDefaultPosition, wxDefaultSize);
+    horizontal_sizer->Add(static_create_printer_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
+    auto divider_line = new wxPanel(step_switch_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(50), 1));
     divider_line->SetBackgroundColour(PRINTER_LIST_COLOUR);
     horizontal_sizer->Add(divider_line, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
-    m_step_2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("step_2_ready", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
-    horizontal_sizer->Add(m_step_2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(3));
-    wxStaticText *static_improt_presets_text = new wxStaticText(this, wxID_ANY, _L("Improt Presets"), wxDefaultPosition, wxDefaultSize);
-    horizontal_sizer->Add(static_improt_presets_text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(3));
+    m_step_2 = new wxStaticBitmap(step_switch_panel, wxID_ANY, create_scaled_bitmap("step_2_ready", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
+    horizontal_sizer->Add(m_step_2, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
+    wxStaticText *static_improt_presets_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Improt Presets"), wxDefaultPosition, wxDefaultSize);
+    horizontal_sizer->Add(static_improt_presets_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
+    horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
-    step_switch_sizer->Add(horizontal_sizer, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(10));
+    step_switch_panel->SetSizer(horizontal_sizer);
+
+    step_switch_sizer->Add(step_switch_panel, 0, wxBOTTOM | wxALIGN_CENTER_HORIZONTAL, FromDIP(10));
 
     auto line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line_top->SetBackgroundColour(PRINTER_LIST_COLOUR);
@@ -1165,6 +1176,7 @@ void CreatePrinterPresetDialog::create_printer_page1(wxWindow *parent)
     m_page1_sizer->Add(create_printer_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_page1_sizer->Add(create_nozzle_diameter_item(parent), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_printer_info_panel = new wxPanel(parent);
+    m_printer_info_panel->SetBackgroundColour(*wxWHITE);
     m_printer_info_sizer = new wxBoxSizer(wxVERTICAL);
     m_printer_info_sizer->Add(create_bed_shape_item(m_printer_info_panel), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_printer_info_sizer->Add(create_bed_size_item(m_printer_info_panel), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));

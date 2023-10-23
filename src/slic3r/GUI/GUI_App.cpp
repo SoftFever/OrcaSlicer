@@ -4450,6 +4450,7 @@ void GUI_App::reload_settings()
     if (preset_bundle && m_agent) {
         std::map<std::string, std::map<std::string, std::string>> user_presets;
         m_agent->get_user_presets(&user_presets);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " cloud user preset number is: " << user_presets.size();
         preset_bundle->load_user_presets(*app_config, user_presets, ForwardCompatibilitySubstitutionRule::Enable);
         preset_bundle->save_user_presets(*app_config, get_delete_cache_presets());
         mainframe->update_side_preset_ui();
