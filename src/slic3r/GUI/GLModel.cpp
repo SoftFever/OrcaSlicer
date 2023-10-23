@@ -327,6 +327,11 @@ size_t GLModel::Geometry::index_stride_bytes(const Format& format)
     };
 }
 
+GLModel::Geometry::EIndexType GLModel::Geometry::index_type(size_t vertices_count)
+{
+    return (vertices_count < 65536) ? EIndexType::USHORT : EIndexType::UINT;
+}
+
 bool GLModel::Geometry::has_position(const Format& format)
 {
     switch (format.vertex_layout)

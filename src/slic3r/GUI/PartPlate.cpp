@@ -351,8 +351,7 @@ static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
 {
 
     GLModel::Geometry init_data;
-    const GLModel::Geometry::EIndexType index_type = (lines.size() < 65536 / 2) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, index_type };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(2 * lines.size()) };
     init_data.reserve_vertices(2 * lines.size());
     init_data.reserve_indices(2 * lines.size());
 
@@ -360,7 +359,7 @@ static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
         init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), z));
         init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), z));
         const unsigned int vertices_counter = (unsigned int)init_data.vertices_count();
-        if (index_type == GLModel::Geometry::EIndexType::USHORT)
+        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
             init_data.add_ushort_line((unsigned short)vertices_counter - 2, (unsigned short)vertices_counter - 1);
         else
             init_data.add_uint_line(vertices_counter - 2, vertices_counter - 1);
@@ -375,8 +374,7 @@ static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
 {
 
     GLModel::Geometry init_data;
-    const GLModel::Geometry::EIndexType index_type = (lines.size() < 65536 / 2) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-    init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, index_type};
+    init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(2 * lines.size())};
     init_data.reserve_vertices(2 * lines.size());
     init_data.reserve_indices(2 * lines.size());
 
@@ -384,7 +382,7 @@ static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
         init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), unscale<float>(l.a.z())));
         init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), unscale<float>(l.b.z())));
         const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
-        if (index_type == GLModel::Geometry::EIndexType::USHORT)
+        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
             init_data.add_ushort_line((unsigned short) vertices_counter - 2, (unsigned short) vertices_counter - 1);
         else
             init_data.add_uint_line(vertices_counter - 2, vertices_counter - 1);

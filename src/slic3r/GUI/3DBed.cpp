@@ -45,8 +45,7 @@ bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
         return false;
 
     GLModel::Geometry init_data;
-    const GLModel::Geometry::EIndexType index_type = (triangles.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2, index_type };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2, GLModel::Geometry::index_type(triangles.size()) };
     init_data.reserve_vertices(triangles.size());
     init_data.reserve_indices(triangles.size() / 3);
 
@@ -71,7 +70,7 @@ bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
         init_data.add_vertex(p, (Vec2f)(v - min).cwiseProduct(inv_size).eval());
         ++vertices_counter;
         if (vertices_counter % 3 == 0) {
-            if (index_type == GLModel::Geometry::EIndexType::USHORT)
+            if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
                 init_data.add_ushort_triangle((unsigned short)vertices_counter - 3, (unsigned short)vertices_counter - 2, (unsigned short)vertices_counter - 1);
             else
                 init_data.add_uint_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
