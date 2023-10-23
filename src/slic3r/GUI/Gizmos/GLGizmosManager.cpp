@@ -17,7 +17,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
 // BBS
 #include "slic3r/GUI/Gizmos/GLGizmoAdvancedCut.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoFaceDetector.hpp"
+//#include "slic3r/GUI/Gizmos/GLGizmoFaceDetector.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"

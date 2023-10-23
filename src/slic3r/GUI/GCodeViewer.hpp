@@ -810,7 +810,7 @@ public:
     // extract rendering data from the given parameters
     //BBS: add only gcode mode
     void load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
-            const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode = false);
+            const std::vector<BoundingBoxf3>& exclude_bounding_box, ConfigOptionMode mode, bool only_gcode = false);
     // recalculate ranges in dependence of what is visible and sets tool/print colors
     void refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_render_paths();
@@ -820,7 +820,7 @@ public:
     void reset();
     //BBS: always load shell at preview
     void reset_shell();
-    void load_shells(const Print& print, bool initialized, bool force_previewing = false);
+    void load_shells(const Print& print, bool force_previewing = false);
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
     //BBS: add all plates filament statistics
     void render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show = true) const;
@@ -900,7 +900,7 @@ public:
 private:
     void load_toolpaths(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume, const std::vector<BoundingBoxf3>& exclude_bounding_box);
     //BBS: always load shell at preview
-    //void load_shells(const Print& print, bool initialized);
+    //void load_shells(const Print& print);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths();
     void render_shells();

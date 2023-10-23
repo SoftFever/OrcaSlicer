@@ -894,13 +894,16 @@ void GLGizmoFdmSupports::run_thread()
             print->set_status(100, L("Support Generated"));
             goto _finished;
         }
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
         for (const SupportLayer *support_layer : m_print_instance.print_object->support_layers())
         {
             for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
             {
-                _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, *m_support_volume);
+                _3DScene::extrusionentity_to_verts(extrusion_entity, float(support_layer->print_z), m_print_instance.shift, init_data);
             }
         }
+        m_support_volume->model.init_from(std::move(init_data));
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished extrusionentity_to_verts, update status to 100%";
         print->set_status(100, L("Support Generated"));
         
@@ -926,7 +929,6 @@ _finished:
 void GLGizmoFdmSupports::generate_support_volume()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",before finalize_geometry";
-    m_support_volume->indexed_vertex_array.finalize_geometry(m_parent.is_initialized());
 
     std::unique_lock<std::mutex> lck(m_mutex);
     m_volume_ready = true;

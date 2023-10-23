@@ -14,6 +14,7 @@ namespace Slic3r {
 class TriangleMesh;
 class Polygon;
 using Polygons = std::vector<Polygon>;
+class BuildVolume;
 
 namespace GUI {
 
@@ -69,6 +70,11 @@ namespace GUI {
             void add_vertex(const Vec3f& position, const Vec2f& tex_coord);  // EVertexLayout::P3T2
             void add_vertex(const Vec3f& position, const Vec3f& normal);     // EVertexLayout::P3N3
 
+            void set_vertex(size_t id, const Vec3f& position, const Vec3f& normal); // EVertexLayout::P3N3
+
+            void set_ushort_index(size_t id, unsigned short index);
+            void set_uint_index(size_t id, unsigned int index);
+
             void add_ushort_index(unsigned short id);
             void add_uint_index(unsigned int id);
 
@@ -86,7 +92,9 @@ namespace GUI {
             unsigned int extract_uint_index(size_t id) const;
             unsigned short extract_ushort_index(size_t id) const;
 
-            bool is_empty() const { return vertices.empty() || indices.empty(); }
+            void remove_vertex(size_t id);
+
+            bool is_empty() const { return vertices_count() == 0 || indices_count() == 0; }
 
             size_t vertices_count() const { return vertices.size() / vertex_stride_floats(format); }
             size_t indices_count() const  { return indices.size() / index_stride_bytes(format); }
@@ -133,6 +141,14 @@ namespace GUI {
     private:
         RenderData m_render_data;
 
+        // By default the vertex and index buffers data are sent to gpu at the first call to render() method.
+        // If you need to initialize a model from outside the main thread, so that a call to render() may happen
+        // before the initialization is complete, use the methods:
+        // disable_render()
+        // ... do your initialization ...
+        // enable_render()
+        // to keep the data on cpu side until needed.
+        bool m_render_disabled{ false };
         BoundingBoxf3 m_bounding_box;
         std::string m_filename;
 
@@ -150,6 +166,7 @@ namespace GUI {
 
         size_t indices_size_bytes() const { return indices_count() * Geometry::index_stride_bytes(m_render_data.geometry.format); }
 
+        const Geometry& get_geometry() const { return m_render_data.geometry; }
         void init_from(Geometry&& data);
         void init_from(const TriangleMesh& mesh);
         void init_from(const indexed_triangle_set& its);
@@ -161,16 +178,40 @@ namespace GUI {
 
         void reset();
         void render();
+        void render(const std::pair<size_t, size_t>& range);
         void render_instanced(unsigned int instances_vbo, unsigned int instances_count);
 
         bool is_initialized() const { return vertices_count() > 0 && indices_count() > 0; }
+        bool is_empty() const { return m_render_data.geometry.is_empty(); }
 
         const BoundingBoxf3& get_bounding_box() const { return m_bounding_box; }
         const std::string& get_filename() const { return m_filename; }
 
+        bool is_render_disabled() const { return m_render_disabled; }
+        void enable_render() { m_render_disabled = false; }
+        void disable_render() { m_render_disabled = true; }
+
+        size_t cpu_memory_used() const {
+            size_t ret = 0;
+            if (!m_render_data.geometry.vertices.empty())
+                ret += vertices_size_bytes();
+            if (!m_render_data.geometry.indices.empty())
+                ret += indices_size_bytes();
+            return ret;
+        }
+        size_t gpu_memory_used() const {
+            size_t ret = 0;
+            if (m_render_data.geometry.vertices.empty())
+                ret += vertices_size_bytes();
+            if (m_render_data.geometry.indices.empty())
+                ret += indices_size_bytes();
+            return ret;
+        }
+
     private:
         bool send_to_gpu();
     };
+    bool contains(const BuildVolume& volume, const GLModel& model, bool ignore_bottom = true);
 
     // create an arrow with cylindrical stem and conical tip, with the given dimensions and resolution
     // the origin of the arrow is in the center of the stem cap

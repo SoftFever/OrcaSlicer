@@ -97,10 +97,6 @@ void GLCanvas3D::load_render_colors()
 
 // Number of floats
 static constexpr const size_t MAX_VERTEX_BUFFER_SIZE     = 131072 * 6; // 3.15MB
-// Reserve size in number of floats.
-static constexpr const size_t VERTEX_BUFFER_RESERVE_SIZE = 131072 * 2; // 1.05MB
-// Reserve size in number of floats, maximum sum of all preallocated buffers.
-//static constexpr const size_t VERTEX_BUFFER_RESERVE_SIZE_SUM_MAX = 1024 * 1024 * 128 / 4; // 128MB
 
 namespace Slic3r {
 namespace GUI {
@@ -1175,10 +1171,6 @@ bool GLCanvas3D::init()
     if (m_main_toolbar.is_enabled())
         m_layers_editing.init();
 
-    // on linux the gl context is not valid until the canvas is not shown on screen
-    // we defer the geometry finalization of volumes until the first call to render()
-    m_volumes.finalize_geometry(true);
-
     BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< ": before gizmo init";
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         std::cout << "Unable to initialize gizmos: please, check that all the required textures are available" << std::endl;
@@ -2136,7 +2128,7 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
             instance_idxs.emplace_back(i);
         }
     }
-    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_initialized);
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs);
 }
 
 std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
@@ -2447,7 +2439,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                     // Note the index of the loaded volume, so that we can reload the main model GLVolume with the hollowed mesh
                     // later in this function.
                     it->volume_idx = m_volumes.volumes.size();
-                    m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_initialized, m_canvas_type == ECanvasType::CanvasAssembleView);
+                    m_volumes.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, m_canvas_type == ECanvasType::CanvasAssembleView);
                     m_volumes.volumes.back()->geometry_id = key.geometry_id;
                     update_object_list = true;
                 } else {
@@ -2504,31 +2496,32 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                         GLVolume &volume = *m_volumes.volumes[it->volume_idx];
                         if (! volume.offsets.empty() && state.step[istep].timestamp != volume.offsets.front()) {
                         	// The backend either produced a new hollowed mesh, or it invalidated the one that the front end has seen.
-                            volume.indexed_vertex_array.release_geometry();
-                        	if (state.step[istep].state == PrintStateBase::DONE) {
+                            volume.model.reset();
+                            if (state.step[istep].state == PrintStateBase::DONE) {
                                 TriangleMesh mesh = print_object->get_mesh(slaposDrillHoles);
 	                            assert(! mesh.empty());
                                 mesh.transform(sla_print->sla_trafo(*m_model->objects[volume.object_idx()]).inverse());
 #if ENABLE_SMOOTH_NORMALS
-                                volume.indexed_vertex_array.load_mesh(mesh, true);
+                                volume.model.init_from(mesh, true);
 #else
-                                volume.indexed_vertex_array.load_mesh(mesh);
-#endif // ENABLE_SMOOTH_NORMALS
-                            } else {
-	                        	// Reload the original volume.
-#if ENABLE_SMOOTH_NORMALS
-                                volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
-#else
-                                volume.indexed_vertex_array.load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
+                                volume.model.init_from(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
                             }
-                            volume.finalize_geometry(true);
+                            else {
+	                        	// Reload the original volume.
+#if ENABLE_SMOOTH_NORMALS
+                                volume.model.init_from(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
+#else
+                                volume.model.init_from(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
+#endif // ENABLE_SMOOTH_NORMALS
+                            }
 	                    }
                     	//FIXME it is an ugly hack to write the timestamp into the "offsets" field to not have to add another member variable
                     	// to the GLVolume. We should refactor GLVolume significantly, so that the GLVolume will not contain member variables
                     	// of various concenrs (model vs. 3D print path).
                     	volume.offsets = { state.step[istep].timestamp };
-                    } else if (state.step[istep].state == PrintStateBase::DONE) {
+                    }
+                    else if (state.step[istep].state == PrintStateBase::DONE) {
                         // Check whether there is an existing auxiliary volume to be updated, or a new auxiliary volume to be created.
 						ModelVolumeState key(state.step[istep].timestamp, instance.instance_id.id);
 						auto it = std::lower_bound(aux_volume_state.begin(), aux_volume_state.end(), key, model_volume_state_lower);
@@ -2540,7 +2533,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 instances[istep].emplace_back(std::pair<size_t, size_t>(instance_idx, print_instance_idx));
                             else
                                 shift_zs[object_idx] = 0.;
-                        } else {
+                        }
+                        else {
                             // Recycling an old GLVolume. Update the Object/Instance indices into the current Model.
                             m_volumes.volumes[it->volume_idx]->composite_id = GLVolume::CompositeID(object_idx, m_volumes.volumes[it->volume_idx]->volume_idx(), instance_idx);
                             m_volumes.volumes[it->volume_idx]->set_instance_transformation(model_object->instances[instance_idx]->get_transformation());
@@ -2550,7 +2544,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
             for (size_t istep = 0; istep < sla_steps.size(); ++istep)
                 if (!instances[istep].empty())
-                    m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp, m_initialized);
+                    m_volumes.load_object_auxiliary(print_object, object_idx, instances[istep], sla_steps[istep], state.step[istep].timestamp);
         }
 
 		// Shift-up all volumes of the object so that it has the right elevation with respect to the print bed
@@ -2614,7 +2608,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 int volume_idx_wipe_tower_new = m_volumes.load_wipe_tower_preview(
                     1000 + plate_id, x + plate_origin(0), y + plate_origin(1),
                     (float)wipe_tower_size(0), (float)wipe_tower_size(1), (float)wipe_tower_size(2), a,
-                    /*!print->is_step_done(psWipeTower)*/ true, brim_width, m_initialized);
+                    /*!print->is_step_done(psWipeTower)*/ true, brim_width);
                 int volume_idx_wipe_tower_old = volume_idxs_wipe_tower_old[plate_id];
                 if (volume_idx_wipe_tower_old != -1)
                     map_glvolume_old_to_new[volume_idx_wipe_tower_old] = volume_idx_wipe_tower_new;
@@ -2687,26 +2681,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     m_dirty = true;
 }
 
-static void reserve_new_volume_finalize_old_volume(GLVolume& vol_new, GLVolume& vol_old, bool gl_initialized, size_t prealloc_size = VERTEX_BUFFER_RESERVE_SIZE)
-{
-	// Assign the large pre-allocated buffers to the new GLVolume.
-	vol_new.indexed_vertex_array = std::move(vol_old.indexed_vertex_array);
-	// Copy the content back to the old GLVolume.
-	vol_old.indexed_vertex_array = vol_new.indexed_vertex_array;
-	// Clear the buffers, but keep them pre-allocated.
-	vol_new.indexed_vertex_array.clear();
-	// Just make sure that clear did not clear the reserved memory.
-	// Reserving number of vertices (3x position + 3x color)
-	vol_new.indexed_vertex_array.reserve(prealloc_size / 6);
-	// Finalize the old geometry, possibly move data to the graphics card.
-	vol_old.finalize_geometry(gl_initialized);
-}
-
 void GLCanvas3D::load_shells(const Print& print, bool force_previewing)
 {
     if (m_initialized)
     {
-        m_gcode_viewer.load_shells(print, m_initialized, force_previewing);
+        m_gcode_viewer.load_shells(print, force_previewing);
         m_gcode_viewer.update_shells_color_by_extruder(m_config);
     }
 }
@@ -2726,7 +2705,7 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
     //when load gcode directly, it is too late
     m_gcode_viewer.init(wxGetApp().get_mode(), wxGetApp().preset_bundle);
     m_gcode_viewer.load(gcode_result, *this->fff_print(), wxGetApp().plater()->build_volume(), exclude_bounding_box,
-        m_initialized, wxGetApp().get_mode(), only_gcode);
+        wxGetApp().get_mode(), only_gcode);
 
     if (wxGetApp().is_editor()) {
         //BBS: always load shell at preview, do this in load_shells
@@ -5637,7 +5616,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             curr_color = vol->color;
 
             ColorRGBA new_color = adjust_color_for_rendering(curr_color);
-            shader->set_uniform("uniform_color", new_color);
+			vol->model.set_color(new_color);
             shader->set_uniform("volume_world_matrix", vol->world_matrix());
             //BBS set all volume to orange
             //shader->set_uniform("uniform_color", orange);
@@ -7192,6 +7171,10 @@ void GLCanvas3D::_render_style_editor()
 
 void GLCanvas3D::_render_volumes_for_picking() const
 {
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
@@ -7209,8 +7192,10 @@ void GLCanvas3D::_render_volumes_for_picking() const
                 //BBS: remove the bed picking logic
                 const unsigned int id = volume.second.first;
                 //const unsigned int id = 1 + volume.second.first;
-				glsafe(::glColor4fv(picking_decode(id).data()));
-	            volume.first->render();
+                volume.first->model.set_color(picking_decode(id));
+                shader->start_using();
+                volume.first->render();
+                shader->stop_using();
 	        }
 	}
 
@@ -8384,22 +8369,23 @@ void GLCanvas3D::_load_print_toolpaths(const BuildVolume &build_volume)
     skirt_height = std::min(skirt_height, print_zs.size());
     print_zs.erase(print_zs.begin() + skirt_height, print_zs.end());
 
-    GLVolume *volume = m_volumes.new_toolpath_volume(color, VERTEX_BUFFER_RESERVE_SIZE);
+    GLVolume* volume = m_volumes.new_toolpath_volume(color);
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
     for (size_t i = 0; i < skirt_height; ++ i) {
         volume->print_zs.emplace_back(print_zs[i]);
-        volume->offsets.emplace_back(volume->indexed_vertex_array.quad_indices.size());
-        volume->offsets.emplace_back(volume->indexed_vertex_array.triangle_indices.size());
+        volume->offsets.emplace_back(init_data.indices_count());
         //BBS: usage of m_brim are deleted
-        _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), *volume);
+        _3DScene::extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), init_data);
         // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
-        if (volume->indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
-        	GLVolume &vol = *volume;
+        if (init_data.vertices_size_bytes() > MAX_VERTEX_BUFFER_SIZE) {
+            volume->model.init_from(std::move(init_data));
+            GLVolume &vol = *volume;
             volume = m_volumes.new_toolpath_volume(vol.color);
-            reserve_new_volume_finalize_old_volume(*volume, vol, m_initialized);
         }
     }
-    volume->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(volume->indexed_vertex_array.vertices_and_normals_interleaved, volume->indexed_vertex_array.bounding_box());
-    volume->indexed_vertex_array.finalize_geometry(m_initialized);
+    volume->model.init_from(std::move(init_data));
+    volume->is_outside = !contains(build_volume, volume->model);
 }
 
 void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, const BuildVolume& build_volume, const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values)
@@ -8571,7 +8557,10 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         // Allocate the volume before locking.
 		GLVolume *volume = new GLVolume(color);
 		volume->is_extrusion_path = true;
-    	tbb::spin_mutex::scoped_lock lock;
+        // to prevent sending data to gpu (in the main thread) while
+        // editing the model geometry
+        volume->model.disable_render();
+        tbb::spin_mutex::scoped_lock lock;
     	// Lock by ROII, so if the emplace_back() fails, the lock will be released.
         lock.acquire(new_volume_mutex);
         m_volumes.volumes.emplace_back(volume);
@@ -8583,31 +8572,36 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume, is_selected_separate_extruder, this](const tbb::blocked_range<size_t>& range) {
         GLVolumePtrs 		vols;
-        auto                volume = [&ctxt, &vols](size_t layer_idx, int extruder, int feature) -> GLVolume& {
-            return *vols[ctxt.color_by_color_print()?
+        std::vector<GLModel::Geometry> geometries;
+        auto select_geometry = [&ctxt, &geometries](size_t layer_idx, int extruder, int feature) -> GLModel::Geometry& {
+            return geometries[ctxt.color_by_color_print() ?
                 ctxt.color_print_color_idx_by_layer_idx_and_extruder(layer_idx, extruder) :
-				ctxt.color_by_tool() ?
-					std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) :
-					feature
-				];
+                ctxt.color_by_tool() ?
+                std::min<int>(ctxt.number_tools() - 1, std::max<int>(extruder - 1, 0)) :
+                feature
+            ];
         };
         if (ctxt.color_by_color_print() || ctxt.color_by_tool()) {
-            for (size_t i = 0; i < ctxt.number_tools(); ++i)
+            for (size_t i = 0; i < ctxt.number_tools(); ++i) {
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
+                geometries.emplace_back(GLModel::Geometry());
+            }
         }
-        else
+        else {
             vols = { new_volume(ctxt.color_perimeters()), new_volume(ctxt.color_infill()), new_volume(ctxt.color_support()) };
-        for (GLVolume *vol : vols)
-			// Reserving number of vertices (3x position + 3x color)
-        	vol->indexed_vertex_array.reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
+            geometries = { GLModel::Geometry(), GLModel::Geometry(), GLModel::Geometry() };
+        }
+
+        assert(vols.size() == geometries.size());
+        for (GLModel::Geometry& g : geometries) {
+            g.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+        }
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
             const Layer *layer = ctxt.layers[idx_layer];
 
-            if (is_selected_separate_extruder)
-            {
+            if (is_selected_separate_extruder) {
                 bool at_least_one_has_correct_extruder = false;
-                for (const LayerRegion* layerm : layer->regions())
-                {
+                for (const LayerRegion* layerm : layer->regions()) {
                     if (layerm->slices.surfaces.empty())
                         continue;
                     const PrintRegionConfig& cfg = layerm->region().config();
@@ -8622,12 +8616,14 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     continue;
             }
 
-            for (GLVolume *vol : vols)
+            for (size_t i = 0; i < vols.size(); ++i) {
+                GLVolume* vol = vols[i];
                 if (vol->print_zs.empty() || vol->print_zs.back() != layer->print_z) {
                     vol->print_zs.emplace_back(layer->print_z);
-                    vol->offsets.emplace_back(vol->indexed_vertex_array.quad_indices.size());
-                    vol->offsets.emplace_back(vol->indexed_vertex_array.triangle_indices.size());
+                    vol->offsets.emplace_back(geometries[i].indices_count());
                 }
+            }
+
             for (const PrintInstance &instance : *ctxt.shifted_copies) {
                 const Point &copy = instance.shift;
                 for (const LayerRegion *layerm : layer->regions()) {
@@ -8641,18 +8637,16 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     }
                     if (ctxt.has_perimeters)
                         _3DScene::extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy,
-                        	volume(idx_layer, layerm->region().config().wall_filament.value, 0));
+                        	select_geometry(idx_layer, layerm->region().config().wall_filament.value, 0));
                     if (ctxt.has_infill) {
                         for (const ExtrusionEntity *ee : layerm->fills.entities) {
                             // fill represents infill extrusions of a single island.
                             const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
                             if (! fill->entities.empty())
                                 _3DScene::extrusionentity_to_verts(*fill, float(layer->print_z), copy,
-	                                volume(idx_layer,
-		                                is_solid_infill(fill->entities.front()->role()) ?
-			                                layerm->region().config().solid_infill_filament :
-			                                layerm->region().config().sparse_infill_filament,
-		                                1));
+                                    select_geometry(idx_layer, is_solid_infill(fill->entities.front()->role()) ?
+                                                    layerm->region().config().solid_infill_filament :
+                                                    layerm->region().config().sparse_infill_filament, 1));
                         }
                     }
                 }
@@ -8661,28 +8655,25 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                     if (support_layer) {
                         for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                             _3DScene::extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy,
-	                            volume(idx_layer,
-		                            (extrusion_entity->role() == erSupportMaterial ||
-                                     extrusion_entity->role() == erSupportTransition) ?
-			                            support_layer->object()->config().support_filament :
-			                            support_layer->object()->config().support_interface_filament,
-		                            2));
+	                            select_geometry(idx_layer, (extrusion_entity->role() == erSupportMaterial || extrusion_entity->role() == erSupportTransition) ?
+                                                support_layer->object()->config().support_filament :
+                                                support_layer->object()->config().support_interface_filament, 2));
                     }
                 }
             }
             // Ensure that no volume grows over the limits. If the volume is too large, allocate a new one.
 	        for (size_t i = 0; i < vols.size(); ++i) {
 	            GLVolume &vol = *vols[i];
-	            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
-	                vols[i] = new_volume(vol.color);
-	                reserve_new_volume_finalize_old_volume(*vols[i], vol, false);
-	            }
+                if (geometries[i].vertices_size_bytes() > MAX_VERTEX_BUFFER_SIZE) {
+                    vol.model.init_from(std::move(geometries[i]));
+                    vols[i] = new_volume(vol.color);
+                }
 	        }
         }
-        for (GLVolume *vol : vols)
-        	// Ideally one would call vol->indexed_vertex_array.finalize() here to move the buffers to the OpenGL driver,
-        	// but this code runs in parallel and the OpenGL driver is not thread safe.
-            vol->indexed_vertex_array.shrink_to_fit();
+        for (size_t i = 0; i < vols.size(); ++i) {
+            if (!geometries[i].is_empty())
+                vols[i]->model.init_from(std::move(geometries[i]));
+        }
     });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results" << m_volumes.log_memory_info() << log_memory_info();
@@ -8697,8 +8688,9 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     }
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
         GLVolume* v = m_volumes.volumes[i];
-        v->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(v->indexed_vertex_array.vertices_and_normals_interleaved, v->indexed_vertex_array.bounding_box());
-        v->indexed_vertex_array.finalize_geometry(m_initialized);
+        v->is_outside = !contains(build_volume, v->model);
+        // We are done editinig the model, now it can be sent to gpu
+        v->model.enable_render();
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
@@ -8718,10 +8710,10 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
 
     struct Ctxt
     {
-        const Print                 *print;
-        const std::vector<ColorRGBA>* tool_colors;
-        Vec2f                        wipe_tower_pos;
-        float                        wipe_tower_angle;
+        const Print                  *print;
+        const std::vector<ColorRGBA> *tool_colors;
+        Vec2f                         wipe_tower_pos;
+        float                         wipe_tower_angle;
 
         static ColorRGBA color_support() { return ColorRGBA::GREENISH(); }
 
@@ -8771,6 +8763,9 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
     auto            new_volume = [this, &new_volume_mutex](const ColorRGBA& color) {
         auto *volume = new GLVolume(color);
 		volume->is_extrusion_path = true;
+        // to prevent sending data to gpu (in the main thread) while
+        // editing the model geometry
+        volume->model.disable_render();
         tbb::spin_mutex::scoped_lock lock;
         lock.acquire(new_volume_mutex);
         m_volumes.volumes.emplace_back(volume);
@@ -8784,23 +8779,29 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
         // Bounding box of this slab of a wipe tower.
         GLVolumePtrs vols;
+        std::vector<GLModel::Geometry> geometries;
         if (ctxt.color_by_tool()) {
-            for (size_t i = 0; i < ctxt.number_tools(); ++i)
+            for (size_t i = 0; i < ctxt.number_tools(); ++i) {
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
+                geometries.emplace_back(GLModel::Geometry());
+            }
         }
-        else
+        else {
             vols = { new_volume(ctxt.color_support()) };
-        for (GLVolume *volume : vols)
-			// Reserving number of vertices (3x position + 3x color)
-            volume->indexed_vertex_array.reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
+            geometries = { GLModel::Geometry() };
+        }
+
+        assert(vols.size() == geometries.size());
+        for (GLModel::Geometry& g : geometries) {
+            g.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+        }
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
             const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.tool_change(idx_layer);
             for (size_t i = 0; i < vols.size(); ++i) {
                 GLVolume &vol = *vols[i];
                 if (vol.print_zs.empty() || vol.print_zs.back() != layer.front().print_z) {
                     vol.print_zs.emplace_back(layer.front().print_z);
-                    vol.offsets.emplace_back(vol.indexed_vertex_array.quad_indices.size());
-                    vol.offsets.emplace_back(vol.indexed_vertex_array.triangle_indices.size());
+                    vol.offsets.emplace_back(geometries[i].indices_count());
                 }
             }
             for (const WipeTower::ToolChangeResult &extrusions : layer) {
@@ -8843,20 +8844,22 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
                         e_prev = e;
                     }
                     _3DScene::thick_lines_to_verts(lines, widths, heights, lines.front().a == lines.back().b, extrusions.print_z,
-                        *vols[ctxt.volume_idx(e.tool, 0)]);
+                        geometries[ctxt.volume_idx(e.tool, 0)]);
                 }
             }
         }
         for (size_t i = 0; i < vols.size(); ++i) {
             GLVolume &vol = *vols[i];
-            if (vol.indexed_vertex_array.vertices_and_normals_interleaved.size() > MAX_VERTEX_BUFFER_SIZE) {
+            if (geometries[i].vertices_size_bytes() > MAX_VERTEX_BUFFER_SIZE) {
+                vol.model.init_from(std::move(geometries[i]));
                 vols[i] = new_volume(vol.color);
-                reserve_new_volume_finalize_old_volume(*vols[i], vol, false);
             }
         }
-        for (GLVolume *vol : vols)
-            vol->indexed_vertex_array.shrink_to_fit();
-    });
+        for (size_t i = 0; i < vols.size(); ++i) {
+            if (!geometries[i].is_empty())
+                vols[i]->model.init_from(std::move(geometries[i]));
+        }
+        });
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results" << m_volumes.log_memory_info() << log_memory_info();
     // Remove empty volumes from the newly added volumes.
@@ -8870,8 +8873,9 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
     }
     for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i) {
         GLVolume* v = m_volumes.volumes[i];
-        v->is_outside = ! build_volume.all_paths_inside_vertices_and_normals_interleaved(v->indexed_vertex_array.vertices_and_normals_interleaved, v->indexed_vertex_array.bounding_box());
-        v->indexed_vertex_array.finalize_geometry(m_initialized);
+        v->is_outside = !contains(build_volume, v->model);
+        // We are done editinig the model, now it can be sent to gpu
+        v->model.enable_render();
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end" << m_volumes.log_memory_info() << log_memory_info();
@@ -8895,11 +8899,10 @@ void GLCanvas3D::_load_sla_shells()
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
 #if ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.load_mesh(mesh, true);
+        v.model.init_from(mesh, true);
 #else
-        v.indexed_vertex_array.load_mesh(mesh);
+        v.model.init_from(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.finalize_geometry(m_initialized);
         v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;
         v.set_instance_offset(unscale(instance.shift.x(), instance.shift.y(), 0.0));

@@ -1,11 +1,4 @@
-#include "slic3r/GUI/3DScene.hpp"
 #include <GL/glew.h>
-
-#if ENABLE_SMOOTH_NORMALS
-#include <igl/per_face_normals.h>
-#include <igl/per_corner_normals.h>
-#include <igl/per_vertex_normals.h>
-#endif // ENABLE_SMOOTH_NORMALS
 
 #include "3DScene.hpp"
 #include "GLShader.hpp"
@@ -96,227 +89,6 @@ Slic3r::ColorRGBA adjust_color_for_rendering(const Slic3r::ColorRGBA &colors)
 
 namespace Slic3r {
 
-#if ENABLE_SMOOTH_NORMALS
-static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
-{
-    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
-    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
-
-    std::vector<Vec3f> face_normals = its_face_normals(mesh.its);
-
-    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
-        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
-    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
-        Eigen::Index(mesh.its.indices.size()), 3);
-    Eigen::MatrixXd in_normals = MapMatrixXfUnaligned(face_normals.front().data(),
-        Eigen::Index(face_normals.size()), 3).cast<double>();
-    Eigen::MatrixXd out_normals;
-
-    igl::per_corner_normals(vertices, indices, in_normals, 1.0, out_normals);
-
-    normals = std::vector<stl_normal>(mesh.its.vertices.size());
-    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
-        for (size_t j = 0; j < 3; ++j) {
-            normals[mesh.its.indices[i][j]] = out_normals.row(i * 3 + j).cast<float>();
-        }
-    }
-}
-
-static void smooth_normals_vertex(TriangleMesh& mesh, std::vector<stl_normal>& normals)
-{
-    using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
-    using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
-
-    Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
-        Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
-    Eigen::MatrixXi indices = MapMatrixXiUnaligned(mesh.its.indices.front().data(),
-        Eigen::Index(mesh.its.indices.size()), 3);
-    Eigen::MatrixXd out_normals;
-
-//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_UNIFORM, out_normals);
-//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_AREA, out_normals);
-    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_ANGLE, out_normals);
-//    igl::per_vertex_normals(vertices, indices, igl::PER_VERTEX_NORMALS_WEIGHTING_TYPE_DEFAULT, out_normals);
-
-    normals = std::vector<stl_normal>(mesh.its.vertices.size());
-    for (size_t i = 0; i < static_cast<size_t>(out_normals.rows()); ++i) {
-        normals[i] = out_normals.row(i).cast<float>();
-    }
-}
-#endif // ENABLE_SMOOTH_NORMALS
-
-#if ENABLE_SMOOTH_NORMALS
-void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh, bool smooth_normals)
-#else
-void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh& mesh)
-#endif // ENABLE_SMOOTH_NORMALS
-{
-    assert(triangle_indices.empty() && vertices_and_normals_interleaved_size == 0);
-    assert(quad_indices.empty() && triangle_indices_size == 0);
-    assert(vertices_and_normals_interleaved.size() % 6 == 0 && quad_indices_size == vertices_and_normals_interleaved.size());
-
-#if ENABLE_SMOOTH_NORMALS
-    if (smooth_normals) {
-        TriangleMesh new_mesh(mesh);
-        std::vector<stl_normal> normals;
-        smooth_normals_corner(new_mesh, normals);
-//        smooth_normals_vertex(new_mesh, normals);
-
-        this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 2 * new_mesh.its.vertices.size());
-        for (size_t i = 0; i < new_mesh.its.vertices.size(); ++i) {
-            const stl_vertex& v = new_mesh.its.vertices[i];
-            const stl_normal& n = normals[i];
-            this->push_geometry(v(0), v(1), v(2), n(0), n(1), n(2));
-        }
-
-        for (size_t i = 0; i < new_mesh.its.indices.size(); ++i) {
-            const stl_triangle_vertex_indices& idx = new_mesh.its.indices[i];
-            this->push_triangle(idx(0), idx(1), idx(2));
-        }
-    }
-    else {
-#endif // ENABLE_SMOOTH_NORMALS
-        this->load_its_flat_shading(mesh.its);
-#if ENABLE_SMOOTH_NORMALS
-    }
-#endif // ENABLE_SMOOTH_NORMALS
-}
-
-void GLIndexedVertexArray::load_its_flat_shading(const indexed_triangle_set &its)
-{
-    this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * its.indices.size());
-    unsigned int vertices_count = 0;
-    for (int i = 0; i < int(its.indices.size()); ++ i) {
-        stl_triangle_vertex_indices face        = its.indices[i];
-        stl_vertex                  vertex[3]   = { its.vertices[face[0]], its.vertices[face[1]], its.vertices[face[2]] };
-        stl_vertex                  n           = face_normal_normalized(vertex);
-        for (int j = 0; j < 3; ++j)
-            this->push_geometry(vertex[j](0), vertex[j](1), vertex[j](2), n(0), n(1), n(2));
-        this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
-        vertices_count += 3;
-    }
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, indices size %2%, vertices %3%, triangles %4% ")
-            %this %its.indices.size() %this->vertices_and_normals_interleaved.size() %this->triangle_indices.size() ;
-}
-
-void GLIndexedVertexArray::finalize_geometry(bool opengl_initialized)
-{
-    assert(this->vertices_and_normals_interleaved_VBO_id == 0);
-    assert(this->triangle_indices_VBO_id == 0);
-    assert(this->quad_indices_VBO_id == 0);
-
-	if (! opengl_initialized) {
-		// Shrink the data vectors to conserve memory in case the data cannot be transfered to the OpenGL driver yet.
-		this->shrink_to_fit();
-		return;
-	}
-
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1% ") %this;
-    if (! this->vertices_and_normals_interleaved.empty()) {
-        glsafe(::glGenBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
-        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved.size() * 4, this->vertices_and_normals_interleaved.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        this->vertices_and_normals_interleaved.clear();
-    }
-    if (! this->triangle_indices.empty()) {
-        glsafe(::glGenBuffers(1, &this->triangle_indices_VBO_id));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
-        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices.size() * 4, this->triangle_indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-        this->triangle_indices.clear();
-    }
-    if (! this->quad_indices.empty()) {
-        glsafe(::glGenBuffers(1, &this->quad_indices_VBO_id));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
-        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices.size() * 4, this->quad_indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-        this->quad_indices.clear();
-    }
-}
-
-void GLIndexedVertexArray::release_geometry()
-{
-    if (this->vertices_and_normals_interleaved_VBO_id) {
-        glsafe(::glDeleteBuffers(1, &this->vertices_and_normals_interleaved_VBO_id));
-        this->vertices_and_normals_interleaved_VBO_id = 0;
-    }
-    if (this->triangle_indices_VBO_id) {
-        glsafe(::glDeleteBuffers(1, &this->triangle_indices_VBO_id));
-        this->triangle_indices_VBO_id = 0;
-    }
-    if (this->quad_indices_VBO_id) {
-        glsafe(::glDeleteBuffers(1, &this->quad_indices_VBO_id));
-        this->quad_indices_VBO_id = 0;
-    }
-    this->clear();
-}
-
-void GLIndexedVertexArray::render() const
-{
-    assert(this->vertices_and_normals_interleaved_VBO_id != 0);
-    assert(this->triangle_indices_VBO_id != 0 || this->quad_indices_VBO_id != 0);
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-    // Render using the Vertex Buffer Objects.
-    if (this->triangle_indices_size > 0) {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
-        glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_size), GL_UNSIGNED_INT, nullptr));
-        glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    }
-    if (this->quad_indices_size > 0) {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
-        glsafe(::glDrawElements(GL_QUADS, GLsizei(this->quad_indices_size), GL_UNSIGNED_INT, nullptr));
-        glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    }
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-}
-
-void GLIndexedVertexArray::render(
-    const std::pair<size_t, size_t>& tverts_range,
-    const std::pair<size_t, size_t>& qverts_range) const
-{
-    // this method has been called before calling finalize() ?
-    if (this->vertices_and_normals_interleaved_VBO_id == 0 && !this->vertices_and_normals_interleaved.empty())
-        return;
-
-    assert(this->vertices_and_normals_interleaved_VBO_id != 0);
-    assert(this->triangle_indices_VBO_id != 0 || this->quad_indices_VBO_id != 0);
-
-    // Render using the Vertex Buffer Objects.
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_and_normals_interleaved_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), (const void*)(3 * sizeof(float))));
-    glsafe(::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr));
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-
-    if (this->triangle_indices_size > 0) {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_id));
-        glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(std::min(this->triangle_indices_size, tverts_range.second - tverts_range.first)), GL_UNSIGNED_INT, (const void*)(tverts_range.first * 4)));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    }
-    if (this->quad_indices_size > 0) {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->quad_indices_VBO_id));
-        glsafe(::glDrawElements(GL_QUADS, GLsizei(std::min(this->quad_indices_size, qverts_range.second - qverts_range.first)), GL_UNSIGNED_INT, (const void*)(qverts_range.first * 4)));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    }
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-}
 
 const float GLVolume::SinkingContours::HalfWidth = 0.25f;
 
@@ -440,7 +212,6 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , force_neutral_color(false)
     , force_sinking_contours(false)
     , tverts_range(0, size_t(-1))
-    , qverts_range(0, size_t(-1))
 {
     color = { r, g, b, a };
     set_render_color(color);
@@ -593,34 +364,28 @@ const BoundingBoxf3& GLVolume::transformed_non_sinking_bounding_box() const
 
 void GLVolume::set_range(double min_z, double max_z)
 {
-    this->qverts_range.first = 0;
-    this->qverts_range.second = this->indexed_vertex_array.quad_indices_size;
     this->tverts_range.first = 0;
-    this->tverts_range.second = this->indexed_vertex_array.triangle_indices_size;
-    if (! this->print_zs.empty()) {
+    this->tverts_range.second = this->model.indices_count();
+
+    if (!this->print_zs.empty()) {
         // The Z layer range is specified.
         // First test whether the Z span of this object is not out of (min_z, max_z) completely.
-        if (this->print_zs.front() > max_z || this->print_zs.back() < min_z) {
-            this->qverts_range.second = 0;
+        if (this->print_zs.front() > max_z || this->print_zs.back() < min_z)
             this->tverts_range.second = 0;
-        } else {
+        else {
             // Then find the lowest layer to be displayed.
             size_t i = 0;
-            for (; i < this->print_zs.size() && this->print_zs[i] < min_z; ++ i);
-            if (i == this->print_zs.size()) {
+            for (; i < this->print_zs.size() && this->print_zs[i] < min_z; ++i);
+            if (i == this->print_zs.size())
                 // This shall not happen.
-                this->qverts_range.second = 0;
                 this->tverts_range.second = 0;
-            } else {
+            else {
                 // Remember start of the layer.
-                this->qverts_range.first = this->offsets[i * 2];
-                this->tverts_range.first = this->offsets[i * 2 + 1];
+                this->tverts_range.first = this->offsets[i];
                 // Some layers are above $min_z. Which?
-                for (; i < this->print_zs.size() && this->print_zs[i] <= max_z; ++ i);
-                if (i < this->print_zs.size()) {
-                    this->qverts_range.second = this->offsets[i * 2];
-                    this->tverts_range.second = this->offsets[i * 2 + 1];
-                }
+                for (; i < this->print_zs.size() && this->print_zs[i] <= max_z; ++i);
+                if (i < this->print_zs.size())
+                    this->tverts_range.second = this->offsets[i];
             }
         }
     }
@@ -628,7 +393,7 @@ void GLVolume::set_range(double min_z, double max_z)
 
 //BBS: add outline related logic
 //static unsigned char stencil_data[1284][2944];
-void GLVolume::render(bool with_outline) const
+void GLVolume::render(bool with_outline)
 {
     if (!is_active)
         return;
@@ -657,19 +422,18 @@ void GLVolume::render(bool with_outline) const
             color_volume = true;
             if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
-                    %this %this->name %mmuseg_ts %mmuseg_ivas.size() ;
-                mmuseg_ivas.clear();
+                    %this %this->name %mmuseg_ts %mmuseg_models.size() ;
+                mmuseg_models.clear();
                 std::vector<indexed_triangle_set> its_per_color;
                 mv->mmu_segmentation_facets.get_facets(*mv, its_per_color);
-                mmuseg_ivas.resize(its_per_color.size());
+                mmuseg_models.resize(its_per_color.size());
                 for (int idx = 0; idx < its_per_color.size(); idx++) {
-                    mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
-                    mmuseg_ivas[idx].finalize_geometry(true);
+                    mmuseg_models[idx].init_from(its_per_color[idx]);
                 }
 
                 mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
-                    %this %this->name %mmuseg_ts  %mmuseg_ivas.size();
+                    %this %this->name %mmuseg_ts  %mmuseg_models.size();
             }
         } while (0);
 
@@ -683,9 +447,9 @@ void GLVolume::render(bool with_outline) const
                     colors[index].a(render_color.a());
             }
             glsafe(::glMultMatrixd(world_matrix().data()));
-            for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
-                GLIndexedVertexArray& iva = mmuseg_ivas[idx];
-                if (iva.triangle_indices_size == 0 && iva.quad_indices_size == 0)
+            for (int idx = 0; idx < mmuseg_models.size(); idx++) {
+                GUI::GLModel &m = mmuseg_models[idx];
+                if (m.is_empty())
                     continue;
 
                 if (shader) {
@@ -696,24 +460,27 @@ void GLVolume::render(bool with_outline) const
                         //shader->set_uniform("uniform_color", colors[extruder_id - 1]);
                         //to make black not too hard too see
                         ColorRGBA new_color = adjust_color_for_rendering(colors[extruder_id - 1]);
-                        shader->set_uniform("uniform_color", new_color);
+                        m.set_color(new_color);
                     }
                     else {
                         if (idx <= colors.size()) {
                             //shader->set_uniform("uniform_color", colors[idx - 1]);
                             //to make black not too hard too see
                             ColorRGBA new_color = adjust_color_for_rendering(colors[idx - 1]);
-                            shader->set_uniform("uniform_color", new_color);
+                            m.set_color(new_color);
                         }
                         else {
                             //shader->set_uniform("uniform_color", colors[0]);
                             //to make black not too hard too see
                             ColorRGBA new_color = adjust_color_for_rendering(colors[0]);
-                            shader->set_uniform("uniform_color", new_color);
+                            m.set_color(new_color);
                         }
                     }
                 }
-                iva.render(this->tverts_range, this->qverts_range);
+                if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
+                    m.render();
+                else
+                    m.render(this->tverts_range);
                 /*if (force_native_color && (render_color[3] < 1.0)) {
                     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, tverts_range {%3,%4}, qverts_range{%5%, %6%}")
                      %this %this->name %this->tverts_range.first  %this->tverts_range.second
@@ -723,7 +490,10 @@ void GLVolume::render(bool with_outline) const
         }
         else {
             glsafe(::glMultMatrixd(world_matrix().data()));
-            this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+            if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
+                model.render();
+            else
+                model.render(this->tverts_range);
         }
     };
 
@@ -832,7 +602,7 @@ void GLVolume::render(bool with_outline) const
             float scale = 1.02f;
             ColorRGBA body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
 
-            shader->set_uniform("uniform_color", body_color);
+            model.set_color(body_color);
             shader->set_uniform("is_outline", true);
             glsafe(::glPopMatrix());
             glsafe(::glPushMatrix());
@@ -840,7 +610,10 @@ void GLVolume::render(bool with_outline) const
             Transform3d matrix = world_matrix();
             matrix.scale(scale);
             glsafe(::glMultMatrixd(matrix.data()));
-            this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+            if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
+                model.render();
+            else
+                model.render(this->tverts_range);
             //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render for body, shader name %2%")%__LINE__ %shader->get_name();
             shader->set_uniform("is_outline", false);
 
@@ -862,7 +635,7 @@ void GLVolume::render(bool with_outline) const
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors) const
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors)
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -885,13 +658,12 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
 
         color_volume = true;
         if (model_volume->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
-            mmuseg_ivas.clear();
+            mmuseg_models.clear();
             std::vector<indexed_triangle_set> its_per_color;
             model_volume->mmu_segmentation_facets.get_facets(*model_volume, its_per_color);
-            mmuseg_ivas.resize(its_per_color.size());
+            mmuseg_models.resize(its_per_color.size());
             for (int idx = 0; idx < its_per_color.size(); idx++) {
-                mmuseg_ivas[idx].load_its_flat_shading(its_per_color[idx]);
-                mmuseg_ivas[idx].finalize_geometry(true);
+                mmuseg_models[idx].init_from(its_per_color[idx]);
             }
 
             mmuseg_ts = model_volume->mmu_segmentation_facets.timestamp();
@@ -900,9 +672,9 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
 
     if (color_volume) {
         glsafe(::glMultMatrixd(world_matrix().data()));
-        for (int idx = 0; idx < mmuseg_ivas.size(); idx++) {
-            GLIndexedVertexArray& iva = mmuseg_ivas[idx];
-            if (iva.triangle_indices_size == 0 && iva.quad_indices_size == 0)
+        for (int idx = 0; idx < mmuseg_models.size(); idx++) {
+            GUI::GLModel &m = mmuseg_models[idx];
+            if (m.is_empty())
                 continue;
 
             if (shader) {
@@ -910,29 +682,35 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
                     int extruder_id = model_volume->extruder_id();
                     //to make black not too hard too see
                     ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
-                    shader->set_uniform("uniform_color", new_color);
+                    m.set_color(new_color);
                 }
                 else {
                     if (idx <= extruder_colors.size()) {
                         //shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
                         //to make black not too hard too see
                         ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
-                        shader->set_uniform("uniform_color", new_color);
+                        m.set_color(new_color);
                     }
                     else {
                         //shader->set_uniform("uniform_color", extruder_colors[0]);
                         //to make black not too hard too see
                         ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[0]);
-                        shader->set_uniform("uniform_color", new_color);
+                        m.set_color(new_color);
                     }
                 }
             }
-            iva.render(this->tverts_range, this->qverts_range);
+            if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
+                m.render();
+            else
+                m.render(this->tverts_range);
         }
     }
     else {
         glsafe(::glMultMatrixd(world_matrix().data()));
-        this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
+        if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
+            model.render();
+        else
+            model.render(this->tverts_range);
     }
 
     glsafe(::glPopMatrix());
@@ -967,12 +745,12 @@ GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<ColorRGBA>& colors)
     m_colors = colors;
 }
 
-void GLWipeTowerVolume::render(bool with_outline) const
+void GLWipeTowerVolume::render(bool with_outline)
 {
     if (!is_active)
         return;
 
-    if (m_colors.size() == 0 || m_colors.size() != iva_per_colors.size())
+    if (m_colors.size() == 0 || m_colors.size() != model_per_colors.size())
         return;
 
     if (this->is_left_handed())
@@ -983,11 +761,9 @@ void GLWipeTowerVolume::render(bool with_outline) const
 
     GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
     for (int i = 0; i < m_colors.size(); i++) {
-        if (shader) {
-            ColorRGBA new_color = adjust_color_for_rendering(m_colors[i]);
-            shader->set_uniform("uniform_color", new_color);
-        }
-        this->iva_per_colors[i].render();
+        ColorRGBA new_color = adjust_color_for_rendering(m_colors[i]);
+        this->model_per_colors[i].set_color(new_color);
+        this->model_per_colors[i].render();
     }
     
     glsafe(::glPopMatrix());
@@ -1005,24 +781,22 @@ bool GLWipeTowerVolume::IsTransparent() {
 }
 
 std::vector<int> GLVolumeCollection::load_object(
-    const ModelObject       *model_object,
-    int                      obj_idx,
-    const std::vector<int>  &instance_idxs,
-    bool 					 opengl_initialized)
+    const ModelObject*      model_object,
+    int                     obj_idx,
+    const std::vector<int>& instance_idxs)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, opengl_initialized));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx));
     return volumes_idx;
 }
 
 int GLVolumeCollection::load_object_volume(
-    const ModelObject   *model_object,
+    const ModelObject* model_object,
     int                  obj_idx,
     int                  volume_idx,
     int                  instance_idx,
-    bool 				 opengl_initialized,
     bool                 in_assemble_view,
     bool                 use_loaded_id)
 {
@@ -1034,15 +808,14 @@ int GLVolumeCollection::load_object_volume(
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));
     v.name = model_volume->name;
+	
 #if ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array.load_mesh(mesh, true);
+    v.model.init_from(mesh, true);
 #else
-    v.indexed_vertex_array.load_mesh(mesh);
+    v.model.init_from(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
-    if (model_volume->is_model_part())
-    {
+    if (model_volume->is_model_part()) {
         // GLVolume will reference a convex hull from model_volume!
         v.set_convex_hull(model_volume->get_convex_hull_shared_ptr());
         if (extruder_id != -1)
@@ -1070,14 +843,13 @@ int GLVolumeCollection::load_object_volume(
 // This function produces volumes for multiple instances in a single shot,
 // as some object specific mesh conversions may be expensive.
 void GLVolumeCollection::load_object_auxiliary(
-    const SLAPrintObject 		   *print_object,
+    const SLAPrintObject* print_object,
     int                             obj_idx,
     // pairs of <instance_idx, print_instance_idx>
     const std::vector<std::pair<size_t, size_t>>& instances,
     SLAPrintObjectStep              milestone,
     // Timestamp of the last change of the milestone
-    size_t                          timestamp,
-    bool 				 			opengl_initialized)
+    size_t                          timestamp)
 {
     assert(print_object->is_step_done(milestone));
     Transform3d  mesh_trafo_inv = print_object->trafo().inverse();
@@ -1091,11 +863,11 @@ void GLVolumeCollection::load_object_auxiliary(
         this->volumes.emplace_back(new GLVolume((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR));
         GLVolume& v = *this->volumes.back();
 #if ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.load_mesh(mesh, true);
+        v.model.init_from(mesh, true);
 #else
-        v.indexed_vertex_array.load_mesh(mesh);
+        v.model.init_from(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+        v.model.set_color((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR);
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
@@ -1113,7 +885,7 @@ void GLVolumeCollection::load_object_auxiliary(
 
 int GLVolumeCollection::load_wipe_tower_preview(
     int obj_idx, float pos_x, float pos_y, float width, float depth, float height,
-    float rotation_angle, bool size_unknown, float brim_width, bool opengl_initialized)
+    float rotation_angle, bool size_unknown, float brim_width)
 {
     int plate_idx = obj_idx - 1000;
 
@@ -1146,15 +918,13 @@ int GLVolumeCollection::load_wipe_tower_preview(
         color.a(0.66f);
     volumes.emplace_back(new GLWipeTowerVolume(colors));
     GLWipeTowerVolume& v = *dynamic_cast<GLWipeTowerVolume*>(volumes.back());
-    v.iva_per_colors.resize(colors.size());
+    v.model_per_colors.resize(colors.size());
     for (int i = 0; i < colors.size(); i++) {
         TriangleMesh color_part = make_cube(width, depth / colors.size(), height);
         color_part.translate({ 0.f, depth * i / colors.size(), 0. });
-        v.iva_per_colors[i].load_mesh(color_part);
-        v.iva_per_colors[i].finalize_geometry(opengl_initialized);
+        v.model_per_colors[i].init_from(color_part);
     }
-    v.indexed_vertex_array.load_mesh(wipe_tower_shell);
-    v.indexed_vertex_array.finalize_geometry(opengl_initialized);
+    v.model.init_from(wipe_tower_shell);
     v.set_convex_hull(wipe_tower_shell);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
@@ -1166,21 +936,19 @@ int GLVolumeCollection::load_wipe_tower_preview(
     return int(volumes.size() - 1);
 }
 
-GLVolume* GLVolumeCollection::new_toolpath_volume(const ColorRGBA& rgba, size_t reserve_vbo_floats)
+GLVolume* GLVolumeCollection::new_toolpath_volume(const ColorRGBA& rgba)
 {
-	GLVolume *out = new_nontoolpath_volume(rgba, reserve_vbo_floats);
-	out->is_extrusion_path = true;
-	return out;
+    GLVolume* out = new_nontoolpath_volume(rgba);
+    out->is_extrusion_path = true;
+    return out;
 }
 
-GLVolume* GLVolumeCollection::new_nontoolpath_volume(const ColorRGBA& rgba, size_t reserve_vbo_floats)
+GLVolume* GLVolumeCollection::new_nontoolpath_volume(const ColorRGBA& rgba)
 {
-	GLVolume *out = new GLVolume(rgba);
-	out->is_extrusion_path = false;
-	// Reserving number of vertices (3x position + 3x color)
-	out->indexed_vertex_array.reserve(reserve_vbo_floats / 6);
-	this->volumes.emplace_back(out);
-	return out;
+    GLVolume* out = new GLVolume(rgba);
+    out->is_extrusion_path = false;
+    this->volumes.emplace_back(out);
+    return out;
 }
 
 GLVolumeWithIdAndZList volumes_to_render(const GLVolumePtrs& volumes, GLVolumeCollection::ERenderType type, const Transform3d& view_matrix, std::function<bool(const GLVolume&)> filter_func)
@@ -1284,7 +1052,8 @@ void GLVolumeCollection::render(
         glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
         glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
-        shader->set_uniform("uniform_color", volume.first->render_color);
+        if (!volume.first->model.is_initialized())
+            shader->set_uniform("uniform_color", volume.first->render_color);
         shader->set_uniform("z_range", m_z_range, 2);
         shader->set_uniform("clipping_plane", m_clipping_plane, 4);
         //BOOST_LOG_TRIVIAL(info) << boost::format("set uniform_color to {%1%, %2%, %3%, %4%}, with_outline=%5%, selected %6%")
@@ -1326,6 +1095,7 @@ void GLVolumeCollection::render(
 #endif // ENABLE_ENVIRONMENT_MAP
         glcheck();
 
+        volume.first->model.set_color(volume.first->render_color);
         //BBS: add outline related logic
         volume.first->render(with_outline && volume.first->selected);
 
@@ -1617,60 +1387,63 @@ std::string GLVolumeCollection::log_memory_info() const
 	return " (GLVolumeCollection RAM: " + format_memsize_MB(this->cpu_memory_used()) + " GPU: " + format_memsize_MB(this->gpu_memory_used()) + " Both: " + format_memsize_MB(this->gpu_memory_used()) + ")";
 }
 
-// caller is responsible for supplying NO lines with zero length
-static void thick_lines_to_indexed_vertex_array(
-    const Lines                 &lines,
-    const std::vector<double>   &widths,
-    const std::vector<double>   &heights,
-    bool                         closed,
-    double                       top_z,
-    GLIndexedVertexArray        &volume)
+static void thick_lines_to_geometry(
+    const Lines&               lines,
+    const std::vector<double>& widths,
+    const std::vector<double>& heights,
+    bool                       closed,
+    double                     top_z,
+    GUI::GLModel::Geometry&    geometry)
 {
-    assert(! lines.empty());
+    assert(!lines.empty());
     if (lines.empty())
         return;
 
-#define LEFT    0
-#define RIGHT   1
-#define TOP     2
-#define BOTTOM  3
+    enum Direction : unsigned char
+    {
+        Left,
+        Right,
+        Top,
+        Bottom
+    };
 
     // right, left, top, bottom
-    int     idx_prev[4]      = { -1, -1, -1, -1 };
-    double  bottom_z_prev    = 0.;
-    Vec2d   b1_prev(Vec2d::Zero());
-    Vec2d   v_prev(Vec2d::Zero());
-    int     idx_initial[4]   = { -1, -1, -1, -1 };
-    double  width_initial    = 0.;
-    double  bottom_z_initial = 0.0;
-    double  len_prev = 0.0;
+    std::array<int, 4> idx_prev    = { -1, -1, -1, -1 };
+    std::array<int, 4> idx_initial = { -1, -1, -1, -1 };
+
+    double bottom_z_prev = 0.0;
+    Vec2d  b1_prev(Vec2d::Zero());
+    Vec2d  v_prev(Vec2d::Zero());
+    double len_prev = 0.0;
+    double width_initial = 0.0;
+    double bottom_z_initial = 0.0;
 
     // loop once more in case of closed loops
-    size_t lines_end = closed ? (lines.size() + 1) : lines.size();
-    for (size_t ii = 0; ii < lines_end; ++ ii) {
-        size_t i = (ii == lines.size()) ? 0 : ii;
-        const Line &line = lines[i];
-        double bottom_z = top_z - heights[i];
-        double middle_z = 0.5 * (top_z + bottom_z);
-        double width = widths[i];
+    const size_t lines_end = closed ? (lines.size() + 1) : lines.size();
+    for (size_t ii = 0; ii < lines_end; ++ii) {
+        const size_t i = (ii == lines.size()) ? 0 : ii;
+        const Line& line = lines[i];
+        const double bottom_z = top_z - heights[i];
+        const double middle_z = 0.5 * (top_z + bottom_z);
+        const double width = widths[i];
 
-        bool is_first = (ii == 0);
-        bool is_last = (ii == lines_end - 1);
-        bool is_closing = closed && is_last;
+        const bool is_first = (ii == 0);
+        const bool is_last = (ii == lines_end - 1);
+        const bool is_closing = closed && is_last;
 
-        Vec2d v = unscale(line.vector()).normalized();
-        double len = unscale<double>(line.length());
+        const Vec2d v = unscale(line.vector()).normalized();
+        const double len = unscale<double>(line.length());
 
-        Vec2d a = unscale(line.a);
-        Vec2d b = unscale(line.b);
+        const Vec2d a = unscale(line.a);
+        const Vec2d b = unscale(line.b);
         Vec2d a1 = a;
         Vec2d a2 = a;
         Vec2d b1 = b;
         Vec2d b2 = b;
         {
-            double dist = 0.5 * width;  // scaled
-            double dx = dist * v(0);
-            double dy = dist * v(1);
+            const double dist = 0.5 * width;  // scaled
+            const double dx = dist * v.x();
+            const double dy = dist * v.y();
             a1 += Vec2d(+dy, -dx);
             a2 += Vec2d(-dy, +dx);
             b1 += Vec2d(+dy, -dx);
@@ -1678,102 +1451,101 @@ static void thick_lines_to_indexed_vertex_array(
         }
 
         // calculate new XY normals
-        Vec2d xy_right_normal = unscale(line.normal()).normalized();
+        const Vec2d xy_right_normal = unscale(line.normal()).normalized();
 
-        int idx_a[4] = { 0, 0, 0, 0 }; // initialized to avoid warnings
-        int idx_b[4] = { 0, 0, 0, 0 }; // initialized to avoid warnings
-        int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
+        std::array<int, 4> idx_a = { 0, 0, 0, 0 };
+        std::array<int, 4> idx_b = { 0, 0, 0, 0 };
+        int idx_last = int(geometry.vertices_count());
 
-        bool bottom_z_different = bottom_z_prev != bottom_z;
+        const bool bottom_z_different = bottom_z_prev != bottom_z;
         bottom_z_prev = bottom_z;
 
-        if (!is_first && bottom_z_different)
-        {
+        if (!is_first && bottom_z_different) {
             // Found a change of the layer thickness -> Add a cap at the end of the previous segment.
-            volume.push_quad(idx_b[BOTTOM], idx_b[LEFT], idx_b[TOP], idx_b[RIGHT]);
+            geometry.add_uint_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
+            geometry.add_uint_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
         }
 
         // Share top / bottom vertices if possible.
         if (is_first) {
-            idx_a[TOP] = idx_last++;
-            volume.push_geometry(a(0), a(1), top_z   , 0., 0.,  1.);
-        } else {
-            idx_a[TOP] = idx_prev[TOP];
+            idx_a[Top] = idx_last++;
+            geometry.add_vertex(Vec3f(a.x(), a.y(), top_z), Vec3f(0.0f, 0.0f, 1.0f));
         }
+        else
+            idx_a[Top] = idx_prev[Top];
 
         if (is_first || bottom_z_different) {
             // Start of the 1st line segment or a change of the layer thickness while maintaining the print_z.
-            idx_a[BOTTOM] = idx_last ++;
-            volume.push_geometry(a(0), a(1), bottom_z, 0., 0., -1.);
-            idx_a[LEFT ] = idx_last ++;
-            volume.push_geometry(a2(0), a2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), 0.0);
-            idx_a[RIGHT] = idx_last ++;
-            volume.push_geometry(a1(0), a1(1), middle_z, xy_right_normal(0), xy_right_normal(1), 0.0);
+            idx_a[Bottom] = idx_last++;
+            geometry.add_vertex(Vec3f(a.x(), a.y(), bottom_z), Vec3f(0.0f, 0.0f, -1.0f));
+            idx_a[Left] = idx_last++;
+            geometry.add_vertex(Vec3f(a2.x(), a2.y(), middle_z), Vec3f(-xy_right_normal.x(), -xy_right_normal.y(), 0.0f));
+            idx_a[Right] = idx_last++;
+            geometry.add_vertex(Vec3f(a1.x(), a1.y(), middle_z), Vec3f(xy_right_normal.x(), xy_right_normal.y(), 0.0f));
         }
-        else {
-            idx_a[BOTTOM] = idx_prev[BOTTOM];
-        }
+        else
+            idx_a[Bottom] = idx_prev[Bottom];
 
         if (is_first) {
             // Start of the 1st line segment.
-            width_initial    = width;
+            width_initial = width;
             bottom_z_initial = bottom_z;
-            memcpy(idx_initial, idx_a, sizeof(int) * 4);
-        } else {
+            idx_initial = idx_a;
+        }
+        else {
             // Continuing a previous segment.
             // Share left / right vertices if possible.
-			double v_dot    = v_prev.dot(v);
+            const double v_dot = v_prev.dot(v);
             // To reduce gpu memory usage, we try to reuse vertices
-            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges
+            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges 
             // is longer than a fixed threshold.
             // The following value is arbitrary, it comes from tests made on a bunch of models showing the visual artifacts
-            double len_threshold = 2.5;
+            const double len_threshold = 2.5;
 
             // Generate new vertices if the angle between adjacent edges is greater than 45 degrees or thresholds conditions are met
-            bool sharp = (v_dot < 0.707) || (len_prev > len_threshold) || (len > len_threshold);
+            const bool sharp = (v_dot < 0.707) || (len_prev > len_threshold) || (len > len_threshold);
             if (sharp) {
-                if (!bottom_z_different)
-                {
+                if (!bottom_z_different) {
                     // Allocate new left / right points for the start of this segment as these points will receive their own normals to indicate a sharp turn.
-                    idx_a[RIGHT] = idx_last++;
-                    volume.push_geometry(a1(0), a1(1), middle_z, xy_right_normal(0), xy_right_normal(1), 0.0);
-                    idx_a[LEFT] = idx_last++;
-                    volume.push_geometry(a2(0), a2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), 0.0);
-                    if (cross2(v_prev, v) > 0.) {
+                    idx_a[Right] = idx_last++;
+                    geometry.add_vertex(Vec3f(a1.x(), a1.y(), middle_z), Vec3f(xy_right_normal.x(), xy_right_normal.y(), 0.0f));
+                    idx_a[Left] = idx_last++;
+                    geometry.add_vertex(Vec3f(a2.x(), a2.y(), middle_z), Vec3f(-xy_right_normal.x(), -xy_right_normal.y(), 0.0f));
+                    if (cross2(v_prev, v) > 0.0) {
                         // Right turn. Fill in the right turn wedge.
-                        volume.push_triangle(idx_prev[RIGHT], idx_a[RIGHT], idx_prev[TOP]);
-                        volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a[RIGHT]);
+                        geometry.add_uint_triangle(idx_prev[Right], idx_a[Right], idx_prev[Top]);
+                        geometry.add_uint_triangle(idx_prev[Right], idx_prev[Bottom], idx_a[Right]);
                     }
                     else {
                         // Left turn. Fill in the left turn wedge.
-                        volume.push_triangle(idx_prev[LEFT], idx_prev[TOP], idx_a[LEFT]);
-                        volume.push_triangle(idx_prev[LEFT], idx_a[LEFT], idx_prev[BOTTOM]);
+                        geometry.add_uint_triangle(idx_prev[Left], idx_prev[Top], idx_a[Left]);
+                        geometry.add_uint_triangle(idx_prev[Left], idx_a[Left], idx_prev[Bottom]);
                     }
                 }
             }
-            else
-            {
-                if (!bottom_z_different)
-                {
+            else {
+                if (!bottom_z_different) {
                     // The two successive segments are nearly collinear.
-                    idx_a[LEFT ] = idx_prev[LEFT];
-                    idx_a[RIGHT] = idx_prev[RIGHT];
+                    idx_a[Left]  = idx_prev[Left];
+                    idx_a[Right] = idx_prev[Right];
                 }
             }
             if (is_closing) {
                 if (!sharp) {
-                    if (!bottom_z_different)
-                    {
+                    if (!bottom_z_different) {
                         // Closing a loop with smooth transition. Unify the closing left / right vertices.
-                        memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[LEFT ] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT ] * 6, sizeof(float) * 6);
-                        memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[RIGHT] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6, sizeof(float) * 6);
-                        volume.vertices_and_normals_interleaved.erase(volume.vertices_and_normals_interleaved.end() - 12, volume.vertices_and_normals_interleaved.end());
+                        geometry.set_vertex(idx_initial[Left], geometry.extract_position_3(idx_prev[Left]), geometry.extract_normal_3(idx_prev[Left]));
+                        geometry.set_vertex(idx_initial[Right], geometry.extract_position_3(idx_prev[Right]), geometry.extract_normal_3(idx_prev[Right]));
+                        geometry.remove_vertex(geometry.vertices_count() - 1);
+                        geometry.remove_vertex(geometry.vertices_count() - 1);
                         // Replace the left / right vertex indices to point to the start of the loop.
-                        for (size_t u = volume.quad_indices.size() - 16; u < volume.quad_indices.size(); ++ u) {
-                            if (volume.quad_indices[u] == idx_prev[LEFT])
-                                volume.quad_indices[u] = idx_initial[LEFT];
-                            else if (volume.quad_indices[u] == idx_prev[RIGHT])
-                                volume.quad_indices[u] = idx_initial[RIGHT];
+                        const size_t indices_count = geometry.indices_count();
+                        for (size_t u = indices_count - 24; u < indices_count; ++u) {
+                            const unsigned int id = geometry.extract_uint_index(u);
+                            if (id == (unsigned int)idx_prev[Left])
+                                geometry.set_uint_index(u, (unsigned int)idx_initial[Left]);
+                            else if (id == (unsigned int)idx_prev[Right])
+                                geometry.set_uint_index(u, (unsigned int)idx_initial[Right]);
                         }
                     }
                 }
@@ -1783,235 +1555,232 @@ static void thick_lines_to_indexed_vertex_array(
         }
 
         // Only new allocate top / bottom vertices, if not closing a loop.
-        if (is_closing) {
-            idx_b[TOP] = idx_initial[TOP];
-        } else {
-            idx_b[TOP] = idx_last ++;
-            volume.push_geometry(b(0), b(1), top_z   , 0., 0.,  1.);
+        if (is_closing)
+            idx_b[Top] = idx_initial[Top];
+        else {
+            idx_b[Top] = idx_last++;
+            geometry.add_vertex(Vec3f(b.x(), b.y(), top_z), Vec3f(0.0f, 0.0f, 1.0f));
         }
 
-        if (is_closing && (width == width_initial) && (bottom_z == bottom_z_initial)) {
-            idx_b[BOTTOM] = idx_initial[BOTTOM];
-        } else {
-            idx_b[BOTTOM] = idx_last ++;
-            volume.push_geometry(b(0), b(1), bottom_z, 0., 0., -1.);
+        if (is_closing && width == width_initial && bottom_z == bottom_z_initial)
+            idx_b[Bottom] = idx_initial[Bottom];
+        else {
+            idx_b[Bottom] = idx_last++;
+            geometry.add_vertex(Vec3f(b.x(), b.y(), bottom_z), Vec3f(0.0f, 0.0f, -1.0f));
         }
         // Generate new vertices for the end of this line segment.
-        idx_b[LEFT  ] = idx_last ++;
-        volume.push_geometry(b2(0), b2(1), middle_z, -xy_right_normal(0), -xy_right_normal(1), 0.0);
-        idx_b[RIGHT ] = idx_last ++;
-        volume.push_geometry(b1(0), b1(1), middle_z, xy_right_normal(0), xy_right_normal(1), 0.0);
+        idx_b[Left] = idx_last++;
+        geometry.add_vertex(Vec3f(b2.x(), b2.y(), middle_z), Vec3f(-xy_right_normal.x(), -xy_right_normal.y(), 0.0f));
+        idx_b[Right] = idx_last++;
+        geometry.add_vertex(Vec3f(b1.x(), b1.y(), middle_z), Vec3f(xy_right_normal.x(), xy_right_normal.y(), 0.0f));
 
-        memcpy(idx_prev, idx_b, 4 * sizeof(int));
+        idx_prev = idx_b;
         bottom_z_prev = bottom_z;
         b1_prev = b1;
         v_prev = v;
         len_prev = len;
 
-        if (bottom_z_different && (closed || (!is_first && !is_last)))
-        {
+        if (bottom_z_different && (closed || (!is_first && !is_last))) {
             // Found a change of the layer thickness -> Add a cap at the beginning of this segment.
-            volume.push_quad(idx_a[BOTTOM], idx_a[RIGHT], idx_a[TOP], idx_a[LEFT]);
+            geometry.add_uint_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
+            geometry.add_uint_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
         }
 
-        if (! closed) {
+        if (!closed) {
             // Terminate open paths with caps.
-            if (is_first)
-                volume.push_quad(idx_a[BOTTOM], idx_a[RIGHT], idx_a[TOP], idx_a[LEFT]);
+            if (is_first) {
+                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
+                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
+            }
             // We don't use 'else' because both cases are true if we have only one line.
-            if (is_last)
-                volume.push_quad(idx_b[BOTTOM], idx_b[LEFT], idx_b[TOP], idx_b[RIGHT]);
+            if (is_last) {
+                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
+                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
+            }
         }
 
         // Add quads for a straight hollow tube-like segment.
         // bottom-right face
-        volume.push_quad(idx_a[BOTTOM], idx_b[BOTTOM], idx_b[RIGHT], idx_a[RIGHT]);
+        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Bottom], idx_b[Right]);
+        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Right], idx_a[Right]);
         // top-right face
-        volume.push_quad(idx_a[RIGHT], idx_b[RIGHT], idx_b[TOP], idx_a[TOP]);
+        geometry.add_uint_triangle(idx_a[Right], idx_b[Right], idx_b[Top]);
+        geometry.add_uint_triangle(idx_a[Right], idx_b[Top], idx_a[Top]);
         // top-left face
-        volume.push_quad(idx_a[TOP], idx_b[TOP], idx_b[LEFT], idx_a[LEFT]);
+        geometry.add_uint_triangle(idx_a[Top], idx_b[Top], idx_b[Left]);
+        geometry.add_uint_triangle(idx_a[Top], idx_b[Left], idx_a[Left]);
         // bottom-left face
-        volume.push_quad(idx_a[LEFT], idx_b[LEFT], idx_b[BOTTOM], idx_a[BOTTOM]);
+        geometry.add_uint_triangle(idx_a[Left], idx_b[Left], idx_b[Bottom]);
+        geometry.add_uint_triangle(idx_a[Left], idx_b[Bottom], idx_a[Bottom]);
     }
-
-#undef LEFT
-#undef RIGHT
-#undef TOP
-#undef BOTTOM
 }
 
 // caller is responsible for supplying NO lines with zero length
-static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
+static void thick_lines_to_geometry(
+    const Lines3&              lines,
     const std::vector<double>& widths,
     const std::vector<double>& heights,
-    bool closed,
-    GLIndexedVertexArray& volume)
+    bool                       closed,
+    GUI::GLModel::Geometry&    geometry)
 {
     assert(!lines.empty());
     if (lines.empty())
         return;
 
-#define LEFT    0
-#define RIGHT   1
-#define TOP     2
-#define BOTTOM  3
+    enum Direction : unsigned char
+    {
+        Left,
+        Right,
+        Top,
+        Bottom
+    };
 
     // left, right, top, bottom
-    int      idx_initial[4] = { -1, -1, -1, -1 };
-    int      idx_prev[4] = { -1, -1, -1, -1 };
-    double   z_prev = 0.0;
-    double   len_prev = 0.0;
-    Vec3d    n_right_prev = Vec3d::Zero();
-    Vec3d    n_top_prev = Vec3d::Zero();
-    Vec3d    unit_v_prev = Vec3d::Zero();
-    double   width_initial = 0.0;
+    std::array<int, 4> idx_prev    = { -1, -1, -1, -1 };
+    std::array<int, 4> idx_initial = { -1, -1, -1, -1 };
+
+    double z_prev = 0.0;
+    double len_prev = 0.0;
+    Vec3d  n_right_prev = Vec3d::Zero();
+    Vec3d  n_top_prev = Vec3d::Zero();
+    Vec3d  unit_v_prev = Vec3d::Zero();
+    double width_initial = 0.0;
 
     // new vertices around the line endpoints
     // left, right, top, bottom
-    Vec3d a[4] = { Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero() };
-    Vec3d b[4] = { Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero() };
+    std::array<Vec3d, 4> a = { Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero() };
+    std::array<Vec3d, 4> b = { Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero() };
 
     // loop once more in case of closed loops
-    size_t lines_end = closed ? (lines.size() + 1) : lines.size();
-    for (size_t ii = 0; ii < lines_end; ++ii)
-    {
-        size_t i = (ii == lines.size()) ? 0 : ii;
+    const size_t lines_end = closed ? (lines.size() + 1) : lines.size();
+    for (size_t ii = 0; ii < lines_end; ++ii) {
+        const size_t i = (ii == lines.size()) ? 0 : ii;
 
         const Line3& line = lines[i];
-        double height = heights[i];
-        double width = widths[i];
+        const double height = heights[i];
+        const double width = widths[i];
 
-        Vec3d unit_v = unscale(line.vector()).normalized();
-        double len = unscale<double>(line.length());
+        const Vec3d unit_v = unscale(line.vector()).normalized();
+        const double len = unscale<double>(line.length());
 
         Vec3d n_top = Vec3d::Zero();
         Vec3d n_right = Vec3d::Zero();
 
-        if ((line.a(0) == line.b(0)) && (line.a(1) == line.b(1)))
-        {
+        if (line.a.x() == line.b.x() && line.a.y() == line.b.y()) {
             // vertical segment
             n_top = Vec3d::UnitY();
             n_right = Vec3d::UnitX();
-            if (line.a(2) < line.b(2))
+            if (line.a.z() < line.b.z())
                 n_right = -n_right;
         }
-        else
-        {
+        else {
             // horizontal segment
             n_right = unit_v.cross(Vec3d::UnitZ()).normalized();
             n_top = n_right.cross(unit_v).normalized();
         }
 
-        Vec3d rl_displacement = 0.5 * width * n_right;
-        Vec3d tb_displacement = 0.5 * height * n_top;
-        Vec3d l_a = unscale(line.a);
-        Vec3d l_b = unscale(line.b);
+        const Vec3d rl_displacement = 0.5 * width * n_right;
+        const Vec3d tb_displacement = 0.5 * height * n_top;
+        const Vec3d l_a = unscale(line.a);
+        const Vec3d l_b = unscale(line.b);
 
-        a[RIGHT] = l_a + rl_displacement;
-        a[LEFT] = l_a - rl_displacement;
-        a[TOP] = l_a + tb_displacement;
-        a[BOTTOM] = l_a - tb_displacement;
-        b[RIGHT] = l_b + rl_displacement;
-        b[LEFT] = l_b - rl_displacement;
-        b[TOP] = l_b + tb_displacement;
-        b[BOTTOM] = l_b - tb_displacement;
+        a[Right]  = l_a + rl_displacement;
+        a[Left]   = l_a - rl_displacement;
+        a[Top]    = l_a + tb_displacement;
+        a[Bottom] = l_a - tb_displacement;
+        b[Right]  = l_b + rl_displacement;
+        b[Left]   = l_b - rl_displacement;
+        b[Top]    = l_b + tb_displacement;
+        b[Bottom] = l_b - tb_displacement;
 
-        Vec3d n_bottom = -n_top;
-        Vec3d n_left = -n_right;
+        const Vec3d n_bottom = -n_top;
+        const Vec3d n_left = -n_right;
 
-        int idx_a[4];
-        int idx_b[4];
-        int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
+        std::array<int, 4> idx_a = { 0, 0, 0, 0};
+        std::array<int, 4> idx_b = { 0, 0, 0, 0 };
+        int idx_last = int(geometry.vertices_count());
 
-        bool z_different = (z_prev != l_a(2));
-        z_prev = l_b(2);
+        const bool z_different = (z_prev != l_a.z());
+        z_prev = l_b.z();
 
         // Share top / bottom vertices if possible.
-        if (ii == 0)
-        {
-            idx_a[TOP] = idx_last++;
-            volume.push_geometry(a[TOP], n_top);
+        if (ii == 0) {
+            idx_a[Top] = idx_last++;
+            geometry.add_vertex((Vec3f)a[Top].cast<float>(), (Vec3f)n_top.cast<float>());
         }
         else
-            idx_a[TOP] = idx_prev[TOP];
+            idx_a[Top] = idx_prev[Top];
 
-        if ((ii == 0) || z_different)
-        {
+        if (ii == 0 || z_different) {
             // Start of the 1st line segment or a change of the layer thickness while maintaining the print_z.
-            idx_a[BOTTOM] = idx_last++;
-            volume.push_geometry(a[BOTTOM], n_bottom);
-            idx_a[LEFT] = idx_last++;
-            volume.push_geometry(a[LEFT], n_left);
-            idx_a[RIGHT] = idx_last++;
-            volume.push_geometry(a[RIGHT], n_right);
+            idx_a[Bottom] = idx_last++;
+            geometry.add_vertex((Vec3f)a[Bottom].cast<float>(), (Vec3f)n_bottom.cast<float>());
+            idx_a[Left] = idx_last++;
+            geometry.add_vertex((Vec3f)a[Left].cast<float>(), (Vec3f)n_left.cast<float>());
+            idx_a[Right] = idx_last++;
+            geometry.add_vertex((Vec3f)a[Right].cast<float>(), (Vec3f)n_right.cast<float>());
         }
         else
-            idx_a[BOTTOM] = idx_prev[BOTTOM];
+            idx_a[Bottom] = idx_prev[Bottom];
 
-        if (ii == 0)
-        {
+        if (ii == 0) {
             // Start of the 1st line segment.
             width_initial = width;
-            ::memcpy(idx_initial, idx_a, sizeof(int) * 4);
+            idx_initial =  idx_a;
         }
-        else
-        {
+        else {
             // Continuing a previous segment.
             // Share left / right vertices if possible.
-            double v_dot = unit_v_prev.dot(unit_v);
-            bool is_right_turn = n_top_prev.dot(unit_v_prev.cross(unit_v)) > 0.0;
+            const double v_dot = unit_v_prev.dot(unit_v);
+            const bool is_right_turn = n_top_prev.dot(unit_v_prev.cross(unit_v)) > 0.0;
 
             // To reduce gpu memory usage, we try to reuse vertices
-            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges
+            // To reduce the visual artifacts, due to averaged normals, we allow to reuse vertices only when any of two adjacent edges 
             // is longer than a fixed threshold.
             // The following value is arbitrary, it comes from tests made on a bunch of models showing the visual artifacts
-            double len_threshold = 2.5;
+            const double len_threshold = 2.5;
 
             // Generate new vertices if the angle between adjacent edges is greater than 45 degrees or thresholds conditions are met
-            bool is_sharp = (v_dot < 0.707) || (len_prev > len_threshold) || (len > len_threshold);
-            if (is_sharp)
-            {
+            const bool is_sharp = v_dot < 0.707 || len_prev > len_threshold || len > len_threshold;
+            if (is_sharp) {
                 // Allocate new left / right points for the start of this segment as these points will receive their own normals to indicate a sharp turn.
-                idx_a[RIGHT] = idx_last++;
-                volume.push_geometry(a[RIGHT], n_right);
-                idx_a[LEFT] = idx_last++;
-                volume.push_geometry(a[LEFT], n_left);
+                idx_a[Right] = idx_last++;
+                geometry.add_vertex((Vec3f)a[Right].cast<float>(), (Vec3f)n_right.cast<float>());
+                idx_a[Left] = idx_last++;
+                geometry.add_vertex((Vec3f)a[Left].cast<float>(), (Vec3f)n_left.cast<float>());
 
-                if (is_right_turn)
-                {
+                if (is_right_turn) {
                     // Right turn. Fill in the right turn wedge.
-                    volume.push_triangle(idx_prev[RIGHT], idx_a[RIGHT], idx_prev[TOP]);
-                    volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a[RIGHT]);
+                    geometry.add_uint_triangle(idx_prev[Right], idx_a[Right], idx_prev[Top]);
+                    geometry.add_uint_triangle(idx_prev[Right], idx_prev[Bottom], idx_a[Right]);
                 }
-                else
-                {
+                else {
                     // Left turn. Fill in the left turn wedge.
-                    volume.push_triangle(idx_prev[LEFT], idx_prev[TOP], idx_a[LEFT]);
-                    volume.push_triangle(idx_prev[LEFT], idx_a[LEFT], idx_prev[BOTTOM]);
+                    geometry.add_uint_triangle(idx_prev[Left], idx_prev[Top], idx_a[Left]);
+                    geometry.add_uint_triangle(idx_prev[Left], idx_a[Left], idx_prev[Bottom]);
                 }
             }
-            else
-            {
+            else {
                 // The two successive segments are nearly collinear.
-                idx_a[LEFT] = idx_prev[LEFT];
-                idx_a[RIGHT] = idx_prev[RIGHT];
+                idx_a[Left] = idx_prev[Left];
+                idx_a[Right] = idx_prev[Right];
             }
 
-            if (ii == lines.size())
-            {
-                if (!is_sharp)
-                {
+            if (ii == lines.size()) {
+                if (!is_sharp) {
                     // Closing a loop with smooth transition. Unify the closing left / right vertices.
-                    ::memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[LEFT] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT] * 6, sizeof(float) * 6);
-                    ::memcpy(volume.vertices_and_normals_interleaved.data() + idx_initial[RIGHT] * 6, volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6, sizeof(float) * 6);
-                    volume.vertices_and_normals_interleaved.erase(volume.vertices_and_normals_interleaved.end() - 12, volume.vertices_and_normals_interleaved.end());
+                    geometry.set_vertex(idx_initial[Left], geometry.extract_position_3(idx_prev[Left]), geometry.extract_normal_3(idx_prev[Left]));
+                    geometry.set_vertex(idx_initial[Right], geometry.extract_position_3(idx_prev[Right]), geometry.extract_normal_3(idx_prev[Right]));
+                    geometry.remove_vertex(geometry.vertices_count() - 1);
+                    geometry.remove_vertex(geometry.vertices_count() - 1);
                     // Replace the left / right vertex indices to point to the start of the loop.
-                    for (size_t u = volume.quad_indices.size() - 16; u < volume.quad_indices.size(); ++u)
-                    {
-                        if (volume.quad_indices[u] == idx_prev[LEFT])
-                            volume.quad_indices[u] = idx_initial[LEFT];
-                        else if (volume.quad_indices[u] == idx_prev[RIGHT])
-                            volume.quad_indices[u] = idx_initial[RIGHT];
+                    const size_t indices_count = geometry.indices_count();
+                    for (size_t u = indices_count - 24; u < indices_count; ++u) {
+                        const unsigned int id = geometry.extract_uint_index(u);
+                        if (id == (unsigned int)idx_prev[Left])
+                            geometry.set_uint_index(u, (unsigned int)idx_initial[Left]);
+                        else if (id == (unsigned int)idx_prev[Right])
+                            geometry.set_uint_index(u, (unsigned int)idx_initial[Right]);
                     }
                 }
 
@@ -2021,246 +1790,161 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         }
 
         // Only new allocate top / bottom vertices, if not closing a loop.
-        if (closed && (ii + 1 == lines.size()))
-            idx_b[TOP] = idx_initial[TOP];
-        else
-        {
-            idx_b[TOP] = idx_last++;
-            volume.push_geometry(b[TOP], n_top);
+        if (closed && ii + 1 == lines.size())
+            idx_b[Top] = idx_initial[Top];
+        else {
+            idx_b[Top] = idx_last++;
+            geometry.add_vertex((Vec3f)b[Top].cast<float>(), (Vec3f)n_top.cast<float>());
         }
 
-        if (closed && (ii + 1 == lines.size()) && (width == width_initial))
-            idx_b[BOTTOM] = idx_initial[BOTTOM];
-        else
-        {
-            idx_b[BOTTOM] = idx_last++;
-            volume.push_geometry(b[BOTTOM], n_bottom);
+        if (closed && ii + 1 == lines.size() && width == width_initial)
+            idx_b[Bottom] = idx_initial[Bottom];
+        else {
+            idx_b[Bottom] = idx_last++;
+            geometry.add_vertex((Vec3f)b[Bottom].cast<float>(), (Vec3f)n_bottom.cast<float>());
         }
 
         // Generate new vertices for the end of this line segment.
-        idx_b[LEFT] = idx_last++;
-        volume.push_geometry(b[LEFT], n_left);
-        idx_b[RIGHT] = idx_last++;
-        volume.push_geometry(b[RIGHT], n_right);
+        idx_b[Left] = idx_last++;
+        geometry.add_vertex((Vec3f)b[Left].cast<float>(), (Vec3f)n_left.cast<float>());
+        idx_b[Right] = idx_last++;
+        geometry.add_vertex((Vec3f)b[Right].cast<float>(), (Vec3f)n_right.cast<float>());
 
-        ::memcpy(idx_prev, idx_b, 4 * sizeof(int));
+        idx_prev = idx_b;
         n_right_prev = n_right;
         n_top_prev = n_top;
         unit_v_prev = unit_v;
         len_prev = len;
 
-        if (!closed)
-        {
+        if (!closed) {
             // Terminate open paths with caps.
-            if (i == 0)
-                volume.push_quad(idx_a[BOTTOM], idx_a[RIGHT], idx_a[TOP], idx_a[LEFT]);
+            if (i == 0) {
+                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
+                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
+            }
 
             // We don't use 'else' because both cases are true if we have only one line.
-            if (i + 1 == lines.size())
-                volume.push_quad(idx_b[BOTTOM], idx_b[LEFT], idx_b[TOP], idx_b[RIGHT]);
+            if (i + 1 == lines.size()) {
+                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
+                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
+            }
         }
 
         // Add quads for a straight hollow tube-like segment.
         // bottom-right face
-        volume.push_quad(idx_a[BOTTOM], idx_b[BOTTOM], idx_b[RIGHT], idx_a[RIGHT]);
+        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Bottom], idx_b[Right]);
+        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Right], idx_a[Right]);
         // top-right face
-        volume.push_quad(idx_a[RIGHT], idx_b[RIGHT], idx_b[TOP], idx_a[TOP]);
+        geometry.add_uint_triangle(idx_a[Right], idx_b[Right], idx_b[Top]);
+        geometry.add_uint_triangle(idx_a[Right], idx_b[Top], idx_a[Top]);
         // top-left face
-        volume.push_quad(idx_a[TOP], idx_b[TOP], idx_b[LEFT], idx_a[LEFT]);
+        geometry.add_uint_triangle(idx_a[Top], idx_b[Top], idx_b[Left]);
+        geometry.add_uint_triangle(idx_a[Top], idx_b[Left], idx_a[Left]);
         // bottom-left face
-        volume.push_quad(idx_a[LEFT], idx_b[LEFT], idx_b[BOTTOM], idx_a[BOTTOM]);
+        geometry.add_uint_triangle(idx_a[Left], idx_b[Left], idx_b[Bottom]);
+        geometry.add_uint_triangle(idx_a[Left], idx_b[Bottom], idx_a[Bottom]);
     }
-
-#undef LEFT
-#undef RIGHT
-#undef TOP
-#undef BOTTOM
-}
-
-static void point_to_indexed_vertex_array(const Vec3crd& point,
-    double width,
-    double height,
-    GLIndexedVertexArray& volume)
-{
-    // builds a double piramid, with vertices on the local axes, around the point
-
-    Vec3d center = unscale(point);
-
-    double scale_factor = 1.0;
-    double w = scale_factor * width;
-    double h = scale_factor * height;
-
-    // new vertices ids
-    int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
-    int idxs[6];
-    for (int i = 0; i < 6; ++i)
-    {
-        idxs[i] = idx_last + i;
-    }
-
-    Vec3d displacement_x(w, 0.0, 0.0);
-    Vec3d displacement_y(0.0, w, 0.0);
-    Vec3d displacement_z(0.0, 0.0, h);
-
-    Vec3d unit_x(1.0, 0.0, 0.0);
-    Vec3d unit_y(0.0, 1.0, 0.0);
-    Vec3d unit_z(0.0, 0.0, 1.0);
-
-    // vertices
-    volume.push_geometry(center - displacement_x, -unit_x); // idxs[0]
-    volume.push_geometry(center + displacement_x, unit_x);  // idxs[1]
-    volume.push_geometry(center - displacement_y, -unit_y); // idxs[2]
-    volume.push_geometry(center + displacement_y, unit_y);  // idxs[3]
-    volume.push_geometry(center - displacement_z, -unit_z); // idxs[4]
-    volume.push_geometry(center + displacement_z, unit_z);  // idxs[5]
-
-    // top piramid faces
-    volume.push_triangle(idxs[0], idxs[2], idxs[5]);
-    volume.push_triangle(idxs[2], idxs[1], idxs[5]);
-    volume.push_triangle(idxs[1], idxs[3], idxs[5]);
-    volume.push_triangle(idxs[3], idxs[0], idxs[5]);
-
-    // bottom piramid faces
-    volume.push_triangle(idxs[2], idxs[0], idxs[4]);
-    volume.push_triangle(idxs[1], idxs[2], idxs[4]);
-    volume.push_triangle(idxs[3], idxs[1], idxs[4]);
-    volume.push_triangle(idxs[0], idxs[3], idxs[4]);
 }
 
 void _3DScene::thick_lines_to_verts(
-    const Lines                 &lines,
-    const std::vector<double>   &widths,
-    const std::vector<double>   &heights,
-    bool                         closed,
-    double                       top_z,
-    GLVolume                    &volume)
-{
-    thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, top_z, volume.indexed_vertex_array);
-}
-
-void _3DScene::thick_lines_to_verts(const Lines3& lines,
+    const Lines&               lines,
     const std::vector<double>& widths,
     const std::vector<double>& heights,
-    bool closed,
-    GLVolume& volume)
+    bool                       closed,
+    double                     top_z,
+    GUI::GLModel::Geometry&    geometry)
 {
-    thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, volume.indexed_vertex_array);
+    thick_lines_to_geometry(lines, widths, heights, closed, top_z, geometry);
 }
 
-static void thick_point_to_verts(const Vec3crd& point,
-    double width,
-    double height,
-    GLVolume& volume)
+void _3DScene::thick_lines_to_verts(
+    const Lines3&              lines,
+    const std::vector<double>& widths,
+    const std::vector<double>& heights,
+    bool                       closed,
+    GUI::GLModel::Geometry&    geometry)
 {
-    point_to_indexed_vertex_array(point, width, height, volume.indexed_vertex_array);
-}
-
-void _3DScene::extrusionentity_to_verts(const Polyline &polyline, float width, float height, float print_z, GLVolume& volume)
-{
-	if (polyline.size() >= 2) {
-		size_t num_segments = polyline.size() - 1;
-		thick_lines_to_verts(polyline.lines(), std::vector<double>(num_segments, width), std::vector<double>(num_segments, height), false, print_z, volume);
-	}
+    thick_lines_to_geometry(lines, widths, heights, closed, geometry);
 }
 
 // Fill in the qverts and tverts with quads and triangles for the extrusion_path.
-void _3DScene::extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, GLVolume &volume)
-{
-	extrusionentity_to_verts(extrusion_path.polyline, extrusion_path.width, extrusion_path.height, print_z, volume);
-}
-
-// Fill in the qverts and tverts with quads and triangles for the extrusion_path.
-void _3DScene::extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, const Point &copy, GLVolume &volume)
+void _3DScene::extrusionentity_to_verts(const ExtrusionPath& extrusion_path, float print_z, const Point& copy, GUI::GLModel::Geometry& geometry)
 {
     Polyline            polyline = extrusion_path.polyline;
     polyline.remove_duplicate_points();
     polyline.translate(copy);
-    Lines               lines = polyline.lines();
+    const Lines               lines = polyline.lines();
     std::vector<double> widths(lines.size(), extrusion_path.width);
     std::vector<double> heights(lines.size(), extrusion_path.height);
-    thick_lines_to_verts(lines, widths, heights, false, print_z, volume);
+    thick_lines_to_verts(lines, widths, heights, false, print_z, geometry);
 }
 
 // Fill in the qverts and tverts with quads and triangles for the extrusion_loop.
-void _3DScene::extrusionentity_to_verts(const ExtrusionLoop &extrusion_loop, float print_z, const Point &copy, GLVolume &volume)
+void _3DScene::extrusionentity_to_verts(const ExtrusionLoop& extrusion_loop, float print_z, const Point& copy, GUI::GLModel::Geometry& geometry)
 {
     Lines               lines;
     std::vector<double> widths;
     std::vector<double> heights;
-    for (const ExtrusionPath &extrusion_path : extrusion_loop.paths) {
+    for (const ExtrusionPath& extrusion_path : extrusion_loop.paths) {
         Polyline            polyline = extrusion_path.polyline;
         polyline.remove_duplicate_points();
         polyline.translate(copy);
-        Lines lines_this = polyline.lines();
+        const Lines lines_this = polyline.lines();
         append(lines, lines_this);
         widths.insert(widths.end(), lines_this.size(), extrusion_path.width);
         heights.insert(heights.end(), lines_this.size(), extrusion_path.height);
     }
-    thick_lines_to_verts(lines, widths, heights, true, print_z, volume);
+    thick_lines_to_verts(lines, widths, heights, true, print_z, geometry);
 }
 
 // Fill in the qverts and tverts with quads and triangles for the extrusion_multi_path.
-void _3DScene::extrusionentity_to_verts(const ExtrusionMultiPath &extrusion_multi_path, float print_z, const Point &copy, GLVolume &volume)
+void _3DScene::extrusionentity_to_verts(const ExtrusionMultiPath& extrusion_multi_path, float print_z, const Point& copy, GUI::GLModel::Geometry& geometry)
 {
     Lines               lines;
     std::vector<double> widths;
     std::vector<double> heights;
-    for (const ExtrusionPath &extrusion_path : extrusion_multi_path.paths) {
+    for (const ExtrusionPath& extrusion_path : extrusion_multi_path.paths) {
         Polyline            polyline = extrusion_path.polyline;
         polyline.remove_duplicate_points();
         polyline.translate(copy);
-        Lines lines_this = polyline.lines();
+        const Lines lines_this = polyline.lines();
         append(lines, lines_this);
         widths.insert(widths.end(), lines_this.size(), extrusion_path.width);
         heights.insert(heights.end(), lines_this.size(), extrusion_path.height);
     }
-    thick_lines_to_verts(lines, widths, heights, false, print_z, volume);
+    thick_lines_to_verts(lines, widths, heights, false, print_z, geometry);
 }
 
-void _3DScene::extrusionentity_to_verts(const ExtrusionEntityCollection &extrusion_entity_collection, float print_z, const Point &copy, GLVolume &volume)
+void _3DScene::extrusionentity_to_verts(const ExtrusionEntityCollection& extrusion_entity_collection, float print_z, const Point& copy, GUI::GLModel::Geometry& geometry)
 {
-    for (const ExtrusionEntity *extrusion_entity : extrusion_entity_collection.entities)
-        extrusionentity_to_verts(extrusion_entity, print_z, copy, volume);
+    for (const ExtrusionEntity* extrusion_entity : extrusion_entity_collection.entities)
+        extrusionentity_to_verts(extrusion_entity, print_z, copy, geometry);
 }
 
-void _3DScene::extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity, float print_z, const Point &copy, GLVolume &volume)
+void _3DScene::extrusionentity_to_verts(const ExtrusionEntity* extrusion_entity, float print_z, const Point& copy, GUI::GLModel::Geometry& geometry)
 {
     if (extrusion_entity != nullptr) {
-        auto *extrusion_path = dynamic_cast<const ExtrusionPath*>(extrusion_entity);
+        auto* extrusion_path = dynamic_cast<const ExtrusionPath*>(extrusion_entity);
         if (extrusion_path != nullptr)
-            extrusionentity_to_verts(*extrusion_path, print_z, copy, volume);
+            extrusionentity_to_verts(*extrusion_path, print_z, copy, geometry);
         else {
-            auto *extrusion_loop = dynamic_cast<const ExtrusionLoop*>(extrusion_entity);
+            auto* extrusion_loop = dynamic_cast<const ExtrusionLoop*>(extrusion_entity);
             if (extrusion_loop != nullptr)
-                extrusionentity_to_verts(*extrusion_loop, print_z, copy, volume);
+                extrusionentity_to_verts(*extrusion_loop, print_z, copy, geometry);
             else {
-                auto *extrusion_multi_path = dynamic_cast<const ExtrusionMultiPath*>(extrusion_entity);
+                auto* extrusion_multi_path = dynamic_cast<const ExtrusionMultiPath*>(extrusion_entity);
                 if (extrusion_multi_path != nullptr)
-                    extrusionentity_to_verts(*extrusion_multi_path, print_z, copy, volume);
+                    extrusionentity_to_verts(*extrusion_multi_path, print_z, copy, geometry);
                 else {
-                    auto *extrusion_entity_collection = dynamic_cast<const ExtrusionEntityCollection*>(extrusion_entity);
+                    auto* extrusion_entity_collection = dynamic_cast<const ExtrusionEntityCollection*>(extrusion_entity);
                     if (extrusion_entity_collection != nullptr)
-                        extrusionentity_to_verts(*extrusion_entity_collection, print_z, copy, volume);
-                    else {
+                        extrusionentity_to_verts(*extrusion_entity_collection, print_z, copy, geometry);
+                    else
                         throw Slic3r::RuntimeError("Unexpected extrusion_entity type in to_verts()");
-                    }
                 }
             }
         }
     }
-}
-
-void _3DScene::polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume)
-{
-    Lines3 lines = polyline.lines();
-    std::vector<double> widths(lines.size(), width);
-    std::vector<double> heights(lines.size(), height);
-    thick_lines_to_verts(lines, widths, heights, false, volume);
-}
-
-void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume)
-{
-    thick_point_to_verts(point, width, height, volume);
 }
 
 } // namespace Slic3r
