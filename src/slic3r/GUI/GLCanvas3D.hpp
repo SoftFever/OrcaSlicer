@@ -577,8 +577,6 @@ private:
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
     bool m_render_sla_auxiliaries;
 
-    std::string m_color_by;
-
     bool m_reload_delayed;
 
 #if ENABLE_RENDER_PICKING_PASS
@@ -788,8 +786,6 @@ public:
 
     bool                                get_use_clipping_planes() const { return m_use_clipping_planes; }
     const std::array<ClippingPlane, 2> &get_clipping_planes() const { return m_clipping_planes; };
-
-    void set_color_by(const std::string& value);
 
     void refresh_camera_scene_box();
 
