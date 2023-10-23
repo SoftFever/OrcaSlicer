@@ -3013,6 +3013,13 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("support_interface_not_for_body",coBool);
+    def->label    = L("No interface filament for body");
+    def->category = L("Support");
+    def->tooltip = L("Don't use support interface filament to print support body");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("support_line_width", coFloat);
     def->label = L("Support");
     def->category = L("Quality");
