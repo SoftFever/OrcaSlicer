@@ -411,32 +411,26 @@ CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
 
 void GLGizmoAdvancedCut::on_start_dragging()
 {
-    for (auto gizmo : m_gizmos) {
-        if (m_hover_id == gizmo.get_group_id()) {
-            gizmo.start_dragging();
-            return;
-        }
+    if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
+        m_gizmos[m_hover_id].start_dragging();
+    } else if (m_hover_id == c_connectors_group_id - 1) {
+        const Selection& selection = m_parent.get_selection();
+        const BoundingBoxf3& box = selection.get_bounding_box();
+        m_start_movement = m_movement;
+        m_start_height = m_height;
+        m_drag_pos = m_move_grabber.center;
     }
-
-    if (m_hover_id != get_group_id())
-        return;
-
-    const Selection& selection = m_parent.get_selection();
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    m_start_movement = m_movement;
-    m_start_height = m_height;
-    m_drag_pos = m_move_grabber.center;
-
-    if (m_hover_id >= c_connectors_group_id)
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
 }
 
 void GLGizmoAdvancedCut::on_stop_dragging()
 {
     if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
+        m_gizmos[m_hover_id].stop_dragging();
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
     } else if (m_hover_id == c_connectors_group_id - 1) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move cut plane");
+    } else if (m_hover_id >= c_connectors_group_id) {
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
     }
 }
 
