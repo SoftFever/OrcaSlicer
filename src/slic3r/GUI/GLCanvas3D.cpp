@@ -1169,36 +1169,6 @@ bool GLCanvas3D::init()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    // Set antialiasing / multisampling
-    glsafe(::glDisable(GL_LINE_SMOOTH));
-    glsafe(::glDisable(GL_POLYGON_SMOOTH));
-
-    // ambient lighting
-    GLfloat ambient[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    glsafe(::glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient));
-
-    glsafe(::glEnable(GL_LIGHT0));
-    glsafe(::glEnable(GL_LIGHT1));
-
-    // light from camera
-    GLfloat specular_cam[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT1, GL_SPECULAR, specular_cam));
-    GLfloat diffuse_cam[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse_cam));
-
-    // light from above
-    GLfloat specular_top[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT0, GL_SPECULAR, specular_top));
-    GLfloat diffuse_top[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    glsafe(::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_top));
-
-    // Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
-    glsafe(::glShadeModel(GL_SMOOTH));
-
-    // A handy trick -- have surface material mirror the color.
-    glsafe(::glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
-    glsafe(::glEnable(GL_COLOR_MATERIAL));
-
     if (m_multisample_allowed)
         glsafe(::glEnable(GL_MULTISAMPLE));
 
@@ -8194,11 +8164,11 @@ void GLCanvas3D::_render_sla_slices()
         if (!bottom_obj_triangles.empty() || !top_obj_triangles.empty() || !bottom_sup_triangles.empty() || !top_sup_triangles.empty()) {
 			for (const SLAPrintObject::Instance& inst : obj->instances()) {
                 glsafe(::glPushMatrix());
-                glsafe(::glTranslated(unscale<double>(inst.shift.x()), unscale<double>(inst.shift.y()), 0));
-                glsafe(::glRotatef(Geometry::rad2deg(inst.rotation), 0.0, 0.0, 1.0));
+                glsafe(::glTranslated(unscale<double>(inst.shift.x()), unscale<double>(inst.shift.y()), 0.0));
+                glsafe(::glRotatef(Geometry::rad2deg(inst.rotation), 0.0f, 0.0f, 1.0f));
 				if (obj->is_left_handed())
                     // The polygons are mirrored by X.
-                    glsafe(::glScalef(-1.0, 1.0, 1.0));
+                    glsafe(::glScalef(-1.0f, 1.0f, 1.0f));
                 glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
                 glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
 				if (!bottom_obj_triangles.empty()) {
