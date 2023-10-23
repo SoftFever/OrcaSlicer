@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-17 16:15+0800\n"
+"POT-Creation-Date: 2023-10-23 10:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -928,6 +928,9 @@ msgid "Cone"
 msgstr "Cône"
 
 msgid "Disc"
+msgstr ""
+
+msgid "Torus"
 msgstr ""
 
 msgid "Bambu Cube"
@@ -2966,6 +2969,9 @@ msgstr "Purgé"
 msgid "Total"
 msgstr "Total"
 
+msgid "Tower"
+msgstr ""
+
 msgid "Total Time Estimation"
 msgstr "Estimation du temps total"
 
@@ -3013,9 +3019,6 @@ msgstr "Durée de couche (s)"
 
 msgid "Used filament"
 msgstr "Filament utilisé"
-
-msgid "Tower"
-msgstr ""
 
 msgid "Travel"
 msgstr "Déplacement"
@@ -6371,6 +6374,15 @@ msgstr "Limites de hauteur de couche"
 msgid "Retraction when switching material"
 msgstr "Rétraction lors du changement de matériau"
 
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
+msgstr ""
+
 msgid "Detached"
 msgstr "Détaché"
 
@@ -6696,6 +6708,9 @@ msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr ""
 "Afficher/Masquer la boîte de dialogue des paramètres des périphériques "
 "3Dconnexion"
+
+msgid "Switch table page"
+msgstr ""
 
 msgid "Show keyboard shortcuts list"
 msgstr "Afficher la liste des raccourcis clavier"
@@ -8444,8 +8459,8 @@ msgstr ""
 msgid "accel_to_decel"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this percent of acceleration"
 msgstr ""
 
 msgid "Default jerk"
@@ -9761,6 +9776,12 @@ msgid ""
 "unchecked. Must use relative e distance for Bambu printer"
 msgstr ""
 
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid "Convert the retraction moves to G10 and G11 gcode"
+msgstr ""
+
 msgid "Wipe while retracting"
 msgstr "Nettoyer lors des rétractions"
 
@@ -9991,6 +10012,14 @@ msgstr ""
 
 msgid "invalid value "
 msgstr "Valeur invalide "
+
+msgid ""
+"--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, "
+"RepRapFirmware, Repetier and Machinekit firmware"
+msgstr ""
+
+msgid "--use-firmware-retraction is not compatible with --wipe"
+msgstr ""
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -10275,6 +10304,9 @@ msgstr "Support : génération du parcours d'impression à la couche %d"
 
 msgid "Support: detect overhangs"
 msgstr "Support : détection des surplombs"
+
+msgid "Support: precalculate avoidance"
+msgstr ""
 
 msgid "Support: generate contact points"
 msgstr "Support : génération des points de contact"

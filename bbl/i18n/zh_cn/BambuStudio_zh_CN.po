@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-17 16:15+0800\n"
+"POT-Creation-Date: 2023-10-23 10:18+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -909,6 +909,9 @@ msgstr "锥体"
 
 msgid "Disc"
 msgstr "小圆片"
+
+msgid "Torus"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -2835,6 +2838,9 @@ msgstr "冲刷"
 msgid "Total"
 msgstr "总计"
 
+msgid "Tower"
+msgstr "擦料塔"
+
 msgid "Total Time Estimation"
 msgstr "总时间预估"
 
@@ -2882,9 +2888,6 @@ msgstr "层时间（s）"
 
 msgid "Used filament"
 msgstr "使用的耗材丝"
-
-msgid "Tower"
-msgstr "擦料塔"
 
 msgid "Travel"
 msgstr "空驶"
@@ -6081,6 +6084,15 @@ msgstr "层高限制"
 msgid "Retraction when switching material"
 msgstr "切换材料时的回抽量"
 
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
+msgstr ""
+
 msgid "Detached"
 msgstr "分离的"
 
@@ -6382,6 +6394,9 @@ msgstr "从剪切板粘贴"
 
 msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "显示/隐藏 3Dconnexion设备的设置对话框"
+
+msgid "Switch table page"
+msgstr "切换标签页"
 
 msgid "Show keyboard shortcuts list"
 msgstr "显示键盘快捷键列表"
@@ -7963,8 +7978,8 @@ msgstr ""
 msgid "accel_to_decel"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this percent of acceleration"
 msgstr ""
 
 msgid "Default jerk"
@@ -9158,6 +9173,12 @@ msgstr ""
 "如果您的固件要求使用相对E值，请勾选此项；否则，请不要勾选。对于Bambu打印机，"
 "必须使用相对E距离。"
 
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid "Convert the retraction moves to G10 and G11 gcode"
+msgstr ""
+
 msgid "Wipe while retracting"
 msgstr "回抽时擦拭"
 
@@ -9355,6 +9376,14 @@ msgstr ""
 
 msgid "invalid value "
 msgstr "无效值"
+
+msgid ""
+"--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, "
+"RepRapFirmware, Repetier and Machinekit firmware"
+msgstr ""
+
+msgid "--use-firmware-retraction is not compatible with --wipe"
+msgstr ""
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -9627,6 +9656,9 @@ msgstr "支撑：正在生成层%d的走线路径"
 
 msgid "Support: detect overhangs"
 msgstr "支撑：正在检测悬空面"
+
+msgid "Support: precalculate avoidance"
+msgstr ""
 
 msgid "Support: generate contact points"
 msgstr "支撑：正在生成接触点"
@@ -10741,12 +10773,16 @@ msgstr ""
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
 "Can be share in MakerWorld."
-msgstr "用户的材料预设集。\n可以在MakerWorld中共享。"
+msgstr ""
+"用户的材料预设集。\n"
+"可以在MakerWorld中共享。"
 
 msgid ""
 "User's fillment preset set. \n"
 "Can be share in MakerWorld."
-msgstr "用户的材料预设集。\n可以在MakerWorld中共享。"
+msgstr ""
+"用户的材料预设集。\n"
+"可以在MakerWorld中共享。"
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
@@ -10803,7 +10839,9 @@ msgstr "删除材料"
 msgid ""
 "Delete filament?\n"
 "Delete filament would deleted all the attatched filament presets"
-msgstr "删除材料？\n删除材料将删除所有附属的材料预设。"
+msgstr ""
+"删除材料？\n"
+"删除材料将删除所有附属的材料预设。"
 
 msgid "Delete filament"
 msgstr "删除材料"

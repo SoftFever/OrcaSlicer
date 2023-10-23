@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-18 10:44+0800\n"
+"POT-Creation-Date: 2023-10-23 10:18+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -923,6 +923,9 @@ msgid "Cone"
 msgstr "Kužel"
 
 msgid "Disc"
+msgstr ""
+
+msgid "Torus"
 msgstr ""
 
 msgid "Bambu Cube"
@@ -2090,14 +2093,14 @@ msgstr "Teplota Podložky"
 msgid "Max volumetric speed"
 msgstr "Maximální objemová rychlost"
 
-msgid "\\u2103"
-msgstr ""
+msgid "℃"
+msgstr "℃"
 
 msgid "Bed temperature"
 msgstr "Teplota podložky"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Spustit kalibraci"
@@ -2785,20 +2788,20 @@ msgstr "Aktualizace se nezdařila."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40\\u2103, the chamber "
-"temperature control will not be activated. And the target chamber "
-"temperature will automatically be set to 0\\u2103."
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -2940,6 +2943,9 @@ msgstr "Čištění"
 msgid "Total"
 msgstr "Celkem"
 
+msgid "Tower"
+msgstr ""
+
 msgid "Total Time Estimation"
 msgstr "Celkový odhad času"
 
@@ -2987,9 +2993,6 @@ msgstr "Čas vrstvy (s)"
 
 msgid "Used filament"
 msgstr "Použito filamentu"
-
-msgid "Tower"
-msgstr ""
 
 msgid "Travel"
 msgstr "Rychloposun"
@@ -6008,8 +6011,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -6287,6 +6290,15 @@ msgstr "Výškové limity vrstvy"
 
 msgid "Retraction when switching material"
 msgstr "Retrakce při změně materiálu"
+
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
+msgstr ""
 
 msgid "Detached"
 msgstr "Odpojeno"
@@ -6602,6 +6614,9 @@ msgstr "Vložit ze schránky"
 
 msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "Zobrazit / skrýt dialogové okno nastavení zařízení 3Dconnexion"
+
+msgid "Switch table page"
+msgstr ""
 
 msgid "Show keyboard shortcuts list"
 msgstr "Zobrazit přehled klávesových zkratek"
@@ -8130,9 +8145,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimální vytlačený objem na čistící věži"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "Doba zavádění filamentu"
 
@@ -9583,6 +9595,12 @@ msgstr ""
 "jinak jej ponechte odškrtnuté. Pro tiskárny Bambu je nutné používat "
 "relativní vzdálenosti E."
 
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid "Convert the retraction moves to G10 and G11 gcode"
+msgstr ""
+
 msgid "Wipe while retracting"
 msgstr "Očistit při retrakci"
 
@@ -9801,6 +9819,14 @@ msgstr ""
 
 msgid "invalid value "
 msgstr "neplatná hodnota "
+
+msgid ""
+"--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, "
+"RepRapFirmware, Repetier and Machinekit firmware"
+msgstr ""
+
+msgid "--use-firmware-retraction is not compatible with --wipe"
+msgstr ""
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -10079,6 +10105,9 @@ msgstr "Generování dráhy nástroje ve vrstvě %d"
 
 msgid "Support: detect overhangs"
 msgstr "Podpěry: detekovat převisy"
+
+msgid "Support: precalculate avoidance"
+msgstr ""
 
 msgid "Support: generate contact points"
 msgstr "Podpěry: generování kontaktních bodů"
@@ -10554,11 +10583,11 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Parametry tisku"
 
-msgid "- \\u2103"
-msgstr ""
+msgid "- ℃"
+msgstr "- ℃"
 
-msgid " \\u2103"
-msgstr ""
+msgid " ℃"
+msgstr " ℃"
 
 msgid "Plate Type"
 msgstr "Typ Podložky"
@@ -10615,9 +10644,6 @@ msgstr "Z objemové rychlosti"
 
 msgid "To Volumetric Speed"
 msgstr "Do objemové rychlosti"
-
-msgid "mm\\u00B3/s"
-msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Výsledek kalibrace dynamiky průtoku"
@@ -10730,9 +10756,12 @@ msgstr "krok: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Zadejte prosím platné hodnoty:\n"
+"start > 0 krok >= 0\n"
+"konec > začátek + krok)"
 
 msgid "VFA test"
 msgstr "VFA test"
@@ -10745,9 +10774,12 @@ msgstr "Koncová rychlost: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Zadejte prosím platné hodnoty:\n"
+"start > 10 kroků >= 0\n"
+"konec > začátek + krok)"
 
 msgid "Start retraction length: "
 msgstr "Délka retrakce na začátku: "
@@ -11365,8 +11397,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
-"podložku\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
+"\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -11596,9 +11628,6 @@ msgstr ""
 #~ msgid "Push new filament into the extruder"
 #~ msgstr "Zasuňte nový filament do extruderu"
 
-#~ msgid "℃"
-#~ msgstr "℃"
-
 #~ msgid ""
 #~ "There are currently no identical spare consumables available, and "
 #~ "automatic replenishment is currently not possible. \n"
@@ -11789,27 +11818,3 @@ msgstr ""
 
 #~ msgid "The selected preset: %1% is not found."
 #~ msgstr "Vybraná předvolba: %1% nebyla nalezena."
-
-#~ msgid "- ℃"
-#~ msgstr "- ℃"
-
-#~ msgid " ℃"
-#~ msgstr " ℃"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 0 step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Zadejte prosím platné hodnoty:\n"
-#~ "start > 0 krok >= 0\n"
-#~ "konec > začátek + krok)"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 10 step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Zadejte prosím platné hodnoty:\n"
-#~ "start > 10 kroků >= 0\n"
-#~ "konec > začátek + krok)"

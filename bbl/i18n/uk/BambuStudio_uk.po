@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-18 10:44+0800\n"
+"POT-Creation-Date: 2023-10-23 10:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -915,6 +915,9 @@ msgid "Cone"
 msgstr "Конус"
 
 msgid "Disc"
+msgstr ""
+
+msgid "Torus"
 msgstr ""
 
 msgid "Bambu Cube"
@@ -2091,14 +2094,14 @@ msgstr "Температура столу"
 msgid "Max volumetric speed"
 msgstr "Максимальна об'ємна швидкість"
 
-msgid "\\u2103"
-msgstr "\\u2103"
+msgid "℃"
+msgstr "℃"
 
 msgid "Bed temperature"
 msgstr "Температура столу"
 
-msgid "mm\\u00B3"
-msgstr "mm\\u00B3"
+msgid "mm³"
+msgstr "мм³"
 
 msgid "Start calibration"
 msgstr "Почати калібрування"
@@ -2801,20 +2804,20 @@ msgstr "Не вдалося оновити."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40\\u2103, the chamber "
-"temperature control will not be activated. And the target chamber "
-"temperature will automatically be set to 0\\u2103."
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -2956,6 +2959,9 @@ msgstr "Очищення"
 msgid "Total"
 msgstr "Загальний"
 
+msgid "Tower"
+msgstr ""
+
 msgid "Total Time Estimation"
 msgstr "Оцінка загального часу"
 
@@ -3003,9 +3009,6 @@ msgstr "Время слоя (c)"
 
 msgid "Used filament"
 msgstr "Філамент, що використовується"
-
-msgid "Tower"
-msgstr ""
 
 msgid "Travel"
 msgstr "Переміщення"
@@ -5898,8 +5901,8 @@ msgstr "Умови використання"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Дякуємо за покупку пристрою Bambu Lab. Перед використанням вашого пристрою "
@@ -6319,6 +6322,15 @@ msgstr "Обмеження висоти шару"
 msgid "Retraction when switching material"
 msgstr "Втягування під час перемикання матеріалу"
 
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
+msgstr ""
+
 msgid "Detached"
 msgstr "Окремий"
 
@@ -6633,6 +6645,9 @@ msgstr "Вставити з буфера обміну"
 
 msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "Показати/приховати діалог налаштувань пристроїв 3Dconnexion"
+
+msgid "Switch table page"
+msgstr ""
 
 msgid "Show keyboard shortcuts list"
 msgstr "Показати список клавіш"
@@ -8183,9 +8198,6 @@ msgstr "мм³/с"
 msgid "Minimal purge on wipe tower"
 msgstr "Мінімальна очистка на вежу очищення"
 
-msgid "mm³"
-msgstr "мм³"
-
 msgid "Filament load time"
 msgstr "Час завантаження філаменту"
 
@@ -9664,6 +9676,12 @@ msgstr ""
 "пункт, в іншому випадку залиште його невідзначеним. Обов’язково "
 "використовуйте відносні відстані E для принтера Bambu"
 
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid "Convert the retraction moves to G10 and G11 gcode"
+msgstr ""
+
 msgid "Wipe while retracting"
 msgstr "Ретракт при очищенні"
 
@@ -9888,6 +9906,14 @@ msgstr ""
 
 msgid "invalid value "
 msgstr "неправильне значення "
+
+msgid ""
+"--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, "
+"RepRapFirmware, Repetier and Machinekit firmware"
+msgstr ""
+
+msgid "--use-firmware-retraction is not compatible with --wipe"
+msgstr ""
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -10165,6 +10191,9 @@ msgstr "Підтримка: створення траєкторії інстру
 
 msgid "Support: detect overhangs"
 msgstr "Підтримка: виявлення звисів"
+
+msgid "Support: precalculate avoidance"
+msgstr ""
 
 msgid "Support: generate contact points"
 msgstr "Підтримка: створення точок контакту"
@@ -10643,11 +10672,11 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr "Параметри друку"
 
-msgid "- \\u2103"
-msgstr ""
+msgid "- ℃"
+msgstr "- ℃"
 
-msgid " \\u2103"
-msgstr ""
+msgid " ℃"
+msgstr " ℃"
 
 msgid "Plate Type"
 msgstr "Тип стільця"
@@ -10703,9 +10732,6 @@ msgstr "З об'ємною швидкістю"
 
 msgid "To Volumetric Speed"
 msgstr "До об'ємної швидкості"
-
-msgid "mm\\u00B3/s"
-msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Результат калібрування динаміки потоку"
@@ -10818,9 +10844,12 @@ msgstr "крок: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Введіть допустимі значення:\n"
+"початок > 0 крок >= 0\n"
+"кінець > початок + крок)"
 
 msgid "VFA test"
 msgstr "VFA тест"
@@ -10833,9 +10862,12 @@ msgstr "Кінцева швидкість: "
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
+"Введіть допустимі значення:\n"
+"старт > 10 кроків >= 0\n"
+"кінець > початок + крок)"
 
 msgid "Start retraction length: "
 msgstr "Початкова довжина ретракту: "
@@ -11669,6 +11701,12 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "\\u2103"
+#~ msgstr "\\u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\u00B3"
+
 #~ msgid "Ctrl + Shift + Enter"
 #~ msgstr "Ctrl + Shift + Enter"
 
@@ -11697,9 +11735,6 @@ msgstr ""
 
 #~ msgid "Push new filament into the extruder"
 #~ msgstr "Вставте новий філамент в екструдер"
-
-#~ msgid "℃"
-#~ msgstr "℃"
 
 #~ msgid ""
 #~ "There are currently no identical spare consumables available, and "
@@ -11961,30 +11996,6 @@ msgstr ""
 
 #~ msgid "Please choose a block with the smoothest top surface."
 #~ msgstr "Будь ласка, виберіть блок з найгладшою верхньою поверхнею."
-
-#~ msgid "- ℃"
-#~ msgstr "- ℃"
-
-#~ msgid " ℃"
-#~ msgstr " ℃"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 0 step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Введіть допустимі значення:\n"
-#~ "початок > 0 крок >= 0\n"
-#~ "кінець > початок + крок)"
-
-#~ msgid ""
-#~ "Please input valid values:\n"
-#~ "start > 10 step >= 0\n"
-#~ "end > start + step)"
-#~ msgstr ""
-#~ "Введіть допустимі значення:\n"
-#~ "старт > 10 кроків >= 0\n"
-#~ "кінець > початок + крок)"
 
 #~ msgid ""
 #~ "Detect the overhang percentage relative to line width and use different "

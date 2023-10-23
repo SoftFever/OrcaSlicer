@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-17 16:15+0800\n"
+"POT-Creation-Date: 2023-10-23 10:18+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -915,6 +915,9 @@ msgid "Cone"
 msgstr "Конус"
 
 msgid "Disc"
+msgstr ""
+
+msgid "Torus"
 msgstr ""
 
 msgid "Bambu Cube"
@@ -2946,6 +2949,9 @@ msgstr "Очистка"
 msgid "Total"
 msgstr "Общий"
 
+msgid "Tower"
+msgstr ""
+
 msgid "Total Time Estimation"
 msgstr "Оценка общего времени"
 
@@ -2993,9 +2999,6 @@ msgstr ""
 
 msgid "Used filament"
 msgstr "Используемый филамент"
-
-msgid "Tower"
-msgstr ""
 
 msgid "Travel"
 msgstr "Перемещение"
@@ -6284,6 +6287,18 @@ msgstr "Ограничения высоты слоя"
 msgid "Retraction when switching material"
 msgstr "Втягивание при переключении материала"
 
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+"Опция Wipe недоступна при использовании режима Firmware Retraction.\n"
+"\n"
+"Должен ли я отключить его, чтобы включить Firmware Retraction?"
+
+msgid "Firmware Retraction"
+msgstr "Firmware Retraction"
+
 msgid "Detached"
 msgstr "Отдельный"
 
@@ -6601,6 +6616,9 @@ msgstr "Вставить из буфера обмена"
 
 msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "Показать/скрыть диалог настроек устройств 3Dconnexion"
+
+msgid "Switch table page"
+msgstr ""
 
 msgid "Show keyboard shortcuts list"
 msgstr "Показать список сочетаний клавиш"
@@ -8308,11 +8326,9 @@ msgstr ""
 msgid "accel_to_decel"
 msgstr "ускорение до замедления"
 
-#, c-format, boost-format
-msgid "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+msgid ""
+"Klipper's max_accel_to_decel will be adjusted to this percent of acceleration"
 msgstr ""
-"Max \"ускорение до замедления\" для Klipper будет скорректирован на % o "
-"автоматически"
 
 msgid "Default jerk"
 msgstr ""
@@ -9573,6 +9589,12 @@ msgid ""
 "unchecked. Must use relative e distance for Bambu printer"
 msgstr ""
 
+msgid "Use firmware retraction"
+msgstr "Использовать ретракт из прошивки"
+
+msgid "Convert the retraction moves to G10 and G11 gcode"
+msgstr ""
+
 msgid "Wipe while retracting"
 msgstr "Ретракт при очистке"
 
@@ -9798,6 +9820,14 @@ msgstr ""
 
 msgid "invalid value "
 msgstr "неверное значение "
+
+msgid ""
+"--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, "
+"RepRapFirmware, Repetier and Machinekit firmware"
+msgstr ""
+
+msgid "--use-firmware-retraction is not compatible with --wipe"
+msgstr ""
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -10076,6 +10106,9 @@ msgstr "Поддержка: создание траектории инструм
 
 msgid "Support: detect overhangs"
 msgstr "Поддержка: обнаружение свесов"
+
+msgid "Support: precalculate avoidance"
+msgstr ""
 
 msgid "Support: generate contact points"
 msgstr "Поддержка: создание точек контакта"
@@ -11485,6 +11518,13 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "Klipper's max_accel_to_decel will be adjusted to this % of acceleration"
+#~ msgstr ""
+#~ "Max \"ускорение до замедления\" для Klipper будет скорректирован на % o "
+#~ "автоматически"
+
 #~ msgid "Ctrl + Shift + Enter"
 #~ msgstr "Ctrl + Shift + Enter"
 
@@ -11945,19 +11985,6 @@ msgstr ""
 #~ msgid "Fan speed-up time"
 #~ msgstr "Время разгона вентилятора"
 
-#~ msgid ""
-#~ "The Wipe option is not available when using the Firmware Retraction "
-#~ "mode.\n"
-#~ "\n"
-#~ "Shall I disable it in order to enable Firmware Retraction?"
-#~ msgstr ""
-#~ "Опция Wipe недоступна при использовании режима Firmware Retraction.\n"
-#~ "\n"
-#~ "Должен ли я отключить его, чтобы включить Firmware Retraction?"
-
-#~ msgid "Firmware Retraction"
-#~ msgstr "Firmware Retraction"
-
 #~ msgid "Swtich between Prepare/Prewview"
 #~ msgstr "Переключение между Подготовка/Предварительный просмотр"
 
@@ -12399,9 +12426,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Когда втягивание компенсируется после замены инструмента, экструдер "
 #~ "проталкивает это дополнительное количество нити."
-
-#~ msgid "Use firmware retraction"
-#~ msgstr "Использовать ретракт из прошивки"
 
 #~ msgid ""
 #~ "This experimental setting uses G10 and G11 commands to have the firmware "
