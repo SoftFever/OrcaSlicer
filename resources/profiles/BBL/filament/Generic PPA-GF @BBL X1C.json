@@ -5,6 +5,12 @@
     "from": "system",
     "setting_id": "GFSN96_00",
     "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "filament_type": [
+        "PPA-GF"
+    ],
     "filament_vendor": [
         "Bambu Lab"
     ],

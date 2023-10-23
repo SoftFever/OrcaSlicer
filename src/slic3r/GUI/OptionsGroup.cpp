@@ -1250,9 +1250,14 @@ wxString OptionsGroup::get_url(const std::string& path_end)
         anchor.Replace(L" ", "-");
         str = str.Left(pos) + anchor;
     }
-    // Orca: point to sf wiki for seam parameters
-    return wxString::Format(L"https://github.com/SoftFever/OrcaSlicer/wiki/Print-settings/%s", from_u8(path_end));
-
+    // Softfever: point to sf wiki for seam parameters
+    if (path_end == "Seam") {
+        return wxString::Format(L"https://github.com/SoftFever/OrcaSlicer/wiki/%s", from_u8(path_end));
+    }
+    else {
+        //BBS
+        return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", str);
+    }
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)

@@ -202,7 +202,10 @@ void FillBedJob::process()
 {
     if (m_object_idx == -1 || m_selected.empty()) return;
 
-    update_arrange_params(params, m_plater->config(), m_selected);
+    const GLCanvas3D::ArrangeSettings &settings =
+        static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
+
+    update_arrange_params(params, *m_plater, m_selected);
     m_bedpts = get_shrink_bedpts(m_plater->config(), params);
 
     auto &partplate_list               = m_plater->get_partplate_list();

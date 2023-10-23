@@ -38,7 +38,7 @@
 	"retract_length_toolchange": ["1"],
 	"deretraction_speed": ["40"],
 	"z_hop": ["0.4"],
-	"single_extruder_multi_material": "1",
+	"single_extruder_multi_material": "0",
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "PAUSE",
 	"default_filament_profile": ["Creality Generic PLA"],

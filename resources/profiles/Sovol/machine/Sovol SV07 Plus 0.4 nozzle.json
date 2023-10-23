@@ -114,7 +114,7 @@
 	"deretraction_speed": [
 		"140"
 	],
-	"single_extruder_multi_material": "1",
+	"single_extruder_multi_material": "0",
 	"change_filament_gcode": "M600\nG1 E0.4 F1500 ; prime after color change",
 	"machine_pause_gcode": "M601",
 	"default_filament_profile": [

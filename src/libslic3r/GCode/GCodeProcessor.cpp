@@ -60,7 +60,6 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
-    " MANUAL_TOOL_CHANGE ",
     "_DURING_PRINT_EXHAUST_FAN"
 };
 
@@ -77,14 +76,19 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
-    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
-    " MANUAL_TOOL_CHANGE "
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
 };
 
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
+const std::map<NozzleType,int> GCodeProcessor::Nozzle_Type_To_HRC={
+    {NozzleType::ntStainlessSteel,20},
+    {NozzleType::ntHardenedSteel,55},
+    {NozzleType::ntBrass,2},
+    {NozzleType::ntUndefine,0}
+};
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
@@ -664,10 +668,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 if (eol) {
                     ++line_id;
 
-                    // determine the end of line character and pass to output
-                    gcode_line += *it_end;
-                    if(*it_end == '\r' && *(++ it_end) == '\n')
-                        gcode_line += '\n';
+                    gcode_line += "\n";
                     // replace placeholder lines
                     auto [processed, lines_added_count] = process_placeholders(gcode_line);
                     if (processed && lines_added_count > 0)
@@ -1012,9 +1013,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     if (spiral_vase != nullptr)
         m_spiral_vase_active = spiral_vase->value;
 
-    const ConfigOptionBool* manual_filament_change = config.option<ConfigOptionBool>("manual_filament_change");
-    if (manual_filament_change != nullptr)
-        m_manual_filament_change = manual_filament_change->value;
+
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -2111,13 +2110,6 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
             if (!parse_number(comment.substr(reserved_tag(ETags::Width).size()), m_forced_width))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
-        }
-        // Orca: manual tool change tag
-        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::Manual_Tool_Change))) {
-            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::Manual_Tool_Change).length());
-            if (boost::starts_with(tool_change_cmd, "T")) {
-                process_T(tool_change_cmd);
-            }
         }
     }
 
@@ -4355,7 +4347,7 @@ void GCodeProcessor::update_slice_warnings()
     if (m_highest_bed_temp != 0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int temperature = get_filament_vitrification_temperature(used_extruders[i]);
-            if (temperature != 0 && m_highest_bed_temp >= temperature)
+            if (temperature != 0 && m_highest_bed_temp > temperature)
                 warning.params.push_back(std::to_string(used_extruders[i]));
         }
     }
@@ -4372,7 +4364,7 @@ void GCodeProcessor::update_slice_warnings()
 
     int nozzle_hrc = m_result.nozzle_hrc;
     if(nozzle_hrc <= 0)
-        nozzle_hrc = Print::get_hrc_by_nozzle_type(m_result.nozzle_type);
+        nozzle_hrc = Nozzle_Type_To_HRC.find(m_result.nozzle_type)->second;
     if (nozzle_hrc!=0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int HRC=0;

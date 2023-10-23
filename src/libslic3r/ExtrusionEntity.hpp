@@ -43,13 +43,10 @@ enum ExtrusionRole : uint8_t {
 };
 
 // Special flags describing loop
-enum ExtrusionLoopRole : uint8_t {
-    elrDefault=0x0,
-    // Loop for the hole, not for the contour
-    elrHole=0x1,
-    // Loop that is the most closest to infill
-    elrInternal = 0x2,
-    elrSkirt=0x4,
+enum ExtrusionLoopRole {
+    elrDefault,
+    elrContourInternalPerimeter,
+    elrSkirt,
 };
 
 

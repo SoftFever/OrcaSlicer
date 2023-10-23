@@ -105,7 +105,6 @@ public:
     int                         job_id;
     int                         design_id;
     int                         profile_id;
-    int                         instance_id;
     std::string                 task_id;
     std::string                 model_id;
     std::string                 model_name;

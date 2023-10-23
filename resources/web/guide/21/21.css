@@ -16,7 +16,7 @@
 {
 	float: right;
 	display: flex;
-	white-space: nowrap;
+	width: 140px;
 	justify-content: space-around;
 	align-items: center;
 	height: 40px;

@@ -1,6 +1,6 @@
 var TestProjectData={
 	"model": {
-		"name": "xxxxxxxxxxxxxxxxxxxxxxxxx easy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy printeasy print",
+		"name": "xxxxxxxxxxxxxxxxxxxxxxxxx easy print",
 		"author": "Zorro Zhang",
 		"upload_type": "share",
 		"license": "CC0",

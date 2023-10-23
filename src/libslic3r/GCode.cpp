@@ -9,7 +9,6 @@
 #include "EdgeGrid.hpp"
 #include "Geometry/ConvexHull.hpp"
 #include "GCode/PrintExtents.hpp"
-#include "GCode/Thumbnails.hpp"
 #include "GCode/WipeTower.hpp"
 #include "ShortestPath.hpp"
 #include "Print.hpp"
@@ -666,8 +665,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         Vec2f wipe_tower_offset   = tcr.priming ? Vec2f::Zero() : m_wipe_tower_pos;
         float wipe_tower_rotation = tcr.priming ? 0.f : alpha;
-        Vec2f plate_origin_2d(m_plate_origin(0), m_plate_origin(1));
-
 
         std::string tcr_rotated_gcode = post_process_wipe_tower_moves(tcr, wipe_tower_offset, wipe_tower_rotation);
 
@@ -691,7 +688,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // then we could simplify the condition and make it more readable.
             gcode += gcodegen.retract();
             gcodegen.m_avoid_crossing_perimeters.use_external_mp_once();
-            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d), erMixed, "Travel to a Wipe Tower");
+            gcode += gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, start_pos), erMixed, "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
         } else {
             // When this is multiextruder printer without any ramming, we can just change
@@ -805,8 +802,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         // A phony move to the end position at the wipe tower.
-        gcodegen.writer().travel_to_xy((end_pos + plate_origin_2d).cast<double>());
-        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos + plate_origin_2d));
+        gcodegen.writer().travel_to_xy(end_pos.cast<double>());
+        gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
         if (!is_approx(z, current_z)) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(current_z, "Travel back up to the topmost object layer.");
@@ -1666,6 +1663,50 @@ namespace DoExport {
 	    }
 	}
 
+    //BBS: add plate id for thumbnail generate param
+	template<typename WriteToOutput, typename ThrowIfCanceledCallback>
+	static void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb, int plate_id, const std::vector<Vec2d> &sizes, WriteToOutput output, ThrowIfCanceledCallback throw_if_canceled)
+	{
+	    // Write thumbnails using base64 encoding
+	    if (thumbnail_cb != nullptr)
+	    {
+	        const size_t max_row_length = 78;
+            //BBS: add plate id for thumbnail generate param
+            ThumbnailsList thumbnails = thumbnail_cb(ThumbnailsParams{ sizes, true, true, true, true, plate_id });
+	        for (const ThumbnailData& data : thumbnails)
+	        {
+	            if (data.is_valid())
+	            {
+	                size_t png_size = 0;
+	                void* png_data = tdefl_write_image_to_png_file_in_memory_ex((const void*)data.pixels.data(), data.width, data.height, 4, &png_size, MZ_DEFAULT_LEVEL, 1);
+	                if (png_data != nullptr)
+	                {
+	                    std::string encoded;
+	                    encoded.resize(boost::beast::detail::base64::encoded_size(png_size));
+	                    encoded.resize(boost::beast::detail::base64::encode((void*)&encoded[0], (const void*)png_data, png_size));
+
+                        output("; THUMBNAIL_BLOCK_START\n");
+	                    output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
+
+	                    unsigned int row_count = 0;
+	                    //BBS: optimize performance ,reduce too much memeory operation 
+	                    size_t current_index = 0;
+	                    while(current_index<encoded.size()){
+	                        output((boost::format("; %s\n") % encoded.substr(current_index, max_row_length)).str().c_str());
+	                        current_index+=std::min(max_row_length,encoded.size()-current_index);
+	                        ++row_count;
+	                    }
+	                    output("; thumbnail end\n");
+                        output("; THUMBNAIL_BLOCK_END\n\n");
+
+	                    mz_free(png_data);
+	                }
+	            }
+	            throw_if_canceled();
+	        }
+	    }
+	}
+
 	// Fill in print_statistics and return formatted string containing filament statistics to be inserted into G-code comment section.
     static std::string update_print_stats_and_format_filament_stats(
         const bool                   has_wipe_tower,
@@ -1877,15 +1918,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     } else
 	    m_enable_extrusion_role_markers = false;
 
-    // if thumbnail type of BTT_TFT, insert above header
-    // if not, it is inserted under the header in its normal spot
-    const GCodeThumbnailsFormat m_gcode_thumbnail_format = print.full_print_config().opt_enum<GCodeThumbnailsFormat>("thumbnails_format");
-    if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::BTT_TFT)
-        GCodeThumbnails::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-            m_gcode_thumbnail_format,
-            [&file](const char *sz) { file.write(sz); },
-            [&print]() { print.throw_if_canceled(); });
 
     file.write_format("; HEADER_BLOCK_START\n");
     // Write information on the generator.
@@ -1945,12 +1977,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
-          GCodeThumbnails::export_thumbnails_to_file(
-              thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-              m_gcode_thumbnail_format,
-              [&file](const char *sz) { file.write(sz); },
-              [&print]() { print.throw_if_canceled(); });
+        DoExport::export_thumbnails_to_file(
+            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+            [&file](const char *sz) { file.write(sz); },
+            [&print]() { print.throw_if_canceled(); });
       }
     }
 
@@ -2240,17 +2270,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
-    // Orca: set chamber temperature at the beginning of gcode file
-    bool activate_chamber_temp_control = false;
-    auto max_chamber_temp = 0;
-    for (const auto &extruder : m_writer.extruders()) {
-        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
-        max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
-    }
-
-    if (activate_chamber_temp_control && max_chamber_temp > 0)
-        file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
-
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
 
@@ -2273,19 +2292,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 */
     if (is_bbl_printers) {
         this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
+        if (m_config.support_air_filtration.getBool() && m_config.activate_air_filtration.get_at(initial_extruder_id)) {
+            file.write(m_writer.set_exhaust_fan(m_config.during_print_exhaust_fan_speed.get_at(initial_extruder_id), true));
+        }
     }
-    // Orca: when activate_air_filtration is set on any extruder, find and set the highest during_print_exhaust_fan_speed
-    bool activate_air_filtration        = false;
-    int  during_print_exhaust_fan_speed = 0;
-    for (const auto &extruder : m_writer.extruders()) {
-        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
-        if (m_config.activate_air_filtration.get_at(extruder.id()))
-            during_print_exhaust_fan_speed = std::max(during_print_exhaust_fan_speed,
-                                                      m_config.during_print_exhaust_fan_speed.get_at(extruder.id()));
-    }
-    if (activate_air_filtration)
-        file.write(m_writer.set_exhaust_fan(during_print_exhaust_fan_speed, true));
-
     print.throw_if_canceled();
 
     // Set other general things.
@@ -2548,16 +2558,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
-    if (activate_chamber_temp_control && max_chamber_temp > 0)
+    if (print.config().support_chamber_temp_control.value || print.config().chamber_temperature.values[0] > 0)
         file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
 
-    if (activate_air_filtration) {
-        int complete_print_exhaust_fan_speed = 0;
-        for (const auto& extruder : m_writer.extruders())
-            if (m_config.activate_air_filtration.get_at(extruder.id()))
-                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
-        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
-    }
+
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
     file.write_format("; EXECUTABLE_BLOCK_END\n\n");
@@ -2606,6 +2610,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     }
     file.write("\n");
+
+    bool activate_air_filtration = false;
+    for (const auto& extruder : m_writer.extruders())
+        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
+    activate_air_filtration &= m_config.support_air_filtration.getBool();
+
+    if (activate_air_filtration) {
+        int complete_print_exhaust_fan_speed = 0;
+        for (const auto& extruder : m_writer.extruders())
+            if (m_config.activate_air_filtration.get_at(extruder.id()))
+                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
+        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
+    }
 
     print.throw_if_canceled();
 }
@@ -4165,12 +4182,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
-    bool is_hole = (loop.loop_role() & elrHole) == elrHole;
-
-    if (m_config.spiral_mode && !is_hole) {
-        // if spiral vase, we have to ensure that all contour are in the same orientation.
-        loop.make_counter_clockwise();
-    }
+    // extrude all loops ccw
+    bool was_clockwise = loop.make_counter_clockwise();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
@@ -4227,20 +4240,26 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // make a little move inwards before leaving loop
     if (m_config.wipe_on_loops.value && paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
         // detect angle between last and first segment
-        // the side depends on the original winding order of the polygon (inwards for contours, outwards for holes)
+        // the side depends on the original winding order of the polygon (left for contours, right for holes)
         //FIXME improve the algorithm in case the loop is tiny.
         //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
         Point a = paths.front().polyline.points[1];  // second point
         Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (is_hole == loop.is_counter_clockwise()) {
+        if (was_clockwise) {
             // swap points
             Point c = a; a = b; b = c;
+
+    //    double angle = paths.front().first_point().ccw_angle(a, b) / 3;
+
+    //    // turn left if contour, turn right if hole
+    //    if (was_clockwise) angle *= -1;
+
         }
 
         double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
-        // turn inwards if contour, turn outwards if hole
-        if (is_hole == loop.is_counter_clockwise()) angle *= -1;
+        // turn left if contour, turn right if hole
+        if (was_clockwise) angle *= -1;
 
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know
@@ -5431,8 +5450,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // Process the custom change_filament_gcode.
     const std::string& change_filament_gcode = m_config.change_filament_gcode.value;
     std::string toolchange_gcode_parsed;
-    //Orca: Ignore change_filament_gcode if is the first call for a tool change and manual_filament_change is enabled
-    if (!change_filament_gcode.empty() && !(m_config.manual_filament_change.value && m_toolchange_count == 1)) {
+    if (!change_filament_gcode.empty()) {
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
         check_add_eol(toolchange_gcode_parsed);
         gcode += toolchange_gcode_parsed;

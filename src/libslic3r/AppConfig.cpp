@@ -38,7 +38,7 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/softfever/OrcaSlicer/releases/latest";
+static const std::string VERSION_CHECK_URL = "https://api.github.com/repos/softfever/OrcaSlicer/releases";
 static const std::string MODELS_STR = "models";
 
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
@@ -160,8 +160,10 @@ void AppConfig::set_defaults()
     if (get("use_perspective_camera").empty())
         set_bool("use_perspective_camera", true);
 
+#ifdef SUPPORT_FREE_CAMERA
     if (get("use_free_camera").empty())
         set_bool("use_free_camera", false);
+#endif
 
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
@@ -334,7 +336,7 @@ void AppConfig::set_defaults()
 // #endif
 
     if (get("allow_ip_resolve").empty())
-        set_bool("allow_ip_resolve", true);
+        set("allow_ip_resolve", "1");
 
     if (get("presets", "filament_colors").empty()) {
         set_str("presets", "filament_colors", "#F2754E");

@@ -132,7 +132,6 @@ void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const Co
 {
     SetFont(wxGetApp().normal_font());
 
-    SetBackgroundColour(*wxWHITE);
 	m_panel = new BedShapePanel(this);
     m_panel->build_panel(default_pt, custom_texture, custom_model);
 
@@ -247,7 +246,6 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const std:
 ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(const wxString& title)
 {
     wxPanel* panel = new wxPanel(m_shape_options_book);
-    panel->SetBackgroundColour(*wxWHITE);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Settings"));
 
     optgroup->label_width = 10;
@@ -345,8 +343,6 @@ wxPanel* BedShapePanel::init_texture_panel()
 
         remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e) { e.Enable(m_custom_texture != NONE); }));
 
-        parent->SetBackgroundColour(*wxWHITE);
-
         return sizer;
     };
     optgroup->append_line(line);
@@ -434,8 +430,6 @@ wxPanel* BedShapePanel::init_model_panel()
             }));
 
         remove_btn->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent& e) { e.Enable(m_custom_model != NONE); }));
-
-        parent->SetBackgroundColour(*wxWHITE);
 
         return sizer;
     };
