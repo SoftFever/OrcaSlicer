@@ -2227,6 +2227,8 @@ msgid ""
 msgstr ""
 "Wenn sich zwei identische Filamente im AMS befinden, wird das AMS-Filament-"
 "Backup aktiviert. \n"
+"(Derzeit wird die automatische Versorgung mit Verbrauchsmaterialien mit "
+"derselben Marke, demselben Materialtyp und derselben Farbe unterstützt)"
 
 msgid "AMS Settings"
 msgstr "AMS-Einstellungen"
@@ -8000,7 +8002,6 @@ msgstr "Umkehrschwelle"
 msgid "Overhang reversal threshold"
 msgstr "Schwellenwert für die Überhangsumkehr"
 
-#, c-format, boost-format
 msgid ""
 "Number of mm the overhang need to be for the reversal to be considered "
 "useful. Can be a % of the perimeter width.\n"
