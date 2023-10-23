@@ -505,7 +505,9 @@ private:
     Polygons spanning_tree_to_polygon(const std::vector<MinimumSpanningTree>& spanning_trees, Polygons layer_contours, int layer_nr);
     Polygons contact_nodes_to_polygon(const std::vector<Node*>& contact_nodes, Polygons layer_contours, int layer_nr, std::vector<double>& radiis, std::vector<bool>& is_interface);
     void clear_contact_nodes(std::vector<std::vector<Node*>>& contact_nodes);
+    // get unscaled radius of node
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);
+    // get unscaled radius(mm) of node based on the distance mm to top
     coordf_t calc_branch_radius(coordf_t base_radius, coordf_t mm_to_top, double diameter_angle_scale_factor, bool use_min_distance=true);
     ExPolygons get_avoidance(coordf_t radius, size_t obj_layer_nr);
     ExPolygons get_collision(coordf_t radius, size_t layer_nr);
