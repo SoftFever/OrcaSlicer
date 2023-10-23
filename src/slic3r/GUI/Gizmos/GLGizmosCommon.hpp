@@ -4,6 +4,7 @@
 #include <memory>
 #include <map>
 
+#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 

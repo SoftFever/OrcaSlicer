@@ -6,6 +6,7 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Model.hpp"
 
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
 
 #include <GL/glew.h>
@@ -67,13 +68,25 @@ void MeshClipper::set_transformation(const Geometry::Transformation& trafo)
 
 
 
-void MeshClipper::render_cut()
+void MeshClipper::render_cut(const ColorRGBA& color)
 {
     if (! m_triangles_valid)
         recalculate_triangles();
 
-    if (m_vertex_array.has_VBOs())
-        m_vertex_array.render();
+    GLShaderProgram* curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr)
+        curr_shader->stop_using();
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        m_model.set_color(color);
+        m_model.render();
+        shader->stop_using();
+    }
+
+    if (curr_shader != nullptr)
+        curr_shader->start_using();
 }
 
 bool MeshClipper::is_projection_inside_cut(const Vec3d &point_in) const
@@ -189,15 +202,28 @@ void MeshClipper::recalculate_triangles()
 
     tr.pretranslate(0.001 * m_plane.get_normal().normalized()); // to avoid z-fighting
 
-    m_vertex_array.release_geometry();
-    for (auto it=m_triangles2d.cbegin(); it != m_triangles2d.cend(); it=it+3) {
-        m_vertex_array.push_geometry(tr * Vec3d((*(it+0))(0), (*(it+0))(1), height_mesh), up);
-        m_vertex_array.push_geometry(tr * Vec3d((*(it+1))(0), (*(it+1))(1), height_mesh), up);
-        m_vertex_array.push_geometry(tr * Vec3d((*(it+2))(0), (*(it+2))(1), height_mesh), up);
+    m_model.reset();
+
+    GLModel::Geometry init_data;
+    const GLModel::Geometry::EIndexType index_type = (m_triangles2d.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, index_type };
+    init_data.reserve_vertices(m_triangles2d.size());
+    init_data.reserve_indices(m_triangles2d.size());
+
+    // vertices + indices
+    for (auto it = m_triangles2d.cbegin(); it != m_triangles2d.cend(); it = it + 3) {
+        init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 0)).x(), (*(it + 0)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
+        init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 1)).x(), (*(it + 1)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
+        init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 2)).x(), (*(it + 2)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
         const size_t idx = it - m_triangles2d.cbegin();
-        m_vertex_array.push_triangle(idx, idx+1, idx+2);
+        if (index_type == GLModel::Geometry::EIndexType::USHORT)
+            init_data.add_ushort_triangle((unsigned short)idx, (unsigned short)idx + 1, (unsigned short)idx + 2);
+        else
+            init_data.add_uint_triangle((unsigned int)idx, (unsigned int)idx + 1, (unsigned int)idx + 2);
     }
-    m_vertex_array.finalize_geometry(true);
+
+    if (!init_data.is_empty())
+        m_model.init_from(std::move(init_data));
 
     m_triangles_valid = true;
 }

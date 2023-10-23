@@ -6,7 +6,7 @@
 #include "libslic3r/SLA/IndexedMesh.hpp"
 #include "admesh/stl.h"
 
-#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 #include <cfloat>
 
@@ -69,7 +69,8 @@ public:
 
 
 // MeshClipper class cuts a mesh and is able to return a triangulated cut.
-class MeshClipper {
+class MeshClipper
+{
 public:
     // Inform MeshClipper about which plane we want to use to cut the mesh
     // This is supposed to be in world coordinates.
@@ -92,7 +93,7 @@ public:
 
     // Render the triangulated cut. Transformation matrices should
     // be set in world coords.
-    void render_cut();
+    void render_cut(const ColorRGBA& color);
 
     bool is_projection_inside_cut(const Vec3d &point) const;
     bool has_valid_contour() const;
@@ -106,7 +107,7 @@ private:
     ClippingPlane m_plane;
     ClippingPlane m_limiting_plane = ClippingPlane::ClipsNothing();
     std::vector<Vec2f> m_triangles2d;
-    GLIndexedVertexArray m_vertex_array;
+    GLModel m_model;
     bool m_triangles_valid = false;
 
     struct CutIsland
