@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <assert.h>
+#include <GCode/GCodeProcessor.hpp>
 
 #ifdef __APPLE__
     #include <boost/spirit/include/karma.hpp>
@@ -164,9 +165,13 @@ std::string GCodeWriter::set_chamber_temperature(int temperature, bool wait)
 
     if (wait)
     {
-        gcode<<"M106 P2 S255 \n";
-        gcode<<"M191 S"<<std::to_string(temperature)<<" ;"<<"set chamber_temperature and wait for it to be reached\n";
-        gcode<<"M106 P2 S0 \n";
+        // Orca: should we let the M191 command to turn on the auxiliary fan?
+        if (config.auxiliary_fan)
+            gcode << "M106 P2 S255 \n";
+        gcode << "M191 S" << std::to_string(temperature) << " ;"
+              << "set chamber_temperature and wait for it to be reached\n";
+        if (config.auxiliary_fan)
+            gcode << "M106 P2 S0 \n";
     }
     else {
         code = "M141";
@@ -308,7 +313,8 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
 
 std::string GCodeWriter::toolchange_prefix() const
 {
-    return FLAVOR_IS(gcfMakerWare) ? "M135 T" :
+    return config.manual_filament_change ? ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Manual_Tool_Change) + "T":
+           FLAVOR_IS(gcfMakerWare) ? "M135 T" :
            FLAVOR_IS(gcfSailfish)  ? "M108 T" : "T";
 }
 

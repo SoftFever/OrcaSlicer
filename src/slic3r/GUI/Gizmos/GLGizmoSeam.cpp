@@ -313,6 +313,9 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
 
     ImGui::Separator();
+    m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only);
+
+    ImGui::Separator();
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;

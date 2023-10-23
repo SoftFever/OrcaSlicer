@@ -1139,6 +1139,9 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
 {
     if (!obj) return;
 
+    if (!obj->is_info_ready())
+        return;
+
     //step 1: update combobox filament list
     float nozzle_value = get_nozzle_value();
     obj->cali_selected_nozzle_dia = nozzle_value;
@@ -1535,8 +1538,6 @@ void CalibrationPresetPage::set_cali_method(CalibrationMethod method)
                 m_custom_range_panel->set_titles(titles);
 
                 wxArrayString values;
-                Preset* printer_preset = get_printer_preset(curr_obj, get_nozzle_value());
-                int           extruder_type  = printer_preset->config.opt_enum("extruder_type", 0);
                 values.push_back(_L("0"));
                 values.push_back(_L("0.5"));
                 values.push_back(_L("0.005"));

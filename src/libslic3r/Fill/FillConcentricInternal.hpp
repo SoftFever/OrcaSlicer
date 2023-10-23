@@ -15,9 +15,6 @@ protected:
     Fill* clone() const override { return new FillConcentricInternal(*this); };
     bool no_sort() const override { return true; }
 
-    const PrintConfig       *print_config        = nullptr;
-    const PrintObjectConfig *print_object_config = nullptr;
-
     friend class Layer;
 };
 

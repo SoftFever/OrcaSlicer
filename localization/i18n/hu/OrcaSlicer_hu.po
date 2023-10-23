@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -159,6 +159,12 @@ msgstr "Háromszög"
 
 msgid "Height Range"
 msgstr "Magasságtartomány"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Festett szín eltávolítása"
@@ -4958,6 +4964,12 @@ msgstr ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "A nap tippje értesítés megjelenítése indítás után"
 
@@ -8570,9 +8582,7 @@ msgstr ""
 msgid "Layers and Perimeters"
 msgstr "Rétegek és peremek"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
 
 msgid ""
@@ -10674,12 +10684,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Szerszámút optimalizálása"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr "Az alsó üres rétegeket a legközelebbi normál rétegek váltják fel."
-
-msgid "The model has too many empty layers."
-msgstr "A modellben túl sok az üres réteg."
-
 msgid "Slicing mesh"
 msgstr "Háló szeletelése"
 
@@ -11749,6 +11753,12 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr "Az alsó üres rétegeket a legközelebbi normál rétegek váltják fel."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "A modellben túl sok az üres réteg."
 
 #~ msgid "Cali"
 #~ msgstr "Kali"

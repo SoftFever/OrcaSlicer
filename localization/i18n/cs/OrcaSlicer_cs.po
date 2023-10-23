@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-11 22:28+0800\n"
+"POT-Creation-Date: 2023-10-15 11:57+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -168,6 +168,12 @@ msgstr "Trojúhelník"
 
 msgid "Height Range"
 msgstr "Rozsah výš"
+
+msgid "Vertical"
+msgstr ""
+
+msgid "Horizontal"
+msgstr ""
 
 msgid "Remove painted color"
 msgstr "Odbarvení"
@@ -5015,6 +5021,12 @@ msgid ""
 "2D window center."
 msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
 
+msgid "Use free camera"
+msgstr ""
+
+msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Zobrazovat \"Tip dne\" po spuštění"
 
@@ -8720,12 +8732,8 @@ msgstr "Odfiltrujte drobné mezery"
 msgid "Layers and Perimeters"
 msgstr "Vrstvy a perimetry"
 
-msgid ""
-"Filter out gaps smaller than the threshold specified. This setting won't "
-"affect top/bottom layers"
+msgid "Filter out gaps smaller than the threshold specified"
 msgstr ""
-"Vyfiltrované mezery menší než stanovený práh. Toto nastavení neovlivní "
-"vrstvy horního/spodního povrchu"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -10959,13 +10967,6 @@ msgstr ""
 msgid "Optimizing toolpath"
 msgstr "Optimalizace dráhy nástroje"
 
-msgid "Empty layers around bottom are replaced by nearest normal layers."
-msgstr ""
-"Prázdné vrstvy kolem dna jsou nahrazeny nejbližšími normálními vrstvami."
-
-msgid "The model has too many empty layers."
-msgstr "Model má příliš mnoho prázdných vrstev."
-
 msgid "Slicing mesh"
 msgstr "Slicování sítě"
 
@@ -12155,6 +12156,20 @@ msgstr ""
 "Zvýšení pevnosti\n"
 "Věděli jste, že můžete použít více opakování stěn a vyšší hustotu řídké "
 "výplně pro zvýšení pevnosti modelu?"
+
+#~ msgid ""
+#~ "Filter out gaps smaller than the threshold specified. This setting won't "
+#~ "affect top/bottom layers"
+#~ msgstr ""
+#~ "Vyfiltrované mezery menší než stanovený práh. Toto nastavení neovlivní "
+#~ "vrstvy horního/spodního povrchu"
+
+#~ msgid "Empty layers around bottom are replaced by nearest normal layers."
+#~ msgstr ""
+#~ "Prázdné vrstvy kolem dna jsou nahrazeny nejbližšími normálními vrstvami."
+
+#~ msgid "The model has too many empty layers."
+#~ msgstr "Model má příliš mnoho prázdných vrstev."
 
 #~ msgid "Cali"
 #~ msgstr "Kalibrace"

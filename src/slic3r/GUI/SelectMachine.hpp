@@ -432,6 +432,7 @@ public:
     void update_page_turn_state(bool show);
     void on_timer(wxTimerEvent& event);
     void on_selection_changed(wxCommandEvent& event);
+    void update_flow_cali_check(MachineObject* obj);
     void Enable_Refresh_Button(bool en);
     void Enable_Send_Button(bool en);
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -442,7 +443,7 @@ public:
     void update_priner_status_msg(wxString msg, bool is_warning = false);
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
     void update_print_error_info(int code, std::string msg, std::string extra);
-    void set_flow_calibration_state(bool state);
+    void set_flow_calibration_state(bool state, bool show_tips = true);
     bool is_show_timelapse();
     bool has_timelapse_warning();
     void update_timelapse_enable_status();

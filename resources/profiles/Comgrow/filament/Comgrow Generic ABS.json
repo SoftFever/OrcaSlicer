@@ -7,11 +7,11 @@
 	"instantiation": "true",
 	"inherits": "fdm_filament_abs",
 	"filament_flow_ratio": ["0.926"],
-	"filament_max_volumetric_speed": ["12"],
+	"filament_max_volumetric_speed": ["30"],
+	"filament_retraction_length": ["0.5"],
 	"compatible_printers": [
 		"Comgrow T500 0.4 nozzle",
 		"Comgrow T500 0.6 nozzle",
 		"Comgrow T500 0.8 nozzle"
-		
 	]
 }

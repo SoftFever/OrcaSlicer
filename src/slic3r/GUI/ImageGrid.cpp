@@ -92,8 +92,12 @@ void Slic3r::GUI::ImageGrid::SetFileType(int type, std::string const &storage)
 
 void Slic3r::GUI::ImageGrid::SetGroupMode(int mode)
 {
-    if (!m_file_sys || m_file_sys->GetCount() == 0)
+    if (!m_file_sys)
         return;
+    if (m_file_sys->GetCount() == 0) {
+        m_file_sys->SetGroupMode((PrinterFileSystem::GroupMode) mode);
+        return;
+    }
     wxSize size = GetClientSize();
     int index = (m_row_offset + 1 < m_row_count || m_row_count == 0) 
         ? m_row_offset / 4 * m_col_count 
@@ -220,6 +224,7 @@ void ImageGrid::UpdateLayout()
 
 void Slic3r::GUI::ImageGrid::UpdateFocusRange()
 {
+    if (!m_file_sys) return;
     wxSize  size = GetClientSize();
     wxPoint off;
     int     index = firstItem(size, off);

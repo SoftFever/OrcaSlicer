@@ -174,6 +174,8 @@ void Layer::make_perimeters()
                         && config.gap_infill_speed.value == other_config.gap_infill_speed.value
                         && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
+		                && config.overhang_reverse                       == other_config.overhang_reverse
+		                && config.overhang_reverse_threshold             == other_config.overhang_reverse_threshold
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
 		                && config.opt_serialize("outer_wall_line_width") == other_config.opt_serialize("outer_wall_line_width")
 		                && config.detect_thin_wall                  == other_config.detect_thin_wall
