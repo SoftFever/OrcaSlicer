@@ -11,7 +11,8 @@
 namespace Slic3r {
 namespace GUI {
 std::shared_ptr<PrintJob> CalibUtils::print_job;
-static const std::string temp_dir = fs::path(fs::temp_directory_path() / "calib").string();
+wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
+static const std::string temp_dir = wxstr_temp_dir.utf8_string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
 static const std::string path            = temp_dir + "/test.3mf";
 static const std::string config_3mf_path = temp_dir + "/test_config.3mf";
@@ -656,6 +657,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config.set_key_value("overhang_reverse", new ConfigOptionBool(false));
     print_config.set_key_value("spiral_mode", new ConfigOptionBool(true));
     print_config.set_key_value("outer_wall_line_width", new ConfigOptionFloat(line_width));
     print_config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
@@ -719,6 +721,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     print_config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config.set_key_value("overhang_reverse", new ConfigOptionBool(false));
     print_config.set_key_value("spiral_mode", new ConfigOptionBool(true));
     model.objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model.objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));

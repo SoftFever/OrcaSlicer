@@ -1910,6 +1910,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
         optgroup->append_single_option_line("extra_perimeters_on_overhangs");
+        optgroup->append_single_option_line("overhang_reverse");
+        optgroup->append_single_option_line("overhang_reverse_threshold");
 
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
@@ -2096,7 +2098,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
         optgroup->append_single_option_line("slicing_mode");
-        optgroup->append_single_option_line("print_sequence");
+        optgroup->append_single_option_line("print_sequence", "sequent-print");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
 
@@ -2723,11 +2725,14 @@ void TabFilament::build()
         optgroup->append_line(line);
 
 
-        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
-        optgroup->append_single_option_line("chamber_temperature");
+        optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
+        optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
+        optgroup->append_single_option_line("activate_chamber_temp_control", "chamber-temperature");
+
         optgroup->append_separator();
 
 
+        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
@@ -2827,11 +2832,11 @@ void TabFilament::build()
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
-        optgroup->append_single_option_line("additional_cooling_fan_speed");
+        optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
 
         optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
 
-        optgroup->append_single_option_line("activate_air_filtration");
+        optgroup->append_single_option_line("activate_air_filtration", "air-filtration");
 
         line = {L("During print"), ""};
         line.append_option(optgroup->get_option("during_print_exhaust_fan_speed"));
@@ -3002,8 +3007,7 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
-        // bool support_chamber_temp_control = this->m_preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
-        // toggle_option("chamber_temperature", !is_BBL_printer || support_chamber_temp_control);
+
     }
     if (m_active_page->title() == L("Setting Overrides"))
         update_filament_overrides_page();
@@ -3164,9 +3168,9 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("nozzle_hrc");
-        optgroup->append_single_option_line("auxiliary_fan");
-        optgroup->append_single_option_line("support_chamber_temp_control");
-        optgroup->append_single_option_line("support_air_filtration");
+        optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
+        optgroup->append_single_option_line("support_chamber_temp_control", "chamber-temperature");
+        optgroup->append_single_option_line("support_air_filtration", "air-filtration");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -3469,13 +3473,16 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
         auto page     = add_options_page(L("Multimaterial"), "printer", true);
         auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
         optgroup->append_single_option_line("single_extruder_multi_material");
-        optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
-            wxTheApp->CallAfter([this, opt_key, value]() {
-                if (opt_key == "single_extruder_multi_material") {
-                    build_unregular_pages();
-                }
-            });
-        };
+        // Orca: we only support Single Extruder Multi Material, so it's always enabled
+        // optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
+        //     wxTheApp->CallAfter([this, opt_key, value]() {
+        //         if (opt_key == "single_extruder_multi_material") {
+        //             build_unregular_pages();
+        //         }
+        //     });
+        // };
+        optgroup->append_single_option_line("manual_filament_change");
+
         optgroup = page->new_optgroup(L("Wipe tower"));
         optgroup->append_single_option_line("purge_in_prime_tower");
         optgroup->append_single_option_line("enable_filament_ramming");

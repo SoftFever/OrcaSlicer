@@ -225,6 +225,13 @@ enum NozzleType {
     ntCount
 };
 
+static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
+    {NozzleType::ntUndefine,        "undefine"},
+    {NozzleType::ntHardenedSteel,   "hardened_steel"},
+    {NozzleType::ntStainlessSteel,  "stainless_steel"},
+    {NozzleType::ntBrass,           "brass"}
+};
+
 // BBS
 enum PrinterStructure {
     psUndefine=0,
@@ -848,6 +855,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                 hole_to_polyhole))
     ((ConfigOptionFloatOrPercent,       hole_to_polyhole_threshold))
     ((ConfigOptionBool,                 hole_to_polyhole_twisted))
+    ((ConfigOptionBool,                 overhang_reverse))
+    ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -935,6 +944,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              machine_start_gcode))
     ((ConfigOptionStrings,             filament_start_gcode))
     ((ConfigOptionBool,                single_extruder_multi_material))
+    ((ConfigOptionBool,                manual_filament_change))
     ((ConfigOptionBool,                single_extruder_multi_material_priming))
     ((ConfigOptionBool,                wipe_tower_no_sparse_layers))
     ((ConfigOptionString,              change_filament_gcode))
@@ -1078,7 +1088,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               nozzle_temperature))
-    ((ConfigOptionInts ,               chamber_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionInts,               nozzle_temperature_range_low))
@@ -1127,6 +1136,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionStrings,            filament_notes))
     ((ConfigOptionString,             notes))
     ((ConfigOptionString,             printer_notes))
+
+    ((ConfigOptionBools,               activate_chamber_temp_control))
+    ((ConfigOptionInts ,               chamber_temperature))
 
 
 

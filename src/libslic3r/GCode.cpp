@@ -2240,6 +2240,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
+    // Orca: set chamber temperature at the beginning of gcode file
+    bool activate_chamber_temp_control = false;
+    auto max_chamber_temp = 0;
+    for (const auto &extruder : m_writer.extruders()) {
+        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
+        max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
+    }
+
+    if (activate_chamber_temp_control && max_chamber_temp > 0)
+        file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
+
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
 
@@ -2262,10 +2273,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 */
     if (is_bbl_printers) {
         this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, true);
-        if (m_config.support_air_filtration.getBool() && m_config.activate_air_filtration.get_at(initial_extruder_id)) {
-            file.write(m_writer.set_exhaust_fan(m_config.during_print_exhaust_fan_speed.get_at(initial_extruder_id), true));
-        }
     }
+    // Orca: when activate_air_filtration is set on any extruder, find and set the highest during_print_exhaust_fan_speed
+    bool activate_air_filtration        = false;
+    int  during_print_exhaust_fan_speed = 0;
+    for (const auto &extruder : m_writer.extruders()) {
+        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
+        if (m_config.activate_air_filtration.get_at(extruder.id()))
+            during_print_exhaust_fan_speed = std::max(during_print_exhaust_fan_speed,
+                                                      m_config.during_print_exhaust_fan_speed.get_at(extruder.id()));
+    }
+    if (activate_air_filtration)
+        file.write(m_writer.set_exhaust_fan(during_print_exhaust_fan_speed, true));
+
     print.throw_if_canceled();
 
     // Set other general things.
@@ -2528,10 +2548,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     file.write(m_writer.postamble());
 
-    if (print.config().support_chamber_temp_control.value || print.config().chamber_temperature.values[0] > 0)
+    if (activate_chamber_temp_control && max_chamber_temp > 0)
         file.write(m_writer.set_chamber_temperature(0, false));  //close chamber_temperature
 
-
+    if (activate_air_filtration) {
+        int complete_print_exhaust_fan_speed = 0;
+        for (const auto& extruder : m_writer.extruders())
+            if (m_config.activate_air_filtration.get_at(extruder.id()))
+                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
+        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
+    }
     // adds tags for time estimators
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Last_Line_M73_Placeholder).c_str());
     file.write_format("; EXECUTABLE_BLOCK_END\n\n");
@@ -2580,19 +2606,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     }
     file.write("\n");
-
-    bool activate_air_filtration = false;
-    for (const auto& extruder : m_writer.extruders())
-        activate_air_filtration |= m_config.activate_air_filtration.get_at(extruder.id());
-    activate_air_filtration &= m_config.support_air_filtration.getBool();
-
-    if (activate_air_filtration) {
-        int complete_print_exhaust_fan_speed = 0;
-        for (const auto& extruder : m_writer.extruders())
-            if (m_config.activate_air_filtration.get_at(extruder.id()))
-                complete_print_exhaust_fan_speed = std::max(complete_print_exhaust_fan_speed, m_config.complete_print_exhaust_fan_speed.get_at(extruder.id()));
-        file.write(m_writer.set_exhaust_fan(complete_print_exhaust_fan_speed, true));
-    }
 
     print.throw_if_canceled();
 }
@@ -4152,8 +4165,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
-    // extrude all loops ccw
-    bool was_clockwise = loop.make_counter_clockwise();
+    bool is_hole = (loop.loop_role() & elrHole) == elrHole;
+
+    if (m_config.spiral_mode && !is_hole) {
+        // if spiral vase, we have to ensure that all contour are in the same orientation.
+        loop.make_counter_clockwise();
+    }
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
@@ -4210,26 +4227,20 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // make a little move inwards before leaving loop
     if (m_config.wipe_on_loops.value && paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
         // detect angle between last and first segment
-        // the side depends on the original winding order of the polygon (left for contours, right for holes)
+        // the side depends on the original winding order of the polygon (inwards for contours, outwards for holes)
         //FIXME improve the algorithm in case the loop is tiny.
         //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
         Point a = paths.front().polyline.points[1];  // second point
         Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (was_clockwise) {
+        if (is_hole == loop.is_counter_clockwise()) {
             // swap points
             Point c = a; a = b; b = c;
-
-    //    double angle = paths.front().first_point().ccw_angle(a, b) / 3;
-
-    //    // turn left if contour, turn right if hole
-    //    if (was_clockwise) angle *= -1;
-
         }
 
         double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
-        // turn left if contour, turn right if hole
-        if (was_clockwise) angle *= -1;
+        // turn inwards if contour, turn outwards if hole
+        if (is_hole == loop.is_counter_clockwise()) angle *= -1;
 
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know
@@ -5420,7 +5431,8 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // Process the custom change_filament_gcode.
     const std::string& change_filament_gcode = m_config.change_filament_gcode.value;
     std::string toolchange_gcode_parsed;
-    if (!change_filament_gcode.empty()) {
+    //Orca: Ignore change_filament_gcode if is the first call for a tool change and manual_filament_change is enabled
+    if (!change_filament_gcode.empty() && !(m_config.manual_filament_change.value && m_toolchange_count == 1)) {
         toolchange_gcode_parsed = placeholder_parser_process("change_filament_gcode", change_filament_gcode, extruder_id, &dyn_config);
         check_add_eol(toolchange_gcode_parsed);
         gcode += toolchange_gcode_parsed;

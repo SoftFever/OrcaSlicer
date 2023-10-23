@@ -75,12 +75,7 @@ static const constexpr double LOGICAL_BED_GAP = 1. / 5.;
 double bed_stride_x(const Plater* plater);
 double bed_stride_y(const Plater* plater);
 
-
-arrangement::ArrangeParams get_arrange_params(Plater *p);
-
 arrangement::ArrangeParams init_arrange_params(Plater *p);
-
-void update_arrange_params(arrangement::ArrangeParams &params, const Plater &p, const arrangement::ArrangePolygons &selected);
 
 }} // namespace Slic3r::GUI
 

@@ -37,7 +37,7 @@ protected:
         // then it should be removed from the list
         Placer p{ bin };
         p.configure(pcfg);
-        //p.preload(pcfg.m_excluded_items);
+        p.preload(pcfg.m_excluded_items);
         auto it = c.begin();
         while (it != c.end() && !stopcond_()) {
 

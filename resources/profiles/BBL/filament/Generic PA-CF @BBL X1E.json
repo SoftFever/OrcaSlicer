@@ -1,0 +1,16 @@
+{
+    "type": "filament",
+    "name": "Generic PA-CF @BBL X1E",
+    "inherits": "Generic PA-CF",
+    "from": "system",
+    "setting_id": "GFSN98_00",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle"
+    ]
+}

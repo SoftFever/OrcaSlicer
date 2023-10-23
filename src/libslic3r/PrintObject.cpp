@@ -607,7 +607,7 @@ void PrintObject::detect_overhangs_for_lift()
         size_t num_layers = this->layer_count();
         size_t num_raft_layers = m_slicing_params.raft_layers();
 
-        m_print->set_status(78, L("Detect overhangs for auto-lift"));
+        m_print->set_status(71, L("Detect overhangs for auto-lift"));
 
         this->clear_overhangs_for_lift();
 
@@ -1095,6 +1095,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "detect_overhang_wall"
+            || opt_key == "overhang_reverse"
+            || opt_key == "overhang_reverse_threshold"
             //BBS
             || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall"

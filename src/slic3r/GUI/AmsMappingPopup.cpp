@@ -1163,6 +1163,7 @@ void MappingContainer::doRender(wxDC& dc)
 AmsReplaceMaterialDialog::AmsReplaceMaterialDialog(wxWindow* parent)
     : DPIDialog(parent, wxID_ANY, _L("Auto Refill"), wxDefaultPosition, wxDefaultSize, wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX)
 {
+
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
@@ -1331,8 +1332,19 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
         m_scrollview_groups->SetMinSize(wxSize(FromDIP(400), height));
         m_scrollview_groups->SetMaxSize(wxSize(FromDIP(400), height));
     } else {
-        if (label_txt)
-            label_txt->SetLabelText(_L("There are currently no identical spare consumables available, and automatic replenishment is currently not possible. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+        if (!obj->is_function_supported(PrinterFunction::FUNC_FILAMENT_BACKUP)) {
+            label_txt->SetLabel(_L("The printer does not currently support auto refill."));
+        }
+        else if (!obj->ams_auto_switch_filament_flag) {
+            label_txt->SetLabelText(_L("AMS filament backup is not enabled, please enable it in the AMS settings."));
+        }
+        else {
+            label_txt->SetLabelText(_L("If there are two identical filaments in AMS, AMS filament backup will be enabled. \n(Currently supporting automatic supply of consumables with the same brand, material type, and color)"));
+        }
+
+        label_txt->SetMinSize(wxSize(FromDIP(380), -1));
+        label_txt->SetMaxSize(wxSize(FromDIP(380), -1));
+        label_txt->Wrap(FromDIP(380));
     }
    
     m_scrollview_groups->Layout();
