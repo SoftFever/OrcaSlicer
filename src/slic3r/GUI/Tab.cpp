@@ -3449,7 +3449,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     size_t existed_page = 0;
     for (size_t i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
         if (m_pages[i]->title().find(L("Motion ability")) != std::string::npos) {
-            if (!is_marlin_flavor || m_rebuild_kinematics_page)
+            if (m_rebuild_kinematics_page)
                 m_pages.erase(m_pages.begin() + i);
             else
                 existed_page = i;
