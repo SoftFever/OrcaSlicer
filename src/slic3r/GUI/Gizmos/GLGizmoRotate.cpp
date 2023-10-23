@@ -134,15 +134,14 @@ void GLGizmoRotate::on_render()
     if (shader != nullptr) {
         shader->start_using();
 
-        const float radius = Offset + m_parent.get_selection().get_bounding_box().radius();
-        const bool radius_changed = std::abs(m_old_radius - radius) > EPSILON;
-        m_old_radius = radius;
+        const bool radius_changed = std::abs(m_old_radius - m_radius) > EPSILON;
+        m_old_radius = m_radius;
 
         ColorRGBA color((m_hover_id != -1) ? m_drag_color : m_highlight_color);
         render_circle(color, radius_changed);
         if (m_hover_id != -1) {
-            const bool hover_radius_changed = std::abs(m_old_hover_radius - radius) > EPSILON;
-            m_old_hover_radius = radius;
+            const bool hover_radius_changed = std::abs(m_old_hover_radius - m_radius) > EPSILON;
+            m_old_hover_radius = m_radius;
 
             render_scale(color, hover_radius_changed);
             render_snap_radii(color, hover_radius_changed);
