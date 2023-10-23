@@ -54,6 +54,7 @@ private:
     GrabberConnection m_grabber_connection;
     float m_old_radius{ 0.0f };
     float m_old_hover_radius{ 0.0f };
+    float m_old_angle{ 0.0f };
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
