@@ -683,7 +683,7 @@ void PrintObject::estimate_curled_extrusions()
             // Estimate curling of support material and add it to the malformaition lines of each layer
             float support_flow_width = support_material_flow(this, this->config().layer_height).width();
             SupportSpotsGenerator::Params params{this->print()->m_config.filament_type.values,
-                                                 float(this->print()->m_config.inner_wall_acceleration.getFloat()),
+                                                 float(this->print()->default_object_config().inner_wall_acceleration.getFloat()),
                                                  this->config().raft_layers.getInt(), this->config().brim_type.value,
                                                  float(this->config().brim_width.getFloat())};
             SupportSpotsGenerator::estimate_malformations(this->layers(), params);

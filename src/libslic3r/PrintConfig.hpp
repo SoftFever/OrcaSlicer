@@ -766,6 +766,25 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_diameter_organic))
     ((ConfigOptionFloat,              tree_support_branch_angle_organic))
 
+    // Move all acceleration and jerk settings to object
+    ((ConfigOptionFloat,              default_acceleration))
+    ((ConfigOptionFloat,              outer_wall_acceleration))
+    ((ConfigOptionFloat,              inner_wall_acceleration))
+    ((ConfigOptionFloat,              top_surface_acceleration))
+    ((ConfigOptionFloat,              initial_layer_acceleration))
+    ((ConfigOptionFloatOrPercent,     bridge_acceleration))
+    ((ConfigOptionFloat,              travel_acceleration))
+    ((ConfigOptionFloatOrPercent,     sparse_infill_acceleration))
+    ((ConfigOptionFloatOrPercent,     internal_solid_infill_acceleration))
+
+    ((ConfigOptionFloat,              default_jerk))
+    ((ConfigOptionFloat,              outer_wall_jerk))
+    ((ConfigOptionFloat,              inner_wall_jerk))
+    ((ConfigOptionFloat,              infill_jerk))
+    ((ConfigOptionFloat,              top_surface_jerk))
+    ((ConfigOptionFloat,              initial_layer_jerk))
+    ((ConfigOptionFloat,              travel_jerk))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -1027,7 +1046,6 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionEnum<PrintSequence>,print_sequence))
     ((ConfigOptionInts,               first_layer_print_sequence))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
-    ((ConfigOptionFloat,              default_acceleration))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
@@ -1038,27 +1056,12 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBools,              reduce_fan_stop_start_freq))
     ((ConfigOptionFloats,             fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))
-    ((ConfigOptionFloat,              outer_wall_acceleration))
-    ((ConfigOptionFloat,              inner_wall_acceleration))
-    ((ConfigOptionFloat,              top_surface_acceleration))
-    ((ConfigOptionFloat,              initial_layer_acceleration))
-    ((ConfigOptionFloatOrPercent,     bridge_acceleration))
-    ((ConfigOptionFloat,              travel_acceleration))
-    ((ConfigOptionFloatOrPercent,     sparse_infill_acceleration))
     ((ConfigOptionBools,              activate_air_filtration))
     ((ConfigOptionInts,               during_print_exhaust_fan_speed))
     ((ConfigOptionInts,               complete_print_exhaust_fan_speed))
-    ((ConfigOptionFloatOrPercent,     internal_solid_infill_acceleration))
     ((ConfigOptionFloatOrPercent,     initial_layer_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloat,              initial_layer_speed))
-    ((ConfigOptionFloat,              default_jerk))
-    ((ConfigOptionFloat,              outer_wall_jerk))
-    ((ConfigOptionFloat,              inner_wall_jerk))
-    ((ConfigOptionFloat,              infill_jerk))
-    ((ConfigOptionFloat,              top_surface_jerk))
-    ((ConfigOptionFloat,              initial_layer_jerk))
-    ((ConfigOptionFloat,              travel_jerk))
 
     //BBS
     ((ConfigOptionFloat,              initial_layer_infill_speed))
