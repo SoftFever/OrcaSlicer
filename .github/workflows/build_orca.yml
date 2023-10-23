@@ -155,6 +155,7 @@ jobs:
       - name: Install nsis
         if: matrix.os == 'windows-latest'
         run: |
+          dir "C:/Program Files (x86)/Windows Kits/10/Include"
           choco install nsis
 
       - name: download deps
