@@ -8096,32 +8096,54 @@ void GLCanvas3D::_render_sla_slices()
         if (!obj->is_step_done(slaposSliceSupports))
             continue;
 
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
-        SlaCap::ObjectIdToTrianglesMap::iterator it_caps_top = m_sla_caps[1].triangles.find(i);
+        SlaCap::ObjectIdToModelsMap::iterator it_caps_bottom = m_sla_caps[0].triangles.find(i);
+        SlaCap::ObjectIdToModelsMap::iterator it_caps_top = m_sla_caps[1].triangles.find(i);
         {
             if (it_caps_bottom == m_sla_caps[0].triangles.end())
                 it_caps_bottom = m_sla_caps[0].triangles.emplace(i, SlaCap::Triangles()).first;
             if (!m_sla_caps[0].matches(clip_min_z)) {
                 m_sla_caps[0].z = clip_min_z;
-                it_caps_bottom->second.object.clear();
-                it_caps_bottom->second.supports.clear();
+                it_caps_bottom->second.object.reset();
+                it_caps_bottom->second.supports.reset();
             }
             if (it_caps_top == m_sla_caps[1].triangles.end())
                 it_caps_top = m_sla_caps[1].triangles.emplace(i, SlaCap::Triangles()).first;
             if (!m_sla_caps[1].matches(clip_max_z)) {
                 m_sla_caps[1].z = clip_max_z;
-                it_caps_top->second.object.clear();
-                it_caps_top->second.supports.clear();
+                it_caps_top->second.object.reset();
+                it_caps_top->second.supports.reset();
             }
         }
-        Pointf3s &bottom_obj_triangles = it_caps_bottom->second.object;
-        Pointf3s &bottom_sup_triangles = it_caps_bottom->second.supports;
-        Pointf3s &top_obj_triangles    = it_caps_top->second.object;
-        Pointf3s &top_sup_triangles    = it_caps_top->second.supports;
+        GLModel& bottom_obj_triangles = it_caps_bottom->second.object;
+        GLModel& bottom_sup_triangles = it_caps_bottom->second.supports;
+        GLModel& top_obj_triangles = it_caps_top->second.object;
+        GLModel& top_sup_triangles = it_caps_top->second.supports;
 
-        if ((bottom_obj_triangles.empty() || bottom_sup_triangles.empty() || top_obj_triangles.empty() || top_sup_triangles.empty()) &&
-            !obj->get_slice_index().empty())
-        {
+        auto init_model = [](GLModel& model, const Pointf3s& triangles, const ColorRGBA& color) {
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(triangles.size()) };
+            init_data.reserve_vertices(triangles.size());
+            init_data.reserve_indices(triangles.size() / 3);
+            init_data.color = color;
+
+            unsigned int vertices_count = 0;
+            for (const Vec3d& v : triangles) {
+                init_data.add_vertex((Vec3f)v.cast<float>());
+                ++vertices_count;
+                if (vertices_count % 3 == 0) {
+                    if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
+                        init_data.add_ushort_triangle((unsigned short)vertices_count - 3, (unsigned short)vertices_count - 2, (unsigned short)vertices_count - 1);
+                    else
+                        init_data.add_uint_triangle(vertices_count - 3, vertices_count - 2, vertices_count - 1);
+                }
+            }
+
+            if (!init_data.is_empty())
+                model.init_from(std::move(init_data));
+        };
+
+        if ((!bottom_obj_triangles.is_initialized() || !bottom_sup_triangles.is_initialized() ||
+            !top_obj_triangles.is_initialized() || !top_sup_triangles.is_initialized()) && !obj->get_slice_index().empty()) {
             double layer_height         = print->default_object_config().layer_height.value;
             double initial_layer_height = print->material_config().initial_layer_height.value;
             bool   left_handed          = obj->is_left_handed();
@@ -8142,55 +8164,48 @@ void GLCanvas3D::_render_sla_slices()
                 const ExPolygons& obj_bottom = slice_low.get_slice(soModel);
                 const ExPolygons& sup_bottom = slice_low.get_slice(soSupport);
                 // calculate model bottom cap
-                if (bottom_obj_triangles.empty() && !obj_bottom.empty())
-                    bottom_obj_triangles = triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, ! left_handed);
+                // calculate model bottom cap
+                if (!bottom_obj_triangles.is_initialized() && !obj_bottom.empty())
+                    init_model(bottom_obj_triangles, triangulate_expolygons_3d(obj_bottom, clip_min_z - plane_shift_z, !left_handed), { 1.0f, 0.37f, 0.0f, 1.0f });
                 // calculate support bottom cap
-                if (bottom_sup_triangles.empty() && !sup_bottom.empty())
-                    bottom_sup_triangles = triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, ! left_handed);
+                if (!bottom_sup_triangles.is_initialized() && !sup_bottom.empty())
+                    init_model(bottom_sup_triangles, triangulate_expolygons_3d(sup_bottom, clip_min_z - plane_shift_z, !left_handed), { 1.0f, 0.0f, 0.37f, 1.0f });
             }
 
             if (slice_high.is_valid()) {
                 const ExPolygons& obj_top = slice_high.get_slice(soModel);
                 const ExPolygons& sup_top = slice_high.get_slice(soSupport);
                 // calculate model top cap
-                if (top_obj_triangles.empty() && !obj_top.empty())
-                    top_obj_triangles = triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, left_handed);
+                // calculate model top cap
+                if (!top_obj_triangles.is_initialized() && !obj_top.empty())
+                    init_model(top_obj_triangles, triangulate_expolygons_3d(obj_top, clip_max_z + plane_shift_z, left_handed), { 1.0f, 0.37f, 0.0f, 1.0f });
                 // calculate support top cap
-                if (top_sup_triangles.empty() && !sup_top.empty())
-                    top_sup_triangles = triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, left_handed);
+                if (!top_sup_triangles.is_initialized() && !sup_top.empty())
+                    init_model(top_sup_triangles, triangulate_expolygons_3d(sup_top, clip_max_z + plane_shift_z, left_handed), { 1.0f, 0.0f, 0.37f, 1.0f });
             }
         }
 
-        if (!bottom_obj_triangles.empty() || !top_obj_triangles.empty() || !bottom_sup_triangles.empty() || !top_sup_triangles.empty()) {
-			for (const SLAPrintObject::Instance& inst : obj->instances()) {
+        GLShaderProgram* shader = wxGetApp().get_shader("flat");
+        if (shader != nullptr) {
+            shader->start_using();
+
+            for (const SLAPrintObject::Instance& inst : obj->instances()) {
                 glsafe(::glPushMatrix());
                 glsafe(::glTranslated(unscale<double>(inst.shift.x()), unscale<double>(inst.shift.y()), 0.0));
                 glsafe(::glRotatef(Geometry::rad2deg(inst.rotation), 0.0f, 0.0f, 1.0f));
-				if (obj->is_left_handed())
+                if (obj->is_left_handed())
                     // The polygons are mirrored by X.
                     glsafe(::glScalef(-1.0f, 1.0f, 1.0f));
-                glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-                glsafe(::glColor3f(1.0f, 0.37f, 0.0f));
-				if (!bottom_obj_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_obj_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_obj_triangles.size()));
-				}
-				if (! top_obj_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_obj_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_obj_triangles.size()));
-				}
-                glsafe(::glColor3f(1.0f, 0.0f, 0.37f));
-				if (! bottom_sup_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)bottom_sup_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, bottom_sup_triangles.size()));
-				}
-				if (! top_sup_triangles.empty()) {
-                    glsafe(::glVertexPointer(3, GL_DOUBLE, 0, (GLdouble*)top_sup_triangles.front().data()));
-                    glsafe(::glDrawArrays(GL_TRIANGLES, 0, top_sup_triangles.size()));
-				}
-                glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+
+                bottom_obj_triangles.render();
+                top_obj_triangles.render();
+                bottom_sup_triangles.render();
+                top_sup_triangles.render();
+
                 glsafe(::glPopMatrix());
             }
+
+            shader->stop_using();
         }
     }
 }
