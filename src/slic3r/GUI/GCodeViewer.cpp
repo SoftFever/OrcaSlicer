@@ -920,7 +920,7 @@ std::vector<int> GCodeViewer::get_plater_extruder()
 
 //BBS: always load shell at preview
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
-                const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode)
+                const std::vector<BoundingBoxf3>& exclude_bounding_box, ConfigOptionMode mode, bool only_gcode)
 {
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id) {
@@ -975,7 +975,7 @@ m_sequential_view.m_show_gcode_window = false;
     //BBS: always load shell at preview
     /*if (wxGetApp().is_editor())
     {
-        //load_shells(print, initialized);
+        load_shells(print);
     }
     else {*/
     //BBS: add only gcode mode
@@ -3088,9 +3088,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 }
 
 //BBS: always load shell when preview
-void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
+void GCodeViewer::load_shells(const Print& print, bool force_previewing)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": initialized=%1%, force_previewing=%2%")%initialized %force_previewing;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": force_previewing=%1%") %force_previewing;
     if ((print.id().id == m_shells.print_id)&&(print.get_modified_count() == m_shells.print_modify_count)) {
         //BBS: update force previewing logic
         if (force_previewing)
@@ -3138,7 +3138,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
-        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, initialized);
+        m_shells.volumes.load_object(model_obj, object_idx, instance_ids);
 
         // adjust shells' z if raft is present
         const SlicingParameters& slicing_parameters = obj->slicing_parameters();
@@ -4079,14 +4079,6 @@ void GCodeViewer::render_shells()
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
-
-    // when the background processing is enabled, it may happen that the shells data have been loaded
-    // before opengl has been initialized for the preview canvas.
-    // when this happens, the volumes' data have not been sent to gpu yet.
-    for (GLVolume* v : m_shells.volumes.volumes) {
-        if (!v->indexed_vertex_array.has_VBOs())
-            v->finalize_geometry(true);
-    }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 //    glsafe(::glDepthMask(GL_FALSE));

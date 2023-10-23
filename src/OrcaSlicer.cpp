@@ -2353,7 +2353,7 @@ int CLI::run(int argc, char **argv)
                             //    continue;
                             for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                                 const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, true, false, true);
+                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, false, true);
                                 //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
                                 std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
 
