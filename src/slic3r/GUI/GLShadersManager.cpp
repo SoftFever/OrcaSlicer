@@ -35,6 +35,7 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     // basic shader, used to render all what was previously rendered using the immediate mode
     valid &= append_shader("flat", { "flat.vs", "flat.fs" });
+    valid &= append_shader("flat_attr", { "flat_attr.vs", "flat.fs" });
     // basic shader for textures, used to render textures
     valid &= append_shader("flat_texture", { "flat_texture.vs", "flat_texture.fs" });
     // used to render 3D scene background

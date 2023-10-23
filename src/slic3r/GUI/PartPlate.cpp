@@ -2496,12 +2496,15 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 
 void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+        const Transform3d matrix = wxGetApp().plater()->get_camera().get_projection_view_matrix();
+        shader->set_uniform("projection_view_model_matrix", matrix);
 
         if (!bottom) {
             // draw background

@@ -12,6 +12,8 @@
 #include "GUI_App.hpp"
 #include "GUI_Colors.hpp"
 #include "GLCanvas3D.hpp"
+#include "Plater.hpp"
+#include "Camera.hpp"
 
 #include <GL/glew.h>
 
@@ -702,9 +704,12 @@ void Bed3D::render_default(bool bottom)
 
     update_bed_triangles();
 
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
+
+        const Transform3d matrix = wxGetApp().plater()->get_camera().get_projection_view_matrix();
+        shader->set_uniform("projection_view_model_matrix", matrix);
 
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
