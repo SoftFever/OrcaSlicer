@@ -255,7 +255,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     glsafe(::glPushMatrix());
     glsafe(::glMultMatrixd(trafo.data()));
     // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-    glsafe(::glTranslatef(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2)));
+    glsafe(::glTranslatef(m_rr.hit.x(), m_rr.hit.y(), m_rr.hit.z()));
     glsafe(::glMultMatrixd(complete_scaling_matrix_inverse.data()));
     glsafe(::glScaled(m_cursor_radius, m_cursor_radius, m_cursor_radius));
 
@@ -1076,27 +1076,15 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     }
 
     for (auto& iva : m_iva_seed_fills) {
-            size_t           color_idx = &iva - &m_iva_seed_fills.front();
-            const ColorRGBA& color     = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
-                color_idx == 2 ? blockers_color :
-                GLVolume::NEUTRAL_COLOR);
-            iva.set_color(color);
-            iva.render();
-        }
-
-    if (m_paint_contour.has_VBO()) {
-        ScopeGuard guard_gouraud([shader]() { shader->start_using(); });
-        shader->stop_using();
-
-        auto *contour_shader = wxGetApp().get_shader("mm_contour");
-        contour_shader->start_using();
-
-        glsafe(::glDepthFunc(GL_LEQUAL));
-        m_paint_contour.render();
-        glsafe(::glDepthFunc(GL_LESS));
-
-        contour_shader->stop_using();
+        size_t           color_idx = &iva - &m_iva_seed_fills.front();
+        const ColorRGBA& color     = TriangleSelectorGUI::get_seed_fill_color(color_idx == 1 ? enforcers_color :
+            color_idx == 2 ? blockers_color :
+            GLVolume::NEUTRAL_COLOR);
+        iva.set_color(color);
+        iva.render();
     }
+
+    render_paint_contour();
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -1165,24 +1153,7 @@ void TriangleSelectorGUI::update_render_data()
             m_iva_seed_fills[i].init_from(std::move(iva_seed_fills_data[i]));
     }
 
-    m_paint_contour.release_geometry();
-    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    m_paint_contour.contour_vertices.reserve(contour_edges.size() * 6);
-    for (const Vec2i &edge : contour_edges) {
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
-
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
-    }
-
-    m_paint_contour.contour_indices.assign(m_paint_contour.contour_vertices.size() / 3, 0);
-    std::iota(m_paint_contour.contour_indices.begin(), m_paint_contour.contour_indices.end(), 0);
-    m_paint_contour.contour_indices_size = m_paint_contour.contour_indices.size();
-
-    m_paint_contour.finalize_geometry();
+    update_paint_contour();
 }
 
 // BBS
@@ -1195,8 +1166,10 @@ float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
-    if (m_update_render_data)
+    if (m_update_render_data) {
         update_render_data();
+        m_update_render_data = false;
+    }
 
     auto* shader = wxGetApp().get_current_shader();
     if (!shader)
@@ -1239,22 +1212,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
         }
     }
 
-    if (m_paint_contour.has_VBO())
-    {
-        ScopeGuard guard_mm_gouraud([shader]() { shader->start_using(); });
-        shader->stop_using();
-
-        auto* contour_shader = wxGetApp().get_shader("mm_contour");
-        contour_shader->start_using();
-
-        glsafe(::glDepthFunc(GL_LEQUAL));
-        m_paint_contour.render();
-        glsafe(::glDepthFunc(GL_LESS));
-
-        contour_shader->stop_using();
-    }
-
-    m_update_render_data = false;
+    render_paint_contour();
 }
 
 void TriangleSelectorPatch::update_triangles_per_type()
@@ -1477,25 +1435,7 @@ void TriangleSelectorPatch::update_render_data()
     }
 
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", before paint_contour");
-
-    m_paint_contour.release_geometry();
-    std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    m_paint_contour.contour_vertices.reserve(contour_edges.size() * 6);
-    for (const Vec2i& edge : contour_edges) {
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(0)].v.z());
-
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.x());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.y());
-        m_paint_contour.contour_vertices.emplace_back(m_vertices[edge(1)].v.z());
-    }
-
-    m_paint_contour.contour_indices.assign(m_paint_contour.contour_vertices.size() / 3, 0);
-    std::iota(m_paint_contour.contour_indices.begin(), m_paint_contour.contour_indices.end(), 0);
-    m_paint_contour.contour_indices_size = m_paint_contour.contour_indices.size();
-
-    m_paint_contour.finalize_geometry();
+    update_paint_contour();
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", exit");
 }
 
@@ -1610,64 +1550,6 @@ void TriangleSelectorPatch::finalize_triangle_indices()
     }
 }
 
-void GLPaintContour::render() const
-{
-    assert(this->m_contour_VBO_id != 0);
-    assert(this->m_contour_EBO_id != 0);
-
-    glsafe(::glLineWidth(4.0f));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-
-    if (this->contour_indices_size > 0) {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_contour_EBO_id));
-        glsafe(::glDrawElements(GL_LINES, GLsizei(this->contour_indices_size), GL_UNSIGNED_INT, nullptr));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-    }
-
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-}
-
-void GLPaintContour::finalize_geometry()
-{
-    assert(this->m_contour_VBO_id == 0);
-    assert(this->m_contour_EBO_id == 0);
-
-    if (!this->contour_vertices.empty()) {
-        glsafe(::glGenBuffers(1, &this->m_contour_VBO_id));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_VBO_id));
-        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_vertices.size() * sizeof(float), this->contour_vertices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-        this->contour_vertices.clear();
-    }
-
-    if (!this->contour_indices.empty()) {
-        glsafe(::glGenBuffers(1, &this->m_contour_EBO_id));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_contour_EBO_id));
-        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->contour_indices.size() * sizeof(unsigned int), this->contour_indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-        this->contour_indices.clear();
-    }
-}
-
-void GLPaintContour::release_geometry()
-{
-    if (this->m_contour_VBO_id) {
-        glsafe(::glDeleteBuffers(1, &this->m_contour_VBO_id));
-        this->m_contour_VBO_id = 0;
-    }
-    if (this->m_contour_EBO_id) {
-        glsafe(::glDeleteBuffers(1, &this->m_contour_EBO_id));
-        this->m_contour_EBO_id = 0;
-    }
-    this->clear();
-}
-
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
 {
@@ -1772,5 +1654,52 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
         curr_shader->start_using();
 }
 #endif // PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+
+void TriangleSelectorGUI::update_paint_contour()
+{
+    m_paint_contour.reset();
+
+    GLModel::Geometry init_data;
+    const std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
+    const GLModel::Geometry::EIndexType index_type = (2 * contour_edges.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, index_type };
+    init_data.reserve_vertices(2 * contour_edges.size());
+    init_data.reserve_indices(2 * contour_edges.size());
+    // vertices + indices
+    unsigned int vertices_count = 0;
+    for (const Vec2i& edge : contour_edges) {
+        init_data.add_vertex(m_vertices[edge(0)].v);
+        init_data.add_vertex(m_vertices[edge(1)].v);
+        vertices_count += 2;
+        if (index_type == GLModel::Geometry::EIndexType::USHORT)
+            init_data.add_ushort_line((unsigned short)vertices_count - 2, (unsigned short)vertices_count - 1);
+        else
+            init_data.add_uint_line(vertices_count - 2, vertices_count - 1);
+    }
+
+    if (!init_data.is_empty())
+        m_paint_contour.init_from(std::move(init_data));
+}
+
+void TriangleSelectorGUI::render_paint_contour()
+{
+    auto* curr_shader = wxGetApp().get_current_shader();
+    if (curr_shader != nullptr)
+        curr_shader->stop_using();
+
+    auto* contour_shader = wxGetApp().get_shader("mm_contour");
+    if (contour_shader != nullptr) {
+        contour_shader->start_using();
+
+        glsafe(::glDepthFunc(GL_LEQUAL));
+        m_paint_contour.render();
+        glsafe(::glDepthFunc(GL_LESS));
+
+        contour_shader->stop_using();
+    }
+
+    if (curr_shader != nullptr)
+        curr_shader->start_using();
+}
 
 } // namespace Slic3r::GUI

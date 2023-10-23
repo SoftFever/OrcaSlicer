@@ -28,42 +28,6 @@ enum class PainterGizmoType {
     MMU_SEGMENTATION
 };
 
-class GLPaintContour
-{
-public:
-    GLPaintContour() = default;
-
-    void render() const;
-
-    inline bool has_VBO() const { return this->m_contour_EBO_id != 0; }
-
-    // Release the geometry data, release OpenGL VBOs.
-    void release_geometry();
-
-    // Finalize the initialization of the contour geometry and the indices, upload both to OpenGL VBO objects
-    // and possibly releasing it if it has been loaded into the VBOs.
-    void finalize_geometry();
-
-    void clear()
-    {
-        this->contour_vertices.clear();
-        this->contour_indices.clear();
-        this->contour_indices_size = 0;
-    }
-
-    std::vector<float> contour_vertices;
-    std::vector<int>   contour_indices;
-
-    // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
-    // the above mentioned std::vectors are cleared and the following variables keep their original length.
-    size_t contour_indices_size{0};
-
-    // IDs of the Vertex Array Objects, into which the geometry has been loaded.
-    // Zero if the VBOs are not sent to GPU yet.
-    GLuint m_contour_VBO_id{0};
-    GLuint m_contour_EBO_id{0};
-};
-
 class TriangleSelectorGUI : public TriangleSelector {
 public:
     explicit TriangleSelectorGUI(const TriangleMesh& mesh, float edge_limit = 0.6f)
@@ -82,7 +46,7 @@ public:
     {
         m_update_render_data = true;
         m_paint_changed |= paint_changed;
-    };
+    }
 
     // BBS
     static ColorRGBA enforcers_color;
@@ -112,7 +76,11 @@ private:
 #endif // PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 
 protected:
-    GLPaintContour                      m_paint_contour;
+    GLModel                      m_paint_contour;
+
+    void update_paint_contour();
+    void render_paint_contour();
+
     bool                                m_need_wireframe {false};
 };
 
