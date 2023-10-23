@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2156,9 +2156,16 @@ msgstr ""
 msgid "Group"
 msgstr "Group"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2715,7 +2722,17 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "Nem sikerült elindítani a nyomtatási feladatot"
 
-msgid "Invalid nozzle diameter"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
 msgstr ""
 
 msgid "Calibration error"
@@ -3910,6 +3927,11 @@ msgstr "Layer: N/A"
 msgid "Clear"
 msgstr "Törlés"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -3968,9 +3990,6 @@ msgstr "Nyomtatás megszakítása"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Biztosan megszakítod ezt a nyomtatást?"
-
-msgid "Done"
-msgstr "Done"
 
 msgid "Downloading..."
 msgstr "Letöltés..."
@@ -4493,12 +4512,10 @@ msgid "Restore"
 msgstr "Visszaállítás"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
-"Az asztalhőmérséklet magasabb, mint a filament üvegesedési hőmérséklete. "
-"Kérjük, hogy a nyomtatás során tartsd nyitva a nyomtatót, vagy csökkentsd az "
-"asztalhőmérsékletet."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4625,8 +4642,14 @@ msgstr "Az objektum túl nagy"
 msgid "Export STL file:"
 msgstr "STL fájl exportálása:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Fájl mentése mint:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Delete object which is a part of cut object"
@@ -4646,17 +4669,38 @@ msgstr "A kijelölt objektumot nem lehet feldarabolni."
 msgid "Another export job is running."
 msgstr "Egy másik exportálási feladat is fut."
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Hiba a csere során"
+
 msgid "Select a new file"
 msgstr "Válassz egy új fájlt"
 
 msgid "File for the replace wasn't selected"
 msgstr "A cserefájl nem lett kiválasztva"
 
-msgid "Error during replace"
-msgstr "Hiba a csere során"
-
 msgid "Please select a file"
 msgstr "Kérjük, válassz egy fájlt"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Szeletelés"
@@ -4789,6 +4833,15 @@ msgstr "Kijelölt objektum másolatai"
 
 msgid "Save G-code file as:"
 msgstr "G-kód fájl mentése mint:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Szeletelt fájl mentése mint:"
@@ -5914,6 +5967,9 @@ msgstr ""
 "Az ajánlott fúvóka hőmérséklet-tartomány ehhez a filamenthez. A 0 azt "
 "jelenti, hogy nincs beállítva"
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "Nyomtatási hőmérséklet"
 
@@ -6697,6 +6753,9 @@ msgstr "A Bambu Studio új verziója"
 
 msgid "Don't remind me of this version again"
 msgstr "Ne emlékeztessen újra erre a verzióra."
+
+msgid "Done"
+msgstr "Done"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN kapcsolódás sikertelen (nyomtatási fájl küldése)"
@@ -7632,6 +7691,31 @@ msgid ""
 "bridges cannot be anchored. "
 msgstr ""
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr ""
 
@@ -7791,7 +7875,7 @@ msgstr "Alapértelmezett folyamat profil, ha erre a gép profilra váltasz"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Activate for better air filtration"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "Fan speed"
@@ -7859,16 +7943,6 @@ msgstr "Befejező G-kód az egész nyomtatás befejezésekor"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Befejező G-kód a filament nyomtatásának befejezésekor"
-
-msgid "Ensure vertical shell thickness"
-msgstr "Függőleges héjvastagság biztosítása"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr ""
-"A függőleges héjvastagság biztosítása érdekében szilárd kitöltést alkalmaz a "
-"lejtős felületek közelében."
 
 msgid "Top surface pattern"
 msgstr "Felső felület mintázata"
@@ -8268,15 +8342,14 @@ msgstr ""
 "A támaszanyag a támaszok és a támasz érintkező felületeinek nyomtatásához "
 "van használva."
 
-msgid "Temperature of vitrificaiton"
-msgstr "Üvegesedési hőmérséklet"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"Az anyag ezen a hőmérsékleten meglágyul. Ezért a tárgyasztal hőmérséklete "
-"nem lehet ennél magasabb."
 
 msgid "Price"
 msgstr "Költség"
@@ -8679,10 +8752,10 @@ msgstr ""
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
 msgstr ""
-"Engedélyezd ezt az opciót, ha a gép rendelkezik kiegészítő tárgyhűtő "
-"ventilátorral"
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -8726,13 +8799,16 @@ msgid "Support control chamber temperature"
 msgstr ""
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
 msgstr ""
 
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Enable this if printer support air filtration"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "G-code flavor"
@@ -9072,11 +9148,10 @@ msgstr "Tárgyhűtő ventilátor minimum fordulatszáma"
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
-"A kiegészítő tárgyhűtő ventilátor fordulatszáma. A kiegészítő ventilátor "
-"ezen a fordulatszámon fog működni a nyomtatás során, kivéve az első néhány "
-"réteget, amelynél kikapcsolt hűtés van megadva"
 
 msgid "Min"
 msgstr "Min"
@@ -9627,6 +9702,17 @@ msgstr ""
 msgid "Use single nozzle to print multi filament"
 msgstr ""
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr ""
 
@@ -10028,6 +10114,15 @@ msgstr ""
 "Ez a beállítás határozza meg, hogy a fa támasz nagyobb üregeiben legyen-e "
 "kitöltés."
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr ""
 
@@ -10295,6 +10390,14 @@ msgid ""
 "following format: \"XxY, XxY, ...\""
 msgstr ""
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr ""
 
@@ -10414,19 +10517,6 @@ msgstr ""
 "méretben megadott érték szerint). Ha a minimális falszélesség vékonyabb, "
 "mint a nyomtatandó elem vastagsága, akkor a fal olyan vastag lesz, mint maga "
 "a nyomtatott elem. A fúvóka átmérőjének százalékában van kifejezve"
-
-msgid "Detect narrow internal solid infill"
-msgstr "Keskeny belső szilárd kitöltés felismerése"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"Ez a beállítás automatikusan felismeri a keskeny belső tömör kitöltési "
-"területeket. Ha engedélyezve van, a nyomtatás felgyorsítása érdekében ezen a "
-"területen a koncentrikus mintát fogja használni. Ellenkező esetben "
-"alapértelmezés szerint az egyenes vonalú mintát használja."
 
 msgid "invalid value "
 msgstr "invalid value "
@@ -11297,9 +11387,6 @@ msgstr ""
 msgid "Filename"
 msgstr ""
 
-msgid "Message"
-msgstr ""
-
 msgid "Cancel selected"
 msgstr ""
 
@@ -11753,6 +11840,70 @@ msgstr ""
 "Szilárdság javítása\n"
 "Tudtad, hogy több fal vagy nagyobb kitöltés használatával javíthatod a "
 "modell szilárdságát?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "Az asztalhőmérséklet magasabb, mint a filament üvegesedési hőmérséklete. "
+#~ "Kérjük, hogy a nyomtatás során tartsd nyitva a nyomtatót, vagy csökkentsd "
+#~ "az asztalhőmérsékletet."
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "Függőleges héjvastagság biztosítása"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "A függőleges héjvastagság biztosítása érdekében szilárd kitöltést "
+#~ "alkalmaz a lejtős felületek közelében."
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Üvegesedési hőmérséklet"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "Az anyag ezen a hőmérsékleten meglágyul. Ezért a tárgyasztal hőmérséklete "
+#~ "nem lehet ennél magasabb."
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr ""
+#~ "Engedélyezd ezt az opciót, ha a gép rendelkezik kiegészítő tárgyhűtő "
+#~ "ventilátorral"
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "A kiegészítő tárgyhűtő ventilátor fordulatszáma. A kiegészítő ventilátor "
+#~ "ezen a fordulatszámon fog működni a nyomtatás során, kivéve az első "
+#~ "néhány réteget, amelynél kikapcsolt hűtés van megadva"
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "Keskeny belső szilárd kitöltés felismerése"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "Ez a beállítás automatikusan felismeri a keskeny belső tömör kitöltési "
+#~ "területeket. Ha engedélyezve van, a nyomtatás felgyorsítása érdekében "
+#~ "ezen a területen a koncentrikus mintát fogja használni. Ellenkező esetben "
+#~ "alapértelmezés szerint az egyenes vonalú mintát használja."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Az alsó üres rétegeket a legközelebbi normál rétegek váltják fel."

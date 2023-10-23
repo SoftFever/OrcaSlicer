@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2132,9 +2132,16 @@ msgstr ""
 msgid "Group"
 msgstr "Group"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2691,7 +2698,17 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "Failed to start print job"
 
-msgid "Invalid nozzle diameter"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
 msgstr ""
 
 msgid "Calibration error"
@@ -3884,6 +3901,11 @@ msgstr "Layer: N/A"
 msgid "Clear"
 msgstr "Clear"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -3942,9 +3964,6 @@ msgstr "Cancel print"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Are you sure you want to cancel this print?"
-
-msgid "Done"
-msgstr "Done"
 
 msgid "Downloading..."
 msgstr "Downloading..."
@@ -4466,11 +4485,10 @@ msgid "Restore"
 msgstr "Restore"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clogs."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4597,8 +4615,14 @@ msgstr "Object too large"
 msgid "Export STL file:"
 msgstr "Export STL file:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Save file as"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Delete object which is a part of cut object"
@@ -4618,17 +4642,38 @@ msgstr "The selected object couldn't be split."
 msgid "Another export job is running."
 msgstr "Another export job is running."
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Error during replacement"
+
 msgid "Select a new file"
 msgstr "Select a new file"
 
 msgid "File for the replace wasn't selected"
 msgstr "File for the replacement wasn't selected"
 
-msgid "Error during replace"
-msgstr "Error during replacement"
-
 msgid "Please select a file"
 msgstr "Please select a file"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Slicing"
@@ -4758,6 +4803,15 @@ msgstr "Copies of the selected object"
 
 msgid "Save G-code file as:"
 msgstr "Save G-code file as:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Save Sliced file as:"
@@ -5869,6 +5923,9 @@ msgstr "Recommended nozzle temperature"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "Recommended nozzle temperature range of this filament. 0 means not set"
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "Print temperature"
 
@@ -6644,6 +6701,9 @@ msgstr "New version of Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "Don't remind me about this version again."
+
+msgid "Done"
+msgstr "Done"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN Connection Failed (Sending print file)"
@@ -7561,6 +7621,31 @@ msgid ""
 "bridges cannot be anchored. "
 msgstr ""
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr ""
 
@@ -7721,7 +7806,7 @@ msgstr "Default process profile when switching to this machine profile"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Activate for better air filtration"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "Fan speed"
@@ -7788,16 +7873,6 @@ msgstr "Add end G-Code when finishing the entire print."
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Add end G-code when finishing the printing of this filament."
-
-msgid "Ensure vertical shell thickness"
-msgstr "Ensure vertical shell thickness"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)."
 
 msgid "Top surface pattern"
 msgstr "Top surface pattern"
@@ -8195,15 +8270,14 @@ msgid ""
 msgstr ""
 "Support material is commonly used to print support and support interfaces."
 
-msgid "Temperature of vitrificaiton"
-msgstr "Temperature of vitrification"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"Material becomes soft at this temperature. Thus, the heat bed cannot be "
-"hotter than this temperature."
 
 msgid "Price"
 msgstr "Price"
@@ -8607,8 +8681,10 @@ msgstr ""
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr "Enable this option if the machine has an auxiliary part cooling fan"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
+msgstr ""
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -8652,13 +8728,16 @@ msgid "Support control chamber temperature"
 msgstr ""
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
 msgstr ""
 
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Enable this if printer support air filtration"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "G-code flavor"
@@ -8995,11 +9074,10 @@ msgstr "Minimum speed for part cooling fan"
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
-"This is the speed of auxiliary part cooling fan. The auxiliary fan will run "
-"at this speed during printing except for during the first several layers "
-"which may be set to have no part cooling."
 
 msgid "Min"
 msgstr "Min"
@@ -9541,6 +9619,17 @@ msgstr ""
 msgid "Use single nozzle to print multi filament"
 msgstr ""
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr ""
 
@@ -9936,6 +10025,15 @@ msgstr ""
 "This setting specifies whether to add infill inside large hollows of tree "
 "support."
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr ""
 
@@ -10201,6 +10299,14 @@ msgid ""
 "following format: \"XxY, XxY, ...\""
 msgstr ""
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr ""
 
@@ -10320,18 +10426,6 @@ msgstr ""
 "feature size) of the model. If the Minimum wall width is thinner than the "
 "thickness of the feature, the wall will become as thick as the feature "
 "itself. It's expressed as a percentage over nozzle diameter"
-
-msgid "Detect narrow internal solid infill"
-msgstr "Detect narrow internal solid infill"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"This option will auto-detect narrow internal solid infill areas. If enabled, "
-"the concentric pattern will be used for the area to speed up printing. "
-"Otherwise, the rectilinear pattern will be used by default."
 
 msgid "invalid value "
 msgstr "invalid value "
@@ -11202,9 +11296,6 @@ msgstr ""
 msgid "Filename"
 msgstr ""
 
-msgid "Message"
-msgstr ""
-
 msgid "Cancel selected"
 msgstr ""
 
@@ -11585,6 +11676,66 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clogs."
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "Ensure vertical shell thickness"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)."
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Temperature of vitrification"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "Material becomes soft at this temperature. Thus, the heat bed cannot be "
+#~ "hotter than this temperature."
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr "Enable this option if the machine has an auxiliary part cooling fan"
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "This is the speed of auxiliary part cooling fan. The auxiliary fan will "
+#~ "run at this speed during printing except for during the first several "
+#~ "layers which may be set to have no part cooling."
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "Detect narrow internal solid infill"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "This option will auto-detect narrow internal solid infill areas. If "
+#~ "enabled, the concentric pattern will be used for the area to speed up "
+#~ "printing. Otherwise, the rectilinear pattern will be used by default."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Empty layers around bottom are replaced by nearest normal layers."

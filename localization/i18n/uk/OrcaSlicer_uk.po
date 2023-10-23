@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2169,9 +2169,16 @@ msgstr ""
 msgid "Group"
 msgstr "Група"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
@@ -2734,7 +2741,17 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "Не вдалося запустити завдання друку"
 
-msgid "Invalid nozzle diameter"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
 msgstr ""
 
 msgid "Calibration error"
@@ -3944,6 +3961,11 @@ msgstr "Шар: немає даних"
 msgid "Clear"
 msgstr "Очищення"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4002,9 +4024,6 @@ msgstr "Скасувати друк"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Ви впевнені, що хочете скасувати цей друк?"
-
-msgid "Done"
-msgstr "Виконано"
 
 msgid "Downloading..."
 msgstr "Завантаження..."
@@ -4533,12 +4552,10 @@ msgid "Restore"
 msgstr "Відновити"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
-"Температура шару перевищує температуру скловання нитки. Будь ласка\n"
-"відчиняйте передні дверцята принтера перед печаткою, щоб уникнути засмічення "
-"сопла."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4667,8 +4684,14 @@ msgstr "Об'єкт занадто великий"
 msgid "Export STL file:"
 msgstr "Експорт файлу STL:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Зберегти файл як:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Видалити об'єкт, який є частиною обрізаного об'єкта"
@@ -4688,17 +4711,38 @@ msgstr "Вибраний об'єкт не може бути поділений."
 msgid "Another export job is running."
 msgstr "Виконується інше завдання експорту."
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Помилка заміни"
+
 msgid "Select a new file"
 msgstr "Виберіть новий файл"
 
 msgid "File for the replace wasn't selected"
 msgstr "Не вибраний файл для заміни"
 
-msgid "Error during replace"
-msgstr "Помилка заміни"
-
 msgid "Please select a file"
 msgstr "Будь ласка, виберіть файл"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Нарізка"
@@ -4829,6 +4873,15 @@ msgstr "Копії вибраного об'єкта"
 
 msgid "Save G-code file as:"
 msgstr "Збережіть файл G-коду як:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Зберегти нарізаний файл як:"
@@ -5933,6 +5986,9 @@ msgstr ""
 "Рекомендований діапазон температур сопла для цього філаменту. 0 означає "
 "відсутність установки"
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "Температура друку"
 
@@ -6713,6 +6769,9 @@ msgstr ""
 
 msgid "Don't remind me of this version again"
 msgstr "Не нагадуйте мені більше про цю версію"
+
+msgid "Done"
+msgstr "Виконано"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "Помилка з’єднання LAN (Надсилання файлу друку)"
@@ -7646,6 +7705,31 @@ msgid ""
 "bridges cannot be anchored. "
 msgstr ""
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr "Класичний режим"
 
@@ -7803,7 +7887,7 @@ msgstr "Профіль за промовчанням при перемиканн
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Activate for better air filtration"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "Fan speed"
@@ -7870,16 +7954,6 @@ msgstr "Завершальний G-code, коли закінчити весь д
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Завершальний G-code, коли закінчите друк цієї нитки"
-
-msgid "Ensure vertical shell thickness"
-msgstr "Забезпечення вертикальної товщини оболонки"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr ""
-"Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
-"товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
 msgid "Top surface pattern"
 msgstr "Малюнок верхньої поверхні"
@@ -8294,15 +8368,14 @@ msgid ""
 "Support material is commonly used to print support and support interface"
 msgstr "Допоміжний матеріал зазвичай використовується для друку підтримки"
 
-msgid "Temperature of vitrificaiton"
-msgstr "Температура склування"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"При цій температурі матеріал стає м'яким. Таким чином, нагріваєтьсяшар не "
-"може бути гарячішим, ніж ця температура"
 
 msgid "Price"
 msgstr "Ціна"
@@ -8748,10 +8821,10 @@ msgstr ""
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
 msgstr ""
-"Увімкніть цю опцію, якщо машина оснащена вентилятором охолодженнядопоміжної "
-"частини"
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -8811,13 +8884,16 @@ msgid "Support control chamber temperature"
 msgstr ""
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
 msgstr ""
 
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Enable this if printer support air filtration"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "G-code flavor"
@@ -9164,11 +9240,10 @@ msgstr "Мінімальна швидкість вентилятора охол�
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
-"Швидкість вентилятора охолодження допоміжної частини. ДопоміжнийВентилятор "
-"буде працювати з такою швидкістю під час друку, за винятком перших кількох "
-"шарів, які не визначаються шарами охолодження"
 
 msgid "Min"
 msgstr "Мін"
@@ -9737,6 +9812,17 @@ msgstr ""
 msgid "Use single nozzle to print multi filament"
 msgstr ""
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr ""
 
@@ -10134,6 +10220,15 @@ msgstr ""
 "Цей параметр визначає, чи слід додавати заповнення всередині "
 "великихПорожнини підтримки дерева"
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr "Температура в камері"
 
@@ -10394,6 +10489,14 @@ msgstr ""
 "Розміри малюнків повинні зберігатися у файлах .gcode та .sl1/.sl1s, у "
 "наступному форматі: «XxY, XxY»,..."
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr "Використовуйте відносні відстані E екструдера"
 
@@ -10511,19 +10614,6 @@ msgstr ""
 "розміром елемента) моделі. Якщо мінімальна ширина периметра менше товщини "
 "елемента, то товщина периметра дорівнюватиме товщині самого елемента. Він "
 "виражається у відсотках від діаметра сопла"
-
-msgid "Detect narrow internal solid infill"
-msgstr "Виявлення вузького внутрішнього заповнення твердим тілом"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"Ця опція автоматично визначає вузьку внутрішню область заповненнятвердого "
-"тіла. Якщо цей параметр увімкнено, для прискорення друку області "
-"використовуватиметься концентричний візерунок. Інакше за умовчанням "
-"Використовується прямолінійний малюнок."
 
 msgid "invalid value "
 msgstr "неправильне значення "
@@ -11395,9 +11485,6 @@ msgstr ""
 msgid "Filename"
 msgstr ""
 
-msgid "Message"
-msgstr ""
-
 msgid "Cancel selected"
 msgstr ""
 
@@ -11867,6 +11954,70 @@ msgstr ""
 "Підвищення міцності\n"
 "Чи знаєте ви, що для підвищення міцності моделі можна використовувати "
 "більшепериметрів та вищу щільність заповнення?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "Температура шару перевищує температуру скловання нитки. Будь ласка\n"
+#~ "відчиняйте передні дверцята принтера перед печаткою, щоб уникнути "
+#~ "засмічення сопла."
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "Забезпечення вертикальної товщини оболонки"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
+#~ "товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Температура склування"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "При цій температурі матеріал стає м'яким. Таким чином, нагріваєтьсяшар не "
+#~ "може бути гарячішим, ніж ця температура"
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr ""
+#~ "Увімкніть цю опцію, якщо машина оснащена вентилятором "
+#~ "охолодженнядопоміжної частини"
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "Швидкість вентилятора охолодження допоміжної частини. "
+#~ "ДопоміжнийВентилятор буде працювати з такою швидкістю під час друку, за "
+#~ "винятком перших кількох шарів, які не визначаються шарами охолодження"
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "Виявлення вузького внутрішнього заповнення твердим тілом"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "Ця опція автоматично визначає вузьку внутрішню область заповненнятвердого "
+#~ "тіла. Якщо цей параметр увімкнено, для прискорення друку області "
+#~ "використовуватиметься концентричний візерунок. Інакше за умовчанням "
+#~ "Використовується прямолінійний малюнок."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr ""

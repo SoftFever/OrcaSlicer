@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2166,16 +2166,19 @@ msgstr ""
 msgid "Group"
 msgstr "Skupina"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"Aktuálně nejsou k dispozici žádné shodné náhradní spotřební materiály a "
-"automatické doplnění momentálně není možné. \n"
-"(Aktuálně podporuje automatické dodávky spotřebních materiálů se stejnou "
-"značkou, typem materiálu a barvou)"
 
 msgid "AMS Settings"
 msgstr "Nastavení AMS"
@@ -2738,8 +2741,18 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "Nepodařilo se spustit tiskovou úlohu"
 
-msgid "Invalid nozzle diameter"
-msgstr "Neplatný průměr trysky"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
 
 msgid "Calibration error"
 msgstr "Chyba kalibrace"
@@ -3951,6 +3964,11 @@ msgstr "Vrstva: N/A"
 msgid "Clear"
 msgstr "Vymazat"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr "Jak se vám líbí tento tiskový soubor?"
 
@@ -4009,9 +4027,6 @@ msgstr "Zrušit tisk"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Opravdu chcete zrušit tento tisk?"
-
-msgid "Done"
-msgstr "Hotovo"
 
 msgid "Downloading..."
 msgstr "Stahuji..."
@@ -4551,11 +4566,10 @@ msgid "Restore"
 msgstr "Obnovit"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
-"Teplota podložky překračuje teplotu vitrifikace filamentu. Prosím. Před "
-"tiskem otevřete přední dvířka tiskárny, aby nedošlo k ucpání trysky."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4685,8 +4699,14 @@ msgstr "Objekt je příliš velký"
 msgid "Export STL file:"
 msgstr "Exportovat STL soubor:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Uložit soubor jako:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Odstranění objektu, který je součástí řezaného objektu"
@@ -4706,17 +4726,38 @@ msgstr "Vybraný objekt nelze rozdělit."
 msgid "Another export job is running."
 msgstr "Probíhá další exportní úloha."
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Chyba při nahrazení"
+
 msgid "Select a new file"
 msgstr "Vyberte nový soubor"
 
 msgid "File for the replace wasn't selected"
 msgstr "Soubor pro nahrazení nebyl vybrán"
 
-msgid "Error during replace"
-msgstr "Chyba při nahrazení"
-
 msgid "Please select a file"
 msgstr "Vyberte prosím soubor"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr "Zpráva"
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Slicování"
@@ -4846,6 +4887,15 @@ msgstr "Kopie vybraného modelu"
 
 msgid "Save G-code file as:"
 msgstr "Uložit G-kód jako:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Uložit Slicované soubor jako:"
@@ -5965,6 +6015,9 @@ msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr ""
 "Doporučený rozsah teploty trysky tohoto filamentu. 0 znamená nenastaveno"
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "Teplota tisku"
 
@@ -6757,6 +6810,9 @@ msgstr "Nová verze Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "Tuto verzi mi znovu nepřipomínat"
+
+msgid "Done"
+msgstr "Hotovo"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "Připojení k síti LAN se nezdařilo (odesílání tiskového souboru)"
@@ -7706,6 +7762,31 @@ msgstr ""
 "Vytvořte další perimetry přes strmé převisy a oblasti, kde mosty nelze "
 "ukotvit. "
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr "Klasický režim"
 
@@ -7869,7 +7950,7 @@ msgstr "Výchozí profil procesu při přepnutí na tento profil stroje"
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Activate for better air filtration"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "Fan speed"
@@ -7937,16 +8018,6 @@ msgstr "Konec G-kód po dokončení celého tisku"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Konec G-kód po dokončení tisku tohoto filamentu"
-
-msgid "Ensure vertical shell thickness"
-msgstr "Zajistit tloušťku svislých stěn"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr ""
-"Přidá plnou výplň u šikmých ploch pro garanci tloušťky svislých stěn "
-"(vrchních a spodních plných vrstev)"
 
 msgid "Top surface pattern"
 msgstr "Vzor horního povrchu"
@@ -8386,15 +8457,14 @@ msgid ""
 msgstr ""
 "Materiál podpěr se běžně používá k tisku podpěr a kontaktní vrstvy podpěr"
 
-msgid "Temperature of vitrificaiton"
-msgstr "Teplota vitrifikace"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"Materiál při této teplotě změkne. Vyhřívaná podložka tedy nemůže být "
-"teplejší než tato teplota"
 
 msgid "Price"
 msgstr "Cena"
@@ -8830,8 +8900,10 @@ msgstr ""
 "Nejlepší automatická uspořádávací pozice v rozsahu [0,1] vzhledem k tvaru "
 "podložky."
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr "Povolte tuto možnost, pokud má stroj pomocný chladicí ventilátor"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
+msgstr ""
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -8890,14 +8962,17 @@ msgid "Support control chamber temperature"
 msgstr "Podpora řízení teploty komory"
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
-msgstr "Tato možnost je povolena, pokud stroj podporuje řízení teploty komory"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
+msgstr ""
 
 msgid "Support air filtration"
 msgstr "Podpora filtrace vzduchu"
 
-msgid "Enable this if printer support air filtration"
-msgstr "Povolte to, pokud tiskárna podporuje filtraci vzduchu"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "Druh G-kódu"
@@ -9271,11 +9346,10 @@ msgstr "Minimální rychlost ventilátoru chlazení dílů"
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
-"Rychlost chladicího ventilátoru pomocné části. Pomocný ventilátor poběží "
-"touto rychlostí během tisku kromě prvních několika vrstev, které nejsou "
-"definovány žádnými chladicími vrstvami"
 
 msgid "Min"
 msgstr "Min"
@@ -9863,6 +9937,17 @@ msgstr "MultiMaterial tisk s jedním extruderem"
 msgid "Use single nozzle to print multi filament"
 msgstr "Použít jednu trysku pro tisk s více filamenty"
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr "Očistit do čistící věže"
 
@@ -10285,6 +10370,15 @@ msgid ""
 msgstr ""
 "Toto nastavení určuje, zda se má přidat výplň do velkých dutin podpěr stromů"
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr "Teplota v komoře"
 
@@ -10566,6 +10660,14 @@ msgstr ""
 "Velikosti obrázků budou uloženy do souborů .gcode / .sl1 / .sl1s, v "
 "následujícím formátu: \"XxY, XxY, ...\""
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr "Použít relativní E vzdálenosti"
 
@@ -10691,18 +10793,6 @@ msgstr ""
 "modelu. Pokud je minimální šířka stěny tenčí než tloušťka prvku, zeď bude "
 "stejně tlustá jako prvek samotný. Vyjadřuje se jako procento nad průměr "
 "trysky"
-
-msgid "Detect narrow internal solid infill"
-msgstr "Detekovat úzkou vnitřní plnou výplň"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"Tato možnost automaticky rozpozná úzkou vnitřní plnou výplňovou oblast. Je-"
-"li povolena, bude pro oblast použit soustředný vzor, aby se urychlil tisk. V "
-"opačném případě se ve výchozím nastavení použije přímočarý vzor."
 
 msgid "invalid value "
 msgstr "neplatná hodnota "
@@ -11667,9 +11757,6 @@ msgstr "Velikost"
 msgid "Filename"
 msgstr "Název souboru"
 
-msgid "Message"
-msgstr "Zpráva"
-
 msgid "Cancel selected"
 msgstr "Zrušit vybrané"
 
@@ -12156,6 +12243,88 @@ msgstr ""
 "Zvýšení pevnosti\n"
 "Věděli jste, že můžete použít více opakování stěn a vyšší hustotu řídké "
 "výplně pro zvýšení pevnosti modelu?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "There are currently no identical spare consumables available, and "
+#~ "automatic replenishment is currently not possible. \n"
+#~ "(Currently supporting automatic supply of consumables with the same "
+#~ "brand, material type, and color)"
+#~ msgstr ""
+#~ "Aktuálně nejsou k dispozici žádné shodné náhradní spotřební materiály a "
+#~ "automatické doplnění momentálně není možné. \n"
+#~ "(Aktuálně podporuje automatické dodávky spotřebních materiálů se stejnou "
+#~ "značkou, typem materiálu a barvou)"
+
+#~ msgid "Invalid nozzle diameter"
+#~ msgstr "Neplatný průměr trysky"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "Teplota podložky překračuje teplotu vitrifikace filamentu. Prosím. Před "
+#~ "tiskem otevřete přední dvířka tiskárny, aby nedošlo k ucpání trysky."
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "Zajistit tloušťku svislých stěn"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Přidá plnou výplň u šikmých ploch pro garanci tloušťky svislých stěn "
+#~ "(vrchních a spodních plných vrstev)"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Teplota vitrifikace"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "Materiál při této teplotě změkne. Vyhřívaná podložka tedy nemůže být "
+#~ "teplejší než tato teplota"
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr "Povolte tuto možnost, pokud má stroj pomocný chladicí ventilátor"
+
+#~ msgid ""
+#~ "This option is enabled if machine support controlling chamber temperature"
+#~ msgstr ""
+#~ "Tato možnost je povolena, pokud stroj podporuje řízení teploty komory"
+
+#~ msgid "Enable this if printer support air filtration"
+#~ msgstr "Povolte to, pokud tiskárna podporuje filtraci vzduchu"
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "Rychlost chladicího ventilátoru pomocné části. Pomocný ventilátor poběží "
+#~ "touto rychlostí během tisku kromě prvních několika vrstev, které nejsou "
+#~ "definovány žádnými chladicími vrstvami"
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "Detekovat úzkou vnitřní plnou výplň"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "Tato možnost automaticky rozpozná úzkou vnitřní plnou výplňovou oblast. "
+#~ "Je-li povolena, bude pro oblast použit soustředný vzor, aby se urychlil "
+#~ "tisk. V opačném případě se ve výchozím nastavení použije přímočarý vzor."
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "

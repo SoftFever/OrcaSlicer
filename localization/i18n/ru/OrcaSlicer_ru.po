@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.7beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
 "PO-Revision-Date: 2023-09-21 14:29+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -2194,16 +2194,19 @@ msgstr ""
 msgid "Group"
 msgstr "Группа"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"В настоящее время идентичные резервные материалы отсутствуют, и "
-"автоматическое пополнение их в настоящее время невозможно. \n"
-"(В настоящее время поддерживается автоматическая поставка расходных "
-"материалов того же производителя, типа материала и цвета)."
 
 msgid "AMS Settings"
 msgstr "Настройки АСПП"
@@ -2774,8 +2777,18 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "Не удалось запустить задание на печать."
 
-msgid "Invalid nozzle diameter"
-msgstr "Недопустимый диаметр сопла"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
 
 msgid "Calibration error"
 msgstr "Ошибка калибровки"
@@ -3989,6 +4002,11 @@ msgstr "Слой: Н/Д"
 msgid "Clear"
 msgstr "Очистить"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr ""
 
@@ -4047,9 +4065,6 @@ msgstr "Отмена печати"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "Вы уверены, что хотите отменить эту печать?"
-
-msgid "Done"
-msgstr "Готово"
 
 msgid "Downloading..."
 msgstr "Загрузка..."
@@ -4579,12 +4594,10 @@ msgid "Restore"
 msgstr "Восстановить"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
-"Температура стола превышает температуру стеклования пластиковой нити. "
-"Пожалуйста, откройте переднюю дверцу принтера перед печатью, чтобы избежать "
-"засорения сопла."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4718,8 +4731,14 @@ msgstr "Модель слишком большая"
 msgid "Export STL file:"
 msgstr "Экспорт в STL файл:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "Сохранить файл как:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "Удаление детали, являющейся частью разрезанной модели"
@@ -4739,17 +4758,38 @@ msgstr "Выбранная модель не может быть разделе�
 msgid "Another export job is running."
 msgstr "Уже идёт другой процесс экспорта."
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "Ошибка при выполнении замены"
+
 msgid "Select a new file"
 msgstr "Выберите новый файл"
 
 msgid "File for the replace wasn't selected"
 msgstr "Файл для замены не выбран"
 
-msgid "Error during replace"
-msgstr "Ошибка при выполнении замены"
-
 msgid "Please select a file"
 msgstr "Пожалуйста, выберите файл"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr "Сообщение"
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "Нарезка"
@@ -4879,6 +4919,15 @@ msgstr "Количество копий выбранной модели"
 
 msgid "Save G-code file as:"
 msgstr "Сохранить файл G-кода как:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "Сохранить нарезанный файл как:"
@@ -6033,6 +6082,9 @@ msgstr ""
 "Рекомендуемый диапазон температуры сопла для данной пластиковой нити. 0 "
 "значит не задано."
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "Температура печати"
 
@@ -6830,6 +6882,9 @@ msgstr "Доступна новая версия Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "Больше не напоминай об этой версии"
+
+msgid "Done"
+msgstr "Готово"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "Сбой подключения к локальной сети (отправка файла на печать)"
@@ -7811,6 +7866,31 @@ msgstr ""
 "Создание дополнительных дорожек по периметру над крутыми нависаниями и "
 "участками, где мосты не могут быть закреплены."
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr "Классический режим"
 
@@ -7975,7 +8055,7 @@ msgstr ""
 msgid "Activate air filtration"
 msgstr ""
 
-msgid "Activate for better air filtration"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "Fan speed"
@@ -8042,16 +8122,6 @@ msgstr "Завершающий G-код при окончании всей пе�
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Завершающий G-код при окончании печати этой пластиковой нитью."
-
-msgid "Ensure vertical shell thickness"
-msgstr "Обеспечивать верт. толщину оболочки"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr ""
-"Добавление сплошного заполнения вблизи наклонных поверхностей для "
-"обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
 
 msgid "Top surface pattern"
 msgstr "Шаблон заполнения верхней поверхности"
@@ -8502,15 +8572,14 @@ msgstr ""
 "«Материал для поддержки» обычно используется для печати поддержки и "
 "связующего слоя поддержки."
 
-msgid "Temperature of vitrificaiton"
-msgstr "Температура стеклования"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"При этой температуре материал становится мягким. Таким образом, "
-"подогреваемый стол не может быть горячее этой температуры."
 
 msgid "Price"
 msgstr "Стоимость"
@@ -8957,10 +9026,10 @@ msgstr ""
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
 msgstr ""
-"Включите, если в принтере имеет вспомогательный вентилятор для охлаждения "
-"моделей."
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -9019,13 +9088,16 @@ msgid "Support control chamber temperature"
 msgstr ""
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
 msgstr ""
 
 msgid "Support air filtration"
 msgstr ""
 
-msgid "Enable this if printer support air filtration"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
 msgstr ""
 
 msgid "G-code flavor"
@@ -9381,11 +9453,10 @@ msgstr "Минимальная скорость вентилятора обду�
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
-"Скорость вращения вспомогательного вентилятора для охлаждения моделей. Он "
-"всегда будет работать с этой скоростью, за исключением первых нескольких "
-"слоёв, которые обычно настроены на работу без охлаждения."
 
 msgid "Min"
 msgstr "Мин."
@@ -9993,6 +10064,17 @@ msgstr ""
 "Использование одной экструзионной головы для печати несколькими видами/"
 "цветами пластика."
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr "Очистка в черновую башню"
 
@@ -10437,6 +10519,15 @@ msgstr ""
 "Этот параметр определяет, следует ли заполнять большие полости внутри "
 "древовидной поддержки."
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr "Температура термокамеры"
 
@@ -10717,6 +10808,14 @@ msgstr ""
 "Размеры изображения, которые будут сохранены в файлах .sl1 / .sl1s в "
 "следующем формате: \"XxY, XxY, ...\""
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr "Исп. относительные координаты для экструдера (E)"
 
@@ -10852,19 +10951,6 @@ msgstr ""
 "меньше толщины элемента, толщина периметра будет приведена к толщине самого "
 "элемента. Если задано в процентах, то значение вычисляться относительно "
 "диаметра сопла."
-
-msgid "Detect narrow internal solid infill"
-msgstr "Обнаруживать узкую область сплошного заполнения"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"Этот параметр автоматически определяет узкую внутреннюю область сплошного "
-"заполнения. Если включено, для ускорения печати будет использоваться "
-"концентрический шаблон. В противном случае по умолчанию используется "
-"прямолинейный шаблон."
 
 msgid "invalid value "
 msgstr "недопустимое значение "
@@ -11846,9 +11932,6 @@ msgstr "Размер"
 msgid "Filename"
 msgstr "Имя файла"
 
-msgid "Message"
-msgstr "Сообщение"
-
 msgid "Cancel selected"
 msgstr "Отменить выбранное"
 
@@ -12329,6 +12412,84 @@ msgstr ""
 "Увеличение прочности\n"
 "Знаете ли вы, что для повышения прочности модели можно увеличить количество "
 "периметров и плотность заполнения?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "There are currently no identical spare consumables available, and "
+#~ "automatic replenishment is currently not possible. \n"
+#~ "(Currently supporting automatic supply of consumables with the same "
+#~ "brand, material type, and color)"
+#~ msgstr ""
+#~ "В настоящее время идентичные резервные материалы отсутствуют, и "
+#~ "автоматическое пополнение их в настоящее время невозможно. \n"
+#~ "(В настоящее время поддерживается автоматическая поставка расходных "
+#~ "материалов того же производителя, типа материала и цвета)."
+
+#~ msgid "Invalid nozzle diameter"
+#~ msgstr "Недопустимый диаметр сопла"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "Температура стола превышает температуру стеклования пластиковой нити. "
+#~ "Пожалуйста, откройте переднюю дверцу принтера перед печатью, чтобы "
+#~ "избежать засорения сопла."
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "Обеспечивать верт. толщину оболочки"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "Добавление сплошного заполнения вблизи наклонных поверхностей для "
+#~ "обеспечения вертикальной толщины оболочки (верхний+нижний сплошные слои)."
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "Температура стеклования"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "При этой температуре материал становится мягким. Таким образом, "
+#~ "подогреваемый стол не может быть горячее этой температуры."
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr ""
+#~ "Включите, если в принтере имеет вспомогательный вентилятор для охлаждения "
+#~ "моделей."
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "Скорость вращения вспомогательного вентилятора для охлаждения моделей. Он "
+#~ "всегда будет работать с этой скоростью, за исключением первых нескольких "
+#~ "слоёв, которые обычно настроены на работу без охлаждения."
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "Обнаруживать узкую область сплошного заполнения"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "Этот параметр автоматически определяет узкую внутреннюю область сплошного "
+#~ "заполнения. Если включено, для ускорения печати будет использоваться "
+#~ "концентрический шаблон. В противном случае по умолчанию используется "
+#~ "прямолинейный шаблон."
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "
