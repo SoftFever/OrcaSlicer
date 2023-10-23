@@ -630,7 +630,6 @@ public:
         const ModelObject 		*model_object,
         int                      obj_idx,
         const std::vector<int>	&instance_idxs,
-        const std::string 		&color_by,
         bool 					 opengl_initialized);
 
     int load_object_volume(
@@ -638,7 +637,6 @@ public:
         int                obj_idx,
         int                volume_idx,
         int                instance_idx,
-        const std::string &color_by,
         bool 			   opengl_initialized,
         bool               in_assemble_view = false,
         bool               use_loaded_id = false);
