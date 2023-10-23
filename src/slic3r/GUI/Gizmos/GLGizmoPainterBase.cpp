@@ -1661,8 +1661,7 @@ void TriangleSelectorGUI::update_paint_contour()
 
     GLModel::Geometry init_data;
     const std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    const GLModel::Geometry::EIndexType index_type = (2 * contour_edges.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, index_type };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(2 * contour_edges.size()) };
     init_data.reserve_vertices(2 * contour_edges.size());
     init_data.reserve_indices(2 * contour_edges.size());
     // vertices + indices
@@ -1671,7 +1670,7 @@ void TriangleSelectorGUI::update_paint_contour()
         init_data.add_vertex(m_vertices[edge(0)].v);
         init_data.add_vertex(m_vertices[edge(1)].v);
         vertices_count += 2;
-        if (index_type == GLModel::Geometry::EIndexType::USHORT)
+        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
             init_data.add_ushort_line((unsigned short)vertices_count - 2, (unsigned short)vertices_count - 1);
         else
             init_data.add_uint_line(vertices_count - 2, vertices_count - 1);

@@ -63,11 +63,11 @@ namespace GUI {
             void reserve_vertices(size_t vertices_count);
             void reserve_indices(size_t indices_count);
 
-            void add_vertex(const Vec2f& position);
-            void add_vertex(const Vec2f& position, const Vec2f& tex_coord);
-            void add_vertex(const Vec3f& position);
-            void add_vertex(const Vec3f& position, const Vec2f& tex_coord);
-            void add_vertex(const Vec3f& position, const Vec3f& normal);
+            void add_vertex(const Vec2f& position);                          // EVertexLayout::P2
+            void add_vertex(const Vec2f& position, const Vec2f& tex_coord);  // EVertexLayout::P2T2
+            void add_vertex(const Vec3f& position);                          // EVertexLayout::P3
+            void add_vertex(const Vec3f& position, const Vec2f& tex_coord);  // EVertexLayout::P3T2
+            void add_vertex(const Vec3f& position, const Vec3f& normal);     // EVertexLayout::P3N3
 
             void add_ushort_index(unsigned short id);
             void add_uint_index(unsigned int id);
@@ -114,6 +114,8 @@ namespace GUI {
             static size_t tex_coord_offset_bytes(const Format& format) { return tex_coord_offset_floats(format) * sizeof(float); }
 
             static size_t index_stride_bytes(const Format& format);
+
+            static EIndexType index_type(size_t vertices_count);
 
             static bool has_position(const Format& format);
             static bool has_normal(const Format& format);

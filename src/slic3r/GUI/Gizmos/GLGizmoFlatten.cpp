@@ -337,14 +337,13 @@ void GLGizmoFlatten::update_planes()
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
         GLModel::Geometry init_data;
-        const GLModel::Geometry::EIndexType index_type = (plane.vertices.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::TriangleFan, GLModel::Geometry::EVertexLayout::P3N3, index_type };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::TriangleFan, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::index_type(plane.vertices.size()) };
         init_data.reserve_vertices(plane.vertices.size());
         init_data.reserve_indices(plane.vertices.size());
         // vertices + indices
         for (size_t i = 0; i < plane.vertices.size(); ++i) {
             init_data.add_vertex((Vec3f)plane.vertices[i].cast<float>(), (Vec3f)plane.normal.cast<float>());
-            if (index_type == GLModel::Geometry::EIndexType::USHORT)
+            if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
                 init_data.add_ushort_index((unsigned short)i);
             else
                 init_data.add_uint_index((unsigned int)i);

@@ -205,8 +205,7 @@ void MeshClipper::recalculate_triangles()
     m_model.reset();
 
     GLModel::Geometry init_data;
-    const GLModel::Geometry::EIndexType index_type = (m_triangles2d.size() < 65536) ? GLModel::Geometry::EIndexType::USHORT : GLModel::Geometry::EIndexType::UINT;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, index_type };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::index_type(m_triangles2d.size()) };
     init_data.reserve_vertices(m_triangles2d.size());
     init_data.reserve_indices(m_triangles2d.size());
 
@@ -216,7 +215,7 @@ void MeshClipper::recalculate_triangles()
         init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 1)).x(), (*(it + 1)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
         init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 2)).x(), (*(it + 2)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
         const size_t idx = it - m_triangles2d.cbegin();
-        if (index_type == GLModel::Geometry::EIndexType::USHORT)
+        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
             init_data.add_ushort_triangle((unsigned short)idx, (unsigned short)idx + 1, (unsigned short)idx + 2);
         else
             init_data.add_uint_triangle((unsigned int)idx, (unsigned int)idx + 1, (unsigned int)idx + 2);
