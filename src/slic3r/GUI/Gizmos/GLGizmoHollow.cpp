@@ -159,11 +159,9 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking)
         q.setFromTwoVectors(Vec3d::UnitZ(), instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
         Eigen::AngleAxisd aa(q);
         glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis().x(), aa.axis().y(), aa.axis().z()));
-        glsafe(::glPushMatrix());
         glsafe(::glTranslated(0., 0., -drain_hole.height));
         glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
         m_cylinder.render();
-        glsafe(::glPopMatrix());
 
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
