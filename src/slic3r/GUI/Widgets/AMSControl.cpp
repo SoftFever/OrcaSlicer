@@ -3106,7 +3106,7 @@ void AMSControl::Reset()
 
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
     std::vector<AMSinfo>::iterator it;
-    UpdateAms(ams_info, false, true);
+    UpdateAms(ams_info, true);
     m_current_show_ams  = "";
     m_current_ams       = "";
     m_current_senect    = "";
@@ -3194,7 +3194,7 @@ void AMSControl::reset_vams()
 }
 
 
-void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool is_reset)
+void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool is_reset)
 {
     std::string curr_ams_id = GetCurentAms();
     std::string curr_can_id = GetCurrentCan(curr_ams_id);
@@ -3252,6 +3252,10 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
         if (info.size() > 0) {
             SwitchAms(info[0].ams_id);
         }
+    }
+
+    if (m_ams_model == AMSModel::NO_AMS && !m_vams_lib->is_selected()) {
+        m_vams_lib->OnSelected();
     }
 }
 

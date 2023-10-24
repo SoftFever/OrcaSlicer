@@ -668,7 +668,7 @@ public:
 
     void UpdateStepCtrl(bool is_extrusion_exist);
     void CreateAms();
-    void UpdateAms(std::vector<AMSinfo> info, bool keep_selection = true, bool is_reset = false);
+    void UpdateAms(std::vector<AMSinfo> info, bool is_reset = true);
     void AddAms(AMSinfo info);
     void AddAmsItems(AMSinfo info);
     void AddExtraAms(AMSinfo info);
