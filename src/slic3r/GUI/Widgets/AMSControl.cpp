@@ -2589,8 +2589,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_tip_right_top->Wrap(AMS_STEP_SIZE.x);
 
 
-    m_tip_load_info = new wxStaticText(tip_right, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_load_info = new ::Label(tip_right, wxEmptyString);
     m_tip_load_info->SetFont(::Label::Body_13);
+    m_tip_load_info->SetBackgroundColour(*wxWHITE);
     m_tip_load_info->SetForegroundColour(AMS_CONTROL_GRAY700);
 
     m_sizer_right_tip->Add(m_tip_right_top, 0, 0, 0);
@@ -3448,9 +3449,10 @@ void AMSControl::ShowFilamentTip(bool hasams)
         m_tip_right_top->Hide();
         m_tip_load_info->SetLabelText(wxEmptyString);
     }
-    m_sizer_right_tip->Layout();
-    m_tip_load_info->Wrap(AMS_STEP_SIZE.x);
+    
     m_tip_load_info->SetMinSize(AMS_STEP_SIZE);
+    m_tip_load_info->Wrap(AMS_STEP_SIZE.x - FromDIP(5));
+    m_sizer_right_tip->Layout();
 }
 
 bool AMSControl::Enable(bool enable)

@@ -591,7 +591,7 @@ protected:
     wxSimplebook *m_simplebook_bottom      = {nullptr};
 
     wxStaticText *m_tip_right_top            = {nullptr};
-    wxStaticText *m_tip_load_info            = {nullptr};
+    Label        *m_tip_load_info            = {nullptr};
     wxStaticText *m_text_calibration_percent = {nullptr};
     wxWindow *    m_none_ams_panel           = {nullptr};
     wxWindow *    m_panel_top                = {nullptr};
