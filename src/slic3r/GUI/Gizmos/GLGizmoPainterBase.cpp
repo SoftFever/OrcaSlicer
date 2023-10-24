@@ -201,7 +201,7 @@ void GLGizmoPainterBase::render_cursor_circle()
         GLModel::Geometry init_data;
         static const unsigned int StepsCount = 32;
         static const float StepSize = 2.0f * float(PI) / float(StepsCount);
-        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::USHORT };
         init_data.color  = { 0.0f, 1.0f, 0.3f, 1.0f };
         init_data.reserve_vertices(StepsCount);
         init_data.reserve_indices(StepsCount);
@@ -209,7 +209,7 @@ void GLGizmoPainterBase::render_cursor_circle()
         // vertices + indices
         for (unsigned short i = 0; i < StepsCount; ++i) {
             const float angle = float(i * StepSize);
-            init_data.add_vertex(Vec3f(center.x() + ::cos(angle) * m_cursor_radius, center.y() + ::sin(angle) * m_cursor_radius, 0.0f));
+            init_data.add_vertex(Vec2f(center.x() + ::cos(angle) * m_cursor_radius, center.y() + ::sin(angle) * m_cursor_radius));
             init_data.add_ushort_index(i);
         }
 
