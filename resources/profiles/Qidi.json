@@ -567,6 +567,10 @@
         {
             "name": "QIDI PA-Ultra",
             "sub_path": "filament/QIDI PA-Ultra.json"
+        },
+        {
+            "name": "Tinmorry PETG-ECO",
+            "sub_path": "filament/Tinmorry PETG-ECO.json"
         }
 
     ],
