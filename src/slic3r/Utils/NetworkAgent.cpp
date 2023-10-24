@@ -114,12 +114,12 @@ func_put_rating_picture_oss         NetworkAgent::put_rating_picture_oss_ptr = n
 func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_ptr  = nullptr;
 
 
-NetworkAgent::NetworkAgent()
+NetworkAgent::NetworkAgent(std::string log_dir)
 {
     if (create_agent_ptr) {
-        network_agent = create_agent_ptr();
+        network_agent = create_agent_ptr(log_dir);
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, create_agent_ptr=%3%")%this %network_agent %create_agent_ptr;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, create_agent_ptr=%3%, log_dir=%4%")%this %network_agent %create_agent_ptr %log_dir;
 }
 
 NetworkAgent::~NetworkAgent()

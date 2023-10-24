@@ -9,7 +9,7 @@ using namespace BBL;
 namespace Slic3r {
 typedef bool (*func_check_debug_consistent)(bool is_debug);
 typedef std::string (*func_get_version)(void);
-typedef void* (*func_create_agent)(void);
+typedef void* (*func_create_agent)(std::string log_dir);
 typedef int (*func_destroy_agent)(void *agent);
 typedef int (*func_init_log)(void *agent);
 typedef int (*func_set_config_dir)(void *agent, std::string config_dir);
@@ -110,7 +110,7 @@ public:
 #endif
     static std::string get_version();
     static void* get_network_function(const char* name);
-    NetworkAgent();
+    NetworkAgent(std::string log_dir);
     ~NetworkAgent();
 
     int init_log();
@@ -182,7 +182,7 @@ public:
     int get_profile_3mf(BBLProfile* profile);
     int get_model_publish_url(std::string* url);
     int get_subtask(BBLModelTask* task, OnGetSubTaskFn getsub_fn);
-    int get_model_mall_home_url(std::string* url);   
+    int get_model_mall_home_url(std::string* url);
     int get_model_mall_detail_url(std::string* url, std::string id);
     int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
     int track_enable(bool enable);

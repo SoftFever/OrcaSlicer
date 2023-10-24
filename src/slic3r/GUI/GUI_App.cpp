@@ -2892,14 +2892,16 @@ __retry:
 
     if (create_network_agent) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", create network agent...");
-        m_agent = new Slic3r::NetworkAgent();
+        //std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+        std::string data_directory = data_dir();
+
+        m_agent = new Slic3r::NetworkAgent(data_directory);
 
         if (!m_device_manager)
             m_device_manager = new Slic3r::DeviceManager(m_agent);
         else
             m_device_manager->set_agent(m_agent);
-        //std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
-        std::string data_directory = data_dir();
+
 
         //BBS set config dir
         if (m_agent) {
