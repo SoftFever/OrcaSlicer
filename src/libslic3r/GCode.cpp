@@ -2229,7 +2229,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
         this->placeholder_parser().set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
         this->placeholder_parser().set("max_print_height",new ConfigOptionInt(m_config.printable_height));
-        this->placeholder_parser().set("z_offset", new ConfigOptionFloat(0.0f));
+this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offset));
         this->placeholder_parser().set("plate_name", new ConfigOptionString(print.get_plate_name()));
         this->placeholder_parser().set("first_layer_height", new ConfigOptionFloat(m_config.initial_layer_print_height.value));
 
@@ -2450,8 +2450,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             if (has_wipe_tower && ! layers_to_print.empty()) {
                 m_wipe_tower.reset(new WipeTowerIntegration(print.config(), print.get_plate_index(), print.get_plate_origin(), * print.wipe_tower_data().priming.get(), print.wipe_tower_data().tool_changes, *print.wipe_tower_data().final_purge.get()));
                 //BBS
-                //file.write(m_writer.travel_to_z(initial_layer_print_height + m_config.z_offset.value, "Move to the first layer height"));
-                file.write(m_writer.travel_to_z(initial_layer_print_height, "Move to the first layer height"));
+                file.write(m_writer.travel_to_z(initial_layer_print_height + m_config.z_offset.value, "Move to the first layer height"));
     #if 0
                 if (print.config().single_extruder_multi_material_priming) {
                     file.write(m_wipe_tower->prime(*this));
@@ -2538,8 +2537,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         //BBS
-        //config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2) - m_config.z_offset.value));
-        config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2)));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2) - m_config.z_offset.value));
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
         if (print.config().single_extruder_multi_material) {
             // Process the filament_end_gcode for the active filament only.
@@ -3474,6 +3472,7 @@ LayerResult GCode::process_layer(
 
     //BBS
     if (first_layer) {
+        // Orca: we don't need to optimize the Klipper as only set once
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
             gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
         }
@@ -3500,9 +3499,10 @@ LayerResult GCode::process_layer(
           gcode += this->unretract();
         }
       }
-      // BBS:  reset acceleration at sencond layer
+      // Reset acceleration at sencond layer
+      // Orca: only set once, don't need to call set_accel_and_jerk
       if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-        gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        gcode += m_writer.set_print_acceleration((unsigned int) floor(m_config.default_acceleration.value + 0.5));
       }
 
       if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
@@ -4108,8 +4108,7 @@ std::string GCode::preamble()
         position of our writer object so that any initial lift taking place
         before the first layer change will raise the extruder from the correct
         initial Z instead of 0.  */
-    //m_writer.travel_to_z(m_config.z_offset.value);
-    m_writer.travel_to_z(0.0);
+    m_writer.travel_to_z(m_config.z_offset.value);
 
     return gcode;
 }
@@ -4122,8 +4121,7 @@ std::string GCode::change_layer(coordf_t print_z)
         // Increment a progress bar indicator.
         gcode += m_writer.update_progress(++ m_layer_index, m_layer_count);
     //BBS
-    //coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
-    coordf_t z = print_z;  // in unscaled coordinates
+    coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
     if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
         LiftType lift_type = this->to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
         //BBS: force to use SpiralLift when change layer if lift type is auto
@@ -4143,7 +4141,7 @@ std::string GCode::change_layer(coordf_t print_z)
         m_need_change_layer_lift_z = true;
     }
 
-    m_nominal_z = print_z;
+    m_nominal_z = z;
 
     // forget last wiping path as wiping after raising Z is pointless
     // BBS. Dont forget wiping path to reduce stringing.
@@ -4520,6 +4518,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     // compensate retraction
     gcode += this->unretract();
     m_config.apply(m_calib_config);
+
+    // Orca: optimize for Klipper, set acceleration and jerk in one command
+    unsigned int acceleration_i = 0;
+    double jerk = 0;
     // adjust acceleration
     if (m_config.default_acceleration.value > 0) {
         double acceleration;
@@ -4544,12 +4546,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else {
             acceleration = m_config.default_acceleration.value;
         }
-        gcode += m_writer.set_print_acceleration((unsigned int)floor(acceleration + 0.5));
+        acceleration_i = (unsigned int)floor(acceleration + 0.5);
     }
 
     // adjust X Y jerk
     if (m_config.default_jerk.value > 0) {
-        double jerk;
         if (this->on_first_layer() && m_config.initial_layer_jerk.value > 0) {
             jerk = m_config.initial_layer_jerk.value;
         } else if (m_config.outer_wall_jerk.value > 0 && is_external_perimeter(path.role())) {
@@ -4564,6 +4565,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         else {
             jerk = m_config.default_jerk.value;
         }
+    }
+
+    if (m_writer.get_gcode_flavor() == gcfKlipper) {
+        gcode += m_writer.set_accel_and_jerk(acceleration_i, jerk);
+
+    } else {
+        gcode += m_writer.set_print_acceleration(acceleration_i);
         gcode += m_writer.set_jerk_xy(jerk);
     }
 
@@ -5036,23 +5044,31 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
     std::string gcode;
 
-    // SoftFever
+    // Orca: we don't need to optimize the Klipper as only set once
+    double jerk_to_set = 0.0;
+    unsigned int acceleration_to_set = 0;
     if (this->on_first_layer()) {
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
-            gcode += m_writer.set_travel_acceleration((unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5));
+            acceleration_to_set = (unsigned int) floor(m_config.initial_layer_acceleration.value + 0.5);
         }
         if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
-            gcode += m_writer.set_jerk_xy(m_config.initial_layer_jerk.value);
+            jerk_to_set = m_config.initial_layer_jerk.value;
         }
     } else {
         if (m_config.default_acceleration.value > 0 && m_config.travel_acceleration.value > 0) {
-            gcode += m_writer.set_travel_acceleration((unsigned int)floor(m_config.travel_acceleration.value + 0.5));
+            acceleration_to_set = (unsigned int) floor(m_config.travel_acceleration.value + 0.5);
         }
-
         if (m_config.default_jerk.value > 0 && m_config.travel_jerk.value > 0) {
-            gcode += m_writer.set_jerk_xy(m_config.travel_jerk.value);
+            jerk_to_set = m_config.travel_jerk.value;
         }
     }
+    if (m_writer.get_gcode_flavor() == gcfKlipper) {
+        gcode += m_writer.set_accel_and_jerk(acceleration_to_set, jerk_to_set);
+    } else {
+        gcode += m_writer.set_travel_acceleration(acceleration_to_set);
+        gcode += m_writer.set_jerk_xy(jerk_to_set);
+    }
+
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
     if (needs_retraction
