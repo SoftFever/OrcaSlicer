@@ -599,7 +599,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
     bool show_download_state_always = true;
     // Draw checked icon
     if (m_selecting && !show_download_state_always)
-        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, 10});
     // can't handle alpha
     // dc.GradientFillLinear({pt.x, pt.y, m_border_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
     else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
@@ -646,7 +646,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
         dc.DrawText(date, pt + wxPoint{24, 16});
     }
     if (m_selecting && show_download_state_always)
-        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, 10});
 }
 
 void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int index, bool hit)
