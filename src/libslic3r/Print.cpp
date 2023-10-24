@@ -289,8 +289,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "wiping_volumes_extruders"
             || opt_key == "enable_filament_ramming"
             || opt_key == "purge_in_prime_tower"
+            || opt_key == "z_offset"
             ) {
-            //|| opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
             steps.emplace_back(psSkirtBrim);
         } else if (opt_key == "filament_soluble"
