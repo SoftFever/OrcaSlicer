@@ -296,6 +296,7 @@ void PrintJob::process()
         70,     // PrintingStageWaiting
         75,     // PrintingStageRecord
         97,     // PrintingStageSending
+        100,    // PrintingStageFinished
         100     // PrintingStageFinished
     };
 

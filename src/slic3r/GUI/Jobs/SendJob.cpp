@@ -228,9 +228,10 @@ void SendJob::process()
     const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
         20,  // PrintingStageCreate
         30,  // PrintingStageUpload
-        99, // PrintingStageWaiting
-        99, // PrintingStageRecord
-        99, // PrintingStageSending
+        99,  // PrintingStageWaiting
+        99,  // PrintingStageRecord
+        99,  // PrintingStageSending
+        100, // PrintingStageFinished
         100  // PrintingStageFinished
     };
 
