@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-23 10:18+0800\n"
+"POT-Creation-Date: 2023-10-24 17:43+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -355,8 +355,8 @@ msgstr "上半部分"
 msgid "Lower part"
 msgstr "下半部分"
 
-msgid "Keep"
-msgstr "保持"
+msgid "Keep orientation"
+msgstr "保持方向"
 
 msgid "Place on cut"
 msgstr "切割面放置到热床"
@@ -911,7 +911,7 @@ msgid "Disc"
 msgstr "小圆片"
 
 msgid "Torus"
-msgstr ""
+msgstr "圆环"
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -2490,14 +2490,6 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
-
-msgid ""
-"When print by object, machines with I3 structure will not generate timelapse "
-"videos."
-msgstr "当按对象打印时，具有I3结构的机器将不会生成延时视频。"
-
-msgid "Still print by object?"
-msgstr "仍然按对象打印吗？"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -4155,7 +4147,7 @@ msgstr "您最多能选择16张图片"
 msgid ""
 "At least one successful print record of this print profile is required \n"
 "to give a positive rating(4 or 5stars)."
-msgstr ""
+msgstr "至少需要一个成功的打印记录，才能给出积极的评价（4星或5星）。"
 
 msgid "Status"
 msgstr "设备状态"
@@ -5562,6 +5554,11 @@ msgid ""
 "timelapse videos."
 msgstr "启用螺旋花瓶模式时，具有I3结构的机器将不会生成延时视频。"
 
+msgid ""
+"When print by object, machines with I3 structure will not generate timelapse "
+"videos."
+msgstr "当按对象打印时，具有I3结构的机器将不会生成延时视频。"
+
 msgid "Errors"
 msgstr "错误"
 
@@ -5788,6 +5785,9 @@ msgid ""
 msgstr ""
 "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
 
+msgid "Still print by object?"
+msgstr "仍然按对象打印吗？"
+
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
 "support volume but weaker strength.\n"
@@ -5825,8 +5825,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
 "右键单击打印板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
@@ -6052,7 +6052,7 @@ msgid "Layer change G-code"
 msgstr "换层G-code"
 
 msgid "Time lapse G-code"
-msgstr ""
+msgstr "延时摄影G-code"
 
 msgid "Change filament G-code"
 msgstr "耗材丝更换G-code"
@@ -6101,7 +6101,7 @@ msgstr "被其他预设继承的预设不能被删除"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
+msgstr[0] "以下预置继承了该预置。"
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -9034,7 +9034,7 @@ msgid "Tree Hybrid"
 msgstr "混合树"
 
 msgid "Tree Organic"
-msgstr ""
+msgstr "有机树"
 
 msgid "Independent support layer height"
 msgstr "支撑独立层高"
@@ -9658,7 +9658,7 @@ msgid "Support: detect overhangs"
 msgstr "支撑：正在检测悬空面"
 
 msgid "Support: precalculate avoidance"
-msgstr ""
+msgstr "支持：预计算避让区域"
 
 msgid "Support: generate contact points"
 msgstr "支撑：正在生成接触点"
@@ -10404,10 +10404,10 @@ msgid "Intersection"
 msgstr "交集"
 
 msgid "Source Volume"
-msgstr ""
+msgstr "源体积"
 
 msgid "Tool Volume"
-msgstr ""
+msgstr "工具体积"
 
 msgid "selected"
 msgstr "已选中"
@@ -10655,6 +10655,11 @@ msgid ""
 "choose the vendor and model of the printer"
 msgstr "您尚未选择要基于哪个打印机预设来创建。请先选择打印机的供应商和型号。"
 
+msgid ""
+"You have entered an illegal input in the printable area section on the first "
+"page. Please check before creating it."
+msgstr "您在第一页的可打印区域部分输入了非法输入。请检查后再创建。"
+
 msgid "The custom printer or model is not inputed, place input."
 msgstr "自定义打印机或型号未输入，请输入。"
 
@@ -10817,6 +10822,9 @@ msgid ""
 msgstr ""
 "只显示带有更改的工艺预设的打印机名称，您选择的每个打印机名称中的所有用户工艺"
 "预设都将导出为一个ZIP文件。"
+
+msgid "Please select at least one printer or filament."
+msgstr "请至少选择一种打印机或耗材丝。"
 
 msgid "Please select a type you want to export"
 msgstr "请选择一个你想导出的类型"
@@ -11129,6 +11137,9 @@ msgstr ""
 "什么时候需要打开机箱门打印\n"
 "在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更"
 "多信息，请参阅Wiki。"
+
+#~ msgid "Keep"
+#~ msgstr "保持"
 
 #~ msgid "Order of inner wall/outer wall/infil"
 #~ msgstr "内墙/外墙/填充的顺序"
@@ -15447,8 +15458,8 @@ msgstr ""
 #~ msgstr "正在准备设置页"
 
 #~ msgid ""
-#~ "You have the following presets with saved options for \"Print Host upload"
-#~ "\""
+#~ "You have the following presets with saved options for \"Print Host "
+#~ "upload\""
 #~ msgstr "您的以下预设中包含未保存的选项“打印主机上传”"
 
 #~ msgid ""
