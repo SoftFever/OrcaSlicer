@@ -3,6 +3,10 @@
 
 #include <string>
 #include <functional>
+#include <map>
+
+extern std::string g_log_folder;
+extern std::string g_log_start_time;
 
 namespace BBL {
 
@@ -34,7 +38,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_GET_INSTANCE_ID_FAILED        -25
 
 //bind error
-#define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket 
+#define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
 #define BAMBU_NETWORK_ERR_BIND_SOCKET_CONNECT_FAILED         -1020 //failed to socket connect
 #define BAMBU_NETWORK_ERR_BIND_PUBLISH_LOGIN_REQUEST         -1030 //failed to publish login request
 #define BAMBU_NETWORK_ERR_BIND_GET_PRINTER_TICKET_TIMEOUT    -1040 //timeout to get ticket from printer
@@ -58,17 +62,17 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_3MF_TO_OSS_FAILED         -2110 //failed to  upload 3mf to oss
 #define BAMBU_NETWORK_ERR_PRINT_WR_POST_TASK_FAILED                 -2120 //failed to post task
 #define BAMBU_NETWORK_ERR_PRINT_WR_UPLOAD_FTP_FAILED                -2130 //failed to upload to ftp
-#define BAMBU_NETWORK_ERR_PRINT_WR_GET_USER_UPLOAD_FAILED           -2140 //failed to get_user_upload  
+#define BAMBU_NETWORK_ERR_PRINT_WR_GET_USER_UPLOAD_FAILED           -2140 //failed to get_user_upload
 
 //start_print  error
-#define BAMBU_NETWORK_ERR_PRINT_SP_REQUEST_PROJECT_ID_FAILED        -3010 //failed to request project id 
+#define BAMBU_NETWORK_ERR_PRINT_SP_REQUEST_PROJECT_ID_FAILED        -3010 //failed to request project id
 #define BAMBU_NETWORK_ERR_PRINT_SP_CHECK_MD5_FAILED                 -3020 //failed to check md5 for upload 3mf to oss
 #define BAMBU_NETWORK_ERR_PRINT_SP_UPLOAD_3MF_CONFIG_TO_OSS_FAILED  -3030 //failed to upload 3mf config to oss
 #define BAMBU_NETWORK_ERR_PRINT_SP_PUT_NOTIFICATION_FAILED          -3040 //failed to put notification
 #define BAMBU_NETWORK_ERR_PRINT_SP_GET_NOTIFICATION_TIMEOUT         -3050 //timeout to get notification
 #define BAMBU_NETWORK_ERR_PRINT_SP_GET_NOTIFICATION_FAILED          -3060 //failed to get notification
 #define BAMBU_NETWORK_ERR_PRINT_SP_FILE_NOT_EXIST                   -3070 //3mf file is not exists
-#define BAMBU_NETWORK_ERR_PRINT_SP_GET_USER_UPLOAD_FAILED           -3080 //failed to get_user_upload 
+#define BAMBU_NETWORK_ERR_PRINT_SP_GET_USER_UPLOAD_FAILED           -3080 //failed to get_user_upload
 #define BAMBU_NETWORK_ERR_PRINT_SP_FILE_OVER_SIZE                   -3090 //the size of the uploaded file cannot exceed 1 GB
 #define BAMBU_NETWORK_ERR_PRINT_SP_UPLOAD_3MF_TO_OSS_FAILED         -3100 //failed to  upload 3mf to oss
 #define BAMBU_NETWORK_ERR_PRINT_SP_PATCH_PROJECT_FAILED             -3110 //failed to patch project
@@ -90,7 +94,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.07.08.02"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.07.09.01"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -105,6 +109,20 @@ namespace BBL {
 #define IOT_JSON_KEY_SETTING_ID         "setting_id"
 #define IOT_JSON_KEY_FILAMENT_ID        "filament_id"
 #define IOT_JSON_KEY_USER_ID            "user_id"
+
+#define IOT_JSON_KEY_SIGN_DATE              "sign_date"
+#define IOT_JSON_KEY_CERT_START_DATE        "cert_start_date"
+#define IOT_JSON_KEY_CERT_END_DATE          "cert_end_date"
+#define IOT_JSON_KEY_CERT_ISSUE_NAME        "issue_name"
+#define IOT_JSON_KEY_CERT_SUBJECT_NAME      "subject_name"
+#define IOT_JSON_KEY_CERT_SERIAL_NUMBER     "serial_number"
+#define IOT_JSON_KEY_CERT_HASH_VALUE        "hash_value"
+#define IOT_JSON_KEY_CERT_VERIFY_RESULT     "verify_result"
+
+#define isser_name          "GlobalSign GCC R45 EV CodeSigning CA 2020"
+#define subject_name        "Shenzhen Tuozhu Technology Co., Ltd."
+#define serial_number       "0b209295a54b188466ad7478"
+#define hash_number         "9690647085f910ffe2098129bc1229956a51e250"
 
 
 // user callbacks
