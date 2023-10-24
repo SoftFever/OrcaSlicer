@@ -619,31 +619,30 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
 
 void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type)
 {
-    std::string label;
+    wxString label;
     switch (type)
     {
     case ColorChange:
-        label = "Color";
+        label = _L("Color");
         break;
     case PausePrint:
-        label = "Pause";
+        label = _L("Pause");
         break;
     case ToolChange:
-        label = "Color";
+        label = _L("Color");
         break;
     case Template:
-        label = "Template";
+        label = _L("Template");
         break;
     case Custom:
-        label = "Custom";
+        label = _L("Custom");
         break;
     case Unknown:
         break;
     default:
         break;
     }
-
-    const ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
+    const ImVec2 text_size = ImGui::CalcTextSize(into_u8(label).c_str());
     const ImVec2 padding = ImVec2(4, 2) * m_scale;
     const ImU32  clr = IM_COL32(255, 111, 0, 255);
     const float  rounding = 2.0f * m_scale;
@@ -651,7 +650,7 @@ void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type)
     ImVec2 block_size = { text_size.x + padding.x * 2, text_size.y + padding.y * 2 };
     ImGui::RenderFrame(block_pos, block_pos + block_size, clr, false, rounding);
     ImGui::PushStyleColor(ImGuiCol_Text, { 1,1,1,1 });
-    ImGui::RenderText(block_pos + padding, label.c_str());
+    ImGui::RenderText(block_pos + padding, into_u8(label).c_str());
     ImGui::PopStyleColor();
 }
 
