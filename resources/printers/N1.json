@@ -18,7 +18,7 @@
             "support_prompt_sound":true,
             "support_ams_humidity":false,
             "support_auto_recovery_step_loss":true,
-            "support_auto_leveling":false,
+            "support_auto_leveling":true,
             "support_update_remain":false,
             "support_timelapse":true,
             "support_filament_backup":true,
