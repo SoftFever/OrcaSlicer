@@ -724,10 +724,8 @@ void ModelObjectsClipper::render_cut() const
             auto& clipper = m_clippers[clipper_id];
             clipper->set_plane(*m_clp);
             clipper->set_transformation(trafo);
-            glsafe(::glPushMatrix());
             // BBS
             clipper->render_cut({0.25f, 0.25f, 0.25f, 1.0f});
-            glsafe(::glPopMatrix());
 
             ++clipper_id;
         }

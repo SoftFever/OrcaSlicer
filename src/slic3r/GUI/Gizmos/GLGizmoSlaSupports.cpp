@@ -202,17 +202,14 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             const double cone_height = 0.75;
             glsafe(::glPushMatrix());
             glsafe(::glTranslatef(0.f, 0.f, cone_height + support_point.head_front_radius * RenderPointScale));
-            glsafe(::glPushMatrix());
             glsafe(::glRotated(180., 1., 0., 0.));
             glsafe(::glScaled(cone_radius, cone_radius, cone_height));
             m_cone.render();
             glsafe(::glPopMatrix());
-            glsafe(::glTranslatef(0.f, 0.f, cone_height));
-            glsafe(::glPopMatrix());
         }
 
         glsafe(::glPushMatrix());
-        double radius = (double)support_point.head_front_radius * RenderPointScale;
+        const double radius = (double)support_point.head_front_radius * RenderPointScale;
         glsafe(::glScaled(radius, radius, radius));
         m_sphere.render();
         glsafe(::glPopMatrix());
@@ -234,7 +231,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
             // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
             glsafe(::glPushMatrix());
-            glsafe(::glTranslatef(drain_hole.pos(0), drain_hole.pos(1), drain_hole.pos(2)));
+            glsafe(::glTranslatef(drain_hole.pos.x(), drain_hole.pos.y(), drain_hole.pos.z()));
             glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
 
             if (vol->is_left_handed())
@@ -245,12 +242,10 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             Eigen::Quaterniond q;
             q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
             Eigen::AngleAxisd aa(q);
-            glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis()(0), aa.axis()(1), aa.axis()(2)));
-            glsafe(::glPushMatrix());
+            glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis().x(), aa.axis().y(), aa.axis().z()));
             glsafe(::glTranslated(0., 0., -drain_hole.height));
             glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
             m_cylinder.render();
-            glsafe(::glPopMatrix());
 
             if (vol->is_left_handed())
                 glFrontFace(GL_CCW);
