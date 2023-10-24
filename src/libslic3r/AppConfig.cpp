@@ -973,7 +973,7 @@ void AppConfig::set_vendors(const AppConfig &from)
     m_dirty = true;
 }
 
-void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
+void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info, bool need_change_status)
 {
     auto iter = std::find_if(m_printer_cali_infos.begin(), m_printer_cali_infos.end(), [&cali_info](const PrinterCaliInfo &cali_info_item) {
         return cali_info_item.dev_id == cali_info.dev_id;
@@ -982,7 +982,9 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info)
     if (iter == m_printer_cali_infos.end()) {
         m_printer_cali_infos.emplace_back(cali_info);
     } else {
-        (*iter).cali_finished = cali_info.cali_finished;
+        if (need_change_status) {
+            (*iter).cali_finished = cali_info.cali_finished;
+        }
         (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
         (*iter).selected_presets = cali_info.selected_presets;
     }

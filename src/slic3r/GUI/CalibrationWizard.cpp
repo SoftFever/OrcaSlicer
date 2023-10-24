@@ -299,14 +299,14 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
     }
 }
 
-void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish)
+void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, bool back_cali_flag)
 {
     PrinterCaliInfo printer_cali_info;
     printer_cali_info.dev_id           = obj->dev_id;
     printer_cali_info.cali_finished    = cali_finish;
     printer_cali_info.cache_flow_ratio = obj->cache_flow_ratio;
     printer_cali_info.selected_presets = obj->selected_cali_preset;
-    wxGetApp().app_config->save_printer_cali_infos(printer_cali_info);
+    wxGetApp().app_config->save_printer_cali_infos(printer_cali_info, back_cali_flag);
 }
 
 void CalibrationWizard::msw_rescale() 
@@ -361,7 +361,7 @@ void CalibrationWizard::on_cali_go_home()
         go_home_dialog->on_show();
     } else {
         if (!m_page_steps.empty()) {
-            back_preset_info(curr_obj, true);
+            back_preset_info(curr_obj, true, obj_cali_mode == m_mode);
             show_step(m_page_steps.front());
         }
     }

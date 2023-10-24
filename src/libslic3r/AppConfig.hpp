@@ -180,7 +180,7 @@ public:
     }
 
 	const std::vector<PrinterCaliInfo> &get_printer_cali_infos() const { return m_printer_cali_infos; }
-    void save_printer_cali_infos(const PrinterCaliInfo& cali_info);
+    void save_printer_cali_infos(const PrinterCaliInfo& cali_info, bool need_change_status = true);
 
 	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
