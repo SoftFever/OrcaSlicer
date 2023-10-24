@@ -38,7 +38,7 @@
     "1"
   ],
   "enable_pressure_advance": [
-    "0"
+    "1"
   ],
   "eng_plate_temp": [
     "60"
@@ -92,7 +92,7 @@
     "nil"
   ],
   "filament_retraction_length": [
-    "0.8"
+    "0.4"
   ],
   "filament_retraction_minimum_travel": [
     "nil"
@@ -110,7 +110,7 @@
     "0"
   ],
   "filament_start_gcode": [
-    "; filament start gcode\n"
+    "; filament start gcode\n;right_extruder_material:TPU\n"
   ],
   "filament_type": [
     "TPU"
@@ -125,7 +125,7 @@
     "nil"
   ],
   "filament_z_hop": [
-    "0.4"
+    "nil"
   ],
   "filament_z_hop_types": [
     "nil"
@@ -158,7 +158,7 @@
     "50%"
   ],
   "pressure_advance": [
-    "0.02"
+    "0.025"
   ],
   "reduce_fan_stop_start_freq": [
     "1"

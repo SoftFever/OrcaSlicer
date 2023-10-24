@@ -35,7 +35,7 @@
     "1"
   ],
   "enable_pressure_advance": [
-    "0"
+    "1"
   ],
   "eng_plate_temp": [
     "60"
@@ -53,10 +53,10 @@
     "10"
   ],
   "filament_cost": [
-    "30"
+    "20"
   ],
   "filament_density": [
-    "1.27"
+    "1.04"
   ],
   "filament_deretraction_speed": [
     "nil"
@@ -104,10 +104,10 @@
     "0"
   ],
   "filament_start_gcode": [
-    "; filament start gcode \n;right_extruder_material:ABS\nSET_PRESSURE_ADVANCE ADVANCE=0.04"
+    "; filament start gcode \n;right_extruder_material:ASA"
   ],
   "filament_end_gcode": [
-    "; filament end gcode\nSET_PRESSURE_ADVANCE ADVANCE=0.025"
+    "; filament end gcode\n"
   ],
   "filament_type": [
     "ASA"
@@ -155,7 +155,7 @@
     "25%"
   ],
   "pressure_advance": [
-    "0.02"
+    "0.04"
   ],
   "reduce_fan_stop_start_freq": [
     "1"
@@ -176,13 +176,12 @@
     "80"
   ],
   "temperature_vitrification": [
-    "70"
+    "100"
   ],
   "textured_plate_temp": [
     "60"
   ],
   "textured_plate_temp_initial_layer": [
     "60"
-  ],
-  "version": "1.5.1.2"
+  ]
 }

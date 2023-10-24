@@ -40,7 +40,7 @@
     "1"
   ],
   "enable_pressure_advance": [
-    "0"
+    "1"
   ],
   "eng_plate_temp": [
     "60"
@@ -154,7 +154,7 @@
     "0"
   ],
   "filament_start_gcode": [
-    "; filament start gcode\n"
+    "; filament start gcode\n;right_extruder_material:PLA-CF10\n"
   ],
   "filament_toolchange_delay": [
     "0"
@@ -215,7 +215,7 @@
     "50%"
   ],
   "pressure_advance": [
-    "0.02"
+    "0.025"
   ],
   "reduce_fan_stop_start_freq": [
     "1"
@@ -227,7 +227,7 @@
     "1"
   ],
   "slow_down_layer_time": [
-    "6"
+    "8"
   ],
   "slow_down_min_speed": [
     "20"

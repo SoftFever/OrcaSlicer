@@ -22,10 +22,31 @@
     "20"
   ],
   "filament_start_gcode": [
-    "; filament start gcode\n;right_extruder_material: ABS\n SET_PRESSURE_ADVANCE ADVANCE=0.04\n"
+    "; filament start gcode\n;right_extruder_material: ABS\n"
   ],
   "filament_end_gcode": [
-    "; filament end gcode\n SET_PRESSURE_ADVANCE ADVANCE=0.025\n"
+    "; filament end gcode\n"
+  ],
+  "filament_diameter": [
+    "1.75"
+  ],
+  "enable_pressure_advance": [
+    "1"
+  ],
+  "pressure_advance": [
+    "0.04"
+  ],
+  "filament_density": [
+    "1.04"
+  ],
+  "temperature_vitrification": [
+    "100"
+  ],
+  "hot_plate_temp_initial_layer": [
+    "105"
+  ],
+  "hot_plate_temp": [
+    "105"
   ],
   "compatible_printers": [
     "Flashforge Adventurer 5M Pro 0.4 Nozzle",
