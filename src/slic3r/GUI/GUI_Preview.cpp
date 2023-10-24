@@ -2,7 +2,6 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Layer.hpp"
 #include "IMSlider.hpp"
-#include "IMSlider_Utils.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_App.hpp"
 #include "GUI.hpp"

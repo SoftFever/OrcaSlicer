@@ -348,7 +348,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Mouse3DController.hpp
     GUI/IMSlider.cpp
     GUI/IMSlider.hpp
-    GUI/IMSlider_Utils.hpp
     GUI/Notebook.cpp
     GUI/Notebook.hpp
     GUI/TabButton.cpp
