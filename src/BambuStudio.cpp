@@ -123,7 +123,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ARRANGE_FAILED, "An error occurred when auto-arranging object(s)."},
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
-    {CLI_NO_SUITABLE_OBJECTS, "An empty plate was found. Please check that all plates are not empty in Bambu Studio before uploading."},
+    {CLI_NO_SUITABLE_OBJECTS, "One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
     {CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED, "Failed creating directory when exporting cache data."},
@@ -138,7 +138,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_FILAMENTS_DIFFERENT_TEMP, "The temperature difference of the filaments used is too large. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECT_COLLISION_IN_SEQ_PRINT, "Object conflicts were detected when using print-by-object mode. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECT_COLLISION_IN_LAYER_PRINT, "Object conflicts were detected. Please verify the slicing of all plates in Bambu Studio before uploading."},
-    {CLI_SPIRAL_MODE_INVALID_PARAMS, "Invalid params found when using Spiral Mode."},
+    {CLI_SPIRAL_MODE_INVALID_PARAMS, "Some slicing parameters cannot work with Spiral Vase mode. Please solve the issue in Bambu Studio before uploading."},
     {CLI_SLICING_ERROR, "Failed slicing the model. Please verify the slicing of all plates on Bambu Studio before uploading."},
     {CLI_GCODE_PATH_CONFLICTS, " G-code conflicts detected after slicing. Please make sure the 3mf file can be successfully sliced in the latest Bambu Studio."}
 };
@@ -1322,7 +1322,7 @@ int CLI::run(int argc, char **argv)
                     {
                         if ((old_printable_width > orig_printable_width) || (old_printable_depth > orig_printable_depth) || (old_printable_height > orig_printable_height))
                         {
-                            std::string error_str = (boost::format("Invalid printable size {%1%, %2%, %3%} exceeds the default size.")%old_printable_width %old_printable_depth %old_printable_height).str();
+                            std::string error_str = (boost::format("Printer Settings: the printable size {%1%, %2%, %3%} exceeds the default size.")%old_printable_width %old_printable_depth %old_printable_height).str();
                             BOOST_LOG_TRIVIAL(error) << error_str;
                             record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
                             flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
@@ -1344,14 +1344,14 @@ int CLI::run(int argc, char **argv)
                         {
                             if (old_min_layer_height[index] < orig_min_layer_height[index])
                             {
-                                std::string error_str = (boost::format("Nozzle %1%'s min layer height limits %2% exceeds the default size %3%.")%(index+1) %old_min_layer_height[index] %orig_min_layer_height[index]).str();
+                                std::string error_str = (boost::format("Printer Settings: nozzle %1%'s \"min layer height limits\" %2% should not be smaller than %3%.")%(index+1) %old_min_layer_height[index] %orig_min_layer_height[index]).str();
                                 BOOST_LOG_TRIVIAL(error) << error_str;
                                 record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
                                 flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
                             }
                             else if (old_max_layer_height[index] > orig_max_layer_height[index])
                             {
-                                std::string error_str = (boost::format("Nozzle %1%'s max layer height limits %2% exceeds the default size %3%.")%(index+1) %old_max_layer_height[index] %orig_max_layer_height[index] ).str();
+                                std::string error_str = (boost::format("Printer Settings: nozzle %1%'s \"max layer height limits\" %2% should not be larger than %3%.")%(index+1) %old_max_layer_height[index] %orig_max_layer_height[index] ).str();
                                 BOOST_LOG_TRIVIAL(error) << error_str;
                                 record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
                                 flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
