@@ -2130,7 +2130,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     if (m_writer.need_toolchange(initial_extruder_id)) {
                         const PrintObjectConfig &object_config              = object.config();
                         coordf_t                 initial_layer_print_height = print.config().initial_layer_print_height.value;
-                        file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height));
+                        file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height, true));
                         prime_extruder = true;
                     } else {
                         file.write(this->retract());
@@ -4782,7 +4782,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     return gcode;
 }
 
-std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
+std::string GCode::set_extruder(unsigned int extruder_id, double print_z, bool by_object)
 {
     if (!m_writer.need_toolchange(extruder_id))
         return "";
@@ -4815,6 +4815,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
 
     // Always reset the extrusion path, even if the tool change retract is set to zero.
     m_wipe.reset_path();
+
+    // BBS: insert skip object label before change filament while by object
+    if (by_object)
+        m_writer.add_object_change_labels(gcode);
 
     if (m_writer.extruder() != nullptr) {
         // Process the custom filament_end_gcode. set_extruder() is only called if there is no wipe tower
