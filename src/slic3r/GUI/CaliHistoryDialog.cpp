@@ -124,16 +124,16 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
     if (obj)
         m_calib_results_history = obj->pa_calib_tab;
 
-    sync_history_data();
-
     if (m_calib_results_history.empty()) {
         m_tips->SetLabel(_L("No History Result"));
+        return;
     }
     else {
         m_tips->SetLabel(_L("Success to get history result"));
     }
     m_tips->Refresh();
 
+    sync_history_data();
 }
 
 void HistoryWindow::on_device_connected(MachineObject* obj)
@@ -191,8 +191,10 @@ void HistoryWindow::on_select_nozzle(wxCommandEvent& evt)
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
+        // reset 
         curr_obj->reset_pa_cali_history_result();
-        sync_history_result(curr_obj);
+        m_calib_results_history.clear();
+        sync_history_data();
 
         float nozzle_value = get_nozzle_value();
         if (nozzle_value > 0) {

@@ -2063,7 +2063,7 @@ int CLI::run(int argc, char **argv)
                                             cli_status_callback(slicing_status);
                                         }
 #endif
-                                        print->process(true);
+                                        print->process();
                                         BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
                                     }
                                 }

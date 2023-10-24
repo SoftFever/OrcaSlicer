@@ -209,6 +209,7 @@ function ShowModelInfo( pModel )
 	SendWXDebugInfo("Model Name:  "+sModelName);
 	
 	$('#ModelName').html(sModelName);
+	$('#ModelName').attr('title',sModelName);
     $('#ModelAuthorName').html(sModelAuthor);
 	
 	switch(UploadType)

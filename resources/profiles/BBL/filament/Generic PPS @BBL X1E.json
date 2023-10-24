@@ -1,0 +1,13 @@
+{
+    "type": "filament",
+    "name": "Generic PPS @BBL X1E",
+    "inherits": "Generic PPS @base",
+    "from": "system",
+    "setting_id": "GFST97_00",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle",
+        "Bambu Lab X1E 0.4 nozzle"
+    ]
+}

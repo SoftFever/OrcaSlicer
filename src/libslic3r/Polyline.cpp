@@ -1,3 +1,15 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Enrico Turri @enricoturri1966
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2015 Maksim Derbasov @ntfshard
+///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
+///|/
+///|/ ported from lib/Slic3r/Polyline.pm:
+///|/ Copyright (c) Prusa Research 2018 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2014 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2012 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "BoundingBox.hpp"
 #include "Polyline.hpp"
 #include "Exception.hpp"
@@ -547,6 +559,19 @@ ThickLines ThickPolyline::thicklines() const
             lines.emplace_back(this->points[i], this->points[i + 1], this->width[2 * i], this->width[2 * i + 1]);
     }
     return lines;
+}
+
+void ThickPolyline::start_at_index(int index)
+{
+    assert(index >= 0 && index < this->points.size());
+    assert(this->points.front() == this->points.back() && this->width.front() == this->width.back());
+    if (index != 0 && index + 1 != int(this->points.size()) && this->points.front() == this->points.back() && this->width.front() == this->width.back()) {
+        this->points.pop_back();
+        assert(this->points.size() * 2 == this->width.size());
+        std::rotate(this->points.begin(), this->points.begin() + index, this->points.end());
+        std::rotate(this->width.begin(), this->width.begin() + 2 * index, this->width.end());
+        this->points.emplace_back(this->points.front());
+    }
 }
 
 Lines3 Polyline3::lines() const

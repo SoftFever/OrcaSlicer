@@ -105,6 +105,10 @@ public:
     // Octree builds on mesh for usage in the adaptive cubic infill
     FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
+    // PrintConfig and PrintObjectConfig are used by infills that use Arachne (Concentric and FillEnsuring).
+    const PrintConfig       *print_config        = nullptr;
+    const PrintObjectConfig *print_object_config = nullptr;
+
     // BBS: all no overlap expolygons in same layer
     ExPolygons  no_overlap_expolygons;
 

@@ -1292,7 +1292,7 @@ void CalibrationFlowCoarseSavePage::set_curr_flow_ratio(const float value) {
 
 bool CalibrationFlowCoarseSavePage::get_result(float* out_value, wxString* out_name) {
     // Check if the value is valid
-    if (m_coarse_flow_ratio <= 0.0 || m_coarse_flow_ratio >= 2.0) {
+    if (m_optimal_block_coarse->GetSelection() == -1 || m_coarse_flow_ratio <= 0.0 || m_coarse_flow_ratio >= 2.0) {
         MessageDialog msg_dlg(nullptr, _L("Please choose a block with smoothest top surface"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
@@ -1424,7 +1424,7 @@ void CalibrationFlowFineSavePage::set_curr_flow_ratio(const float value) {
 
 bool CalibrationFlowFineSavePage::get_result(float* out_value, wxString* out_name) {
     // Check if the value is valid
-    if (m_fine_flow_ratio <= 0.0 || m_fine_flow_ratio >= 2.0) {
+    if (m_optimal_block_fine->GetSelection() == -1 || m_fine_flow_ratio <= 0.0 || m_fine_flow_ratio >= 2.0) {
         MessageDialog msg_dlg(nullptr, _L("Please choose a block with smoothest top surface."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;

@@ -69,13 +69,14 @@ class _Item {
         Box bb; bool valid;
         BBCache(): valid(false) {}
     } bb_cache_;
-    
+
     int binid_{BIN_ID_UNSET}, priority_{0};
     bool fixed_{false};
 
 public:
     int itemid_{ 0 };
     std::vector<int> extrude_ids;
+    int filament_temp_type = -1; // -1 means unset. otherwise should be {0,1,2}
     double height{ 0 };
     double print_temp{ 0 };
     double bed_temp{ 0 };
@@ -84,6 +85,7 @@ public:
     //BBS: virtual object to mark unprintable region on heatbed
     bool is_virt_object{ false };
     bool is_wipe_tower{ false };
+    bool has_tried_with_excluded{ false };
 
     /// The type of the shape which was handed over as the template argument.
     using ShapeType = RawShape;
@@ -139,7 +141,7 @@ public:
     inline _Item(TContour<RawShape>&& contour,
                  THolesContainer<RawShape>&& holes):
         sh_(sl::create<RawShape>(std::move(contour), std::move(holes))) {}
-    
+
     inline bool isFixed() const noexcept { return fixed_; }
     inline void markAsFixedInBin(int binid)
     {
@@ -149,7 +151,7 @@ public:
 
     inline void binId(int idx) { binid_ = idx; }
     inline int binId() const noexcept { return binid_; }
-    
+
     inline void priority(int p) { priority_ = p; }
     inline int priority() const noexcept { return priority_; }
 
@@ -302,18 +304,18 @@ public:
     {
         rotation(rotation() + rads);
     }
-    
+
     inline void inflation(Coord distance) BP2D_NOEXCEPT
     {
         inflation_ = distance;
         has_inflation_ = true;
         invalidateCache();
     }
-    
+
     inline Coord inflation() const BP2D_NOEXCEPT {
         return inflation_;
     }
-    
+
     inline void inflate(Coord distance) BP2D_NOEXCEPT
     {
         inflation(inflation() + distance);
@@ -662,8 +664,20 @@ public:
     /// Get the packed items.
     inline ItemGroup getItems() { return impl_.getItems(); }
 
+    inline int getPackedSize()
+    {
+        int  size  = 0;
+        auto items = getItems();
+        for (const auto &itm : items) {
+            if (itm.get().isFixed() == false) { size++; }
+        }
+        return size;
+    }
+
     /// Clear the packed items so a new session can be started.
     inline void clearItems() { impl_.clearItems(); }
+
+    inline void clearItems(const std::function<bool(const Item &itm)> &func) { impl_.clearItems(func); }
 
     inline double filledArea() const { return impl_.filledArea(); }
 
@@ -767,7 +781,7 @@ template<class PlacementStrategy, class SelectionStrategy >
 class _Nester {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
-    
+
 public:
     using Item = typename PlacementStrategy::Item;
     using ShapeType = typename Item::ShapeType;
@@ -792,7 +806,7 @@ private:
     StopCondition stopfn_;
 
     template<class It> using TVal = remove_ref_t<typename It::value_type>;
-    
+
     template<class It, class Out>
     using ItemIteratorOnly =
         enable_if_t<std::is_convertible<TVal<It>&, TPItem&>::value, Out>;
@@ -850,14 +864,14 @@ public:
         if(infl > 0) std::for_each(from, to, [infl](Item& item) {
             item.inflate(infl);
         });
-        
+
         selector_.template packItems<PlacementStrategy>(
             from, to, bin_, pconfig_);
-        
+
         if(min_obj_distance_ > 0) std::for_each(from, to, [infl](Item& item) {
             item.inflate(-infl);
         });
-        
+
         return selector_.getResult().size();
     }
 

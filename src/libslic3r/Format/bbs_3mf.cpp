@@ -5894,8 +5894,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             /* step width and step height */
             int sw = thumbnail_data.width / PLATE_THUMBNAIL_SMALL_WIDTH;
             int sh = thumbnail_data.height / PLATE_THUMBNAIL_SMALL_HEIGHT;
-            for (int i = 0; i < thumbnail_data.height; i += sh) {
-                for (int j = 0; j < thumbnail_data.width; j += sw) {
+            int clampped_width = sw * PLATE_THUMBNAIL_SMALL_WIDTH;
+            int clampped_height = sh * PLATE_THUMBNAIL_SMALL_HEIGHT;
+
+            for (int i = 0; i < clampped_height; i += sh) {
+                for (int j = 0; j < clampped_width; j += sw) {
                     int r = 0, g = 0, b = 0, a = 0;
                     for (int m = 0; m < sh; m++) {
                         for (int n = 0; n < sw; n++) {

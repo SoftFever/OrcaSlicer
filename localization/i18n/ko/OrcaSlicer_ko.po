@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
-"PO-Revision-Date: 2023-10-13 13:25+0900\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
+"PO-Revision-Date: 2023-10-23 15:17+0900\n"
 "Last-Translator: Hotsolidinfill, crwusiz <crwusiz@naver.com>\n"
 "Language-Team: \n"
 "Language: ko_KR\n"
@@ -169,10 +169,10 @@ msgid "Height Range"
 msgstr "높이 범위"
 
 msgid "Vertical"
-msgstr ""
+msgstr "수직"
 
 msgid "Horizontal"
-msgstr ""
+msgstr "수평"
 
 msgid "Remove painted color"
 msgstr "칠한 색 제거"
@@ -2134,14 +2134,19 @@ msgstr "현재 재료가 소진되면 프린터는 다음 순서로 계속 출�
 msgid "Group"
 msgstr "그룹"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"현재 동일한 예비 소모품을 사용할 수 없으며 자동 보충도 현재 불가능합니다.\n"
-"(현재 동일한 브랜드, 재질, 색상의 소모품 자동공급 지원)"
 
 msgid "AMS Settings"
 msgstr "AMS 설정"
@@ -2691,8 +2696,18 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "출력 작업을 시작하지 못했습니다"
 
-msgid "Invalid nozzle diameter"
-msgstr "잘못된 노즐 직경"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
 
 msgid "Calibration error"
 msgstr "교정 오류"
@@ -3887,6 +3902,11 @@ msgstr "레이어: N/A"
 msgid "Clear"
 msgstr "지우기"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr "이 출력 파일이 마음에 드시나요?"
 
@@ -3946,9 +3966,6 @@ msgstr "출력 취소"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "이 출력을 취소하겠습니까?"
-
-msgid "Done"
-msgstr "완료"
 
 msgid "Downloading..."
 msgstr "다운로드 중..."
@@ -4482,11 +4499,10 @@ msgid "Restore"
 msgstr "복원"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
 msgstr ""
-"베드 온도가 필라멘트의 유리화 온도를 초과합니다. 노즐 막힘을 방지하기 위해 출"
-"력하기 전에 프린터의 도어를 여십시오."
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4613,8 +4629,14 @@ msgstr "개체가 너무 큼"
 msgid "Export STL file:"
 msgstr "STL파일 내보내기:"
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "파일을 다른 이름으로 저장:"
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "잘라낸 개체의 일부인 개체 삭제"
@@ -4634,17 +4656,38 @@ msgstr "선택한 개체를 분할할 수 없습니다."
 msgid "Another export job is running."
 msgstr "다른 내보내기 작업이 실행 중입니다."
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "교체 중 오류 발생"
+
 msgid "Select a new file"
 msgstr "새 파일 선택"
 
 msgid "File for the replace wasn't selected"
 msgstr "대체할 파일이 선택되지 않았습니다"
 
-msgid "Error during replace"
-msgstr "교체 중 오류 발생"
-
 msgid "Please select a file"
 msgstr "파일을 선택하십시오"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr "메시지"
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "슬라이싱"
@@ -4777,6 +4820,15 @@ msgstr "선택한 개체의 복제본"
 
 msgid "Save G-code file as:"
 msgstr "G코드 파일을 다음으로 저장:"
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "슬라이스 파일을 다음으로 저장:"
@@ -4949,10 +5001,12 @@ msgid ""
 msgstr "2D 윈도우 중앙이 아닌 3D 보기에서 마우스 포인터의 위치로 확대합니다."
 
 msgid "Use free camera"
-msgstr ""
+msgstr "자유로운 카메라 앵글 사용"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
+"활성화된 경우 자유로운 카메라 앵글을 사용합니다. 활성화되지 않은 경우 제한된 "
+"카메라 앵글을 사용합니다."
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "시작 후 \"오늘의 팁\" 알림 표시"
@@ -5869,6 +5923,9 @@ msgstr "권장 노즐 온도"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "이 필라멘트의 권장 노즐 온도 범위. 0은 설정하지 않음을 의미합니다"
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "출력 온도"
 
@@ -6650,6 +6707,9 @@ msgstr "뱀부 스튜디오의 새 버전"
 
 msgid "Don't remind me of this version again"
 msgstr "이 버전을 다시 알리지 않음"
+
+msgid "Done"
+msgstr "완료"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN 연결 실패(출력 파일 전송 중)"
@@ -7578,6 +7638,31 @@ msgid ""
 msgstr ""
 "가파른 돌출부와 다리를 고정할 수 없는 지역 위에 추가 둘레 경로를 만듭니다. "
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr "클래식 모드"
 
@@ -7741,8 +7826,8 @@ msgstr "이 장치 프로필로 전환할 때의 기본 프로세스 프로필"
 msgid "Activate air filtration"
 msgstr "공기 여과 활성화"
 
-msgid "Activate for better air filtration"
-msgstr "더 나은 공기 여과를 위해 활성화하세요"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
+msgstr ""
 
 msgid "Fan speed"
 msgstr "팬 속도"
@@ -7808,16 +7893,6 @@ msgstr "전체 출력이 끝날때의 End G-code"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "이 필라멘트의 출력이 끝날때의 End G-code"
-
-msgid "Ensure vertical shell thickness"
-msgstr "수직 쉘 두께 확보"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr ""
-"경사진 표면 근처에 꽉찬 내부 채움을 추가하여 수직 쉘 두께를 보장합니다(상단"
-"+하단 꽉찬 레이어)"
 
 msgid "Top surface pattern"
 msgstr "상단 표면 패턴"
@@ -8236,15 +8311,14 @@ msgstr ""
 "지원 재료는 일반적으로 지지대 및 지지대 접점(Interface)을 출력하는 데 사용됩"
 "니다"
 
-msgid "Temperature of vitrificaiton"
-msgstr "유리 전이 온도"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
 msgstr ""
-"이 온도에서는 재료가 부드러워집니다. 따라서 히트베드는 유리 전이 온도보다 더 "
-"뜨거울 수 없습니다"
 
 msgid "Price"
 msgstr "가격"
@@ -8573,7 +8647,7 @@ msgid "Layers and Perimeters"
 msgstr "레이어와 윤곽선"
 
 msgid "Filter out gaps smaller than the threshold specified"
-msgstr ""
+msgstr "지정된 임계값보다 작은 갭을 필터링합니다"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be "
@@ -8668,8 +8742,10 @@ msgstr "가장 좋은 개체 위치"
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr "베드 모양 w.r.t. 범위 [0,1] 내에서 가장 좋은 자동 정렬 위치입니다."
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr "기계에 보조 출력물 냉각 팬이 있는 경우 이 옵션 사용"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
+msgstr ""
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -8725,14 +8801,17 @@ msgid "Support control chamber temperature"
 msgstr "챔버 온도 제어 지원"
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
-msgstr "이 옵션은 장치가 챔버 온도 제어를 지원하는 경우 활성화됩니다"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
+msgstr ""
 
 msgid "Support air filtration"
 msgstr "공기 여과 지원"
 
-msgid "Enable this if printer support air filtration"
-msgstr "프린터가 공기 여과를 지원하는 경우 활성화하십시오"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G코드 호환(Flavor)"
@@ -9109,10 +9188,10 @@ msgstr "출력물 냉각 팬의 최소 속도"
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
-"보조 출력 냉각 팬의 속도입니다. 냉각 중지 레이어로 정의된 처음 몇 개의 레이어"
-"를 제외하고 출력 중에 보조 팬이 이 속도로 작동됩니다"
 
 msgid "Min"
 msgstr "최소"
@@ -9692,6 +9771,17 @@ msgstr "단일 압출기 다중 재료"
 msgid "Use single nozzle to print multi filament"
 msgstr "단일 노즐을 사용하여 다중 필라멘트 출력"
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr "프라임 타워에서 청소"
 
@@ -10102,6 +10192,15 @@ msgid ""
 msgstr ""
 "이 설정은 나무 지지대의 큰 공동 내부에 내부 채움을 추가할지 여부를 지정합니다"
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr "챔버 온도"
 
@@ -10380,6 +10479,14 @@ msgstr ""
 "\"XxY, XxY, ...\" 형식으로 .gcode 및 .sl1 / .sl1s 파일에 저장되는 미리보기 크"
 "기"
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr "상대적 E 거리 사용"
 
@@ -10499,18 +10606,6 @@ msgstr ""
 "모델의 얇은 형상(최소 형상 크기에 따름)을 대체할 벽의 너비입니다. 최소 벽 너"
 "비가 형상의 두께보다 얇은 경우 벽은 형상 자체만큼 두꺼워집니다. 노즐 직경에 "
 "대한 백분율로 표시됩니다"
-
-msgid "Detect narrow internal solid infill"
-msgstr "좁은 내부 꽉찬 내부 채움 감지"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"이 옵션은 좁은 내부 꽉찬 내부 채움 영역을 자동으로 감지합니다. 활성화하면 출"
-"력 속도를 높이기 위해 해당 영역에 동심 패턴이 사용됩니다. 그렇지 않으면 직선 "
-"패턴이 기본적으로 사용됩니다."
 
 msgid "invalid value "
 msgstr "잘못된 값 "
@@ -11458,9 +11553,6 @@ msgstr "크기"
 msgid "Filename"
 msgstr "파일 이름"
 
-msgid "Message"
-msgstr "메시지"
-
 msgid "Cancel selected"
 msgstr "선택 취소"
 
@@ -11943,6 +12035,88 @@ msgstr ""
 "강도 향상\n"
 "모델의 강도를 개선하기 위해 더 많은 벽 루프와 더 높은 드문 내부 채움 밀도를 "
 "사용할 수 있다는 것을 알고 있습니까?"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "There are currently no identical spare consumables available, and "
+#~ "automatic replenishment is currently not possible. \n"
+#~ "(Currently supporting automatic supply of consumables with the same "
+#~ "brand, material type, and color)"
+#~ msgstr ""
+#~ "현재 동일한 예비 소모품을 사용할 수 없으며 자동 보충도 현재 불가능합니"
+#~ "다.\n"
+#~ "(현재 동일한 브랜드, 재질, 색상의 소모품 자동공급 지원)"
+
+#~ msgid "Invalid nozzle diameter"
+#~ msgstr "잘못된 노즐 직경"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr ""
+#~ "베드 온도가 필라멘트의 유리화 온도를 초과합니다. 노즐 막힘을 방지하기 위"
+#~ "해 출력하기 전에 프린터의 도어를 여십시오."
+
+#~ msgid "Activate for better air filtration"
+#~ msgstr "더 나은 공기 여과를 위해 활성화하세요"
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "수직 쉘 두께 확보"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr ""
+#~ "경사진 표면 근처에 꽉찬 내부 채움을 추가하여 수직 쉘 두께를 보장합니다(상"
+#~ "단+하단 꽉찬 레이어)"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "유리 전이 온도"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr ""
+#~ "이 온도에서는 재료가 부드러워집니다. 따라서 히트베드는 유리 전이 온도보다 "
+#~ "더 뜨거울 수 없습니다"
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr "기계에 보조 출력물 냉각 팬이 있는 경우 이 옵션 사용"
+
+#~ msgid ""
+#~ "This option is enabled if machine support controlling chamber temperature"
+#~ msgstr "이 옵션은 장치가 챔버 온도 제어를 지원하는 경우 활성화됩니다"
+
+#~ msgid "Enable this if printer support air filtration"
+#~ msgstr "프린터가 공기 여과를 지원하는 경우 활성화하십시오"
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "보조 출력 냉각 팬의 속도입니다. 냉각 중지 레이어로 정의된 처음 몇 개의 레"
+#~ "이어를 제외하고 출력 중에 보조 팬이 이 속도로 작동됩니다"
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "좁은 내부 꽉찬 내부 채움 감지"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "이 옵션은 좁은 내부 꽉찬 내부 채움 영역을 자동으로 감지합니다. 활성화하면 "
+#~ "출력 속도를 높이기 위해 해당 영역에 동심 패턴이 사용됩니다. 그렇지 않으면 "
+#~ "직선 패턴이 기본적으로 사용됩니다."
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "

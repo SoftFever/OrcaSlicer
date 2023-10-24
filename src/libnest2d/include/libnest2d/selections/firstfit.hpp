@@ -161,6 +161,25 @@ public:
                     makeProgress(placers[j], j);
                 }
 
+                if (was_packed && it->get().has_tried_with_excluded) {
+                    placers[j].clearItems([](const Item &itm) { return itm.isFixed() && !itm.is_wipe_tower; });
+                    if (fixed_bins.size() >= placers.size())
+                        placers[j].preload(fixed_bins[placers.size() - 1]);
+                }
+                bool placer_not_packed = !was_packed && !placers.empty() && j == placers.size() && placers[j - 1].getPackedSize() == 0; // large item is not placed into the bin
+                if (placer_not_packed) {
+                    if (it->get().has_tried_with_excluded == false) {
+                        it->get().has_tried_with_excluded = true;
+                        placers[j - 1].clearItems([](const Item &itm) { return itm.isFixed()&&!itm.is_wipe_tower; });
+                        placers[j - 1].preload(pconfig.m_excluded_items);
+                        j = j - 1;
+                        continue;
+                    } else {
+                        placers[j - 1].clearItems([](const Item &itm) { return itm.isFixed() && !itm.is_wipe_tower; });
+                        placers[j - 1].preload(fixed_bins[placers.size() - 1]);
+                    }
+                }
+
                 if(!was_packed){
                     if (this->unfitindicator_ && !placers.empty())
                         this->unfitindicator_(it->get().name + ", height=" +std::to_string(it->get().height)

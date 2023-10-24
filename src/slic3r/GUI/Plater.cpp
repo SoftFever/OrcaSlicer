@@ -2842,7 +2842,7 @@ wxColour Plater::get_next_color_for_filament()
 wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning)
 {
     if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
-        return _L("The bed temperature exceeds filament's vitrification temperature. Please open the front door of printer before printing to avoid nozzle clog.");
+        return _L("The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass.");
     } else if (warning.msg == NOZZLE_HRC_CHECKER) {
         return _L("The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged.");
     } else if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
@@ -3969,7 +3969,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         {
             // XXX: Problem on OS X with double extension?
             output_file.replace_extension("zip.amf");
-            dlg_title = _devL("Export AMF file:");
+            dlg_title = _L("Export AMF file:");
             break;
         }
         case FT_3MF:
@@ -3981,7 +3981,7 @@ wxString Plater::priv::get_export_file(GUI::FileType file_type)
         case FT_OBJ:
         {
             output_file.replace_extension("obj");
-            dlg_title = _devL("Export OBJ file:");
+            dlg_title = _L("Export OBJ file:");
             break;
         }
         default: break;
@@ -4248,7 +4248,7 @@ void Plater::priv::mirror(Axis axis)
 void Plater::find_new_position(const ModelInstancePtrs &instances)
 {
     arrangement::ArrangePolygons movable, fixed;
-    arrangement::ArrangeParams arr_params = get_arrange_params(this);
+    arrangement::ArrangeParams arr_params = init_arrange_params(this);
 
     for (const ModelObject *mo : p->model.objects)
         for (ModelInstance *inst : mo->instances) {
@@ -4770,7 +4770,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 {
     const std::string path = new_path.string();
     wxBusyCursor wait;
-    wxBusyInfo info(_devL("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+    wxBusyInfo info(_L("Replace from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
     Model new_model;
     try {
@@ -4786,7 +4786,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
     }
 
     if (new_model.objects.size() > 1 || new_model.objects.front()->volumes.size() > 1) {
-        MessageDialog dlg(q, _devL("Unable to replace with more than one volume"), _devL("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        MessageDialog dlg(q, _L("Unable to replace with more than one volume"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
         dlg.ShowModal();
         return false;
     }
@@ -5051,8 +5051,8 @@ void Plater::priv::reload_from_disk()
             }
         }
         else {
-            wxString      message = _devL("Do you want to replace it") + " ?";
-            MessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
+            wxString      message = _L("Do you want to replace it") + " ?";
+            MessageDialog dlg(q, message, _L("Message"), wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() == wxID_YES)
 #if ENABLE_RELOAD_FROM_DISK_REWORK
                 replace_paths.emplace_back(search, sel_filename_path);
@@ -5080,7 +5080,7 @@ void Plater::priv::reload_from_disk()
         const auto& path = input_paths[i].string();
 
         wxBusyCursor wait;
-        wxBusyInfo info(_devL("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
+        wxBusyInfo info(_L("Reload from:") + " " + from_u8(path), q->get_current_canvas3D()->get_wxglcanvas());
 
         Model new_model;
         try
@@ -5291,11 +5291,11 @@ void Plater::priv::reload_from_disk()
 #endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
     if (!fail_list.empty()) {
-        wxString message = _devL("Unable to reload:") + "\n";
+        wxString message = _L("Unable to reload:") + "\n";
         for (const wxString& s : fail_list) {
             message += s + "\n";
         }
-        MessageDialog dlg(q, message, _devL("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        MessageDialog dlg(q, message, _L("Error during reload"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
         dlg.ShowModal();
     }
 
@@ -6311,6 +6311,7 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
 
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
+    m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
     m_select_machine_dlg->prepare(PLATE_ALL_IDX);
     m_select_machine_dlg->ShowModal();
     record_start_print_preset("print_all");
@@ -8116,7 +8117,7 @@ void Plater::import_model_id(wxString download_info)
                         body,
                         http_status,
                         error);
-                    
+
                     if (retry_count == max_retries) {
                         msg = _L("Importing to Bambu Studio failed. Please download the file and manually import it.");
                         cont = false;
@@ -8639,6 +8640,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("overhang_reverse", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
     print_config->set_key_value("outer_wall_line_width", new ConfigOptionFloatOrPercent(line_width, false));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
@@ -8734,6 +8736,7 @@ void Plater::calib_VFA(const Calib_Params& params)
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
+    print_config->set_key_value("overhang_reverse", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
     model().objects[0]->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterOnly));
     model().objects[0]->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
@@ -9988,7 +9991,7 @@ void Plater::export_gcode(bool prefer_removable)
     fs::path output_path;
     {
         std::string ext = default_output_file.extension().string();
-        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _devL("Save SLA file as:"),
+        wxFileDialog dlg(this, (printer_technology() == ptFFF) ? _L("Save G-code file as:") : _L("Save SLA file as:"),
             start_dir,
             from_path(default_output_file.filename()),
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : FT_SL1, ext),
@@ -9997,8 +10000,8 @@ void Plater::export_gcode(bool prefer_removable)
         if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
             while (has_illegal_filename_characters(output_path.filename().string())) {
-                show_error(this, _devL("The provided file name is not valid.") + "\n" +
-                    _devL("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
+                show_error(this, _L("The provided file name is not valid.") + "\n" +
+                    _L("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
                 dlg.SetFilename(from_path(output_path.filename()));
                 if (dlg.ShowModal() == wxID_OK)
                     output_path = into_path(dlg.GetPath());

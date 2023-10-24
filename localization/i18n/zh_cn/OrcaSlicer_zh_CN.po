@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-15 11:57+0800\n"
+"POT-Creation-Date: 2023-10-24 00:18+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Cao Zheng <smile.caozheng@outlook.com>\n"
 "Language-Team: \n"
@@ -2080,14 +2080,19 @@ msgstr "当前材料耗尽时，打印机将按照以下顺序继续打印。"
 msgid "Group"
 msgstr "组"
 
+msgid "The printer does not currently support auto refill."
+msgstr ""
+
 msgid ""
-"There are currently no identical spare consumables available, and automatic "
-"replenishment is currently not possible. \n"
+"AMS filament backup is not enabled, please enable it in the AMS settings."
+msgstr ""
+
+msgid ""
+"If there are two identical filaments in AMS, AMS filament backup will be "
+"enabled. \n"
 "(Currently supporting automatic supply of consumables with the same brand, "
 "material type, and color)"
 msgstr ""
-"当前无相同的备用耗材，暂时无法自动补给。\n"
-"（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -2615,8 +2620,18 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
 
-msgid "Invalid nozzle diameter"
-msgstr "非法喷嘴口径"
+msgid ""
+"This calibration does not support the currently selected nozzle diameter"
+msgstr ""
+
+msgid "Current flowrate cali param is invalid"
+msgstr ""
+
+msgid "Selected diameter and machine diameter do not match"
+msgstr ""
+
+msgid "Failed to generate cali gcode"
+msgstr ""
 
 msgid "Calibration error"
 msgstr "校准错误"
@@ -3806,6 +3821,11 @@ msgstr "层： N/A"
 msgid "Clear"
 msgstr "清除"
 
+msgid ""
+"You have completed printing the mall model, \n"
+"but the synchronization of rating information has failed."
+msgstr ""
+
 msgid "How do you like this printing file?"
 msgstr "你觉得这个打印文件怎么样？"
 
@@ -3864,9 +3884,6 @@ msgstr "取消打印"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "你确定要取消这次打印吗？"
-
-msgid "Done"
-msgstr "完成"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -4376,9 +4393,10 @@ msgid "Restore"
 msgstr "恢复"
 
 msgid ""
-"The bed temperature exceeds filament's vitrification temperature. Please "
-"open the front door of printer before printing to avoid nozzle clog."
-msgstr "热床温度超过了材料的软化温度。请在打印前打开打印机前门以防堵头。"
+"The current hot bed temperature is relatively high. The nozzle may be "
+"clogged when printing this filament in a closed enclosure. Please open the "
+"front door and/or remove the upper glass."
+msgstr ""
 
 msgid ""
 "The nozzle hardness required by the filament is higher than the default "
@@ -4497,8 +4515,14 @@ msgstr "对象太大"
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
 
+msgid "Export AMF file:"
+msgstr ""
+
 msgid "Save file as:"
 msgstr "文件另存为："
+
+msgid "Export OBJ file:"
+msgstr ""
 
 msgid "Delete object which is a part of cut object"
 msgstr "删除切割对象的一部分"
@@ -4517,17 +4541,38 @@ msgstr "选中的模型不可分裂。"
 msgid "Another export job is running."
 msgstr "有其他导出任务正在进行中。"
 
+msgid "Replace from:"
+msgstr ""
+
+msgid "Unable to replace with more than one volume"
+msgstr ""
+
+msgid "Error during replace"
+msgstr "替换时发生错误"
+
 msgid "Select a new file"
 msgstr "选择新文件"
 
 msgid "File for the replace wasn't selected"
 msgstr "未选择替换文件"
 
-msgid "Error during replace"
-msgstr "替换时发生错误"
-
 msgid "Please select a file"
 msgstr "请选择一个文件"
+
+msgid "Do you want to replace it"
+msgstr ""
+
+msgid "Message"
+msgstr "消息"
+
+msgid "Reload from:"
+msgstr ""
+
+msgid "Unable to reload:"
+msgstr ""
+
+msgid "Error during reload"
+msgstr ""
 
 msgid "Slicing"
 msgstr "正在切片"
@@ -4651,6 +4696,15 @@ msgstr "所选对象的克隆数量"
 
 msgid "Save G-code file as:"
 msgstr "G-code文件另存为："
+
+msgid "Save SLA file as:"
+msgstr ""
+
+msgid "The provided file name is not valid."
+msgstr ""
+
+msgid "The following characters are not allowed by a FAT file system:"
+msgstr ""
 
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
@@ -5714,6 +5768,9 @@ msgstr "建议喷嘴温度"
 msgid "Recommended nozzle temperature range of this filament. 0 means no set"
 msgstr "该材料的建议喷嘴温度范围。0表示未设置"
 
+msgid "Print chamber temperature"
+msgstr ""
+
 msgid "Print temperature"
 msgstr "打印温度"
 
@@ -6473,6 +6530,9 @@ msgstr "新版本的Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
+
+msgid "Done"
+msgstr "完成"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN连接失败 (发送打印文件)"
@@ -7314,6 +7374,31 @@ msgid ""
 "bridges cannot be anchored. "
 msgstr "在陡峭的悬垂和无法固定桥接的区域上创建额外的周长路径。"
 
+msgid "Reverse on odd"
+msgstr ""
+
+msgid "Overhang reversal"
+msgstr ""
+
+msgid ""
+"Extrude perimeters that have a part over an overhang in the reverse "
+"direction on odd layers. This alternating pattern can drastically improve "
+"steep overhang."
+msgstr ""
+
+msgid "Reverse threshold"
+msgstr ""
+
+msgid "Overhang reversal threshold"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Number of mm the overhang need to be for the reversal to be considered "
+"useful. Can be a % of the perimeter width.\n"
+"Value 0 enables reversal on every odd layers regardless."
+msgstr ""
+
 msgid "Classic mode"
 msgstr "经典模式"
 
@@ -7469,10 +7554,10 @@ msgid "Default process profile when switch to this machine profile"
 msgstr "该机器的默认切片配置"
 
 msgid "Activate air filtration"
-msgstr "激活空气过滤"
+msgstr "启用空气过滤/排气"
 
-msgid "Activate for better air filtration"
-msgstr "激活以获得更好的空气过滤"
+msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
+msgstr "启用空气过滤/排气风扇。G-code命令：M106 P3 S(0-255)"
 
 msgid "Fan speed"
 msgstr "风扇速度"
@@ -7534,14 +7619,6 @@ msgstr "所有打印结束时的结尾G-code"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
-
-msgid "Ensure vertical shell thickness"
-msgstr "确保垂直外壳厚度"
-
-msgid ""
-"Add solid infill near sloping surfaces to guarantee the vertical shell "
-"thickness (top+bottom solid layers)"
-msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
 msgid "Top surface pattern"
 msgstr "顶面图案"
@@ -7931,13 +8008,14 @@ msgid ""
 "Support material is commonly used to print support and support interface"
 msgstr "支撑材料通常用于打印支撑体和支撑接触面"
 
-msgid "Temperature of vitrificaiton"
-msgstr "软化温度"
+msgid "Softening temperature"
+msgstr ""
 
 msgid ""
-"Material becomes soft at this temperature. Thus the heatbed cannot be hotter "
-"than this tempature"
-msgstr "材料在这个温度开始变软。因此热床温度不能超过这个温度。"
+"The material softens at this temperature, so when the bed temperature is "
+"equal to or greater than it, it's highly recommended to open the front door "
+"and/or remove the upper glass to avoid cloggings."
+msgstr ""
 
 msgid "Price"
 msgstr "价格"
@@ -8329,8 +8407,10 @@ msgstr "最佳对象位置"
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
 msgstr ""
 
-msgid "Enable this option if machine has auxiliary part cooling fan"
-msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
+msgid ""
+"Enable this option if machine has auxiliary part cooling fan. G-code "
+"command: M106 P2 S(0-255)."
+msgstr "如果打印机有辅助风扇，可以开启此选项。G-code指令：M106 P2 S(0-255)"
 
 msgid ""
 "Start the fan this number of seconds earlier than its target start time (you "
@@ -8378,14 +8458,19 @@ msgid "Support control chamber temperature"
 msgstr "支持仓温控制"
 
 msgid ""
-"This option is enabled if machine support controlling chamber temperature"
-msgstr "如果机器支持仓温控制，则启用此选项"
+"This option is enabled if machine support controlling chamber temperature\n"
+"G-code command: M141 S(0-255)"
+msgstr ""
 
 msgid "Support air filtration"
 msgstr "支持空气过滤"
 
-msgid "Enable this if printer support air filtration"
-msgstr "如果打印机支持空气过滤，则启用此功能"
+msgid ""
+"Enable this if printer support air filtration\n"
+"G-code command: M106 P3 S(0-255)"
+msgstr ""
+"如果打印机支持空气过滤/排气风扇，可以开启此选项\n"
+"G-code指令：M106 P3 S(0-255)"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -8729,10 +8814,13 @@ msgstr "部件冷却风扇的最小转速"
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
 "during printing except the first several layers which is defined by no "
-"cooling layers"
+"cooling layers.\n"
+"Please enable auxiliary_fan in printer settings to use this feature. G-code "
+"command: M106 P2 S(0-255)"
 msgstr ""
 "辅助部件冷却风扇的转速。辅助部件冷却风扇将一直运行在该速度，除了设置的无需冷"
-"却的前若干层"
+"却的前若干层\n"
+"请在打印机设置中启用辅助风扇以使用此功能。G-code指令：M106 P2 S(0-255)"
 
 msgid "Min"
 msgstr "最小"
@@ -9259,6 +9347,17 @@ msgstr "单挤出机多材料"
 msgid "Use single nozzle to print multi filament"
 msgstr "使用单喷嘴打印多耗材"
 
+msgid "Manual Filament Change"
+msgstr ""
+
+msgid ""
+"Enable this option to omit the custom Change filament G-code only at the "
+"beginning of the print. The tool change command (e.g., T0) will be skipped "
+"throughout the entire print. This is useful for manual multi-material "
+"printing, where we use M600/PAUSE to trigger the manual filament change "
+"action."
+msgstr ""
+
 msgid "Purge in prime tower"
 msgstr "冲刷进擦拭塔"
 
@@ -9644,6 +9743,15 @@ msgid ""
 "support"
 msgstr "这个设置决定是否为树状支撑内部的空腔生成填充。"
 
+msgid "Activate temperature control"
+msgstr ""
+
+msgid ""
+"Enable this option for chamber temperature control. An M191 command will be "
+"added before \"machine_start_gcode\"\n"
+"G-code commands: M141/M191 S(0-255)"
+msgstr ""
+
 msgid "Chamber temperature"
 msgstr "机箱温度"
 
@@ -9894,6 +10002,14 @@ msgid ""
 "following format: \"XxY, XxY, ...\""
 msgstr ""
 
+msgid "Format of G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
+"QOI for low memory firmware"
+msgstr ""
+
 msgid "Use relative E distances"
 msgstr "使用相对E距离"
 
@@ -10003,17 +10119,6 @@ msgid ""
 msgstr ""
 "用于替换模型细小特征（根据最小特征尺寸）的墙线宽。如果墙最小线宽小于最小特征"
 "的厚度，则墙将变得和特征本身一样厚。参数值表示为相对喷嘴直径的百分比"
-
-msgid "Detect narrow internal solid infill"
-msgstr "识别狭窄内部实心填充"
-
-msgid ""
-"This option will auto detect narrow internal solid infill area. If enabled, "
-"concentric pattern will be used for the area to speed printing up. "
-"Otherwise, rectilinear pattern is used defaultly."
-msgstr ""
-"此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充加"
-"快打印速度。否则使用默认的直线填充。"
 
 msgid "invalid value "
 msgstr "非法的值 "
@@ -10930,9 +11035,6 @@ msgstr "大小"
 msgid "Filename"
 msgstr "文件名"
 
-msgid "Message"
-msgstr "消息"
-
 msgid "Cancel selected"
 msgstr "取消选中"
 
@@ -11389,6 +11491,80 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+
+#~ msgid ""
+#~ "There are currently no identical spare consumables available, and "
+#~ "automatic replenishment is currently not possible. \n"
+#~ "(Currently supporting automatic supply of consumables with the same "
+#~ "brand, material type, and color)"
+#~ msgstr ""
+#~ "当前无相同的备用耗材，暂时无法自动补给。\n"
+#~ "（目前支持品牌、材料种类、颜色相同的耗材的自动补给）"
+
+#~ msgid "Invalid nozzle diameter"
+#~ msgstr "非法喷嘴口径"
+
+#~ msgid ""
+#~ "The bed temperature exceeds filament's vitrification temperature. Please "
+#~ "open the front door of printer before printing to avoid nozzle clog."
+#~ msgstr "热床温度超过了材料的软化温度。请在打印前打开打印机前门以防堵头。"
+
+#~ msgid "Activate for better air filtration"
+#~ msgstr "激活以获得更好的空气过滤"
+
+#~ msgid "Ensure vertical shell thickness"
+#~ msgstr "确保垂直外壳厚度"
+
+#~ msgid ""
+#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
+#~ "thickness (top+bottom solid layers)"
+#~ msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
+
+#~ msgid "Temperature of vitrificaiton"
+#~ msgstr "软化温度"
+
+#~ msgid ""
+#~ "Material becomes soft at this temperature. Thus the heatbed cannot be "
+#~ "hotter than this tempature"
+#~ msgstr "材料在这个温度开始变软。因此热床温度不能超过这个温度。"
+
+#~ msgid "Enable this option if machine has auxiliary part cooling fan"
+#~ msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
+
+#~ msgid ""
+#~ "This option is enabled if machine support controlling chamber temperature"
+#~ msgstr "如果机器支持仓温控制，则启用此选项"
+
+#~ msgid "Enable this if printer support air filtration"
+#~ msgstr "如果打印机支持空气过滤，则启用此功能"
+
+#~ msgid ""
+#~ "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed "
+#~ "during printing except the first several layers which is defined by no "
+#~ "cooling layers"
+#~ msgstr ""
+#~ "辅助部件冷却风扇的转速。辅助部件冷却风扇将一直运行在该速度，除了设置的无需"
+#~ "冷却的前若干层"
+
+#~ msgid "Detect narrow internal solid infill"
+#~ msgstr "识别狭窄内部实心填充"
+
+#~ msgid ""
+#~ "This option will auto detect narrow internal solid infill area. If "
+#~ "enabled, concentric pattern will be used for the area to speed printing "
+#~ "up. Otherwise, rectilinear pattern is used defaultly."
+#~ msgstr ""
+#~ "此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充"
+#~ "加快打印速度。否则使用默认的直线填充。"
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "
