@@ -687,7 +687,7 @@ wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 
 void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Export as STL") + dots, "",
+    append_menu_item(menu, wxID_ANY, _L("Export as one STL") + dots, "",
         [](wxCommandEvent&) { plater()->export_stl(false, true); }, "", nullptr,
         [is_mulity_menu]() {
             const Selection& selection = plater()->canvas3D()->get_selection();
@@ -695,6 +695,14 @@ void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
                 return selection.is_multiple_full_instance() || selection.is_multiple_full_object();
             else
                 return selection.is_single_full_instance() || selection.is_single_full_object();
+        }, m_parent);
+    if (!is_mulity_menu)
+        return;
+    append_menu_item(menu, wxID_ANY, _L("Export as STLs") + dots, "",
+        [](wxCommandEvent&) { plater()->export_stl(false, true, true); }, "", nullptr,
+        []() {
+            const Selection& selection = plater()->canvas3D()->get_selection();
+            return selection.is_multiple_full_instance() || selection.is_multiple_full_object();
         }, m_parent);
 }
 

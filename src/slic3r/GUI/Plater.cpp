@@ -10480,11 +10480,20 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
 
 // BBS export with/without boolean, however, stil merge mesh
 #define EXPORT_WITH_BOOLEAN 0
-void Plater::export_stl(bool extended, bool selection_only)
+void Plater::export_stl(bool extended, bool selection_only, bool multi_stls)
 {
     if (p->model.objects.empty()) { return; }
 
-    wxString path = p->get_export_file(FT_STL);
+    wxString path;
+    if (multi_stls) {
+        wxDirDialog dlg(this, _L("Choose a directory"), from_u8(wxGetApp().app_config->get_last_dir()),
+                        wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+        if (dlg.ShowModal() == wxID_OK) {
+            path = dlg.GetPath() + "/";
+        }
+    } else {
+        path = p->get_export_file(FT_STL);
+    }
     if (path.empty()) { return; }
     const std::string path_u8 = into_u8(path);
 
@@ -10607,6 +10616,14 @@ void Plater::export_stl(bool extended, bool selection_only)
     else
         mesh_to_export = mesh_to_export_sla;
 
+    auto get_save_file = [](std::string const & dir, std::string const & name) {
+        auto path = dir + name + ".stl";
+        int n = 1;
+        while (boost::filesystem::exists(path))
+            path = dir + name + "(" + std::to_string(n++) + ").stl";
+        return path;
+    };
+
     TriangleMesh mesh;
     if (selection_only) {
         if (selection.is_single_full_object()) {
@@ -10622,18 +10639,36 @@ void Plater::export_stl(bool extended, bool selection_only)
 
             if (model_object->instances.size() == 1) mesh.translate(-model_object->origin_translation.cast<float>());
         }
-        else if (selection.is_multiple_full_object()) {
+        else if (selection.is_multiple_full_object() && !multi_stls) {
             const std::set<std::pair<int, int>>& instances_idxs = p->get_selection().get_selected_object_instances();
             for (const std::pair<int, int>& i : instances_idxs) {
                 ModelObject* object = p->model.objects[i.first];
                 mesh.merge(mesh_to_export(*object, i.second));
             }
         }
+        else if (selection.is_multiple_full_object() && multi_stls) {
+            const std::set<std::pair<int, int>> &instances_idxs = p->get_selection().get_selected_object_instances();
+            for (const std::pair<int, int> &i : instances_idxs) {
+                ModelObject *object = p->model.objects[i.first];
+                auto mesh = mesh_to_export(*object, i.second);
+                mesh.translate(-object->origin_translation.cast<float>());
+
+                Slic3r::store_stl(get_save_file(path_u8, object->name).c_str(), &mesh, true);
+            }
+            return;
+        }
     }
-    else {
+    else if (!multi_stls) {
         for (const ModelObject* o : p->model.objects) {
             mesh.merge(mesh_to_export(*o, -1));
         }
+    } else {
+        for (const ModelObject* o : p->model.objects) {
+            auto mesh = mesh_to_export(*o, -1);
+            mesh.translate(-o->origin_translation.cast<float>());
+            Slic3r::store_stl(get_save_file(path_u8, o->name).c_str(), &mesh, true);
+        }
+        return;
     }
 
     Slic3r::store_stl(path_u8.c_str(), &mesh, true);
