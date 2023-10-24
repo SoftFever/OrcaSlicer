@@ -2379,6 +2379,34 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 
 
+    //check blacklist
+    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+
+        auto tid = m_ams_mapping_result[i].tray_id;
+
+        std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
+        std::string filament_brand;
+
+        for (auto fs : m_filaments) {
+            if (fs.id == m_ams_mapping_result[i].id) {
+                filament_brand = m_filaments[i].brand;
+            }
+        }
+
+        bool in_blacklist = false;
+        std::string action;
+        std::string info;
+
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
+
+        if (in_blacklist && action == "warning") {
+            wxString prohibited_error = wxString::FromUTF8(info);
+
+            confirm_text.push_back(prohibited_error + "\n");
+            has_slice_warnings = true;
+        }
+    }
+
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
 
     for (auto warning : plate->get_slice_result()->warnings) {
@@ -2412,6 +2440,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //check for unidentified material
     auto mapping_result = m_mapping_popup.parse_ams_mapping(obj_->amsList);
     auto has_unknown_filament = false;
+
     // check if ams mapping is has errors, tpu
     bool has_prohibited_filament = false;
     wxString prohibited_error = wxEmptyString;
@@ -2426,19 +2455,19 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         for (auto fs : m_filaments) {
             if (fs.id == m_ams_mapping_result[i].id) {
-                filament_brand = boost::to_upper_copy(m_filaments[i].brand);
+                filament_brand = m_filaments[i].brand;
             }
         }
 
-        if (filament_type == "TPU") {
+        bool in_blacklist = false;
+        std::string action;
+        std::string info;
+
+        DeviceManager::check_filaments_in_blacklist(filament_brand, filament_type, in_blacklist, action, info);
+        
+        if (in_blacklist && action == "prohibition") {
             has_prohibited_filament = true;
-            prohibited_error = wxString::Format(_L("%s is not supported by AMS."), "TPU");
-        }else if (filament_type == "PET-CF" && filament_brand == "BAMBULAB") {
-            has_prohibited_filament = true;
-            prohibited_error = wxString::Format(_L("%s is not supported by AMS."), "PET-CF");
-        }else if (filament_type == "PA6-CF" && filament_brand == "BAMBULAB") {
-            has_prohibited_filament = true;
-            prohibited_error = wxString::Format(_L("%s is not supported by AMS."), "PA6-CF");
+            prohibited_error = wxString::FromUTF8(info);
         }
 
         for (auto miter : mapping_result) {
