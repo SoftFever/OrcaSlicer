@@ -82,7 +82,7 @@
 			"30"
 		],
 		"fan_min_speed": [
-			"5"
+			"10"
 		],
 		"filament_flow_ratio": [
 			"0.95"

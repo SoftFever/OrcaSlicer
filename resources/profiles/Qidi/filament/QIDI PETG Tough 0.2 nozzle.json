@@ -22,10 +22,10 @@
         "25%"
     ],
     "fan_max_speed": [
-        "90"
+        "40"
     ],
     "fan_min_speed": [
-        "40"
+        "10"
     ],
     "slow_down_min_speed": [
         "10"

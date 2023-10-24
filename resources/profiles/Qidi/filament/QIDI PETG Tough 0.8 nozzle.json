@@ -40,10 +40,10 @@
         "16"
     ],
     "fan_max_speed": [
-        "80"
+        "40"
     ],
     "fan_min_speed": [
-        "30"
+        "10"
     ],
 	"compatible_printers": [
         "Qidi X-Plus 0.8 nozzle",
