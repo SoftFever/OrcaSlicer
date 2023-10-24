@@ -1282,9 +1282,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // BBS: load relationships
         if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
             return false;
-        if (m_thumbnail_small.empty()) m_thumbnail_small = m_thumbnail_path;
-        if (!m_thumbnail_small.empty()) {
-            return _extract_from_archive(archive, m_thumbnail_small, [&data](auto &archive, auto const &stat) -> bool {
+        if (m_thumbnail_middle.empty()) m_thumbnail_middle = m_thumbnail_path;
+        if (!m_thumbnail_middle.empty()) {
+            return _extract_from_archive(archive, m_thumbnail_middle, [&data](auto &archive, auto const &stat) -> bool {
                 data.resize(stat.m_uncomp_size);
                 return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
             });
@@ -1368,7 +1368,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_thumbnail_small.erase(m_thumbnail_small.begin());
         if (!m_thumbnail_middle.empty() && m_thumbnail_middle.front() == '/')
             m_thumbnail_middle.erase(m_thumbnail_middle.begin());
-        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_small);
+        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_middle);
         m_model->model_info->metadata_items.emplace("Poster", m_thumbnail_middle);
 
         // we then loop again the entries to read other files stored in the archive
