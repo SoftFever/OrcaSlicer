@@ -2725,8 +2725,12 @@ void TabFilament::build()
         optgroup->append_line(line);
 
 
-        optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
-        optgroup->append_single_option_line("chamber_temperature");
+
+        optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
+        optgroup->append_single_option_line("chamber_temperature", "Chamber-temperature");
+        optgroup->append_single_option_line("activate_chamber_temp_control", "Chamber-temperature");
+
+
         optgroup->append_separator();
 
 
@@ -2829,11 +2833,13 @@ void TabFilament::build()
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
-        optgroup->append_single_option_line("additional_cooling_fan_speed");
+
+        optgroup->append_single_option_line("additional_cooling_fan_speed", "Auxiliary-fan");
 
         optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
 
-        optgroup->append_single_option_line("activate_air_filtration");
+        optgroup->append_single_option_line("activate_air_filtration", "Air-filtration(Exhaust-fan)");
+
 
         line = {L("During print"), ""};
         line.append_option(optgroup->get_option("during_print_exhaust_fan_speed"));
@@ -3162,9 +3168,10 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("nozzle_hrc");
-        optgroup->append_single_option_line("auxiliary_fan");
-        optgroup->append_single_option_line("support_chamber_temp_control");
-        optgroup->append_single_option_line("support_air_filtration");
+
+        optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
+        optgroup->append_single_option_line("support_chamber_temp_control", "Chamber-temperature");
+        optgroup->append_single_option_line("support_air_filtration", "Air-filtration(Exhaust-fan)");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
