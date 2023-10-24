@@ -94,7 +94,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.07.09.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.07.09.02"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -119,10 +119,10 @@ namespace BBL {
 #define IOT_JSON_KEY_CERT_HASH_VALUE        "hash_value"
 #define IOT_JSON_KEY_CERT_VERIFY_RESULT     "verify_result"
 
-#define isser_name          "GlobalSign GCC R45 EV CodeSigning CA 2020"
-#define subject_name        "Shenzhen Tuozhu Technology Co., Ltd."
-#define serial_number       "0b209295a54b188466ad7478"
-#define hash_number         "9690647085f910ffe2098129bc1229956a51e250"
+#define EMBEDDED_ISSUER_NAME          "GlobalSign GCC R45 EV CodeSigning CA 2020"
+#define EMBEDDED_SUBJECT_NAME        "Shenzhen Tuozhu Technology Co., Ltd."
+#define EMBEDDED_SERIAL_NAME       "0b209295a54b188466ad7478"
+#define EMBEDDED_HASH_NAME         "9690647085f910ffe2098129bc1229956a51e250"
 
 
 // user callbacks
