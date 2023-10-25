@@ -2641,8 +2641,6 @@ int MachineObject::parse_json(std::string payload)
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
     auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_update_time);
 
-    BOOST_LOG_TRIVIAL(info) << "interval = " << diff1.count();
-
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
 
