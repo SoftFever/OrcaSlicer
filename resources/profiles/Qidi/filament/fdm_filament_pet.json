@@ -11,7 +11,7 @@
         "80"
     ],
     "hot_plate_temp" : [
-        "70"
+        "80"
     ],
     "textured_plate_temp" : [
         "80"
@@ -23,7 +23,7 @@
         "80"
     ],
     "hot_plate_temp_initial_layer" : [
-        "80"
+        "70"
     ],
     "textured_plate_temp_initial_layer" : [
         "80"
@@ -56,10 +56,10 @@
         "1"
     ],
     "fan_max_speed": [
-        "100"
+        "80"
     ],
     "fan_min_speed": [
-        "20"
+        "10"
     ],
     "overhang_fan_speed": [
         "100"

@@ -56,10 +56,10 @@
         "1"
     ],
     "fan_max_speed": [
-        "35"
+        "50"
     ],
     "fan_min_speed": [
-        "35"
+        "20"
     ],
     "overhang_fan_threshold": [
         "25%"
@@ -68,10 +68,10 @@
         "80"
     ],
     "nozzle_temperature": [
-        "260"
+        "270"
     ],
     "temperature_vitrification": [
-        "110"
+        "100"
     ],
     "nozzle_temperature_range_low": [
         "240"
@@ -83,6 +83,6 @@
         "10"
     ],
     "slow_down_layer_time": [
-        "3"
+        "5"
     ]
 }
