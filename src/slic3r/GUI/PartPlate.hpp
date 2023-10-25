@@ -700,7 +700,7 @@ public:
     //update the plate cols due to plate count change
     void update_plate_cols();
 
-    void update_all_plates_pos_and_size(bool adjust_position = true, bool with_unprintable_move = true);
+    void update_all_plates_pos_and_size(bool adjust_position = true, bool with_unprintable_move = true, bool switch_plate_type = false);
 
     //get the plate cols
     int get_plate_cols() { return m_plate_cols; }

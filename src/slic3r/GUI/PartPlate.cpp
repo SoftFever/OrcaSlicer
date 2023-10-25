@@ -3368,7 +3368,7 @@ void PartPlateList::reset_size(int width, int depth, int height, bool reload_obj
 		m_plate_width = width;
 		m_plate_depth = depth;
 		m_plate_height = height;
-		update_all_plates_pos_and_size(false, false);
+		update_all_plates_pos_and_size(false, false, true);
 		if (update_shapes) {
 			set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 		}
@@ -3868,7 +3868,7 @@ void PartPlateList::update_plate_cols()
 	return;
 }
 
-void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool with_unprintable_move)
+void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool with_unprintable_move, bool switch_plate_type)
 {
 	Vec3d origin1, origin2;
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
@@ -3881,7 +3881,7 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 		plate->set_pos_and_size(origin1, m_plate_width, m_plate_depth, m_plate_height, adjust_position);
 
 		// set default wipe pos when switch plate
-        if (m_plater && plate->get_used_extruders().size() <= 0) {
+        if (switch_plate_type && m_plater && plate->get_used_extruders().size() <= 0) {
 			set_default_wipe_tower_pos_for_plate(i);
 		}
 	}
