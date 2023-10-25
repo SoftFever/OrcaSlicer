@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-24 17:43+0800\n"
+"POT-Creation-Date: 2023-10-25 14:53+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -959,8 +959,11 @@ msgstr "Druckbar"
 msgid "Fix model"
 msgstr "Modell reparieren"
 
-msgid "Export as STL"
-msgstr "Als STL exportieren"
+msgid "Export as one STL"
+msgstr ""
+
+msgid "Export as STLs"
+msgstr ""
 
 msgid "Reload from disk"
 msgstr "Von der Festplatte neu laden"
@@ -1492,6 +1495,18 @@ msgstr "Nächsten Tipp öffnen"
 msgid "Open Documentation in web browser."
 msgstr "Dokumentation im Webbrowser öffnen"
 
+msgid "Color"
+msgstr "Farbe"
+
+msgid "Pause"
+msgstr "Pause"
+
+msgid "Template"
+msgstr ""
+
+msgid "Custom"
+msgstr "Benutzerdefiniert"
+
 msgid "Pause:"
 msgstr "Pause:"
 
@@ -1569,8 +1584,8 @@ msgstr ""
 msgid "Failed to connect to the server"
 msgstr "Verbindung zum Server fehlgeschlagen"
 
-msgid "Check cloud service status"
-msgstr "Status des Cloud-Dienstes prüfen"
+msgid "Check the status of current system services"
+msgstr "Überprüfen Sie den Status der aktuellen Systemdienste"
 
 msgid "code"
 msgstr "Code"
@@ -2079,10 +2094,10 @@ msgid "You need to select the material type and color first."
 msgstr "Sie müssen zuerst den Materialtyp und die Farbe auswählen."
 
 msgid "Please input a valid value (K in 0~0.5)"
-msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5)"
+msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0,5)"
 
 msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0.5, N in 0.6~2.0)"
+msgstr "Bitte geben Sie einen gültigen Wert ein (K in 0~0,5, N in 0,6~2,0)"
 
 msgid "Other Color"
 msgstr "Andere Farbe"
@@ -2118,14 +2133,14 @@ msgstr "Druckbetttemperatur"
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Druckbetttemperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starten"
@@ -2476,9 +2491,6 @@ msgstr "Rechteckig"
 msgid "Circular"
 msgstr "Kreisförmig"
 
-msgid "Custom"
-msgstr "Benutzerdefiniert"
-
 msgid "Settings"
 msgstr "Einstellungen"
 
@@ -2828,20 +2840,20 @@ msgstr "Update fehlgeschlagen."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -3068,9 +3080,6 @@ msgstr "Farbwechsel"
 
 msgid "Print"
 msgstr "Druck"
-
-msgid "Pause"
-msgstr "Pause"
 
 msgid "Printer"
 msgstr "Drucker"
@@ -3544,8 +3553,11 @@ msgstr "Konfigurationen laden"
 msgid "Import"
 msgstr "Importieren"
 
-msgid "Export all objects as STL"
-msgstr "Alle Objekte als STL exportieren"
+msgid "Export all objects as one STL"
+msgstr ""
+
+msgid "Export all objects as STLs"
+msgstr ""
 
 msgid "Export Generic 3MF"
 msgstr "Generische 3mf exportieren"
@@ -5682,9 +5694,6 @@ msgstr "Senden abgeschlossen"
 msgid "Error code"
 msgstr "Fehlercode"
 
-msgid "Check the status of current system services"
-msgstr "Überprüfen Sie den Status der aktuellen Systemdienste"
-
 msgid "Printer local connection failed, please try again."
 msgstr ""
 "Die lokale Verbindung des Druckers ist fehlgeschlagen. Bitte versuchen Sie "
@@ -5950,8 +5959,8 @@ msgstr "Allgemeine Geschäftsbedingungen"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Vielen Dank für den Kauf eines Bambu Lab Geräts. Bevor Sie Ihr Bambu Lab "
@@ -6104,13 +6113,13 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -8253,9 +8262,6 @@ msgstr "Standardfarbe"
 msgid "Default filament color"
 msgstr "Standard Filamentfarbe"
 
-msgid "Color"
-msgstr "Farbe"
-
 msgid "Required nozzle HRC"
 msgstr "Erforderliche Düse HRC"
 
@@ -8281,6 +8287,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
@@ -10699,10 +10708,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10755,6 +10764,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10860,7 +10872,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10875,7 +10887,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11719,6 +11731,15 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Export as STL"
+#~ msgstr "Als STL exportieren"
+
+#~ msgid "Check cloud service status"
+#~ msgstr "Status des Cloud-Dienstes prüfen"
+
+#~ msgid "Export all objects as STL"
+#~ msgstr "Alle Objekte als STL exportieren"
+
 #~ msgid "Keep"
 #~ msgstr "Beibehalten"
 
@@ -11769,12 +11790,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Bei dieser Temperatur wird das Material weich. Daher kann das Heizbett "
 #~ "nicht heißer als diese Temperatur sein"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "Embeded\n"

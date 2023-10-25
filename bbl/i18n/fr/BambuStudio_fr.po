@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-24 17:43+0800\n"
+"POT-Creation-Date: 2023-10-25 14:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -966,8 +966,11 @@ msgstr "Imprimable"
 msgid "Fix model"
 msgstr "Réparer le modèle"
 
-msgid "Export as STL"
-msgstr "Exporter en tant que STL"
+msgid "Export as one STL"
+msgstr ""
+
+msgid "Export as STLs"
+msgstr ""
 
 msgid "Reload from disk"
 msgstr "Recharger à partir du disque"
@@ -1491,6 +1494,18 @@ msgstr "Ouvrir le conseil suivant"
 msgid "Open Documentation in web browser."
 msgstr "Ouvrir la documentation dans un navigateur Web"
 
+msgid "Color"
+msgstr "Couleur"
+
+msgid "Pause"
+msgstr "Pause"
+
+msgid "Template"
+msgstr ""
+
+msgid "Custom"
+msgstr "Personnalisé"
+
 msgid "Pause:"
 msgstr "Pause:"
 
@@ -1566,8 +1581,8 @@ msgstr ""
 msgid "Failed to connect to the server"
 msgstr "Impossible de se connecter au serveur"
 
-msgid "Check cloud service status"
-msgstr "Vérifiez l'état du service cloud"
+msgid "Check the status of current system services"
+msgstr "Vérifiez l'état des services système actuels"
 
 msgid "code"
 msgstr "code"
@@ -2117,14 +2132,14 @@ msgstr "Température du lit"
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique maximale"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Température du plateau"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Démarrer"
@@ -2473,9 +2488,6 @@ msgstr "Rectangle"
 msgid "Circular"
 msgstr "Circulaire"
 
-msgid "Custom"
-msgstr "Personnalisé"
-
 msgid "Settings"
 msgstr "Réglages"
 
@@ -2813,20 +2825,20 @@ msgstr "Mise à jour a échoué."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -3050,9 +3062,6 @@ msgstr "Changement de couleur"
 
 msgid "Print"
 msgstr "Imprimer"
-
-msgid "Pause"
-msgstr "Pause"
 
 msgid "Printer"
 msgstr "Imprimante"
@@ -3525,8 +3534,11 @@ msgstr "Charger les Configs"
 msgid "Import"
 msgstr "Importer"
 
-msgid "Export all objects as STL"
-msgstr "Exporter tous les objets au format STL"
+msgid "Export all objects as one STL"
+msgstr ""
+
+msgid "Export all objects as STLs"
+msgstr ""
 
 msgid "Export Generic 3MF"
 msgstr "Exporter en fichier 3MF Générique"
@@ -5666,9 +5678,6 @@ msgstr "envoi terminé"
 msgid "Error code"
 msgstr "Code erreur"
 
-msgid "Check the status of current system services"
-msgstr "Vérifiez l'état des services système actuels"
-
 msgid "Printer local connection failed, please try again."
 msgstr "La connexion locale de l'imprimante a échoué, veuillez réessayer."
 
@@ -5935,8 +5944,8 @@ msgstr "Termes et conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Nous vous remercions d'avoir acheté un produit Bambu Lab. Avant d'utiliser "
@@ -6092,8 +6101,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé "
 "d’ajouter une \"Tour de nettoyage timelapse\".\n"
@@ -6224,9 +6233,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool "
-"plate\") est installé. Une valeur à 0 signifie que ce filament ne peut pas "
-"être imprimé sur le plateau froid."
+"Il s'agit de la température du plateau lorsque le plateau froid (\"Cool plate"
+"\") est installé. Une valeur à 0 signifie que ce filament ne peut pas être "
+"imprimé sur le plateau froid."
 
 msgid "Engineering Plate"
 msgstr "Plaque Engineering"
@@ -7386,8 +7395,8 @@ msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr ""
-"La tour de nettoyage n'est pas prise en charge dans l'impression \"Par "
-"objet\"."
+"La tour de nettoyage n'est pas prise en charge dans l'impression \"Par objet"
+"\"."
 
 msgid ""
 "The prime tower is not supported when adaptive layer height is on. It "
@@ -8044,8 +8053,8 @@ msgid ""
 "thickness (top+bottom solid layers)"
 msgstr ""
 "Ajoutez du remplissage solide à proximité des surfaces inclinées pour "
-"garantir l'épaisseur verticale de la coque (couches solides "
-"supérieure+inférieure)."
+"garantir l'épaisseur verticale de la coque (couches solides supérieure"
+"+inférieure)."
 
 msgid "Internal bridge support thickness"
 msgstr "Épaisseur du support interne du pont"
@@ -8257,9 +8266,6 @@ msgstr "Couleur par défaut"
 msgid "Default filament color"
 msgstr "Couleur du filament par défaut"
 
-msgid "Color"
-msgstr "Couleur"
-
 msgid "Required nozzle HRC"
 msgstr "Buse HRC requise"
 
@@ -8285,6 +8291,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purge minimale sur la tour de nettoyage"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Temps de chargement du filament"
@@ -10708,10 +10717,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10764,6 +10773,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10869,7 +10881,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10884,7 +10896,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11731,6 +11743,15 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Export as STL"
+#~ msgstr "Exporter en tant que STL"
+
+#~ msgid "Check cloud service status"
+#~ msgstr "Vérifiez l'état du service cloud"
+
+#~ msgid "Export all objects as STL"
+#~ msgstr "Exporter tous les objets au format STL"
+
 #~ msgid "Keep"
 #~ msgstr "Garder"
 
@@ -11785,12 +11806,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Le matériau devient mou à cette température. Ainsi, le lit chauffant ne "
 #~ "peut pas être plus chaud que cette température"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "Embeded\n"

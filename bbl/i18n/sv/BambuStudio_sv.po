@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-24 17:43+0800\n"
+"POT-Creation-Date: 2023-10-25 14:53+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -951,8 +951,11 @@ msgstr "Utskriftsbar"
 msgid "Fix model"
 msgstr "Fixa modell"
 
-msgid "Export as STL"
-msgstr "Exportera som STL"
+msgid "Export as one STL"
+msgstr ""
+
+msgid "Export as STLs"
+msgstr ""
 
 msgid "Reload from disk"
 msgstr "Ladda om från disk"
@@ -1472,6 +1475,18 @@ msgstr "Öppna nästa tips"
 msgid "Open Documentation in web browser."
 msgstr "Öppna dokumentationen i webbläsaren"
 
+msgid "Color"
+msgstr "Färg"
+
+msgid "Pause"
+msgstr "Paus"
+
+msgid "Template"
+msgstr ""
+
+msgid "Custom"
+msgstr "Custom"
+
 msgid "Pause:"
 msgstr "Pausa:"
 
@@ -1547,8 +1562,8 @@ msgstr ""
 msgid "Failed to connect to the server"
 msgstr "Uppkoppling till servern misslyckades"
 
-msgid "Check cloud service status"
-msgstr "Kontrollera molntjänstens status"
+msgid "Check the status of current system services"
+msgstr "Kontrollera status för aktuella systemtjänster"
 
 msgid "code"
 msgstr "kod"
@@ -2085,14 +2100,14 @@ msgstr "Byggplattans temperatur"
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
 
-msgid "℃"
-msgstr ""
+msgid "\\u2103"
+msgstr "\\u2103"
 
 msgid "Bed temperature"
 msgstr "Byggplattans temperatur"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr "mm\\u00B3"
 
 msgid "Start calibration"
 msgstr "Starta"
@@ -2434,9 +2449,6 @@ msgstr "Rektangulär"
 msgid "Circular"
 msgstr "Cirkulär"
 
-msgid "Custom"
-msgstr "Custom"
-
 msgid "Settings"
 msgstr "Inställningar"
 
@@ -2773,20 +2785,20 @@ msgstr "Uppdatering misslyckades."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
-"TPU) is not allowed to be loaded."
+"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
+"PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45℃."
+"above 45\\u2103."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40℃, the chamber temperature "
-"control will not be activated. And the target chamber temperature will "
-"automatically be set to 0℃."
+"When you set the chamber temperature below 40\\u2103, the chamber "
+"temperature control will not be activated. And the target chamber "
+"temperature will automatically be set to 0\\u2103."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -3013,9 +3025,6 @@ msgstr "Färg byte"
 
 msgid "Print"
 msgstr "Skriv ut"
-
-msgid "Pause"
-msgstr "Paus"
 
 msgid "Printer"
 msgstr "Skrivare"
@@ -3485,8 +3494,11 @@ msgstr "Ladda konfiguration"
 msgid "Import"
 msgstr "Importera"
 
-msgid "Export all objects as STL"
-msgstr "Exportera Alla Objekt som STL"
+msgid "Export all objects as one STL"
+msgstr ""
+
+msgid "Export all objects as STLs"
+msgstr ""
 
 msgid "Export Generic 3MF"
 msgstr "Exportera generisk 3mf"
@@ -5586,9 +5598,6 @@ msgstr "Skicka komplett"
 msgid "Error code"
 msgstr "Felkod"
 
-msgid "Check the status of current system services"
-msgstr "Kontrollera status för aktuella systemtjänster"
-
 msgid "Printer local connection failed, please try again."
 msgstr "Den lokala anslutningen till skrivaren misslyckades; försök igen."
 
@@ -5840,8 +5849,8 @@ msgstr "Villkor och bestämmelser"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
-"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
+"(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab "
@@ -5987,8 +5996,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "När du spelar in timelapse utan verktygshuvud rekommenderas att du lägger "
 "till ett \"Timelapse Wipe Tower\".\n"
@@ -7749,9 +7758,9 @@ msgid ""
 "quality for needle and small details"
 msgstr ""
 "Aktivera detta val för att sänka utskifts hastigheten för att göra den sista "
-"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets "
-"tröskel\", detta så att lager kan kylas under en längre tid. Detta kan "
-"förbättra kylnings kvaliteten för små detaljer"
+"lager tiden inte kortare än lager tidströskeln \"Max fläkthastighets tröskel"
+"\", detta så att lager kan kylas under en längre tid. Detta kan förbättra "
+"kylnings kvaliteten för små detaljer"
 
 msgid "Normal printing"
 msgstr "Normal utskrift"
@@ -8074,9 +8083,6 @@ msgstr "Standardfärg"
 msgid "Default filament color"
 msgstr "Standard filament färg"
 
-msgid "Color"
-msgstr "Färg"
-
 msgid "Required nozzle HRC"
 msgstr "HRC nozzle krävs"
 
@@ -8101,6 +8107,9 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Minimal purge på wipe torn"
+
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Inmatningstid för filament"
@@ -9363,8 +9372,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Rectilinear Interlaced"
 msgstr "Rätlinjig sammanflätning"
@@ -10473,10 +10482,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- ℃"
+msgid "- \\u2103"
 msgstr ""
 
-msgid " ℃"
+msgid " \\u2103"
 msgstr ""
 
 msgid "Plate Type"
@@ -10529,6 +10538,9 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
+msgstr ""
+
+msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10634,7 +10646,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 step >= 0\n"
+"start > 0 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10649,7 +10661,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 step >= 0\n"
+"start > 10 \\step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11487,6 +11499,15 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Export as STL"
+#~ msgstr "Exportera som STL"
+
+#~ msgid "Check cloud service status"
+#~ msgstr "Kontrollera molntjänstens status"
+
+#~ msgid "Export all objects as STL"
+#~ msgstr "Exportera Alla Objekt som STL"
+
 #~ msgid "Keep"
 #~ msgstr "Behåll"
 
@@ -11537,12 +11558,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Materialet mjuknar vid denna temperatur. Därför får inte byggplattan vara "
 #~ "varmare än denna temperatur"
-
-#~ msgid "\\u2103"
-#~ msgstr "\\u2103"
-
-#~ msgid "mm\\u00B3"
-#~ msgstr "mm\\u00B3"
 
 #~ msgid ""
 #~ "Embeded\n"
