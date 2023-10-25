@@ -1094,6 +1094,78 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
+//BBS : get the plate model's projection on first layer, contain plate offset
+BoundingBoxf GCode::first_layer_projection(const Print& print) const
+{
+    // too slow
+#if 0
+    // seperatre points into object for parallel
+    std::vector<Pointfs>points(print.objects().size());
+    auto objects = print.objects();
+    // use parallel for to speed the iterate
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, points.size()), [&points,&objects](tbb::blocked_range<size_t> r) {
+        for (auto index = r.begin(); index < r.end(); ++index) {
+            Polygons obj_islands;
+            unsigned int estimate_size = (objects[index]->layers().empty() ? 0 : objects[index]->layers().size() * objects[index]->layers().front()->lslices.size());
+            obj_islands.reserve(estimate_size);
+            for (auto& layer : objects[index]->layers())
+                for (auto& expoly : layer->lslices)
+                    obj_islands.emplace_back(expoly.contour);
+            if (!objects[index]->support_layers().empty()) {
+                for (auto& layer : objects[index]->support_layers()) {
+                    if (layer->support_type == stInnerNormal)
+                        layer->support_fills.polygons_covered_by_spacing(obj_islands, float(SCALED_EPSILON));
+                    else if (layer->support_type == stInnerTree) {
+                        for (auto& expoly : layer->lslices)
+                            obj_islands.emplace_back(expoly.contour);
+                    }
+                }
+            }
+            // caculate the transform
+            for (auto& instance : objects[index]->instances()) {
+                for (Polygon &poly : obj_islands) {
+                    poly.translate(instance.shift);
+                    Pointfs poly_points;
+                    poly_points.reserve(poly.points.size());
+                    for (auto& point : poly.points)
+                        poly_points.emplace_back(unscale(point));
+                    append(points[index], std::move(poly_points));
+                }
+            }
+        }
+    });
+
+    Pointfs total_points;
+    //consider first layers for skirt,brim,wipe tower
+    int estimate_size =std::accumulate(points.begin(), points.end(), print.first_layer_convex_hull().size(), [](int sum, const Pointfs& point) {return sum + point.size(); });;
+    total_points.reserve(estimate_size);
+
+    for (const auto& pt : print.first_layer_convex_hull().points)
+        total_points.emplace_back(unscale(pt.x(),pt.y()));
+    for (auto& point : points)
+        append(total_points, std::move(point));
+    return BoundingBoxf(total_points);
+#endif
+
+    BoundingBoxf bbox;
+    for (auto& obj : print.objects()) {
+        for (auto& instance : obj->instances()) {
+            auto instance_bbox = instance.get_bounding_box();
+            bbox.merge(BoundingBoxf{ { instance_bbox.min.x(),instance_bbox.min.y() }, { instance_bbox.max.x(),instance_bbox.max.y() } });
+        }
+    }
+
+    Pointfs points;
+    auto first_layer_point = print.first_layer_convex_hull().points;
+    points.reserve(first_layer_point.size());
+    for (const auto& pt : first_layer_point)
+        points.emplace_back(unscale(pt.x(),pt.y()));
+    BoundingBoxf initial_layer_bbox(points);
+
+    bbox.merge(initial_layer_bbox);
+    return bbox;
+}
+
 void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     PROFILE_CLEAR();
@@ -1855,7 +1927,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         pts->values.reserve(print.first_layer_convex_hull().size());
         for (const Point &pt : print.first_layer_convex_hull().points)
             pts->values.emplace_back(unscale(pt));
-        BoundingBoxf bbox(pts->values);
+
+        BoundingBoxf bbox = first_layer_projection(print);
+
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
         m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y()}));
         m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y()}));

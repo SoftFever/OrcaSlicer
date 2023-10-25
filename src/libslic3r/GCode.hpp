@@ -209,6 +209,8 @@ public:
     //BBS
     bool is_BBL_Printer();
 
+    BoundingBoxf first_layer_projection(const Print& print) const;
+
     // Object and support extrusions of the same PrintObject at the same print_z.
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
