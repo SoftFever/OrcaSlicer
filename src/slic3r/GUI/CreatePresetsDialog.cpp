@@ -463,7 +463,6 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
 	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
 {
-	
     m_create_type.base_filament = _L("Create based on current filamet");
     m_create_type.base_filament_preset = _L("Copy current filament preset ");
 
@@ -484,8 +483,17 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(create_item(FilamentOptionType::TYPE), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_main_sizer->Add(create_item(FilamentOptionType::SERIAL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_main_sizer->Add(create_item(FilamentOptionType::FILAMENT_PRESET), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    m_main_sizer->Add(create_item(FilamentOptionType::PRESET_FOR_PRINTER), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
-    m_main_sizer->Add(create_button_item(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+
+    m_scrolled_preset_panel = new wxScrolledWindow(this, wxID_ANY);
+    m_scrolled_preset_panel->SetMinSize(PRESET_TEMPLATE_SIZE);
+    m_scrolled_preset_panel->SetBackgroundColour(*wxWHITE);
+    m_scrolled_preset_panel->SetScrollRate(5, 5);
+    m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
+    m_scrolled_sizer->Add(create_item(FilamentOptionType::PRESET_FOR_PRINTER), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_scrolled_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_scrolled_sizer->Add(create_button_item(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+    m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
+    m_main_sizer->Add(m_scrolled_preset_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
 
     get_all_filament_presets();
     select_curr_radiobox(m_create_type_btns, 0);
@@ -510,6 +518,19 @@ CreateFilamentPresetDialog::~CreateFilamentPresetDialog()
 }
 
 void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+
+bool CreateFilamentPresetDialog::is_check_box_selected()
+{
+    for (const std::pair<CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+        if (checkbox_preset.first->GetValue()) { return true; }
+    }
+
+    for (const std::pair<CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+        if (checkbox_preset.first->GetValue()) { return true; }
+    }
+
+    return false;
+}
 
 wxBoxSizer *CreateFilamentPresetDialog::create_item(FilamentOptionType option_type)
 {
@@ -566,6 +587,14 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input custom vendor"));
+    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+        int key = event.GetKeyCode();
+        if (key == 64 || key == 59) { //@ ;
+            event.Skip(false);
+            return;
+        }
+        event.Skip();
+    });
     m_filament_custom_vendor_input->Hide();
     horizontal_sizer->Add(textInputSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
@@ -609,8 +638,12 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
         } else if (curr_create_type == m_create_type.base_filament_preset) {
             get_filament_presets_by_machine();
         }
+        m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
         Layout();
         Fit();
+        if (this->GetSize().GetHeight() > 900) {
+            this->SetSize(-1, 900);
+        }
         e.Skip();
     });
 
@@ -689,11 +722,15 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " not find filament id corresponding to the type: and the type is" << filament_type;
         }
+        m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
         m_filament_preset_panel->Thaw();
 
         Layout();
         Fit();
         Refresh();
+        if (this->GetSize().GetHeight() > 900) {
+            this->SetSize(-1, 900);
+        }
 
         e.Skip();
     });
@@ -713,20 +750,15 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
 wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item()
 {
     wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer *  optionSizer                 = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_filament_preset_text = new wxStaticText(this, wxID_ANY, _L("We could create the filament presets for your following printer:"), wxDefaultPosition, wxDefaultSize);
-    optionSizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, 0);
-
-    m_filament_preset_panel = new wxPanel(this, wxID_ANY);
+    wxStaticText *static_filament_preset_text = new wxStaticText(m_scrolled_preset_panel, wxID_ANY, _L("We could create the filament presets for your following printer:"),
+                                                                 wxDefaultPosition, wxDefaultSize);
+    vertical_sizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, 0);
+    m_filament_preset_panel = new wxPanel(m_scrolled_preset_panel, wxID_ANY);
     m_filament_preset_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
-    //m_filament_preset_panel->SetMinSize(PRINTER_LIST_SIZE);
     m_filament_preset_panel->SetSize(PRINTER_LIST_SIZE);
     m_filament_presets_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
     m_filament_preset_panel->SetSizer(m_filament_presets_sizer);
-    optionSizer->Add(m_filament_preset_panel, 0, wxEXPAND | wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-
-    vertical_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    vertical_sizer->Add(m_filament_preset_panel, 0, wxEXPAND | wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
     return vertical_sizer;
 }
@@ -739,7 +771,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-    m_button_create = new Button(this, _L("Create"));
+    m_button_create = new Button(m_scrolled_preset_panel, _L("Create"));
     m_button_create->SetBackgroundColor(btn_bg_green);
     m_button_create->SetBorderColor(*wxWHITE);
     m_button_create->SetTextColor(wxColour(0xFFFFFE));
@@ -792,6 +824,13 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             serial_name = into_u8(serial_str);
         }
 
+        if (!is_check_box_selected()) {
+            MessageDialog dlg(this, _L("You have not selected a printer or preset yet. Please select at least one."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return;
+        }
+
         std::string filament_preset_name = vendor_name + " " + type_name + " " + serial_name;
         std::string user_filament_id     = get_filament_id(filament_preset_name);
 
@@ -838,18 +877,19 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                             BOOST_LOG_TRIVIAL(info) << "clone filament presets  have failures  rewritten  is successful? " << res;
                         }
                     }
-                    BOOST_LOG_TRIVIAL(info) << "clone filament presets  no failures  is successful? " << res;
+                    BOOST_LOG_TRIVIAL(info) << "clone filament presets  no failures  is successful? " << res << " old preset is: " << checked_preset->name
+                                            << " compatible_printer_name is: " << compatible_printer_name;
                 }
             }
         }
-
+        preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
         EndModal(wxID_OK); 
         });
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_cancel = new Button(this, _L("Cancel"));
+    m_button_cancel = new Button(m_scrolled_preset_panel, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
@@ -943,32 +983,36 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
         if (i == btn_idx) {
             radiobox_list[i].first->SetValue(true);
             const wxString &curr_selected_type = radiobox_list[i].second;
+            this->Freeze();
             if (curr_selected_type == m_create_type.base_filament) {
                 m_filament_preset_combobox->Show();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
-                    this->Freeze();
                     clear_filament_preset_map();
                     wxArrayString filament_preset_choice = get_filament_preset_choices();
                     m_filament_preset_combobox->Set(filament_preset_choice);
                     m_filament_preset_combobox->SetLabel(_L("Select Filament Preset"));
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
-                    this->Thaw();
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
-                    this->Freeze();
+                    
                     clear_filament_preset_map();
                     get_filament_presets_by_machine();
-                    this->Thaw();
+                    
                 }
             }
-            Fit();
-            Layout();
-            Refresh();
+            m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
+            this->Thaw();
         } else {
             radiobox_list[i].first->SetValue(false);
         }
+    }
+    Layout();
+    Fit();
+    Refresh();
+    if (this->GetSize().GetHeight() > 900) {
+        this->SetSize(-1, 900);
     }
 }
 
@@ -3941,17 +3985,25 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
     m_printer_compatible_filament_presets.clear();
     for (const Preset &printer_preset : printer_presets) {
         if (printer_preset.is_visible) {
+            if (m_preset_bundle->printers.get_preset_base(printer_preset) != &printer_preset) continue;
             if (m_preset_bundle->printers.select_preset_by_name(printer_preset.name, false)) {
                 m_preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
                 const std::deque<Preset> &filament_presets = m_preset_bundle->filaments.get_presets();
                 for (const Preset &filament_preset : filament_presets) {
-                    if ("Default Filament" == filament_preset.name) continue;
-                    auto filament_types = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset*>(&filament_preset)->config.option("filament_type"));
+                    if (filament_preset.is_default || !filament_preset.is_compatible) continue;
+                    ConfigOptionStrings *filament_types;
+                    const Preset *       filament_preset_base = m_preset_bundle->filaments.get_preset_base(filament_preset);
+                    if (filament_preset_base == &filament_preset) {
+                        filament_types = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(&filament_preset)->config.option("filament_type"));
+                    } else {
+                        filament_types = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(filament_preset_base)->config.option("filament_type"));
+                    }
+                    
                     if (filament_types && filament_types->values.empty()) continue;
                     const std::string filament_type = filament_types->values[0];
-                    if (filament_type != m_filament_type) continue;
-                    if (filament_preset.is_compatible) {
-                        m_printer_compatible_filament_presets[std::make_shared<Preset>(printer_preset)].push_back(std::make_shared<Preset>(filament_preset));
+                    //if (filament_type != m_filament_type) continue;
+                    if (filament_type == m_filament_type) {
+                        m_printer_compatible_filament_presets[printer_preset.name].push_back(std::make_shared<Preset>(filament_preset));
                     }
                 }
             }
@@ -3966,20 +4018,18 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_selected_printer_preset_sizer()
     select_preseter_preset_sizer->Add(printer_text, 0, wxEXPAND | wxALL, 0);
     m_selected_printer = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, PRINTER_PRESET_MODEL_SIZE, 0, nullptr, wxCB_READONLY);
     select_preseter_preset_sizer->Add(m_selected_printer, 0, wxEXPAND | wxTOP, FromDIP(5));
+    
     wxArrayString printer_choices;
-    for (std::pair<std::shared_ptr<Preset>, std::vector<std::shared_ptr<Preset>>> printer_to_filament_presets : m_printer_compatible_filament_presets) {
-        std::shared_ptr<Preset> printer_preset          = printer_to_filament_presets.first;
-        auto                    compatible_printer_name = printer_preset->name;
+    for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_to_filament_presets : m_printer_compatible_filament_presets) {
+        auto compatible_printer_name = printer_to_filament_presets.first;
         if (compatible_printer_name.empty()) {
-            BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << " a printer has no name and the preset name is: " << printer_preset->name;
+            BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << " a printer has no name";
             continue;
         }
-        wxString printer_name              = wxString::FromUTF8(compatible_printer_name);
-        printer_choice_to_printer_preset[printer_name] = printer_preset;
+        wxString printer_name              = from_u8(compatible_printer_name);
         printer_choices.push_back(printer_name);
     }
     m_selected_printer->Set(printer_choices);
-
 
     return select_preseter_preset_sizer;
 }
@@ -3994,27 +4044,20 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_selected_filament_preset_sizer(
 
     m_selected_printer->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         wxString printer_name = m_selected_printer->GetStringSelection();
-        std::unordered_map<wxString, std::shared_ptr<Preset>>::iterator iter         = printer_choice_to_printer_preset.find(printer_name);
-        if (printer_choice_to_printer_preset.end() != iter) {
-            std::unordered_map<std::shared_ptr<Preset>, std::vector<std::shared_ptr<Preset>>>::iterator filament_iter = m_printer_compatible_filament_presets.find(iter->second);
-            if (m_printer_compatible_filament_presets.end() != filament_iter) {
-                filament_choice_to_filament_preset.clear();
-                wxArrayString filament_choices;
-                for (std::shared_ptr<Preset> filament_preset : filament_iter->second) {
-                    wxString filament_name = wxString::FromUTF8(filament_preset->name);
-                    filament_choice_to_filament_preset[filament_name] = filament_preset;
-                    filament_choices.push_back(filament_name);
-                }
-                m_selected_filament->Set(filament_choices);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " count of compatible filament presets :" << filament_choices.size();
-                if (filament_choices.size()) {
-                    m_selected_filament->SetSelection(0);
-                }
-            } else {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "printer preset not find compatible filament presets";
+        std::unordered_map<string, std::vector<std::shared_ptr<Preset>>>::iterator filament_iter = m_printer_compatible_filament_presets.find(into_u8(printer_name));
+        if (m_printer_compatible_filament_presets.end() != filament_iter) {
+            filament_choice_to_filament_preset.clear();
+            wxArrayString filament_choices;
+            for (std::shared_ptr<Preset> filament_preset : filament_iter->second) {
+                wxString filament_name                            = wxString::FromUTF8(filament_preset->name);
+                filament_choice_to_filament_preset[filament_name] = filament_preset;
+                filament_choices.push_back(filament_name);
             }
+            m_selected_filament->Set(filament_choices);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " count of compatible filament presets :" << filament_choices.size();
+            if (filament_choices.size()) { m_selected_filament->SetSelection(0); }
         } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "printer choice not find printer preset";
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "printer preset not find compatible filament presets";
         }
     });
 
@@ -4054,20 +4097,11 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
 
     m_ok_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         wxString selected_printer_name  = m_selected_printer->GetStringSelection();
-        std::shared_ptr<Preset> printer_preset        = printer_choice_to_printer_preset[selected_printer_name];
+        std::string printer_name = into_u8(selected_printer_name);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " add preset: get compatible printer name:";
 
-        auto compatible_printer_name = printer_preset->name;
-        if (compatible_printer_name.empty()) { 
-            BOOST_LOG_TRIVIAL(info) << " add preset: selected printer has no name";
-            MessageDialog dlg(this, _L("The printer preset you selected does not have a name, please reselect it"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
-            dlg.ShowModal();
-            return;
-        }
-        std::string printer_name = compatible_printer_name;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " add preset: get compatible printer name:";
-        wxString                                                        filament_preset_name = m_selected_filament->GetStringSelection();
-        std::unordered_map<wxString, std::shared_ptr<Preset>>::iterator iter                 = filament_choice_to_filament_preset.find(filament_preset_name);
+        wxString filament_preset_name = m_selected_filament->GetStringSelection();
+        std::unordered_map<wxString, std::shared_ptr<Preset>>::iterator iter = filament_choice_to_filament_preset.find(filament_preset_name);
         if (filament_choice_to_filament_preset.end() != iter) {
             std::shared_ptr<Preset>  filament_preset = iter->second;
             PresetBundle *           preset_bundle   = wxGetApp().preset_bundle;

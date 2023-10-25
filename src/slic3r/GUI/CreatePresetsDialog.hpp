@@ -40,6 +40,7 @@ protected:
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
+    bool        is_check_box_selected();
     wxBoxSizer *create_item(FilamentOptionType option_type);
     wxBoxSizer *create_vendor_item();
     wxBoxSizer *create_type_item();
@@ -81,7 +82,9 @@ private:
     TextInput *                                                      m_filament_custom_vendor_input = nullptr;
     wxGridSizer *                                                    m_filament_presets_sizer       = nullptr;
     wxPanel *                                                        m_filament_preset_panel        = nullptr;
+    wxScrolledWindow *                                               m_scrolled_preset_panel        = nullptr;
     TextInput *                                                      m_filament_serial_input        = nullptr;
+    wxBoxSizer *                                                     m_scrolled_sizer               = nullptr;
 
 };
 
@@ -306,9 +309,8 @@ private:
     ComboBox *                                                                        m_selected_filament = nullptr;
     Button *                                                                          m_ok_btn            = nullptr;
     Button *                                                                          m_cancel_btn        = nullptr;
-    std::unordered_map<wxString, std::shared_ptr<Preset>>                             printer_choice_to_printer_preset;
     std::unordered_map<wxString, std::shared_ptr<Preset>>                             filament_choice_to_filament_preset;
-    std::unordered_map<std::shared_ptr<Preset>, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_filament_presets;//need be used when add presets
+    std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>>             m_printer_compatible_filament_presets; // need be used when add presets
 
 };
 
