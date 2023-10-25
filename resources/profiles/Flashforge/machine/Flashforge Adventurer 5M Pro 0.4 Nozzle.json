@@ -9,7 +9,7 @@
 	"gcode_flavor": "klipper",
 	"default_print_profile": "0.20mm Standard @Flashforge AD5M Pro 0.4 Nozzle",
 	"nozzle_diameter": [ "0.4" ],
-	"printer_variant": "0.6",
+	"printer_variant": "0.4",
 	"printable_area": [
 		"-110x-110",
 		"110x-110",
