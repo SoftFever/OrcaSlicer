@@ -60,6 +60,7 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    " MANUAL_TOOL_CHANGE ",
     "_DURING_PRINT_EXHAUST_FAN"
 };
 
@@ -76,19 +77,14 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
-    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    " MANUAL_TOOL_CHANGE "
 };
 
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
-const std::map<NozzleType,int> GCodeProcessor::Nozzle_Type_To_HRC={
-    {NozzleType::ntStainlessSteel,20},
-    {NozzleType::ntHardenedSteel,55},
-    {NozzleType::ntBrass,2},
-    {NozzleType::ntUndefine,0}
-};
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
@@ -668,7 +664,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 if (eol) {
                     ++line_id;
 
-                    gcode_line += "\n";
+                    // determine the end of line character and pass to output
+                    gcode_line += *it_end;
+                    if(*it_end == '\r' && *(++ it_end) == '\n')
+                        gcode_line += '\n';
                     // replace placeholder lines
                     auto [processed, lines_added_count] = process_placeholders(gcode_line);
                     if (processed && lines_added_count > 0)
@@ -1013,7 +1012,13 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     if (spiral_vase != nullptr)
         m_spiral_vase_active = spiral_vase->value;
 
+    const ConfigOptionBool* manual_filament_change = config.option<ConfigOptionBool>("manual_filament_change");
+    if (manual_filament_change != nullptr)
+        m_manual_filament_change = manual_filament_change->value;
 
+    const ConfigOptionFloat* z_offset = config.option<ConfigOptionFloat>("z_offset");
+    if (z_offset != nullptr)
+        m_z_offset = z_offset->value;
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1289,6 +1294,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (bed_type != nullptr)
         m_result.bed_type = (BedType)bed_type->value;
 
+
+    const ConfigOptionFloat* z_offset = config.option<ConfigOptionFloat>("z_offset");
+    if (z_offset != nullptr)
+        m_z_offset = z_offset->value;
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
@@ -1325,6 +1334,7 @@ void GCodeProcessor::reset()
     m_forced_height = 0.0f;
     m_mm3_per_mm = 0.0f;
     m_fan_speed = 0.0f;
+    m_z_offset = 0.0f;
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
@@ -2110,6 +2120,13 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
             if (!parse_number(comment.substr(reserved_tag(ETags::Width).size()), m_forced_width))
                 BOOST_LOG_TRIVIAL(error) << "GCodeProcessor encountered an invalid value for Width (" << comment << ").";
             return;
+        }
+        // Orca: manual tool change tag
+        if (m_manual_filament_change && boost::starts_with(comment, reserved_tag(ETags::Manual_Tool_Change))) {
+            std::string_view tool_change_cmd = comment.substr(reserved_tag(ETags::Manual_Tool_Change).length());
+            if (boost::starts_with(tool_change_cmd, "T")) {
+                process_T(tool_change_cmd);
+            }
         }
     }
 
@@ -3095,7 +3112,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
 
             if ((new_pos - *first_vertex).squaredNorm() < 0.0625f) {
-                set_end_position(0.5f * (new_pos + *first_vertex));
+                set_end_position(0.5f * (new_pos + *first_vertex) + m_z_offset * Vec3f::UnitZ());
                 store_move_vertex(EMoveType::Seam);
                 set_end_position(curr_pos);
             }
@@ -4102,7 +4119,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_extruder_id,
         m_cp_color.current,
         //BBS: add plate's offset to the rendering vertices
-        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]- m_z_offset) + m_extruder_offsets[m_extruder_id],
         static_cast<float>(m_end_position[E] - m_start_position[E]),
         m_feedrate,
         m_width,
@@ -4347,7 +4364,7 @@ void GCodeProcessor::update_slice_warnings()
     if (m_highest_bed_temp != 0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int temperature = get_filament_vitrification_temperature(used_extruders[i]);
-            if (temperature != 0 && m_highest_bed_temp > temperature)
+            if (temperature != 0 && m_highest_bed_temp >= temperature)
                 warning.params.push_back(std::to_string(used_extruders[i]));
         }
     }
@@ -4364,7 +4381,7 @@ void GCodeProcessor::update_slice_warnings()
 
     int nozzle_hrc = m_result.nozzle_hrc;
     if(nozzle_hrc <= 0)
-        nozzle_hrc = Nozzle_Type_To_HRC.find(m_result.nozzle_type)->second;
+        nozzle_hrc = Print::get_hrc_by_nozzle_type(m_result.nozzle_type);
     if (nozzle_hrc!=0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int HRC=0;

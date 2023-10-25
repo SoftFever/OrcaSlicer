@@ -1508,12 +1508,19 @@ void GLCanvas3D::refresh_camera_scene_box()
     wxGetApp().plater()->get_camera().set_scene_box(scene_bounding_box());
 }
 
-BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
+BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool current_plate_only) const
 {
     BoundingBoxf3 bb;
-    for (const GLVolume* volume : m_volumes.volumes) {
-        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes))
-            bb.merge(volume->transformed_bounding_box());
+    PartPlate    *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+
+    for (const GLVolume *volume : m_volumes.volumes) {
+        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
+                const auto plate_bb = plate->get_bounding_box();
+                const auto v_bb     = volume->transformed_bounding_box();
+                if (!plate_bb.overlap(v_bb))
+                    continue;
+                bb.merge(v_bb);
+        }
     }
     return bb;
 }
@@ -1760,8 +1767,11 @@ Points GLCanvas3D::estimate_wipe_tower_points(int plate_index, bool global) cons
     float               y           = dynamic_cast<const ConfigOptionFloats *>(proj_cfg.option("wipe_tower_y"))->get_at(plate_index);
     if (plate_index >= plate_count) { plate_index = 0; }
     float w               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_tower_width"))->value;
-    float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
-    Vec3d         wipe_tower_size = ppl.get_plate(plate_index)->estimate_wipe_tower_size(w, v);
+    auto part_plate = ppl.get_plate(plate_index);
+    const auto &wipe_tower_data = print.wipe_tower_data(part_plate->get_extruders(true).size());
+    // float v               = dynamic_cast<const ConfigOptionFloat *>(m_config->option("prime_volume"))->value;
+    const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    Vec3d         wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
 
     if (wipe_tower_size(1) == 0) {
         // when depth is unavailable (no items on this plate), we have to estimate the depth using the extruder number of all plates
@@ -2649,7 +2659,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const Print* print = m_process->fff_print();
                 const auto& wipe_tower_data = print->wipe_tower_data(filaments_count);
                 float brim_width = wipe_tower_data.brim_width;
-                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(w, wipe_tower_data.depth);
+                const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                Vec3d wipe_tower_size = ppl.get_plate(plate_id)->estimate_wipe_tower_size(print_cfg, w, wipe_tower_data.depth);
 
                 const float margin = 15.f;
                 BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_id)->get_bounding_box();
@@ -4181,29 +4192,25 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         // do not process the dragging if the left mouse was set down in another canvas
         else if (evt.LeftIsDown()) {
+            // Orca: Sphere rotation for painting view 
             // if dragging over blank area with left button, rotate
             if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
                 const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.get_current_type() == GLGizmosManager::FdmSupports ||
                     m_gizmos.get_current_type() == GLGizmosManager::Seam || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
-                    //BBS rotate around target
                     Camera& camera = wxGetApp().plater()->get_camera();
                     Vec3d rotate_target = Vec3d::Zero();
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
                     else
                         rotate_target = volumes_bounding_box().center();
-                    //BBS do not limit rotate in assemble view
-                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
+                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
                 }
                 else {
-#ifdef SUPPORT_FEEE_CAMERA
-                    if (wxGetApp().app_config->get("use_free_camera") == "1")
+                    if (wxGetApp().app_config->get_bool("use_free_camera"))
                         // Virtual track ball (similar to the 3DConnexion mouse).
                         wxGetApp().plater()->get_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                     else {
-#endif
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                         // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                         // which checks an atomics (flushes CPU caches).
@@ -4211,38 +4218,37 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         Camera& camera = wxGetApp().plater()->get_camera();
 
                         bool rotate_limit = current_printer_technology() != ptSLA;
-                        Vec3d rotate_target = m_selection.get_bounding_box().center();
 
                         camera.recover_from_free_camera();
-                        //BBS modify rotation
-                        //if (m_gizmos.get_current_type() == GLGizmosManager::FdmSupports
-                        //    || m_gizmos.get_current_type() == GLGizmosManager::Seam
-                        //    || m_gizmos.get_current_type() == GLGizmosManager::MmuSegmentation) {
-                        //    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                        //    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
-                        //}
-                        //else
                         if (evt.ControlDown() || evt.CmdDown()) {
                             if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
                                 auto canvas_w = float(get_canvas_size().get_width());
                                 auto canvas_h = float(get_canvas_size().get_height());
                                 Point screen_center(canvas_w/2, canvas_h/2);
-                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
                                 m_rotation_center = _mouse_to_3d(screen_center);
                                 m_rotation_center(2) = 0.f;
                             }
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
                         } else {
-                            //BBS rotate with current plate center
-                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                            if (plate)
-                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
+                            Vec3d rotate_target = Vec3d::Zero();
+                            if (m_canvas_type == ECanvasType::CanvasPreview) {
+                                PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+                                if (plate)
+                                    rotate_target = plate->get_bounding_box().center();
+                            }
+                            else {
+                                if (!m_selection.is_empty())
+                                    rotate_target = m_selection.get_bounding_box().center();
+                                else 
+                                    rotate_target = volumes_bounding_box(true).center();
+                            }
+
+                            if (!rotate_target.isZero())
+                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, rotate_target);
                             else
                                 camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                         }
-#ifdef SUPPORT_FEEE_CAMERA
                     }
-#endif
                 }
 
                 m_dirty = true;
@@ -4257,16 +4263,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
                 Camera& camera = wxGetApp().plater()->get_camera();
-#ifdef SUPPORT_FREE_CAMERA
                 if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
-                    if (wxGetApp().app_config->get("use_free_camera") != "1")
+                    if (wxGetApp().app_config->get_bool("use_free_camera"))
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                         // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                         // which checks an atomics (flushes CPU caches).
                         // See GH issue #3816.
                         camera.recover_from_free_camera();
                 }
-#endif
 
                 camera.set_target(camera.get_target() + orig - cur_pos);
                 m_dirty = true;

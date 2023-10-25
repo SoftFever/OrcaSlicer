@@ -5,28 +5,28 @@
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "cool_plate_temp" : [
-        "30"
+        "50"
     ],
     "eng_plate_temp" : [
-        "30"
+        "50"
     ],
     "hot_plate_temp" : [
-        "35"
+        "50"
     ],
     "textured_plate_temp" : [
-        "35"
+        "50"
     ],
     "cool_plate_temp_initial_layer" : [
-        "30"
+        "05"
     ],
     "eng_plate_temp_initial_layer" : [
-        "30"
+        "50"
     ],
     "hot_plate_temp_initial_layer" : [
-        "35"
+        "50"
     ],
     "textured_plate_temp_initial_layer" : [
-        "35"
+        "50"
     ],
     "fan_cooling_layer_time": [
         "100"
@@ -38,16 +38,16 @@
         "TPU"
     ],
     "filament_density": [
-        "1.24"
+        "1.22"
     ],
     "filament_cost": [
-        "20"
+        "40"
     ],
     "filament_retraction_length": [
-        "0.4"
+        "1"
     ],
     "nozzle_temperature_initial_layer": [
-        "240"
+        "230"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -71,13 +71,13 @@
         "1"
     ],
     "nozzle_temperature": [
-        "240"
+        "230"
     ],
     "temperature_vitrification": [
-        "35"
+        "99"
     ],
     "nozzle_temperature_range_low": [
-        "200"
+        "205"
     ],
     "nozzle_temperature_range_high": [
         "250"

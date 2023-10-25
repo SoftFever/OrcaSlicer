@@ -244,7 +244,6 @@ namespace Slic3r {
         static const std::vector<std::string> Reserved_Tags_compatible;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
-        static const std::map<NozzleType, int>Nozzle_Type_To_HRC;
     public:
         enum class ETags : unsigned char
         {
@@ -261,6 +260,7 @@ namespace Slic3r {
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
             Total_Layer_Number_Placeholder,
+            Manual_Tool_Change,
             During_Print_Exhaust_Fan
         };
 
@@ -638,6 +638,7 @@ namespace Slic3r {
         bool m_wiping;
         bool m_flushing;
         float m_remaining_volume;
+        bool m_manual_filament_change;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
@@ -656,6 +657,7 @@ namespace Slic3r {
         float m_forced_height; // mm
         float m_mm3_per_mm;
         float m_fan_speed; // percentage
+        float m_z_offset; // mm
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
         unsigned char m_last_extruder_id;

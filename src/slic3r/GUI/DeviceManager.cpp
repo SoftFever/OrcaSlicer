@@ -16,10 +16,17 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include "fast_float/fast_float.h"
 
 #define CALI_DEBUG
 
 namespace pt = boost::property_tree;
+
+float string_to_float(const std::string& str_value) {
+    float value = 0.0;
+    fast_float::from_chars(str_value.c_str(), str_value.c_str() + str_value.size(), value);
+    return value;
+}
 
 const int PRINTING_STAGE_COUNT = 32;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
@@ -472,6 +479,18 @@ PrinterSeries MachineObject::get_printer_series() const
 PrinterArch MachineObject::get_printer_arch() const
 {
     return DeviceManager::get_printer_arch(printer_type);
+}
+
+//BBS: check if machine is enclosed
+bool MachineObject::is_printer_enclosed() const
+{
+    std::unordered_set<std::string>enclosed_printers = {
+        "C12",
+        "BL-P002",
+        "BL-P001",
+        "C13"
+    };
+    return enclosed_printers.find(printer_type) != enclosed_printers.end();
 }
 
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
@@ -1412,6 +1431,15 @@ int MachineObject::get_bed_temperature_limit()
         return limit;
     }
     return BED_TEMP_LIMIT;
+}
+
+bool MachineObject::is_makeworld_subtask()
+{
+    if (model_task && model_task->design_id > 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " model task id: " << model_task->task_id << " is makeworld model";
+        return true;
+    }
+    return false;
 }
 
 bool MachineObject::is_sdcard_printing()
@@ -2474,6 +2502,7 @@ bool MachineObject::is_in_printing_status(std::string status)
     return false;
 }
 
+
 bool MachineObject::is_in_printing()
 {
     /* use print_status if print_status is valid */
@@ -2804,6 +2833,31 @@ int MachineObject::local_publish_json(std::string json_str, int qos)
         result = m_agent->send_message_to_printer(dev_id, json_str, qos);
     }
     return result;
+}
+
+std::string MachineObject::setting_id_to_type(std::string setting_id, std::string tray_type)
+{
+    std::string type;
+
+    PresetBundle* preset_bundle = GUI::wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+
+            if (it->filament_id.compare(setting_id) == 0) {
+                std::string display_filament_type;
+                it->config.get_filament_type(display_filament_type);
+                type = display_filament_type;
+                break;
+            }
+        }
+    }
+
+    if (tray_type != type || type.empty()) {
+        if (type.empty()) {type = tray_type;}
+        BOOST_LOG_TRIVIAL(info) << "The values of tray_info_idx and tray_type do not match tray_info_idx " << setting_id << " tray_type " << tray_type;
+    }
+
+    return type;
 }
 
 int MachineObject::parse_json(std::string payload)
@@ -3269,7 +3323,7 @@ int MachineObject::parse_json(std::string payload)
                             if (jj["nozzle_diameter"].is_number_float()) {
                                 nozzle_diameter = jj["nozzle_diameter"].get<float>();
                             } else if (jj["nozzle_diameter"].is_string()) {
-                                nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                                nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                             }
                         }
                     }
@@ -3666,7 +3720,8 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray->tag_uid = "0";
                                         if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
-                                            std::string type            = (*tray_it)["tray_type"].get<std::string>();
+                                            //std::string type            = (*tray_it)["tray_type"].get<std::string>();
+                                            std::string type = setting_id_to_type(curr_tray->setting_id, (*tray_it)["tray_type"].get<std::string>());
                                             if (curr_tray->setting_id == "GFS00") {
                                                 curr_tray->type = "PLA-S";
                                             }
@@ -3827,7 +3882,8 @@ int MachineObject::parse_json(std::string payload)
                                     vt_tray.tag_uid = "0";
                                 if (jj["vt_tray"].contains("tray_info_idx") && jj["vt_tray"].contains("tray_type")) {
                                     vt_tray.setting_id = jj["vt_tray"]["tray_info_idx"].get<std::string>();
-                                    std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
+                                    //std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
+                                    std::string type = setting_id_to_type(vt_tray.setting_id, jj["vt_tray"]["tray_type"].get<std::string>());
                                     if (vt_tray.setting_id == "GFS00") {
                                         vt_tray.type = "PLA-S";
                                     }
@@ -3959,9 +4015,10 @@ int MachineObject::parse_json(std::string payload)
                             BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
                             vt_tray.nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
                             vt_tray.nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                            vt_tray.type = jj["tray_type"].get<std::string>();
                             vt_tray.color = jj["tray_color"].get<std::string>();
                             vt_tray.setting_id = jj["tray_info_idx"].get<std::string>();
+                            //vt_tray.type = jj["tray_type"].get<std::string>();
+                            vt_tray.type = setting_id_to_type(vt_tray.setting_id, jj["tray_info_idx"].get<std::string>());
                             // delay update
                             vt_tray.set_hold_count();
                         } else {
@@ -3973,7 +4030,7 @@ int MachineObject::parse_json(std::string payload)
                                     BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
                                     tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
                                     tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                                    tray_it->second->type = jj["tray_type"].get<std::string>();
+                                    //tray_it->second->type = jj["tray_type"].get<std::string>();
                                     tray_it->second->color = jj["tray_color"].get<std::string>();
 
                                     /*tray_it->second->cols.clear();
@@ -3986,6 +4043,7 @@ int MachineObject::parse_json(std::string payload)
                                     }*/
 
                                     tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
+                                    tray_it->second->type = setting_id_to_type(tray_it->second->setting_id, jj["tray_type"].get<std::string>());
                                     // delay update
                                     tray_it->second->set_hold_count();
                                 } else {
@@ -4058,8 +4116,17 @@ int MachineObject::parse_json(std::string payload)
                             std::string reason = jj["reason"].get<std::string>();
                             GUI::wxGetApp().CallAfter([cali_mode, reason] {
                                 wxString info = "";
-                                if (reason == "invalid nozzle_diameter") {
-                                    info = _L("Invalid nozzle diameter");
+                                if (reason == "invalid nozzle_diameter" || reason == "nozzle_diameter is not supported") {
+                                    info = _L("This calibration does not support the currently selected nozzle diameter");
+                                }
+                                else if (reason == "invalid handle_flowrate_cali param") {
+                                    info = _L("Current flowrate cali param is invalid");
+                                }
+                                else if (reason == "nozzle_diameter is not matched") {
+                                    info = _L("Selected diameter and machine diameter do not match");
+                                }
+                                else if (reason == "generate auto filament cali gcode failure") {
+                                    info = _L("Failed to generate cali gcode");
                                 }
                                 else {
                                     info = reason;
@@ -4164,7 +4231,7 @@ int MachineObject::parse_json(std::string payload)
                             pa_calib_tab_nozzle_dia = jj["nozzle_diameter"].get<float>();
                         }
                         else if (jj["nozzle_diameter"].is_string()) {
-                            pa_calib_tab_nozzle_dia = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                            pa_calib_tab_nozzle_dia = string_to_float(jj["nozzle_diameter"].get<std::string>());
                         }
                         else {
                             assert(false);
@@ -4191,18 +4258,18 @@ int MachineObject::parse_json(std::string payload)
                                 if (jj["nozzle_diameter"].is_number_float()) {
                                     pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
                                 } else if (jj["nozzle_diameter"].is_string()) {
-                                    pa_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                                    pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                 }
 
                                 if ((*it)["k_value"].is_number_float())
                                     pa_calib_result.k_value = (*it)["k_value"].get<float>();
                                 else if ((*it)["k_value"].is_string())
-                                    pa_calib_result.k_value = stof((*it)["k_value"].get<std::string>().c_str());
+                                    pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
 
                                 if ((*it)["n_coef"].is_number_float())
                                     pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
                                 else if ((*it)["n_coef"].is_string())
-                                    pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+                                    pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
 
                                 if (check_pa_result_validation(pa_calib_result))
                                     pa_calib_tab.push_back(pa_calib_result);
@@ -4238,18 +4305,18 @@ int MachineObject::parse_json(std::string payload)
                                 if (jj["nozzle_diameter"].is_number_float()) {
                                     pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
                                 } else if (jj["nozzle_diameter"].is_string()) {
-                                    pa_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
+                                    pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
                                 }
 
                                 if ((*it)["k_value"].is_number_float())
                                     pa_calib_result.k_value = (*it)["k_value"].get<float>();
                                 else if ((*it)["k_value"].is_string())
-                                    pa_calib_result.k_value = stof((*it)["k_value"].get<std::string>().c_str());
+                                    pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
 
                                 if ((*it)["n_coef"].is_number_float())
                                     pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
                                 else if ((*it)["n_coef"].is_string())
-                                    pa_calib_result.n_coef = stof((*it)["n_coef"].get<std::string>().c_str());
+                                    pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
 
                                 if (it->contains("confidence")) {
                                     pa_calib_result.confidence = (*it)["confidence"].get<int>();
@@ -4285,8 +4352,8 @@ int MachineObject::parse_json(std::string payload)
                                 flow_ratio_calib_result.tray_id     = (*it)["tray_id"].get<int>();
                                 flow_ratio_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
                                 flow_ratio_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
-                                flow_ratio_calib_result.nozzle_diameter = stof(jj["nozzle_diameter"].get<std::string>().c_str());
-                                flow_ratio_calib_result.flow_ratio  = stof((*it)["flow_ratio"].get<std::string>().c_str());
+                                flow_ratio_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
+                                flow_ratio_calib_result.flow_ratio      = string_to_float((*it)["flow_ratio"].get<std::string>());
                                 if (it->contains("confidence")) {
                                     flow_ratio_calib_result.confidence = (*it)["confidence"].get<int>();
                                 } else {
@@ -4443,6 +4510,93 @@ void MachineObject::set_modeltask(BBLModelTask* task)
     model_task = task;
 }
 
+void MachineObject::update_model_task()
+{
+    if (request_model_result > 10) return;
+    if (!m_agent) return;
+    if (!model_task) return;
+    if (!subtask_) return;
+    if (model_task->task_id != subtask_->task_id) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " times: " << request_model_result << " model_task_id !=subtask_id";
+        return;
+    }
+    if (model_task->instance_id <= 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " times: " << request_model_result << " instance_id <= 0";
+        return;
+    }
+
+    if ((!subtask_id_.empty() && last_subtask_id_ != subtask_id_) || get_model_mall_result_need_retry) {
+        if (!subtask_id_.empty() && last_subtask_id_ != subtask_id_) {
+            BOOST_LOG_TRIVIAL(info) << "update_model_task: last=" << last_subtask_id_ << ", curr=" << subtask_id_;
+            last_subtask_id_     = subtask_id_;
+            request_model_result = 0;
+        }
+        if (get_model_mall_result_need_retry) {
+            BOOST_LOG_TRIVIAL(info) << "need retry";
+            get_model_mall_result_need_retry = false;
+        }
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "subtask_id_ no change and do not need retry";
+        return;
+    }
+
+    int curr_instance_id = model_task->instance_id;
+    if (rating_info) {
+        delete rating_info;
+        rating_info = nullptr;
+    }
+    get_model_task_thread = new boost::thread([this, curr_instance_id]{
+        try {
+            std::string  rating_result;
+            unsigned int http_code = 404;
+            std::string  http_error;
+            int          res = -1;
+            res = m_agent->get_model_mall_rating_result(curr_instance_id, rating_result, http_code, http_error);
+            request_model_result++;
+            BOOST_LOG_TRIVIAL(info) << "request times: " << request_model_result << " http code: " << http_code;
+            rating_info = new RatingInfo();
+            rating_info->http_code = http_code;
+            if (0 == res && 200 == http_code) {
+                try {
+                    json rating_json = json::parse(rating_result);
+                    if (rating_json.contains("id")) {
+                        rating_info->rating_id = rating_json["id"].get<unsigned int>();
+                        //rating id is necessary info, so rating id must have
+                        request_model_result            = 0;
+                        rating_info->request_successful = true;
+                        BOOST_LOG_TRIVIAL(info) << "get rating id";
+                    } else {
+                        rating_info->request_successful = false;
+                        BOOST_LOG_TRIVIAL(info) << "can not get rating id";
+                        return;
+                    }
+                    if (rating_json.contains("score")) {
+                            rating_info->start_count = rating_json["score"].get<int>();
+                        }
+                    if (rating_json.contains("content"))
+                        rating_info->content = rating_json["content"].get<std::string>();
+                    if (rating_json.contains("successPrinted"))
+                        rating_info->success_printed = rating_json["successPrinted"].get<bool>();
+                    if (rating_json.contains("images")) {
+                        rating_info->image_url_paths = rating_json["images"].get<std::vector<std::string>>();
+                    }
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(info) << "parse model mall result json failed";
+                }
+            }
+            else {
+                rating_info->request_successful = false;
+                BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " http_code: " << http_code
+                                        << " error msg: " << http_error;
+                return;
+            }
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(info) << "get mall model rating id failed and hide scoring page";
+        }
+    });
+}
+
 void MachineObject::update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx)
 {
     if (!m_agent) return;
@@ -4478,22 +4632,26 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                     std::string http_body;
                     if (m_agent->get_subtask_info(subtask_id, &subtask_json, &http_code, &http_body) == 0) {
                         try  {
-                            json task_j = json::parse(subtask_json);
-                            if (task_j.contains("content")) {
-                                std::string content_str = task_j["content"].get<std::string>();
-                                json content_j = json::parse(content_str);
-                                plate_index = content_j["info"]["plate_idx"].get<int>();
-                            }
+                            if (!subtask_json.empty()){
 
-                            if (task_j.contains("context") && task_j["context"].contains("plates")) {
-                                for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
-                                    if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
-                                        slice_info->thumbnail_url = task_j["context"]["plates"][i]["thumbnail"]["url"].get<std::string>();
-                                        BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                json task_j = json::parse(subtask_json);
+                                if (task_j.contains("content")) {
+                                    std::string content_str = task_j["content"].get<std::string>();
+                                    json content_j = json::parse(content_str);
+                                    plate_index = content_j["info"]["plate_idx"].get<int>();
+                                }
+
+                                if (task_j.contains("context") && task_j["context"].contains("plates")) {
+                                    for (int i = 0; i < task_j["context"]["plates"].size(); i++) {
+                                        if (task_j["context"]["plates"][i].contains("index") && task_j["context"]["plates"][i]["index"].get<int>() == plate_index) {
+                                            slice_info->thumbnail_url = task_j["context"]["plates"][i]["thumbnail"]["url"].get<std::string>();
+                                            BOOST_LOG_TRIVIAL(trace) << "task_info: thumbnail url=" << slice_info->thumbnail_url;
+                                        }
                                     }
                                 }
-                            } else {
-                                BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
+                                else {
+                                    BOOST_LOG_TRIVIAL(error) << "task_info: no context or plates";
+                                }
                             }
                         }
                         catch(...) {
@@ -4523,8 +4681,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                                 FilamentInfo f;
                                 f.color = filament["color"].get<std::string>();
                                 f.type = filament["type"].get<std::string>();
-                                f.used_g = stof(filament["used_g"].get<std::string>());
-                                f.used_m = stof(filament["used_m"].get<std::string>());
+                                f.used_g = string_to_float(filament["used_g"].get<std::string>());
+                                f.used_m = string_to_float(filament["used_m"].get<std::string>());
                                 slice_info->filaments_info.push_back(f);
                             }
                         }

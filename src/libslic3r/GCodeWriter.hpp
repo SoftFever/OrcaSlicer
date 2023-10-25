@@ -49,6 +49,8 @@ public:
     std::string set_print_acceleration(unsigned int acceleration)   { return set_acceleration_internal(Acceleration::Print, acceleration); }
     std::string set_travel_acceleration(unsigned int acceleration)  { return set_acceleration_internal(Acceleration::Travel, acceleration); }
     std::string set_jerk_xy(double jerk);
+    // Orca: set acceleration and jerk in one command for Klipper
+    std::string set_accel_and_jerk(unsigned int acceleration, double jerk);
     std::string set_pressure_advance(double pa) const;
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
@@ -112,6 +114,7 @@ public:
     void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
     const bool is_bbl_printers() const {return m_is_bbl_printers;}
     void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
+    GCodeFlavor get_gcode_flavor() const { return config.gcode_flavor; }
 
   private:
 	// Extruders are sorted by their ID, so that binary search is possible.
