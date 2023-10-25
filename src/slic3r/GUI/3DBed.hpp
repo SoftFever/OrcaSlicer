@@ -146,8 +146,8 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes);
-    //void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+    void render(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor, bool show_axes);
+    //void render_for_picking(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor);
 
     void on_change_color_mode(bool is_dark);
 
@@ -159,13 +159,13 @@ private:
     //BBS: with offset
     void update_bed_triangles();
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
-    void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
+    void render_internal(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor,
         bool show_axes);
     void render_axes();
-    void render_system(GLCanvas3D& canvas, bool bottom);
+    void render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
     //void render_texture(bool bottom, GLCanvas3D& canvas);
-    void render_model();
-    void render_custom(GLCanvas3D& canvas, bool bottom);
+    void render_model(const Transform3d& view_matrix, const Transform3d& projection_matrix);
+    void render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
     void render_default(bool bottom);
 };
 

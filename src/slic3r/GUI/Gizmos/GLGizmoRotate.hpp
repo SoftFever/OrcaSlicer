@@ -85,6 +85,8 @@ private:
     void render_grabber(const BoundingBoxf3& box);
     void render_grabber_extension(const BoundingBoxf3& box, bool picking);
 
+    Transform3d local_transform(const Selection& selection) const;
+
     void transform_to_local(const Selection& selection) const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
     Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const;

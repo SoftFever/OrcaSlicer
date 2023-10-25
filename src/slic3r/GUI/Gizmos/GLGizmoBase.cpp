@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
 
 // TODO: Display tooltips quicker on Linux
@@ -97,11 +98,15 @@ GLModel& GLGizmoBase::Grabber::get_cube()
 
 void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking)
 {
+    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     if (!m_cube.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
         indexed_triangle_set its = its_make_cube(1., 1., 1.);
-        its_translate(its, Vec3f(-0.5, -0.5, -0.5));
+        its_translate(its, -0.5f * Vec3f::Ones());
         m_cube.init_from(its);
     }
 
@@ -115,14 +120,14 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
 
     m_cube.set_color(render_color);
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(center.x(), center.y(), center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(angles.z()), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles.y()), 0.0, 1.0, 0.0));
-    glsafe(::glRotated(Geometry::rad2deg(angles.x()), 1.0, 0.0, 0.0));
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d view_model_matrix = camera.get_view_matrix() * matrix * Geometry::assemble_transform(center, angles, fullsize * Vec3d::Ones());
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
+ 
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", projection_matrix);
+    shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
     m_cube.render();
-    glsafe(::glPopMatrix());
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
@@ -257,7 +262,7 @@ void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 
 void GLGizmoBase::render_grabbers(float size) const
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
     if (shader == nullptr)
         return;
     shader->start_using();
@@ -271,7 +276,7 @@ void GLGizmoBase::render_grabbers(float size) const
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
 

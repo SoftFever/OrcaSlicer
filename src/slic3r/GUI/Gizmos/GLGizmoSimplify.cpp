@@ -641,19 +641,25 @@ void GLGizmoSimplify::on_render()
         return;
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(trafo_matrix.data()));
-
-    auto *gouraud_shader = wxGetApp().get_shader("gouraud_light");
+    auto* gouraud_shader = wxGetApp().get_shader("gouraud_light_attr");
     glsafe(::glPushAttrib(GL_DEPTH_TEST));
     glsafe(::glEnable(GL_DEPTH_TEST));
     gouraud_shader->start_using();
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d view_model_matrix = camera.get_view_matrix() * trafo_matrix;
+    gouraud_shader->set_uniform("view_model_matrix", view_model_matrix);
+    gouraud_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    gouraud_shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
     m_glmodel.render();
     gouraud_shader->stop_using();
 
     if (m_show_wireframe) {
-        auto* contour_shader = wxGetApp().get_shader("mm_contour");
+        auto* contour_shader = wxGetApp().get_shader("mm_contour_attr");
         contour_shader->start_using();
+        contour_shader->set_uniform("view_model_matrix", view_model_matrix);
+        contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const ColorRGBA color = m_glmodel.get_color();
+        m_glmodel.set_color(ColorRGBA::WHITE());
         glsafe(::glLineWidth(1.0f));
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
         //ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
@@ -661,11 +667,11 @@ void GLGizmoSimplify::on_render()
         //glsafe(::glPolygonOffset(5.0, 5.0));
         m_glmodel.render();
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+        m_glmodel.set_color(color);
         contour_shader->stop_using();
     }
 
     glsafe(::glPopAttrib());
-    glsafe(::glPopMatrix());
 }
 
 

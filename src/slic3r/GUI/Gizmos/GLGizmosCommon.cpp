@@ -214,15 +214,14 @@ void InstancesHider::render_cut() const
             ClippingPlane clp = *get_pool()->object_clipper()->get_clipping_plane();
             clp.set_normal(-clp.get_normal());
             clipper->set_limiting_plane(clp);
-        } else
+        }
+        else
             clipper->set_limiting_plane(ClippingPlane::ClipsNothing());
 
-        glsafe(::glPushMatrix());
         glsafe(::glPushAttrib(GL_DEPTH_TEST));
         glsafe(::glDisable(GL_DEPTH_TEST));
         clipper->render_cut(mv->is_model_part() ? ColorRGBA(0.8f, 0.3f, 0.0f, 1.0f) : color_from_model_volume(*mv));
         glsafe(::glPopAttrib());
-        glsafe(::glPopMatrix());
 
         ++clipper_id;
     }
@@ -412,7 +411,7 @@ void ObjectClipper::render_cut() const
 
     size_t clipper_id = 0;
     for (const ModelVolume* mv : mo->volumes) {
-        Geometry::Transformation vol_trafo  = mv->get_transformation();
+        const Geometry::Transformation vol_trafo  = mv->get_transformation();
         Geometry::Transformation trafo = inst_trafo * vol_trafo;
         if (is_assem_cnv) {
             trafo.set_offset(trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0) + vol_trafo.get_offset() * (GLVolume::explosion_ratio - 1.0));
@@ -427,10 +426,8 @@ void ObjectClipper::render_cut() const
             clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), std::numeric_limits<double>::max()));
         else
             clipper->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
-        glsafe(::glPushMatrix());
         // BBS
         clipper->render_cut({ 0.25f, 0.25f, 0.25f, 1.0f });
-        glsafe(::glPopMatrix());
 
         ++clipper_id;
     }
@@ -557,7 +554,7 @@ void SupportsClipper::render_cut() const
 
     const SelectionInfo* sel_info = get_pool()->selection_info();
     const ModelObject* mo = sel_info->model_object();
-    Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
+    const Geometry::Transformation inst_trafo = mo->instances[sel_info->get_active_instance()]->get_transformation();
     //Geometry::Transformation vol_trafo  = mo->volumes.front()->get_transformation();
     Geometry::Transformation trafo = inst_trafo;// * vol_trafo;
     trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
@@ -576,9 +573,7 @@ void SupportsClipper::render_cut() const
     m_clipper->set_plane(*ocl->get_clipping_plane());
     m_clipper->set_transformation(supports_trafo);
 
-    glsafe(::glPushMatrix());
     m_clipper->render_cut({ 1.0f, 0.f, 0.37f, 1.0f });
-    glsafe(::glPopMatrix());
 }
 
 

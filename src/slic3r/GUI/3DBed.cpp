@@ -47,7 +47,7 @@ bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
         return false;
 
     GLModel::Geometry init_data;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2, GLModel::Geometry::index_type(triangles.size()) };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2 };
     init_data.reserve_vertices(triangles.size());
     init_data.reserve_indices(triangles.size() / 3);
 
@@ -71,12 +71,8 @@ bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
         const Vec3f p = {v.x(), v.y(), z};
         init_data.add_vertex(p, (Vec2f)(v - min).cwiseProduct(inv_size).eval());
         ++vertices_counter;
-        if (vertices_counter % 3 == 0) {
-            if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
-                init_data.add_ushort_triangle((unsigned short)vertices_counter - 3, (unsigned short)vertices_counter - 2, (unsigned short)vertices_counter - 1);
-            else
-                init_data.add_uint_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
-        }
+        if (vertices_counter % 3 == 0)
+            init_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
     }
 
     model.init_from(std::move(init_data));
@@ -210,17 +206,19 @@ void Bed3D::load_render_colors()
 
 void Bed3D::Axes::render()
 {
-    auto render_axis = [this](const Transform3f& transform) {
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixf(transform.data()));
+    auto render_axis = [this](GLShaderProgram* shader, const Transform3d& transform) {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * transform;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix",     (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         m_arrow.render();
-        glsafe(::glPopMatrix());
     };
 
     if (!m_arrow.is_initialized())
         m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
     if (shader == nullptr)
         return;
 
@@ -231,15 +229,15 @@ void Bed3D::Axes::render()
 
     // x axis
     m_arrow.set_color(AXIS_X_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
+    render_axis(shader, Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }));
 
     // y axis
     m_arrow.set_color(AXIS_Y_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
+    render_axis(shader, Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }));
 
     // z axis
     m_arrow.set_color(AXIS_Z_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin).cast<float>());
+    render_axis(shader, Geometry::assemble_transform(m_origin));
 
     shader->stop_using();
 
@@ -362,17 +360,17 @@ void Bed3D::on_change_color_mode(bool is_dark)
     m_is_dark = is_dark;
 }
 
-void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes)
+void Bed3D::render(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor, bool show_axes)
 {
-    render_internal(canvas, bottom, scale_factor, show_axes);
+    render_internal(canvas, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
-/*void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor)
+/*void Bed3D::render_for_picking(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor)
 {
-    render_internal(canvas, bottom, scale_factor, false, false, true);
+    render_internal(canvas, view_matrix, projection_matrix, bottom, scale_factor, false, false, true);
 }*/
 
-void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
+void Bed3D::render_internal(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor,
     bool show_axes)
 {
     m_scale_factor = scale_factor;
@@ -386,9 +384,9 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     switch (m_type)
     {
-    case Type::System: { render_system(canvas, bottom); break; }
+    case Type::System: { render_system(canvas, view_matrix, projection_matrix, bottom); break; }
     default:
-    case Type::Custom: { render_custom(canvas, bottom); break; }
+    case Type::Custom: { render_custom(canvas, view_matrix, projection_matrix, bottom); break; }
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -464,10 +462,10 @@ void Bed3D::render_axes()
         m_axes.render();
 }
 
-void Bed3D::render_system(GLCanvas3D& canvas, bool bottom)
+void Bed3D::render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
 {
     if (!bottom)
-        render_model();
+        render_model(view_matrix, projection_matrix);
 
     /*if (show_texture)
         render_texture(bottom, canvas);*/
@@ -538,9 +536,12 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom)
     }
 
     if (m_triangles.get_vertices_count() > 0) {
-        GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+        GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
         if (shader != nullptr) {
             shader->start_using();
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
             shader->set_uniform("transparent_background", bottom);
             shader->set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 
@@ -658,7 +659,7 @@ void Bed3D::update_bed_triangles()
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
 }
 
-void Bed3D::render_model()
+void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
     if (m_model_filename.empty())
         return;
@@ -670,20 +671,21 @@ void Bed3D::render_model()
     }
 
     if (!m_model.get_filename().empty()) {
-        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
+        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("emission_factor", 0.0f);
-            glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z()));
+            const Transform3d matrix = view_matrix * Geometry::assemble_transform(m_model_offset);
+            shader->set_uniform("view_model_matrix", matrix);
+            shader->set_uniform("projection_matrix", projection_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
             m_model.render();
-            glsafe(::glPopMatrix());
             shader->stop_using();
         }
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom)
+void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
 {
     if (m_model_filename.empty()) {
         render_default(bottom);
@@ -691,7 +693,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom)
     }
 
     if (!bottom)
-        render_model();
+        render_model(view_matrix, projection_matrix);
 
     /*if (show_texture)
         render_texture(bottom, canvas);*/
@@ -708,8 +710,9 @@ void Bed3D::render_default(bool bottom)
     if (shader != nullptr) {
         shader->start_using();
 
-        const Transform3d matrix = wxGetApp().plater()->get_camera().get_projection_view_matrix();
-        shader->set_uniform("projection_view_model_matrix", matrix);
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));

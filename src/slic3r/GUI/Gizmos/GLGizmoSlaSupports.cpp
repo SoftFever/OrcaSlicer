@@ -127,7 +127,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     if (! has_points && ! has_holes)
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
+    GLShaderProgram* shader = picking ? wxGetApp().get_shader("flat_attr") : wxGetApp().get_shader("gouraud_light_attr");
     if (shader == nullptr)
         return;
 
@@ -136,12 +136,13 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
     const Transform3d instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
-    const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
-    const float z_shift = m_c->selection_info()->get_sla_shift();
+    const Transform3d instance_matrix = Geometry::assemble_transform(m_c->selection_info()->get_sla_shift() * Vec3d::UnitZ()) * vol->get_instance_transformation().get_matrix();
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(0.0, 0.0, z_shift));
-    glsafe(::glMultMatrixd(instance_matrix.data()));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
+
+    shader->set_uniform("projection_matrix", projection_matrix);
 
     ColorRGBA render_color;
     for (size_t i = 0; i < cache_size; ++i) {
@@ -179,9 +180,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             shader->set_uniform("emission_factor", 0.5f);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(support_point.pos.x(), support_point.pos.y(), support_point.pos.z()));
-        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+        const Transform3d support_matrix = Geometry::assemble_transform(support_point.pos.cast<double>()) * instance_scaling_matrix_inverse;
 
         if (vol->is_left_handed())
             glFrontFace(GL_CW);
@@ -194,27 +193,29 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
                 m_c->raycaster()->raycaster()->get_closest_point(m_editing_cache[i].support_point.pos, &m_editing_cache[i].normal);
 
             Eigen::Quaterniond q;
-            q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * m_editing_cache[i].normal.cast<double>());
+            q.setFromTwoVectors(Vec3d::UnitZ(), instance_scaling_matrix_inverse * m_editing_cache[i].normal.cast<double>());
             const Eigen::AngleAxisd aa(q);
-            glsafe(::glPushMatrix());
-            glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis().x(), aa.axis().y(), aa.axis().z()));
             const double cone_radius = 0.25; // mm
             const double cone_height = 0.75;
-            glsafe(::glTranslatef(0.f, 0.f, cone_height + support_point.head_front_radius * RenderPointScale));
-            glsafe(::glRotated(180., 1., 0., 0.));
-            glsafe(::glScaled(cone_radius, cone_radius, cone_height));
+            const Transform3d view_model_matrix = view_matrix * instance_matrix * support_matrix * Transform3d(aa.toRotationMatrix()) *
+                Geometry::assemble_transform((cone_height + support_point.head_front_radius * RenderPointScale) * Vec3d::UnitZ(),
+                    Vec3d(PI, 0.0, 0.0), Vec3d(cone_radius, cone_radius, cone_height));
+
+            shader->set_uniform("view_model_matrix", view_model_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
             m_cone.render();
-            glsafe(::glPopMatrix());
         }
 
         const double radius = (double)support_point.head_front_radius * RenderPointScale;
-        glsafe(::glScaled(radius, radius, radius));
+        const Transform3d view_model_matrix = view_matrix * instance_matrix * support_matrix *
+            Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), radius * Vec3d::Ones());
+
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         m_sphere.render();
 
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
-
-        glsafe(::glPopMatrix());
     }
 
     // Now render the drain holes:
@@ -226,31 +227,26 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
             if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
                 continue;
 
-            // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-            glsafe(::glPushMatrix());
-            glsafe(::glTranslatef(drain_hole.pos.x(), drain_hole.pos.y(), drain_hole.pos.z()));
-            glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+            const Transform3d hole_matrix = Geometry::assemble_transform(drain_hole.pos.cast<double>()) * instance_scaling_matrix_inverse;
 
             if (vol->is_left_handed())
                 glFrontFace(GL_CW);
 
             // Matrices set, we can render the point mark now.
-
             Eigen::Quaterniond q;
-            q.setFromTwoVectors(Vec3d{0., 0., 1.}, instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
+            q.setFromTwoVectors(Vec3d::UnitZ(), instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
             const Eigen::AngleAxisd aa(q);
-            glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis().x(), aa.axis().y(), aa.axis().z()));
-            glsafe(::glTranslated(0., 0., -drain_hole.height));
-            glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
+            const Transform3d view_model_matrix = view_matrix * instance_matrix * hole_matrix * Transform3d(aa.toRotationMatrix()) *
+                Geometry::assemble_transform(-drain_hole.height * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
+
+            shader->set_uniform("view_model_matrix", view_model_matrix);
+            shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
             m_cylinder.render();
 
             if (vol->is_left_handed())
                 glFrontFace(GL_CCW);
-            glsafe(::glPopMatrix());
         }
     }
-
-    glsafe(::glPopMatrix());
 }
 
 

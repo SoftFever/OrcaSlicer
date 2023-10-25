@@ -85,7 +85,9 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     float width = get_scaled_total_width();
 #if BBS_TOOLBAR_ON_TOP
     //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
-    float top_x = std::max(m_parent.get_main_toolbar_width() + border, 0.5f * (cnv_w - width + m_parent.get_main_toolbar_width() + m_parent.get_collapse_toolbar_width() - m_parent.get_assemble_view_toolbar_width()) + border);
+    const float separator_width = m_parent.get_separator_toolbar_width();
+    float top_x = std::max(0.0f, 0.5f * (cnv_w - (width + separator_width + m_parent.get_main_toolbar_width() - m_parent.get_collapse_toolbar_width() + m_parent.get_assemble_view_toolbar_width())));
+    top_x += m_parent.get_main_toolbar_width() + separator_width / 2 + border;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView)
         top_x = 0.5f * cnv_w + 0.5f * (m_parent.get_assembly_paint_toolbar_width());
     float top_y = 0;
@@ -1277,37 +1279,37 @@ void GLGizmosManager::update_after_undo_redo(const UndoRedo::Snapshot& snapshot)
         dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get())->reslice_SLA_supports(true);
 }
 
-void GLGizmosManager::render_background(float left, float top, float right, float bottom, float border) const
+void GLGizmosManager::render_background(float left, float top, float right, float bottom, float border_w, float border_h) const
 {
     const unsigned int tex_id = m_background_texture.texture.get_id();
     const float tex_width = float(m_background_texture.texture.get_width());
     const float tex_height = float(m_background_texture.texture.get_height());
     if (tex_id != 0 && tex_width > 0 && tex_height > 0) {
         //BBS: GUI refactor: remove the corners of gizmo
-        const float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
-        const float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
+        const float inv_tex_width  = 1.0f / tex_width;
+        const float inv_tex_height = 1.0f / tex_height;
 
-        const float internal_left_uv = (float)m_background_texture.metadata.left * inv_tex_width;
-        const float internal_right_uv = 1.0f - (float)m_background_texture.metadata.right * inv_tex_width;
-        const float internal_top_uv = 1.0f - (float)m_background_texture.metadata.top * inv_tex_height;
-        const float internal_bottom_uv = (float)m_background_texture.metadata.bottom * inv_tex_height;
+        const float internal_left_uv   = float(m_background_texture.metadata.left) * inv_tex_width;
+        const float internal_right_uv  = 1.0f - float(m_background_texture.metadata.right) * inv_tex_width;
+        const float internal_top_uv    = 1.0f - float(m_background_texture.metadata.top) * inv_tex_height;
+        const float internal_bottom_uv = float(m_background_texture.metadata.bottom) * inv_tex_height;
 
         GLTexture::render_sub_texture(tex_id, left, right, bottom, top, { { internal_left_uv, internal_bottom_uv }, { internal_right_uv, internal_bottom_uv }, { internal_right_uv, internal_top_uv }, { internal_left_uv, internal_top_uv } });
 
         /*
-        const float internal_left = left + border;
-        const float internal_right = right - border;
-        const float internal_top = top - border;
-        const float internal_bottom = bottom + border;
+        const float internal_left   = left + border_w;
+        const float internal_right  = right - border_w;
+        const float internal_top    = top - border_h;
+        const float internal_bottom = bottom + border_h;
 
         // float left_uv = 0.0f;
         const float right_uv = 1.0f;
         const float top_uv = 1.0f;
         const float bottom_uv = 0.0f;
 
-        const float internal_left_uv = float(m_background_texture.metadata.left) * inv_tex_width;
-        const float internal_right_uv = 1.0f - float(m_background_texture.metadata.right) * inv_tex_width;
-        const float internal_top_uv = 1.0f - float(m_background_texture.metadata.top) * inv_tex_height;
+        const float internal_left_uv   = float(m_background_texture.metadata.left) * inv_tex_width;
+        const float internal_right_uv  = 1.0f - float(m_background_texture.metadata.right) * inv_tex_width;
+        const float internal_top_uv    = 1.0f - float(m_background_texture.metadata.top) * inv_tex_height;
         const float internal_bottom_uv = float(m_background_texture.metadata.bottom) * inv_tex_height;
 
         // top-left corner
@@ -1383,119 +1385,98 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
 //when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-top
 void GLGizmosManager::do_render_overlay() const
 {
-    std::vector<size_t> selectable_idxs = get_selectable_idxs();
+    const std::vector<size_t> selectable_idxs = get_selectable_idxs();
     if (selectable_idxs.empty())
         return;
 
-    float cnv_w = (float)m_parent.get_canvas_size().get_width();
-    float cnv_h = (float)m_parent.get_canvas_size().get_height();
-    float zoom = (float)wxGetApp().plater()->get_camera().get_zoom();
-    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+    const Size cnv_size = m_parent.get_canvas_size();
+    const float cnv_w = (float)cnv_size.get_width();
+    const float cnv_h = (float)cnv_size.get_height();
 
-    float height = get_scaled_total_height();
-    float width = get_scaled_total_width();
-    float zoomed_border = m_layout.scaled_border() * inv_zoom;
+    if (cnv_w == 0 || cnv_h == 0)
+        return;
 
-    float zoomed_top_x;
+    const float inv_cnv_w = 1.0f / cnv_w;
+    const float inv_cnv_h = 1.0f / cnv_h;
+
+    const float height = 2.0f * get_scaled_total_height() * inv_cnv_h;
+    const float width  = 2.0f * get_scaled_total_width() * inv_cnv_w;
+    const float border_h = 2.0f * m_layout.scaled_border() * inv_cnv_h;
+    const float border_w = 2.0f * m_layout.scaled_border() * inv_cnv_w;
+
+    float top_x;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-        zoomed_top_x = 0.5f * m_parent.get_assembly_paint_toolbar_width() * inv_zoom;
+        top_x = m_parent.get_assembly_paint_toolbar_width() * inv_cnv_w;
     }
     else {
         //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-#if BBS_TOOLBAR_ON_TOP
         float main_toolbar_width = (float)m_parent.get_main_toolbar_width();
         float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
         float collapse_width = (float)m_parent.get_collapse_toolbar_width();
+        float separator_width = (float)m_parent.get_separator_toolbar_width();
         //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
         //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
 
-        float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width - collapse_width)) * inv_zoom;
+        float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width + separator_width - collapse_width));
         //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
-        zoomed_top_x = main_toolbar_left + (main_toolbar_width)*inv_zoom;
+        top_x = main_toolbar_left + main_toolbar_width + separator_width / 2;
+        top_x = top_x * inv_cnv_w * 2;
     }
-    float zoomed_top_y = 0.5f * cnv_h * inv_zoom;
-#else
-    //float zoomed_top_x = (-0.5f * cnv_w) * inv_zoom;
-    //float zoomed_top_y = (0.5f * height) * inv_zoom;
-    float zoomed_top_x = (0.5f * cnv_w - width) * inv_zoom;
-    float main_toolbar_height = (float)m_parent.get_main_toolbar_height();
-    float assemble_view_height = (float)m_parent.get_assemble_view_toolbar_height();
-    //float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
-    float zoomed_top_y = 0.5f * (height + assemble_view_height - main_toolbar_height) * inv_zoom;
-#endif
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": zoomed_top_y %1%, space_height %2%, main_toolbar_height %3% zoomed_top_x %4%") % zoomed_top_y % space_height % main_toolbar_height % zoomed_top_x;
+    float top_y = 1.0f;
 
-    float zoomed_left = zoomed_top_x;
-    float zoomed_top = zoomed_top_y;
-    float zoomed_right = zoomed_left + width * inv_zoom;
-    float zoomed_bottom = zoomed_top - height * inv_zoom;
+    render_background(top_x, top_y, top_x + width, top_y - height, border_w, border_h);
 
-    render_background(zoomed_left, zoomed_top, zoomed_right, zoomed_bottom, zoomed_border);
+    top_x += border_w;
+    top_y -= border_h;
 
-    zoomed_top_x += zoomed_border;
-    zoomed_top_y -= zoomed_border;
-
-    float icons_size = m_layout.scaled_icons_size();
-    float zoomed_icons_size = icons_size * inv_zoom;
-    float zoomed_stride_y = m_layout.scaled_stride_y() * inv_zoom;
+    const float icons_size_x = 2.0f * m_layout.scaled_icons_size() * inv_cnv_w;
+    const float icons_size_y = 2.0f * m_layout.scaled_icons_size() * inv_cnv_h;
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-    float zoomed_stride_x = m_layout.scaled_stride_x() * inv_zoom;
+    const float stride_x = 2.0f * m_layout.scaled_stride_x() * inv_cnv_w;
 
-    unsigned int icons_texture_id = m_icons_texture.get_id();
-    int tex_width = m_icons_texture.get_width();
-    int tex_height = m_icons_texture.get_height();
+    const unsigned int icons_texture_id = m_icons_texture.get_id();
+    const int tex_width = m_icons_texture.get_width();
+    const int tex_height = m_icons_texture.get_height();
 
-    if ((icons_texture_id == 0) || (tex_width <= 1) || (tex_height <= 1))
+    if (icons_texture_id == 0 || tex_width <= 1 || tex_height <= 1)
         return;
 
-    float du = (float)(tex_width - 1) / (6.0f * (float)tex_width); // 6 is the number of possible states if the icons
-    float dv = (float)(tex_height - 1) / (float)(m_gizmos.size() * tex_height);
+    const float du = (float)(tex_width - 1) / (6.0f * (float)tex_width); // 6 is the number of possible states if the icons
+    const float dv = (float)(tex_height - 1) / (float)(m_gizmos.size() * tex_height);
 
     // tiles in the texture are spaced by 1 pixel
-    float u_offset = 1.0f / (float)tex_width;
-    float v_offset = 1.0f / (float)tex_height;
+    const float u_offset = 1.0f / (float)tex_width;
+    const float v_offset = 1.0f / (float)tex_height;
 
     bool is_render_current = false;
 
-    for (size_t idx : selectable_idxs)
-    {
+    for (size_t idx : selectable_idxs) {
         GLGizmoBase* gizmo = m_gizmos[idx].get();
-        unsigned int sprite_id = gizmo->get_sprite_id();
+        const unsigned int sprite_id = gizmo->get_sprite_id();
         // higlighted state needs to be decided first so its highlighting in every other state
-        int icon_idx = (m_highlight.first == idx ? (m_highlight.second ? 4 : 5) : (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3)));
+        const int icon_idx = (m_highlight.first == idx ? (m_highlight.second ? 4 : 5) : (m_current == idx) ? 2 : ((m_hover == idx) ? 1 : (gizmo->is_activable()? 0 : 3)));
 
-        float v_top = v_offset + sprite_id * dv;
-        float u_left = u_offset + icon_idx * du;
-        float v_bottom = v_top + dv - v_offset;
-        float u_right = u_left + du - u_offset;
+        const float u_left   = u_offset + icon_idx * du;
+        const float u_right  = u_left + du - u_offset;
+        const float v_top    = v_offset + sprite_id * dv;
+        const float v_bottom = v_top + dv - v_offset;
 
-        GLTexture::render_sub_texture(icons_texture_id, zoomed_top_x, zoomed_top_x + zoomed_icons_size, zoomed_top_y - zoomed_icons_size, zoomed_top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
-
+        GLTexture::render_sub_texture(icons_texture_id, top_x, top_x + icons_size_x, top_y - icons_size_y, top_y, { { u_left, v_bottom }, { u_right, v_bottom }, { u_right, v_top }, { u_left, v_top } });
         if (idx == m_current) {
             //BBS: GUI refactor: GLToolbar&&Gizmo adjust
             //render_input_window uses a different coordination(imgui)
             //1. no need to scale by camera zoom, set {0,0} at left-up corner for imgui
-#if BBS_TOOLBAR_ON_TOP
             //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
-            gizmo->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
+            gizmo->render_input_window(0.5 * cnv_w + 0.5f * top_x * cnv_w, get_scaled_total_height(), cnv_h);
 
             is_render_current = true;
-#else
-            float toolbar_top = cnv_h - wxGetApp().plater()->get_view_toolbar().get_height();
-            //gizmo->render_input_window(width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
-            gizmo->render_input_window(cnv_w - width, 0.5f * cnv_h - zoomed_top_y * zoom, toolbar_top);
-#endif
         }
-#if BBS_TOOLBAR_ON_TOP
-        zoomed_top_x += zoomed_stride_x;
-#else
-        zoomed_top_y -= zoomed_stride_y;
-#endif
+        top_x += stride_x;
     }
 
     // BBS simplify gizmo is not a selected gizmo and need to render input window
     if (!is_render_current && m_current != Undefined) {
-        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + zoomed_top_x * zoom, height, cnv_h);
+        m_gizmos[m_current]->render_input_window(0.5 * cnv_w + 0.5f * top_x * cnv_w, get_scaled_total_height(), cnv_h);
     }
 }
 
@@ -1542,14 +1523,12 @@ GLGizmosManager::EType GLGizmosManager::get_gizmo_from_name(const std::string& g
     return GLGizmosManager::EType::Undefined;
 }
 
-bool GLGizmosManager::generate_icons_texture() const
+bool GLGizmosManager::generate_icons_texture()
 {
     std::string path = resources_dir() + "/images/";
     std::vector<std::string> filenames;
-    for (size_t idx=0; idx<m_gizmos.size(); ++idx)
-    {
-        if (m_gizmos[idx] != nullptr)
-        {
+    for (size_t idx = 0; idx<m_gizmos.size(); ++idx) {
+        if (m_gizmos[idx] != nullptr) {
             const std::string& icon_filename = m_gizmos[idx]->get_icon_filename();
             if (!icon_filename.empty())
                 filenames.push_back(path + icon_filename);

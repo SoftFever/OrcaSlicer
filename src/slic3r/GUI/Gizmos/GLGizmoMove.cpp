@@ -140,7 +140,7 @@ void GLGizmoMove3D::on_render()
                 m_grabber_connections[id].model.reset();
 
                 GLModel::Geometry init_data;
-                init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+                init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
                 init_data.color = AXES_COLOR[id];
                 init_data.reserve_vertices(2);
                 init_data.reserve_indices(2);
@@ -150,7 +150,7 @@ void GLGizmoMove3D::on_render()
                 init_data.add_vertex((Vec3f)m_grabbers[id].center.cast<float>());
 
                 // indices
-                init_data.add_ushort_line(0, 1);
+                init_data.add_line(0, 1);
 
                 m_grabber_connections[id].model.init_from(std::move(init_data));
             //}
@@ -162,11 +162,13 @@ void GLGizmoMove3D::on_render()
         }
     };
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
-		
-        // draw axes line
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
         // draw axes
         for (unsigned int i = 0; i < 3; ++i) {
             render_grabber_connection(i);
@@ -240,12 +242,12 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking)
 {
 #if ENABLE_FIXED_GRABBER
-    float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
+    const float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
 #else
-    float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
+    const float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 #endif
 
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+    const double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
 
     ColorRGBA color = m_grabbers[axis].color;
     if (!picking && m_hover_id != -1) {
@@ -254,7 +256,7 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
         }
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
+    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat_attr" : "gouraud_light_attr");
     if (shader == nullptr)
         return;
 
@@ -262,22 +264,21 @@ void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box
     shader->start_using();
     shader->set_uniform("emission_factor", 0.1f);
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[axis].center.x(), m_grabbers[axis].center.y(), m_grabbers[axis].center.z()));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d view_model_matrix = camera.get_view_matrix() * Geometry::assemble_transform(m_grabbers[axis].center);
     if (axis == X)
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
+        view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY());
     else if (axis == Y)
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
+        view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX());
+    view_model_matrix = view_model_matrix * Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 2.0 * size));
 
-    //glsafe(::glTranslated(0.0, 0.0, 2.0 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 2.0 * size));
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
     m_cone.render();
-    glsafe(::glPopMatrix());
 
     shader->stop_using();
 }
-
-
 
 } // namespace GUI
 } // namespace Slic3r

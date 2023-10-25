@@ -8,6 +8,7 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include <GL/glew.h>
 
@@ -73,13 +74,19 @@ void MeshClipper::render_cut(const ColorRGBA& color)
     if (! m_triangles_valid)
         recalculate_triangles();
 
+    if (m_model.vertices_count() == 0 || m_model.indices_count() == 0)
+        return;
+
     GLShaderProgram* curr_shader = wxGetApp().get_current_shader();
     if (curr_shader != nullptr)
         curr_shader->stop_using();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         m_model.set_color(color);
         m_model.render();
         shader->stop_using();
@@ -205,7 +212,7 @@ void MeshClipper::recalculate_triangles()
     m_model.reset();
 
     GLModel::Geometry init_data;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::index_type(m_triangles2d.size()) };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
     init_data.reserve_vertices(m_triangles2d.size());
     init_data.reserve_indices(m_triangles2d.size());
 
@@ -215,10 +222,7 @@ void MeshClipper::recalculate_triangles()
         init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 1)).x(), (*(it + 1)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
         init_data.add_vertex((Vec3f)(tr * Vec3d((*(it + 2)).x(), (*(it + 2)).y(), height_mesh)).cast<float>(), (Vec3f)up.cast<float>());
         const size_t idx = it - m_triangles2d.cbegin();
-        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
-            init_data.add_ushort_triangle((unsigned short)idx, (unsigned short)idx + 1, (unsigned short)idx + 2);
-        else
-            init_data.add_uint_triangle((unsigned int)idx, (unsigned int)idx + 1, (unsigned int)idx + 2);
+        init_data.add_triangle((unsigned int)idx, (unsigned int)idx + 1, (unsigned int)idx + 2);
     }
 
     if (!init_data.is_empty())

@@ -34,10 +34,8 @@ public:
         : TriangleSelector(mesh, edge_limit) {}
     virtual ~TriangleSelectorGUI() = default;
 
-    // Render current selection. Transformation matrices are supposed
-    // to be already set.
-    virtual void render(ImGuiWrapper *imgui);
-    void         render() { this->render(nullptr); }
+    virtual void render(ImGuiWrapper* imgui, const Transform3d& matrix);
+    void         render(const Transform3d& matrix) { this->render(nullptr, matrix); }
     void         set_wireframe_needed(bool need_wireframe) { m_need_wireframe = need_wireframe; }
     bool         get_wireframe_needed() { return m_need_wireframe; }
 
@@ -79,7 +77,7 @@ protected:
     GLModel                      m_paint_contour;
 
     void update_paint_contour();
-    void render_paint_contour();
+    void render_paint_contour(const Transform3d& matrix);
 
     bool                                m_need_wireframe {false};
 };
@@ -105,7 +103,7 @@ public:
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
-    void render(ImGuiWrapper* imgui) override;
+    void render(ImGuiWrapper* imgui, const Transform3d& matrix) override;
     // TriangleSelector.m_triangles => m_gizmo_scene.triangle_patches
     void update_triangles_per_type();
     // m_gizmo_scene.triangle_patches => TriangleSelector.m_triangles

@@ -2,6 +2,7 @@
 #include "GLGizmoScale.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include <GL/glew.h>
 
@@ -185,11 +186,11 @@ void GLGizmoScale3D::on_render()
         m_box = selection.get_bounding_box();
 
     const Vec3d& center = m_box.center();
-    Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
-    Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
-    Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
+    const Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
+    const Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
+    const Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
 
-    bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
+    const bool ctrl_down = (m_dragging && m_starting.ctrl_down) || (!m_dragging && wxGetKeyState(WXK_CONTROL));
 
     // x axis
     m_grabbers[0].center = m_transform * Vec3d(m_box.min.x(), center.y(), m_box.min.z());
@@ -230,14 +231,17 @@ void GLGizmoScale3D::on_render()
 
     const BoundingBoxf3& selection_box = selection.get_bounding_box();
 
-    float grabber_mean_size = (float)((selection_box.size().x() + selection_box.size().y() + selection_box.size().z()) / 3.0);
+    const float grabber_mean_size = (float)((selection_box.size().x() + selection_box.size().y() + selection_box.size().z()) / 3.0);
 
     //draw connections
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
         // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)
         //if (single_instance || single_volume) {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (m_grabbers[4].enabled && m_grabbers[5].enabled)
             render_grabbers_connection(4, 5, m_grabbers[4].color);
         render_grabbers_connection(6, 7, m_grabbers[2].color);
@@ -279,7 +283,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
         m_grabber_connections[id].model.reset();
 
         GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
         init_data.reserve_vertices(2);
         init_data.reserve_indices(2);
 
@@ -288,7 +292,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
         init_data.add_vertex((Vec3f)m_grabbers[id_2].center.cast<float>());
 
         // indices
-        init_data.add_ushort_line(0, 1);
+        init_data.add_line(0, 1);
 
         m_grabber_connections[id].model.init_from(std::move(init_data));
     }
