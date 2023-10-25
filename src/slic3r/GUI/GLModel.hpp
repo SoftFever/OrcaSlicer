@@ -46,23 +46,25 @@ namespace GUI {
             enum class EIndexType : unsigned char
             {
                 UINT,   // unsigned int
-                USHORT  // unsigned short
+                USHORT, // unsigned short
+                UBYTE   // unsigned byte
             };
 
             struct Format
             {
                 EPrimitiveType type{ EPrimitiveType::Triangles };
                 EVertexLayout vertex_layout{ EVertexLayout::P3N3 };
-                EIndexType index_type{ EIndexType::UINT };
             };
 
             Format format;
             std::vector<float> vertices;
-            std::vector<unsigned char> indices;
+            std::vector<unsigned int> indices;
+            EIndexType index_type{ EIndexType::UINT };
             ColorRGBA color{ ColorRGBA::BLACK() };
 
-            void reserve_vertices(size_t vertices_count);
-            void reserve_indices(size_t indices_count);
+            void reserve_vertices(size_t vertices_count) { vertices.reserve(vertices_count * vertex_stride_floats(format)); }
+            void reserve_indices(size_t indices_count) { indices.reserve(indices_count * index_stride_bytes(*this)); }
+
 
             void add_vertex(const Vec2f& position);                          // EVertexLayout::P2
             void add_vertex(const Vec2f& position, const Vec2f& tex_coord);  // EVertexLayout::P2T2
@@ -72,36 +74,29 @@ namespace GUI {
 
             void set_vertex(size_t id, const Vec3f& position, const Vec3f& normal); // EVertexLayout::P3N3
 
-            void set_ushort_index(size_t id, unsigned short index);
-            void set_uint_index(size_t id, unsigned int index);
+            void set_index(size_t id, unsigned int index);
 
-            void add_ushort_index(unsigned short id);
-            void add_uint_index(unsigned int id);
-
-            void add_ushort_line(unsigned short id1, unsigned short id2);
-            void add_uint_line(unsigned int id1, unsigned int id2);
-
-            void add_ushort_triangle(unsigned short id1, unsigned short id2, unsigned short id3);
-            void add_uint_triangle(unsigned int id1, unsigned int id2, unsigned int id3);
+            void add_index(unsigned int id);
+            void add_line(unsigned int id1, unsigned int id2);
+            void add_triangle(unsigned int id1, unsigned int id2, unsigned int id3);
 
             Vec2f extract_position_2(size_t id) const;
             Vec3f extract_position_3(size_t id) const;
             Vec3f extract_normal_3(size_t id) const;
             Vec2f extract_tex_coord_2(size_t id) const;
 
-            unsigned int extract_uint_index(size_t id) const;
-            unsigned short extract_ushort_index(size_t id) const;
+            unsigned int extract_index(size_t id) const;
 
             void remove_vertex(size_t id);
 
             bool is_empty() const { return vertices_count() == 0 || indices_count() == 0; }
 
             size_t vertices_count() const { return vertices.size() / vertex_stride_floats(format); }
-            size_t indices_count() const  { return indices.size() / index_stride_bytes(format); }
+            size_t indices_count() const { return indices.size(); }
 
             size_t vertices_size_floats() const { return vertices.size(); }
             size_t vertices_size_bytes() const  { return vertices_size_floats() * sizeof(float); }
-            size_t indices_size_bytes() const   { return indices.size(); }
+            size_t indices_size_bytes() const { return indices.size() * index_stride_bytes(*this); }
 
             static size_t vertex_stride_floats(const Format& format);
             static size_t vertex_stride_bytes(const Format& format) { return vertex_stride_floats(format) * sizeof(float); }
@@ -121,9 +116,7 @@ namespace GUI {
             static size_t tex_coord_offset_floats(const Format& format);
             static size_t tex_coord_offset_bytes(const Format& format) { return tex_coord_offset_floats(format) * sizeof(float); }
 
-            static size_t index_stride_bytes(const Format& format);
-
-            static EIndexType index_type(size_t vertices_count);
+            static size_t index_stride_bytes(const Geometry& data);
 
             static bool has_position(const Format& format);
             static bool has_normal(const Format& format);
@@ -164,9 +157,10 @@ namespace GUI {
         size_t vertices_size_floats() const { return vertices_count() * Geometry::vertex_stride_floats(m_render_data.geometry.format); }
         size_t vertices_size_bytes() const  { return vertices_size_floats() * sizeof(float); }
 
-        size_t indices_size_bytes() const { return indices_count() * Geometry::index_stride_bytes(m_render_data.geometry.format); }
+        size_t indices_size_bytes() const { return indices_count() * Geometry::index_stride_bytes(m_render_data.geometry); }
 
         const Geometry& get_geometry() const { return m_render_data.geometry; }
+
         void init_from(Geometry&& data);
         void init_from(const TriangleMesh& mesh);
         void init_from(const indexed_triangle_set& its);
@@ -217,13 +211,13 @@ namespace GUI {
     // the origin of the arrow is in the center of the stem cap
     // the arrow has its axis of symmetry along the Z axis and is pointing upward
     // used to render bed axes and sequential marker
-    GLModel::Geometry stilized_arrow(unsigned short resolution, float tip_radius, float tip_height, float stem_radius, float stem_height);
+    GLModel::Geometry stilized_arrow(unsigned int resolution, float tip_radius, float tip_height, float stem_radius, float stem_height);
 
     // create an arrow whose stem is a quarter of circle, with the given dimensions and resolution
     // the origin of the arrow is in the center of the circle
     // the arrow is contained in the 1st quadrant of the XY plane and is pointing counterclockwise
     // used to render sidebar hints for rotations
-    GLModel::Geometry circular_arrow(unsigned short resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness);
+    GLModel::Geometry circular_arrow(unsigned int resolution, float radius, float tip_height, float tip_width, float stem_width, float thickness);
 
     // create an arrow with the given dimensions
     // the origin of the arrow is in the center of the stem cap
@@ -234,7 +228,7 @@ namespace GUI {
     // create a diamond with the given resolution
     // the origin of the diamond is in its center
     // the diamond is contained into a box with size [1, 1, 1]
-    GLModel::Geometry diamond(unsigned short resolution);
+    GLModel::Geometry diamond(unsigned int resolution);
 
 } // namespace GUI
 } // namespace Slic3r

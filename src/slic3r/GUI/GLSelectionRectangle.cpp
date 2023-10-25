@@ -74,40 +74,28 @@ namespace GUI {
         if (!is_dragging())
             return;
 
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        float inv_zoom = (float)camera.get_inv_zoom();
-
-        Size cnv_size = canvas.get_canvas_size();
-        float cnv_half_width = 0.5f * (float)cnv_size.get_width();
-        float cnv_half_height = 0.5f * (float)cnv_size.get_height();
-        if (cnv_half_width == 0.0f || cnv_half_height == 0.0f)
+        const Size cnv_size = canvas.get_canvas_size();
+        const float cnv_width = (float)cnv_size.get_width();
+        const float cnv_height = (float)cnv_size.get_height();
+        if (cnv_width == 0.0f || cnv_height == 0.0f)
             return;
 
-        Vec2d start(m_start_corner(0) - cnv_half_width, cnv_half_height - m_start_corner(1));
-        Vec2d end(m_end_corner(0) - cnv_half_width, cnv_half_height - m_end_corner(1));
-
-        const float left = (float)std::min(start(0), end(0)) * inv_zoom;
-        const float top = (float)std::max(start(1), end(1)) * inv_zoom;
-        const float right = (float)std::max(start(0), end(0)) * inv_zoom;
-        const float bottom = (float)std::min(start(1), end(1)) * inv_zoom;
+        const float cnv_inv_width = 1.0f / cnv_width;
+        const float cnv_inv_height = 1.0f / cnv_height;
+        const float left = 2.0f * (get_left() * cnv_inv_width - 0.5f);
+        const float right = 2.0f * (get_right() * cnv_inv_width - 0.5f);
+        const float top = -2.0f * (get_top() * cnv_inv_height - 0.5f);
+        const float bottom = -2.0f * (get_bottom() * cnv_inv_height - 0.5f);
         
         glsafe(::glLineWidth(1.5f));
 
         glsafe(::glDisable(GL_DEPTH_TEST));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glLoadIdentity());
-        // ensure that the rectangle is renderered inside the frustrum
-        glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
-        // ensure that the overlay fits the frustrum near z plane
-        const double gui_scale = camera.get_gui_scale();
-        glsafe(::glScaled(gui_scale, gui_scale, 1.0));
-
         glsafe(::glPushAttrib(GL_ENABLE_BIT));
         glsafe(::glLineStipple(4, 0xAAAA));
         glsafe(::glEnable(GL_LINE_STIPPLE));
 
-        GLShaderProgram* shader = wxGetApp().get_shader("flat");
+        GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
         if (shader != nullptr) {
             shader->start_using();
 
@@ -117,7 +105,7 @@ namespace GUI {
                 m_rectangle.reset();
 
                 GLModel::Geometry init_data;
-                init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::USHORT };
+                init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
                 init_data.reserve_vertices(4);
                 init_data.reserve_indices(4);
 
@@ -128,23 +116,23 @@ namespace GUI {
                 init_data.add_vertex(Vec2f(left, top));
 
                 // indices
-                init_data.add_ushort_index(0);
-                init_data.add_ushort_index(1);
-                init_data.add_ushort_index(2);
-                init_data.add_ushort_index(3);
+                init_data.add_index(0);
+                init_data.add_index(1);
+                init_data.add_index(2);
+                init_data.add_index(3);
 
                 m_rectangle.init_from(std::move(init_data));
             }
 
-            const ColorRGBA color(0.0f, 1.0f, 0.38f, 1.0f);
-            m_rectangle.set_color(color);
+            shader->set_uniform("view_model_matrix", Transform3d::Identity());
+            shader->set_uniform("projection_matrix", Transform3d::Identity());
+
+            m_rectangle.set_color({0.0f, 1.0f, 0.38f, 1.0f});
             m_rectangle.render();
             shader->stop_using();
         }
 
         glsafe(::glPopAttrib());
-
-        glsafe(::glPopMatrix());
     }
 
 } // namespace GUI

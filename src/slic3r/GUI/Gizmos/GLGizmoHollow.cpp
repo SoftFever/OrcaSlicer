@@ -103,28 +103,30 @@ void GLGizmoHollow::on_render_for_picking()
 
 void GLGizmoHollow::render_points(const Selection& selection, bool picking)
 {
-    GLShaderProgram* shader = picking ? wxGetApp().get_shader("flat") : wxGetApp().get_shader("gouraud_light");
+    GLShaderProgram* shader = picking ? wxGetApp().get_shader("flat_attr") : wxGetApp().get_shader("gouraud_light_attr");
     if (shader == nullptr)
         return;
-    
+
     shader->start_using();
     ScopeGuard guard([shader]() { shader->stop_using(); });
 
     const GLVolume* vol = selection.get_volume(*selection.get_volume_idxs().begin());
-    const Transform3d& instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
-    const Transform3d& instance_matrix = vol->get_instance_transformation().get_matrix();
+    const Transform3d instance_scaling_matrix_inverse = vol->get_instance_transformation().get_matrix(true, true, false, true).inverse();
+    const Transform3d instance_matrix = Geometry::assemble_transform(m_c->selection_info()->get_sla_shift() * Vec3d::UnitZ()) * vol->get_instance_transformation().get_matrix();
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(0.0, 0.0, m_c->selection_info()->get_sla_shift()));
-    glsafe(::glMultMatrixd(instance_matrix.data()));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d& projection_matrix = camera.get_projection_matrix();
+
+    shader->set_uniform("projection_matrix", projection_matrix);
 
     ColorRGBA render_color;
     const sla::DrainHoles& drain_holes = m_c->selection_info()->model_object()->sla_drain_holes;
-    size_t cache_size = drain_holes.size();
+    const size_t cache_size = drain_holes.size();
 
     for (size_t i = 0; i < cache_size; ++i) {
         const sla::DrainHole& drain_hole = drain_holes[i];
-        const bool& point_selected = m_selected[i];
+        const bool point_selected = m_selected[i];
 
         if (is_mesh_point_clipped(drain_hole.pos.cast<double>()))
             continue;
@@ -147,9 +149,7 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking)
         m_cylinder.set_color(render_color);
 
         // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(drain_hole.pos.x(), drain_hole.pos.y(), drain_hole.pos.z()));
-        glsafe(::glMultMatrixd(instance_scaling_matrix_inverse.data()));
+        const Transform3d hole_matrix = Geometry::assemble_transform(drain_hole.pos.cast<double>()) * instance_scaling_matrix_inverse;
 
         if (vol->is_left_handed())
             glFrontFace(GL_CW);
@@ -157,18 +157,17 @@ void GLGizmoHollow::render_points(const Selection& selection, bool picking)
         // Matrices set, we can render the point mark now.
         Eigen::Quaterniond q;
         q.setFromTwoVectors(Vec3d::UnitZ(), instance_scaling_matrix_inverse * (-drain_hole.normal).cast<double>());
-        Eigen::AngleAxisd aa(q);
-        glsafe(::glRotated(aa.angle() * (180. / M_PI), aa.axis().x(), aa.axis().y(), aa.axis().z()));
-        glsafe(::glTranslated(0., 0., -drain_hole.height));
-        glsafe(::glScaled(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
+        const Eigen::AngleAxisd aa(q);
+        const Transform3d view_model_matrix = view_matrix * instance_matrix * hole_matrix * Transform3d(aa.toRotationMatrix()) *
+            Geometry::assemble_transform(-drain_hole.height * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(drain_hole.radius, drain_hole.radius, drain_hole.height + sla::HoleStickOutLength));
+
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         m_cylinder.render();
 
         if (vol->is_left_handed())
             glFrontFace(GL_CCW);
-        glsafe(::glPopMatrix());
     }
-
-    glsafe(::glPopMatrix());
 }
 
 bool GLGizmoHollow::is_mesh_point_clipped(const Vec3d& point) const

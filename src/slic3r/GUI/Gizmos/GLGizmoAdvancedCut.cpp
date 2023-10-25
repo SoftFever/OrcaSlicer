@@ -492,8 +492,6 @@ void GLGizmoAdvancedCut::on_render_for_picking()
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glPushMatrix());
-
     BoundingBoxf3 box = m_parent.get_selection().get_bounding_box();
 #if ENABLE_FIXED_GRABBER
     float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
@@ -502,16 +500,16 @@ void GLGizmoAdvancedCut::on_render_for_picking()
 #endif
 
     m_move_grabber.color    = picking_color_component(0);
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
-
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         m_move_grabber.render_for_picking(mean_size);
 
         shader->stop_using();
     }
-
-    glsafe(::glPopMatrix());
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     auto inst_id = m_c->selection_info()->get_active_instance();
@@ -868,7 +866,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
 
@@ -877,7 +875,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             m_plane.reset();
 
             GLModel::Geometry init_data;
-            init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
             init_data.color  = { 0.8f, 0.8f, 0.8f, 0.5f };
             init_data.reserve_vertices(4);
             init_data.reserve_vertices(6);
@@ -888,11 +886,14 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             }
 
             // indices
-            init_data.add_ushort_triangle(0, 1, 2);
-            init_data.add_ushort_triangle(2, 3, 0);
+            init_data.add_triangle(0, 1, 2);
+            init_data.add_triangle(2, 3, 0);
 
             m_plane.init_from(std::move(init_data));
         }
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         m_plane.render();
 
         glsafe(::glEnable(GL_CULL_FACE));
@@ -907,17 +908,17 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             m_grabber_connection.reset();
 
             GLModel::Geometry init_data;
-            init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::EIndexType::USHORT };
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
             init_data.color  = ColorRGBA::YELLOW();
-            init_data.vertices.reserve(2 * GLModel::Geometry::vertex_stride_floats(init_data.format));
-            init_data.indices.reserve(2 * GLModel::Geometry::index_stride_bytes(init_data.format));
+            init_data.reserve_vertices(2);
+            init_data.reserve_vertices(2);
 
             // vertices
             init_data.add_vertex((Vec3f)plane_center_rot.cast<float>());
             init_data.add_vertex((Vec3f)m_move_grabber.center.cast<float>());
 
             // indices
-            init_data.add_ushort_line(0, 1);
+            init_data.add_line(0, 1);
 
             m_grabber_connection.init_from(std::move(init_data));
         }
@@ -933,7 +934,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     }
 
     {
-        GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
+        GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light_attr");
         if (shader == nullptr)
             return;
         shader->start_using();
@@ -960,13 +961,15 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
         cube.set_color(render_color);
 
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
-        glsafe(::glMultMatrixd(m_rotate_matrix.data()));
-
-        glsafe(::glScaled(fullsize, fullsize, fullsize));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d view_model_matrix = camera.get_view_matrix() * Geometry::assemble_transform(m_move_grabber.center) *
+                                              m_rotate_matrix *
+                                              Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), fullsize * Vec3d::Ones());
+        const Transform3d& projection_matrix = camera.get_projection_matrix();
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d) view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         cube.render();
-        glsafe(::glPopMatrix());
         shader->stop_using();
     }
 
@@ -1064,23 +1067,26 @@ void GLGizmoAdvancedCut::render_cut_line()
 
 void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA &color, Transform3d view_model_matrix, bool for_picking)
 {
-    glPushMatrix();
     GLShaderProgram *shader = nullptr;
     if (for_picking)
-        shader = wxGetApp().get_shader("cali");
+        shader = wxGetApp().get_shader("flat_attr");
     else
-        shader = wxGetApp().get_shader("gouraud_light");
+        shader = wxGetApp().get_shader("gouraud_light_attr");
     if (shader) {
         shader->start_using();
 
-        glsafe(::glMultMatrixd(view_model_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        view_model_matrix = camera.get_view_matrix() * view_model_matrix;
+        const Transform3d &projection_matrix = camera.get_projection_matrix();
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d) view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         model.set_color(color);
         model.render();
 
         shader->stop_using();
     }
-    glPopMatrix();
 }
 
 void GLGizmoAdvancedCut::clear_selection()

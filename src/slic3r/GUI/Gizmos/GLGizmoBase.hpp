@@ -68,6 +68,7 @@ protected:
         bool dragging{ false };
         Vec3d center{ Vec3d::Zero() };
         Vec3d angles{ Vec3d::Zero() };
+        Transform3d matrix{ Transform3d::Identity() };
         ColorRGBA color{GRABBER_NORMAL_COL};
         ColorRGBA hover_color{GRABBER_HOVER_COL};
 

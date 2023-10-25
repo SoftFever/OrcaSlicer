@@ -436,8 +436,8 @@ private:
     int contains_mouse_horizontal(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
-    void render_background(float left, float top, float right, float bottom, float border) const;
-    void render_horizontal(const GLCanvas3D& parent,GLToolbarItem::EType type);
+    void render_background(float left, float top, float right, float bottom, float border_w, float border_h) const;
+    void render_horizontal(const GLCanvas3D &parent, GLToolbarItem::EType type);
     void render_vertical(const GLCanvas3D& parent);
 
     bool generate_icons_texture();

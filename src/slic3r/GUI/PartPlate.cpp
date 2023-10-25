@@ -351,7 +351,7 @@ static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
 {
 
     GLModel::Geometry init_data;
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(2 * lines.size()) };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
     init_data.reserve_vertices(2 * lines.size());
     init_data.reserve_indices(2 * lines.size());
 
@@ -359,10 +359,7 @@ static bool init_model_from_lines(GLModel &model, const Lines &lines, float z)
         init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), z));
         init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), z));
         const unsigned int vertices_counter = (unsigned int)init_data.vertices_count();
-        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
-            init_data.add_ushort_line((unsigned short)vertices_counter - 2, (unsigned short)vertices_counter - 1);
-        else
-            init_data.add_uint_line(vertices_counter - 2, vertices_counter - 1);
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
     }
 
     model.init_from(std::move(init_data));
@@ -374,7 +371,7 @@ static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
 {
 
     GLModel::Geometry init_data;
-    init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(2 * lines.size())};
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
     init_data.reserve_vertices(2 * lines.size());
     init_data.reserve_indices(2 * lines.size());
 
@@ -382,10 +379,7 @@ static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
         init_data.add_vertex(Vec3f(unscale<float>(l.a.x()), unscale<float>(l.a.y()), unscale<float>(l.a.z())));
         init_data.add_vertex(Vec3f(unscale<float>(l.b.x()), unscale<float>(l.b.y()), unscale<float>(l.b.z())));
         const unsigned int vertices_counter = (unsigned int) init_data.vertices_count();
-        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
-            init_data.add_ushort_line((unsigned short) vertices_counter - 2, (unsigned short) vertices_counter - 1);
-        else
-            init_data.add_uint_line(vertices_counter - 2, vertices_counter - 1);
+        init_data.add_line(vertices_counter - 2, vertices_counter - 1);
     }
 
     model.init_from(std::move(init_data));
@@ -583,9 +577,12 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel& logo_buffe
 	}
 
 	if (logo_buffer.is_initialized()) {
-		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+		GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
 		if (shader != nullptr) {
 			shader->start_using();
+            const Camera &camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 			shader->set_uniform("transparent_background", 0);
 			shader->set_uniform("svg_source", 0);
 
@@ -852,9 +849,12 @@ void PartPlate::show_tooltip(const std::string tooltip)
 
 void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 {
-	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+	GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
 	if (shader != nullptr) {
 		shader->start_using();
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
 		shader->set_uniform("svg_source", 0);
@@ -940,9 +940,12 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
 void PartPlate::render_only_numbers(bool bottom)
 {
-	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
+	GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
 	if (shader != nullptr) {
 		shader->start_using();
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 		shader->set_uniform("transparent_background", bottom);
 		//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_partplate_list->m_del_texture.get_source(), ".svg"));
 		shader->set_uniform("svg_source", 0);
@@ -968,13 +971,16 @@ void PartPlate::render_only_numbers(bool bottom)
     }
 }
 
-void PartPlate::render_rectangle_for_picking(GLModel &buffer, const ColorRGBA render_color)
+void PartPlate::render_rectangle_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix, GLModel &buffer, const ColorRGBA render_color)
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
+
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
 
 	    //glsafe(::glDepthMask(GL_FALSE));
 		buffer.set_color(render_color);
@@ -1203,36 +1209,36 @@ void PartPlate::render_right_arrow(const ColorRGBA render_color, bool use_lighti
 }
 */
 
-void PartPlate::on_render_for_picking() {
+void PartPlate::on_render_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix) {
 	//glsafe(::glDisable(GL_DEPTH_TEST));
 	int hover_id = 0;
 	ColorRGBA color	= picking_color_component(hover_id);
     m_grabber_color = color;
 	//render_grabber(m_grabber_color, false);
-	render_rectangle_for_picking(m_triangles, m_grabber_color);
+    render_rectangle_for_picking(view_matrix, projection_matrix, m_triangles, m_grabber_color);
 	hover_id = 1;
     color           = picking_color_component(hover_id);
     m_grabber_color = color;
 	//render_left_arrow(m_grabber_color, false);
-	render_rectangle_for_picking(m_del_icon, m_grabber_color);
+    render_rectangle_for_picking(view_matrix, projection_matrix, m_del_icon, m_grabber_color);
 	hover_id = 2;
     color           = picking_color_component(hover_id);
     m_grabber_color = color;
-	render_rectangle_for_picking(m_orient_icon, m_grabber_color);
+    render_rectangle_for_picking(view_matrix, projection_matrix, m_orient_icon, m_grabber_color);
     hover_id = 3;
     color           = picking_color_component(hover_id);
     m_grabber_color = color;
-	render_rectangle_for_picking(m_arrange_icon, m_grabber_color);
+    render_rectangle_for_picking(view_matrix, projection_matrix, m_arrange_icon, m_grabber_color);
 	hover_id = 4;
     color           = picking_color_component(hover_id);
     m_grabber_color = color;
 	//render_right_arrow(m_grabber_color, false);
-	render_rectangle_for_picking(m_lock_icon, m_grabber_color);
+    render_rectangle_for_picking(view_matrix, projection_matrix, m_lock_icon, m_grabber_color);
 	hover_id = 5;
     color           = picking_color_component(hover_id);
     m_grabber_color = color;
     if (m_partplate_list->render_plate_settings)
-        render_rectangle_for_picking(m_plate_settings_icon, m_grabber_color);
+        render_rectangle_for_picking(view_matrix, projection_matrix, m_plate_settings_icon, m_grabber_color);
 }
 
 ColorRGBA PartPlate::picking_color_component(int idx) const
@@ -2494,7 +2500,7 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	return print_volume.intersects(bb);
 }
 
-void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
+void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
     GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
@@ -2503,8 +2509,8 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        const Transform3d matrix = wxGetApp().plater()->get_camera().get_projection_view_matrix();
-        shader->set_uniform("projection_view_model_matrix", matrix);
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
 
         if (!bottom) {
             // draw background
@@ -4352,7 +4358,7 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 
 /*rendering related functions*/
 //render
-void PartPlateList::render(bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
+void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
@@ -4377,25 +4383,25 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 		if (current_index == m_current_plate) {
 			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, height_mode, plate_hover_action, render_cali);
+                (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, height_mode, plate_hover_action, render_cali);
 			else
-				(*it)->render(bottom, only_body, false, height_mode, -1, render_cali);
+                (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, height_mode, -1, render_cali);
 		}
 		else {
 			if (plate_hover_index == current_index)
-				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action, render_cali);
+				(*it)->render(view_matrix, projection_matrix, bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, plate_hover_action, render_cali);
 			else
-				(*it)->render(bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
+                (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}
 	}
 }
 
-void PartPlateList::render_for_picking_pass()
+void PartPlateList::render_for_picking_pass(const Transform3d &view_matrix, const Transform3d &projection_matrix)
 {
 	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
 	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
 	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
-		(*it)->render_for_picking();
+        (*it)->render_for_picking(view_matrix, projection_matrix);
 	}
 }
 

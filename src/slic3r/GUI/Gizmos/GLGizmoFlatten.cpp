@@ -2,6 +2,7 @@
 #include "GLGizmoFlatten.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
@@ -63,7 +64,7 @@ void GLGizmoFlatten::on_render()
 {
     const Selection& selection = m_parent.get_selection();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader == nullptr)
         return;
     
@@ -75,16 +76,18 @@ void GLGizmoFlatten::on_render()
 
     if (selection.is_single_full_instance()) {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
-        glsafe(::glMultMatrixd(m.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d view_model_matrix = camera.get_view_matrix() *
+            Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) * m;
+
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
 		    m_planes[i].vbo.set_color(i == m_hover_id ? GLGizmoBase::FLATTEN_HOVER_COLOR : GLGizmoBase::FLATTEN_COLOR);
             m_planes[i].vbo.render();
         }
-        glsafe(::glPopMatrix());
     }
 
     glsafe(::glEnable(GL_CULL_FACE));
@@ -95,7 +98,7 @@ void GLGizmoFlatten::on_render()
 void GLGizmoFlatten::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader == nullptr)
         return;
 
@@ -106,16 +109,18 @@ void GLGizmoFlatten::on_render_for_picking()
 
     if (selection.is_single_full_instance() && !wxGetKeyState(WXK_CONTROL)) {
         const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        glsafe(::glPushMatrix());
-        glsafe(::glTranslatef(0.f, 0.f, selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z()));
-        glsafe(::glMultMatrixd(m.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d view_model_matrix = camera.get_view_matrix() *
+            Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) * m;
+
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
             m_planes[i].vbo.set_color(picking_color_component(i));
             m_planes[i].vbo.render();
         }
-        glsafe(::glPopMatrix());
     }
 
     glsafe(::glEnable(GL_CULL_FACE));
@@ -337,16 +342,13 @@ void GLGizmoFlatten::update_planes()
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
         GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::TriangleFan, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::index_type(plane.vertices.size()) };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::TriangleFan, GLModel::Geometry::EVertexLayout::P3N3 };
         init_data.reserve_vertices(plane.vertices.size());
         init_data.reserve_indices(plane.vertices.size());
         // vertices + indices
         for (size_t i = 0; i < plane.vertices.size(); ++i) {
             init_data.add_vertex((Vec3f)plane.vertices[i].cast<float>(), (Vec3f)plane.normal.cast<float>());
-            if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
-                init_data.add_ushort_index((unsigned short)i);
-            else
-                init_data.add_uint_index((unsigned int)i);
+            init_data.add_index((unsigned int)i);
         }
         plane.vbo.init_from(std::move(init_data));
         // FIXME: vertices should really be local, they need not

@@ -325,11 +325,11 @@ public:
     bool get_uniform_scaling() const { return m_object_manipulation.get_uniform_scaling();}
 
 private:
-    void render_background(float left, float top, float right, float bottom, float border) const;
+    void render_background(float left, float top, float right, float bottom, float border_w, float border_h) const;
     
     void do_render_overlay() const;
 
-    bool generate_icons_texture() const;
+    bool generate_icons_texture();
 
     void update_on_off_state(const Vec2d& mouse_pos);
     std::string update_hover_state(const Vec2d& mouse_pos);

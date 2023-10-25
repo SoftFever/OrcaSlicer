@@ -36,12 +36,12 @@ public:
     bool is_dragging() const { return m_state != Off; }
     EState get_state() const { return m_state; }
 
-    float get_width() const { return std::abs(m_start_corner(0) - m_end_corner(0)); }
-    float get_height() const { return std::abs(m_start_corner(1) - m_end_corner(1)); }
-    float get_left() const { return std::min(m_start_corner(0), m_end_corner(0)); }
-    float get_right() const { return std::max(m_start_corner(0), m_end_corner(0)); }
-    float get_top() const { return std::max(m_start_corner(1), m_end_corner(1)); }
-    float get_bottom() const { return std::min(m_start_corner(1), m_end_corner(1)); }
+    float get_width() const  { return std::abs(m_start_corner.x() - m_end_corner.x()); }
+    float get_height() const { return std::abs(m_start_corner.y() - m_end_corner.y()); }
+    float get_left() const   { return std::min(m_start_corner.x(), m_end_corner.x()); }
+    float get_right() const  { return std::max(m_start_corner.x(), m_end_corner.x()); }
+    float get_top() const    { return std::max(m_start_corner.y(), m_end_corner.y()); }
+    float get_bottom() const { return std::min(m_start_corner.y(), m_end_corner.y()); }
 
 private:
     EState m_state{ Off };

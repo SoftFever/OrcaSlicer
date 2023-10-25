@@ -48,7 +48,6 @@ varying vec2 intensity;
 
 uniform PrintVolumeDetection print_volume;
 
-varying vec4 model_pos;
 varying vec4 world_pos;
 varying float world_normal_z;
 varying vec3 eye_normal;

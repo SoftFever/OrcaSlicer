@@ -1,9 +1,9 @@
 #version 110
 
-varying vec2 tex_coords;
+varying vec2 tex_coord;
 
 void main()
 {
     gl_Position = ftransform();
-	tex_coords = gl_MultiTexCoord0.xy;
+	tex_coord = gl_MultiTexCoord0.xy;
 }

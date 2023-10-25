@@ -6,6 +6,7 @@
 #include "GUI_Colors.hpp"
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
+#include "Camera.hpp"
 
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -96,10 +97,14 @@ void GLVolume::SinkingContours::render()
 {
     update();
 
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_shift.x(), m_shift.y(), m_shift.z()));
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
+    const GUI::Camera& camera = GUI::wxGetApp().plater()->get_camera();
+    shader->set_uniform("view_model_matrix", camera.get_view_matrix() * Geometry::assemble_transform(m_shift));
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
     m_model.render();
-    glsafe(::glPopMatrix());
 }
 
 void GLVolume::SinkingContours::update()
@@ -117,7 +122,7 @@ void GLVolume::SinkingContours::update()
 
             m_model.reset();
             GUI::GLModel::Geometry init_data;
-            init_data.format = { GUI::GLModel::Geometry::EPrimitiveType::Triangles, GUI::GLModel::Geometry::EVertexLayout::P3, GUI::GLModel::Geometry::EIndexType::UINT };
+            init_data.format = { GUI::GLModel::Geometry::EPrimitiveType::Triangles, GUI::GLModel::Geometry::EVertexLayout::P3 };
             init_data.color = ColorRGBA::WHITE();
             unsigned int vertices_counter = 0;
             MeshSlicingParams slicing_params;
@@ -131,7 +136,7 @@ void GLVolume::SinkingContours::update()
                     init_data.add_vertex((Vec3f)(v.cast<float>() + 0.015f * Vec3f::UnitZ())); // add a small positive z to avoid z-fighting
                     ++vertices_counter;
                     if (vertices_counter % 3 == 0)
-                        init_data.add_uint_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
+                        init_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
                 }
             }
             m_model.init_from(std::move(init_data));
@@ -398,10 +403,17 @@ void GLVolume::render(bool with_outline)
     if (!is_active)
         return;
 
+    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     if (this->is_left_handed())
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
-    glsafe(::glPushMatrix());
+    if (with_outline) {
+        // Error: not supported!
+        throw Slic3r::InvalidArgument("Render GLVolume with outline is not supported");
+    }
 
     // BBS: add logic for mmu segmentation rendering
     auto render_body = [&]() {
@@ -446,7 +458,6 @@ void GLVolume::render(bool with_outline)
                 for (int index = 0; index < colors.size(); index++)
                     colors[index].a(render_color.a());
             }
-            glsafe(::glMultMatrixd(world_matrix().data()));
             for (int idx = 0; idx < mmuseg_models.size(); idx++) {
                 GUI::GLModel &m = mmuseg_models[idx];
                 if (m.is_empty())
@@ -489,7 +500,6 @@ void GLVolume::render(bool with_outline)
             }
         }
         else {
-            glsafe(::glMultMatrixd(world_matrix().data()));
             if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
                 model.render();
             else
@@ -498,7 +508,6 @@ void GLVolume::render(bool with_outline)
     };
 
     //BBS: add logic of outline rendering
-    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
     //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, with_outline %2%, shader %3%.")%__LINE__ %with_outline %shader;
     if (with_outline && shader != nullptr)
     {
@@ -629,7 +638,6 @@ void GLVolume::render(bool with_outline)
         render_body();
         //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, normal render.")%__LINE__;
     }
-    glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
 }
@@ -640,7 +648,6 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     if (this->is_left_handed())
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
-    glsafe(::glPushMatrix());
 
     bool color_volume = false;
     ModelObject* model_object = nullptr;
@@ -704,16 +711,12 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
             else
                 m.render(this->tverts_range);
         }
-    }
-    else {
-        glsafe(::glMultMatrixd(world_matrix().data()));
+    } else {
         if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
             model.render();
         else
             model.render(this->tverts_range);
     }
-
-    glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
 }
@@ -997,8 +1000,8 @@ int GLVolumeCollection::get_selection_support_threshold_angle(bool &enable_suppo
 }
 
 //BBS: add outline drawing logic
-void GLVolumeCollection::render(
-    GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d &view_matrix, std::function<bool(const GLVolume &)> filter_func, bool with_outline) const
+void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disable_cullface, const Transform3d& view_matrix, const Transform3d& projection_matrix,
+    std::function<bool(const GLVolume&)> filter_func, bool with_outline) const
 {
     GLVolumeWithIdAndZList to_render = volumes_to_render(volumes, type, view_matrix, filter_func);
     if (to_render.empty())
@@ -1008,8 +1011,9 @@ void GLVolumeCollection::render(
     if (shader == nullptr)
         return;
 
-    GLShaderProgram* sink_shader  = GUI::wxGetApp().get_shader("flat");
-    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat");
+    GLShaderProgram* sink_shader = GUI::wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat_attr");
+    assert(boost::algorithm::iends_with(shader->get_name(), "_attr"));
 
     if (type == ERenderType::Transparent) {
         glsafe(::glEnable(GL_BLEND));
@@ -1048,9 +1052,6 @@ void GLVolumeCollection::render(
             sink_shader->stop_using();
         }
         shader->start_using();
-
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
 
         if (!volume.first->model.is_initialized())
             shader->set_uniform("uniform_color", volume.first->render_color);
@@ -1096,6 +1097,10 @@ void GLVolumeCollection::render(
         glcheck();
 
         volume.first->model.set_color(volume.first->render_color);
+        const Transform3d matrix = view_matrix * volume.first->world_matrix();
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         //BBS: add outline related logic
         volume.first->render(with_outline && volume.first->selected);
 
@@ -1106,9 +1111,6 @@ void GLVolumeCollection::render(
 
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
     }
 
     if (m_show_sinking_contours) {
@@ -1462,8 +1464,8 @@ static void thick_lines_to_geometry(
 
         if (!is_first && bottom_z_different) {
             // Found a change of the layer thickness -> Add a cap at the end of the previous segment.
-            geometry.add_uint_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
-            geometry.add_uint_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
+            geometry.add_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
+            geometry.add_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
         }
 
         // Share top / bottom vertices if possible.
@@ -1513,13 +1515,13 @@ static void thick_lines_to_geometry(
                     geometry.add_vertex(Vec3f(a2.x(), a2.y(), middle_z), Vec3f(-xy_right_normal.x(), -xy_right_normal.y(), 0.0f));
                     if (cross2(v_prev, v) > 0.0) {
                         // Right turn. Fill in the right turn wedge.
-                        geometry.add_uint_triangle(idx_prev[Right], idx_a[Right], idx_prev[Top]);
-                        geometry.add_uint_triangle(idx_prev[Right], idx_prev[Bottom], idx_a[Right]);
+                        geometry.add_triangle(idx_prev[Right], idx_a[Right], idx_prev[Top]);
+                        geometry.add_triangle(idx_prev[Right], idx_prev[Bottom], idx_a[Right]);
                     }
                     else {
                         // Left turn. Fill in the left turn wedge.
-                        geometry.add_uint_triangle(idx_prev[Left], idx_prev[Top], idx_a[Left]);
-                        geometry.add_uint_triangle(idx_prev[Left], idx_a[Left], idx_prev[Bottom]);
+                        geometry.add_triangle(idx_prev[Left], idx_prev[Top], idx_a[Left]);
+                        geometry.add_triangle(idx_prev[Left], idx_a[Left], idx_prev[Bottom]);
                     }
                 }
             }
@@ -1541,11 +1543,11 @@ static void thick_lines_to_geometry(
                         // Replace the left / right vertex indices to point to the start of the loop.
                         const size_t indices_count = geometry.indices_count();
                         for (size_t u = indices_count - 24; u < indices_count; ++u) {
-                            const unsigned int id = geometry.extract_uint_index(u);
+                            const unsigned int id = geometry.extract_index(u);
                             if (id == (unsigned int)idx_prev[Left])
-                                geometry.set_uint_index(u, (unsigned int)idx_initial[Left]);
+                                geometry.set_index(u, (unsigned int)idx_initial[Left]);
                             else if (id == (unsigned int)idx_prev[Right])
-                                geometry.set_uint_index(u, (unsigned int)idx_initial[Right]);
+                                geometry.set_index(u, (unsigned int)idx_initial[Right]);
                         }
                     }
                 }
@@ -1582,36 +1584,36 @@ static void thick_lines_to_geometry(
 
         if (bottom_z_different && (closed || (!is_first && !is_last))) {
             // Found a change of the layer thickness -> Add a cap at the beginning of this segment.
-            geometry.add_uint_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
-            geometry.add_uint_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
+            geometry.add_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
+            geometry.add_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
         }
 
         if (!closed) {
             // Terminate open paths with caps.
             if (is_first) {
-                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
-                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
+                geometry.add_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
+                geometry.add_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
             }
             // We don't use 'else' because both cases are true if we have only one line.
             if (is_last) {
-                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
-                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
+                geometry.add_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
+                geometry.add_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
             }
         }
 
         // Add quads for a straight hollow tube-like segment.
         // bottom-right face
-        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Bottom], idx_b[Right]);
-        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Right], idx_a[Right]);
+        geometry.add_triangle(idx_a[Bottom], idx_b[Bottom], idx_b[Right]);
+        geometry.add_triangle(idx_a[Bottom], idx_b[Right], idx_a[Right]);
         // top-right face
-        geometry.add_uint_triangle(idx_a[Right], idx_b[Right], idx_b[Top]);
-        geometry.add_uint_triangle(idx_a[Right], idx_b[Top], idx_a[Top]);
+        geometry.add_triangle(idx_a[Right], idx_b[Right], idx_b[Top]);
+        geometry.add_triangle(idx_a[Right], idx_b[Top], idx_a[Top]);
         // top-left face
-        geometry.add_uint_triangle(idx_a[Top], idx_b[Top], idx_b[Left]);
-        geometry.add_uint_triangle(idx_a[Top], idx_b[Left], idx_a[Left]);
+        geometry.add_triangle(idx_a[Top], idx_b[Top], idx_b[Left]);
+        geometry.add_triangle(idx_a[Top], idx_b[Left], idx_a[Left]);
         // bottom-left face
-        geometry.add_uint_triangle(idx_a[Left], idx_b[Left], idx_b[Bottom]);
-        geometry.add_uint_triangle(idx_a[Left], idx_b[Bottom], idx_a[Bottom]);
+        geometry.add_triangle(idx_a[Left], idx_b[Left], idx_b[Bottom]);
+        geometry.add_triangle(idx_a[Left], idx_b[Bottom], idx_a[Bottom]);
     }
 }
 
@@ -1751,13 +1753,13 @@ static void thick_lines_to_geometry(
 
                 if (is_right_turn) {
                     // Right turn. Fill in the right turn wedge.
-                    geometry.add_uint_triangle(idx_prev[Right], idx_a[Right], idx_prev[Top]);
-                    geometry.add_uint_triangle(idx_prev[Right], idx_prev[Bottom], idx_a[Right]);
+                    geometry.add_triangle(idx_prev[Right], idx_a[Right], idx_prev[Top]);
+                    geometry.add_triangle(idx_prev[Right], idx_prev[Bottom], idx_a[Right]);
                 }
                 else {
                     // Left turn. Fill in the left turn wedge.
-                    geometry.add_uint_triangle(idx_prev[Left], idx_prev[Top], idx_a[Left]);
-                    geometry.add_uint_triangle(idx_prev[Left], idx_a[Left], idx_prev[Bottom]);
+                    geometry.add_triangle(idx_prev[Left], idx_prev[Top], idx_a[Left]);
+                    geometry.add_triangle(idx_prev[Left], idx_a[Left], idx_prev[Bottom]);
                 }
             }
             else {
@@ -1776,11 +1778,11 @@ static void thick_lines_to_geometry(
                     // Replace the left / right vertex indices to point to the start of the loop.
                     const size_t indices_count = geometry.indices_count();
                     for (size_t u = indices_count - 24; u < indices_count; ++u) {
-                        const unsigned int id = geometry.extract_uint_index(u);
+                        const unsigned int id = geometry.extract_index(u);
                         if (id == (unsigned int)idx_prev[Left])
-                            geometry.set_uint_index(u, (unsigned int)idx_initial[Left]);
+                            geometry.set_index(u, (unsigned int)idx_initial[Left]);
                         else if (id == (unsigned int)idx_prev[Right])
-                            geometry.set_uint_index(u, (unsigned int)idx_initial[Right]);
+                            geometry.set_index(u, (unsigned int)idx_initial[Right]);
                     }
                 }
 
@@ -1819,30 +1821,30 @@ static void thick_lines_to_geometry(
         if (!closed) {
             // Terminate open paths with caps.
             if (i == 0) {
-                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
-                geometry.add_uint_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
+                geometry.add_triangle(idx_a[Bottom], idx_a[Right], idx_a[Top]);
+                geometry.add_triangle(idx_a[Bottom], idx_a[Top], idx_a[Left]);
             }
 
             // We don't use 'else' because both cases are true if we have only one line.
             if (i + 1 == lines.size()) {
-                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
-                geometry.add_uint_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
+                geometry.add_triangle(idx_b[Bottom], idx_b[Left], idx_b[Top]);
+                geometry.add_triangle(idx_b[Bottom], idx_b[Top], idx_b[Right]);
             }
         }
 
         // Add quads for a straight hollow tube-like segment.
         // bottom-right face
-        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Bottom], idx_b[Right]);
-        geometry.add_uint_triangle(idx_a[Bottom], idx_b[Right], idx_a[Right]);
+        geometry.add_triangle(idx_a[Bottom], idx_b[Bottom], idx_b[Right]);
+        geometry.add_triangle(idx_a[Bottom], idx_b[Right], idx_a[Right]);
         // top-right face
-        geometry.add_uint_triangle(idx_a[Right], idx_b[Right], idx_b[Top]);
-        geometry.add_uint_triangle(idx_a[Right], idx_b[Top], idx_a[Top]);
+        geometry.add_triangle(idx_a[Right], idx_b[Right], idx_b[Top]);
+        geometry.add_triangle(idx_a[Right], idx_b[Top], idx_a[Top]);
         // top-left face
-        geometry.add_uint_triangle(idx_a[Top], idx_b[Top], idx_b[Left]);
-        geometry.add_uint_triangle(idx_a[Top], idx_b[Left], idx_a[Left]);
+        geometry.add_triangle(idx_a[Top], idx_b[Top], idx_b[Left]);
+        geometry.add_triangle(idx_a[Top], idx_b[Left], idx_a[Left]);
         // bottom-left face
-        geometry.add_uint_triangle(idx_a[Left], idx_b[Left], idx_b[Bottom]);
-        geometry.add_uint_triangle(idx_a[Left], idx_b[Bottom], idx_a[Bottom]);
+        geometry.add_triangle(idx_a[Left], idx_b[Left], idx_b[Bottom]);
+        geometry.add_triangle(idx_a[Left], idx_b[Bottom], idx_a[Bottom]);
     }
 }
 

@@ -75,7 +75,7 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
 
 void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
-    auto* shader = wxGetApp().get_shader("gouraud");
+    auto* shader = wxGetApp().get_shader("gouraud_attr");
     if (! shader)
         return;
     shader->start_using();
@@ -105,8 +105,11 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d matrix = camera.get_view_matrix() * trafo_matrix;
+        shader->set_uniform("view_model_matrix", matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
 
         // For printers with multiple extruders, it is necessary to pass trafo_matrix
         // to the shader input variable print_box.volume_world_matrix before
@@ -114,9 +117,8 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         // wrong transformation matrix is used for "Clipping of view".
         shader->set_uniform("volume_world_matrix", trafo_matrix);
 
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -165,43 +167,34 @@ void GLGizmoPainterBase::render_cursor()
 
 void GLGizmoPainterBase::render_cursor_circle()
 {
-    const Camera &camera   = wxGetApp().plater()->get_camera();
-    const float   zoom     = float(camera.get_zoom());
-    const float   inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
     const Size  cnv_size        = m_parent.get_canvas_size();
-    const float cnv_half_width  = 0.5f * float(cnv_size.get_width());
-    const float cnv_half_height = 0.5f * float(cnv_size.get_height());
-    if (cnv_half_width == 0.0f || cnv_half_height == 0.0f)
+    const float cnv_width  = float(cnv_size.get_width());
+    const float cnv_height = float(cnv_size.get_height());
+    if (cnv_width == 0.0f || cnv_height == 0.0f)
         return;
-    const Vec2d mouse_pos(m_parent.get_local_mouse_position().x(), m_parent.get_local_mouse_position().y());
-    Vec2d center(mouse_pos.x() - cnv_half_width, cnv_half_height - mouse_pos.y());
-    center = center * inv_zoom;
+
+    const float cnv_inv_width  = 1.0f / cnv_width;
+    const float cnv_inv_height = 1.0f / cnv_height;
+
+    const Vec2d center = m_parent.get_local_mouse_position();
+    const float radius = m_cursor_radius * float(wxGetApp().plater()->get_camera().get_zoom());
 
     glsafe(::glLineWidth(1.5f));
     glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    // ensure that the circle is renderered inside the frustrum
-    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.5)));
-    // ensure that the overlay fits the frustrum near z plane
-    const double gui_scale = camera.get_gui_scale();
-    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
     glsafe(::glPushAttrib(GL_ENABLE_BIT));
     glsafe(::glLineStipple(4, 0xAAAA));
     glsafe(::glEnable(GL_LINE_STIPPLE));
 
-    if (!m_circle.is_initialized() || !m_old_center.isApprox(center) || std::abs(m_old_cursor_radius - m_cursor_radius) > EPSILON) {
+    if (!m_circle.is_initialized() || !m_old_center.isApprox(center) || std::abs(m_old_cursor_radius - radius) > EPSILON) {
+        m_old_cursor_radius = radius;
         m_old_center = center;
-        m_old_cursor_radius = m_cursor_radius;
         m_circle.reset();
 
         GLModel::Geometry init_data;
         static const unsigned int StepsCount = 32;
         static const float StepSize = 2.0f * float(PI) / float(StepsCount);
-        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2, GLModel::Geometry::EIndexType::USHORT };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
         init_data.color  = { 0.0f, 1.0f, 0.3f, 1.0f };
         init_data.reserve_vertices(StepsCount);
         init_data.reserve_indices(StepsCount);
@@ -209,8 +202,9 @@ void GLGizmoPainterBase::render_cursor_circle()
         // vertices + indices
         for (unsigned short i = 0; i < StepsCount; ++i) {
             const float angle = float(i * StepSize);
-            init_data.add_vertex(Vec2f(center.x() + ::cos(angle) * m_cursor_radius, center.y() + ::sin(angle) * m_cursor_radius));
-            init_data.add_ushort_index(i);
+            init_data.add_vertex(Vec2f(2.0f * ((center.x() + ::cos(angle) * radius) * cnv_inv_width - 0.5f),
+                                       -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
+            init_data.add_index(i);
         }
 
         m_circle.init_from(std::move(init_data));
@@ -225,15 +219,16 @@ void GLGizmoPainterBase::render_cursor_circle()
 
     m_circle.set_color(render_color);
 	
-    GLShaderProgram* shader = GUI::wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
+        shader->set_uniform("view_model_matrix", Transform3d::Identity());
+        shader->set_uniform("projection_matrix", Transform3d::Identity());
         m_circle.render();
         shader->stop_using();
     }
 
     glsafe(::glPopAttrib());
-    glsafe(::glPopMatrix());
     glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
@@ -245,19 +240,12 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         s_sphere->init_from(its_make_sphere(1.0, double(PI) / 12.0));
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader == nullptr)
         return;
 
     const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
     const bool is_left_handed = Geometry::Transformation(trafo).is_left_handed();
-
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(trafo.data()));
-    // Inverse matrix of the instance scaling is applied so that the mark does not scale with the object.
-    glsafe(::glTranslatef(m_rr.hit.x(), m_rr.hit.y(), m_rr.hit.z()));
-    glsafe(::glMultMatrixd(complete_scaling_matrix_inverse.data()));
-    glsafe(::glScaled(m_cursor_radius, m_cursor_radius, m_cursor_radius));
 
     if (is_left_handed)
         glFrontFace(GL_CW);
@@ -270,6 +258,14 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         render_color = this->get_cursor_sphere_right_button_color();
     shader->start_using();
 
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d view_model_matrix = camera.get_view_matrix() * trafo *
+        Geometry::assemble_transform(m_rr.hit.cast<double>()) * complete_scaling_matrix_inverse *
+        Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), m_cursor_radius * Vec3d::Ones());
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
     assert(s_sphere != nullptr);
     s_sphere->set_color(render_color);
     s_sphere->render();
@@ -277,13 +273,17 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     shader->stop_using();
     if (is_left_handed)
         glFrontFace(GL_CCW);
-
-    glsafe(::glPopMatrix());
 }
 
 // BBS
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
+    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
+
     const BoundingBoxf3 box = bounding_box();
     Vec3d hit_world = trafo * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
     float max_z = (float)box.max.z();
@@ -309,14 +309,18 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
         for (int i = 0; i < zs.size(); i++) {
             update_contours(vol_mesh, zs[i], max_z, min_z);
 
-            glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_cut_contours.shift.x(), m_cut_contours.shift.y(), m_cut_contours.shift.z()));
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            Transform3d view_model_matrix = camera.get_view_matrix()  * Geometry::assemble_transform(m_cut_contours.shift);
+
+            shader->set_uniform("view_model_matrix", view_model_matrix);
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
             glsafe(::glLineWidth(2.0f));
             m_cut_contours.contours.render();
-            glsafe(::glPopMatrix());
         }
 
     }
+
+    shader->stop_using();
 }
 
 BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
@@ -1056,7 +1060,7 @@ ColorRGBA TriangleSelectorGUI::get_seed_fill_color(const ColorRGBA& base_color)
         1.f};
 }
 
-void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
+void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
 {
     if (m_update_render_data) {
         update_render_data();
@@ -1066,7 +1070,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
         return;
-    assert(shader->get_name() == "gouraud");
+    assert(shader->get_name() == "gouraud_attr" || shader->get_name() == "mm_gouraud_attr");
     ScopeGuard guard([shader]() { if (shader) shader->set_uniform("offset_depth_buffer", false);});
     shader->set_uniform("offset_depth_buffer", true);
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
@@ -1084,7 +1088,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
         iva.render();
     }
 
-    render_paint_contour();
+    render_paint_contour(matrix);
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     if (imgui)
@@ -1109,12 +1113,12 @@ void TriangleSelectorGUI::update_render_data()
     }
 
     GLModel::Geometry iva_enforcers_data;
-    iva_enforcers_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+    iva_enforcers_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
     GLModel::Geometry iva_blockers_data;
-    iva_blockers_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+    iva_blockers_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
     std::array<GLModel::Geometry, 3> iva_seed_fills_data;
     for (auto& data : iva_seed_fills_data)
-        data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3, GLModel::Geometry::EIndexType::UINT };
+        data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
 
     for (const Triangle &tr : m_triangles) {
         bool is_valid = tr.valid();
@@ -1140,7 +1144,7 @@ void TriangleSelectorGUI::update_render_data()
         iva.add_vertex(v0, n);
         iva.add_vertex(v1, n);
         iva.add_vertex(v2, n);
-        iva.add_uint_triangle((unsigned int)cnt, (unsigned int)cnt + 1, (unsigned int)cnt + 2);
+        iva.add_triangle((unsigned int)cnt, (unsigned int)cnt + 1, (unsigned int)cnt + 2);
         cnt += 3;
     }
 
@@ -1164,7 +1168,7 @@ bool TrianglePatch::is_fragment() const
 
 float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
-void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
+void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matrix)
 {
     if (m_update_render_data) {
         update_render_data();
@@ -1174,8 +1178,8 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
     auto* shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
-    assert(shader->get_name() == "mm_gouraud");
-    GLint position_id = -1;
+    assert(shader->get_name() == "gouraud_attr" || shader->get_name() == "mm_gouraud_attr");
+    GLint position_id    = -1;
     GLint barycentric_id = -1;
     if (wxGetApp().plater()->is_wireframe_enabled()) {
         position_id = shader->get_attrib_location("v_position");
@@ -1212,7 +1216,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
         }
     }
 
-    render_paint_contour();
+    render_paint_contour(matrix);
 }
 
 void TriangleSelectorPatch::update_triangles_per_type()
@@ -1631,9 +1635,13 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
     if (curr_shader != nullptr)
         curr_shader->stop_using();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
     ::glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     for (vtype i : {ORIGINAL, SPLIT, INVALID}) {
@@ -1661,34 +1669,36 @@ void TriangleSelectorGUI::update_paint_contour()
 
     GLModel::Geometry init_data;
     const std::vector<Vec2i> contour_edges = this->get_seed_fill_contour();
-    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3, GLModel::Geometry::index_type(2 * contour_edges.size()) };
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
     init_data.reserve_vertices(2 * contour_edges.size());
     init_data.reserve_indices(2 * contour_edges.size());
+    init_data.color = ColorRGBA::WHITE();
     // vertices + indices
     unsigned int vertices_count = 0;
     for (const Vec2i& edge : contour_edges) {
         init_data.add_vertex(m_vertices[edge(0)].v);
         init_data.add_vertex(m_vertices[edge(1)].v);
         vertices_count += 2;
-        if (init_data.format.index_type == GLModel::Geometry::EIndexType::USHORT)
-            init_data.add_ushort_line((unsigned short)vertices_count - 2, (unsigned short)vertices_count - 1);
-        else
-            init_data.add_uint_line(vertices_count - 2, vertices_count - 1);
+        init_data.add_line(vertices_count - 2, vertices_count - 1);
     }
 
     if (!init_data.is_empty())
         m_paint_contour.init_from(std::move(init_data));
 }
 
-void TriangleSelectorGUI::render_paint_contour()
+void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)
 {
     auto* curr_shader = wxGetApp().get_current_shader();
     if (curr_shader != nullptr)
         curr_shader->stop_using();
 
-    auto* contour_shader = wxGetApp().get_shader("mm_contour");
+    auto* contour_shader = wxGetApp().get_shader("mm_contour_attr");
     if (contour_shader != nullptr) {
         contour_shader->start_using();
+
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        contour_shader->set_uniform("view_model_matrix", camera.get_view_matrix() * matrix);
+        contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
         glsafe(::glDepthFunc(GL_LEQUAL));
         m_paint_contour.render();

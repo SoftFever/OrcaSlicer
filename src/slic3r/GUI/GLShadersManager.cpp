@@ -34,25 +34,22 @@ std::pair<bool, std::string> GLShadersManager::init()
     bool valid = true;
 
     // basic shader, used to render all what was previously rendered using the immediate mode
-    valid &= append_shader("flat", { "flat.vs", "flat.fs" });
     valid &= append_shader("flat_attr", { "flat_attr.vs", "flat.fs" });
     // basic shader for textures, used to render textures
-    valid &= append_shader("flat_texture", { "flat_texture.vs", "flat_texture.fs" });
+    valid &= append_shader("flat_texture_attr", { "flat_texture_attr.vs", "flat_texture.fs" });
     // used to render 3D scene background
-    valid &= append_shader("background", { "background.vs", "background.fs" });
+    valid &= append_shader("background_attr", { "background_attr.vs", "background.fs" });
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
-   valid &= append_shader("gouraud_light", { "gouraud_light.vs", "gouraud_light.fs" });
+    valid &= append_shader("gouraud_light_attr", { "gouraud_light_attr.vs", "gouraud_light.fs" });
     //used to render thumbnail
-   valid &= append_shader("thumbnail", { "thumbnail.vs", "thumbnail.fs" });
-   // used to render first layer for calibration
-   valid &= append_shader("cali", { "cali.vs", "cali.fs"});
+    valid &= append_shader("thumbnail_attr", {"thumbnail_attr.vs", "thumbnail.fs"});
+    valid &= append_shader("thumbnail", {"thumbnail.vs", "thumbnail.fs"});
     // used to render printbed
-    valid &= append_shader("printbed", { "printbed.vs", "printbed.fs" });
+    valid &= append_shader("printbed_attr", { "printbed_attr.vs", "printbed.fs" });
     // used to render options in gcode preview
-    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
-        valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
-    // used to render extrusion and travel paths as lines in gcode preview
-    valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
+    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
+        valid &= append_shader("gouraud_light_instanced_attr", { "gouraud_light_instanced_attr.vs", "gouraud_light_instanced.fs" });
+    }
 
     // used to render objects in 3d editor
     //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {
@@ -64,34 +61,26 @@ std::pair<bool, std::string> GLShadersManager::init()
             );
     }
     else {
-        valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
+        valid &= append_shader("gouraud_attr", { "gouraud_attr.vs", "gouraud.fs" }
 #if ENABLE_ENVIRONMENT_MAP
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
         );
     }
     // used to render variable layers heights in 3d editor
-    valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
+    valid &= append_shader("variable_layer_height_attr", { "variable_layer_height_attr.vs", "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
-    valid &= append_shader("mm_contour", { "mm_contour.vs", "mm_contour.fs" });
+    valid &= append_shader("mm_contour_attr", { "mm_contour_attr.vs", "mm_contour_attr.fs" });
     // Used to render painted triangles inside the multi-material gizmo. Triangle normals are computed inside fragment shader.
     // For Apple's on Arm CPU computed triangle normals inside fragment shader using dFdx and dFdy has the opposite direction.
     // Because of this, objects had darker colors inside the multi-material gizmo.
     // Based on https://stackoverflow.com/a/66206648, the similar behavior was also spotted on some other devices with Arm CPU.
     // Since macOS 12 (Monterey), this issue with the opposite direction on Apple's Arm CPU seems to be fixed, and computed
     // triangle normals inside fragment shader have the right direction.
-    if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12) {
-        //if (GUI::wxGetApp().plater() && GUI::wxGetApp().plater()->is_wireframe_enabled())
-        //    valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
-        //else
-            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
-    }
-    else {
-        //if (GUI::wxGetApp().plater() && GUI::wxGetApp().plater()->is_wireframe_enabled())
-        //    valid &= append_shader("mm_gouraud", {"mm_gouraud_wireframe.vs", "mm_gouraud_wireframe.fs"});
-        //else
-            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
-    }
+    if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12)
+        valid &= append_shader("mm_gouraud_attr", { "mm_gouraud_attr.vs", "mm_gouraud_attr.fs" }, { "FLIP_TRIANGLE_NORMALS"sv });
+    else
+        valid &= append_shader("mm_gouraud_attr", { "mm_gouraud_attr.vs", "mm_gouraud_attr.fs" });
 
     //BBS: add shader for outline
     valid &= append_shader("outline", { "outline.vs", "outline.fs" });

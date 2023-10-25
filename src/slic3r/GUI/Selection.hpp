@@ -408,11 +408,11 @@ private:
     void set_bounding_boxes_dirty() { m_bounding_box.reset(); m_unscaled_instance_bounding_box.reset(); m_scaled_instance_bounding_box.reset(); }
     void render_synchronized_volumes();
     void render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color);
-    void render_sidebar_position_hints(const std::string& sidebar_field);
-    void render_sidebar_rotation_hints(const std::string& sidebar_field);
+    void render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix);
+    void render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix);
     //BBS: GUI refactor: add uniform_scale from gizmo
-    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale);
-    void render_sidebar_layers_hints(const std::string& sidebar_field);
+    void render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale, GLShaderProgram& shader, const Transform3d& matrix);
+    void render_sidebar_layers_hints(const std::string& sidebar_field, GLShaderProgram& shader);
 
 public:
     enum SyncRotationType {

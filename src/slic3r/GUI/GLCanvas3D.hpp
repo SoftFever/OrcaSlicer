@@ -261,9 +261,8 @@ class GLCanvas3D
             GLModel baseline;
             GLModel profile;
             GLModel background;
-            Rect old_bar_rect;
+            float old_canvas_width{ 0.0f };
             std::vector<double> old_layer_height_profile;
-            bool dirty{ false };
         };
         Profile m_profile;
 
@@ -294,7 +293,6 @@ class GLCanvas3D
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
-        static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
         static float get_overlay_window_width() { return LayersEditing::s_overlay_window_width; }
 
         float object_max_z() const { return m_object_max_z; }
@@ -304,8 +302,8 @@ class GLCanvas3D
     private:
         bool is_initialized() const;
         void generate_layer_height_texture();
-        void render_active_object_annotations(const GLCanvas3D& canvas, const Rect& bar_rect);
-        void render_profile(const Rect& bar_rect);
+        void render_active_object_annotations(const GLCanvas3D& canvas);
+        void render_profile(const GLCanvas3D& canvas);
         void update_slicing_parameters();
 
         static float thickness_bar_width(const GLCanvas3D& canvas);
@@ -1117,11 +1115,11 @@ private:
     void _picking_pass();
     void _rectangular_selection_picking_pass();
     void _render_background();
-    void _render_bed(bool bottom, bool show_axes);
-    void _render_bed_for_picking(bool bottom);
+    void _render_bed(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool show_axes);
+    void _render_bed_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
     //BBS: add part plate related logic
-    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false) const;
-    void _render_plates_for_picking() const;
+    void _render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false);
+    void _render_plates_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix);
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
     //BBS: GUI refactor: add canvas size as parameters
