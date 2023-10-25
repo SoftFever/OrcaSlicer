@@ -107,7 +107,7 @@ void BindJob::process()
     if (result < 0) {
         BOOST_LOG_TRIVIAL(trace) << "login: result = " << result;
 
-        if (result_code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED) {
+        if (result_code == BAMBU_NETWORK_ERR_BIND_ECODE_LOGIN_REPORT_FAILED || result_code == BAMBU_NETWORK_ERR_BIND_GET_PRINTER_TICKET_TIMEOUT) {
             int         error_code;
 
             try
