@@ -48,6 +48,8 @@ public:
 
     void DoActionOnSelection(int action);
 
+    void ShowDownload(bool show);
+
 public:
     void Rescale();
 
@@ -126,6 +128,7 @@ private:
     // wxBitmap   m_button_background;
 
     bool m_selecting = false;
+    bool m_show_download = false;
 
     enum HitType {
         HIT_NONE,

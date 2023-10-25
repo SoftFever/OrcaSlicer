@@ -9,7 +9,8 @@
                     "remote": "enabled"
                 },
                 "file": {
-                    "remote": "enabled"
+                    "remote": "enabled",
+                    "model_download": "enabled"
                 }
             },
             "support_motor_noise_cali":false,

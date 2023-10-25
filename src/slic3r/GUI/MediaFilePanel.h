@@ -80,10 +80,10 @@ private:
     std::string m_lan_user;
     std::string m_lan_passwd;
     std::string m_dev_ver;
-    bool        m_supported = false;
     bool        m_lan_mode      = false;
     bool        m_local_support = false;
     bool        m_remote_support = false;
+    bool        m_model_download_support = false;
     bool        m_waiting_enable = false;
 
     int m_last_mode = 0;

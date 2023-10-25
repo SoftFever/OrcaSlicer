@@ -689,6 +689,7 @@ public:
     bool        liveview_remote{false};
     bool        file_local{false};
     bool        file_remote{false};
+    bool        file_model_download{false};
     bool        virtual_camera{false};
 
     bool xcam_ai_monitoring{ false };

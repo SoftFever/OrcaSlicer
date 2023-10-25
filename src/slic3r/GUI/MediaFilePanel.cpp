@@ -202,23 +202,23 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj) {
-        m_supported = true;
         m_lan_mode     = obj->is_lan_mode_printer();
         m_lan_ip       = obj->dev_ip;
         m_lan_passwd   = obj->get_access_code();
         m_dev_ver      = obj->get_ota_version();
         m_local_support  = obj->file_local;
         m_remote_support = obj->file_remote;
+        m_model_download_support = obj->file_model_download;
     } else {
-        m_supported = false;
         m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_dev_ver.clear();
         m_local_support = false;
         m_remote_support = false;
+        m_model_download_support = false;
     }
-    if (machine == m_machine) {
+    if (machine == m_machine && m_image_grid->GetFileSystem()) {
         if (m_waiting_enable && IsEnabled()) {
             auto fs = m_image_grid->GetFileSystem();
             if (fs) fs->Retry();
@@ -237,7 +237,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     SetSelecting(false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
-    } else if (!m_supported) {
+    } else if (!m_local_support && !m_remote_support) {
         m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
@@ -252,6 +252,8 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             m_time_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             m_button_management->Enable(fs->GetCount() > 0);
+            bool download_support = fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
+            m_image_grid->ShowDownload(download_support);
             if (fs->GetCount() == 0)
                 SetSelecting(false);
         });
@@ -388,7 +390,9 @@ void MediaFilePanel::SetSelecting(bool selecting)
 {
     m_image_grid->SetSelecting(selecting);
     m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
-    m_manage_panel->GetSizer()->Show(m_button_download, selecting);
+    auto fs = m_image_grid->GetFileSystem();
+    bool download_support = fs && fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
+    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
     m_manage_panel->Layout();
 }

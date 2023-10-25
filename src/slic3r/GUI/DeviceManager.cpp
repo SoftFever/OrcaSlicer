@@ -3512,6 +3512,7 @@ int MachineObject::parse_json(std::string payload)
                             if (ipcam.contains("file")) {
                                 file_local     = ipcam["file"].value<std::string>("local", "disabled") == "enabled";
                                 file_remote    = ipcam["file"].value<std::string>("remote", "disabled") == "enabled";
+                                file_model_download = ipcam["file"].value<std::string>("model_download", "disabled") == "enabled";
                             }
                             virtual_camera = ipcam.value<std::string>("virtual_camera", "disabled") == "enabled";
                             if (ipcam.contains("rtsp_url")) {

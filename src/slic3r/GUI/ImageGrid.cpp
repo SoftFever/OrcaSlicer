@@ -122,6 +122,12 @@ void Slic3r::GUI::ImageGrid::SetSelecting(bool selecting)
 
 void Slic3r::GUI::ImageGrid::DoActionOnSelection(int action) { DoAction(-1, action); }
 
+void Slic3r::GUI::ImageGrid::ShowDownload(bool show)
+{
+    m_show_download = show;
+    Refresh();
+}
+
 void Slic3r::GUI::ImageGrid::Rescale()
 {
     m_title_mask = wxBitmap();
@@ -598,7 +604,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
     // dc.GradientFillLinear({pt.x, pt.y, m_border_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
     else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         wxString nonHoverText;
-        wxString secondAction = _L("Download");
+        wxString secondAction = m_show_download ? _L("Download") : "";
         wxString thirdAction;
         int      states = 0;
         // Draw download progress
