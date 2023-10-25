@@ -3070,7 +3070,9 @@ bool ImGui::BBLDragFloat(const char *label, float *v, float v_speed, float v_min
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.00f, 0.68f, 0.26f, 0.00f));
     bool bbl_drag_scalar = BBLDragScalar(label, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, flags);
-    *v = std::clamp(*v, v_min, v_max);
+    if (v_max > v_min + 0.001) { 
+        *v = std::clamp(*v, v_min, v_max);
+    }
     ImGui::PopStyleColor(3);
     return bbl_drag_scalar;
 }
