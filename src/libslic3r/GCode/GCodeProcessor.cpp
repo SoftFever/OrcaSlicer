@@ -1015,6 +1015,10 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     const ConfigOptionBool* manual_filament_change = config.option<ConfigOptionBool>("manual_filament_change");
     if (manual_filament_change != nullptr)
         m_manual_filament_change = manual_filament_change->value;
+
+    const ConfigOptionFloat* z_offset = config.option<ConfigOptionFloat>("z_offset");
+    if (z_offset != nullptr)
+        m_z_offset = z_offset->value;
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1290,6 +1294,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (bed_type != nullptr)
         m_result.bed_type = (BedType)bed_type->value;
 
+
+    const ConfigOptionFloat* z_offset = config.option<ConfigOptionFloat>("z_offset");
+    if (z_offset != nullptr)
+        m_z_offset = z_offset->value;
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)
@@ -1326,6 +1334,7 @@ void GCodeProcessor::reset()
     m_forced_height = 0.0f;
     m_mm3_per_mm = 0.0f;
     m_fan_speed = 0.0f;
+    m_z_offset = 0.0f;
 
     m_extrusion_role = erNone;
     m_extruder_id = 0;
@@ -3103,7 +3112,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             // the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
 
             if ((new_pos - *first_vertex).squaredNorm() < 0.0625f) {
-                set_end_position(0.5f * (new_pos + *first_vertex));
+                set_end_position(0.5f * (new_pos + *first_vertex) + m_z_offset * Vec3f::UnitZ());
                 store_move_vertex(EMoveType::Seam);
                 set_end_position(curr_pos);
             }
@@ -4110,7 +4119,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_extruder_id,
         m_cp_color.current,
         //BBS: add plate's offset to the rendering vertices
-        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]- m_z_offset) + m_extruder_offsets[m_extruder_id],
         static_cast<float>(m_end_position[E] - m_start_position[E]),
         m_feedrate,
         m_width,

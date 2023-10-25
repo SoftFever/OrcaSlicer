@@ -3426,6 +3426,16 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
 
+    def = this->add("z_offset", coFloat);
+    def->label = L("Z offset");
+    def->tooltip = L("This value will be added (or subtracted) from all the Z coordinates "
+                   "in the output G-code. It is used to compensate for bad Z endstop position: "
+                   "for example, if your endstop zero actually leaves the nozzle 0.3mm far "
+                   "from the print bed, set this to -0.3 (or fix your endstop).");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+    
     def = this->add("enable_support", coBool);
     //BBS: remove material behind support
     def->label = L("Enable support");
