@@ -60,5 +60,6 @@
 	"wipe_distance": "2",
 	"extruder_clearance_radius": [ "76" ],
 	"extruder_clearance_height_to_rod": [ "27" ],
-	"extruder_clearance_height_to_lid": [ "150" ]
+	"extruder_clearance_height_to_lid": [ "150" ],
+	"nozzle_type": "stainless_steel"
 }
