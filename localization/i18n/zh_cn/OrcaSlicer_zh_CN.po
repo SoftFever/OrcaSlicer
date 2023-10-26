@@ -18,7 +18,7 @@ msgstr ""
 "X-Generator: Poedit 3.2.2\n"
 
 msgid "Supports Painting"
-msgstr "支撑绘制"
+msgstr "支撑绘制
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + 鼠标滚轮"
