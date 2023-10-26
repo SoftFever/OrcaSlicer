@@ -7203,7 +7203,9 @@ void GLCanvas3D::_render_volumes_for_picking() const
                 const Camera& camera = wxGetApp().plater()->get_camera();
                 shader->set_uniform("view_model_matrix", camera.get_view_matrix() * volume.first->world_matrix());
                 shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+                volume.first->picking = true;
                 volume.first->render();
+                volume.first->picking = false;
                 shader->stop_using();
 	        }
 	}
