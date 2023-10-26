@@ -3061,14 +3061,8 @@ void PartPlateList::init()
 Vec3d PartPlateList::compute_origin(int i, int cols)
 {
 	Vec3d origin;
-	int row, col;
-
-	row = i / cols;
-	col = i % cols;
-
-	origin(0) = col * (m_plate_width * (1. + LOGICAL_PART_PLATE_GAP));
-	origin(1) = -row * (m_plate_depth * (1. + LOGICAL_PART_PLATE_GAP));
-	origin(2) = 0;
+	Vec2d pos = compute_shape_position(i, cols);
+	origin    = Vec3d(pos.x(), pos.y(), 0);
 
 	return origin;
 }
@@ -4919,6 +4913,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
 	update_plate_cols();
+	update_all_plates_pos_and_size(true, false);
 	set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
