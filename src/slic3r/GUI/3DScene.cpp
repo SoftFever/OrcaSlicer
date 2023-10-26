@@ -396,250 +396,65 @@ void GLVolume::set_range(double min_z, double max_z)
     }
 }
 
-//BBS: add outline related logic
-//static unsigned char stencil_data[1284][2944];
-void GLVolume::render(bool with_outline)
+void GLVolume::render()
 {
     if (!is_active)
         return;
 
-    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
+    GLShaderProgram *shader = GUI::wxGetApp().get_current_shader();
     if (shader == nullptr)
         return;
 
-    if (this->is_left_handed())
-        glFrontFace(GL_CW);
-    glsafe(::glCullFace(GL_BACK));
-    if (with_outline) {
-        // Error: not supported!
-        throw Slic3r::InvalidArgument("Render GLVolume with outline is not supported");
-    }
+    ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
+    std::vector<ColorRGBA> colors = get_extruders_colors();
 
-    // BBS: add logic for mmu segmentation rendering
-    auto render_body = [&]() {
-        bool color_volume = false;
-        ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
-        do {
-            if ((!printable) || object_idx() >= model_objects.size())
-                break;
+    simple_render(shader, model_objects, colors);
+}
 
-            ModelObject* mo = model_objects[object_idx()];
-            if (volume_idx() >= mo->volumes.size())
-                break;
+//BBS: add outline related logic
+void GLVolume::render_with_outline(const Transform3d &view_model_matrix)
+{
+    if (!is_active)
+        return;
 
-            ModelVolume* mv = mo->volumes[volume_idx()];
-            if (mv->mmu_segmentation_facets.empty())
-                break;
+    GLShaderProgram *shader = GUI::wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
 
-            color_volume = true;
-            if (mv->mmu_segmentation_facets.timestamp() != mmuseg_ts) {
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, current mmuseg_ts %3%, current color size %4%")
-                    %this %this->name %mmuseg_ts %mmuseg_models.size() ;
-                mmuseg_models.clear();
-                std::vector<indexed_triangle_set> its_per_color;
-                mv->mmu_segmentation_facets.get_facets(*mv, its_per_color);
-                mmuseg_models.resize(its_per_color.size());
-                for (int idx = 0; idx < its_per_color.size(); idx++) {
-                    mmuseg_models[idx].init_from(its_per_color[idx]);
-                }
+    ModelObjectPtrs &model_objects = GUI::wxGetApp().model().objects;
+    std::vector<ColorRGBA> colors = get_extruders_colors();
 
-                mmuseg_ts = mv->mmu_segmentation_facets.timestamp();
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, new mmuseg_ts %3%, new color size %4%")
-                    %this %this->name %mmuseg_ts  %mmuseg_models.size();
-            }
-        } while (0);
+    glEnable(GL_STENCIL_TEST);
+    glStencilMask(0xFF);
+    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+    glClear(GL_STENCIL_BUFFER_BIT);
+    glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
 
-        if (color_volume) {
-            GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
-            std::vector<ColorRGBA> colors = get_extruders_colors();
+    simple_render(shader, model_objects, colors);
 
-            //when force_transparent, we need to keep the alpha
-            if (force_native_color && (render_color.is_transparent())) {
-                for (int index = 0; index < colors.size(); index++)
-                    colors[index].a(render_color.a());
-            }
-            for (int idx = 0; idx < mmuseg_models.size(); idx++) {
-                GUI::GLModel &m = mmuseg_models[idx];
-                if (m.is_empty())
-                    continue;
+    // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
+    // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing
+    // the objects' size differences, making it look like borders.
+    glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
+    glStencilMask(0x00);
+    float scale = 1.02f;
+    ColorRGBA body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
 
-                if (shader) {
-                    if (idx == 0) {
-                        ModelObject* mo = model_objects[object_idx()];
-                        ModelVolume* mv = mo->volumes[volume_idx()];
-                        int extruder_id = mv->extruder_id();
-                        //shader->set_uniform("uniform_color", colors[extruder_id - 1]);
-                        //to make black not too hard too see
-                        ColorRGBA new_color = adjust_color_for_rendering(colors[extruder_id - 1]);
-                        m.set_color(new_color);
-                    }
-                    else {
-                        if (idx <= colors.size()) {
-                            //shader->set_uniform("uniform_color", colors[idx - 1]);
-                            //to make black not too hard too see
-                            ColorRGBA new_color = adjust_color_for_rendering(colors[idx - 1]);
-                            m.set_color(new_color);
-                        }
-                        else {
-                            //shader->set_uniform("uniform_color", colors[0]);
-                            //to make black not too hard too see
-                            ColorRGBA new_color = adjust_color_for_rendering(colors[0]);
-                            m.set_color(new_color);
-                        }
-                    }
-                }
-                if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
-                    m.render();
-                else
-                    m.render(this->tverts_range);
-                /*if (force_native_color && (render_color[3] < 1.0)) {
-                    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__<< boost::format(", this %1%, name %2%, tverts_range {%3,%4}, qverts_range{%5%, %6%}")
-                     %this %this->name %this->tverts_range.first  %this->tverts_range.second
-                     % this->qverts_range.first % this->qverts_range.second;
-                }*/
-            }
-        }
-        else {
-            if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
-                model.render();
-            else
-                model.render(this->tverts_range);
-        }
-    };
+    model.set_color(body_color);
+    shader->set_uniform("is_outline", true);
 
-    //BBS: add logic of outline rendering
-    //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, with_outline %2%, shader %3%.")%__LINE__ %with_outline %shader;
-    if (with_outline && shader != nullptr)
-    {
-        do
-        {
-            glEnable(GL_STENCIL_TEST);
-            glStencilMask(0xFF);
-            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-            glClear(GL_STENCIL_BUFFER_BIT);
-            glStencilFunc(GL_ALWAYS, 0xff, 0xFF);
-            //another way use depth buffer
-            //glsafe(::glEnable(GL_DEPTH_TEST));
-            //glsafe(::glDepthFunc(GL_ALWAYS));
-            //glsafe(::glDepthMask(GL_FALSE));
-            //glsafe(::glEnable(GL_BLEND));
-            //glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    Transform3d matrix = view_model_matrix;
+    matrix.scale(scale);
+    shader->set_uniform("view_model_matrix", matrix);
+    if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
+        model.render();
+    else
+        model.render(this->tverts_range);
 
-            /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
-            if (outline_shader == nullptr)
-            {
-                glDisable(GL_STENCIL_TEST);
-                this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
-                break;
-            }
-            shader->stop_using();
-            outline_shader->start_using();
-            //float scale_ratio = 1.02f;
-            ColorRGBA outline_color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("is_outline", false);
 
-            outline_shader->set_uniform("uniform_color", outline_color);*/
-#if 0 //dump stencil buffer
-            int i = 100, j = 100;
-            std::string file_name;
-            FILE* file = NULL;
-            memset(stencil_data, 0, sizeof(stencil_data));
-            glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
-            for (i = 100; i < 1083; i++)
-            {
-                for (j = 100; j < 2936; j++)
-                {
-                    if (stencil_data[i][j] != 0)
-                    {
-                        file_name = "before_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
-                        break;
-                    }
-                }
-
-                if (stencil_data[i][j] != 0)
-                    break;
-            }
-            file = fopen(file_name.c_str(), "w");
-            if (file)
-            {
-                fwrite(stencil_data, 2936 * 1083, 1, file);
-                fclose(file);
-            }
-#endif
-            render_body();
-            //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render body, shader name %2%")%__LINE__ %shader->get_name();
-
-#if 0 //dump stencil buffer after first rendering
-            memset(stencil_data, 0, sizeof(stencil_data));
-            glReadPixels(0, 0, 2936, 1083, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, stencil_data);
-            for (i = 100; i < 1083; i++)
-            {
-                for (j = 100; j < 2936; j++)
-                    if (stencil_data[i][j] != 0)
-                    {
-                        file_name = "after_stencil_index_" + std::to_string(i) + "x" + std::to_string(j) + ".a8";
-                        break;
-                    }
-
-                if (stencil_data[i][j] != 0)
-                    break;
-            }
-
-            file = fopen(file_name.c_str(), "w");
-            if (file)
-            {
-                fwrite(stencil_data, 2936 * 1083, 1, file);
-                fclose(file);
-            }
-#endif
-            // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
-            // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing
-            // the objects' size differences, making it look like borders.
-            // -----------------------------------------------------------------------------------------------------------------------------
-            /*GLShaderProgram* outline_shader = GUI::wxGetApp().get_shader("outline");
-            if (outline_shader == nullptr)
-            {
-                glDisable(GL_STENCIL_TEST);
-                break;
-            }
-            shader->stop_using();
-            outline_shader->start_using();*/
-            //outline_shader->stop_using();
-            //shader->start_using();
-
-            glStencilFunc(GL_NOTEQUAL, 0xff, 0xFF);
-            glStencilMask(0x00);
-            float scale = 1.02f;
-            ColorRGBA body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
-
-            model.set_color(body_color);
-            shader->set_uniform("is_outline", true);
-            glsafe(::glPopMatrix());
-            glsafe(::glPushMatrix());
-
-            Transform3d matrix = world_matrix();
-            matrix.scale(scale);
-            glsafe(::glMultMatrixd(matrix.data()));
-            if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
-                model.render();
-            else
-                model.render(this->tverts_range);
-            //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, outline render for body, shader name %2%")%__LINE__ %shader->get_name();
-            shader->set_uniform("is_outline", false);
-
-            //glStencilMask(0xFF);
-            //glStencilFunc(GL_ALWAYS, 0, 0xFF);
-            glDisable(GL_STENCIL_TEST);
-            //glEnable(GL_DEPTH_TEST);
-            //outline_shader->stop_using();
-            //shader->start_using();
-        } while (0);
-    }
-    else {
-        render_body();
-        //BOOST_LOG_TRIVIAL(info) << boost::format(": %1%, normal render.")%__LINE__;
-    }
-    if (this->is_left_handed())
-        glFrontFace(GL_CCW);
+    glDisable(GL_STENCIL_TEST);
 }
 
 //BBS add render for simple case
@@ -684,26 +499,22 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
             if (m.is_empty())
                 continue;
 
-            if (shader) {
-                if (idx == 0) {
-                    int extruder_id = model_volume->extruder_id();
+            if (idx == 0) {
+                int extruder_id = model_volume->extruder_id();
+                //to make black not too hard too see
+                ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
+                m.set_color(new_color);
+            }
+            else {
+                if (idx <= extruder_colors.size()) {
                     //to make black not too hard too see
-                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
+                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
                     m.set_color(new_color);
                 }
                 else {
-                    if (idx <= extruder_colors.size()) {
-                        //shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
-                        //to make black not too hard too see
-                        ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
-                        m.set_color(new_color);
-                    }
-                    else {
-                        //shader->set_uniform("uniform_color", extruder_colors[0]);
-                        //to make black not too hard too see
-                        ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[0]);
-                        m.set_color(new_color);
-                    }
+                    //to make black not too hard too see
+                    ColorRGBA new_color = adjust_color_for_rendering(extruder_colors[0]);
+                    m.set_color(new_color);
                 }
             }
             if (tverts_range == std::make_pair<size_t, size_t>(0, -1))
@@ -748,7 +559,7 @@ GLWipeTowerVolume::GLWipeTowerVolume(const std::vector<ColorRGBA>& colors)
     m_colors = colors;
 }
 
-void GLWipeTowerVolume::render(bool with_outline)
+void GLWipeTowerVolume::render()
 {
     if (!is_active)
         return;
@@ -1102,7 +913,10 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         shader->set_uniform("projection_matrix", projection_matrix);
         shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
         //BBS: add outline related logic
-        volume.first->render(with_outline && volume.first->selected);
+        if (with_outline && volume.first->selected)
+            volume.first->render_with_outline(matrix);
+        else
+            volume.first->render();
 
 #if ENABLE_ENVIRONMENT_MAP
         if (use_environment_texture)

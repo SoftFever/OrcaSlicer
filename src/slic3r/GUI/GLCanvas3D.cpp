@@ -5608,7 +5608,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
             shader->set_uniform("view_model_matrix", matrix);
             shader->set_uniform("projection_matrix", projection_matrix);
             shader->set_uniform("normal_matrix", (Matrix3d) matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
-            vol->simple_render(nullptr,  model_objects, extruder_colors);
+            vol->simple_render(shader, model_objects, extruder_colors);
             vol->is_active = is_active;
         }
 
