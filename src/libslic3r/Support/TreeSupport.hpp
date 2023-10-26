@@ -3,14 +3,14 @@
 
 #include <forward_list>
 #include <unordered_set>
-#include "ExPolygon.hpp"
-#include "Point.hpp"
-#include "Slicing.hpp"
-#include "MinimumSpanningTree.hpp"
 #include "tbb/concurrent_unordered_map.h"
-#include "Flow.hpp"
-#include "PrintConfig.hpp"
-#include "Fill/Lightning/Generator.hpp"
+#include "../ExPolygon.hpp"
+#include "../Point.hpp"
+#include "../Slicing.hpp"
+#include "../MinimumSpanningTree.hpp"
+#include "../Flow.hpp"
+#include "../PrintConfig.hpp"
+#include "../Fill/Lightning/Generator.hpp"
 #include "TreeModelVolumes.hpp"
 #include "TreeSupport3D.hpp"
 

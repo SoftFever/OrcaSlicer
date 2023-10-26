@@ -265,14 +265,15 @@ set(lisbslic3r_sources
     SlicesToTriangleMesh.cpp
     SlicingAdaptive.cpp
     SlicingAdaptive.hpp
-    SupportMaterial.cpp
-    SupportMaterial.hpp
-    TreeSupport.hpp
-    TreeSupport.cpp
-    TreeSupport3D.hpp
-    TreeSupport3D.cpp
-    TreeModelVolumes.hpp
-    TreeModelVolumes.cpp
+    Support/SupportMaterial.cpp
+    Support/SupportMaterial.hpp
+    Support/TreeSupport.hpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.hpp
+    Support/TreeSupport3D.cpp
+    Support/TreeModelVolumes.hpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupportCommon.hpp
     MinimumSpanningTree.hpp
     MinimumSpanningTree.cpp
     Surface.cpp
@@ -500,6 +501,7 @@ target_link_libraries(libslic3r
     qhull
     semver
     TBB::tbb
+    TBB::tbbmalloc
     libslic3r_cgal
     ${CMAKE_DL_LIBS}
     PNG::PNG

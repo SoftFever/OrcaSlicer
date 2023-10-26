@@ -14,9 +14,11 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "Point.hpp"
-#include "Polygon.hpp"
-#include "PrintConfig.hpp"
+#include "TreeSupportCommon.hpp"
+
+#include "../Point.hpp"
+#include "../Polygon.hpp"
+#include "../PrintConfig.hpp"
 
 namespace Slic3r
 {
@@ -27,169 +29,10 @@ class PrintObject;
 namespace TreeSupport3D
 {
 
-using LayerIndex = int;
-
-struct TreeSupportMeshGroupSettings {
-    TreeSupportMeshGroupSettings() = default;
-    explicit TreeSupportMeshGroupSettings(const PrintObject &print_object);
-
-/*********************************************************************/
-/* Print parameters, not support specific:                           */
-/*********************************************************************/
-    coord_t                         layer_height                            { scaled<coord_t>(0.15) };
-    // Maximum Deviation (meshfix_maximum_deviation)
-    // The maximum deviation allowed when reducing the resolution for the Maximum Resolution setting. If you increase this, 
-    // the print will be less accurate, but the g-code will be smaller. Maximum Deviation is a limit for Maximum Resolution, 
-    // so if the two conflict the Maximum Deviation will always be held true.
-    coord_t                         resolution                              { scaled<coord_t>(0.025) };
-    // Minimum Feature Size (aka minimum line width) - Arachne specific
-    // Minimum thickness of thin features. Model features that are thinner than this value will not be printed, while features thicker 
-    // than the Minimum Feature Size will be widened to the Minimum Wall Line Width.
-    coord_t                         min_feature_size                        { scaled<coord_t>(0.1) };
-
-/*********************************************************************/
-/* General support parameters:                                       */
-/*********************************************************************/
-
-    // Support Overhang Angle
-    // The minimum angle of overhangs for which support is added. At a value of 0° all overhangs are supported, 90° will not provide any support.
-    double                          support_angle                           { 50. * M_PI / 180. };
-    // Support Line Width
-    // Width of a single support structure line.
-    coord_t                         support_line_width                      { scaled<coord_t>(0.4) };
-    // Support Roof Line Width: Width of a single support roof line.
-    coord_t                         support_roof_line_width                 { scaled<coord_t>(0.4) };
-    // Enable Support Floor (aka bottom interfaces)
-    // Generate a dense slab of material between the bottom of the support and the model. This will create a skin between the model and support.
-    bool                            support_bottom_enable                   { false };
-    // Support Floor Thickness
-    // The thickness of the support floors. This controls the number of dense layers that are printed on top of places of a model on which support rests.
-    coord_t                         support_bottom_height                   { scaled<coord_t>(1.) };
-    bool                            support_material_buildplate_only        { false };
-    // Support X/Y Distance
-    // Distance of the support structure from the print in the X/Y directions.
-    // minimum: 0, maximum warning: 1.5 * machine_nozzle_tip_outer_diameter
-    coord_t                         support_xy_distance                     { scaled<coord_t>(0.7) };
-    // Minimum Support X/Y Distance
-    // Distance of the support structure from the overhang in the X/Y directions.
-    // minimum_value: 0,  minimum warning": support_xy_distance - support_line_width * 2, maximum warning: support_xy_distance
-    coord_t                         support_xy_distance_overhang            { scaled<coord_t>(0.2) };
-    // Support Top Distance
-    // Distance from the top of the support to the print.
-    coord_t                         support_top_distance                    { scaled<coord_t>(0.1) };
-    // Support Bottom Distance
-    // Distance from the print to the bottom of the support.
-    coord_t                         support_bottom_distance                 { scaled<coord_t>(0.1) };
-    //FIXME likely not needed, optimization for clipping of interface layers
-    // When checking where there's model above and below the support, take steps of the given height. Lower values will slice slower, while higher values 
-    // may cause normal support to be printed in some places where there should have been support interface.
-    coord_t                         support_interface_skip_height           { scaled<coord_t>(0.3) };
-    // Support Infill Line Directions
-    // A list of integer line directions to use. Elements from the list are used sequentially as the layers progress and when the end 
-    // of the list is reached, it starts at the beginning again. The list items are separated by commas and the whole list is contained 
-    // in square brackets. Default is an empty list which means use the default angle 0 degrees.
-//    std::vector<double>             support_infill_angles                   {};
-    // Enable Support Roof
-    // Generate a dense slab of material between the top of support and the model. This will create a skin between the model and support.
-    bool                            support_roof_enable                     { false };
-    // Support Roof Thickness
-    // The thickness of the support roofs. This controls the amount of dense layers at the top of the support on which the model rests.
-    coord_t                         support_roof_height                     { scaled<coord_t>(1.) };
-    // Minimum Support Roof Area
-    // Minimum area size for the roofs of the support. Polygons which have an area smaller than this value will be printed as normal support.
-    double                          minimum_roof_area                       { scaled<double>(scaled<double>(1.)) };
-    // A list of integer line directions to use. Elements from the list are used sequentially as the layers progress 
-    // and when the end of the list is reached, it starts at the beginning again. The list items are separated
-    // by commas and the whole list is contained in square brackets. Default is an empty list which means
-    // use the default angles (alternates between 45 and 135 degrees if interfaces are quite thick or 90 degrees).
-    std::vector<double>             support_roof_angles                     {};
-    // Support Roof Pattern (aka top interface)
-    // The pattern with which the roofs of the support are printed.
-    SupportMaterialInterfacePattern support_roof_pattern                    { smipAuto };
-    // Support Pattern
-    // The pattern of the support structures of the print. The different options available result in sturdy or easy to remove support.
-    SupportMaterialPattern          support_pattern                         { smpRectilinear };
-    // Support Line Distance
-    // Distance between the printed support structure lines. This setting is calculated by the support density.
-    coord_t                         support_line_spacing                    { scaled<coord_t>(2.66 - 0.4) };
-    // Support Floor Horizontal Expansion
-    // Amount of offset applied to the floors of the support.
-    coord_t                         support_bottom_offset                   { scaled<coord_t>(0.) };
-    // Support Wall Line Count
-    // The number of walls with which to surround support infill. Adding a wall can make support print more reliably 
-    // and can support overhangs better, but increases print time and material used.
-    // tree: 1, zig-zag: 0, concentric: 1
-    int                             support_wall_count                      { 1 };
-    // Support Roof Line Distance
-    // Distance between the printed support roof lines. This setting is calculated by the Support Roof Density, but can be adjusted separately.
-    coord_t                         support_roof_line_distance              { scaled<coord_t>(0.4) };
-    // Minimum Support Area
-    // Minimum area size for support polygons. Polygons which have an area smaller than this value will not be generated.
-    coord_t                         minimum_support_area                    { scaled<coord_t>(0.) };
-    // Minimum Support Floor Area
-    // Minimum area size for the floors of the support. Polygons which have an area smaller than this value will be printed as normal support.
-    coord_t                         minimum_bottom_area                     { scaled<coord_t>(1.0) };
-    // Support Horizontal Expansion
-    // Amount of offset applied to all support polygons in each layer. Positive values can smooth out the support areas and result in more sturdy support.
-    coord_t                         support_offset                          { scaled<coord_t>(0.) };
-
-/*********************************************************************/
-/* Parameters for the Cura tree supports implementation:             */
-/*********************************************************************/
-
-    // Tree Support Maximum Branch Angle
-    // The maximum angle of the branches, when the branches have to avoid the model. Use a lower angle to make them more vertical and more stable. Use a higher angle to be able to have more reach.
-    // minimum: 0, minimum warning: 20, maximum: 89, maximum warning": 85
-    double                          support_tree_angle                      { 60. * M_PI / 180. };
-    // Tree Support Branch Diameter Angle
-    // The angle of the branches' diameter as they gradually become thicker towards the bottom. An angle of 0 will cause the branches to have uniform thickness over their length. 
-    // A bit of an angle can increase stability of the tree support.
-    // minimum: 0, maximum: 89.9999, maximum warning: 15
-    double                          support_tree_branch_diameter_angle      { 5.  * M_PI / 180. };
-    // Tree Support Branch Distance
-    // How far apart the branches need to be when they touch the model. Making this distance small will cause 
-    // the tree support to touch the model at more points, causing better overhang but making support harder to remove.
-    coord_t                         support_tree_branch_distance            { scaled<coord_t>(1.) };
-    // Tree Support Branch Diameter
-    // The diameter of the thinnest branches of tree support. Thicker branches are more sturdy. Branches towards the base will be thicker than this.
-    // minimum: 0.001, minimum warning: support_line_width * 2
-    coord_t                         support_tree_branch_diameter            { scaled<coord_t>(2.) };
-
-/*********************************************************************/
-/* Parameters new to the Thomas Rahm's tree supports implementation: */
-/*********************************************************************/
-
-    // Tree Support Preferred Branch Angle
-    // The preferred angle of the branches, when they do not have to avoid the model. Use a lower angle to make them more vertical and more stable. Use a higher angle for branches to merge faster.
-    // minimum: 0, minimum warning: 10, maximum: support_tree_angle, maximum warning: support_tree_angle-1
-    double                          support_tree_angle_slow                 { 50. * M_PI / 180. };
-    // Tree Support Diameter Increase To Model
-    // The most the diameter of a branch that has to connect to the model may increase by merging with branches that could reach the buildplate.
-    // Increasing this reduces print time, but increases the area of support that rests on model
-    // minimum: 0
-    coord_t                         support_tree_max_diameter_increase_by_merges_when_support_to_model { scaled<coord_t>(1.0) };
-    // Tree Support Minimum Height To Model
-    // How tall a branch has to be if it is placed on the model. Prevents small blobs of support. This setting is ignored when a branch is supporting a support roof.
-    // minimum: 0, maximum warning: 5
-    coord_t                         support_tree_min_height_to_model        { scaled<coord_t>(1.0) };
-    // Tree Support Inital Layer Diameter
-    // Diameter every branch tries to achieve when reaching the buildplate. Improves bed adhesion.
-    // minimum: 0, maximum warning: 20
-    coord_t                         support_tree_bp_diameter                { scaled<coord_t>(7.5) };
-    // Tree Support Branch Density
-    // Adjusts the density of the support structure used to generate the tips of the branches. A higher value results in better overhangs,
-    // but the supports are harder to remove. Use Support Roof for very high values or ensure support density is similarly high at the top.
-    // 5%-35%
-    double                          support_tree_top_rate                   { 15. };
-    // Tree Support Tip Diameter
-    // The diameter of the top of the tip of the branches of tree support.
-    // minimum: min_wall_line_width, minimum warning: min_wall_line_width+0.05, maximum_value: support_tree_branch_diameter, value: support_line_width
-    coord_t                         support_tree_tip_diameter               { scaled<coord_t>(0.4) };
-
-    // Support Interface Priority
-    // How support interface and support will interact when they overlap. Currently only implemented for support roof.
-    //enum                           support_interface_priority { support_lines_overwrite_interface_area };
-};
+static constexpr const double  SUPPORT_TREE_EXPONENTIAL_FACTOR = 1.5;
+static constexpr const coord_t SUPPORT_TREE_EXPONENTIAL_THRESHOLD = scaled<coord_t>(1. * SUPPORT_TREE_EXPONENTIAL_FACTOR);
+static constexpr const coord_t SUPPORT_TREE_COLLISION_RESOLUTION = scaled<coord_t>(0.5);
+static constexpr const bool    SUPPORT_TREE_AVOID_SUPPORT_BLOCKER = true;
 
 class TreeModelVolumes
 {
@@ -240,7 +83,7 @@ public:
      * Knowledge about branch angle is used to only calculate avoidances and collisions that may actually be needed.
      * Not calling precalculate() will cause the class to lazily calculate avoidances and collisions as needed, which will be a lot slower on systems with more then one or two cores!
      */
-    void precalculate(const coord_t max_layer, std::function<void()> throw_on_cancel);
+    void precalculate(const PrintObject& print_object, const coord_t max_layer, std::function<void()> throw_on_cancel);
 
     /*!
      * \brief Provides the areas that have to be avoided by the tree's branches to prevent collision with the model on this layer.
@@ -326,6 +169,29 @@ public:
     Polygon m_bed_area;
 
 private:
+    // Caching polygons for a range of layers.
+    class LayerPolygonCache {
+    public:
+        void allocate(LayerIndex aidx_begin, LayerIndex aidx_end) {
+            m_idx_begin = aidx_begin;
+            m_idx_end = aidx_end;
+            m_polygons.assign(aidx_end - aidx_begin, {});
+        }
+
+        LayerIndex begin() const { return m_idx_begin; }
+        LayerIndex end()   const { return m_idx_end; }
+        size_t     size()  const { return m_polygons.size(); }
+
+        bool      has(LayerIndex idx) const { return idx >= m_idx_begin && idx < m_idx_end; }
+        Polygons& operator[](LayerIndex idx) { assert(idx >= m_idx_begin && idx < m_idx_end); return m_polygons[idx - m_idx_begin]; }
+        std::vector<Polygons>& polygons_mutable() { return m_polygons; }
+
+    private:
+        std::vector<Polygons> m_polygons;
+        LayerIndex            m_idx_begin;
+        LayerIndex            m_idx_end;
+    };
+
     /*!
      * \brief Convenience typedef for the keys to the caches
      */
@@ -360,6 +226,13 @@ private:
             allocate_layers(first_layer_idx + in.size());
             for (auto &d : in)
                 m_data[first_layer_idx ++].emplace(radius, std::move(d));
+        }
+        void insert(LayerPolygonCache &&in, coord_t radius) {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            LayerIndex i = in.begin();
+            allocate_layers(i + LayerIndex(in.size()));
+            for (auto &d : in.polygons_mutable())
+                m_data[i ++].emplace(radius, std::move(d));
         }
         /*!
          * \brief Checks a cache for a given RadiusLayerPair and returns it if it is found
@@ -615,6 +488,9 @@ private:
      * \brief Smallest radius a branch can have. This is the radius of a SupportElement with DTT=0.
      */
     coord_t m_radius_0;
+
+    // Z heights of the raft layers (additional layers below the object, last raft layer aligned with the bottom of the first object layer).
+    std::vector<double>         m_raft_layers;
 
     /*!
      * \brief Caches for the collision, avoidance and areas on the model where support can be placed safely

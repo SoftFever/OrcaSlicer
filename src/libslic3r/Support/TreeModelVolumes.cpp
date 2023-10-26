@@ -7,16 +7,17 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "TreeModelVolumes.hpp"
-#include "TreeSupport3D.hpp"
+#include "TreeSupportCommon.hpp"
 
-#include "BuildVolume.hpp"
-#include "ClipperUtils.hpp"
-#include "Flow.hpp"
-#include "Layer.hpp"
-#include "Point.hpp"
-#include "Print.hpp"
-#include "PrintConfig.hpp"
-#include "Utils.hpp"
+#include "../BuildVolume.hpp"
+#include "../ClipperUtils.hpp"
+#include "../Flow.hpp"
+#include "../Layer.hpp"
+#include "../Point.hpp"
+#include "../Print.hpp"
+#include "../PrintConfig.hpp"
+#include "../Utils.hpp"
+#include "../format.hpp"
 
 #include <string_view>
 
@@ -33,74 +34,6 @@ using namespace std::literals;
 // or warning
 // had to use a define beacuse the macro processing inside macro BOOST_LOG_TRIVIAL()
 #define error_level_not_in_cache error
-
-TreeSupportMeshGroupSettings::TreeSupportMeshGroupSettings(const PrintObject &print_object)
-{
-    const PrintConfig       &print_config       = print_object.print()->config();
-    const PrintObjectConfig &config             = print_object.config();
-    const SlicingParameters &slicing_params     = print_object.slicing_parameters();
-//    const std::vector<unsigned int>  printing_extruders = print_object.object_extruders();
-
-    // Support must be enabled and set to Tree style.
-    //assert(config.support_material);
-    //assert(config.support_material_style == smsTree || config.support_material_style == smsOrganic);
-
-    // Calculate maximum external perimeter width over all printing regions, taking into account the default layer height.
-    coordf_t external_perimeter_width = 0.;
-    for (size_t region_id = 0; region_id < print_object.num_printing_regions(); ++ region_id) {
-        const PrintRegion &region = print_object.printing_region(region_id);
-        external_perimeter_width = std::max<coordf_t>(external_perimeter_width, region.flow(print_object, frExternalPerimeter, config.layer_height).width());
-    }
-
-    this->layer_height              = scaled<coord_t>(config.layer_height.value);
-    this->resolution                = scaled<coord_t>(print_config.resolution.value);
-    // Arache feature
-    this->min_feature_size          = scaled<coord_t>(config.min_feature_size.value);
-    // +1 makes the threshold inclusive
-    this->support_angle             = 0.5 * M_PI - std::clamp<double>((config.support_threshold_angle + 1) * M_PI / 180., 0., 0.5 * M_PI);
-    this->support_line_width        = support_material_flow(&print_object, config.layer_height).scaled_width();
-    this->support_roof_line_width   = support_material_interface_flow(&print_object, config.layer_height).scaled_width();
-    //FIXME add it to SlicingParameters and reuse in both tree and normal supports?
-    this->support_bottom_enable     = config.support_interface_top_layers.value > 0 && config.support_interface_bottom_layers.value != 0;
-    this->support_bottom_height     = this->support_bottom_enable ?
-        (config.support_interface_bottom_layers.value > 0 ?
-            config.support_interface_bottom_layers.value :
-            config.support_interface_top_layers.value) * this->layer_height :
-        0;
-    this->support_material_buildplate_only = config.support_on_build_plate_only;
-    this->support_xy_distance       = scaled<coord_t>(config.support_object_xy_distance.value);
-    // Separation of interfaces, it is likely smaller than support_xy_distance.
-    this->support_xy_distance_overhang = std::min(this->support_xy_distance, scaled<coord_t>(0.5 * external_perimeter_width));
-    this->support_top_distance      = scaled<coord_t>(slicing_params.gap_support_object);
-    this->support_bottom_distance   = scaled<coord_t>(slicing_params.gap_object_support);
-//    this->support_interface_skip_height =
-//    this->support_infill_angles     = 
-    this->support_roof_enable       = config.support_interface_top_layers.value > 0;
-    this->support_roof_height       = config.support_interface_top_layers.value * this->layer_height;
-//    this->minimum_roof_area         = 
-//    this->support_roof_angles       = 
-    this->support_roof_pattern      = config.support_interface_pattern;
-    this->support_pattern           = config.support_base_pattern;
-    this->support_line_spacing      = scaled<coord_t>(config.support_base_pattern_spacing.value);
-//    this->support_bottom_offset     = 
-//    this->support_wall_count        = config.support_material_with_sheath ? 1 : 0;
-    this->support_wall_count        = 1;
-    this->support_roof_line_distance = scaled<coord_t>(config.support_interface_spacing.value) + this->support_roof_line_width;
-//    this->minimum_support_area      = 
-//    this->minimum_bottom_area       = 
-//    this->support_offset            = 
-//    this->support_tree_branch_distance = 2.5 * line_width ??
-    double support_tree_angle_slow = 25;// TODO add a setting?
-    double support_tree_branch_diameter_angle = 5; // TODO add a setting?
-    double tree_support_tip_diameter = 0.8;
-    this->support_tree_angle          = std::clamp<double>(config.tree_support_branch_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
-    this->support_tree_angle_slow     = std::clamp<double>(support_tree_angle_slow * M_PI / 180., 0., this->support_tree_angle - EPSILON);
-    this->support_tree_branch_diameter = scaled<coord_t>(config.tree_support_branch_diameter.value);
-    this->support_tree_branch_diameter_angle = std::clamp<double>(support_tree_branch_diameter_angle * M_PI / 180., 0., 0.5 * M_PI - EPSILON);
-    this->support_tree_top_rate = 30; // percent
-//    this->support_tree_tip_diameter = this->support_line_width;
-    this->support_tree_tip_diameter = std::clamp(scaled<coord_t>(tree_support_tip_diameter), 0, this->support_tree_branch_diameter);
-}
 
 //FIXME Machine border is currently ignored.
 static Polygons calculateMachineBorderCollision(Polygon machine_border)
@@ -162,14 +95,23 @@ TreeModelVolumes::TreeModelVolumes(
     {
         m_anti_overhang = print_object.slice_support_blockers();
         TreeSupportMeshGroupSettings mesh_settings(print_object);
-        m_layer_outlines.emplace_back(mesh_settings, std::vector<Polygons>{});
+        const TreeSupportSettings config{ mesh_settings, print_object.slicing_parameters() };
+	    m_current_min_xy_dist = config.xy_min_distance;
+	    m_current_min_xy_dist_delta = config.xy_distance - m_current_min_xy_dist;
+	    assert(m_current_min_xy_dist_delta >= 0);
+	    m_increase_until_radius = config.increase_radius_until_radius;
+	    m_radius_0 = config.getRadius(0);
+	    m_raft_layers = config.raft_layers;
         m_current_outline_idx = 0;
+        m_layer_outlines.emplace_back(mesh_settings, std::vector<Polygons>{});
         std::vector<Polygons> &outlines = m_layer_outlines.front().second;
-        outlines.assign(print_object.layer_count(), Polygons{});
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layer_count()),
+        size_t num_raft_layers = m_raft_layers.size();
+        size_t num_layers = print_object.layer_count() + num_raft_layers;
+        outlines.assign(num_layers, Polygons{});
+        tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers, num_layers, std::min<size_t>(1, std::max<size_t>(16, num_layers / (8 * tbb::this_task_arena::max_concurrency())))),
             [&](const tbb::blocked_range<size_t> &range) {
             for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
-                outlines[layer_idx] = to_polygons(expolygons_simplify(print_object.get_layer(layer_idx)->lslices, mesh_settings.resolution));
+                outlines[layer_idx] = polygons_simplify(to_polygons(print_object.get_layer(layer_idx - num_raft_layers)->lslices), mesh_settings.resolution);
         });
     }
 #endif
@@ -181,12 +123,6 @@ TreeModelVolumes::TreeModelVolumes(
         m_min_resolution = std::min(m_min_resolution, data_pair.first.resolution);
     }
 
-    const TreeSupportSettings config{ m_layer_outlines[m_current_outline_idx].first };
-    m_current_min_xy_dist = config.xy_min_distance;
-    m_current_min_xy_dist_delta = config.xy_distance - m_current_min_xy_dist;
-    assert(m_current_min_xy_dist_delta >= 0);
-    m_increase_until_radius = config.increase_radius_until_radius;
-    m_radius_0 = config.getRadius(0);
 
 #if 0
     for (size_t mesh_idx = 0; mesh_idx < storage.meshes.size(); mesh_idx++) {
@@ -218,7 +154,7 @@ TreeModelVolumes::TreeModelVolumes(
 #endif
 }
 
-void TreeModelVolumes::precalculate(const coord_t max_layer, std::function<void()> throw_on_cancel)
+void TreeModelVolumes::precalculate(const PrintObject& print_object, const coord_t max_layer, std::function<void()> throw_on_cancel)
 {
     auto t_start = std::chrono::high_resolution_clock::now();
     m_precalculated = true;
@@ -226,7 +162,7 @@ void TreeModelVolumes::precalculate(const coord_t max_layer, std::function<void(
     // Get the config corresponding to one mesh that is in the current group. Which one has to be irrelevant.
     // Not the prettiest way to do this, but it ensures some calculations that may be a bit more complex
     // like inital layer diameter are only done in once.
-    TreeSupportSettings config(m_layer_outlines[m_current_outline_idx].first);
+    TreeSupportSettings config(m_layer_outlines[m_current_outline_idx].first, print_object.slicing_parameters());
 
     {
         // calculate which radius each layer in the tip may have.
@@ -330,6 +266,7 @@ void TreeModelVolumes::precalculate(const coord_t max_layer, std::function<void(
             for (int k = int(j - 1); k >= int(i); -- k) {
                 std::string legend = format("radius-%1%", unscaled<float>(sorted[k].first.first));
                 expolygons_with_attributes.push_back({ union_ex(sorted[k].second), SVG::ExPolygonAttributes(legend, std::string(colors[(k - int(i)) % num_colors]), 1.) });
+                SVG::export_expolygons(debug_out_path("treesupport_cache-%s-%d-%s.svg", name.data(), sorted[i].first.second, legend.c_str()), { expolygons_with_attributes.back() });
             }
             // Render the range of per radius collision polygons into a common SVG.
             SVG::export_expolygons(debug_out_path("treesupport_cache-%s-%d.svg", name.data(), sorted[i].first.second), expolygons_with_attributes);
@@ -417,8 +354,6 @@ const Polygons& TreeModelVolumes::getAvoidance(const coord_t orig_radius, LayerI
 
 const Polygons& TreeModelVolumes::getPlaceableAreas(const coord_t orig_radius, LayerIndex layer_idx, std::function<void()> throw_on_cancel) const
 {
-    if (orig_radius == 0)
-        return this->getCollision(0, layer_idx, true);
 
     const coord_t radius = ceilRadius(orig_radius);
     if (std::optional<std::reference_wrapper<const Polygons>> result = m_placeable_areas_cache.getArea({ radius, layer_idx }); result)
@@ -426,7 +361,10 @@ const Polygons& TreeModelVolumes::getPlaceableAreas(const coord_t orig_radius, L
     if (m_precalculated) {
         BOOST_LOG_TRIVIAL(error_level_not_in_cache) << "Had to calculate Placeable Areas at radius " << radius << " and layer " << layer_idx << ", but precalculate was called. Performance may suffer!";
         tree_supports_show_error("Not precalculated Placeable areas requested."sv, false);
-    }
+    }	
+    if (orig_radius == 0)
+        // Placable areas for radius 0 are calculated in the general collision code.
+        return this->getCollision(0, layer_idx, true);
     const_cast<TreeModelVolumes*>(this)->calculatePlaceables(radius, layer_idx, throw_on_cancel);
     return getPlaceableAreas(orig_radius, layer_idx, throw_on_cancel);
 }
@@ -481,22 +419,20 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
     std::sort(layer_outline_indices.begin(), layer_outline_indices.end(),
         [this](size_t i, size_t j) { return m_layer_outlines[i].second.size() < m_layer_outlines[j].second.size(); });
 
-    const LayerIndex            min_layer_last = m_collision_cache.getMaxCalculatedLayer(radius);
-    std::vector<Polygons>       data(max_layer_idx + 1 - min_layer_last, Polygons{});
+    LayerPolygonCache           data;
+    data.allocate(m_collision_cache.getMaxCalculatedLayer(radius) + 1, max_layer_idx + 1);
+
     const bool                  calculate_placable = m_support_rests_on_model && radius == 0;
-    std::vector<Polygons>       data_placeable;
+    LayerPolygonCache           data_placeable;
     if (calculate_placable)
-        data_placeable = std::vector<Polygons>(max_layer_idx + 1 - min_layer_last, Polygons{});
+        data_placeable.allocate(data.begin(), data.end());
 
     for (size_t outline_idx : layer_outline_indices)
         if (const std::vector<Polygons> &outlines = m_layer_outlines[outline_idx].second; ! outlines.empty()) {
             const TreeSupportMeshGroupSettings  &settings = m_layer_outlines[outline_idx].first;
             const coord_t       layer_height              = settings.layer_height;
-            const coord_t       z_distance_bottom         = settings.support_bottom_distance;
-            const int           z_distance_bottom_layers  = round_up_divide<int>(z_distance_bottom, layer_height);
-            const int           z_distance_top_layers     = round_up_divide<int>(settings.support_top_distance, layer_height);
-            const LayerIndex    max_required_layer        = std::min<LayerIndex>(outlines.size(), max_layer_idx + std::max(coord_t(1), z_distance_top_layers));
-            const LayerIndex    min_layer_bottom          = std::max<LayerIndex>(0, min_layer_last - int(z_distance_bottom_layers));
+            const int           z_distance_bottom_layers  = int(round(double(settings.support_bottom_distance) / double(layer_height)));
+            const int           z_distance_top_layers     = int(round(double(settings.support_top_distance) / double(layer_height)));
             const coord_t       xy_distance               = outline_idx == m_current_outline_idx ? m_current_min_xy_dist : 
                 // technically this causes collision for the normal xy_distance to be larger by m_current_min_xy_dist_delta for all 
                 // not currently processing meshes as this delta will be added at request time.
@@ -507,41 +443,84 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
                 settings.support_xy_distance;
 
             // 1) Calculate offsets of collision areas in parallel.
-            std::vector<Polygons> collision_areas_offsetted(max_required_layer + 1 - min_layer_bottom);
-            tbb::parallel_for(tbb::blocked_range<LayerIndex>(min_layer_bottom, max_required_layer + 1),
-                [&outlines, &machine_border = m_machine_border, offset_value = radius + xy_distance, min_layer_bottom, &collision_areas_offsetted, &throw_on_cancel]
+            LayerPolygonCache collision_areas_offsetted;
+            collision_areas_offsetted.allocate(
+                std::max<LayerIndex>(0, data.begin() - z_distance_bottom_layers),
+                std::min<LayerIndex>(outlines.size(), data.end() + z_distance_top_layers));
+            tbb::parallel_for(tbb::blocked_range<LayerIndex>(collision_areas_offsetted.begin(), collision_areas_offsetted.end()),
+                [&outlines, &machine_border = std::as_const(m_machine_border), offset_value = radius + xy_distance, &collision_areas_offsetted, &throw_on_cancel]
                 (const tbb::blocked_range<LayerIndex> &range) {
                 for (LayerIndex layer_idx = range.begin(); layer_idx != range.end(); ++ layer_idx) {
                     Polygons collision_areas = machine_border;
                     append(collision_areas, outlines[layer_idx]);
                     // jtRound is not needed here, as the overshoot can not cause errors in the algorithm, because no assumptions are made about the model.
                     // if a key does not exist when it is accessed it is added!
-                    collision_areas_offsetted[layer_idx - min_layer_bottom] = offset_value == 0 ? union_(collision_areas) : offset(union_ex(collision_areas), offset_value, ClipperLib::jtMiter, 1.2);
-                    if(throw_on_cancel)
+                    collision_areas_offsetted[layer_idx] = offset_value == 0 ?
+                            union_(collision_areas) :
+                            offset(union_ex(collision_areas), offset_value, ClipperLib::jtMiter, 1.2);
                         throw_on_cancel();
                 }
             });
 
             // 2) Sum over top / bottom ranges.
-            const bool last = outline_idx == layer_outline_indices.size();
-            tbb::parallel_for(tbb::blocked_range<LayerIndex>(min_layer_last + 1, max_layer_idx + 1),
-                [&collision_areas_offsetted, &anti_overhang = m_anti_overhang, min_layer_bottom, radius, z_distance_bottom_layers, z_distance_top_layers, min_resolution = m_min_resolution, &data, min_layer_last, last, &throw_on_cancel]
+            const bool processing_last_mesh = outline_idx == layer_outline_indices.size();
+            tbb::parallel_for(tbb::blocked_range<LayerIndex>(data.begin(), data.end()),
+                [&collision_areas_offsetted, &outlines, &machine_border = m_machine_border, &anti_overhang = m_anti_overhang, radius, 
+                    xy_distance, z_distance_bottom_layers, z_distance_top_layers, min_resolution = m_min_resolution, &data, processing_last_mesh, &throw_on_cancel]
             (const tbb::blocked_range<LayerIndex>& range) {
                     for (LayerIndex layer_idx = range.begin(); layer_idx != range.end(); ++layer_idx) {
                         Polygons collisions;
-                        for (int i = -z_distance_bottom_layers; i <= z_distance_top_layers; ++ i) {
-                            int j = layer_idx + i - min_layer_bottom;
-                            if (j >= 0 && j < int(collision_areas_offsetted.size()))
+                        for (int i = - z_distance_bottom_layers; i <= 0; ++ i)
+                            if (int j = layer_idx + i; collision_areas_offsetted.has(j))
                                 append(collisions, collision_areas_offsetted[j]);
+                        for (int i = 1; i <= z_distance_top_layers; ++ i)
+                            if (int j = layer_idx + i; j < int(outlines.size())) {
+                                Polygons collision_areas_original = machine_border;
+                                append(collision_areas_original, outlines[j]);
+
+                                // If just the collision (including the xy distance) of the layers above is accumulated, it leads to the
+                                // following issue:
+                                // Example: assuming the z distance is 2 layer
+                                // + = xy_distance
+                                // - = model
+                                // o = overhang of the area two layers above that should result in tips on this layer
+                                //
+                                //  +-----+
+                                //   +-----+
+                                //    +-----+
+                                //   o +-----+
+                                // If just the collision above is accumulated the overhang will get overwritten by the xy_distance of the
+                                // layer below the overhang...
+                                //
+                                // This only causes issues if the overhang area is thinner than xy_distance
+                                // Just accumulating areas of the model above without the xy distance is also problematic, as then support
+                                // may get closer to the model (on the diagonal downwards) than the user intended. Example (s = support):
+                                //  +-----+
+                                //   +-----+
+                                //   +-----+
+                                //   s+-----+
+
+                                // technically the calculation below is off by one layer, as the actual distance between plastic one layer
+                                // down is 0 not layer height, as this layer is filled with said plastic. But otherwise a part of the
+                                // overhang that is expected to be supported is overwritten by the remaining part of the xy distance of the
+                                // layer below the to be supported area.
+                                coord_t required_range_x =
+                                    (xy_distance - ((i - (z_distance_top_layers == 1 ? 0.5 : 0)) * xy_distance / z_distance_top_layers)); 
+                                    // the conditional -0.5 ensures that plastic can never touch on the diagonal
+                                    // downward when the z_distance_top_layers = 1. It is assumed to be better to
+                                    // not support an overhang<90 degree than to risk fusing to it.
+                                append(collisions, offset(union_ex(collision_areas_original), radius + required_range_x, ClipperLib::jtMiter, 1.2));
                         }
-                        collisions = last && layer_idx < int(anti_overhang.size()) ? union_(collisions, offset(union_ex(anti_overhang[layer_idx]), radius, ClipperLib::jtMiter, 1.2)) : union_(collisions);
-                        auto &dst = data[layer_idx - (min_layer_last + 1)];
-                        if (last) {
+                        collisions = processing_last_mesh && layer_idx < int(anti_overhang.size()) ? 
+                                union_(collisions, offset(union_ex(anti_overhang[layer_idx]), radius, ClipperLib::jtMiter, 1.2)) : 
+                                union_(collisions);
+                        auto &dst = data[layer_idx];
+                        if (processing_last_mesh) {
                             if (! dst.empty())
                                 collisions = union_(collisions, dst);
                             dst = polygons_simplify(collisions, min_resolution);
                         } else
-                            append(dst, collisions);
+                            append(dst, std::move(collisions));
                         if (throw_on_cancel)
                             throw_on_cancel();
                     }
@@ -550,17 +529,21 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
             // 3) Optionally calculate placables.
             if (calculate_placable) {
                 // Calculating both the collision areas and placable areas.
-                tbb::parallel_for(tbb::blocked_range<LayerIndex>(std::max(min_layer_last + 1, z_distance_bottom_layers + 1), max_layer_idx + 1),
-                    [&collision_areas_offsetted, &anti_overhang = m_anti_overhang, min_layer_bottom, z_distance_bottom_layers, last, min_resolution = m_min_resolution, &data_placeable, min_layer_last, &throw_on_cancel]
+                tbb::parallel_for(tbb::blocked_range<LayerIndex>(std::max(z_distance_bottom_layers + 1, data.begin()), data.end()),
+                    [&collision_areas_offsetted, &outlines, &anti_overhang = m_anti_overhang, processing_last_mesh,
+                     min_resolution = m_min_resolution, z_distance_bottom_layers, xy_distance, &data_placeable, &throw_on_cancel]
                 (const tbb::blocked_range<LayerIndex>& range) {
                     for (LayerIndex layer_idx = range.begin(); layer_idx != range.end(); ++ layer_idx) {
-                        LayerIndex layer_idx_below = layer_idx - (z_distance_bottom_layers + 1) - min_layer_bottom;
+                        LayerIndex layer_idx_below = layer_idx - z_distance_bottom_layers - 1;
                         assert(layer_idx_below >= 0);
-                        auto &current = collision_areas_offsetted[layer_idx - min_layer_bottom];
-                        auto &below   = collision_areas_offsetted[layer_idx_below];
-                        auto placable = diff(below, layer_idx < int(anti_overhang.size()) ? union_(current, anti_overhang[layer_idx - (z_distance_bottom_layers + 1)]) : current);
-                        auto &dst     = data_placeable[layer_idx - (min_layer_last + 1)];
-                        if (last) {
+                        const Polygons &current = collision_areas_offsetted[layer_idx];
+                        const Polygons &below   = outlines[layer_idx_below];
+                        Polygons placable = diff(
+                            // Inflate the surface to sit on by the separation distance to increase chance of a support being placed on a sloped surface.
+                            offset(below, xy_distance), 
+                            layer_idx_below < int(anti_overhang.size()) ? union_(current, anti_overhang[layer_idx_below]) : current);
+                        auto &dst     = data_placeable[layer_idx];
+                        if (processing_last_mesh) {
                             if (! dst.empty())
                                 placable = union_(placable, dst);
                             dst = polygons_simplify(placable, min_resolution);
@@ -585,9 +568,9 @@ void TreeModelVolumes::calculateCollision(const coord_t radius, const LayerIndex
 #endif
     if (throw_on_cancel)
         throw_on_cancel();
-    m_collision_cache.insert(std::move(data), min_layer_last + 1, radius);
+    m_collision_cache.insert(std::move(data), radius);
     if (calculate_placable)
-        m_placeable_areas_cache.insert(std::move(data_placeable), min_layer_last + 1, radius);
+        m_placeable_areas_cache.insert(std::move(data_placeable), radius);
 }
 
 void TreeModelVolumes::calculateCollisionHolefree(const std::vector<RadiusLayerPair> &keys, std::function<void()> throw_on_cancel)
@@ -653,7 +636,8 @@ void TreeModelVolumes::calculateAvoidance(const std::vector<RadiusLayerPair> &ke
             BOOST_LOG_TRIVIAL(debug) << "Calculation requested for value already calculated?";
             continue;
         }
-        if (! task.holefree() || task.radius < m_increase_until_radius + m_current_min_xy_dist_delta)
+        if ((task.to_model ? to_model : to_build_plate) &&
+            (! task.holefree() || task.radius < m_increase_until_radius + m_current_min_xy_dist_delta))
             avoidance_tasks.emplace_back(task);
     }
 
@@ -679,7 +663,7 @@ void TreeModelVolumes::calculateAvoidance(const std::vector<RadiusLayerPair> &ke
             assert(move_steps > 0);
             float last_move_step = max_move - (move_steps - 1) * move_step;
             if (last_move_step < scaled<float>(0.05)) {
-                assert(move_steps > 1);
+                //assert(move_steps > 1);
                 if (move_steps > 1) {
                     // Avoid taking a very short last step, stretch the other steps a bit instead.
                     move_step = max_move / (-- move_steps);
