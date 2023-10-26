@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-25 14:53+0800\n"
+"POT-Creation-Date: 2023-10-26 10:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2121,14 +2121,14 @@ msgstr "Temperatura de la base"
 msgid "Max volumetric speed"
 msgstr "Velocidad volumétrica máxima"
 
-msgid "\\u2103"
-msgstr "\\ u2103"
+msgid "℃"
+msgstr ""
 
 msgid "Bed temperature"
 msgstr "Temperatura de la base"
 
-msgid "mm\\u00B3"
-msgstr "mm\\ u00b3"
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Iniciar"
@@ -2820,20 +2820,20 @@ msgstr "Actualización fallida."
 
 msgid ""
 "The current chamber temperature or the target chamber temperature exceeds "
-"45\\u2103.In order to avoid extruder clogging,low temperature filament(PLA/"
-"PETG/TPU) is not allowed to be loaded."
+"45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/"
+"TPU) is not allowed to be loaded."
 msgstr ""
 
 msgid ""
 "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to "
 "avoid extruder clogging,it is not allowed to set the chamber temperature "
-"above 45\\u2103."
+"above 45℃."
 msgstr ""
 
 msgid ""
-"When you set the chamber temperature below 40\\u2103, the chamber "
-"temperature control will not be activated. And the target chamber "
-"temperature will automatically be set to 0\\u2103."
+"When you set the chamber temperature below 40℃, the chamber temperature "
+"control will not be activated. And the target chamber temperature will "
+"automatically be set to 0℃."
 msgstr ""
 
 msgid "Failed to start printing job"
@@ -5789,10 +5789,6 @@ msgstr ""
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 
-#, c-format, boost-format
-msgid "%s is not supported by AMS."
-msgstr "%s is not supported by the AMS."
-
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
 "they are the required filaments. If they are okay, press \"Confirm\" to "
@@ -5917,8 +5913,8 @@ msgstr "Terms and Conditions"
 msgid ""
 "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab "
 "device, please read the termsand conditions.By clicking to agree to use your "
-"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of Use"
-"(collectively, the \"Terms\"). If you do not comply with or agree to the "
+"Bambu Lab device, you agree to abide by the Privacy Policyand Terms of "
+"Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab "
@@ -8233,9 +8229,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
@@ -10640,10 +10633,10 @@ msgstr ""
 msgid "Printing Parameters"
 msgstr ""
 
-msgid "- \\u2103"
+msgid "- ℃"
 msgstr ""
 
-msgid " \\u2103"
+msgid " ℃"
 msgstr ""
 
 msgid "Plate Type"
@@ -10696,9 +10689,6 @@ msgid "From Volumetric Speed"
 msgstr ""
 
 msgid "To Volumetric Speed"
-msgstr ""
-
-msgid "mm\\u00B3/s"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -10804,7 +10794,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 0 \\step >= 0\n"
+"start > 0 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -10819,7 +10809,7 @@ msgstr ""
 
 msgid ""
 "Please input valid values:\n"
-"start > 10 \\step >= 0\n"
+"start > 10 step >= 0\n"
 "end > start + step)"
 msgstr ""
 
@@ -11069,6 +11059,10 @@ msgid "Filament type is not selected, please reselect type."
 msgstr ""
 
 msgid "Filament serial is not inputed, please input serial."
+msgstr ""
+
+msgid ""
+"You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
 
 msgid "Some existing presets have failed to be created, as follows:\n"
@@ -11363,10 +11357,6 @@ msgstr ""
 msgid "Copy preset from filament"
 msgstr ""
 
-msgid ""
-"The printer preset you selected does not have a name, please reselect it"
-msgstr ""
-
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
@@ -11657,6 +11647,16 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "\\u2103"
+#~ msgstr "\\ u2103"
+
+#~ msgid "mm\\u00B3"
+#~ msgstr "mm\\ u00b3"
+
+#, c-format, boost-format
+#~ msgid "%s is not supported by AMS."
+#~ msgstr "%s is not supported by the AMS."
 
 #~ msgid "Export as STL"
 #~ msgstr "Exportar como STL"
