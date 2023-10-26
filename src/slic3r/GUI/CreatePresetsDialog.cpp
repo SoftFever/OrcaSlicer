@@ -43,8 +43,17 @@ static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA 
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",         "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber"};
 
-static const std::vector<std::string> system_filament_types = {"PLA",    "ABS",  "TPU", "PC","ASA",  "PA-CF","PET-CF",    "PETG",    "PETG-CF",        "PLA Aero",   "PLA-CF",     "PA",
-                                                        "HIPS",  "PPS",   "PVA"};
+static const std::vector<std::string> system_filament_types = {"PLA",      "ABS",    "TPU",    "PC",     "ASA", "PA-CF", "PA6-CF", "PET-CF", "PETG", "PETG-CF",
+                                                               "PLA Aero", "PLA-CF", "PPA-CF", "PPA-GF", "PA",  "HIPS",  "PPS",    "PPS-CF", "PVA"};
+
+/*
+static const std::unordered_map<std::string, std::string> system_filament_types_map = {{"PLA", "PLA"},         {"ABS", "ABS"},           {"TPU", "TPU"},
+                                                                                       {"PC", "PC"},           {"ASA", "ASA"},           {"PA-CF", "PA-CF"},
+                                                                                       {"PA6-CF", "PA6-CF"},   {"PET-CF", "PET-CF"},     {"PETG", "PETG"},
+                                                                                       {"PETG-CF", "PETG-CF"}, {"PLA Aero", "PLA-AERO"}, {"PLA-CF", "PLA-CF"},
+                                                                                       {"PPA-CF", "PPA-CF"},   {"PPA-GF", "PPA-GF"},     {"PA", "PA"},
+                                                                                       {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
+                                                                                       {"PVA", "PVA"}};*/
 
 static const std::vector<std::string> printer_vendors = {"AnkerMake", "Anycubic",  "Artillery", "BIBO",        "BIQU",    "Creality ENDER", "Creality CR", "Creality SERMOON",
                                                          "Elegoo",    "FLSun",     "gCreate",   "Geeetech",    "INAT",    "Infinity3D",     "Jubilee",     "LNL3D",
@@ -213,15 +222,17 @@ static wxBoxSizer *create_preset_tree(wxWindow *parent, std::pair<std::string, s
 
     wxString     printer_name = wxString::FromUTF8(printer_and_preset.first);
     wxTreeItemId rootId       = treeCtrl->AddRoot(printer_name);
+    int          row          = 1;
     for (std::shared_ptr<Preset> preset : printer_and_preset.second) {
         wxString     preset_name = wxString::FromUTF8(preset->name);
         wxTreeItemId childId1    = treeCtrl->AppendItem(rootId, preset_name);
+        row++;
     }
 
     treeCtrl->Expand(rootId);
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->SetMinSize(wxSize(220,-1));
-    treeCtrl->SetMaxSize(wxSize(-1, 60));
+    treeCtrl->SetMinSize(wxSize(220, std::min(row * 30, 140)));
+    treeCtrl->SetMaxSize(wxSize(300, std::min(row * 30, 140)));
     sizer->Add(treeCtrl, 0, wxEXPAND | wxALL, 0);
 
     return sizer;
@@ -584,6 +595,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
 
     wxBoxSizer *textInputSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_custom_vendor_input = new TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
+    m_filament_custom_vendor_input->GetTextCtrl()->SetMaxLength(50);
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input custom vendor"));
@@ -662,6 +674,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
 
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
+    m_filament_serial_input->GetTextCtrl()->SetMaxLength(50);
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
     m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
@@ -843,7 +856,11 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
                     Preset const *const      checked_preset = checkbox_preset.second.second;
-                    bool res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, vendor_name,
+                    DynamicConfig            dynamic_config;
+                    dynamic_config.set_key_value("filament_vendor", new ConfigOptionStrings({vendor_name}));
+                    dynamic_config.set_key_value("compatible_printers", new ConfigOptionStrings({compatible_printer_name}));
+                    dynamic_config.set_key_value("filament_type", new ConfigOptionStrings({type_name}));
+                    bool res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, dynamic_config,
                                                                                    compatible_printer_name);
                     if (!res) {
                         std::string failure_names;
@@ -851,7 +868,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                         MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
                                           wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                         if (dlg.ShowModal() == wxID_YES) {
-                            res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, vendor_name,
+                            res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, dynamic_config,
                                                                                       compatible_printer_name, true);
                             BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  rewritten  is successful? " << res;
                         }
@@ -866,14 +883,20 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
                     Preset const *const      checked_preset = checkbox_preset.second.second;
-                    bool res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, vendor_name, compatible_printer_name);
+                    DynamicConfig            dynamic_config;
+                    dynamic_config.set_key_value("filament_vendor", new ConfigOptionStrings({vendor_name}));
+                    dynamic_config.set_key_value("compatible_printers", new ConfigOptionStrings({compatible_printer_name}));
+                    dynamic_config.set_key_value("filament_type", new ConfigOptionStrings({type_name}));
+                    bool res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, dynamic_config,
+                                                                                   compatible_printer_name);
                     if (!res) {
                         std::string failure_names;
                         for (std::string &failure : failures) { failure_names += failure + "\n"; }
                         MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
                                           wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                         if (wxID_YES == dlg.ShowModal()) {
-                            res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, vendor_name, compatible_printer_name, true);
+                            res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, dynamic_config,
+                                                                                      compatible_printer_name, true);
                             BOOST_LOG_TRIVIAL(info) << "clone filament presets  have failures  rewritten  is successful? " << res;
                         }
                     }
@@ -3749,9 +3772,11 @@ void EditFilamentPresetDialog::update_preset_tree()
         m_preset_tree_sizer->Add(create_preset_tree(m_preset_tree_window, printer_and_presets));
     }
     m_preset_tree_window->SetSizerAndFit(m_preset_tree_sizer);
+    
+    this->Thaw();
     this->Layout();
     this->Fit();
-    this->Thaw();
+    this->Refresh();
 }
 
 wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
@@ -3770,7 +3795,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
     vendor_sizer->Add(vendor_key_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *vendor_value_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *vendor_text = new wxStaticText(this, wxID_ANY, m_vendor_name, wxDefaultPosition, wxDefaultSize);
+    wxStaticText *vendor_text = new wxStaticText(this, wxID_ANY, from_u8(m_vendor_name), wxDefaultPosition, wxDefaultSize);
     vendor_value_sizer->Add(vendor_text, 0, wxEXPAND | wxALL, 0);
     vendor_sizer->Add(vendor_value_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
@@ -3782,7 +3807,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
     type_sizer->Add(type_key_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  type_value_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *type_text        = new wxStaticText(this, wxID_ANY, m_filament_type, wxDefaultPosition, wxDefaultSize);
+    wxStaticText *type_text        = new wxStaticText(this, wxID_ANY, from_u8(m_filament_type), wxDefaultPosition, wxDefaultSize);
     type_value_sizer->Add(type_text, 0, wxEXPAND | wxALL, 0);
     type_sizer->Add(type_value_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
@@ -3794,7 +3819,14 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
     serial_sizer->Add(serial_key_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  serial_value_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *serial_text        = new wxStaticText(this, wxID_ANY, m_filament_serial, wxDefaultPosition, wxDefaultSize);
+    wxString      full_filamnet_serial = from_u8(m_filament_serial);
+    wxString      show_filament_serial = full_filamnet_serial;
+    if (m_filament_serial.size() > 40) {
+        show_filament_serial = from_u8(m_filament_serial.substr(0, 20)) + "...";
+    }
+    wxStaticText *serial_text = new wxStaticText(this, wxID_ANY, show_filament_serial, wxDefaultPosition, wxDefaultSize);
+    wxToolTip *   toolTip     = new wxToolTip(full_filamnet_serial);
+    serial_text->SetToolTip(toolTip);
     serial_value_sizer->Add(serial_text, 0, wxEXPAND | wxALL, 0);
     serial_sizer->Add(serial_value_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
@@ -3885,15 +3917,6 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_cancel_btn = new Button(this, _L("Cancel"));
-    m_cancel_btn->SetBackgroundColor(btn_bg_white);
-    m_cancel_btn->SetBorderColor(wxColour(38, 46, 48));
-    m_cancel_btn->SetFont(Label::Body_12);
-    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_cancel_btn->SetCornerRadius(FromDIP(12));
-    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
-
     m_del_filament_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
         WarningDialog dlg(this, _L("Delete filament?\nDelete filament would deleted all the attatched filament presets"), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
@@ -3933,7 +3956,6 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
         }));
 
     m_ok_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
-    m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
 
     return bSizer_button;
 
@@ -4106,15 +4128,18 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
             std::shared_ptr<Preset>  filament_preset = iter->second;
             PresetBundle *           preset_bundle   = wxGetApp().preset_bundle;
             std::vector<std::string> failures;
-            bool                     res = preset_bundle->filaments.clone_presets_for_filament(filament_preset.get(), failures, m_filament_name, m_filament_id, m_filament_vendor, printer_name);
+            DynamicConfig            dynamic_config;
+            dynamic_config.set_key_value("filament_vendor", new ConfigOptionStrings({m_filament_vendor}));
+            dynamic_config.set_key_value("compatible_printers", new ConfigOptionStrings({printer_name}));
+            dynamic_config.set_key_value("filament_type", new ConfigOptionStrings({m_filament_type}));
+            bool res = preset_bundle->filaments.clone_presets_for_filament(filament_preset.get(), failures, m_filament_name, m_filament_id, dynamic_config, printer_name);
             if (!res) {
                 std::string failure_names;
                 for (std::string &failure : failures) { failure_names += failure + "\n"; }
                 MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
                                   wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                 if (dlg.ShowModal() == wxID_YES) {
-                    res = preset_bundle->filaments.clone_presets_for_filament(filament_preset.get(), failures, m_filament_name, m_filament_id, m_filament_vendor, printer_name,
-                                                                              true);
+                    res = preset_bundle->filaments.clone_presets_for_filament(filament_preset.get(), failures, m_filament_name, m_filament_id, dynamic_config, printer_name, true);
                     BOOST_LOG_TRIVIAL(info) << "clone filament  have failures  rewritten  is successful? " << res;
                 } else {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "have same name preset and not rewritten";

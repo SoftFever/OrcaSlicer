@@ -2168,29 +2168,20 @@ bool PresetCollection::create_presets_from_template_for_printer(std::vector<Pres
     }, force_rewritten);
 }
 
-bool PresetCollection::clone_presets_for_filament(Preset const * const &preset,
-                                                  std::vector<std::string> &         failures,
-                                                  std::string const &                filament_name,
-                                                  std::string const &                filament_id,
-                                                  const std::string &                vendor_name,
-                                                  const std::string &                compatible_printers,
-                                                  bool                               force_rewritten)
+bool PresetCollection::clone_presets_for_filament(Preset const *const &     preset,
+                                                  std::vector<std::string> &failures,
+                                                  std::string const &       filament_name,
+                                                  std::string const &       filament_id,
+                                                  const DynamicConfig &     dynamic_config,
+                                                  const std::string &       compatible_printers,
+                                                  bool                      force_rewritten)
 {
     std::vector<Preset const *> const presets = {preset};
-    return clone_presets(presets, failures, [&filament_name, &filament_id, &vendor_name, &compatible_printers](Preset &preset, Preset::Type &type) {
+    return clone_presets(presets, failures, [&filament_name, &filament_id, &dynamic_config, &compatible_printers](Preset &preset, Preset::Type &type) {
         preset.name        = filament_name + " @" + compatible_printers;
         if (type == Preset::TYPE_FILAMENT) {
-            auto filament_vendor = preset.config.option<ConfigOptionStrings>("filament_vendor", true);
-            if (filament_vendor->values.empty()) {
-                filament_vendor->values.push_back(vendor_name);
-            } else {
-                filament_vendor->values = {vendor_name};
-            }
-            auto compatible_printers_option = preset.config.option<ConfigOptionStrings>("compatible_printers", true);
-            if (compatible_printers_option->values.empty()) { compatible_printers_option->values.push_back(compatible_printers);
-            } else {
-                compatible_printers_option->values = {compatible_printers};
-                }
+            preset.config.apply_only(dynamic_config, {"filament_vendor", "compatible_printers", "filament_type"},true);
+
             preset.filament_id = filament_id;
          }    
         },

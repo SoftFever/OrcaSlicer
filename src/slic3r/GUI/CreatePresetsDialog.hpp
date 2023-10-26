@@ -338,7 +338,6 @@ private:
     Button *                             m_add_filament_btn  = nullptr;
     Button *                             m_del_filament_btn  = nullptr;
     Button *                             m_ok_btn            = nullptr;
-    Button *                             m_cancel_btn        = nullptr;
     wxGridSizer *                        m_preset_tree_sizer = nullptr;
     wxScrolledWindow *                   m_preset_tree_window = nullptr;
     std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_presets;

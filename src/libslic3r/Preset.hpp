@@ -461,8 +461,13 @@ public:
     bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten = false);
     bool create_presets_from_template_for_printer(
         std::vector<Preset const *> const &templates, std::vector<std::string> &failures, std::string const &printer, std::function <std::string(std::string)> create_filament_id, bool force_rewritten = false);
-    bool clone_presets_for_filament(Preset const * const &preset, std::vector<std::string> &failures, std::string const &filament_name, std::string const &filament_id, const std::string& vendor,
-                                                  const std::string& compatible_printers, bool force_rewritten = false);
+    bool clone_presets_for_filament(Preset const *const &     preset,
+                                    std::vector<std::string> &failures,
+                                    std::string const &       filament_name,
+                                    std::string const &       filament_id,
+                                    const DynamicConfig &     dynamic_config,
+                                    const std::string &       compatible_printers,
+                                    bool                      force_rewritten = false);
 
     std::map<std::string, std::vector<Preset const *>> get_filament_presets() const;
 
