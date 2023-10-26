@@ -32,5 +32,10 @@ do
          fi
         mkdir -p ./resources/i18n/${lang}/
         msgfmt --check-format -o ./resources/i18n/${lang}/OrcaSlicer.mo $dir/OrcaSlicer_${lang}.po
+        # Check the exit status of the msgfmt command
+        if [ $? -ne 0 ]; then
+            echo "Error encountered with msgfmt command for language ${lang}."
+            exit 1  # Exit the script with an error status
+        fi
     fi
 done
