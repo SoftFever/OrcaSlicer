@@ -683,7 +683,7 @@ int CLI::run(int argc, char **argv)
     PlateDataPtrs plate_data_src;
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -715,6 +715,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* min_save_option = m_config.option<ConfigOptionBool>("min_save");
     if (min_save_option)
         minimum_save = min_save_option->value;
+
+    ConfigOptionBool* enable_timelapse_option = m_config.option<ConfigOptionBool>("enable_timelapse");
+    if (enable_timelapse_option)
+        enable_timelapse = enable_timelapse_option->value;
 
     ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
     if (pipe_option) {
@@ -1220,6 +1224,8 @@ int CLI::run(int argc, char **argv)
     //load filaments files
     int load_filament_count = load_filaments.size();
     std::vector<int> load_filaments_index;
+    std::set<std::string> load_filaments_set;
+    bool disable_wipe_tower_after_mapping = false;
     std::vector<DynamicPrintConfig> load_filaments_config;
     std::vector<std::string> load_filaments_id;
     std::vector<std::string> load_filaments_name, load_filaments_inherit;
@@ -1302,6 +1308,8 @@ int CLI::run(int argc, char **argv)
             load_filaments_config.push_back(std::move(config));
             load_filaments_index.push_back(current_index);
 
+            load_filaments_set.emplace(config_name);
+
             BOOST_LOG_TRIVIAL(info) << boost::format("loaded filament %1% from file %2%, type %3%, name %4%, inherits %5%")%(index+1) %file %config_from %config_name % inherits;
         }
         else {
@@ -1312,6 +1320,8 @@ int CLI::run(int argc, char **argv)
                 load_filaments_config.push_back(default_load_fila_config);
                 load_filaments_index.push_back(current_index);
                 load_filaments_inherit.push_back(default_filament_inherit);
+
+                load_filaments_set.emplace(default_load_fila_name);
             }
             continue;
         }
@@ -1319,6 +1329,12 @@ int CLI::run(int argc, char **argv)
 
     if (filament_count == 0)
         filament_count = load_filament_count;
+
+    if ((load_filament_count > 0) && (load_filaments_set.size() == 1))
+    {
+        disable_wipe_tower_after_mapping = true;
+        BOOST_LOG_TRIVIAL(warning) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
+    }
 
     //load system config if needed
     bool fetch_compatible_values = false, fetch_upward_values = false;
@@ -2277,6 +2293,38 @@ int CLI::run(int argc, char **argv)
             const Vec3d &instance_offset = model_instance->get_offset();
             BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
         }*/
+
+    if (disable_wipe_tower_after_mapping) {
+        auto timelapse_type_opt = m_print_config.option("timelapse_type");
+        if (enable_timelapse && timelapse_type_opt && (timelapse_type_opt->getInt() == TimelapseType::tlSmooth))
+        {
+            disable_wipe_tower_after_mapping = false;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: disable_wipe_tower_after_mapping: set back to false due to smooth timelapse!")%__LINE__;
+        }
+        else {
+            ConfigOptionBool* enable_wipe_op = m_print_config.option<ConfigOptionBool>("enable_prime_tower", true);
+            enable_wipe_op->value = false;
+            BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: disable_wipe_tower_after_mapping: disable prime tower for only one filament!")%__LINE__;
+
+            std::string diff_settings = different_settings[0];
+
+            if (diff_settings.empty())
+                different_settings[0] = "enable_prime_tower";
+            else {
+                std::vector<std::string> different_keys;
+                Slic3r::unescape_strings_cstyle(diff_settings, different_keys);
+                bool need_insert = true;
+                for (int index = 0; index < different_keys.size(); index++) {
+                    if (different_keys[index] == "enable_prime_tower") {
+                        need_insert = false;
+                        break;
+                    }
+                }
+                if (need_insert)
+                    different_settings[0] = diff_settings + ";enable_prime_tower";
+            }
+        }
+    }
 
     // Loop through transform options.
     bool user_center_specified = false;

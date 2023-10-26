@@ -5456,6 +5456,11 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "level";
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("enable_timelapse", coBool);
+    def->label = L("Enable timeplapse for print");
+    def->tooltip = L("If enabled, this slicing will be considered using timelapse");
+    def->set_default_value(new ConfigOptionBool(false));
+
 #if (defined(_MSC_VER) || defined(__MINGW32__)) && defined(SLIC3R_GUI)
     /*def = this->add("sw_renderer", coBool);
     def->label = L("Render with a software renderer");
