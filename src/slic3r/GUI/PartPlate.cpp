@@ -2502,10 +2502,11 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 
 void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id, bool render_cali)
 {
+    glsafe(::glEnable(GL_DEPTH_TEST));
+
     GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
-        glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
@@ -2529,7 +2530,6 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
         //	render_label(canvas);
         // }
 
-        glsafe(::glDisable(GL_DEPTH_TEST));
         shader->stop_using();
     }
 
@@ -2544,6 +2544,8 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
     if (!force_background_color) {
         render_only_numbers(bottom);
     }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
 void PartPlate::set_selected() {
