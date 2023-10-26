@@ -4668,21 +4668,21 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         //sync preset
                         if (!preset_bundle) continue;
 
-                        sync_count = preset_bundle->prints.get_user_presets(presets_to_sync);
+                        sync_count = preset_bundle->prints.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
                                 sync_preset(&preset);
                             }
                         }
 
-                        sync_count = preset_bundle->filaments.get_user_presets(presets_to_sync);
+                        sync_count = preset_bundle->filaments.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
                                 sync_preset(&preset);
                             }
                         }
 
-                        sync_count = preset_bundle->printers.get_user_presets(presets_to_sync);
+                        sync_count = preset_bundle->printers.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
                                 sync_preset(&preset);

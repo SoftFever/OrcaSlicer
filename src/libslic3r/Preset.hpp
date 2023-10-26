@@ -437,7 +437,7 @@ public:
     bool            load_user_preset(std::string name, std::map<std::string, std::string> preset_values, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     void            update_after_user_presets_loaded();
     //BBS: get user presets
-    int             get_user_presets(std::vector<Preset>& result_presets);
+    int  get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets);
     void set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time);
     bool need_sync(std::string name, std::string setting_id, long long update_time);
 

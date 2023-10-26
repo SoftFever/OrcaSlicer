@@ -726,11 +726,19 @@ bool Preset::is_custom_defined()
     return false;
 }
 
+// The method previously only supports to be called on preset_bundle->printers.get_edited_preset()
+//   I extened to support call on all presets
 bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
 {
     bool is_bbl_vendor_preset = true;
     if (preset_bundle) {
-        auto config = &preset_bundle->printers.get_edited_preset().config;
+        auto config = &this->config;
+        auto printers = config->opt<ConfigOptionStrings>("compatible_printers");
+        if (printers && !printers->values.empty()) {
+            auto printer = preset_bundle->printers.find_preset(printers->values.front());
+            if (printer)
+                config = &printer->config;
+        }
         std::string vendor_name;
         for (auto vendor_profile : preset_bundle->vendors) {
             for (auto vendor_model : vendor_profile.second.models)
@@ -1469,7 +1477,7 @@ bool PresetCollection::need_sync(std::string name, std::string setting_id, long 
 }
 
 //BBS: get user presets
-int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
+int PresetCollection::get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets)
 {
     int count = 0;
     result_presets.clear();
@@ -1479,6 +1487,7 @@ int PresetCollection::get_user_presets(std::vector<Preset>& result_presets)
         if (!preset.is_user()) continue;
         if (get_preset_base(preset) != &preset && preset.base_id.empty()) continue;
         if (!preset.setting_id.empty() && preset.sync_info.empty()) continue;
+        if (!preset.is_bbl_vendor_preset(preset_bundle)) continue;
 
         result_presets.push_back(preset);
         count++;
