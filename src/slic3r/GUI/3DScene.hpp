@@ -194,6 +194,8 @@ public:
         bool                force_neutral_color : 1;
         // Whether or not to force rendering of sinking contours
         bool                force_sinking_contours : 1;
+        // Is render for picking
+        bool                picking : 1;
     };
 
     // Is mouse or rectangle selection over this object to select/deselect it ?
@@ -315,7 +317,7 @@ public:
     virtual void        render();
 
     //BBS: add outline related logic and add virtual specifier
-    void render_with_outline(const Transform3d &view_model_matrix);
+    virtual void        render_with_outline(const Transform3d &view_model_matrix);
 
     //BBS: add simple render function for thumbnail
     void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors);
@@ -348,6 +350,7 @@ class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<ColorRGBA>& colors);
     void render() override;
+    void render_with_outline(const Transform3d &view_model_matrix) override { render(); }
 
     std::vector<GUI::GLModel> model_per_colors;
     bool                              IsTransparent();

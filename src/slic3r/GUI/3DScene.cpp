@@ -492,11 +492,10 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
         }
     } while (0);
 
-    if (color_volume) {
-        glsafe(::glMultMatrixd(world_matrix().data()));
+    if (color_volume && !picking) {
         for (int idx = 0; idx < mmuseg_models.size(); idx++) {
             GUI::GLModel &m = mmuseg_models[idx];
-            if (m.is_empty())
+            if (!m.is_initialized())
                 continue;
 
             if (idx == 0) {
@@ -570,17 +569,17 @@ void GLWipeTowerVolume::render()
     if (this->is_left_handed())
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(world_matrix().data()));
 
-    GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
     for (int i = 0; i < m_colors.size(); i++) {
-        ColorRGBA new_color = adjust_color_for_rendering(m_colors[i]);
-        this->model_per_colors[i].set_color(new_color);
+        if (!picking) {
+            ColorRGBA new_color = adjust_color_for_rendering(m_colors[i]);
+            this->model_per_colors[i].set_color(new_color);
+        } else {
+            this->model_per_colors[i].set_color(model.get_color());
+        }
         this->model_per_colors[i].render();
     }
     
-    glsafe(::glPopMatrix());
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
 }
