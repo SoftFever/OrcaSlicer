@@ -312,8 +312,10 @@ public:
 
     void                set_range(double low, double high);
 
+    virtual void        render();
+
     //BBS: add outline related logic and add virtual specifier
-    virtual void        render(bool with_outline = false);
+    void render_with_outline(const Transform3d &view_model_matrix);
 
     //BBS: add simple render function for thumbnail
     void simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors);
@@ -345,7 +347,7 @@ public:
 class GLWipeTowerVolume : public GLVolume {
 public:
     GLWipeTowerVolume(const std::vector<ColorRGBA>& colors);
-    virtual void render(bool with_outline = false);
+    void render() override;
 
     std::vector<GUI::GLModel> model_per_colors;
     bool                              IsTransparent();

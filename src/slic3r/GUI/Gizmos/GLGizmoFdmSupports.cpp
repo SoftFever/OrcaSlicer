@@ -116,8 +116,8 @@ void GLGizmoFdmSupports::render_painter_gizmo()
     //BBS: draw support volumes
     if (m_volume_ready && m_support_volume && (m_edit_state != state_generating))
     {
-        //m_support_volume->set_render_color();
-        ::glColor4f(0.f, 0.7f, 0.f, 0.7f);
+        // TODO: FIXME
+        m_support_volume->set_render_color({0.f, 0.7f, 0.f, 0.7f});
         m_support_volume->render();
     }
 
