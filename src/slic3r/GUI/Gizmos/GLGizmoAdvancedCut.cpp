@@ -1930,6 +1930,8 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
 
         float marker_size = 12;
         render_color_marker(marker_size, suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR);
+        m_imgui->disabled_end();
+        m_imgui->disabled_begin(!keep_part || m_cut_to_parts);
         float new_label_width = label_width + (m_cut_to_parts ? 10.0f : 20.0f);
         ImGui::SameLine(new_label_width);
         bool is_keep = !place_on_cut_part && !rotate_part;
