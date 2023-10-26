@@ -426,7 +426,7 @@ bool GLGizmoAdvancedCut::on_init()
     m_connector_shortcuts.push_back(std::make_pair(alt + _L("Left click"), _L("Remove connector from selection")));
     m_connector_shortcuts.push_back(std::make_pair(ctrl + "A", _L("Select all connectors")));
 
-    m_cut_plane_shortcuts.push_back(std::make_pair(shift + _L("Left click"), _L("Plot cut plane")));
+    m_cut_plane_shortcuts.push_back(std::make_pair(shift + _L("Left drag"), _L("Plot cut plane")));
     m_cut_plane_shortcuts.push_back(std::make_pair(_L("right click"), _L("Assign the part to the other side")));
 
     m_cut_groove_shortcuts.push_back(std::make_pair(shift + _L("Left click"), _L("Plot cut plane")));
@@ -1768,7 +1768,7 @@ bool GLGizmoAdvancedCut::render_cut_mode_combo(double label_width)
 
 void GLGizmoAdvancedCut::render_color_marker(float size, const ColorRGBA &color)
 {
-    auto to_ImU32 = [](const ColorRGBA &color) -> ImU32 { return ImGui::GetColorU32({color[0], color[1], color[1], color[2]}); };
+    auto to_ImU32 = [](const ColorRGBA &color) -> ImU32 { return ImGui::GetColorU32({color[0], color[1], color[2], color[3]}); };
     ImGui::SameLine();
     const float radius = 0.5f * size;
     ImVec2      pos    = ImGui::GetCurrentWindow()->DC.CursorPos;
