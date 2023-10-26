@@ -8468,7 +8468,7 @@ msgid ""
 msgstr ""
 
 msgid "Unloading speed at the start"
-msgstr "Vitesse de déchargement au départ
+msgstr "Vitesse de déchargement au départ"
 
 msgid ""
 "Speed used for unloading the tip of the filament immediately after ramming."
@@ -8492,7 +8492,7 @@ msgid ""
 msgstr ""
 
 msgid "Speed of the first cooling move"
-msgstr "Vitesse du premier mouvement de refroidissement
+msgstr "Vitesse du premier mouvement de refroidissement"
 
 msgid "Cooling moves are gradually accelerating beginning at this speed."
 msgstr "Les mouvements de refroidissement s'accélèrent progressivement à partir de cette vitesse."
