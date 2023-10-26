@@ -4487,6 +4487,9 @@ void GUI_App::sync_preset(Preset* preset)
             if (!new_setting_id.empty()) {
                 setting_id = new_setting_id;
                 result = 0;
+                auto update_time_str = values_map[BBL_JSON_KEY_UPDATE_TIME];
+                if (!update_time_str.empty())
+                    update_time = std::atoll(update_time_str.c_str());
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]init: request_setting_id failed, http code "<<http_code;
@@ -4513,6 +4516,9 @@ void GUI_App::sync_preset(Preset* preset)
             if (!new_setting_id.empty()) {
                 setting_id = new_setting_id;
                 result = 0;
+                auto update_time_str = values_map[BBL_JSON_KEY_UPDATE_TIME];
+                if (!update_time_str.empty())
+                    update_time = std::atoll(update_time_str.c_str());
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]create: request_setting_id failed, http code "<<http_code;

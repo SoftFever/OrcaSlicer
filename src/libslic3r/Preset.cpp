@@ -2131,7 +2131,6 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
             preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
         else if (m_type == Preset::TYPE_PRINTER)
             preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
-        preset.updated_time = (long long) Slic3r::Utils::get_current_time_utc();
     }
     if (!failures.empty() && !force_rewritten)
         return false;
