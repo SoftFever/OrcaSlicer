@@ -1599,13 +1599,6 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     }
     std::string cloud_setting_id = preset_values[BBL_JSON_KEY_SETTING_ID];
 
-    //base_id
-    if (preset_values.find(BBL_JSON_KEY_BASE_ID) == preset_values.end()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find base_id, not loading for user preset %1%")%name;
-        return false;
-    }
-    std::string cloud_base_id = preset_values[BBL_JSON_KEY_BASE_ID];
-
     //update_time
     long long cloud_update_time = 0;
     if (preset_values.find(BBL_JSON_KEY_UPDATE_TIME) != preset_values.end()) {
@@ -1619,12 +1612,6 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     }
     std::string cloud_user_id = preset_values[BBL_JSON_KEY_USER_ID];
 
-    //filament_id
-    std::string cloud_filament_id;
-    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) != preset_values.end()) {
-        cloud_filament_id = preset_values[BBL_JSON_KEY_FILAMENT_ID];
-    }
-
     lock();
     //std::string name = preset->name;
     auto iter = this->find_preset_internal(name);
@@ -1637,6 +1624,11 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
                 iter->sync_info = "update";
             else
                 iter->sync_info.clear();
+            // Fixup possible data lost
+            iter->setting_id = cloud_setting_id;
+            fs::path idx_file(iter->file);
+            idx_file.replace_extension(".info");
+            iter->save_info(idx_file.string());
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("preset %1%'s update_time is eqaul or newer, cloud  update_time %2%, local update_time %3%")%name %cloud_update_time %iter->updated_time;
             unlock();
             return false;
@@ -1647,7 +1639,20 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
         }
     }
 
-    DynamicPrintConfig  new_config, cloud_config;
+    // base_id
+    if (preset_values.find(BBL_JSON_KEY_BASE_ID) == preset_values.end()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find base_id, not loading for user preset %1%") % name;
+        return false;
+    }
+    std::string cloud_base_id = preset_values[BBL_JSON_KEY_BASE_ID];
+
+    //filament_id
+    std::string cloud_filament_id;
+    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) != preset_values.end()) {
+        cloud_filament_id = preset_values[BBL_JSON_KEY_FILAMENT_ID];
+    }
+
+    DynamicPrintConfig new_config, cloud_config;
     try {
         ConfigSubstitutions config_substitutions = cloud_config.load_string_map(preset_values, rule);
         if (! config_substitutions.empty())

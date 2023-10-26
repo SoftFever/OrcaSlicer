@@ -4544,6 +4544,7 @@ void GUI_App::sync_preset(Preset* preset)
                         result = 0;
                         updated_info = "hold";
                         BOOST_LOG_TRIVIAL(error) << "[sync_preset] put setting_id = " << setting_id << " failed, http_code = " << http_code;
+                    } else {
                         auto update_time_str = values_map[BBL_JSON_KEY_UPDATE_TIME];
                         if (!update_time_str.empty())
                             update_time = std::atoll(update_time_str.c_str());
@@ -4638,7 +4639,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                     update_time = std::atoll(update_time_str.c_str());
                 if (type == "filament") {
                     return preset_bundle->filaments.need_sync(name, setting_id, update_time);
-                } else if (type == "machine") {
+                } else if (type == "print") {
                     return preset_bundle->prints.need_sync(name, setting_id, update_time);
                 } else if (type == "printer") {
                     return preset_bundle->printers.need_sync(name, setting_id, update_time);
@@ -4664,6 +4665,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
                                 sync_preset(&preset);
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
 
@@ -4671,6 +4673,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
                                 sync_preset(&preset);
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
 
@@ -4678,6 +4681,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
                                 sync_preset(&preset);
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
 
