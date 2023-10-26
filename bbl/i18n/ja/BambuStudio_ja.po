@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 10:26+0800\n"
+"POT-Creation-Date: 2023-10-26 14:24+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -287,6 +287,9 @@ msgstr "Remove connector from selection"
 
 msgid "Select all connectors"
 msgstr "Select all connectors"
+
+msgid "Left drag"
+msgstr ""
 
 msgid "Plot cut plane"
 msgstr ""
@@ -4380,6 +4383,9 @@ msgid "Auto-recovery from step loss"
 msgstr "自動回復"
 
 msgid "Allow Prompt Sound"
+msgstr ""
+
+msgid "Fliament Tangle Detect"
 msgstr ""
 
 msgid "Global"

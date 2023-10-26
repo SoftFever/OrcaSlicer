@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 10:26+0800\n"
+"POT-Creation-Date: 2023-10-26 14:24+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -297,6 +297,9 @@ msgstr "Odebrat spojku z výběru"
 
 msgid "Select all connectors"
 msgstr "Vybrat všechny spojky"
+
+msgid "Left drag"
+msgstr ""
 
 msgid "Plot cut plane"
 msgstr ""
@@ -4503,6 +4506,9 @@ msgid "Auto-recovery from step loss"
 msgstr "Automatické obnovení po ztrátě kroku"
 
 msgid "Allow Prompt Sound"
+msgstr ""
+
+msgid "Fliament Tangle Detect"
 msgstr ""
 
 msgid "Global"

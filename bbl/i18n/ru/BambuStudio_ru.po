@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 10:26+0800\n"
+"POT-Creation-Date: 2023-10-26 14:24+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -298,6 +298,9 @@ msgstr "Удалить соединитель из списка выбора"
 
 msgid "Select all connectors"
 msgstr "Выберите все соединители"
+
+msgid "Left drag"
+msgstr ""
 
 msgid "Plot cut plane"
 msgstr ""
@@ -4515,6 +4518,9 @@ msgid "Auto-recovery from step loss"
 msgstr "Автоматическое восстановление после потери шага"
 
 msgid "Allow Prompt Sound"
+msgstr ""
+
+msgid "Fliament Tangle Detect"
 msgstr ""
 
 msgid "Global"

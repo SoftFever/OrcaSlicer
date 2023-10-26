@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 10:26+0800\n"
+"POT-Creation-Date: 2023-10-26 14:24+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -294,6 +294,9 @@ msgstr "取消选择连接件"
 
 msgid "Select all connectors"
 msgstr "选择所有连接件"
+
+msgid "Left drag"
+msgstr "左键拖动"
 
 msgid "Plot cut plane"
 msgstr "绘制切割平面"
@@ -4373,6 +4376,9 @@ msgstr "自动从丢步中恢复"
 
 msgid "Allow Prompt Sound"
 msgstr "支持提示音"
+
+msgid "Fliament Tangle Detect"
+msgstr ""
 
 msgid "Global"
 msgstr "全局"
@@ -10784,8 +10790,7 @@ msgstr ""
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
 "Can be share in MakerWorld."
-msgstr ""
-"打印机以及属于该打印机的所有材料和工艺预设。可以在MakerWorld中共享。"
+msgstr "打印机以及属于该打印机的所有材料和工艺预设。可以在MakerWorld中共享。"
 
 msgid ""
 "User's fillment preset set. \n"
