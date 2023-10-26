@@ -1322,7 +1322,7 @@ bool GLGizmoAdvancedCut::add_connector(CutConnectors &connectors, const Vec2d &m
         m_selected_count = 1;
         assert(m_selected.size() == connectors.size());
         m_parent.set_as_dirty();
-
+        check_and_update_connectors_state();
         return true;
     }
     return false;
