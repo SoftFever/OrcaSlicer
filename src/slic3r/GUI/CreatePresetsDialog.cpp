@@ -1566,6 +1566,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
 
     horizontal_sizer->Add(hot_bed_stl_sizer, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
+    m_upload_stl_tip_text = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+    m_upload_stl_tip_text->SetLabelText(_L("Empty"));
+    horizontal_sizer->Add(m_upload_stl_tip_text, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     return horizontal_sizer;
 }
 
@@ -1600,6 +1603,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_svg_item(wxWindow *parent)
 
     horizontal_sizer->Add(hot_bed_stl_sizer, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
+    m_upload_svg_tip_text = new wxStaticText(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+    m_upload_svg_tip_text->SetLabelText(_L("Empty"));
+    horizontal_sizer->Add(m_upload_svg_tip_text, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
     return horizontal_sizer;
 }
 
@@ -1671,6 +1677,7 @@ void CreatePrinterPresetDialog::load_texture() {
         return;
 
     m_custom_texture = "";
+    m_upload_svg_tip_text->SetLabelText(_L("Empty"));
     last_directory        = dialog.GetDirectory().ToUTF8().data();
     std::string file_name = dialog.GetPath().ToUTF8().data();
     if (!boost::algorithm::iends_with(file_name, ".png") && !boost::algorithm::iends_with(file_name, ".svg")) {
@@ -1678,6 +1685,7 @@ void CreatePrinterPresetDialog::load_texture() {
         return;
     }
     m_custom_texture = file_name;
+    m_upload_svg_tip_text->SetLabelText(_L(boost::filesystem::path(file_name).filename().string()));
 }
 
 void CreatePrinterPresetDialog::load_model_stl()
@@ -1688,6 +1696,7 @@ void CreatePrinterPresetDialog::load_model_stl()
         return;
 
     m_custom_model = "";
+    m_upload_stl_tip_text->SetLabelText(_L("Empty"));
     last_directory        = dialog.GetDirectory().ToUTF8().data();
     std::string file_name = dialog.GetPath().ToUTF8().data();
     if (!boost::algorithm::iends_with(file_name, ".stl")) {
@@ -1695,6 +1704,7 @@ void CreatePrinterPresetDialog::load_model_stl()
         return;
     }
     m_custom_model = file_name;
+    m_upload_stl_tip_text->SetLabelText(_L(boost::filesystem::path(file_name).filename().string()));
 }
 
 bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(PresetBundle &temp_preset_bundle, bool just_template)

@@ -197,6 +197,8 @@ private:
     wxBoxSizer *                                       m_page1_sizer                    = nullptr;
     wxBoxSizer *                                       m_printer_info_sizer             = nullptr;
     wxBoxSizer *                                       m_page2_sizer                    = nullptr;
+    wxStaticText *                                     m_upload_stl_tip_text            = nullptr;
+    wxStaticText *                                     m_upload_svg_tip_text            = nullptr;
     std::string                                        m_custom_texture;
     std::string                                        m_custom_model;
 };
