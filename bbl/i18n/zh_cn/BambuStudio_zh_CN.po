@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 14:24+0800\n"
+"POT-Creation-Date: 2023-10-26 17:49+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1784,6 +1784,14 @@ msgstr "正在通过局域网发送打印任务"
 msgid "Sending print job through cloud service"
 msgstr "正在通过云端服务发送打印任务"
 
+msgid "Print task sending times out."
+msgstr "发送打印任务超时。"
+
+msgid ""
+"The printer timed out while receiving a print job. Please check if the "
+"network is functioning properly and send the print again."
+msgstr "打印机接收打印任务超时，请检查网络正常后再次发送打印。"
+
 msgid "Service Unavailable"
 msgstr "服务不可用"
 
@@ -1800,9 +1808,6 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "已成功发送。将自动跳转到%ss中的下一页。"
-
-msgid "Print task sending times out."
-msgstr "发送打印任务超时。"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
@@ -4378,7 +4383,7 @@ msgid "Allow Prompt Sound"
 msgstr "支持提示音"
 
 msgid "Fliament Tangle Detect"
-msgstr ""
+msgstr "缠料检测"
 
 msgid "Global"
 msgstr "全局"
@@ -8927,6 +8932,12 @@ msgid ""
 msgstr ""
 "打印支撑主体和筏层的耗材丝。\"缺省\"代表不指定特定的耗材丝，并使用当前耗材"
 
+msgid "No interface filament for body"
+msgstr "界面材料不用于主体"
+
+msgid "Don't use support interface filament to print support body"
+msgstr "不使用支撑界面材料打印支撑主体"
+
 msgid "Line width of support"
 msgstr "支撑的线宽"
 
@@ -9182,10 +9193,10 @@ msgstr ""
 "必须使用相对E距离。"
 
 msgid "Use firmware retraction"
-msgstr ""
+msgstr "硬件回抽"
 
 msgid "Convert the retraction moves to G10 and G11 gcode"
-msgstr ""
+msgstr "将回抽指令改为G10,G11"
 
 msgid "Wipe while retracting"
 msgstr "回抽时擦拭"
@@ -9518,6 +9529,11 @@ msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr "当对象部分位于床下时，将对象抬离床。默认情况下禁用。"
 
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "转换单位"
 
@@ -9566,6 +9582,12 @@ msgstr "零件跳过"
 msgid "Skip some objects in this print"
 msgstr "打印过程中跳过一些零件"
 
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
 msgid "load uptodate process/machine settings when using uptodate"
 msgstr "在使用最新设置时加载最新的进程/机器设置"
 
@@ -9595,6 +9617,18 @@ msgstr "加载自定义 gcode"
 
 msgid "Load custom gcode from json"
 msgstr "从 json 中加载自定义 gcode"
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate "
+msgstr ""
 
 msgid "Error in zip archive"
 msgstr "zip文件中存在错误"
@@ -10556,7 +10590,7 @@ msgid "Filament type is not selected, please reselect type."
 msgstr "未选择材料类型，请重新选择。"
 
 msgid "Filament serial is not inputed, please input serial."
-msgstr "未输入材料编号，请输入材料系列。"
+msgstr "未输入材料系列，请输入材料系列。"
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."

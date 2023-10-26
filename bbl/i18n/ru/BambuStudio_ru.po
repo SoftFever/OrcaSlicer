@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 14:24+0800\n"
+"POT-Creation-Date: 2023-10-26 17:49+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1836,6 +1836,14 @@ msgstr "Отправка задания на печать по локально�
 msgid "Sending print job through cloud service"
 msgstr "Отправка задания на печать через облачный сервис"
 
+msgid "Print task sending times out."
+msgstr ""
+
+msgid ""
+"The printer timed out while receiving a print job. Please check if the "
+"network is functioning properly and send the print again."
+msgstr ""
+
 msgid "Service Unavailable"
 msgstr "Сервис недоступен"
 
@@ -1852,9 +1860,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr ""
-
-msgid "Print task sending times out."
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing via LAN."
@@ -9333,6 +9338,12 @@ msgstr ""
 "Филамент для печати опорного основания и плота. «По умолчанию» означает "
 "отсутствие конкретного филамента для опоры и использование текущего филамента"
 
+msgid "No interface filament for body"
+msgstr ""
+
+msgid "Don't use support interface filament to print support body"
+msgstr ""
+
 msgid "Line width of support"
 msgstr "Ширина линии поддержки"
 
@@ -9964,6 +9975,11 @@ msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr ""
 
+msgid ""
+"Arrange the supplied models in a plate and merge them in a single model in "
+"order to perform actions once."
+msgstr ""
+
 msgid "Convert Unit"
 msgstr "Преобразовать единицу измерения"
 
@@ -10012,6 +10028,12 @@ msgstr "Пропустить объекты"
 msgid "Skip some objects in this print"
 msgstr "Пропустить некоторые объекты в этом принте"
 
+msgid "Clone Objects"
+msgstr ""
+
+msgid "Clone objects in the load list"
+msgstr ""
+
 msgid "load uptodate process/machine settings when using uptodate"
 msgstr ""
 
@@ -10040,6 +10062,18 @@ msgid "Load custom gcode"
 msgstr ""
 
 msgid "Load custom gcode from json"
+msgstr ""
+
+msgid "Load filament ids"
+msgstr ""
+
+msgid "Load filament ids for each object"
+msgstr ""
+
+msgid "Allow multiple color on one plate"
+msgstr ""
+
+msgid "If enabled, the arrange will allow multiple color on one plate "
 msgstr ""
 
 msgid "Error in zip archive"
