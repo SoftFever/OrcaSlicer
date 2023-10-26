@@ -97,7 +97,7 @@ msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "绘制仅对由%1%选中的面片生效"
 
 msgid "Highlight faces according to overhang angle."
-msgstr "根据当前设置的悬空角度来高亮片面。
+msgstr "根据当前设置的悬空角度来高亮片面。"
 
 msgid "No auto support"
 msgstr "无自动支撑"
@@ -198,7 +198,7 @@ msgid "Error: Please close all toolbar menus first"
 msgstr "错误：请先关闭所有工具栏菜单"
 
 msgid "Tool-Lay on Face"
-msgstr "工具-选择底面
+msgstr "工具-选择底面"
 
 msgid "in"
 msgstr "在"
