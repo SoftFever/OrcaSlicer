@@ -973,8 +973,6 @@ void PartPlate::render_only_numbers(bool bottom)
 
 void PartPlate::render_rectangle_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix, GLModel &buffer, const ColorRGBA render_color)
 {
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
     GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
     if (shader != nullptr) {
         shader->start_using();
