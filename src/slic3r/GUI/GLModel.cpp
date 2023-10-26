@@ -417,7 +417,7 @@ void GLModel::init_from(const indexed_triangle_set& its)
 
     // update bounding box
     for (size_t i = 0; i < vertices_count(); ++i) {
-        m_bounding_box.merge(m_render_data.geometry.extract_position_3(i).cast<double>());
+        m_bounding_box.merge(data.extract_position_3(i).cast<double>());
     }
 }
 
@@ -460,7 +460,7 @@ void GLModel::init_from(const Polygons& polygons, float z)
 
     // update bounding box
     for (size_t i = 0; i < vertices_count(); ++i) {
-        m_bounding_box.merge(m_render_data.geometry.extract_position_3(i).cast<double>());
+        m_bounding_box.merge(data.extract_position_3(i).cast<double>());
     }
 }
 
@@ -707,31 +707,32 @@ bool GLModel::send_to_gpu()
     // indices
     glsafe(::glGenBuffers(1, &m_render_data.ibo_id));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_render_data.ibo_id));
+    const size_t indices_count = data.indices.size();
     if (m_render_data.vertices_count <= 256) {
         // convert indices to unsigned char to save gpu memory
-        std::vector<unsigned char> reduced_indices(data.indices.size());
-        for (size_t i = 0; i < data.indices.size(); ++i) {
+        std::vector<unsigned char> reduced_indices(indices_count);
+        for (size_t i = 0; i < indices_count; ++i) {
             reduced_indices[i] = (unsigned char)data.indices[i];
         }
         data.index_type = Geometry::EIndexType::UBYTE;
-        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, reduced_indices.size() * sizeof(unsigned char), reduced_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(unsigned char), reduced_indices.data(), GL_STATIC_DRAW));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
     else if (m_render_data.vertices_count <= 65536) {
         // convert indices to unsigned short to save gpu memory
-        std::vector<unsigned short> reduced_indices(data.indices.size());
+        std::vector<unsigned short> reduced_indices(indices_count);
         for (size_t i = 0; i < data.indices.size(); ++i) {
             reduced_indices[i] = (unsigned short)data.indices[i];
         }
         data.index_type = Geometry::EIndexType::USHORT;
-        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, reduced_indices.size() * sizeof(unsigned short), reduced_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(unsigned short), reduced_indices.data(), GL_STATIC_DRAW));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
     else {
         glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices_size_bytes(), data.indices.data(), GL_STATIC_DRAW));
         glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
-    m_render_data.indices_count = indices_count();
+    m_render_data.indices_count = indices_count;
     data.indices = std::vector<unsigned int>();
 
     return true;

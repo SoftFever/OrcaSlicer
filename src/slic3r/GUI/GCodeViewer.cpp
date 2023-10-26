@@ -5584,13 +5584,13 @@ void GCodeViewer::render_statistics()
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    auto add_time = [this, &imgui](const std::string& label, int64_t time) {
+    auto add_time = [&imgui](const std::string& label, int64_t time) {
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
         imgui.text(std::to_string(time) + " ms (" + get_time_dhms(static_cast<float>(time) * 0.001f) + ")");
     };
 
-    auto add_memory = [this, &imgui](const std::string& label, int64_t memory) {
+    auto add_memory = [&imgui](const std::string& label, int64_t memory) {
         auto format_string = [memory](const std::string& units, float value) {
             return std::to_string(memory) + " bytes (" +
                    Slic3r::float_to_string_decimal_point(float(memory) * value, 3)
@@ -5613,7 +5613,7 @@ void GCodeViewer::render_statistics()
             imgui.text(format_string("GB", inv_gb));
     };
 
-    auto add_counter = [this, &imgui](const std::string& label, int64_t counter) {
+    auto add_counter = [&imgui](const std::string& label, int64_t counter) {
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
         imgui.text(std::to_string(counter));

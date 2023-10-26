@@ -157,13 +157,9 @@ void GLGizmoRotate::on_render()
         render_grabber_connection(color, radius_changed);
         shader->stop_using();
     }
-    glsafe(::glPushMatrix());
-    transform_to_local(selection);
 
     render_grabber(box);
     render_grabber_extension(box, false);
-
-    glsafe(::glPopMatrix());
 }
 
 void GLGizmoRotate::on_render_for_picking()
@@ -445,12 +441,12 @@ Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
     {
     case X:
     {
-        ret = Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.5 * PI, 0.0)) * Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.0, -0.5 * PI));
+        ret = Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
         break;
     }
     case Y:
     {
-        ret = Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, 0.0, -0.5 * PI)) * Geometry::assemble_transform(Vec3d::Zero(), Vec3d(0.0, -0.5 * PI, 0.0));
+        ret = Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitY());
         break;
     }
     default:
@@ -465,38 +461,6 @@ Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
         ret = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true) * ret;
 
     return Geometry::assemble_transform(m_center) * ret;
-}
-
-void GLGizmoRotate::transform_to_local(const Selection& selection) const
-{
-    glsafe(::glTranslated(m_center.x(), m_center.y(), m_center.z()));
-
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
-        const Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
-        glsafe(::glMultMatrixd(orient_matrix.data()));
-    }
-
-    switch (m_axis)
-    {
-    case X:
-    {
-        glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
-        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
-        break;
-    }
-    case Y:
-    {
-        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
-        glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
-        break;
-    }
-    default:
-    case Z:
-    {
-        // no rotation
-        break;
-    }
-    }
 }
 
 Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const

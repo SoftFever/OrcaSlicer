@@ -7002,14 +7002,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 void GLCanvas3D::_render_overlays()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glPushMatrix());
-    glsafe(::glLoadIdentity());
-    // ensure that the textures are renderered inside the frustrum
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    glsafe(::glTranslated(0.0, 0.0, -(camera.get_near_z() + 0.10)));
-    // ensure that the overlay fits the frustrum near z plane
-    double gui_scale = camera.get_gui_scale();
-    glsafe(::glScaled(gui_scale, gui_scale, 1.0));
 
     _check_and_update_toolbar_icon_scale();
 
@@ -7081,8 +7073,6 @@ void GLCanvas3D::_render_overlays()
             }*/
     }
     m_labels.render(sorted_instances);
-
-    glsafe(::glPopMatrix());
 }
 
 void GLCanvas3D::_render_style_editor()
