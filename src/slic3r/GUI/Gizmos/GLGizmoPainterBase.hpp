@@ -35,7 +35,7 @@ public:
     virtual ~TriangleSelectorGUI() = default;
 
     virtual void render(ImGuiWrapper* imgui, const Transform3d& matrix);
-    void         render(const Transform3d& matrix) { this->render(nullptr, matrix); }
+    //void         render(const Transform3d& matrix) { this->render(nullptr, matrix); }
     void         set_wireframe_needed(bool need_wireframe) { m_need_wireframe = need_wireframe; }
     bool         get_wireframe_needed() { return m_need_wireframe; }
 
@@ -170,7 +170,7 @@ protected:
 
 private:
     void update_render_data();
-    void render(int buffer_idx, int position_id = -1, int barycentric_id = -1);
+    void render(int buffer_idx);
 };
 
 
