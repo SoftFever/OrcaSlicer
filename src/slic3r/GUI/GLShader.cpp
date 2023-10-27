@@ -317,6 +317,17 @@ void GLShaderProgram::set_uniform(int id, const Matrix4d& value) const
     set_uniform(id, (Matrix4f)value.cast<float>());
 }
 
+void GLShaderProgram::set_uniform(int id, const Vec2f& value) const
+{
+    if (id >= 0)
+        glsafe(::glUniform2fv(id, 1, static_cast<const GLfloat*>(value.data())));
+}
+
+void GLShaderProgram::set_uniform(int id, const Vec2d& value) const
+{
+    set_uniform(id, static_cast<Vec2f>(value.cast<float>()));
+}
+
 void GLShaderProgram::set_uniform(int id, const Vec3f& value) const
 {
     if (id >= 0)

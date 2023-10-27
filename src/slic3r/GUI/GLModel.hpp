@@ -41,6 +41,7 @@ namespace GUI {
                 P3,   // position 3 floats
                 P3T2, // position 3 floats + texture coords 2 floats
                 P3N3, // position 3 floats + normal 3 floats
+                P4,   // position 4 floats
             };
 
             enum class EIndexType : unsigned char
@@ -70,6 +71,7 @@ namespace GUI {
             void add_vertex(const Vec3f& position);                          // EVertexLayout::P3
             void add_vertex(const Vec3f& position, const Vec2f& tex_coord);  // EVertexLayout::P3T2
             void add_vertex(const Vec3f& position, const Vec3f& normal);     // EVertexLayout::P3N3
+            void add_vertex(const Vec4f& position);                          // EVertexLayout::P4
 
             void set_vertex(size_t id, const Vec3f& position, const Vec3f& normal); // EVertexLayout::P3N3
 
