@@ -730,26 +730,31 @@ bool Preset::is_custom_defined()
 //   I extened to support call on all presets
 bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
 {
-    bool is_bbl_vendor_preset = true;
+    bool is_bbl_vendor_preset = false;
     if (preset_bundle) {
         auto config = &this->config;
-        auto printers = config->opt<ConfigOptionStrings>("compatible_printers");
-        if (printers && !printers->values.empty()) {
-            auto printer = preset_bundle->printers.find_preset(printers->values.front());
-            if (printer)
-                config = &printer->config;
+        if (type != TYPE_PRINTER) {
+            auto printers = config->opt<ConfigOptionStrings>("compatible_printers");
+            if (printers && !printers->values.empty()) {
+                auto printer = preset_bundle->printers.find_preset(printers->values.front());
+                if (printer)
+                    config = &printer->config;
+            }
         }
-        std::string vendor_name;
-        for (auto vendor_profile : preset_bundle->vendors) {
-            for (auto vendor_model : vendor_profile.second.models)
-                if (vendor_model.name == config->opt_string("printer_model"))
-                {
-                    vendor_name = vendor_profile.first;
-                    break;
-                }
+        auto printer_model_opt = config->opt<ConfigOptionString>("printer_model");
+        if (printer_model_opt) {
+            std::string vendor_name;
+            for (auto vendor_profile : preset_bundle->vendors) {
+                for (auto vendor_model : vendor_profile.second.models)
+                    if (vendor_model.name == printer_model_opt->value)
+                    {
+                        vendor_name = vendor_profile.first;
+                        break;
+                    }
+            }
+            if (!vendor_name.empty())
+                is_bbl_vendor_preset = (vendor_name.compare("BBL") == 0);
         }
-        if (!vendor_name.empty())
-            is_bbl_vendor_preset = vendor_name.compare("BBL") == 0 ? true : false;
     }
     return is_bbl_vendor_preset;
 }
@@ -1487,7 +1492,7 @@ int PresetCollection::get_user_presets(PresetBundle *preset_bundle, std::vector<
         if (!preset.is_user()) continue;
         if (get_preset_base(preset) != &preset && preset.base_id.empty()) continue;
         if (!preset.setting_id.empty() && preset.sync_info.empty()) continue;
-        if (!preset.is_bbl_vendor_preset(preset_bundle)) continue;
+        //if (!preset.is_bbl_vendor_preset(preset_bundle)) continue;
 
         result_presets.push_back(preset);
         count++;
@@ -2168,7 +2173,7 @@ bool PresetCollection::create_presets_from_template_for_printer(std::vector<Pres
         auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
         preset.is_visible           = true;
-        if (type == Preset::TYPE_FILAMENT) 
+        if (type == Preset::TYPE_FILAMENT)
             preset.filament_id      = create_filament_id(preset.name);
     }, force_rewritten);
 }
@@ -2188,7 +2193,7 @@ bool PresetCollection::clone_presets_for_filament(Preset const *const &     pres
             preset.config.apply_only(dynamic_config, {"filament_vendor", "compatible_printers", "filament_type"},true);
 
             preset.filament_id = filament_id;
-         }    
+         }
         },
         force_rewritten);
 }
@@ -2237,7 +2242,7 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
         }
         //BBS: add lock logic for sync preset in background
-        
+
         if (m_type == Preset::TYPE_PRINT)
             preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
         else if (m_type == Preset::TYPE_FILAMENT)
