@@ -122,8 +122,7 @@ bool GLShaderProgram::init_from_texts(const std::string& name, const ShaderSourc
 
     for (size_t i = 0; i < static_cast<size_t>(EShaderType::Count); ++i) {
         const std::string& source = sources[i];
-        if (!source.empty())
-        {
+        if (!source.empty()) {
             EShaderType type = static_cast<EShaderType>(i);
             auto [result, id] = create_shader(type);
             if (result)
@@ -299,6 +298,17 @@ void GLShaderProgram::set_uniform(int id, const Matrix3f& value) const
 void GLShaderProgram::set_uniform(int id, const Matrix3d& value) const
 {
     set_uniform(id, (Matrix3f)value.cast<float>());
+}
+
+void GLShaderProgram::set_uniform(int id, const Matrix4f& value) const
+{
+    if (id >= 0)
+        glsafe(::glUniformMatrix4fv(id, 1, GL_FALSE, static_cast<const GLfloat*>(value.data())));
+}
+
+void GLShaderProgram::set_uniform(int id, const Matrix4d& value) const
+{
+    set_uniform(id, (Matrix4f)value.cast<float>());
 }
 
 void GLShaderProgram::set_uniform(int id, const Vec3f& value) const
