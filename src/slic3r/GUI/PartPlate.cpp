@@ -577,7 +577,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, GLModel& logo_buffe
 	}
 
 	if (logo_buffer.is_initialized()) {
-		GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
+		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 		if (shader != nullptr) {
 			shader->start_using();
             const Camera &camera = wxGetApp().plater()->get_camera();
@@ -849,7 +849,7 @@ void PartPlate::show_tooltip(const std::string tooltip)
 
 void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 {
-	GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
+	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
 		shader->start_using();
         const Camera &camera = wxGetApp().plater()->get_camera();
@@ -940,7 +940,7 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
 void PartPlate::render_only_numbers(bool bottom)
 {
-	GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
+	GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 	if (shader != nullptr) {
 		shader->start_using();
         const Camera &camera = wxGetApp().plater()->get_camera();
@@ -973,7 +973,7 @@ void PartPlate::render_only_numbers(bool bottom)
 
 void PartPlate::render_rectangle_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix, GLModel &buffer, const ColorRGBA render_color)
 {
-    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
 
@@ -2502,7 +2502,7 @@ void PartPlate::render(const Transform3d& view_matrix, const Transform3d& projec
 {
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         glsafe(::glEnable(GL_BLEND));

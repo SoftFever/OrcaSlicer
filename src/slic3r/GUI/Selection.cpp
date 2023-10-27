@@ -1570,7 +1570,7 @@ void Selection::render_center(bool gizmo_is_dragging)
     if (!m_valid || is_empty())
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
@@ -1600,7 +1600,7 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
     if (sidebar_field.empty())
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader(boost::starts_with(sidebar_field, "layer") ? "flat_attr" : "gouraud_light_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader(boost::starts_with(sidebar_field, "layer") ? "flat" : "gouraud_light");
     if (shader == nullptr)
         return;
 
@@ -2231,7 +2231,7 @@ void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& co
 
     glsafe(::glLineWidth(2.0f * m_scale_factor));
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 

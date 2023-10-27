@@ -75,7 +75,7 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
 
 void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
-    auto* shader = wxGetApp().get_shader("gouraud_attr");
+    auto* shader = wxGetApp().get_shader("gouraud");
     if (! shader)
         return;
     shader->start_using();
@@ -219,7 +219,7 @@ void GLGizmoPainterBase::render_cursor_circle()
 
     m_circle.set_color(render_color);
 	
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         shader->set_uniform("view_model_matrix", Transform3d::Identity());
@@ -240,7 +240,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         s_sphere->init_from(its_make_sphere(1.0, double(PI) / 12.0));
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
@@ -278,7 +278,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
 // BBS
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
-    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
@@ -1070,7 +1070,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
         return;
-    assert(shader->get_name() == "gouraud_attr" || shader->get_name() == "mm_gouraud_attr");
+    assert(shader->get_name() == "gouraud" || shader->get_name() == "mm_gouraud");
     ScopeGuard guard([shader]() { if (shader) shader->set_uniform("offset_depth_buffer", false);});
     shader->set_uniform("offset_depth_buffer", true);
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
@@ -1178,7 +1178,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
     auto* shader = wxGetApp().get_current_shader();
     if (!shader)
         return;
-    assert(shader->get_name() == "gouraud_attr" || shader->get_name() == "mm_gouraud_attr");
+    assert(shader->get_name() == "gouraud" || shader->get_name() == "mm_gouraud");
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         if (this->has_VBOs(buffer_idx)) {
@@ -1604,7 +1604,7 @@ void TriangleSelectorGUI::render_debug(ImGuiWrapper* imgui)
     if (curr_shader != nullptr)
         curr_shader->stop_using();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
 
@@ -1661,7 +1661,7 @@ void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)
     if (curr_shader != nullptr)
         curr_shader->stop_using();
 
-    auto* contour_shader = wxGetApp().get_shader("mm_contour_attr");
+    auto* contour_shader = wxGetApp().get_shader("mm_contour");
     if (contour_shader != nullptr) {
         contour_shader->start_using();
 

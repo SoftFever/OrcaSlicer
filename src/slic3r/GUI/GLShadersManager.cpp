@@ -33,46 +33,36 @@ std::pair<bool, std::string> GLShadersManager::init()
 
     bool valid = true;
 
+    const std::string prefix = GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 1) ? "140/" : "110/";
     // imgui shader
-    valid &= append_shader("imgui", { "imgui.vs", "imgui.fs" });
+    valid &= append_shader("imgui", { prefix + "imgui.vs", prefix + "imgui.fs" });
     // basic shader, used to render all what was previously rendered using the immediate mode
-    valid &= append_shader("flat_attr", { "flat_attr.vs", "flat.fs" });
+    valid &= append_shader("flat", { prefix + "flat.vs", prefix + "flat.fs" });
     // basic shader for textures, used to render textures
-    valid &= append_shader("flat_texture_attr", { "flat_texture_attr.vs", "flat_texture.fs" });
+    valid &= append_shader("flat_texture", { prefix + "flat_texture.vs", prefix + "flat_texture.fs" });
     // used to render 3D scene background
-    valid &= append_shader("background_attr", { "background_attr.vs", "background.fs" });
+    valid &= append_shader("background", { prefix + "background.vs", prefix + "background.fs" });
     // used to render bed axes and model, selection hints, gcode sequential view marker model, preview shells, options in gcode preview
-    valid &= append_shader("gouraud_light_attr", { "gouraud_light_attr.vs", "gouraud_light.fs" });
+    valid &= append_shader("gouraud_light", { prefix + "gouraud_light.vs", prefix + "gouraud_light.fs" });
     //used to render thumbnail
-    valid &= append_shader("thumbnail_attr", {"thumbnail_attr.vs", "thumbnail.fs"});
-    valid &= append_shader("thumbnail", {"thumbnail.vs", "thumbnail.fs"});
+    valid &= append_shader("thumbnail", { prefix + "thumbnail.vs", prefix + "thumbnail.fs"});
     // used to render printbed
-    valid &= append_shader("printbed_attr", { "printbed_attr.vs", "printbed.fs" });
+    valid &= append_shader("printbed", { prefix + "printbed.vs", prefix + "printbed.fs" });
     // used to render options in gcode preview
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
-        valid &= append_shader("gouraud_light_instanced_attr", { "gouraud_light_instanced_attr.vs", "gouraud_light_instanced.fs" });
+        valid &= append_shader("gouraud_light_instanced", { prefix + "gouraud_light_instanced.vs", prefix + "gouraud_light_instanced.fs" });
     }
 
     // used to render objects in 3d editor
-    //if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {
-    if (0) {
-        valid &= append_shader("gouraud", { "gouraud_130.vs", "gouraud_130.fs" }
-#if ENABLE_ENVIRONMENT_MAP
-            , { "ENABLE_ENVIRONMENT_MAP"sv }
-#endif // ENABLE_ENVIRONMENT_MAP
-            );
-    }
-    else {
-        valid &= append_shader("gouraud_attr", { "gouraud_attr.vs", "gouraud.fs" }
+    valid &= append_shader("gouraud", { prefix + "gouraud.vs", prefix + "gouraud.fs" }
 #if ENABLE_ENVIRONMENT_MAP
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
         );
-    }
     // used to render variable layers heights in 3d editor
-    valid &= append_shader("variable_layer_height_attr", { "variable_layer_height_attr.vs", "variable_layer_height.fs" });
+    valid &= append_shader("variable_layer_height", { prefix + "variable_layer_height.vs", prefix + "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
-    valid &= append_shader("mm_contour_attr", { "mm_contour_attr.vs", "mm_contour_attr.fs" });
+    valid &= append_shader("mm_contour", { prefix + "mm_contour.vs", prefix + "mm_contour.fs" });
     // Used to render painted triangles inside the multi-material gizmo. Triangle normals are computed inside fragment shader.
     // For Apple's on Arm CPU computed triangle normals inside fragment shader using dFdx and dFdy has the opposite direction.
     // Because of this, objects had darker colors inside the multi-material gizmo.
@@ -80,12 +70,9 @@ std::pair<bool, std::string> GLShadersManager::init()
     // Since macOS 12 (Monterey), this issue with the opposite direction on Apple's Arm CPU seems to be fixed, and computed
     // triangle normals inside fragment shader have the right direction.
     if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12)
-        valid &= append_shader("mm_gouraud_attr", { "mm_gouraud_attr.vs", "mm_gouraud_attr.fs" }, { "FLIP_TRIANGLE_NORMALS"sv });
+        valid &= append_shader("mm_gouraud", { prefix + "mm_gouraud.vs", prefix + "mm_gouraud.fs" }, { "FLIP_TRIANGLE_NORMALS"sv });
     else
-        valid &= append_shader("mm_gouraud_attr", { "mm_gouraud_attr.vs", "mm_gouraud_attr.fs" });
-
-    //BBS: add shader for outline
-    valid &= append_shader("outline", { "outline.vs", "outline.fs" });
+        valid &= append_shader("mm_gouraud", { prefix + "mm_gouraud.vs", prefix + "mm_gouraud.fs" });
 
     return { valid, error };
 }

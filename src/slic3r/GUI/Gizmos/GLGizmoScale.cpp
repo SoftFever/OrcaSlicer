@@ -234,7 +234,7 @@ void GLGizmoScale3D::on_render()
     const float grabber_mean_size = (float)((selection_box.size().x() + selection_box.size().y() + selection_box.size().z()) / 3.0);
 
     //draw connections
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         // BBS: when select multiple objects, uniform scale can be deselected, display the connection(4,5)

@@ -821,9 +821,8 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     if (shader == nullptr)
         return;
 
-    GLShaderProgram* sink_shader = GUI::wxGetApp().get_shader("flat_attr");
-    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat_attr");
-    assert(boost::algorithm::iends_with(shader->get_name(), "_attr"));
+    GLShaderProgram* sink_shader = GUI::wxGetApp().get_shader("flat");
+    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat");
 
     if (type == ERenderType::Transparent) {
         glsafe(::glEnable(GL_BLEND));

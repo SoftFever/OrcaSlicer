@@ -95,7 +95,7 @@ namespace GUI {
         glsafe(::glLineStipple(4, 0xAAAA));
         glsafe(::glEnable(GL_LINE_STIPPLE));
 
-        GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+        GLShaderProgram* shader = wxGetApp().get_shader("flat");
         if (shader != nullptr) {
             shader->start_using();
 

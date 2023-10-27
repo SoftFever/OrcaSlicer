@@ -680,7 +680,7 @@ void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right,
     GLModel model;
     model.init_from(std::move(init_data));
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_texture_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_texture");
     if (shader != nullptr) {
         shader->start_using();
         shader->set_uniform("view_model_matrix", Transform3d::Identity());
