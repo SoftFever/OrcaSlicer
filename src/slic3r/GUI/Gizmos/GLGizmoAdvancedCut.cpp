@@ -1054,15 +1054,41 @@ void GLGizmoAdvancedCut::render_cut_line()
     if (!cut_line_processing() || m_cut_line_end == Vec3d::Zero())
         return;
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glColor3f(0.0, 1.0, 0.0));
-    glEnable(GL_LINE_STIPPLE);
-    ::glBegin(GL_LINES);
-    ::glVertex3dv(m_cut_line_begin.data());
-    ::glVertex3dv(m_cut_line_end.data());
-    glsafe(::glEnd());
-    glDisable(GL_LINE_STIPPLE);
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+
+        {
+            m_cut_line.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+            init_data.color  = ColorRGBA::GREEN();
+            init_data.reserve_vertices(2);
+            init_data.reserve_vertices(2);
+
+            // vertices
+            init_data.add_vertex((Vec3f) m_cut_line_begin.cast<float>());
+            init_data.add_vertex((Vec3f) m_cut_line_end.cast<float>());
+
+            // indices
+            init_data.add_line(0, 1);
+
+            m_cut_line.init_from(std::move(init_data));
+        }
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+        glEnable(GL_LINE_STIPPLE);
+        glLineStipple(1, 0x0FFF);
+        m_cut_line.render();
+        glDisable(GL_LINE_STIPPLE);
+
+        shader->stop_using();
+    }
 }
 
 void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA &color, Transform3d view_model_matrix, bool for_picking)
