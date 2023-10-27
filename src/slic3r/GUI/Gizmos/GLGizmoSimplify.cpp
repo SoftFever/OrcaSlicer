@@ -647,10 +647,12 @@ void GLGizmoSimplify::on_render()
     glsafe(::glEnable(GL_DEPTH_TEST));
     gouraud_shader->start_using();
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d view_model_matrix = camera.get_view_matrix() * trafo_matrix;
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d view_model_matrix = view_matrix * trafo_matrix;
     gouraud_shader->set_uniform("view_model_matrix", view_model_matrix);
     gouraud_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    gouraud_shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    gouraud_shader->set_uniform("view_normal_matrix", view_normal_matrix);
     m_glmodel.render();
     gouraud_shader->stop_using();
 

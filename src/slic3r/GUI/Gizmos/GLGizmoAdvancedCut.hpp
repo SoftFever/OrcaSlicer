@@ -204,7 +204,7 @@ private:
     void render_connectors();
     void render_clipper_cut();
     void render_cut_line();
-    void render_connector_model(GLModel &model, const ColorRGBA& color, Transform3d view_model_matrix, bool for_picking = false);
+    void render_connector_model(GLModel &model, const ColorRGBA& color, Transform3d model_matrix, bool for_picking = false);
 
     void clear_selection();
     void init_connector_shapes();

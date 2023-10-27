@@ -415,19 +415,19 @@ void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool pick
     const Transform3d& view_matrix = camera.get_view_matrix();
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
-    Transform3d view_model_matrix = view_matrix * m_grabbers.front().matrix *
-        Geometry::assemble_transform(center, Vec3d(0.5 * PI, 0.0, m_angle)) *
-        Geometry::assemble_transform(1.5 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
+    Transform3d model_matrix = m_grabbers.front().matrix * Geometry::assemble_transform(center, Vec3d(0.5 * PI, 0.0, m_angle)) *
+        Geometry::assemble_transform(2.0 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
 
-    shader->set_uniform("view_model_matrix", view_model_matrix);
-    shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
     m_cone.render();
-    view_model_matrix = view_matrix * m_grabbers.front().matrix *
-        Geometry::assemble_transform(center, Vec3d(-0.5 * PI, 0.0, m_angle)) *
-        Geometry::assemble_transform(1.5 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
+    model_matrix = m_grabbers.front().matrix * Geometry::assemble_transform(center, Vec3d(-0.5 * PI, 0.0, m_angle)) *
+        Geometry::assemble_transform(2.0 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
 
-    shader->set_uniform("view_model_matrix", view_model_matrix);
-    shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
     m_cone.render();
 
     shader->stop_using();

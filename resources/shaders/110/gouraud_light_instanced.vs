@@ -16,7 +16,7 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 
 uniform mat4 view_model_matrix;
 uniform mat4 projection_matrix;
-uniform mat3 normal_matrix;
+uniform mat3 view_normal_matrix;
 
 // vertex attributes
 attribute vec3 v_position;
@@ -31,7 +31,7 @@ varying vec2 intensity;
 void main()
 {
     // First transform the normal into camera space and normalize the result.
-    vec3 eye_normal = normalize(normal_matrix * v_normal);
+    vec3 eye_normal = normalize(view_normal_matrix * v_normal);
     
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.

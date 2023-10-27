@@ -26,7 +26,7 @@ uniform vec4 uniform_color;
 uniform bool volume_mirrored;
 
 uniform mat4 view_model_matrix;
-uniform mat3 normal_matrix;
+uniform mat3 view_normal_matrix;
 
 in vec3 clipping_planes_dots;
 in vec4 model_pos;
@@ -70,7 +70,7 @@ void main()
         }
     }
     // First transform the normal into camera space and normalize the result.
-    vec3 eye_normal = normalize(normal_matrix * triangle_normal);
+    vec3 eye_normal = normalize(view_normal_matrix * triangle_normal);
 
     // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
     // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
