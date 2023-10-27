@@ -176,12 +176,7 @@ void GLGizmoPainterBase::render_cursor_circle()
     const Vec2d center = m_parent.get_local_mouse_position();
     const float radius = m_cursor_radius * float(wxGetApp().plater()->get_camera().get_zoom());
 
-    glsafe(::glLineWidth(1.5f));
     glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushAttrib(GL_ENABLE_BIT));
-    glsafe(::glLineStipple(4, 0xAAAA));
-    glsafe(::glEnable(GL_LINE_STIPPLE));
 
     if (!m_circle.is_initialized() || !m_old_center.isApprox(center) || std::abs(m_old_cursor_radius - radius) > EPSILON) {
         m_old_cursor_radius = radius;
@@ -191,17 +186,24 @@ void GLGizmoPainterBase::render_cursor_circle()
         GLModel::Geometry init_data;
         static const unsigned int StepsCount = 32;
         static const float StepSize = 2.0f * float(PI) / float(StepsCount);
-        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P2 };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P4 };
         init_data.color  = { 0.0f, 1.0f, 0.3f, 1.0f };
-        init_data.reserve_vertices(StepsCount);
-        init_data.reserve_indices(StepsCount);
+        init_data.reserve_vertices(2 * StepsCount);
+        init_data.reserve_indices(2 * StepsCount);
 
         // vertices + indices
+        float perimeter = 0.0f;
+
         for (unsigned int i = 0; i < StepsCount; ++i) {
-            const float angle = float(i * StepSize);
-            init_data.add_vertex(Vec2f(2.0f * ((center.x() + ::cos(angle) * radius) * cnv_inv_width - 0.5f),
-                                       -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
-            init_data.add_index(i);
+            const float angle_i = float(i) * StepSize;
+            const unsigned int j = (i + 1) % StepsCount;
+            const float angle_j = float(j) * StepSize;
+            const Vec2d v_i(2.0f * ((center.x() + ::cos(angle_i) * radius) * cnv_inv_width - 0.5f), -2.0f * ((center.y() + ::sin(angle_i) * radius) * cnv_inv_height - 0.5f));
+            const Vec2d v_j(2.0f * ((center.x() + ::cos(angle_j) * radius) * cnv_inv_width - 0.5f), -2.0f * ((center.y() + ::sin(angle_j) * radius) * cnv_inv_height - 0.5f));
+            init_data.add_vertex(Vec4f(v_i.x(), v_i.y(), 0.0f, perimeter));
+            perimeter += (v_j - v_i).norm();
+            init_data.add_vertex(Vec4f(v_j.x(), v_j.y(), 0.0f, perimeter));
+            init_data.add_line(i * 2 + 0, i * 2 + 1);
         }
 
         m_circle.init_from(std::move(init_data));
@@ -215,17 +217,21 @@ void GLGizmoPainterBase::render_cursor_circle()
         render_color = this->get_cursor_sphere_right_button_color();
 
     m_circle.set_color(render_color);
-
-    GLShaderProgram* shader = GUI::wxGetApp().get_shader("flat");
+	
+    GLShaderProgram* shader = wxGetApp().get_shader("dashed_thick_lines");
     if (shader != nullptr) {
         shader->start_using();
         shader->set_uniform("view_model_matrix", Transform3d::Identity());
         shader->set_uniform("projection_matrix", Transform3d::Identity());
+        const std::array<int, 4>& viewport = wxGetApp().plater()->get_camera().get_viewport();
+        shader->set_uniform("viewport_size", Vec2d(double(viewport[2]), double(viewport[3])));
+        shader->set_uniform("width", 0.25f);
+        shader->set_uniform("dash_size", 0.01f);
+        shader->set_uniform("gap_size", 0.0075f);
         m_circle.render();
         shader->stop_using();
     }
 
-    glsafe(::glPopAttrib());
     glsafe(::glEnable(GL_DEPTH_TEST));
 }
 
@@ -319,7 +325,6 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
 
             shader->set_uniform("view_model_matrix", view_model_matrix);
             shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-            glsafe(::glLineWidth(2.0f));
             m_cut_contours[m_volumes_index].contours.render();
             m_volumes_index++;
         }

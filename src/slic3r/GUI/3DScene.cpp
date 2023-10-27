@@ -859,7 +859,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         return;
 
     GLShaderProgram* sink_shader = GUI::wxGetApp().get_shader("flat");
-    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("flat");
+    GLShaderProgram* edges_shader = GUI::wxGetApp().get_shader("dashed_thick_lines");
 
     if (type == ERenderType::Transparent) {
         glsafe(::glEnable(GL_BLEND));

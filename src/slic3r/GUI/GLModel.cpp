@@ -551,6 +551,10 @@ void GLModel::reset()
         glsafe(::glDeleteBuffers(1, &m_render_data.vbo_id));
         m_render_data.vbo_id = 0;
     }
+    if (m_render_data.vao_id > 0) {
+        glsafe(::glDeleteVertexArrays(1, &m_render_data.vao_id));
+        m_render_data.vao_id = 0;
+    }
 
     m_render_data.vertices_count = 0;
     m_render_data.indices_count  = 0;
@@ -604,7 +608,7 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
         return;
 
     // sends data to gpu if not done yet
-    if (m_render_data.vbo_id == 0 || m_render_data.ibo_id == 0) {
+    if (m_render_data.vao_id == 0) {
         if (m_render_data.geometry.vertices_count() > 0 && m_render_data.geometry.indices_count() > 0 && !send_to_gpu())
             return;
     }
@@ -619,6 +623,8 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
     const bool normal = Geometry::has_normal(data.format);
     const bool tex_coord = Geometry::has_tex_coord(data.format);
 
+    glsafe(::glBindVertexArray(m_render_data.vao_id));
+    // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_render_data.vbo_id));
 
     int position_id = -1;
@@ -649,9 +655,7 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
 
     shader->set_uniform("uniform_color", data.color);
 
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_render_data.ibo_id));
     glsafe(::glDrawElements(mode, range.second - range.first, index_type, (const void*)(range.first * Geometry::index_stride_bytes(data))));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
     if (tex_coord_id != -1)
         glsafe(::glDisableVertexAttribArray(tex_coord_id));
@@ -661,6 +665,7 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
         glsafe(::glDisableVertexAttribArray(position_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glBindVertexArray(0));
 }
 
 void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count)
@@ -684,10 +689,12 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     if (offset_id == -1 || scales_id == -1)
         return;
 
-    if (m_render_data.vbo_id == 0 || m_render_data.ibo_id == 0) {
+    if (m_render_data.vao_id == 0) {
         if (!send_to_gpu())
             return;
     }
+
+    glsafe(::glBindVertexArray(m_render_data.vao_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instances_vbo));
     const size_t instance_stride = 5 * sizeof(float);
@@ -708,6 +715,7 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     const bool position = Geometry::has_position(data.format);
     const bool normal   = Geometry::has_normal(data.format);
 
+    // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_render_data.vbo_id));
 
     if (position) {
@@ -722,9 +730,7 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
 
     shader->set_uniform("uniform_color", data.color);
 
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_render_data.ibo_id));
     glsafe(::glDrawElementsInstanced(mode, indices_count(), index_type, (const void*)0, instances_count));
-    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
     if (normal)
         glsafe(::glDisableVertexAttribArray(normal_id));
@@ -735,6 +741,7 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     glsafe(::glDisableVertexAttribArray(offset_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glBindVertexArray(0));
 }
 
 bool GLModel::send_to_gpu()
@@ -750,6 +757,9 @@ bool GLModel::send_to_gpu()
         return false;
     }
 
+    glsafe(::glGenVertexArrays(1, &m_render_data.vao_id));
+    glsafe(::glBindVertexArray(m_render_data.vao_id));
+
     // vertices
     glsafe(::glGenBuffers(1, &m_render_data.vbo_id));
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_render_data.vbo_id));
@@ -759,9 +769,9 @@ bool GLModel::send_to_gpu()
     data.vertices = std::vector<float>();
 
     // indices
+    const size_t indices_count = data.indices.size();
     glsafe(::glGenBuffers(1, &m_render_data.ibo_id));
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_render_data.ibo_id));
-    const size_t indices_count = data.indices.size();
     if (m_render_data.vertices_count <= 256) {
         // convert indices to unsigned char to save gpu memory
         std::vector<unsigned char> reduced_indices(indices_count);
@@ -770,7 +780,6 @@ bool GLModel::send_to_gpu()
         }
         data.index_type = Geometry::EIndexType::UBYTE;
         glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(unsigned char), reduced_indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
     else if (m_render_data.vertices_count <= 65536) {
         // convert indices to unsigned short to save gpu memory
@@ -780,15 +789,15 @@ bool GLModel::send_to_gpu()
         }
         data.index_type = Geometry::EIndexType::USHORT;
         glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_count * sizeof(unsigned short), reduced_indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
     else {
         data.index_type = Geometry::EIndexType::UINT;
         glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.indices_size_bytes(), data.indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
     m_render_data.indices_count = indices_count;
     data.indices = std::vector<unsigned int>();
+
+    glsafe(::glBindVertexArray(0));
 
     return true;
 }

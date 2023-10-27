@@ -583,7 +583,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
         glvolume->render();
     }
     // Revert back to the previous shader.
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
@@ -8474,7 +8474,7 @@ void GLCanvas3D::_render_camera_target()
     static const float half_length = 5.0f;
 
     glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glLineWidth(2.0f));
+
     const Vec3f& target = wxGetApp().plater()->get_camera().get_target().cast<float>();
     bool target_changed = !m_camera_target.target.isApprox(target.cast<double>());
     m_camera_target.target = target.cast<double>();
@@ -8510,12 +8510,16 @@ void GLCanvas3D::_render_camera_target()
         }
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    GLShaderProgram* shader = wxGetApp().get_shader("dashed_thick_lines");
     if (shader != nullptr) {
         shader->start_using();
         const Camera& camera = wxGetApp().plater()->get_camera();
         shader->set_uniform("view_model_matrix", camera.get_view_matrix());
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const std::array<int, 4>& viewport = camera.get_viewport();
+        shader->set_uniform("viewport_size", Vec2d(double(viewport[2]), double(viewport[3])));
+        shader->set_uniform("width", 1.5f);
+        shader->set_uniform("gap_size", 0.0f);
         for (int i = 0; i < 3; ++i) {
             m_camera_target.axis[i].render();
         }

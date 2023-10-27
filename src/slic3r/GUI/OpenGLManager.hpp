@@ -6,6 +6,7 @@
 class wxWindow;
 class wxGLCanvas;
 class wxGLContext;
+class wxGLAttributes;
 
 namespace Slic3r {
 namespace GUI {
@@ -107,7 +108,7 @@ public:
     static bool force_power_of_two_textures() { return s_force_power_of_two_textures; }
 
 private:
-    static void detect_multisample(int* attribList);
+    static void detect_multisample(const wxGLAttributes& attribList);
 };
 
 } // namespace GUI
