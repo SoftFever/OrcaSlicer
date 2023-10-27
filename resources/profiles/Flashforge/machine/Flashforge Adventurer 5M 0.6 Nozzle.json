@@ -21,7 +21,7 @@
 	"machine_max_acceleration_e": [ "5000", "5000" ],
 	"machine_max_acceleration_extruding": [ "20000", "20000" ],
 	"machine_max_acceleration_retracting": [ "5000", "5000" ],
-	"machine_max_acceleration_travel": [ "9000", "9000" ],
+	"machine_max_acceleration_travel": [ "20000", "20000" ],
 	"machine_max_acceleration_x": [ "20000", "20000" ],
 	"machine_max_acceleration_y": [ "20000", "20000" ],
 	"machine_max_acceleration_z": [ "500", "500" ],

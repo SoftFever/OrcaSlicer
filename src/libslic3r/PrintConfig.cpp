@@ -2597,7 +2597,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->readonly = false;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
+    def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
     def = this->add("fan_max_speed", coInts);
     def->label = L("Fan speed");

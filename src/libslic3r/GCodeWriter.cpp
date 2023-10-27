@@ -19,7 +19,7 @@ namespace Slic3r {
 bool GCodeWriter::full_gcode_comment = true;
 const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
-bool supports_separate_travel_acceleration(GCodeFlavor flavor)
+bool GCodeWriter::supports_separate_travel_acceleration(GCodeFlavor flavor)
 {
     return (flavor == gcfRepetier || flavor == gcfMarlinFirmware ||  flavor == gcfRepRapFirmware);
 }
