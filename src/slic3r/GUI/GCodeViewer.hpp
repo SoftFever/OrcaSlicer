@@ -293,7 +293,6 @@ class GCodeViewer
     {
         enum class ERenderPrimitiveType : unsigned char
         {
-            Point,
             Line,
             Triangle,
             InstancedModel,
@@ -334,7 +333,6 @@ class GCodeViewer
         unsigned int max_vertices_per_segment() const {
             switch (render_primitive_type)
             {
-            case ERenderPrimitiveType::Point:    { return 1; }
             case ERenderPrimitiveType::Line:     { return 2; }
             case ERenderPrimitiveType::Triangle: { return 8; }
             default:                             { return 0; }
@@ -346,7 +344,6 @@ class GCodeViewer
         unsigned int indices_per_segment() const {
             switch (render_primitive_type)
             {
-            case ERenderPrimitiveType::Point:    { return 1; }
             case ERenderPrimitiveType::Line:     { return 2; }
             case ERenderPrimitiveType::Triangle: { return 30; } // 3 indices x 10 triangles
             default:                             { return 0; }
@@ -356,7 +353,6 @@ class GCodeViewer
         unsigned int max_indices_per_segment() const {
             switch (render_primitive_type)
             {
-            case ERenderPrimitiveType::Point:    { return 1; }
             case ERenderPrimitiveType::Line:     { return 2; }
             case ERenderPrimitiveType::Triangle: { return 36; } // 3 indices x 12 triangles
             default:                             { return 0; }
@@ -367,7 +363,6 @@ class GCodeViewer
         bool has_data() const {
             switch (render_primitive_type)
             {
-            case ERenderPrimitiveType::Point:
             case ERenderPrimitiveType::Line:
             case ERenderPrimitiveType::Triangle: {
                 return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
@@ -536,7 +531,6 @@ Range layer_duration_log;
         int64_t refresh_time{ 0 };
         int64_t refresh_paths_time{ 0 };
         // opengl calls
-        int64_t gl_multi_points_calls_count{ 0 };
         int64_t gl_multi_lines_calls_count{ 0 };
         int64_t gl_multi_triangles_calls_count{ 0 };
         int64_t gl_triangles_calls_count{ 0 };
@@ -579,7 +573,6 @@ Range layer_duration_log;
         }
 
         void reset_opengl() {
-            gl_multi_points_calls_count = 0;
             gl_multi_lines_calls_count = 0;
             gl_multi_triangles_calls_count = 0;
             gl_triangles_calls_count = 0;
