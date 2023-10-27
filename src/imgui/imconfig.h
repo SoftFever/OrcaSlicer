@@ -206,6 +206,7 @@ namespace ImGui
     const wchar_t OpenArrowIcon            = 0x0840;
     const wchar_t CollapseArrowIcon        = 0x0841;
     const wchar_t ExpandArrowIcon          = 0x0842;
+    const wchar_t CompleteIcon             = 0x0843;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }

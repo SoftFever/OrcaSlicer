@@ -127,6 +127,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::PrevArrowHoverBtnIcon,        "notification_arrow_left_hovered"      },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
     {ImGui::NextArrowHoverBtnIcon,        "notification_arrow_right_hovered"     },
+    {ImGui::CompleteIcon,                 "notification_slicing_complete"        },
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {

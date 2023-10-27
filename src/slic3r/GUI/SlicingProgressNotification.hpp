@@ -13,11 +13,12 @@ public:
     // Inner state of notification, Each state changes bahaviour of the notification
     enum class SlicingProgressState
     {
-        SP_NO_SLICING, // hidden
-        SP_BEGAN,      // still hidden but allows to go to SP_PROGRESS state. This prevents showing progress after slicing was canceled.
-        SP_PROGRESS,   // never fades outs, no close button, has cancel button
-        SP_CANCELLED,  // fades after 10 seconds, simple message
-        SP_COMPLETED   // Has export hyperlink and print info, fades after 20 sec if sidebar is shown, otherwise no fade out
+        SP_NO_SLICING,        // hidden
+        SP_BEGAN,             // still hidden but allows to go to SP_PROGRESS state. This prevents showing progress after slicing was canceled.
+        SP_PROGRESS,          // never fades outs, no close button, has cancel button
+        SP_CANCELLED,         // fades after 10 seconds, simple message
+        SP_BEFORE_COMPLETED,  // to keep displaying DailyTips for 3 seconds 
+        SP_COMPLETED          // Has export hyperlink and print info, fades after 20 sec if sidebar is shown, otherwise no fade out
     };
     SlicingProgressNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, std::function<bool()> callback)
         : PopNotification(n, id_provider, evt_handler)
@@ -64,6 +65,7 @@ protected:
 
 protected:
     float                   m_percentage{ 0.0f };
+    int64_t                 m_before_complete_start;
     // if returns false, process was already canceled
     std::function<bool()>	m_cancel_callback;
     SlicingProgressState	m_sp_state{ SlicingProgressState::SP_PROGRESS };
