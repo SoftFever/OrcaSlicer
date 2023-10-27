@@ -132,10 +132,11 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
-    auto m_scrollwindw_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)));
-    m_scrollwindw_release_note->SetScrollRate(5, 5);
+    auto m_scrollwindw_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)),wxVSCROLL);
+    m_scrollwindw_release_note->SetScrollRate(0, 5);
     m_scrollwindw_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
-    m_scrollwindw_release_note->SetMaxSize(wxSize(FromDIP(540), FromDIP(410)));
+    m_scrollwindw_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_scrollwindw_release_note->SetWindowStyle(wxVSCROLL);
 
 	auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
     sizer_button->Add(0, 0, 1, wxEXPAND, 5);
@@ -200,8 +201,11 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
         // BBS: use changelog string instead of url
         if (!update.comment.empty()) {
             flex->Add(new wxStaticText(m_scrollwindw_release_note, wxID_ANY, _(L("Description:"))), 0, wxALIGN_RIGHT);
-            auto *update_comment = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, from_u8(update.comment));
-            update_comment->Wrap(FromDIP(242) * wxGetApp().em_unit());
+            auto *update_comment = new Label(m_scrollwindw_release_note,std::string(""));
+            update_comment->SetLabel(from_u8(update.comment));
+            update_comment->SetMaxSize(wxSize(FromDIP(545), -1));
+            update_comment->SetMinSize(wxSize(FromDIP(545), -1));
+            update_comment->Wrap(FromDIP(450));
             flex->Add(update_comment);
         }
 
