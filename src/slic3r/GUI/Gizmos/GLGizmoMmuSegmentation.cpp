@@ -918,19 +918,27 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
     assert(this->vertices_VBO_id != 0);
     assert(this->triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
+    GLShaderProgram* shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
+
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-
-    // Render using the Vertex Buffer Objects.
-    if (this->triangle_indices_sizes[triangle_indices_idx] > 0) {
-        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_ids[triangle_indices_idx]));
-        glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_sizes[triangle_indices_idx]), GL_UNSIGNED_INT, nullptr));
-        glsafe(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    const GLint position_id = shader->get_attrib_location("v_position");
+    if (position_id != -1) {
+        glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0));
+        glsafe(::glEnableVertexAttribArray(position_id));
     }
 
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+    // Render using the Vertex Buffer Objects.
+    if (this->triangle_indices_VBO_ids[triangle_indices_idx] != 0 &&
+        this->triangle_indices_sizes[triangle_indices_idx] > 0) {
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->triangle_indices_VBO_ids[triangle_indices_idx]));
+        glsafe(::glDrawElements(GL_TRIANGLES, GLsizei(this->triangle_indices_sizes[triangle_indices_idx]), GL_UNSIGNED_INT, nullptr));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+    }
+
+    if (position_id != -1)
+        glsafe(::glDisableVertexAttribArray(position_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }

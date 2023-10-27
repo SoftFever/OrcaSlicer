@@ -1179,20 +1179,6 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
     if (!shader)
         return;
     assert(shader->get_name() == "gouraud_attr" || shader->get_name() == "mm_gouraud_attr");
-    GLint position_id    = -1;
-    GLint barycentric_id = -1;
-    if (wxGetApp().plater()->is_wireframe_enabled()) {
-        position_id = shader->get_attrib_location("v_position");
-        barycentric_id = shader->get_attrib_location("v_barycentric");
-        if (m_need_wireframe && wxGetApp().plater()->is_show_wireframe()) {
-            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe on");
-            shader->set_uniform("show_wireframe", true);
-        }
-        else {
-            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe off");
-            shader->set_uniform("show_wireframe", false);
-        }
-    }
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         if (this->has_VBOs(buffer_idx)) {
@@ -1210,9 +1196,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
             //to make black not too hard too see
             ColorRGBA new_color = adjust_color_for_rendering(color);
             shader->set_uniform("uniform_color", new_color);
-            //shader->set_uniform("uniform_color", color);
-            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", buffer_idx %1%: new_color[%2%, %3%, %4%, %5%]")%buffer_idx%new_color[0]%new_color[1]%new_color[2]%new_color[3];
-            this->render(buffer_idx, (int)position_id, (int)barycentric_id);
+            this->render(buffer_idx);
         }
     }
 
@@ -1443,7 +1427,7 @@ void TriangleSelectorPatch::update_render_data()
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", exit");
 }
 
-void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, int barycentric_id)
+void TriangleSelectorPatch::render(int triangle_indices_idx)
 {
     assert(triangle_indices_idx < this->m_triangle_indices_VBO_ids.size());
     assert(this->m_triangle_patches.size() == this->m_triangle_indices_VBO_ids.size());
@@ -1452,27 +1436,16 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, in
     assert(this->m_vertices_VBO_ids[triangle_indices_idx] != 0);
     assert(this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
-    //glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_id));
-    //glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
-    if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0) {
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
-        if (position_id != -1) {
-            glsafe(::glEnableVertexAttribArray((GLint)position_id));
-            glsafe(::glVertexAttribPointer((GLint)position_id, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), nullptr));
-        }
-        else {
-            glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
-        }
+    GLShaderProgram *shader = wxGetApp().get_current_shader();
+    if (shader == nullptr)
+        return;
 
-        if (barycentric_id != -1) {
-            glsafe(::glEnableVertexAttribArray((GLint)barycentric_id));
-            glsafe(::glVertexAttribPointer((GLint)barycentric_id, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (GLvoid*)(intptr_t)(3 * sizeof(float))));
-        }
-        //glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
-        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: triangle_indices_idx %2%, bind vertex vbo, buffer id %3%")%__LINE__%triangle_indices_idx%this->m_vertices_VBO_ids[triangle_indices_idx];
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
+    const GLint position_id = shader->get_attrib_location("v_position");
+    if (position_id != -1) {
+        glsafe(::glVertexAttribPointer((GLint) position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr));
+        glsafe(::glEnableVertexAttribArray((GLint)position_id));
     }
-
-    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
     // Render using the Vertex Buffer Objects.
     if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0) {
@@ -1482,14 +1455,10 @@ void TriangleSelectorPatch::render(int triangle_indices_idx, int position_id, in
         //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: triangle_indices_idx %2%, bind indices vbo, buffer id %3%")%__LINE__%triangle_indices_idx%this->m_triangle_indices_VBO_ids[triangle_indices_idx];
     }
 
-    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&(position_id != -1))
+    if (position_id != -1)
         glsafe(::glDisableVertexAttribArray(position_id));
-    if ((this->m_triangle_indices_sizes[triangle_indices_idx] > 0)&&(barycentric_id != -1))
-        glsafe(::glDisableVertexAttribArray((GLint)barycentric_id));
 
-    if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0)
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 void TriangleSelectorPatch::release_geometry()
