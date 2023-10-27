@@ -2445,14 +2445,14 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
     shader->set_uniform("ProjMtx", ortho_projection);
 
     // Will project scissor/clipping rectangles into framebuffer space
-    const ImVec2 clip_off   = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
+    const ImVec2 clip_off   = draw_data->DisplayPos;       // (0,0) unless using multi-viewports
     const ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 
     // Render command lists
     for (int n = 0; n < draw_data->CmdListsCount; ++n) {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawVert* vtx_buffer = cmd_list->VtxBuffer.Data;
-        const ImDrawIdx* idx_buffer = cmd_list->IdxBuffer.Data;
+        const ImDrawIdx* idx_buffer  = cmd_list->IdxBuffer.Data;
         const GLsizeiptr vtx_buffer_size = (GLsizeiptr)cmd_list->VtxBuffer.Size * (int)sizeof(ImDrawVert);
         const GLsizeiptr idx_buffer_size = (GLsizeiptr)cmd_list->IdxBuffer.Size * (int)sizeof(ImDrawIdx);
 
@@ -2501,7 +2501,6 @@ void ImGuiWrapper::render_draw_data(ImDrawData *draw_data)
                 glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
                 glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
             }
-            idx_buffer += pcmd->ElemCount;
         }
 
         if (position_id != -1)
