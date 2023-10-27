@@ -16,7 +16,7 @@
   "bridge_density": "100%",
   "bridge_flow": "1",
   "bridge_no_support": "0",
-  "bridge_speed": "50",
+  "bridge_speed": "25",
   "brim_ears_detection_length": "1",
   "brim_ears_max_angle": "125",
   "brim_object_gap": "0.1",
