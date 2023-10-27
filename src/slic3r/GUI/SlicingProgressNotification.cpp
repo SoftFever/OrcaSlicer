@@ -20,6 +20,12 @@ namespace {
 static constexpr int   BEFORE_COMPLETE_DURATION = 3000; //ms
 static constexpr int   REFRESH_TIMEOUT = 100;           //ms
 
+void NotificationManager::SlicingProgressNotification::on_change_color_mode(bool is_dark)
+{
+	PopNotification::on_change_color_mode(is_dark);
+	m_dailytips_panel->on_change_color_mode(is_dark);
+}
+
 void NotificationManager::SlicingProgressNotification::init()
 {
 	if (m_sp_state == SlicingProgressState::SP_PROGRESS) {
@@ -413,6 +419,10 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_bar(c
 
 void NotificationManager::SlicingProgressNotification::render_dailytips_panel(const ImVec2& pos, const ImVec2& size)
 {
+	if (m_sp_state == SlicingProgressState::SP_BEFORE_COMPLETED)
+		m_dailytips_panel->set_can_expand(false);
+	else
+		m_dailytips_panel->set_can_expand(true);
 	m_dailytips_panel->set_scale(m_scale);
 	m_dailytips_panel->set_position(pos);
 	m_dailytips_panel->set_size(size);

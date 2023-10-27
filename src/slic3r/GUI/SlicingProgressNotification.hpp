@@ -48,6 +48,7 @@ public:
     // Switch between technology to provide correct text.
     void				set_fff(bool b) { m_is_fff = b; }
     void                set_export_possible(bool b) { m_export_possible = b; }
+    void                on_change_color_mode(bool is_dark) override;
 protected:
     void        init() override;
     void        render(GLCanvas3D& canvas, float initial_y, bool move_from_overlay, float overlay_width, float right_margin) override;

@@ -124,9 +124,7 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     //{ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
     {ImGui::BlockNotifErrorIcon,          "block_notification_error"             },
     {ImGui::PrevArrowBtnIcon,             "notification_arrow_left"              },
-    {ImGui::PrevArrowHoverBtnIcon,        "notification_arrow_left_hovered"      },
     {ImGui::NextArrowBtnIcon,             "notification_arrow_right"             },
-    {ImGui::NextArrowHoverBtnIcon,        "notification_arrow_right_hovered"     },
     {ImGui::CompleteIcon,                 "notification_slicing_complete"        },
 };
 

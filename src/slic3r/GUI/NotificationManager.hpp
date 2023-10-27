@@ -415,7 +415,7 @@ private:
 		// set start of notification to now. Used by delayed notifications
 		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
         void set_Multiline(bool Multi) { m_multiline = Multi; }
-		void on_change_color_mode(bool is_dark);
+		virtual void on_change_color_mode(bool is_dark);
 		void set_scale(float scale) { m_scale = scale; }
 
 	protected:

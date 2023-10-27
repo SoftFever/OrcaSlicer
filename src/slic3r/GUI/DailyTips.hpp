@@ -18,6 +18,7 @@ public:
     DailyTipsPanel(const ImVec2& pos, const ImVec2& size, bool can_expand = true);
     void set_position(const ImVec2& pos);
     void set_size(const ImVec2& size);
+    void set_can_expand(bool can_expand);
     ImVec2 get_size();
     void render();
     void retrieve_data_from_hint_database(HintDataNavigation nav);
@@ -25,6 +26,7 @@ public:
     void collapse();
     bool is_expanded();
     void set_scale(float scale);
+    void on_change_color_mode(bool is_dark);
 
 protected:
     void render_header(const ImVec2& pos, const ImVec2& size);
@@ -47,6 +49,7 @@ private:
     int m_uid;
     bool m_first_enter{ false };
     float m_scale = 1.0f;
+    bool m_is_dark{ false };
 };
 
 class DailyTipsWindow {

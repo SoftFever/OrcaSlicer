@@ -24,6 +24,7 @@ public:
     void update_data(const DailyTipsData& data);
     void render(const ImVec2& pos, const ImVec2& size) const;
     bool has_image() const;
+    void on_change_color_mode(bool is_dark);
 
 protected:
     void load_texture_from_img_url(const std::string url);
@@ -36,6 +37,7 @@ private:
     DailyTipsData m_data;
     GLTexture* m_texture{ nullptr };
     GLTexture* m_placeholder_texture{ nullptr };
+    bool m_is_dark{ false };
 };
 
 DailyTipsDataRenderer::~DailyTipsDataRenderer() {
@@ -98,12 +100,17 @@ bool DailyTipsDataRenderer::has_image() const
     return !m_data.img_url.empty();
 }
 
+void DailyTipsDataRenderer::on_change_color_mode(bool is_dark)
+{
+    m_is_dark = is_dark;
+}
+
 void DailyTipsDataRenderer::render_img(const ImVec2& start_pos, const ImVec2& size) const
 {
     if (has_image())
-        ImGui::Image((ImTextureID)(intptr_t)m_texture->get_id(), size);
+        ImGui::Image((ImTextureID)(intptr_t)m_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, 1) : ImVec4(1, 1, 1, 1));
     else {
-        ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size);
+        ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, 1) : ImVec4(1, 1, 1, 1));
     }
 }
 
@@ -198,6 +205,11 @@ void DailyTipsPanel::set_size(const ImVec2& size)
     m_width = size.x;
     m_height = size.y;
     m_content_height = m_height - m_header_height - m_footer_height;
+}
+
+void DailyTipsPanel::set_can_expand(bool can_expand)
+{
+    m_can_expand = can_expand;
 }
 
 ImVec2 DailyTipsPanel::get_size()
@@ -315,6 +327,12 @@ void DailyTipsPanel::set_scale(float scale)
     m_scale = scale;
 }
 
+void DailyTipsPanel::on_change_color_mode(bool is_dark)
+{
+    m_is_dark = is_dark;
+    m_dailytips_renderer->on_change_color_mode(is_dark);
+}
+
 void DailyTipsPanel::render_header(const ImVec2& pos, const ImVec2& size)
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -378,6 +396,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
+                ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImColor(230, 230, 230).Value : ImColor(38, 46, 48).Value);
 
                 // for bold font text, split text and icon-font button
                 imgui.push_bold_font();
@@ -385,7 +404,6 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 imgui.pop_bold_font();
                 ImVec2 expand_btn_size = ImGui::CalcTextSize((_u8L("Daily Tips")).c_str());
                 ImGui::SetCursorScreenPos(ImVec2(btn_pos.x + expand_btn_size.x + ImGui::CalcTextSize(" ").x, btn_pos.y));
-                std::wstring button_text;
                 button_text = ImGui::ExpandArrowIcon;
                 imgui.button(button_text.c_str());
                 expand_btn_size.x += 19.0f * m_scale;
@@ -397,13 +415,13 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                     lineEnd.y -= 2;
                     ImVec2 lineStart = lineEnd;
                     lineStart.x = ImGui::GetItemRectMin().x - expand_btn_size.x;
-                    ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, ImColor(38, 46, 48));
+                    ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, m_is_dark ? ImColor(230, 230, 230) : ImColor(38, 46, 48));
 
                     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                         expand();
                 }
                 
-                ImGui::PopStyleColor(3);
+                ImGui::PopStyleColor(4);
 
                 ImGui::EndChild();
                 return;
@@ -426,33 +444,38 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(.0f, .0f, .0f, .0f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 255, 255).Value);// for icon-font button
 
         // prev button
+        ImColor button_text_color = m_is_dark ? ImColor(228, 228, 228) : ImColor(38, 46, 48);
         ImVec2 prev_button_pos = pos + size + ImVec2(-button_margin_x - button_size.x * 2, -size.y);
         ImGui::SetCursorScreenPos(prev_button_pos);
         button_text = ImGui::PrevArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(prev_button_pos, prev_button_pos + button_size, true))
         {
-            button_text = ImGui::PrevArrowHoverBtnIcon;
+            button_text_color = ImColor(0, 174, 66);
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 retrieve_data_from_hint_database(HintDataNavigation::Prev);
         }
+        ImGui::PushStyleColor(ImGuiCol_Text, button_text_color.Value);// for icon-font button
         imgui.button(button_text.c_str());
+        ImGui::PopStyleColor();
 
         // next button
+        button_text_color = m_is_dark ? ImColor(228, 228, 228) : ImColor(38, 46, 48);
         ImVec2 next_button_pos = pos + size + ImVec2(-button_size.x, -size.y);
         ImGui::SetCursorScreenPos(next_button_pos);
         button_text = ImGui::NextArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(next_button_pos, next_button_pos + button_size, true))
         {
-            button_text = ImGui::NextArrowHoverBtnIcon;
+            button_text_color = ImColor(0, 174, 66);
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 retrieve_data_from_hint_database(HintDataNavigation::Next);
         }
+        ImGui::PushStyleColor(ImGuiCol_Text, button_text_color.Value);// for icon-font button
         imgui.button(button_text.c_str());
-        
-        ImGui::PopStyleColor(5);
+        ImGui::PopStyleColor();
+
+        ImGui::PopStyleColor(4);
     }
     ImGui::EndChild();
 }
@@ -555,6 +578,7 @@ void DailyTipsWindow::set_scale(float scale)
 void DailyTipsWindow::on_change_color_mode(bool is_dark)
 {
     m_is_dark = is_dark;
+    m_panel->on_change_color_mode(is_dark);
 }
 
 }}
