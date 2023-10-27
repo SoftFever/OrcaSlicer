@@ -688,7 +688,7 @@ void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& proj
 void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
 {
     if (m_model_filename.empty()) {
-        render_default(bottom);
+        render_default(bottom, view_matrix, projection_matrix);
         return;
     }
 
@@ -699,7 +699,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, co
         render_texture(bottom, canvas);*/
 }
 
-void Bed3D::render_default(bool bottom)
+void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
     bool picking = false;
     m_texture.reset();
@@ -710,9 +710,8 @@ void Bed3D::render_default(bool bottom)
     if (shader != nullptr) {
         shader->start_using();
 
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
 
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
