@@ -9,10 +9,10 @@
   "reduce_crossing_wall": "0",
   "max_travel_detour_distance": "0",
   "bottom_surface_pattern": "monotonic",
-  "bottom_shell_layers": "5",
+  "bottom_shell_layers": "3",
   "bottom_shell_thickness": "0",
   "bridge_flow": "1",
-  "bridge_speed": "25",
+  "bridge_speed": "50",
   "brim_width": "5",
   "brim_object_gap": "0.1",
   "compatible_printers_condition": "",
@@ -57,7 +57,7 @@
   "seam_position": "aligned",
   "skirt_distance": "2",
   "skirt_height": "1",
-  "skirt_loops": "1",
+  "skirt_loops": "0",
   "minimum_sparse_infill_area": "15",
   "internal_solid_infill_line_width": "0.42",
   "spiral_mode": "0",
@@ -118,6 +118,7 @@
   "filter_out_gap_fill": "0.5",
   "internal_bridge_support_thickness": "0.8",
   "support_bottom_z_distance": "0.18",
+  "wipe_speed": "200",
   "compatible_printers": [
     "Flashforge Adventurer 5M Pro 0.4 Nozzle"
   ]
