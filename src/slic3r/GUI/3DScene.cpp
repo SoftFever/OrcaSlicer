@@ -458,7 +458,7 @@ void GLVolume::render_with_outline(const Transform3d &view_model_matrix)
 }
 
 //BBS add render for simple case
-void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA>& extruder_colors)
+void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA> extruder_colors)
 {
     if (this->is_left_handed())
         glFrontFace(GL_CW);
@@ -493,6 +493,12 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     } while (0);
 
     if (color_volume && !picking) {
+        // when force_transparent, we need to keep the alpha
+        if (force_native_color && render_color.is_transparent()) {
+            for (auto &extruder_color : extruder_colors)
+                extruder_color.a(render_color.a());
+        }
+
         for (int idx = 0; idx < mmuseg_models.size(); idx++) {
             GUI::GLModel &m = mmuseg_models[idx];
             if (!m.is_initialized())
