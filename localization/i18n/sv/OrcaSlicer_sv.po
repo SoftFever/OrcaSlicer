@@ -8441,7 +8441,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr ""
 "Utskrifts acceleration för första lager. Ett lägre värde kan förbättra "
 "objektets fäste på byggplattan"

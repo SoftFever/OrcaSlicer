@@ -8431,7 +8431,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr ""
 "This is the printing acceleration for the first layer. Using limited "
 "acceleration can improve build plate adhesion."

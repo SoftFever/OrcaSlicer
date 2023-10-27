@@ -8504,7 +8504,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr ""
 "초기 레이어 가속도. 낮은 값을 사용하면 빌드 플레이트 안착률을 높일 수 있습니"
 "다"

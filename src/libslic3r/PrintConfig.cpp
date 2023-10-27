@@ -1867,7 +1867,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
-    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhensive");
+    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesive");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
