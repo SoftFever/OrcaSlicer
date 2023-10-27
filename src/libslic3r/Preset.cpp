@@ -2135,6 +2135,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
     if (!failures.empty() && !force_rewritten)
         return false;
     lock();
+    auto old_name = this->get_edited_preset().name;
     for (auto preset : new_presets) {
         preset.alias.clear();
         auto it = this->find_preset_internal(preset.name);
@@ -2147,6 +2148,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
             (*it).save(nullptr);
         }
     }
+    this->select_preset_by_name(old_name, true);
     unlock();
     return true;
 }
