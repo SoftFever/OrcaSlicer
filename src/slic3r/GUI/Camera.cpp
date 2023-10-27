@@ -121,14 +121,7 @@ double Camera::get_fov() const
 void Camera::apply_viewport(int x, int y, unsigned int w, unsigned int h)
 {
     glsafe(::glViewport(0, 0, w, h));
-    glsafe(::glGetIntegerv(GL_VIEWPORT, m_viewport.data()));
-}
-
-void Camera::apply_view_matrix()
-{
-    glsafe(::glMatrixMode(GL_MODELVIEW));
-    glsafe(::glLoadIdentity());
-    glsafe(::glMultMatrixd(m_view_matrix.data()));
+    m_viewport = { 0, 0, int(w), int(h) };
 }
 
 void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double far_z)
@@ -136,11 +129,7 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     double w = 0.0;
     double h = 0.0;
 
-    const double old_distance = m_distance;
     m_frustrum_zs = calc_tight_frustrum_zs_around(box);
-    if (m_distance != old_distance)
-        // the camera has been moved re-apply view matrix
-        apply_view_matrix();
 
     if (near_z > 0.0)
         m_frustrum_zs.first = std::max(std::min(m_frustrum_zs.first, near_z), FrustrumMinNearZ);
@@ -174,26 +163,33 @@ void Camera::apply_projection(const BoundingBoxf3& box, double near_z, double fa
     }
     }
 
-    glsafe(::glMatrixMode(GL_PROJECTION));
-    glsafe(::glLoadIdentity());
-
     switch (m_type)
     {
     default:
     case EType::Ortho:
     {
-        glsafe(::glOrtho(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        const double dz = m_frustrum_zs.second - m_frustrum_zs.first;
+        const double zz = m_frustrum_zs.first + m_frustrum_zs.second;
+        m_projection_matrix.matrix() << 1.0 / w,     0.0,       0.0,      0.0,
+                                            0.0, 1.0 / h,       0.0,      0.0,
+                                            0.0,     0.0, -2.0 / dz, -zz / dz,
+                                            0.0,     0.0,       0.0,      1.0;
         break;
     }
     case EType::Perspective:
     {
-        glsafe(::glFrustum(-w, w, -h, h, m_frustrum_zs.first, m_frustrum_zs.second));
+        const double n = m_frustrum_zs.first;
+        const double f = m_frustrum_zs.second;
+        const double dz = f - n;
+        const double zz = n + f;
+        const double fn = n * f;
+        m_projection_matrix.matrix() << n / w,   0.0,      0.0,            0.0,
+                                          0.0, n / h,      0.0,            0.0,
+                                          0.0,   0.0, -zz / dz, -2.0 * fn / dz,
+                                          0.0,   0.0,     -1.0,            0.0;
         break;
     }
     }
-
-    glsafe(::glGetDoublev(GL_PROJECTION_MATRIX, m_projection_matrix.data()));
-    glsafe(::glMatrixMode(GL_MODELVIEW));
 }
 
 void Camera::zoom_to_box(const BoundingBoxf3& box, double margin_factor)
@@ -351,8 +347,8 @@ std::pair<double, double> Camera::calc_tight_frustrum_zs_around(const BoundingBo
 
     // box in eye space
     const BoundingBoxf3 eye_box = box.transformed(m_view_matrix);
-    near_z = -eye_box.max(2);
-    far_z = -eye_box.min(2);
+    near_z = -eye_box.max.z();
+    far_z  = -eye_box.min.z();
 
     // apply margin
     near_z -= FrustrumZMargin;
@@ -533,19 +529,19 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
     m_distance = (position - target).norm();
     const Vec3d new_position = m_target + m_distance * unit_z;
 
-    m_view_matrix(0, 0) = unit_x(0);
-    m_view_matrix(0, 1) = unit_x(1);
-    m_view_matrix(0, 2) = unit_x(2);
+    m_view_matrix(0, 0) = unit_x.x();
+    m_view_matrix(0, 1) = unit_x.y();
+    m_view_matrix(0, 2) = unit_x.z();
     m_view_matrix(0, 3) = -unit_x.dot(new_position);
 
-    m_view_matrix(1, 0) = unit_y(0);
-    m_view_matrix(1, 1) = unit_y(1);
-    m_view_matrix(1, 2) = unit_y(2);
+    m_view_matrix(1, 0) = unit_y.x();
+    m_view_matrix(1, 1) = unit_y.y();
+    m_view_matrix(1, 2) = unit_y.z();
     m_view_matrix(1, 3) = -unit_y.dot(new_position);
 
-    m_view_matrix(2, 0) = unit_z(0);
-    m_view_matrix(2, 1) = unit_z(1);
-    m_view_matrix(2, 2) = unit_z(2);
+    m_view_matrix(2, 0) = unit_z.x();
+    m_view_matrix(2, 1) = unit_z.y();
+    m_view_matrix(2, 2) = unit_z.z();
     m_view_matrix(2, 3) = -unit_z.dot(new_position);
 
     m_view_matrix(3, 0) = 0.0;
