@@ -38,6 +38,8 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("imgui", { prefix + "imgui.vs", prefix + "imgui.fs" });
     // basic shader, used to render all what was previously rendered using the immediate mode
     valid &= append_shader("flat", { prefix + "flat.vs", prefix + "flat.fs" });
+    // basic shader with plane clipping, used to render volumes in picking pass
+    valid &= append_shader("flat_clip", { prefix + "flat_clip.vs", prefix + "flat_clip.fs" });
     // basic shader for textures, used to render textures
     valid &= append_shader("flat_texture", { prefix + "flat_texture.vs", prefix + "flat_texture.fs" });
     // used to render 3D scene background

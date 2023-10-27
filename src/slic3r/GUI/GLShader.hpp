@@ -57,6 +57,7 @@ public:
     void set_uniform(const char* name, const std::array<float, 2>& value) const { set_uniform(get_uniform_location(name), value); }
     void set_uniform(const char* name, const std::array<float, 3>& value) const { set_uniform(get_uniform_location(name), value); }
     void set_uniform(const char* name, const std::array<float, 4>& value) const { set_uniform(get_uniform_location(name), value); }
+    void set_uniform(const char* name, const std::array<double, 4>& value) const { set_uniform(get_uniform_location(name), value); }
     void set_uniform(const char* name, const float* value, size_t size) const { set_uniform(get_uniform_location(name), value, size); }
     void set_uniform(const char* name, const Transform3f& value) const { set_uniform(get_uniform_location(name), value); }
     void set_uniform(const char* name, const Transform3d& value) const { set_uniform(get_uniform_location(name), value); }
@@ -79,6 +80,7 @@ public:
     void set_uniform(int id, const std::array<float, 2>& value) const;
     void set_uniform(int id, const std::array<float, 3>& value) const;
     void set_uniform(int id, const std::array<float, 4>& value) const;
+    void set_uniform(int id, const std::array<double, 4>& value) const;
     void set_uniform(int id, const float* value, size_t size) const;
     void set_uniform(int id, const Transform3f& value) const;
     void set_uniform(int id, const Transform3d& value) const;

@@ -392,10 +392,10 @@ private:
     PrintVolume m_render_volume;
 
     // z range for clipping in shaders
-    float m_z_range[2];
+    std::array<float, 2> m_z_range;
 
     // plane coeffs for clipping in shaders
-    float m_clipping_plane[4];
+    std::array<double, 4> m_clipping_plane;
 
     struct Slope
     {
@@ -463,7 +463,10 @@ public:
     void set_print_volume(const PrintVolume& print_volume) { m_print_volume = print_volume; }
 
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
-    void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
+    void set_clipping_plane(const std::array<double, 4>& coeffs) { m_clipping_plane = coeffs; }
+
+    const std::array<float, 2>& get_z_range() const { return m_z_range; }
+    const std::array<double, 4>& get_clipping_plane() const { return m_clipping_plane; }
 
     bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }

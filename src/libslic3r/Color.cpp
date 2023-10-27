@@ -130,6 +130,8 @@ bool ColorRGB::operator < (const ColorRGB& other) const
 	for (size_t i = 0; i < 3; ++i) {
 		if (m_data[i] < other.m_data[i])
 			return true;
+		else if (m_data[i] > other.m_data[i])
+			return false;
 	}
 
 	return false;
@@ -140,6 +142,8 @@ bool ColorRGB::operator > (const ColorRGB& other) const
 	for (size_t i = 0; i < 3; ++i) {
 		if (m_data[i] > other.m_data[i])
 			return true;
+		else if (m_data[i] < other.m_data[i])
+			return false;
 	}
 
 	return false;
@@ -179,6 +183,8 @@ bool ColorRGBA::operator < (const ColorRGBA& other) const
 	for (size_t i = 0; i < 3; ++i) {
 		if (m_data[i] < other.m_data[i])
 			return true;
+		else if (m_data[i] > other.m_data[i])
+			return false;
 	}
 
 	return false;
@@ -189,6 +195,8 @@ bool ColorRGBA::operator > (const ColorRGBA& other) const
 	for (size_t i = 0; i < 3; ++i) {
 		if (m_data[i] > other.m_data[i])
 			return true;
+		else if (m_data[i] < other.m_data[i])
+			return false;
 	}
 
 	return false;

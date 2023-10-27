@@ -40,6 +40,8 @@ public:
         const std::string& get_vendor() const;
         const std::string& get_renderer() const;
 
+        bool is_mesa() const;
+
         int get_max_tex_size() const;
         float get_max_anisotropy() const;
 

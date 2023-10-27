@@ -264,6 +264,12 @@ void GLShaderProgram::set_uniform(int id, const std::array<float, 4>& value) con
         glsafe(::glUniform4fv(id, 1, static_cast<const GLfloat*>(value.data())));
 }
 
+void GLShaderProgram::set_uniform(int id, const std::array<double, 4>& value) const
+{
+    const std::array<float, 4> f_value = { float(value[0]), float(value[1]), float(value[2]), float(value[3]) };
+    set_uniform(id, f_value);
+}
+
 void GLShaderProgram::set_uniform(int id, const float* value, size_t size) const
 {
     if (id >= 0) {

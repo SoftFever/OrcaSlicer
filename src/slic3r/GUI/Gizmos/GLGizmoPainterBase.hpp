@@ -133,6 +133,7 @@ protected:
     void clear()
     {
         // BBS
+        this->m_vertices_VAO_ids.clear();
         this->m_vertices_VBO_ids.clear();
         this->m_triangle_indices_VBO_ids.clear();
         this->m_triangle_indices_sizes.clear();
@@ -161,6 +162,7 @@ protected:
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
     // Zero if the VBOs are not sent to GPU yet.
     //unsigned int                m_vertices_VBO_id{ 0 };
+    std::vector<unsigned int>   m_vertices_VAO_ids;
     std::vector<unsigned int>   m_vertices_VBO_ids;
     std::vector<unsigned int>   m_triangle_indices_VBO_ids;
 
