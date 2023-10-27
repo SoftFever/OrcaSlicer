@@ -110,7 +110,6 @@ public:
     double get_fov() const;
 
     void apply_viewport(int x, int y, unsigned int w, unsigned int h);
-    void apply_view_matrix();
     // Calculates and applies the projection matrix tighting the frustrum z range around the given box.
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0);

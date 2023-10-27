@@ -1308,7 +1308,6 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
     camera.set_type(Camera::EType::Ortho);
     camera.set_target(center);
     camera.select_view("top");
-    camera.apply_view_matrix();
     camera.zoom_to_box(plate_box, 1.0f);
     camera.apply_projection(plate_box);
 

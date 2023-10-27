@@ -1807,13 +1807,7 @@ void GLCanvas3D::render(bool only_init)
         camera.requires_zoom_to_volumes = false;
     }
 
-    camera.apply_view_matrix();
     camera.apply_projection(_max_bounding_box(true, true, true));
-
-    GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
-    glsafe(::glLightfv(GL_LIGHT1, GL_POSITION, position_cam));
-    GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
-    glsafe(::glLightfv(GL_LIGHT0, GL_POSITION, position_top));
 
     wxGetApp().imgui()->new_frame();
 
@@ -5551,7 +5545,6 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
         camera.zoom_to_box(volumes_box);
         camera.select_view("iso");
     }
-    camera.apply_view_matrix();
 
     const Transform3d &view_matrix = camera.get_view_matrix();
 
