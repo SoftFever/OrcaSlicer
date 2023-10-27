@@ -421,7 +421,7 @@ void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3
         m_profile.background.reset();
 
         GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2 };
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3T2 };
         init_data.reserve_vertices(4);
         init_data.reserve_indices(6);
 
@@ -430,10 +430,10 @@ void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3
         const float r = 1.0f;
         const float t = 1.0f;
         const float b = -1.0f;
-        init_data.add_vertex(Vec2f(l, b), Vec2f(0.0f, 0.0f));
-        init_data.add_vertex(Vec2f(r, b), Vec2f(1.0f, 0.0f));
-        init_data.add_vertex(Vec2f(r, t), Vec2f(1.0f, 1.0f));
-        init_data.add_vertex(Vec2f(l, t), Vec2f(0.0f, 1.0f));
+        init_data.add_vertex(Vec3f(l, b, 0.0f), Vec3f::UnitZ(), Vec2f(0.0f, 0.0f));
+        init_data.add_vertex(Vec3f(r, b, 0.0f), Vec3f::UnitZ(), Vec2f(1.0f, 0.0f));
+        init_data.add_vertex(Vec3f(r, t, 0.0f), Vec3f::UnitZ(), Vec2f(1.0f, 1.0f));
+        init_data.add_vertex(Vec3f(l, t, 0.0f), Vec3f::UnitZ(), Vec2f(0.0f, 1.0f));
 
         // indices
         init_data.add_triangle(0, 1, 2);
