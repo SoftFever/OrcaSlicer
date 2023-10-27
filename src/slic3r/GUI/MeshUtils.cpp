@@ -81,7 +81,7 @@ void MeshClipper::render_cut(const ColorRGBA& color)
     if (curr_shader != nullptr)
         curr_shader->stop_using();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         const Camera& camera = wxGetApp().plater()->get_camera();

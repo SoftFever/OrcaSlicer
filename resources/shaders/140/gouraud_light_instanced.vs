@@ -1,4 +1,4 @@
-#version 110
+#version 140
 
 #define INTENSITY_CORRECTION 0.6
 
@@ -14,19 +14,19 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 
 #define INTENSITY_AMBIENT    0.3
 
-// vertex attributes
-attribute vec3 v_position;
-attribute vec3 v_normal;
-// instance attributes
-attribute vec3 i_offset;
-attribute vec2 i_scales;
-
 uniform mat4 view_model_matrix;
 uniform mat4 projection_matrix;
 uniform mat3 normal_matrix;
 
+// vertex attributes
+in vec3 v_position;
+in vec3 v_normal;
+// instance attributes
+in vec3 i_offset;
+in vec2 i_scales;
+
 // x = tainted, y = specular;
-varying vec2 intensity;
+out vec2 intensity;
 
 void main()
 {

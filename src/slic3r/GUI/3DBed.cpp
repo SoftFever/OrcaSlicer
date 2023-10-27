@@ -218,7 +218,7 @@ void Bed3D::Axes::render()
     if (!m_arrow.is_initialized())
         m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
@@ -536,7 +536,7 @@ void Bed3D::render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, co
     }
 
     if (m_triangles.get_vertices_count() > 0) {
-        GLShaderProgram* shader = wxGetApp().get_shader("printbed_attr");
+        GLShaderProgram* shader = wxGetApp().get_shader("printbed");
         if (shader != nullptr) {
             shader->start_using();
             const Camera& camera = wxGetApp().plater()->get_camera();
@@ -671,7 +671,7 @@ void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& proj
     }
 
     if (!m_model.get_filename().empty()) {
-        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
+        GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("emission_factor", 0.0f);
@@ -706,7 +706,7 @@ void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Tr
 
     update_bed_triangles();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
 

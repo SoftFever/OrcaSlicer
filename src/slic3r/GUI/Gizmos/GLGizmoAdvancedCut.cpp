@@ -500,7 +500,7 @@ void GLGizmoAdvancedCut::on_render_for_picking()
 #endif
 
     m_move_grabber.color    = picking_color_component(0);
-    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         const Camera &camera = wxGetApp().plater()->get_camera();
@@ -866,7 +866,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     
-    GLShaderProgram *shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
 
@@ -934,7 +934,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     }
 
     {
-        GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light_attr");
+        GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
         if (shader == nullptr)
             return;
         shader->start_using();
@@ -1069,9 +1069,9 @@ void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA 
 {
     GLShaderProgram *shader = nullptr;
     if (for_picking)
-        shader = wxGetApp().get_shader("flat_attr");
+        shader = wxGetApp().get_shader("flat");
     else
-        shader = wxGetApp().get_shader("gouraud_light_attr");
+        shader = wxGetApp().get_shader("gouraud_light");
     if (shader) {
         shader->start_using();
 

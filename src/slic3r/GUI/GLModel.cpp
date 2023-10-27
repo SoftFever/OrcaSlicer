@@ -575,21 +575,21 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
     if (position) {
         position_id = shader->get_attrib_location("v_position");
         if (position_id != -1) {
-            glsafe(::glVertexAttribPointer(position_id, Geometry::position_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (GLvoid*)Geometry::position_offset_bytes(data.format)));
+            glsafe(::glVertexAttribPointer(position_id, Geometry::position_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (const void*)Geometry::position_offset_bytes(data.format)));
             glsafe(::glEnableVertexAttribArray(position_id));
         }
     }
     if (normal) {
         normal_id = shader->get_attrib_location("v_normal");
         if (normal_id != -1) {
-            glsafe(::glVertexAttribPointer(normal_id, Geometry::normal_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (GLvoid*)Geometry::normal_offset_bytes(data.format)));
+            glsafe(::glVertexAttribPointer(normal_id, Geometry::normal_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (const void*)Geometry::normal_offset_bytes(data.format)));
             glsafe(::glEnableVertexAttribArray(normal_id));
         }
     }
     if (tex_coord) {
         tex_coord_id = shader->get_attrib_location("v_tex_coord");
         if (tex_coord_id != -1) {
-            glsafe(::glVertexAttribPointer(tex_coord_id, Geometry::tex_coord_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (GLvoid*)Geometry::tex_coord_offset_bytes(data.format)));
+            glsafe(::glVertexAttribPointer(tex_coord_id, Geometry::tex_coord_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (const void*)Geometry::tex_coord_offset_bytes(data.format)));
             glsafe(::glEnableVertexAttribArray(tex_coord_id));
         }
     }
@@ -612,11 +612,11 @@ void GLModel::render(const std::pair<size_t, size_t>& range)
 
 void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instances_count)
 {
-    if (instances_vbo == 0)
+    if (instances_vbo == 0 || instances_count == 0)
         return;
 
     GLShaderProgram* shader = wxGetApp().get_current_shader();
-    if (shader == nullptr || !boost::algorithm::iends_with(shader->get_name(), "_instanced_attr"))
+    if (shader == nullptr || !boost::algorithm::iends_with(shader->get_name(), "_instanced"))
         return;
 
     // vertex attributes
@@ -637,11 +637,12 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     }
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, instances_vbo));
-    glsafe(::glVertexAttribPointer(offset_id, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)0));
+    const size_t instance_stride = 5 * sizeof(float);
+    glsafe(::glVertexAttribPointer(offset_id, 3, GL_FLOAT, GL_FALSE, instance_stride, (const void*)0));
     glsafe(::glEnableVertexAttribArray(offset_id));
     glsafe(::glVertexAttribDivisor(offset_id, 1));
 
-    glsafe(::glVertexAttribPointer(scales_id, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (GLvoid*)(3 * sizeof(float))));
+    glsafe(::glVertexAttribPointer(scales_id, 2, GL_FLOAT, GL_FALSE, instance_stride, (const void*)(3 * sizeof(float))));
     glsafe(::glEnableVertexAttribArray(scales_id));
     glsafe(::glVertexAttribDivisor(scales_id, 1));
 
@@ -650,8 +651,6 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     const GLenum mode = get_primitive_mode(data.format);
     const GLenum index_type = get_index_type(data);
 
-    shader->set_uniform("uniform_color", data.color);
-
     const size_t vertex_stride_bytes = Geometry::vertex_stride_bytes(data.format);
     const bool position = Geometry::has_position(data.format);
     const bool normal   = Geometry::has_normal(data.format);
@@ -659,14 +658,16 @@ void GLModel::render_instanced(unsigned int instances_vbo, unsigned int instance
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_render_data.vbo_id));
 
     if (position) {
-        glsafe(::glVertexAttribPointer(position_id, Geometry::position_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (GLvoid*)Geometry::position_offset_bytes(data.format)));
+        glsafe(::glVertexAttribPointer(position_id, Geometry::position_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (const void*)Geometry::position_offset_bytes(data.format)));
         glsafe(::glEnableVertexAttribArray(position_id));
     }
 
     if (normal) {
-        glsafe(::glVertexAttribPointer(normal_id, Geometry::normal_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (GLvoid*)Geometry::normal_offset_bytes(data.format)));
+        glsafe(::glVertexAttribPointer(normal_id, Geometry::normal_stride_floats(data.format), GL_FLOAT, GL_FALSE, vertex_stride_bytes, (const void*)Geometry::normal_offset_bytes(data.format)));
         glsafe(::glEnableVertexAttribArray(normal_id));
     }
+
+    shader->set_uniform("uniform_color", data.color);
 
     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_render_data.ibo_id));
     glsafe(::glDrawElementsInstanced(mode, indices_count(), index_type, (const void*)0, instances_count));

@@ -641,7 +641,7 @@ void GLGizmoSimplify::on_render()
         return;
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
-    auto* gouraud_shader = wxGetApp().get_shader("gouraud_light_attr");
+    auto* gouraud_shader = wxGetApp().get_shader("gouraud_light");
     glsafe(::glPushAttrib(GL_DEPTH_TEST));
     glsafe(::glEnable(GL_DEPTH_TEST));
     gouraud_shader->start_using();
@@ -654,7 +654,7 @@ void GLGizmoSimplify::on_render()
     gouraud_shader->stop_using();
 
     if (m_show_wireframe) {
-        auto* contour_shader = wxGetApp().get_shader("mm_contour_attr");
+        auto* contour_shader = wxGetApp().get_shader("mm_contour");
         contour_shader->start_using();
         contour_shader->set_uniform("view_model_matrix", view_model_matrix);
         contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());

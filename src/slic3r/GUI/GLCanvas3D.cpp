@@ -163,7 +163,7 @@ void GLCanvas3D::LayersEditing::select_object(const Model& model, int object_id)
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
-    return wxGetApp().get_shader("variable_layer_height_attr") != nullptr && m_z_texture_id > 0;
+    return wxGetApp().get_shader("variable_layer_height") != nullptr && m_z_texture_id > 0;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
@@ -355,7 +355,7 @@ Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
 
 bool GLCanvas3D::LayersEditing::is_initialized() const
 {
-    return wxGetApp().get_shader("variable_layer_height_attr") != nullptr;
+    return wxGetApp().get_shader("variable_layer_height") != nullptr;
 }
 
 std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) const
@@ -397,7 +397,7 @@ void GLCanvas3D::LayersEditing::render_active_object_annotations(const GLCanvas3
 
     const float cnv_inv_width = 1.0f / cnv_width;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height");
     if (shader == nullptr)
         return;
 
@@ -513,7 +513,7 @@ void GLCanvas3D::LayersEditing::render_profile(const GLCanvas3D& canvas)
         m_profile.profile.init_from(std::move(init_data));
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         shader->set_uniform("view_model_matrix", Transform3d::Identity());
@@ -534,7 +534,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D& canvas, const G
     if (current_shader != nullptr)
         current_shader->stop_using();
 
-    GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height");
     if (shader == nullptr)
         return;
 
@@ -946,7 +946,7 @@ void GLCanvas3D::SequentialPrintClearance::render()
     const ColorRGBA FILL_COLOR = { 0.7f, 0.7f, 1.0f, 0.5f };
     const ColorRGBA NO_FILL_COLOR = { 0.75f, 0.75f, 0.75f, 0.75f };
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
@@ -2006,7 +2006,7 @@ void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w,
 void GLCanvas3D::render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
     const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view, bool for_picking)
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("thumbnail");
     ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
     std::vector<ColorRGBA> colors = ::get_extruders_colors();
     switch (OpenGLManager::get_framebuffers_type())
@@ -5557,7 +5557,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
 
     camera.apply_projection(plate_build_volume);
 
-    //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
+    //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (!for_picking && (shader == nullptr)) {
         BOOST_LOG_TRIVIAL(info) <<  boost::format("render_thumbnail with no picking: shader is null, return directly");
         return;
@@ -6619,7 +6619,7 @@ void GLCanvas3D::_render_background()
         m_background.init_from(std::move(init_data));
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("background_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("background");
     if (shader != nullptr) {
         shader->start_using();
         shader->set_uniform("top_color", use_error_color ? ERROR_BG_LIGHT_COLOR : DEFAULT_BG_LIGHT_COLOR);
@@ -6742,7 +6742,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     else
         m_volumes.set_show_sinking_contours(!m_gizmos.is_hiding_instances());
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud");
     ECanvasType canvas_type = this->m_canvas_type;
     if (shader != nullptr) {
         shader->start_using();
@@ -7170,7 +7170,7 @@ void GLCanvas3D::_render_style_editor()
 
 void GLCanvas3D::_render_volumes_for_picking() const
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader == nullptr)
         return;
 
@@ -8008,7 +8008,7 @@ void GLCanvas3D::_render_camera_target()
         }
     }
 
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         const Camera& camera = wxGetApp().plater()->get_camera();
@@ -8127,7 +8127,7 @@ void GLCanvas3D::_render_sla_slices()
             }
         }
 
-        GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+        GLShaderProgram* shader = wxGetApp().get_shader("flat");
         if (shader != nullptr) {
             shader->start_using();
 

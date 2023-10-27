@@ -262,7 +262,7 @@ void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 
 void GLGizmoBase::render_grabbers(float size) const
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
     shader->start_using();
@@ -276,7 +276,7 @@ void GLGizmoBase::render_grabbers(float size) const
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
-    GLShaderProgram* shader = wxGetApp().get_shader("flat_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
 

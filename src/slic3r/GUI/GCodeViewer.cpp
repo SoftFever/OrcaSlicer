@@ -307,7 +307,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     if (!m_visible)
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
@@ -788,7 +788,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
         case EMoveType::Seam: {
 //            if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
 //                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::InstancedModel;
-//                buffer.shader = "gouraud_light_instanced_attr";
+//                buffer.shader = "gouraud_light_instanced";
 //                buffer.model.model.init_from(diamond(16));
 //                buffer.model.color = option_color(type);
 //                buffer.model.instances.format = InstanceVBuffer::EFormat::InstancedModel;
@@ -799,7 +799,7 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
                 buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::BatchedModel;
                 buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-                buffer.shader = "gouraud_light_attr";
+                buffer.shader = "gouraud_light";
 
                 buffer.model.data = diamond(16);
                 buffer.model.color = option_color(type);
@@ -811,13 +811,13 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
         case EMoveType::Extrude: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
             buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-            buffer.shader = "gouraud_light_attr";
+            buffer.shader = "gouraud_light";
             break;
         }
         case EMoveType::Travel: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
             buffer.vertices.format = VBuffer::EFormat::Position;
-            buffer.shader = "flat_attr";
+            buffer.shader = "flat";
             break;
         }
         }
@@ -1425,7 +1425,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
         if (!buffer.visible || !buffer.has_data())
             continue;
 
-        GLShaderProgram* shader = opengl_manager.get_shader("flat_attr");
+        GLShaderProgram* shader = opengl_manager.get_shader("flat");
         if (shader != nullptr) {
             shader->start_using();
 
@@ -4029,7 +4029,7 @@ void GCodeViewer::render_shells()
         //if (!m_shells.visible || m_shells.volumes.empty())
         return;
 
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light_attr");
+    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 

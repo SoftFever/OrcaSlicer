@@ -192,7 +192,7 @@ void GLGizmoMmuSegmentation::set_painter_gizmo_data(const Selection &selection)
 void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
-    auto* shader = wxGetApp().get_shader("mm_gouraud_attr");
+    auto* shader = wxGetApp().get_shader("mm_gouraud");
     if (!shader)
         return;
     shader->start_using();

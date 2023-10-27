@@ -127,7 +127,7 @@ void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
     if (! has_points && ! has_holes)
         return;
 
-    GLShaderProgram* shader = picking ? wxGetApp().get_shader("flat_attr") : wxGetApp().get_shader("gouraud_light_attr");
+    GLShaderProgram* shader = picking ? wxGetApp().get_shader("flat") : wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
         return;
 
