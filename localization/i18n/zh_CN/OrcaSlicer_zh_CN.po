@@ -8184,7 +8184,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr "首层加速度。使用较低值可以改善和构建板的粘接。"
 
 msgid "Enable accel_to_decel"

@@ -8782,7 +8782,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr ""
 "Accélération de la couche initiale. L'utilisation d'une valeur plus basse "
 "peut améliorer l'adhérence sur le plateau"

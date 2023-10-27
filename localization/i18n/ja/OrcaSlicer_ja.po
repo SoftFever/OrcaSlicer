@@ -8233,7 +8233,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr ""
 "1層目の造形加速度です。遅くするとプレートとの接着を向上させることができます"
 

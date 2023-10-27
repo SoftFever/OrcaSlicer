@@ -8559,7 +8559,7 @@ msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
-"adhensive"
+"adhesive"
 msgstr ""
 "Прискорення вихідного шару. Використання меншого значення може покращити "
 "прилипання будівельної плити"
