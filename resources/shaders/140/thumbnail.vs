@@ -14,14 +14,13 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 
 #define INTENSITY_AMBIENT    0.3
 
-in vec3 v_position;
-in vec3 v_normal;
-
 uniform mat4 view_model_matrix;
 uniform mat4 projection_matrix;
 uniform mat3 normal_matrix;
-
 uniform mat4 volume_world_matrix;
+
+in vec3 v_position;
+in vec3 v_normal;
 
 // x = tainted, y = specular;
 out vec2 intensity;
@@ -45,7 +44,7 @@ void main()
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // Point in homogenous coordinates.
-    world_pos = volume_world_matrix * gl_Vertex;
+    world_pos = volume_world_matrix * vec4(v_position, 1.0);
 
     gl_Position = projection_matrix * position;
 }
