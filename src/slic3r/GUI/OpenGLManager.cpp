@@ -65,6 +65,11 @@ const std::string& OpenGLManager::GLInfo::get_renderer() const
     return m_renderer;
 }
 
+bool OpenGLManager::GLInfo::is_mesa() const
+{
+    return boost::icontains(m_version, "mesa");
+}
+
 int OpenGLManager::GLInfo::get_max_tex_size() const
 {
     if (!m_detected)

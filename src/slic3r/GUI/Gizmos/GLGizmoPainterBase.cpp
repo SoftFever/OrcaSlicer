@@ -8,6 +8,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -1071,8 +1072,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui, const Transform3d& matrix)
     if (! shader)
         return;
     assert(shader->get_name() == "gouraud" || shader->get_name() == "mm_gouraud");
-    ScopeGuard guard([shader]() { if (shader) shader->set_uniform("offset_depth_buffer", false);});
-    shader->set_uniform("offset_depth_buffer", true);
+
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),
                      std::make_pair(&m_iva_blockers, blockers_color)}) {
         iva.first->set_color(iva.second);
@@ -1120,6 +1120,9 @@ void TriangleSelectorGUI::update_render_data()
     for (auto& data : iva_seed_fills_data)
         data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3N3 };
 
+    // small value used to offset triangles along their normal to avoid z-fighting
+    static const float offset = 0.001f;
+
     for (const Triangle &tr : m_triangles) {
         bool is_valid = tr.valid();
         bool is_split = tr.is_split();
@@ -1141,9 +1144,11 @@ void TriangleSelectorGUI::update_render_data()
         //FIXME the normal may likely be pulled from m_triangle_selectors, but it may not be worth the effort
         // or the current implementation may be more cache friendly.
         const Vec3f           n   = (v1 - v0).cross(v2 - v1).normalized();
-        iva.add_vertex(v0, n);
-        iva.add_vertex(v1, n);
-        iva.add_vertex(v2, n);
+        // small value used to offset triangles along their normal to avoid z-fighting
+        const Vec3f    offset_n   = offset * n;
+        iva.add_vertex(v0 + offset_n, n);
+        iva.add_vertex(v1 + offset_n, n);
+        iva.add_vertex(v2 + offset_n, n);
         iva.add_triangle((unsigned int)cnt, (unsigned int)cnt + 1, (unsigned int)cnt + 2);
         cnt += 3;
     }
@@ -1433,6 +1438,7 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
     assert(this->m_triangle_patches.size() == this->m_triangle_indices_VBO_ids.size());
     //assert(this->m_vertices_VBO_id != 0);
     assert(this->m_triangle_patches.size() == this->m_vertices_VBO_ids.size());
+    assert(this->m_vertices_VAO_ids[triangle_indices_idx] != 0);
     assert(this->m_vertices_VBO_ids[triangle_indices_idx] != 0);
     assert(this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
@@ -1440,6 +1446,8 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
     if (shader == nullptr)
         return;
 
+    glsafe(::glBindVertexArray(this->m_vertices_VAO_ids[triangle_indices_idx]));
+    // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
     const GLint position_id = shader->get_attrib_location("v_position");
     if (position_id != -1) {
@@ -1459,6 +1467,7 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
         glsafe(::glDisableVertexAttribArray(position_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glBindVertexArray(0));
 }
 
 void TriangleSelectorPatch::release_geometry()
@@ -1470,6 +1479,10 @@ void TriangleSelectorPatch::release_geometry()
     for (auto& vertice_VBO_id : m_vertices_VBO_ids) {
         glsafe(::glDeleteBuffers(1, &vertice_VBO_id));
         vertice_VBO_id = 0;
+    }
+    for (auto &vertice_VAO_id : m_vertices_VAO_ids) {
+        glsafe(::glDeleteVertexArrays(1, &vertice_VAO_id));
+        vertice_VAO_id = 0;
     }
     for (auto& triangle_indices_VBO_id : m_triangle_indices_VBO_ids) {
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
@@ -1495,6 +1508,7 @@ void TriangleSelectorPatch::finalize_vertices()
 void TriangleSelectorPatch::finalize_triangle_indices()
 {
     m_vertices_VBO_ids.resize(m_triangle_patches.size());
+    m_vertices_VAO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_sizes.resize(m_triangle_patches.size());
     assert(std::all_of(m_triangle_indices_VBO_ids.cbegin(), m_triangle_indices_VBO_ids.cend(), [](const auto& ti_VBO_id) { return ti_VBO_id == 0; }));
@@ -1502,6 +1516,9 @@ void TriangleSelectorPatch::finalize_triangle_indices()
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         std::vector<float>& patch_vertices = m_triangle_patches[buffer_idx].patch_vertices;
         if (!patch_vertices.empty()) {
+            glsafe(::glGenVertexArrays(1, &m_vertices_VAO_ids[buffer_idx]));
+            glsafe(::glBindVertexArray(m_vertices_VAO_ids[buffer_idx]));
+
             glsafe(::glGenBuffers(1, &m_vertices_VBO_ids[buffer_idx]));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices_VBO_ids[buffer_idx]));
             glsafe(::glBufferData(GL_ARRAY_BUFFER, patch_vertices.size() * sizeof(float), patch_vertices.data(), GL_STATIC_DRAW));
@@ -1520,6 +1537,7 @@ void TriangleSelectorPatch::finalize_triangle_indices()
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: buffer_idx %2%, vertices size %3%, buffer id %4%")%__LINE__%buffer_idx%triangle_indices.size()%m_triangle_indices_VBO_ids[buffer_idx];
             triangle_indices.clear();
         }
+        glsafe(::glBindVertexArray(0));
     }
 }
 
@@ -1665,13 +1683,12 @@ void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)
     if (contour_shader != nullptr) {
         contour_shader->start_using();
 
+        contour_shader->set_uniform("offset", OpenGLManager::get_gl_info().is_mesa() ? 0.0005 : 0.00001);
         const Camera& camera = wxGetApp().plater()->get_camera();
         contour_shader->set_uniform("view_model_matrix", camera.get_view_matrix() * matrix);
         contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
-        glsafe(::glDepthFunc(GL_LEQUAL));
         m_paint_contour.render();
-        glsafe(::glDepthFunc(GL_LESS));
 
         contour_shader->stop_using();
     }

@@ -908,6 +908,11 @@ void GLMmSegmentationGizmo3DScene::release_geometry() {
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
         triangle_indices_VBO_id = 0;
     }
+    if (this->vertices_VAO_id) {
+        glsafe(::glDeleteVertexArrays(1, &this->vertices_VAO_id));
+        this->vertices_VAO_id = 0;
+    }
+
     this->clear();
 }
 
@@ -915,6 +920,7 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
 {
     assert(triangle_indices_idx < this->triangle_indices_VBO_ids.size());
     assert(this->triangle_patches.size() == this->triangle_indices_VBO_ids.size());
+    assert(this->vertices_VAO_id != 0);
     assert(this->vertices_VBO_id != 0);
     assert(this->triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
@@ -922,6 +928,8 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
     if (shader == nullptr)
         return;
 
+    glsafe(::glBindVertexArray(this->vertices_VAO_id));
+    // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_VBO_id));
     const GLint position_id = shader->get_attrib_location("v_position");
     if (position_id != -1) {
@@ -941,17 +949,24 @@ void GLMmSegmentationGizmo3DScene::render(size_t triangle_indices_idx) const
         glsafe(::glDisableVertexAttribArray(position_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    glsafe(::glBindVertexArray(0));
 }
 
 void GLMmSegmentationGizmo3DScene::finalize_vertices()
 {
+    assert(this->vertices_VAO_id == 0);
     assert(this->vertices_VBO_id == 0);
     if (!this->vertices.empty()) {
+        glsafe(::glGenVertexArrays(1, &this->vertices_VAO_id));
+        glsafe(::glBindVertexArray(this->vertices_VAO_id));
+
         glsafe(::glGenBuffers(1, &this->vertices_VBO_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->vertices_VBO_id));
         glsafe(::glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(float), this->vertices.data(), GL_STATIC_DRAW));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         this->vertices.clear();
+
+        glsafe(::glBindVertexArray(0));
     }
 }
 

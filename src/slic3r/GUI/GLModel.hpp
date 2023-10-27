@@ -63,8 +63,7 @@ namespace GUI {
             ColorRGBA color{ ColorRGBA::BLACK() };
 
             void reserve_vertices(size_t vertices_count) { vertices.reserve(vertices_count * vertex_stride_floats(format)); }
-            void reserve_indices(size_t indices_count) { indices.reserve(indices_count * index_stride_bytes(*this)); }
-
+            void reserve_indices(size_t indices_count) { indices.reserve(indices_count); }
 
             void add_vertex(const Vec2f& position);                          // EVertexLayout::P2
             void add_vertex(const Vec2f& position, const Vec2f& tex_coord);  // EVertexLayout::P2T2
