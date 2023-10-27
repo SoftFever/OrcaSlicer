@@ -57,6 +57,9 @@ private:
     wxString      curr_create_filament_type();
     void          get_filament_presets_by_machine();
     void          get_all_filament_presets();
+    void          get_all_visible_printer_name();
+    template<typename T>
+    void          sort_printer_by_nozzle(std::vector<std::pair<std::string, T>> &printer_name_to_filament_preset);
 
 private:
     struct CreateType
@@ -72,6 +75,7 @@ private:
     std::unordered_map<std::string, std::vector<Preset *>>           m_filament_choice_map;
     std::unordered_map<wxString, std::string>                        m_public_name_to_filament_id_map;
     std::unordered_map<std::string, Preset *>                        m_all_presets_map;
+    std::set<std::string>                                            m_visible_printers;
     CreateType                                                       m_create_type;
     Button *                                                         m_button_create                = nullptr;
     Button *                                                         m_button_cancel                = nullptr;

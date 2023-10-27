@@ -231,8 +231,8 @@ static wxBoxSizer *create_preset_tree(wxWindow *parent, std::pair<std::string, s
 
     treeCtrl->Expand(rootId);
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    treeCtrl->SetMinSize(wxSize(220, std::min(row * 30, 140)));
-    treeCtrl->SetMaxSize(wxSize(300, std::min(row * 30, 140)));
+    treeCtrl->SetMinSize(wxSize(-1, row * 30));
+    treeCtrl->SetMaxSize(wxSize(-1, row * 30));
     sizer->Add(treeCtrl, 0, wxEXPAND | wxALL, 0);
 
     return sizer;
@@ -507,6 +507,7 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(m_scrolled_preset_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
 
     get_all_filament_presets();
+    get_all_visible_printer_name();
     select_curr_radiobox(m_create_type_btns, 0);
 
     this->SetSizer(m_main_sizer);
@@ -720,7 +721,10 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
         m_filament_preset_panel->Freeze();
         m_filament_presets_sizer->Clear(true);
         m_filament_preset.clear();
+
+        std::vector<std::pair<std::string, Preset *>> printer_name_to_filament_preset;
         if (iter != m_filament_choice_map.end()) {
+            std::unordered_map<std::string, float> nozzle_diameter = nozzle_diameter_map;
             for (Preset* preset : iter->second) {
                 auto compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
                 if (!compatible_printers || compatible_printers->values.empty()) {
@@ -728,13 +732,27 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                     continue;
                 }
                 for (std::string &compatible_printer_name : compatible_printers->values) {
-                    m_filament_presets_sizer->Add(create_checkbox(m_filament_preset_panel, compatible_printer_name, preset, m_filament_preset), 0, wxEXPAND | wxTOP | wxLEFT, FromDIP(5));
+                    if (m_visible_printers.find(compatible_printer_name) == m_visible_printers.end()) continue;
+                    size_t index = compatible_printer_name.find("nozzle");
+                    if (index < 4) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
+                        continue;
+                    }
+                    if (nozzle_diameter[compatible_printer_name.substr(index - 4)] == 0) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << compatible_printer_name;
+                        continue;
+                    }
+                    printer_name_to_filament_preset.push_back(std::make_pair(compatible_printer_name,preset));
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show compatible printer name: " << compatible_printer_name << "and preset name is: " << preset;
                 }
             }
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " not find filament id corresponding to the type: and the type is" << filament_type;
         }
+        sort_printer_by_nozzle(printer_name_to_filament_preset);
+        for (std::pair<std::string, Preset *> printer_to_preset : printer_name_to_filament_preset)
+            m_filament_presets_sizer->Add(create_checkbox(m_filament_preset_panel, printer_to_preset.first, printer_to_preset.second, m_filament_preset), 0,
+                                          wxEXPAND | wxTOP | wxLEFT, FromDIP(5));
         m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
         m_filament_preset_panel->Thaw();
 
@@ -1064,6 +1082,7 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
         type_name = into_u8(type_str);
     }
     
+    std::unordered_map<std::string, float>                 nozzle_diameter = nozzle_diameter_map;
     std::unordered_map<std::string, std::vector<Preset *>> machine_name_to_presets;
     for (std::pair<std::string, Preset*> filament_preset : m_all_presets_map) {
         Preset *    preset      = filament_preset.second;
@@ -1073,12 +1092,27 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
             continue;
         }
         for (std::string &compatible_printer_name : compatible_printers->values) {
+            if (m_visible_printers.find(compatible_printer_name) == m_visible_printers.end()) continue;
+            if (preset->name.find(type_name) == std::string::npos) continue;
+            size_t index = compatible_printer_name.find("nozzle");
+            if (index < 4) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
+                continue;
+            }
+            if (nozzle_diameter[compatible_printer_name.substr(index - 4)] == 0) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << compatible_printer_name;
+                continue;
+            }
             machine_name_to_presets[compatible_printer_name].push_back(preset);
         }
     }
-
-    m_filament_preset_panel->Freeze();
+    std::vector<std::pair<std::string, std::vector<Preset *>>> printer_name_to_filament_presets;
     for (std::pair<std::string, std::vector<Preset *>> machine_filament_presets : machine_name_to_presets) {
+        printer_name_to_filament_presets.push_back(machine_filament_presets);
+    }
+    sort_printer_by_nozzle(printer_name_to_filament_presets);
+    m_filament_preset_panel->Freeze();
+    for (std::pair<std::string, std::vector<Preset *>> machine_filament_presets : printer_name_to_filament_presets) {
         std::string            compatible_printer = machine_filament_presets.first;
         std::vector<Preset *> &presets      = machine_filament_presets.second;
         m_filament_presets_sizer->Add(create_select_filament_preset_checkbox(m_filament_preset_panel, compatible_printer, presets, m_machint_filament_preset), 0, wxEXPAND | wxALL, FromDIP(5));
@@ -1117,6 +1151,54 @@ void CreateFilamentPresetDialog::get_all_filament_presets()
             m_all_presets_map[filament_preset_name] = filament_preset;
         }
     }
+}
+
+void CreateFilamentPresetDialog::get_all_visible_printer_name()
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    for (const Preset &printer_preset : preset_bundle->printers.get_presets()) {
+        if (!printer_preset.is_visible) continue;
+        assert(m_visible_printers.find(printer_preset.name) == m_visible_printers.end());
+        m_visible_printers.insert(printer_preset.name);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and visible printer is: " << printer_preset.name;
+    }
+
+}
+
+template<typename T>
+void CreateFilamentPresetDialog::sort_printer_by_nozzle(std::vector<std::pair<std::string, T>> &printer_name_to_filament_preset)
+{
+    std::unordered_map<std::string, float> nozzle_diameter = nozzle_diameter_map;
+    std::sort(printer_name_to_filament_preset.begin(), printer_name_to_filament_preset.end(),
+              [&nozzle_diameter](const std::pair<string, T> &a, const std::pair<string, T> &b) {
+                  size_t nozzle_index_a = a.first.find("nozzle");
+                  size_t nozzle_index_b = b.first.find("nozzle");
+                  if (nozzle_index_a == std::string::npos || nozzle_index_b == std::string::npos) return a.first < b.first;
+                  std::string nozzle_str_a;
+                  std::string nozzle_str_b;
+                  try {
+                      nozzle_str_a = a.first.substr(nozzle_index_a - 4);
+                      nozzle_str_b = b.first.substr(nozzle_index_b - 4);
+                  } catch (...) {
+                      BOOST_LOG_TRIVIAL(info) << "substr filed, and printer name is: " << a.first << " and " << b.first;
+                      return a.first < b.first;
+                  }
+                  float nozzle_a, nozzle_b;
+                  try {
+                      nozzle_a = nozzle_diameter[nozzle_str_a];
+                      nozzle_b = nozzle_diameter[nozzle_str_b];
+                      assert(nozzle_a != 0 && nozzle_b != 0);
+                  } catch (...) {
+                      BOOST_LOG_TRIVIAL(info) << "find nozzle filed, and nozzle is: " << nozzle_str_a << " and " << nozzle_str_b;
+                      return a.first < b.first;
+                  }
+                  float diff_nozzle_a = std::abs(nozzle_a - 0.4);
+                  float diff_nozzle_b = std::abs(nozzle_b - 0.4);
+                  if (nozzle_a == nozzle_b) return a.first < b.first;
+                  if (diff_nozzle_a == diff_nozzle_b) return nozzle_a < nozzle_b;
+
+                  return diff_nozzle_a < diff_nozzle_b;
+              });
 }
 
 void CreateFilamentPresetDialog::clear_filament_preset_map()
@@ -3888,7 +3970,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
     m_preset_tree_window                   = new wxScrolledWindow(this);
     m_preset_tree_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
     m_preset_tree_window->SetMaxSize(wxSize(-1, FromDIP(500)));
-    m_preset_tree_sizer                    = new wxGridSizer(3, FromDIP(5), FromDIP(5));
+    m_preset_tree_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
     m_preset_tree_window->SetSizer(m_preset_tree_sizer);
     filament_preset_tree_sizer->Add(m_preset_tree_window, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
