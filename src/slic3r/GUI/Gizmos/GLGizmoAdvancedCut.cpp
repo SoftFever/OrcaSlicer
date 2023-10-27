@@ -527,7 +527,6 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         Vec3d pos = connector.pos + instance_offset + sla_shift * Vec3d::UnitZ();
         float height = connector.height;
 
-        const Camera &camera = wxGetApp().plater()->get_camera();
         if (connector.attribs.type == CutConnectorType::Dowel && connector.attribs.style == CutConnectorStyle::Prizm) {
             pos -= height * m_cut_plane_normal;
             height *= 2;
@@ -540,11 +539,10 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
-
+        const Transform3d model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
         ColorRGBA color = picking_color_component(i+1);
-        render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
+        render_connector_model(m_shapes[connectors[i].attribs], color, model_matrix, true);
     }
 }
 
@@ -961,14 +959,14 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
         cube.set_color(render_color);
 
+        const Transform3d trafo_matrix = Geometry::assemble_transform(m_move_grabber.center) * m_rotate_matrix *
+                                         Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), fullsize * Vec3d::Ones());
         const Camera& camera = wxGetApp().plater()->get_camera();
-        const Transform3d view_model_matrix = camera.get_view_matrix() * Geometry::assemble_transform(m_move_grabber.center) *
-                                              m_rotate_matrix *
-                                              Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), fullsize * Vec3d::Ones());
-        const Transform3d& projection_matrix = camera.get_projection_matrix();
-        shader->set_uniform("view_model_matrix", view_model_matrix);
-        shader->set_uniform("projection_matrix", projection_matrix);
-        shader->set_uniform("normal_matrix", (Matrix3d) view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
         cube.render();
         shader->stop_using();
     }
@@ -1036,9 +1034,9 @@ void GLGizmoAdvancedCut::render_connectors()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
+        const Transform3d model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        render_connector_model(m_shapes[connector.attribs], render_color, view_model_matrix);
+        render_connector_model(m_shapes[connector.attribs], render_color, model_matrix);
     }
 }
 
@@ -1091,7 +1089,7 @@ void GLGizmoAdvancedCut::render_cut_line()
     }
 }
 
-void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA &color, Transform3d view_model_matrix, bool for_picking)
+void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA &color, Transform3d model_matrix, bool for_picking)
 {
     GLShaderProgram *shader = nullptr;
     if (for_picking)
@@ -1102,11 +1100,11 @@ void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA 
         shader->start_using();
 
         const Camera& camera = wxGetApp().plater()->get_camera();
-        view_model_matrix = camera.get_view_matrix() * view_model_matrix;
-        const Transform3d &projection_matrix = camera.get_projection_matrix();
-        shader->set_uniform("view_model_matrix", view_model_matrix);
-        shader->set_uniform("projection_matrix", projection_matrix);
-        shader->set_uniform("normal_matrix", (Matrix3d) view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
         model.set_color(color);
         model.render();

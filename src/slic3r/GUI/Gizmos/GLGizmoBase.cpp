@@ -121,12 +121,14 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
     m_cube.set_color(render_color);
 
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d view_model_matrix = camera.get_view_matrix() * matrix * Geometry::assemble_transform(center, angles, fullsize * Vec3d::Ones());
-    const Transform3d& projection_matrix = camera.get_projection_matrix();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d model_matrix = matrix * Geometry::assemble_transform(center, angles, fullsize * Vec3d::Ones());
+    const Transform3d view_model_matrix = view_matrix * model_matrix;
  
     shader->set_uniform("view_model_matrix", view_model_matrix);
-    shader->set_uniform("projection_matrix", projection_matrix);
-    shader->set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
     m_cube.render();
 }
 

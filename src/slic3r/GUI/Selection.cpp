@@ -2252,26 +2252,28 @@ static ColorRGBA get_color(Axis axis)
 void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix)
 {
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d view_matrix = camera.get_view_matrix() * matrix;
+    const Transform3d& view_matrix = camera.get_view_matrix();
     shader.set_uniform("projection_matrix", camera.get_projection_matrix());
 
     if (boost::ends_with(sidebar_field, "x")) {
-        const Transform3d view_model_matrix = view_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
-        shader.set_uniform("view_model_matrix", view_model_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        const Transform3d model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.set_color(get_color(X));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        shader.set_uniform("view_model_matrix", view_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        shader.set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
         m_arrow.set_color(get_color(Y));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        const Transform3d view_model_matrix = view_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX());
-        shader.set_uniform("view_model_matrix", view_model_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        const Transform3d model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX());
+        shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.set_color(get_color(Z));
         m_arrow.render();
     }
@@ -2279,32 +2281,33 @@ void Selection::render_sidebar_position_hints(const std::string& sidebar_field, 
 
 void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix)
 {
-    auto render_sidebar_rotation_hint = [this](GLShaderProgram& shader, const Transform3d& matrix) {
-        Transform3d view_model_matrix = matrix;
-        shader.set_uniform("view_model_matrix", view_model_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    auto render_sidebar_rotation_hint = [this](GLShaderProgram& shader, const Transform3d& view_matrix, const Transform3d& model_matrix) {
+        shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+        Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_curved_arrow.render();
-        view_model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), PI * Vec3d::UnitZ());
-        shader.set_uniform("view_model_matrix", view_model_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        const Transform3d matrix = model_matrix * Geometry::assemble_transform(Vec3d::Zero(), PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_curved_arrow.render();
     };
 
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d view_matrix = camera.get_view_matrix() * matrix;
+    const Transform3d& view_matrix = camera.get_view_matrix();
     shader.set_uniform("projection_matrix", camera.get_projection_matrix());
 
     if (boost::ends_with(sidebar_field, "x")) {
         m_curved_arrow.set_color(get_color(X));
-        render_sidebar_rotation_hint(shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()));
+        render_sidebar_rotation_hint(shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()));
     }
     else if (boost::ends_with(sidebar_field, "y")) {
         m_curved_arrow.set_color(get_color(Y));
-        render_sidebar_rotation_hint(shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX()));
+        render_sidebar_rotation_hint(shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX()));
     }
     else if (boost::ends_with(sidebar_field, "z")) {
         m_curved_arrow.set_color(get_color(Z));
-        render_sidebar_rotation_hint(shader, view_matrix);
+        render_sidebar_rotation_hint(shader, view_matrix, matrix);
     }
 }
 
@@ -2315,33 +2318,35 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, boo
     //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
     bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
-    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis, GLShaderProgram& shader, const Transform3d& matrix) {
+    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis, GLShaderProgram& shader, const Transform3d& view_matrix, const Transform3d& model_matrix) {
         m_arrow.set_color(uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
-        Transform3d view_model_matrix = matrix * Geometry::assemble_transform(5.0 * Vec3d::UnitY());
-        shader.set_uniform("view_model_matrix", view_model_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        Transform3d matrix = model_matrix * Geometry::assemble_transform(5.0 * Vec3d::UnitY());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
 
-        view_model_matrix = matrix * Geometry::assemble_transform(-5.0 * Vec3d::UnitY(), PI * Vec3d::UnitZ());
-        shader.set_uniform("view_model_matrix", view_model_matrix);
-        shader.set_uniform("normal_matrix", (Matrix3d)view_model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        matrix = model_matrix * Geometry::assemble_transform(-5.0 * Vec3d::UnitY(), PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
     };
 
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d view_matrix = camera.get_view_matrix() * matrix;
+    const Transform3d& view_matrix = camera.get_view_matrix();
     shader.set_uniform("projection_matrix", camera.get_projection_matrix());
 
     if (boost::ends_with(sidebar_field, "x") || uniform_scale) {
-        render_sidebar_scale_hint(X, shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()));
+        render_sidebar_scale_hint(X, shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()));
     }
 
     if (boost::ends_with(sidebar_field, "y") || uniform_scale) {
-        render_sidebar_scale_hint(Y, shader, view_matrix);
+        render_sidebar_scale_hint(Y, shader, view_matrix, matrix);
     }
 
     if (boost::ends_with(sidebar_field, "z") || uniform_scale) {
-        render_sidebar_scale_hint(Z, shader, view_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX()));
+        render_sidebar_scale_hint(Z, shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX()));
     }
 }
 

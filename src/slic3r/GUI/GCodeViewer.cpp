@@ -318,10 +318,12 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     shader->set_uniform("emission_factor", 0.0f);
 
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d matrix = camera.get_view_matrix() * m_world_transform.cast<double>();
-    shader->set_uniform("view_model_matrix", matrix);
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d model_matrix = m_world_transform.cast<double>();
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    shader->set_uniform("normal_matrix", (Matrix3d)matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
     m_model.render();
 
@@ -3887,10 +3889,9 @@ void GCodeViewer::render_toolpaths()
 
         shader->start_using();
 
-        const Transform3d& view_matrix = camera.get_view_matrix();
-        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        shader->set_uniform("normal_matrix", (Matrix3d)view_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        shader->set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
 
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
             shader->set_uniform("emission_factor", 0.25f);
@@ -3974,10 +3975,9 @@ void GCodeViewer::render_toolpaths()
 
         shader->start_using();
 
-        const Transform3d& view_matrix = camera.get_view_matrix();
-        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        shader->set_uniform("normal_matrix", (Matrix3d)view_matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+        shader->set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
 
         const int position_id = shader->get_attrib_location("v_position");
         const int normal_id   = shader->get_attrib_location("v_normal");
