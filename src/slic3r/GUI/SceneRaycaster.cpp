@@ -31,31 +31,22 @@ SceneRaycaster::SceneRaycaster() {
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 }
 
-void SceneRaycaster::add_raycaster(EType type, PickingId id, const MeshRaycaster& raycaster, const Transform3d& trafo)
+std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, PickingId id, const MeshRaycaster& raycaster, const Transform3d& trafo)
 {
     switch (type) {
-    case EType::Bed: {
-        m_bed.emplace_back(encode_id(type, id), raycaster, trafo);
-        break;
-    }
-    case EType::Volume: {
-        m_volumes.emplace_back(encode_id(type, id), raycaster, trafo);
-        break;
-    }
-    case EType::Gizmo: {
-        m_gizmos.emplace_back(encode_id(type, id), raycaster, trafo);
-        break;
-    }
-    default: { break; }
+    case EType::Bed:    { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
+    case EType::Volume: { return m_volumes.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
+    case EType::Gizmo:  { return m_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
+    default:            { assert(false);  return nullptr; }
     };
 }
 
 void SceneRaycaster::remove_raycasters(EType type, PickingId id)
 {
-    std::vector<SceneRaycasterItem>* raycasters = get_raycasters(type);
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
     auto it = raycasters->begin();
     while (it != raycasters->end()) {
-        if (it->get_id() == encode_id(type, id))
+        if ((*it)->get_id() == encode_id(type, id))
             it = raycasters->erase(it);
         else
             ++it;
@@ -72,24 +63,24 @@ void SceneRaycaster::remove_raycasters(EType type)
     };
 }
 
-void SceneRaycaster::set_raycaster_active_state(EType type, PickingId id, bool active)
+void SceneRaycaster::remove_raycaster(std::shared_ptr<SceneRaycasterItem> item)
 {
-    std::vector<SceneRaycasterItem>* raycasters = get_raycasters(type);
-    for (SceneRaycasterItem& item : *raycasters) {
-        if (item.get_id() == encode_id(type, id)) {
-            item.set_active(active);
-            break;
+    for (auto it = m_bed.begin(); it != m_bed.end(); ++it) {
+        if (*it == item) {
+            m_bed.erase(it);
+            return;
         }
     }
-}
-
-void SceneRaycaster::set_raycaster_transform(EType type, PickingId id, const Transform3d& trafo)
-{
-    std::vector<SceneRaycasterItem>* raycasters = get_raycasters(type);
-    for (SceneRaycasterItem& item : *raycasters) {
-        if (item.get_id() == encode_id(type, id)) {
-            item.set_transform(trafo);
-            break;
+    for (auto it = m_volumes.begin(); it != m_volumes.end(); ++it) {
+        if (*it == item) {
+            m_volumes.erase(it);
+            return;
+        }
+    }
+    for (auto it = m_gizmos.begin(); it != m_gizmos.end(); ++it) {
+        if (*it == item) {
+            m_gizmos.erase(it);
+            return;
         }
     }
 }
@@ -113,15 +104,15 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
 
     auto test_raycasters = [&](EType type) {
         const ClippingPlane* clip_plane = (clipping_plane != nullptr && type == EType::Volume) ? clipping_plane : nullptr;
-        const std::vector<SceneRaycasterItem>* raycasters = get_raycasters(type);
+        std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
         HitResult current_hit = { type };
-        for (const SceneRaycasterItem& item : *raycasters) {
-            if (!item.is_active())
+        for (std::shared_ptr<SceneRaycasterItem> item : *raycasters) {
+            if (!item->is_active())
                 continue;
 
-            current_hit.raycaster_id = item.get_id();
-            const Transform3d& trafo = item.get_transform();
-            if (item.get_raycaster()->closest_hit(mouse_pos, trafo, camera, current_hit.position, current_hit.normal, clip_plane)) {
+            current_hit.raycaster_id = item->get_id();
+            const Transform3d& trafo = item->get_transform();
+            if (item->get_raycaster()->closest_hit(mouse_pos, trafo, camera, current_hit.position, current_hit.normal, clip_plane)) {
                 current_hit.position = (trafo * current_hit.position.cast<double>()).cast<float>();
                 if (is_closest(camera, current_hit.position)) {
                     const Transform3d matrix = camera.get_view_matrix() * trafo;
@@ -180,14 +171,15 @@ void SceneRaycaster::render_hit(const Camera& camera)
 }
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 
-std::vector<SceneRaycasterItem>* SceneRaycaster::get_raycasters(EType type)
+std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters(EType type)
 {
-    std::vector<SceneRaycasterItem>* ret = nullptr;
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* ret = nullptr;
     switch (type)
     {
     case EType::Bed:    { ret = &m_bed; break; }
     case EType::Volume: { ret = &m_volumes; break; }
     case EType::Gizmo:  { ret = &m_gizmos; break; }
+    default:            { break; }
     }
     assert(ret != nullptr);
     return ret;

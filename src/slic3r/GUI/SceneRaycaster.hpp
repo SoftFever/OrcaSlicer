@@ -64,9 +64,9 @@ public:
     };
 
 private:
-    std::vector<SceneRaycasterItem> m_bed;
-    std::vector<SceneRaycasterItem> m_volumes;
-    std::vector<SceneRaycasterItem> m_gizmos;
+    std::vector<std::shared_ptr<SceneRaycasterItem>> m_bed;
+    std::vector<std::shared_ptr<SceneRaycasterItem>> m_volumes;
+    std::vector<std::shared_ptr<SceneRaycasterItem>> m_gizmos;
 
     // When set to true, if checking gizmos returns a valid hit,
     // the search is not performed on other types
@@ -81,12 +81,10 @@ private:
 public:
     SceneRaycaster();
 
-    void add_raycaster(EType type, PickingId picking_id, const MeshRaycaster& raycaster, const Transform3d& trafo);
+    std::shared_ptr<SceneRaycasterItem> add_raycaster(EType type, PickingId picking_id, const MeshRaycaster& raycaster, const Transform3d& trafo);
     void remove_raycasters(EType type, PickingId id);
     void remove_raycasters(EType type);
-
-    void set_raycaster_active_state(EType type, PickingId picking_id, bool active);
-    void set_raycaster_transform(EType type, PickingId picking_id, const Transform3d& trafo);
+    void remove_raycaster(std::shared_ptr<SceneRaycasterItem> item);
 
     void set_gizmos_on_top(bool value) { m_gizmos_on_top = value; }
 
@@ -101,7 +99,7 @@ public:
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 
 private:
-    std::vector<SceneRaycasterItem>* get_raycasters(EType type);
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* get_raycasters(EType type);
 
     static PickingId encode_id(EType type, PickingId id);
     static PickingId decode_id(EType type, PickingId id);

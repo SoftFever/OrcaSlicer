@@ -104,17 +104,17 @@ PickingModel &GLGizmoBase::Grabber::get_cube()
     return s_cube;
 }
 
-void GLGizmoBase::Grabber::register_raycasters_for_picking(int id)
+void GLGizmoBase::Grabber::register_raycasters_for_picking(PickingId id)
 {
     picking_id = id;
-    assert(elements_registered_for_picking == false);
+    // registration will happen on next call to render()
 }
 
 void GLGizmoBase::Grabber::unregister_raycasters_for_picking()
 {
     wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Gizmo, picking_id);
     picking_id = -1;
-    elements_registered_for_picking = false;
+    raycasters = { nullptr };
 }
 
 void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color)
@@ -150,48 +150,48 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color)
     const Transform3d& view_matrix = camera.get_view_matrix();
     const Matrix3d view_matrix_no_offset = view_matrix.matrix().block(0, 0, 3, 3);
 
-    auto render_extension = [&view_matrix, &view_matrix_no_offset, shader, register_for_picking = !elements_registered_for_picking, picking_id = picking_id](PickingModel &model, const Transform3d &model_matrix) {
+    auto render_extension = [&view_matrix, &view_matrix_no_offset, shader, this](int idx, PickingModel &model, const Transform3d &model_matrix) {
         shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
         const Matrix3d view_normal_matrix = view_matrix_no_offset * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
         model.model.render();
 
-        if (register_for_picking) {
+        if (raycasters[idx] == nullptr) {
             GLCanvas3D &canvas = *wxGetApp().plater()->canvas3D();
-            canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *model.mesh_raycaster, model_matrix);
+            raycasters[idx] = canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *model.mesh_raycaster, model_matrix);
+        } else {
+            raycasters[idx]->set_transform(model_matrix);
         }
     };
 
     if (extensions == EGrabberExtension::PosZ) {
         const Transform3d model_matrix = matrix * Geometry::assemble_transform(center, angles, Vec3d(0.75 * extension_size, 0.75 * extension_size, 2.0 * extension_size));
-        render_extension(s_cone, model_matrix);
+        render_extension(0, s_cone, model_matrix);
     } else {
         const Transform3d model_matrix = matrix * Geometry::assemble_transform(center, angles, grabber_size * Vec3d::Ones());
-        render_extension(s_cube, model_matrix);
+        render_extension(0, s_cube, model_matrix);
         
         const Transform3d extension_model_matrix_base = matrix * Geometry::assemble_transform(center, angles);
         const Vec3d extension_scale(0.75 * extension_size, 0.75 * extension_size, 3.0 * extension_size);
         if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosX)) != 0) {
-            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitX(), Vec3d(0.0, 0.5 * double(PI), 0.0), extension_scale));
+            render_extension(1, s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitX(), Vec3d(0.0, 0.5 * double(PI), 0.0), extension_scale));
         }
         if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegX)) != 0) {
-            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitX(), Vec3d(0.0, -0.5 * double(PI), 0.0), extension_scale));
+            render_extension(2, s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitX(), Vec3d(0.0, -0.5 * double(PI), 0.0), extension_scale));
         }
         if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosY)) != 0) {
-            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitY(), Vec3d(-0.5 * double(PI), 0.0, 0.0), extension_scale));
+            render_extension(3, s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitY(), Vec3d(-0.5 * double(PI), 0.0, 0.0), extension_scale));
         }
         if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegY)) != 0) {
-            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitY(), Vec3d(0.5 * double(PI), 0.0, 0.0), extension_scale));
+            render_extension(4, s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitY(), Vec3d(0.5 * double(PI), 0.0, 0.0), extension_scale));
         }
         if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosZ)) != 0) {
-            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitZ(), Vec3d::Zero(), extension_scale));
+            render_extension(5, s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitZ(), Vec3d::Zero(), extension_scale));
         }
         if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegZ)) != 0) {
-            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitZ(), Vec3d(double(PI), 0.0, 0.0), extension_scale));
+            render_extension(6, s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitZ(), Vec3d(double(PI), 0.0, 0.0), extension_scale));
         }
     }
-
-    elements_registered_for_picking = true;
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
@@ -299,10 +299,10 @@ void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float 
     m_imgui->set_next_window_pos(x, y, flag, pivot_x, pivot_y);
 }
 
-void GLGizmoBase::register_grabbers_for_picking(bool use_group_id)
+void GLGizmoBase::register_grabbers_for_picking()
 {
     for (size_t i = 0; i < m_grabbers.size(); ++i) {
-        m_grabbers[i].register_raycasters_for_picking(use_group_id ? m_group_id : i);
+        m_grabbers[i].register_raycasters_for_picking((m_group_id >= 0) ? m_group_id : i);
     }
 }
 
