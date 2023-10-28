@@ -883,7 +883,7 @@ public:
 
     // The triangular model.
     const TriangleMesh& mesh() const { return *m_mesh.get(); }
-    const TriangleMesh* mesh_ptr() const { return m_mesh.get(); }
+    std::shared_ptr<const TriangleMesh> mesh_ptr() const { return m_mesh; }
     void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
     void                set_mesh(TriangleMesh &&mesh) { m_mesh = std::make_shared<const TriangleMesh>(std::move(mesh)); }
     void                set_mesh(const indexed_triangle_set &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }

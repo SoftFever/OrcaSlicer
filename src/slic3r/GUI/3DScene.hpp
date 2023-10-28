@@ -13,6 +13,7 @@
 
 #include "GLModel.hpp"
 #include "GLShader.hpp"
+#include "MeshUtils.hpp"
 
 #include <functional>
 #include <optional>
@@ -202,6 +203,8 @@ public:
     EHoverState         	hover;
 
     GUI::GLModel            model;
+    // raycaster used for picking
+    std::unique_ptr<GUI::MeshRaycaster> mesh_raycaster;
     // BBS
     mutable std::vector<GUI::GLModel> mmuseg_models;
     mutable ObjectBase::Timestamp       mmuseg_ts;

@@ -357,6 +357,38 @@ std::vector<unsigned> MeshRaycaster::get_unobscured_idxs(const Geometry::Transfo
     return out;
 }
 
+bool MeshRaycaster::closest_hit(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+    Vec3f& position, Vec3f& normal, const ClippingPlane* clipping_plane, size_t* facet_idx) const
+{
+    Vec3d point;
+    Vec3d direction;
+    line_from_mouse_pos(mouse_pos, trafo, camera, point, direction);
+
+    const std::vector<sla::IndexedMesh::hit_result> hits = m_emesh.query_ray_hits(point, direction.normalized());
+
+    if (hits.empty())
+        return false; // no intersection found
+
+    size_t hit_id = 0;
+    if (clipping_plane != nullptr) {
+        while (hit_id < hits.size() && clipping_plane->is_point_clipped(trafo * hits[hit_id].position())) {
+            ++hit_id;
+        }
+    }
+
+    if (hit_id == hits.size())
+        return false; // all points are obscured or cut by the clipping plane.
+
+    const sla::IndexedMesh::hit_result& hit = hits[hit_id];
+
+    position = hit.position().cast<float>();
+    normal = hit.normal().cast<float>();
+
+    if (facet_idx != nullptr)
+        *facet_idx = hit.face();
+
+    return true;
+}
 
 Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
 {

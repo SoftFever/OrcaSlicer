@@ -99,6 +99,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLShader.hpp
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
+    GUI/SceneRaycaster.hpp
+    GUI/SceneRaycaster.cpp	
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp

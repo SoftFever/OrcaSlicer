@@ -287,7 +287,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 
         // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
         for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
-            MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh());
+            MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh_ptr());
 
             if (mesh_raycaster.unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal,
                                                                            m_c->object_clipper()->get_clipping_plane(), &facet)) {
@@ -543,7 +543,7 @@ void GLGizmoText::on_update(const UpdateData &data)
         if (mesh_id == m_volume_idx)
             continue;
 
-        MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh());
+        MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh_ptr());
 
         if (mesh_raycaster.unproject_on_mesh(mouse_pos, trafo_matrices[mesh_id], camera, hit, normal, m_c->object_clipper()->get_clipping_plane(),
                                                                        &facet)) {

@@ -30,7 +30,6 @@
 static const float GROUND_Z = -0.04f;
 static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR             = { 0.3255f, 0.337f, 0.337f, 1.0f };
 static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR_DARK        = { 0.255f, 0.255f, 0.283f, 1.0f };
-static const Slic3r::ColorRGBA PICKING_MODEL_COLOR             = Slic3r::ColorRGBA::BLACK();
 static const Slic3r::ColorRGBA DEFAULT_SOLID_GRID_COLOR        = { 0.9f, 0.9f, 0.9f, 1.0f };
 static const Slic3r::ColorRGBA DEFAULT_TRANSPARENT_GRID_COLOR  = { 0.9f, 0.9f, 0.9f, 0.6f };
 
@@ -326,6 +325,10 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
     m_axes.set_stem_length(0.1f * static_cast<float>(m_build_volume.bounding_volume().max_size()));
 
+    // unregister from picking
+    // BBS: remove the bed picking logic
+    // wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
+
     // Let the calee to update the UI.
     return true;
 }
@@ -365,11 +368,6 @@ void Bed3D::render(GLCanvas3D& canvas, const Transform3d& view_matrix, const Tra
 {
     render_internal(canvas, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
-
-/*void Bed3D::render_for_picking(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor)
-{
-    render_internal(canvas, view_matrix, projection_matrix, bottom, scale_factor, false, false, true);
-}*/
 
 void Bed3D::render_internal(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor,
     bool show_axes)
@@ -669,6 +667,9 @@ void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& proj
         m_model.set_color(m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
         update_model_offset();
+		
+        // BBS: remove the bed picking logic
+        //register_raycasters_for_picking(m_model.model.get_geometry(), Geometry::assemble_transform(m_model_offset));
     }
 
     if (!m_model.get_filename().empty()) {
@@ -722,7 +723,7 @@ void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Tr
         if (m_model.get_filename().empty() && !bottom) {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-            m_triangles.set_color(picking ? PICKING_MODEL_COLOR : DEFAULT_MODEL_COLOR);
+            m_triangles.set_color(DEFAULT_MODEL_COLOR);
             m_triangles.render();
             glsafe(::glDepthMask(GL_TRUE));
         }
@@ -740,5 +741,26 @@ void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Tr
     }
 }
 
+// BBS: remove the bed picking logic
+/*
+void Bed3D::register_raycasters_for_picking(const GLModel::Geometry& geometry, const Transform3d& trafo)
+{
+    assert(m_model.mesh_raycaster == nullptr);
+
+    indexed_triangle_set its;
+    its.vertices.reserve(geometry.vertices_count());
+    for (size_t i = 0; i < geometry.vertices_count(); ++i) {
+        its.vertices.emplace_back(geometry.extract_position_3(i));
+    }
+    its.indices.reserve(geometry.indices_count() / 3);
+    for (size_t i = 0; i < geometry.indices_count() / 3; ++i) {
+        const size_t tri_id = i * 3;
+        its.indices.emplace_back(geometry.extract_index(tri_id), geometry.extract_index(tri_id + 1), geometry.extract_index(tri_id + 2));
+    }
+
+    m_model.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
+    wxGetApp().plater()->canvas3D()->add_raycaster_for_picking(SceneRaycaster::EType::Bed, 0, *m_model.mesh_raycaster, trafo);
+}
+*/
 } // GUI
 } // Slic3r

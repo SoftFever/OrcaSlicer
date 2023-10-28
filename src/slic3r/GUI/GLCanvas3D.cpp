@@ -1820,9 +1820,17 @@ void GLCanvas3D::render(bool only_init)
             _rectangular_selection_picking_pass();
         //BBS: enable picking when no volumes for partplate logic
         //else if (!m_volumes.empty())
-        else
+        else {
             // regular picking pass
             _picking_pass();
+
+#if ENABLE_RAYCAST_PICKING_DEBUG
+            ImGuiWrapper& imgui = *wxGetApp().imgui();
+            imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
+            imgui.text("Picking disabled");
+            imgui.end();
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
+        }
     }
 
 #if ENABLE_RENDER_PICKING_PASS
@@ -1895,6 +1903,11 @@ void GLCanvas3D::render(bool only_init)
 #if ENABLE_RENDER_PICKING_PASS
     }
 #endif // ENABLE_RENDER_PICKING_PASS
+
+#if ENABLE_RAYCAST_PICKING_DEBUG
+    if (m_picking_enabled && !m_mouse.dragging)
+        m_scene_raycaster.render_hit(camera);
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
 
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
@@ -2516,6 +2529,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 volume.model.init_from(mesh, true);
 #else
                                 volume.model.init_from(mesh);
+                                volume.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(std::make_shared<TriangleMesh>(mesh));
 #endif // ENABLE_SMOOTH_NORMALS
                             }
                             else {
@@ -2523,7 +2537,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 #if ENABLE_SMOOTH_NORMALS
                                 volume.model.init_from(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
 #else
-                                volume.model.init_from(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
+                                const TriangleMesh& new_mesh = m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh();
+                                volume.model.init_from(new_mesh);
+                                volume.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(std::make_shared<TriangleMesh>(new_mesh));
 #endif // ENABLE_SMOOTH_NORMALS
                             }
 	                    }
@@ -2686,6 +2702,13 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (manip != nullptr)
             manip->set_dirty();
 #endif
+    }
+
+    // refresh volume raycasters for picking
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Volume);
+    for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
+        assert(m_volumes.volumes[i]->mesh_raycaster != nullptr);
+        add_raycaster_for_picking(SceneRaycaster::EType::Volume, i, *m_volumes.volumes[i]->mesh_raycaster, m_volumes.volumes[i]->world_matrix());
     }
 
     // and force this canvas to be redrawn.
@@ -4205,6 +4228,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
+        m_mouse.position = pos.cast<double>();
+
         if (evt.LeftUp()) {
             m_selection.stop_dragging();
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
@@ -4247,7 +4272,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     deselect_all();
         }
         else if (evt.RightUp() && !is_layers_editing_enabled()) {
-            m_mouse.position = pos.cast<double>();
             // forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is already shown
             render();
@@ -6396,87 +6420,111 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
-    std::vector<int>* hover_volume_idxs = const_cast<std::vector<int>*>(&m_hover_volume_idxs);
-    std::vector<int>* hover_plate_idxs = const_cast<std::vector<int>*>(&m_hover_plate_idxs);
+    if (!m_picking_enabled || m_mouse.dragging || m_mouse.position == Vec2d(DBL_MAX, DBL_MAX)) {
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+        imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
+        imgui.text("Picking disabled");
+        imgui.end();
+        return;
+    }
 
-    if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
-        hover_volume_idxs->clear();
-        hover_plate_idxs->clear();
+    m_hover_volume_idxs.clear();
+    m_hover_plate_idxs.clear();
 
-        // Render the object for picking.
-        // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
-        // Better to use software ray - casting on a bounding - box hierarchy.
+    // TODO: Support plate picking
 
-        if (m_multisample_allowed)
-        	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
-            glsafe(::glDisable(GL_MULTISAMPLE));
-
-        glsafe(::glDisable(GL_BLEND));
-        glsafe(::glEnable(GL_DEPTH_TEST));
-
-        glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-        //BBS: only render plate in view 3D
-        if (m_canvas_type == ECanvasType::CanvasView3D) {
-            const Camera &camera = wxGetApp().plater()->get_camera();
-            _render_plates_for_picking(camera.get_view_matrix(), camera.get_projection_matrix());
-        }
-
-        _render_volumes_for_picking();
-
-        //BBS: remove the bed picking logic
-        //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
-
-        m_gizmos.render_current_gizmo_for_picking_pass();
-
-        if (m_multisample_allowed)
-            glsafe(::glEnable(GL_MULTISAMPLE));
-
-        int volume_id = -1;
-        int gizmo_id = -1;
-
-        std::array<GLubyte, 4> color = { 0, 0, 0, 0 };
-        const Size& cnv_size = get_canvas_size();
-        bool inside = 0 <= m_mouse.position(0) && m_mouse.position(0) < cnv_size.get_width() && 0 <= m_mouse.position(1) && m_mouse.position(1) < cnv_size.get_height();
-        if (inside) {
-            glsafe(::glReadPixels(m_mouse.position(0), cnv_size.get_height() - m_mouse.position.y() - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color.data()));
-            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
-                // Only non-interpolated colors are valid, those have their lowest three bits zeroed.
-                // we reserve color = (0,0,0) for occluders (as the printbed)
-                // volumes' id are shifted by 1
-                // see: _render_volumes_for_picking()
-                unsigned int id = picking_encode(color[0], color[1], color[2]);
-                //BBS: remove the bed picking logic
-                //volume_id = id - 1;
-                volume_id = id;
-                // gizmos' id are instead properly encoded by the color
-                gizmo_id = id;
-            }
-        }
-        else
-            m_gizmos.set_hover_id(inside && (unsigned int)gizmo_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - gizmo_id) : -1);
-
-        //BBS: add plate picking logic
-        int plate_hover_id = PartPlate::PLATE_BASE_ID - volume_id;
-        if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
-            wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
-            hover_plate_idxs->emplace_back(plate_hover_id);
-            const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
-        }
-        else {
-            wxGetApp().plater()->get_partplate_list().reset_hover_id();
-            if (0 <= volume_id && volume_id < (int)m_volumes.volumes.size()) {
-                // do not add the volume id if any gizmo is active and CTRL is pressed
-                if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
-                    hover_volume_idxs->emplace_back(volume_id);
-                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(-1);
+    const ClippingPlane clipping_plane = m_gizmos.get_clipping_plane().inverted_normal();
+    const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(m_mouse.position, wxGetApp().plater()->get_camera(), &clipping_plane);
+    if (hit.is_valid()) {
+        switch (hit.type)
+        {
+        case SceneRaycaster::EType::Volume:
+        {
+            if (0 <= hit.raycaster_id && hit.raycaster_id < (int)m_volumes.volumes.size()) {
+                const GLVolume* volume = m_volumes.volumes[hit.raycaster_id];
+                if (volume->is_active && !volume->disabled && (volume->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
+                    // do not add the volume id if any gizmo is active and CTRL is pressed
+                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL)) {
+                        m_hover_volume_idxs.emplace_back(hit.raycaster_id);
+                        m_gizmos.set_hover_id(-1);
+                    }
+                }
             }
             else
-                const_cast<GLGizmosManager*>(&m_gizmos)->set_hover_id(inside && (unsigned int)volume_id <= GLGizmoBase::BASE_ID ? ((int)GLGizmoBase::BASE_ID - volume_id) : -1);
-        }
+                assert(false);
 
-        _update_volumes_hover_state();
+            break;
+        }
+        case SceneRaycaster::EType::Gizmo:
+        {
+            const Size& cnv_size = get_canvas_size();
+            bool inside = 0 <= m_mouse.position.x() && m_mouse.position.x() < cnv_size.get_width() &&
+                          0 <= m_mouse.position.y() && m_mouse.position.y() < cnv_size.get_height();
+            m_gizmos.set_hover_id(inside ? hit.raycaster_id : -1);
+            break;
+        }
+        case SceneRaycaster::EType::Bed:
+        {
+            m_gizmos.set_hover_id(-1);
+            break;
+        }
+        default:
+        {
+            assert(false);
+            break;
+        }
+        }
     }
+    else
+        m_gizmos.set_hover_id(-1);
+
+    _update_volumes_hover_state();
+
+#if ENABLE_RAYCAST_PICKING_DEBUG
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
+    std::string object_type = "None";
+    switch (hit.type)
+    {
+    case SceneRaycaster::EType::Bed:   { object_type = "Bed"; break; }
+    case SceneRaycaster::EType::Gizmo: { object_type = "Gizmo element"; break; }
+    case SceneRaycaster::EType::Volume:
+    {
+        if (m_volumes.volumes[hit.raycaster_id]->is_wipe_tower)
+            object_type = "Wipe tower";
+        else if (m_volumes.volumes[hit.raycaster_id]->volume_idx() == -int(slaposPad))
+            object_type = "SLA pad";
+        else if (m_volumes.volumes[hit.raycaster_id]->volume_idx() == -int(slaposSupportTree))
+            object_type = "SLA supports";
+        else
+            object_type = "Volume";
+        break;
+    }
+    }
+    char buf[1024];
+    if (hit.type != SceneRaycaster::EType::None) {
+        sprintf(buf, "Object ID: %d", hit.raycaster_id);
+        imgui.text(std::string(buf));
+        sprintf(buf, "Type: %s", object_type.c_str());
+        imgui.text(std::string(buf));
+        sprintf(buf, "Position: %.3f, %.3f, %.3f", hit.position.x(), hit.position.y(), hit.position.z());
+        imgui.text(std::string(buf));
+        sprintf(buf, "Normal: %.3f, %.3f, %.3f", hit.normal.x(), hit.normal.y(), hit.normal.z());
+        imgui.text(std::string(buf));
+    }
+    else
+        imgui.text("NO HIT");
+
+    ImGui::Separator();
+    imgui.text("Registered for picking:");
+    sprintf(buf, "Beds: %d", (int)m_scene_raycaster.beds_count());
+    imgui.text(std::string(buf));
+    sprintf(buf, "Volumes: %d", (int)m_scene_raycaster.volumes_count());
+    imgui.text(std::string(buf));
+    sprintf(buf, "Gizmo elements: %d", (int)m_scene_raycaster.gizmos_count());
+    imgui.text(std::string(buf));
+    imgui.end();
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
 }
 
 void GLCanvas3D::_rectangular_selection_picking_pass()
@@ -6643,24 +6691,9 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
-void GLCanvas3D::_render_bed_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
-{
-    float scale_factor = 1.0;
-#if ENABLE_RETINA_GL
-    scale_factor = m_retina_helper->get_scale_factor();
-#endif // ENABLE_RETINA_GL
-
-    //m_bed.render_for_picking(*this, view_matrix, projection_matrix, bottom, scale_factor);
-}
-
 void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali)
 {
     wxGetApp().plater()->get_partplate_list().render(view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali);
-}
-
-void GLCanvas3D::_render_plates_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix)
-{
-    wxGetApp().plater()->get_partplate_list().render_for_picking_pass(view_matrix, projection_matrix);
 }
 
 void GLCanvas3D::_render_plane() const

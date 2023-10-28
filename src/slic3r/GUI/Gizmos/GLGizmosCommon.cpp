@@ -331,7 +331,7 @@ void Raycaster::on_update()
     if (meshes != m_old_meshes) {
         m_raycasters.clear();
         for (const TriangleMesh* mesh : meshes)
-            m_raycasters.emplace_back(new MeshRaycaster(*mesh));
+            m_raycasters.emplace_back(new MeshRaycaster(std::make_shared<const TriangleMesh>(*mesh)));
         m_old_meshes = meshes;
     }
 }

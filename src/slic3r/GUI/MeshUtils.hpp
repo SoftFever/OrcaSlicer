@@ -9,6 +9,7 @@
 #include "slic3r/GUI/GLModel.hpp"
 
 #include <cfloat>
+#include <memory>
 
 namespace Slic3r {
 
@@ -52,6 +53,8 @@ public:
     void set_offset(double offset) { m_data[3] = offset; }
     double get_offset() const { return m_data[3]; }
     Vec3d get_normal() const { return Vec3d(m_data[0], m_data[1], m_data[2]); }
+    void invert_normal() { m_data[0] *= -1.0; m_data[1] *= -1.0; m_data[2] *= -1.0; }
+    ClippingPlane inverted_normal() const { return ClippingPlane(-get_normal(), get_offset()); }
     bool is_active() const { return m_data[3] != DBL_MAX; }
     static ClippingPlane ClipsNothing() { return ClippingPlane(Vec3d(0., 0., 1.), DBL_MAX); }
     const std::array<double, 4>& get_data() const { return m_data; }
@@ -125,11 +128,10 @@ private:
 // whether certain points are visible or obscured by the mesh etc.
 class MeshRaycaster {
 public:
-    // The class references extern TriangleMesh, which must stay alive
-    // during MeshRaycaster existence.
-    MeshRaycaster(const TriangleMesh& mesh)
-        : m_emesh(mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
-        , m_normals(its_face_normals(mesh.its))
+    explicit MeshRaycaster(std::shared_ptr<const TriangleMesh> mesh)
+        : m_mesh(mesh)
+        , m_emesh(*mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
+        , m_normals(its_face_normals(mesh->its))
     {
     }
 
@@ -161,10 +163,22 @@ public:
         const ClippingPlane* clipping_plane = nullptr // clipping plane (if active)
     ) const;
 
+    // Returns true if the ray, built from mouse position and camera direction, intersects the mesh.
+    // In this case, position and normal contain the position and normal, in model coordinates, of the intersection closest to the camera,
+    // depending on the position/orientation of the clipping_plane, if specified 
+    bool closest_hit(
+        const Vec2d& mouse_pos,
+        const Transform3d& trafo, // how to get the mesh into world coords
+        const Camera& camera, // current camera position
+        Vec3f& position, // where to save the positibon of the hit (mesh coords)
+        Vec3f& normal, // normal of the triangle that was hit
+        const ClippingPlane* clipping_plane = nullptr, // clipping plane (if active)
+        size_t* facet_idx = nullptr // index of the facet hit
+    ) const;
+
     // Given a point in world coords, the method returns closest point on the mesh.
     // The output is in mesh coords.
     // normal* can be used to also get normal of the respective triangle.
-
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 
     // Given a point in mesh coords, the method returns the closest facet from mesh.
@@ -173,11 +187,22 @@ public:
     Vec3f get_triangle_normal(size_t facet_idx) const;
 
 private:
+    std::shared_ptr<const TriangleMesh> m_mesh;
     sla::IndexedMesh m_emesh;
     std::vector<stl_normal> m_normals;
 };
 
-    
+struct PickingModel
+{
+    GLModel model;
+    std::unique_ptr<MeshRaycaster> mesh_raycaster;
+
+    void reset() {
+        model.reset();
+        mesh_raycaster.reset();
+    }
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

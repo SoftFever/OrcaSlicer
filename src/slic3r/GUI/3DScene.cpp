@@ -623,7 +623,7 @@ int GLVolumeCollection::load_object_volume(
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
-    const TriangleMesh  &mesh 		  = model_volume->mesh();
+    std::shared_ptr<const TriangleMesh> mesh = model_volume->mesh_ptr();
     this->volumes.emplace_back(new GLVolume());
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));
@@ -632,7 +632,8 @@ int GLVolumeCollection::load_object_volume(
 #if ENABLE_SMOOTH_NORMALS
     v.model.init_from(mesh, true);
 #else
-    v.model.init_from(mesh);
+    v.model.init_from(*mesh);
+    v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
     if (model_volume->is_model_part()) {
@@ -686,8 +687,9 @@ void GLVolumeCollection::load_object_auxiliary(
         v.model.init_from(mesh, true);
 #else
         v.model.init_from(mesh);
-#endif // ENABLE_SMOOTH_NORMALS
         v.model.set_color((milestone == slaposPad) ? GLVolume::SLA_PAD_COLOR : GLVolume::SLA_SUPPORT_COLOR);
+        v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(std::make_shared<const TriangleMesh>(mesh));
+#endif // ENABLE_SMOOTH_NORMALS
         v.composite_id = GLVolume::CompositeID(obj_idx, -int(milestone), (int)instance_idx.first);
         v.geometry_id = std::pair<size_t, size_t>(timestamp, model_instance.id().id);
         // Create a copy of the convex hull mesh for each instance. Use a move operator on the last instance.
@@ -726,13 +728,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
             colors.push_back(extruder_colors[0]);
     }
 
-#if 0
-    // We'll make another mesh to show the brim (fixed layer height):
-    TriangleMesh brim_mesh = make_cube(width + 2.f * brim_width, depth + 2.f * brim_width, 0.2f);
-    brim_mesh.translate(-brim_width, -brim_width, 0.f);
-    mesh.merge(brim_mesh);
-#endif
-
     // Orca: make it transparent
     for(auto& color : colors)
         color.a(0.66f);
@@ -745,6 +740,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
         v.model_per_colors[i].init_from(color_part);
     }
     v.model.init_from(wipe_tower_shell);
+    v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(std::make_shared<const TriangleMesh>(wipe_tower_shell));
     v.set_convex_hull(wipe_tower_shell);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));

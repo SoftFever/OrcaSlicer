@@ -50,7 +50,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
         for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
-            MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh());
+            MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh_ptr());
             if (mesh_raycaster.unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal,
                 m_c->object_clipper()->get_clipping_plane(), &facet)) {
                 // Is this hit the closest to the camera so far?

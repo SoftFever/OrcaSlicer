@@ -6233,7 +6233,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             continue;
                         volume_count++;
                         if (m_share_mesh) {
-                            auto iter = m_shared_meshes.find(volume->mesh_ptr());
+                            auto iter = m_shared_meshes.find(volume->mesh_ptr().get());
                             if (iter != m_shared_meshes.end())
                             {
                                 const ModelVolume* shared_volume = iter->second.second;
@@ -6248,7 +6248,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                     continue;
                                 }
                             }
-                            const_cast<_BBS_3MF_Exporter *>(this)->m_shared_meshes.insert({volume->mesh_ptr(), {&object_data, volume}});
+                            const_cast<_BBS_3MF_Exporter *>(this)->m_shared_meshes.insert({volume->mesh_ptr().get(), {&object_data, volume}});
                         }
                         if (m_from_backup_save)
                             volume_id = (volume_count << 16 | backup_id);

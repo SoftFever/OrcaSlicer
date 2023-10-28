@@ -320,6 +320,67 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
     return transform;
 }
 
+void assemble_transform(Transform3d& transform, const Transform3d& translation, const Transform3d& rotation, const Transform3d& scale, const Transform3d& mirror)
+{
+    transform = translation * rotation * scale * mirror;
+}
+
+Transform3d assemble_transform(const Transform3d& translation, const Transform3d& rotation, const Transform3d& scale, const Transform3d& mirror)
+{
+    Transform3d transform;
+    assemble_transform(transform, translation, rotation, scale, mirror);
+    return transform;
+}
+
+void translation_transform(Transform3d& transform, const Vec3d& translation)
+{
+    transform = Transform3d::Identity();
+    transform.translate(translation);
+}
+
+Transform3d translation_transform(const Vec3d& translation)
+{
+    Transform3d transform;
+    translation_transform(transform, translation);
+    return transform;
+}
+
+void rotation_transform(Transform3d& transform, const Vec3d& rotation)
+{
+    transform = Transform3d::Identity();
+    transform.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rotation.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rotation.x(), Vec3d::UnitX()));
+}
+
+Transform3d rotation_transform(const Vec3d& rotation)
+{
+    Transform3d transform;
+    rotation_transform(transform, rotation);
+    return transform;
+}
+
+void scale_transform(Transform3d& transform, double scale)
+{
+    return scale_transform(transform, scale * Vec3d::Ones());
+}
+
+void scale_transform(Transform3d& transform, const Vec3d& scale)
+{
+    transform = Transform3d::Identity();
+    transform.scale(scale);
+}
+
+Transform3d scale_transform(double scale)
+{
+    return scale_transform(scale * Vec3d::Ones());
+}
+
+Transform3d scale_transform(const Vec3d& scale)
+{
+    Transform3d transform;
+    scale_transform(transform, scale);
+    return transform;
+}
+
 Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
 {
     // reference: http://www.gregslabaugh.net/publications/euler.pdf
@@ -403,20 +464,6 @@ void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, doubl
         if (rotation_matrix)
             *rotation_matrix = Matrix3d::Identity() + kmat + kmat * kmat * ((1 - c) / (s * s));
     }
-}
-
-Transform3d translation_transform(const Vec3d &translation)
-{
-    Transform3d transform = Transform3d::Identity();
-    transform.translate(translation);
-    return transform;
-}
-
-Transform3d rotation_transform(const Vec3d& rotation)
-{
-    Transform3d transform = Transform3d::Identity();
-    transform.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()) * Eigen::AngleAxisd(rotation.y(), Vec3d::UnitY()) * Eigen::AngleAxisd(rotation.x(), Vec3d::UnitX()));
-    return transform;
 }
 
 bool Transformation::Flags::needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const

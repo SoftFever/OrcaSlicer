@@ -324,7 +324,8 @@ bool arrange(
 // 4) rotate Y
 // 5) rotate Z
 // 6) translate
-void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(),
+    const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
 
 // Returns the transform obtained by assembling the given transformations in the following order:
 // 1) mirror
@@ -333,7 +334,45 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d
 // 4) rotate Y
 // 5) rotate Z
 // 6) translate
-Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(),
+    const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+
+// Sets the given transform by multiplying the given transformations in the following order:
+// T = translation * rotation * scale * mirror
+void assemble_transform(Transform3d& transform, const Transform3d& translation = Transform3d::Identity(),
+    const Transform3d& rotation = Transform3d::Identity(), const Transform3d& scale = Transform3d::Identity(),
+    const Transform3d& mirror = Transform3d::Identity());
+
+// Returns the transform obtained by multiplying the given transformations in the following order:
+// T = translation * rotation * scale * mirror
+Transform3d assemble_transform(const Transform3d& translation = Transform3d::Identity(), const Transform3d& rotation = Transform3d::Identity(),
+    const Transform3d& scale = Transform3d::Identity(), const Transform3d& mirror = Transform3d::Identity());
+
+// Sets the given transform by assembling the given translation
+void translation_transform(Transform3d& transform, const Vec3d& translation);
+
+// Returns the transform obtained by assembling the given translation
+Transform3d translation_transform(const Vec3d& translation);
+
+// Sets the given transform by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+void rotation_transform(Transform3d& transform, const Vec3d& rotation);
+
+// Returns the transform obtained by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+Transform3d rotation_transform(const Vec3d& rotation);
+
+// Sets the given transform by assembling the given scale factors
+void scale_transform(Transform3d& transform, double scale);
+void scale_transform(Transform3d& transform, const Vec3d& scale);
+
+// Returns the transform obtained by assembling the given scale factors
+Transform3d scale_transform(double scale);
+Transform3d scale_transform(const Vec3d& scale);
 
 // Returns the euler angles extracted from the given rotation matrix
 // Warning -> The matrix should not contain any scale or shear !!!
@@ -346,16 +385,7 @@ Vec3d extract_euler_angles(const Transform3d& transform);
 // get rotation from two vectors.
 // Default output is axis-angle. If rotation_matrix pointer is provided, also output rotation matrix
 // Euler angles can be obtained by extract_euler_angles()
-void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix = nullptr);
-
-// Returns the transform obtained by assembling the given translation
-Transform3d translation_transform(const Vec3d &translation);
-
-// Returns the transform obtained by assembling the given rotations in the following order:
-// 1) rotate X
-// 2) rotate Y
-// 3) rotate Z
-Transform3d rotation_transform(const Vec3d &rotation);
+void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d &rotation_axis, double &phi, Matrix3d *rotation_matrix = nullptr);
 
 class Transformation
 {

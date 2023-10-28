@@ -16,6 +16,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GCodeViewer.hpp"
 #include "Camera.hpp"
+#include "SceneRaycaster.hpp"
 #include "IMToolbar.hpp"
 
 #include "libslic3r/Slicing.hpp"
@@ -501,6 +502,7 @@ private:
     bool m_is_dark = false;
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    SceneRaycaster m_scene_raycaster;
     Bed3D &m_bed;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
@@ -726,6 +728,16 @@ public:
 
     bool init();
     void post_event(wxEvent &&event);
+	
+    void add_raycaster_for_picking(SceneRaycaster::EType type, PickingId id, const MeshRaycaster& raycaster, const Transform3d& trafo) {
+        m_scene_raycaster.add_raycaster(type, id, raycaster, trafo);
+    }
+    void remove_raycasters_for_picking(SceneRaycaster::EType type, PickingId id) {
+        m_scene_raycaster.remove_raycasters(type, id);
+    }
+    void remove_raycasters_for_picking(SceneRaycaster::EType type) {
+        m_scene_raycaster.remove_raycasters(type);
+    }
 
     void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
@@ -1116,10 +1128,8 @@ private:
     void _rectangular_selection_picking_pass();
     void _render_background();
     void _render_bed(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool show_axes);
-    void _render_bed_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
     //BBS: add part plate related logic
     void _render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false);
-    void _render_plates_for_picking(const Transform3d& view_matrix, const Transform3d& projection_matrix);
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
     //BBS: GUI refactor: add canvas size as parameters
