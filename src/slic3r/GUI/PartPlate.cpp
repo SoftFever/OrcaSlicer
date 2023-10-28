@@ -148,6 +148,7 @@ PartPlate::PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int
 
 PartPlate::~PartPlate()
 {
+    unregister_raycasters_for_picking();
 	clear();
 	//if (m_quadric != nullptr)
 	//	::gluDeleteQuadric(m_quadric);
@@ -335,7 +336,7 @@ void PartPlate::calc_triangles(const ExPolygon &poly)
 {
     m_triangles.reset();
 
-    if (!init_model_from_poly(m_triangles, poly, GROUND_Z))
+    if (!init_model_from_poly(m_triangles.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
@@ -385,6 +386,26 @@ static bool init_model_from_lines(GLModel &model, const Lines3 &lines)
     model.init_from(std::move(init_data));
 
     return true;
+}
+
+static void init_raycaster_from_model(PickingModel& model)
+{
+    assert(model.mesh_raycaster == nullptr);
+
+	const GLModel::Geometry &geometry = model.model.get_geometry();
+
+    indexed_triangle_set its;
+    its.vertices.reserve(geometry.vertices_count());
+    for (size_t i = 0; i < geometry.vertices_count(); ++i) {
+        its.vertices.emplace_back(geometry.extract_position_3(i));
+    }
+    its.indices.reserve(geometry.indices_count() / 3);
+    for (size_t i = 0; i < geometry.indices_count() / 3; ++i) {
+        const size_t tri_id = i * 3;
+        its.indices.emplace_back(geometry.extract_index(tri_id), geometry.extract_index(tri_id + 1), geometry.extract_index(tri_id + 2));
+    }
+
+    model.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
 }
 
 void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox) {
@@ -506,9 +527,9 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buff
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
 
-void PartPlate::calc_vertex_for_icons(int index, GLModel &buffer)
+void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
 {
-    buffer.reset();
+    model.reset();
 
 	ExPolygon poly;
 	auto bed_ext = get_extents(m_shape);
@@ -522,10 +543,13 @@ void PartPlate::calc_vertex_for_icons(int index, GLModel &buffer)
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT + PARTPLATE_ICON_SIZE), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP)});
 	poly.contour.append({ scale_(p(0) + PARTPLATE_ICON_GAP_LEFT), scale_(p(1) - index * (PARTPLATE_ICON_SIZE + PARTPLATE_ICON_GAP_Y)- PARTPLATE_ICON_GAP_TOP) });
 
-	if (!init_model_from_poly(buffer, poly, GROUND_Z))
+	if (!init_model_from_poly(model.model, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
+
+	init_raycaster_from_model(model);
 }
 
+/*
 void PartPlate::calc_vertex_for_icons_background(int icon_count, GLModel &buffer)
 {
     buffer.reset();
@@ -542,6 +566,7 @@ void PartPlate::calc_vertex_for_icons_background(int icon_count, GLModel &buffer
 	if (!init_model_from_poly(buffer, poly, GROUND_Z))
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to generate geometry buffers for icons\n";
 }
+*/
 
 void PartPlate::render_background(bool force_default_color)
 {
@@ -563,8 +588,8 @@ void PartPlate::render_background(bool force_default_color)
 	else {
         color = PartPlate::DEFAULT_COLOR;
 	}
-    m_triangles.set_color(color);
-    m_triangles.render();
+    m_triangles.model.set_color(color);
+    m_triangles.model.render();
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
@@ -868,57 +893,57 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
 
         if (!only_name) {
             if (hover_id == 1) {
-                render_icon_texture(m_del_icon, m_partplate_list->m_del_hovered_texture);
+                render_icon_texture(m_del_icon.model, m_partplate_list->m_del_hovered_texture);
                 show_tooltip(_u8L("Remove current plate (if not last one)"));
             }
             else
-                render_icon_texture(m_del_icon, m_partplate_list->m_del_texture);
+                render_icon_texture(m_del_icon.model, m_partplate_list->m_del_texture);
 
             if (hover_id == 2) {
-                render_icon_texture(m_orient_icon, m_partplate_list->m_orient_hovered_texture);
+                render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_hovered_texture);
                 show_tooltip(_u8L("Auto orient objects on current plate"));
             }
             else
-                render_icon_texture(m_orient_icon, m_partplate_list->m_orient_texture);
+                render_icon_texture(m_orient_icon.model, m_partplate_list->m_orient_texture);
 
             if (hover_id == 3) {
-                render_icon_texture(m_arrange_icon, m_partplate_list->m_arrange_hovered_texture);
+                render_icon_texture(m_arrange_icon.model, m_partplate_list->m_arrange_hovered_texture);
                 show_tooltip(_u8L("Arrange objects on current plate"));
             }
             else
-                render_icon_texture(m_arrange_icon, m_partplate_list->m_arrange_texture);
+                render_icon_texture(m_arrange_icon.model, m_partplate_list->m_arrange_texture);
 
             if (hover_id == 4) {
                 if (this->is_locked()) {
-                    render_icon_texture(m_lock_icon,
+                    render_icon_texture(m_lock_icon.model,
                                         m_partplate_list->m_locked_hovered_texture);
                     show_tooltip(_u8L("Unlock current plate"));
                 }
                 else {
-                    render_icon_texture(m_lock_icon,
+                    render_icon_texture(m_lock_icon.model,
                                         m_partplate_list->m_lockopen_hovered_texture);
                     show_tooltip(_u8L("Lock current plate"));
                 }
             } else {
                 if (this->is_locked())
-                    render_icon_texture(m_lock_icon, m_partplate_list->m_locked_texture);
+                    render_icon_texture(m_lock_icon.model, m_partplate_list->m_locked_texture);
                 else
-                    render_icon_texture(m_lock_icon, m_partplate_list->m_lockopen_texture);
+                    render_icon_texture(m_lock_icon.model, m_partplate_list->m_lockopen_texture);
             }
 
             if (m_partplate_list->render_plate_settings) {
                 if (hover_id == 5) {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
-                        render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_hovered_texture);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_hovered_texture);
                     else
-                      render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_hovered_texture);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_hovered_texture);
 
                     show_tooltip(_u8L("Customize current plate"));
                 } else {
                     if (get_bed_type() == BedType::btDefault && get_print_seq() == PrintSequence::ByDefault && get_first_layer_print_sequence().empty())
-                        render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_texture);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_texture);
                     else
-                      render_icon_texture(m_plate_settings_icon, m_partplate_list->m_plate_settings_changed_texture);
+                        render_icon_texture(m_plate_settings_icon.model, m_partplate_list->m_plate_settings_changed_texture);
                 }
             }
 
@@ -971,22 +996,11 @@ void PartPlate::render_only_numbers(bool bottom)
     }
 }
 
-void PartPlate::render_rectangle_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix, GLModel &buffer, const ColorRGBA render_color)
+void PartPlate::register_rectangle_for_picking(PickingModel &model, int id)
 {
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
-    if (shader != nullptr) {
-        shader->start_using();
+    wxGetApp().plater()->canvas3D()->add_raycaster_for_picking(SceneRaycaster::EType::Bed, id, *model.mesh_raycaster, Transform3d::Identity());
 
-        shader->set_uniform("view_model_matrix", view_matrix);
-        shader->set_uniform("projection_matrix", projection_matrix);
-
-	    //glsafe(::glDepthMask(GL_FALSE));
-		buffer.set_color(render_color);
-        buffer.render();
-	    //glsafe(::glDepthMask(GL_TRUE));
-
-        shader->stop_using();
-    }
+	picking_ids.emplace_back(id);
 }
 
 /*
@@ -1207,48 +1221,31 @@ void PartPlate::render_right_arrow(const ColorRGBA render_color, bool use_lighti
 }
 */
 
-void PartPlate::on_render_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix) {
-	//glsafe(::glDisable(GL_DEPTH_TEST));
-	int hover_id = 0;
-	ColorRGBA color	= picking_color_component(hover_id);
-    m_grabber_color = color;
-	//render_grabber(m_grabber_color, false);
-    render_rectangle_for_picking(view_matrix, projection_matrix, m_triangles, m_grabber_color);
-	hover_id = 1;
-    color           = picking_color_component(hover_id);
-    m_grabber_color = color;
-	//render_left_arrow(m_grabber_color, false);
-    render_rectangle_for_picking(view_matrix, projection_matrix, m_del_icon, m_grabber_color);
-	hover_id = 2;
-    color           = picking_color_component(hover_id);
-    m_grabber_color = color;
-    render_rectangle_for_picking(view_matrix, projection_matrix, m_orient_icon, m_grabber_color);
-    hover_id = 3;
-    color           = picking_color_component(hover_id);
-    m_grabber_color = color;
-    render_rectangle_for_picking(view_matrix, projection_matrix, m_arrange_icon, m_grabber_color);
-	hover_id = 4;
-    color           = picking_color_component(hover_id);
-    m_grabber_color = color;
-	//render_right_arrow(m_grabber_color, false);
-    render_rectangle_for_picking(view_matrix, projection_matrix, m_lock_icon, m_grabber_color);
-	hover_id = 5;
-    color           = picking_color_component(hover_id);
-    m_grabber_color = color;
+void PartPlate::register_raycasters_for_picking()
+{
+    unregister_raycasters_for_picking();
+
+	picking_ids.reserve(6);
+    register_rectangle_for_picking(m_triangles, picking_id_component(0));
+    register_rectangle_for_picking(m_del_icon, picking_id_component(1));
+    register_rectangle_for_picking(m_orient_icon, picking_id_component(2));
+    register_rectangle_for_picking(m_arrange_icon, picking_id_component(3));
+    register_rectangle_for_picking(m_lock_icon, picking_id_component(4));
     if (m_partplate_list->render_plate_settings)
-        render_rectangle_for_picking(view_matrix, projection_matrix, m_plate_settings_icon, m_grabber_color);
+        register_rectangle_for_picking(m_plate_settings_icon, picking_id_component(5));
 }
 
-ColorRGBA PartPlate::picking_color_component(int idx) const
+void PartPlate::unregister_raycasters_for_picking() {
+    for (int picking_id : picking_ids) {
+        wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id);
+    }
+    picking_ids.clear();
+}
+
+int PartPlate::picking_id_component(int idx) const
 {
-	static const float INV_255 = 1.0f / 255.0f;
 	unsigned int id = PLATE_BASE_ID - this->m_plate_index * GRABBER_COUNT - idx;
-	return ColorRGBA {
-		float((id >> 0) & 0xff)* INV_255, // red
-			float((id >> 8) & 0xff)* INV_255, // greeen
-			float((id >> 16) & 0xff)* INV_255, // blue
-			float(picking_checksum_alpha_channel(id & 0xff, (id >> 8) & 0xff, (id >> 16) & 0xff))* INV_255
-	};
+	return id;
 }
 
 std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
@@ -2428,6 +2425,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		}*/
 		generate_print_polygon(poly);
 		calc_triangles(poly);
+        init_raycaster_from_model(m_triangles);
 
 		ExPolygon exclude_poly;
 		/*for (const Vec2d& p : m_exclude_area) {
@@ -2442,14 +2440,16 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		//calc_vertex_for_icons_background(5, m_del_and_background_icon);
 		//calc_vertex_for_icons(4, m_del_icon);
 		calc_vertex_for_icons(0, m_del_icon);
-		calc_vertex_for_icons(1, m_orient_icon);
-		calc_vertex_for_icons(2, m_arrange_icon);
-		calc_vertex_for_icons(3, m_lock_icon);
-		calc_vertex_for_icons(4, m_plate_settings_icon);
+        calc_vertex_for_icons(1, m_orient_icon);
+        calc_vertex_for_icons(2, m_arrange_icon);
+        calc_vertex_for_icons(3, m_lock_icon);
+        calc_vertex_for_icons(4, m_plate_settings_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		// calc vertex for plate name
 		generate_plate_name_texture();
+
+		register_raycasters_for_picking();
 	}
 
 	calc_height_limit();
@@ -3360,6 +3360,8 @@ int PartPlateList::delete_plate(int index)
 		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate %1%, has an invalid index %2%") % index % plate->get_index();
 		return -1;
 	}
+
+	plate->unregister_raycasters_for_picking();
 
 	if (m_plater) {
 		// In GUI mode
@@ -4393,15 +4395,6 @@ void PartPlateList::render(const Transform3d& view_matrix, const Transform3d& pr
 			else
                 (*it)->render(view_matrix, projection_matrix, bottom, only_body, false, PartPlate::HEIGHT_LIMIT_NONE, -1, render_cali);
 		}
-	}
-}
-
-void PartPlateList::render_for_picking_pass(const Transform3d &view_matrix, const Transform3d &projection_matrix)
-{
-	const std::lock_guard<std::mutex> local_lock(m_plates_mutex);
-	std::vector<PartPlate*>::iterator it = m_plate_list.begin();
-	for (it = m_plate_list.begin(); it != m_plate_list.end(); it++) {
-        (*it)->render_for_picking(view_matrix, projection_matrix);
 	}
 }
 

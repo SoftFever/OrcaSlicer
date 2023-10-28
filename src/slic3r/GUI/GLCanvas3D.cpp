@@ -6431,8 +6431,6 @@ void GLCanvas3D::_picking_pass()
     m_hover_volume_idxs.clear();
     m_hover_plate_idxs.clear();
 
-    // TODO: Support plate picking
-
     const ClippingPlane clipping_plane = m_gizmos.get_clipping_plane().inverted_normal();
     const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(m_mouse.position, wxGetApp().plater()->get_camera(), &clipping_plane);
     if (hit.is_valid()) {
@@ -6465,6 +6463,14 @@ void GLCanvas3D::_picking_pass()
         }
         case SceneRaycaster::EType::Bed:
         {
+            // BBS: add plate picking logic
+            int plate_hover_id = PartPlate::PLATE_BASE_ID - hit.raycaster_id;
+            if (plate_hover_id >= 0 && plate_hover_id < PartPlateList::MAX_PLATES_COUNT * PartPlate::GRABBER_COUNT) {
+                wxGetApp().plater()->get_partplate_list().set_hover_id(plate_hover_id);
+                m_hover_plate_idxs.emplace_back(plate_hover_id);
+            } else {
+                wxGetApp().plater()->get_partplate_list().reset_hover_id();
+            }
             m_gizmos.set_hover_id(-1);
             break;
         }

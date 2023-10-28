@@ -21,6 +21,7 @@
 #include "3DScene.hpp"
 #include "GLModel.hpp"
 #include "3DBed.hpp"
+#include "MeshUtils.hpp"
 
 class GLUquadric;
 typedef class GLUquadric GLUquadricObject;
@@ -115,7 +116,7 @@ private:
     Transform3d m_grabber_trans_matrix;
     Slic3r::Geometry::Transformation position;
     std::vector<Vec3f> positions;
-    GLModel m_triangles;
+    PickingModel m_triangles;
     GLModel m_exclude_triangles;
     GLModel m_logo_triangles;
     GLModel m_gridlines;
@@ -123,16 +124,15 @@ private:
     GLModel m_height_limit_common;
     GLModel m_height_limit_bottom;
     GLModel m_height_limit_top;
-    GLModel m_del_icon;
-    //GLModel m_del_and_background_icon;
-    GLModel m_arrange_icon;
-    GLModel m_orient_icon;
-    GLModel m_lock_icon;
-    GLModel m_plate_settings_icon;
+    PickingModel m_del_icon;
+    PickingModel m_arrange_icon;
+    PickingModel m_orient_icon;
+    PickingModel m_lock_icon;
+    PickingModel m_plate_settings_icon;
     GLModel m_plate_idx_icon;
     GLTexture m_texture;
+    std::vector<int> picking_ids;
 
-    mutable ColorRGBA m_grabber_color;
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -161,8 +161,8 @@ private:
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
     void calc_vertex_for_number(int index, bool one_number, GLModel &buffer);
-    void calc_vertex_for_icons(int index, GLModel &buffer);
-    void calc_vertex_for_icons_background(int icon_count, GLModel &buffer);
+    void calc_vertex_for_icons(int index, PickingModel &model);
+    // void calc_vertex_for_icons_background(int icon_count, GLModel &buffer);
     void render_background(bool force_default_color = false);
     void render_logo(bool bottom, bool render_cali = true);
     void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
@@ -181,9 +181,10 @@ private:
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
     void render_only_numbers(bool bottom);
     void render_plate_name_texture();
-    void render_rectangle_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix, GLModel &buffer, const ColorRGBA render_color);
-    void on_render_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix);
-    ColorRGBA picking_color_component(int idx) const;
+    void register_rectangle_for_picking(PickingModel &model, int id);
+    void register_raycasters_for_picking();
+    void unregister_raycasters_for_picking();
+    int picking_id_component(int idx) const;
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
@@ -342,7 +343,7 @@ public:
     bool intersects(const BoundingBoxf3& bb) const;
 
     void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
-    void render_for_picking(const Transform3d &view_matrix, const Transform3d &projection_matrix) { on_render_for_picking(view_matrix, projection_matrix); }
+
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
@@ -741,7 +742,6 @@ public:
     /*rendering related functions*/
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
     void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
-    void render_for_picking_pass(const Transform3d& view_matrix, const Transform3d& projection_matrix);
     void set_render_option(bool bedtype_texture, bool plate_settings);
     void set_render_cali(bool value = true) { render_cali_logo = value; }
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
