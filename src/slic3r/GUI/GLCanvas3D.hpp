@@ -579,10 +579,6 @@ private:
 
     bool m_reload_delayed;
 
-#if ENABLE_RENDER_PICKING_PASS
-    bool m_show_picking_texture;
-#endif // ENABLE_RENDER_PICKING_PASS
-
     RenderStats m_render_stats;
 
     int m_imgui_undo_redo_hovered_pos{ -1 };

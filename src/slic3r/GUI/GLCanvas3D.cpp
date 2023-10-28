@@ -1125,9 +1125,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     , m_tab_down(false)
     , m_cursor_type(Standard)
     , m_reload_delayed(false)
-#if ENABLE_RENDER_PICKING_PASS
-    , m_show_picking_texture(false)
-#endif // ENABLE_RENDER_PICKING_PASS
     , m_render_sla_auxiliaries(true)
     , m_labels(*this)
     , m_slope(m_volumes)
@@ -1833,9 +1830,6 @@ void GLCanvas3D::render(bool only_init)
         }
     }
 
-#if ENABLE_RENDER_PICKING_PASS
-    if (!m_picking_enabled || !m_show_picking_texture) {
-#endif // ENABLE_RENDER_PICKING_PASS
     // draw scene
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     _render_background();
@@ -1900,9 +1894,6 @@ void GLCanvas3D::render(bool only_init)
     // could be invalidated by the following gizmo render methods
     _render_selection_sidebar_hints();
     _render_current_gizmo();
-#if ENABLE_RENDER_PICKING_PASS
-    }
-#endif // ENABLE_RENDER_PICKING_PASS
 
 #if ENABLE_RAYCAST_PICKING_DEBUG
     if (m_picking_enabled && !m_mouse.dragging)
@@ -3192,14 +3183,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //}
         //case 'O':
         //case 'o': { _update_camera_zoom(-1.0); break; }
-#if ENABLE_RENDER_PICKING_PASS
-        case 'T':
-        case 't': {
-            m_show_picking_texture = !m_show_picking_texture;
-            m_dirty = true;
-            break;
-        }
-#endif // ENABLE_RENDER_PICKING_PASS
         //case 'Z':
         //case 'z': {
         //    if (!m_selection.is_empty())
