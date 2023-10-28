@@ -810,9 +810,12 @@ namespace client
             const ConfigOption *opt = ctx->resolve_symbol(opt_key_str);
             if (opt == nullptr) {
                 // Check whether the opt_key ends with '_'.
-                if (opt_key_str.back() == '_')
+                if (opt_key_str.back() == '_') {
                     opt_key_str.resize(opt_key_str.size() - 1);
-                opt = ctx->resolve_symbol(opt_key_str);
+                    opt = ctx->resolve_symbol(opt_key_str);
+                }
+                if (opt == nullptr)
+                    ctx->throw_exception("Variable does not exist", opt_key);
             }
             if (! opt->is_vector())
                 ctx->throw_exception("Trying to index a scalar variable", opt_key);

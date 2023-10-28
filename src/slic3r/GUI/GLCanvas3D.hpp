@@ -480,8 +480,6 @@ public:
         bool  avoid_extrusion_cali_region = true;
         //BBS: add more arrangeSettings
         bool is_seq_print        = false;
-        float bed_shrink_x       = 0.f;
-        float bed_shrink_y       = 0.f;
         bool  align_to_y_axis    = false;
     };
 
@@ -786,7 +784,7 @@ public:
 
     void refresh_camera_scene_box();
 
-    BoundingBoxf3 volumes_bounding_box() const;
+    BoundingBoxf3 volumes_bounding_box(bool current_plate_only = false) const;
     BoundingBoxf3 scene_bounding_box() const;
     BoundingBoxf3 plate_scene_bounding_box(int plate_idx) const;
 

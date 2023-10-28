@@ -96,6 +96,17 @@ public:
         farea_valid_ = false;
     }
 
+    //clearFunc: will be cleared if return true
+    inline void clearItems(const std::function<bool(const Item &itm)> &clearFunc)
+    {
+        ItemGroup newGroup;
+        for (auto &i : items_) {
+            if (clearFunc(i.get()) == false) { newGroup.push_back(i); }
+        }
+        std::swap(newGroup, items_);
+        farea_valid_ = false;
+    }
+
     inline double filledArea() const {
         if(farea_valid_) return farea_;
         else {

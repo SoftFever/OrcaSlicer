@@ -451,7 +451,7 @@ public:
     std::vector<ObjectID> print_object_ids() const override;
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
     void                set_task(const TaskParams &params) override;
-    void                process(bool use_cache = false) override;
+    void                process(long long *time_cost_with_cache = nullptr, bool use_cache = false) override;
     void                finalize() override;
     // Returns true if an object step is done on all objects and there's at least one object.
     bool                is_step_done(SLAPrintObjectStep step) const;

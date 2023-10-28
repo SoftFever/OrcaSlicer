@@ -1,0 +1,22 @@
+{
+	"type": "process",
+	"setting_id": "GP004",
+	"name": "0.20mm Standard @Qidi X3",
+	"from": "system",
+	"inherits": "fdm_process_qidi_x3_common",
+	"instantiation": "false",
+	"layer_height": "0.2",
+    "elefant_foot_compensation": "0.15",
+    "bottom_shell_layers": "3",
+    "top_shell_layers": "4",
+    "top_shell_thickness": "0.6",
+    "bridge_flow": "1",
+    "initial_layer_speed": "50",
+    "initial_layer_infill_speed": "105",
+    "outer_wall_speed": "200",
+    "inner_wall_speed": "300",
+    "sparse_infill_speed": "270",
+    "internal_solid_infill_speed": "250",
+    "top_surface_speed": "200",
+    "gap_infill_speed": "250"
+}

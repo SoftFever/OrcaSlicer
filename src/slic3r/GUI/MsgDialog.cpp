@@ -302,10 +302,15 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         page_size = wxSize(68 * em, page_height);
     }
     else {
+        Label* wrapped_text = new Label(html, msg);
+        wrapped_text->Wrap(68 * em);
+        msg = wrapped_text->GetLabel();
+        wrapped_text->Destroy();
         wxClientDC dc(parent);
         wxSize msg_sz = dc.GetMultiLineTextExtent(msg);
-        page_size = wxSize(std::min(msg_sz.GetX() + 2 * em, 68 * em),
-                           std::min(msg_sz.GetY() + 2 * em, 68 * em));
+
+        page_size = wxSize(std::min(msg_sz.GetX(), 68 * em),
+                           std::min(msg_sz.GetY(), 68 * em));
     }
     html->SetMinSize(page_size);
 

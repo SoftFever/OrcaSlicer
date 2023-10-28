@@ -1576,21 +1576,26 @@ std::vector<int> PartPlate::get_used_extruders()
 	return used_extruders;
 }
 
-Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double d) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size) const
 {
 	Vec3d wipe_tower_size;
-	std::vector<int> plate_extruders = get_extruders(true);
+
 	double layer_height = 0.08f; // hard code layer height
 	double max_height = 0.f;
 	wipe_tower_size.setZero();
 	wipe_tower_size(0) = w;
 
-	ConfigOption* layer_height_opt = wxGetApp().preset_bundle->prints.get_edited_preset().config.option("layer_height");
+	const ConfigOption* layer_height_opt = config.option("layer_height");
 	if (layer_height_opt)
 		layer_height = layer_height_opt->getFloat();
 
 	// empty plate
-	if (plate_extruders.empty())
+	if (plate_extruder_size == 0)
+    {
+        std::vector<int> plate_extruders = get_extruders(true);
+        plate_extruder_size = plate_extruders.size();
+    }
+	if (plate_extruder_size == 0)
 		return wipe_tower_size;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
@@ -1602,11 +1607,11 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double d) const
 	}
 	wipe_tower_size(2) = max_height;
 
-	const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    auto timelapse_type    = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+	//const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
     bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-    double depth = plate_extruders.size() == 1 ? 0 : d;
+    double depth = plate_extruder_size == 1 ? 0 : d;
     if (timelapse_enabled || depth > EPSILON) {
 		float min_wipe_tower_depth = 0.f;
 		auto iter = WipeTower::min_depth_per_height.begin();
@@ -5108,6 +5113,22 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	}
 }
 
+void PartPlateList::BedTextureInfo::TexturePart::reset()
+{
+    if (texture) {
+        texture->reset();
+        delete texture;
+    }
+    if (buffer)
+        delete buffer;
+}
+
+void PartPlateList::BedTextureInfo::reset()
+{
+    for (size_t i = 0; i < parts.size(); i++)
+        parts[i].reset();
+}
+
 void PartPlateList::init_bed_type_info()
 {
 	BedTextureInfo::TexturePart pc_part1(10, 130,  10, 110, "bbl_bed_pc_left.svg");
@@ -5119,6 +5140,7 @@ void PartPlateList::init_bed_type_info()
 	BedTextureInfo::TexturePart pte_part1(10, 80, 10, 160, "bbl_bed_pte_left.svg");
 	BedTextureInfo::TexturePart pte_part2(74, -10, 148,  12, "bbl_bed_pte_bottom.svg");
 	for (size_t i = 0; i < btCount; i++) {
+		bed_texture_info[i].reset();
 		bed_texture_info[i].parts.clear();
 	}
 	bed_texture_info[btPC].parts.push_back(pc_part1);

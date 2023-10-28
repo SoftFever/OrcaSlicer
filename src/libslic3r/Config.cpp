@@ -783,6 +783,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
     std::list<std::string> different_settings_append;
     std::string new_support_style;
     bool is_project_settings = false;
+
+    CNumericLocalesSetter locales_setter;
+
     try {
         boost::nowide::ifstream ifs(file);
         ifs >> j;
