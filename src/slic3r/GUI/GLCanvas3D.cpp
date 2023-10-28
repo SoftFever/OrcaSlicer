@@ -6440,7 +6440,11 @@ void GLCanvas3D::_picking_pass()
     m_hover_volume_idxs.clear();
     m_hover_plate_idxs.clear();
 
-    const ClippingPlane clipping_plane = m_gizmos.get_clipping_plane().inverted_normal();
+    // Orca: ignore clipping plane if not applying
+    GLGizmoBase *current_gizmo  = m_gizmos.get_current();
+    const ClippingPlane clipping_plane = ((!current_gizmo || current_gizmo->apply_clipping_plane()) ? m_gizmos.get_clipping_plane() :
+                                                                                                      ClippingPlane::ClipsNothing())
+                                             .inverted_normal();
     const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(m_mouse.position, wxGetApp().plater()->get_camera(), &clipping_plane);
     if (hit.is_valid()) {
         switch (hit.type)
