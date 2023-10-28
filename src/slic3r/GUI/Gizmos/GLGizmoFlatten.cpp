@@ -75,24 +75,46 @@ void GLGizmoFlatten::on_render()
     glsafe(::glEnable(GL_BLEND));
 
     if (selection.is_single_full_instance()) {
-        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+        const Transform3d& m = selection.get_first_volume()->get_instance_transformation().get_matrix();
         const Camera& camera = wxGetApp().plater()->get_camera();
         const Transform3d view_model_matrix = camera.get_view_matrix() *
-            Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) * m;
+            Geometry::assemble_transform(selection.get_first_volume()->get_sla_shift_z() * Vec3d::UnitZ()) * m;
 
         shader->set_uniform("view_model_matrix", view_model_matrix);
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         if (this->is_plane_update_necessary())
             update_planes();
         for (int i = 0; i < (int)m_planes.size(); ++i) {
-		    m_planes[i].vbo.set_color(i == m_hover_id ? GLGizmoBase::FLATTEN_HOVER_COLOR : GLGizmoBase::FLATTEN_COLOR);
-            m_planes[i].vbo.render();
+		    m_planes[i].vbo.model.set_color(i == m_hover_id ? GLGizmoBase::FLATTEN_HOVER_COLOR : GLGizmoBase::FLATTEN_COLOR);
+            m_planes[i].vbo.model.render();
         }
     }
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
     shader->stop_using();
+}
+
+void GLGizmoFlatten::on_register_raycasters_for_picking()
+{
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
+
+    if (!m_planes.empty()) {
+        const Selection& selection = m_parent.get_selection();
+        const Transform3d matrix = Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) *
+            selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
+
+        for (int i = 0; i < (int)m_planes.size(); ++i) {
+            m_parent.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, i, *m_planes[i].vbo.mesh_raycaster, matrix);
+        }
+    }
+}
+
+void GLGizmoFlatten::on_unregister_raycasters_for_picking()
+{
+    m_parent.remove_raycasters_for_picking(SceneRaycaster::EType::Gizmo);
+    m_parent.set_raycaster_gizmos_on_top(false);
 }
 
 /*
@@ -135,6 +157,7 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
     if (model_object != m_old_model_object) {
         m_planes.clear();
         m_planes_valid = false;
+        on_unregister_raycasters_for_picking();
     }
 }
 
@@ -151,6 +174,7 @@ void GLGizmoFlatten::update_planes()
     }
     ch = ch.convex_hull_3d();
     m_planes.clear();
+    on_unregister_raycasters_for_picking();
     const Transform3d& inst_matrix = mo->instances.front()->get_matrix(true);
 
     // Following constants are used for discarding too small polygons.
@@ -343,22 +367,24 @@ void GLGizmoFlatten::update_planes()
     // And finally create respective VBOs. The polygon is convex with
     // the vertices in order, so triangulation is trivial.
     for (auto& plane : m_planes) {
-        GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::TriangleFan, GLModel::Geometry::EVertexLayout::P3N3 };
-        init_data.reserve_vertices(plane.vertices.size());
-        init_data.reserve_indices(plane.vertices.size());
-        // vertices + indices
+        indexed_triangle_set its;
+        its.vertices.reserve(plane.vertices.size());
+        its.indices.reserve(plane.vertices.size() / 3);
         for (size_t i = 0; i < plane.vertices.size(); ++i) {
-            init_data.add_vertex((Vec3f)plane.vertices[i].cast<float>(), (Vec3f)plane.normal.cast<float>());
-            init_data.add_index((unsigned int)i);
+            its.vertices.emplace_back((Vec3f)plane.vertices[i].cast<float>());
         }
-        plane.vbo.init_from(std::move(init_data));
+        for (size_t i = 1; i < plane.vertices.size() - 1; ++i) {
+            its.indices.emplace_back(0, i, i + 1); // triangle fan
+        }
+        plane.vbo.model.init_from(its);
+        plane.vbo.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
         // FIXME: vertices should really be local, they need not
         // persist now when we use VBOs
         plane.vertices.clear();
         plane.vertices.shrink_to_fit();
     }
 
+    on_register_raycasters_for_picking();
     m_planes_valid = true;
 }
 

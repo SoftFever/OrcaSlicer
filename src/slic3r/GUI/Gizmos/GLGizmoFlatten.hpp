@@ -3,6 +3,7 @@
 
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLModel.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 
 
 namespace Slic3r {
@@ -22,9 +23,10 @@ private:
 
     struct PlaneData {
         std::vector<Vec3d> vertices; // should be in fact local in update_planes()
-        GLModel vbo;
+        PickingModel vbo;
         Vec3d normal;
         float area;
+        PickingId picking_id{ -1 };
     };
 
     // This holds information to decide whether recalculation is necessary:
@@ -54,6 +56,8 @@ protected:
     virtual bool on_is_activable() const override;
     virtual void on_start_dragging() override;
     virtual void on_render() override;
+    virtual void on_register_raycasters_for_picking() override;
+    virtual void on_unregister_raycasters_for_picking() override;
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
 };
