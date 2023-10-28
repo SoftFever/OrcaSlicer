@@ -47,7 +47,11 @@ bool GLGizmoMove3D::on_init()
 {
     for (int i = 0; i < 3; ++i) {
         m_grabbers.push_back(Grabber());
+        m_grabbers.back().extensions = GLGizmoBase::EGrabberExtension::PosZ;
     }
+
+    m_grabbers[0].angles = { 0.0, 0.5 * double(PI), 0.0 };
+    m_grabbers[1].angles = { -0.5 * double(PI), 0.0, 0.0 };
 
     m_shortcut_key = WXK_CONTROL_M;
 
@@ -93,9 +97,6 @@ void GLGizmoMove3D::on_update(const UpdateData& data)
 
 void GLGizmoMove3D::on_render()
 {
-    if (!m_cone.is_initialized())
-        m_cone.init_from(its_make_cone(1.0, 1.0, double(PI) / 18.0));
-
     const Selection& selection = m_parent.get_selection();
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
@@ -178,10 +179,7 @@ void GLGizmoMove3D::on_render()
     }
 	
 	// draw grabbers
-    for (unsigned int i = 0; i < 3; ++i) {
-        if (m_grabbers[i].enabled)
-            render_grabber_extension((Axis) i, box, false);
-    }
+    render_grabbers(box);
 }
 
 void GLGizmoMove3D::on_render_for_picking()
@@ -189,20 +187,7 @@ void GLGizmoMove3D::on_render_for_picking()
     glsafe(::glDisable(GL_DEPTH_TEST));
 
     const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    //BBS donot render base grabber for picking
-    //render_grabbers_for_picking(box);
-
-    //get picking colors only
-    for (unsigned int i = 0; i < (unsigned int) m_grabbers.size(); ++i) {
-        if (m_grabbers[i].enabled) {
-            ColorRGBA color = picking_color_component(i);
-            m_grabbers[i].color        = color;
-        }
-    }
-
-    render_grabber_extension(X, box, true);
-    render_grabber_extension(Y, box, true);
-    render_grabber_extension(Z, box, true);
+    render_grabbers_for_picking(box);
 }
 
 //BBS: add input window for move
@@ -238,49 +223,5 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 
     return projection;
 }
-
-void GLGizmoMove3D::render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking)
-{
-#if ENABLE_FIXED_GRABBER
-    const float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-    const float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
-    const double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-
-    ColorRGBA color = m_grabbers[axis].color;
-    if (!picking && m_hover_id != -1) {
-        if (m_hover_id == axis) {
-            color = m_grabbers[axis].hover_color;
-        }
-    }
-
-    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
-    if (shader == nullptr)
-        return;
-
-    m_cone.set_color(color);
-    shader->start_using();
-    shader->set_uniform("emission_factor", 0.1f);
-
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d& view_matrix = camera.get_view_matrix();
-    Transform3d model_matrix = Geometry::assemble_transform(m_grabbers[axis].center);
-    if (axis == X)
-        model_matrix = model_matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY());
-    else if (axis == Y)
-        model_matrix = model_matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX());
-    model_matrix = model_matrix * Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 2.0 * size));
-
-    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
-    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-    shader->set_uniform("view_normal_matrix", view_normal_matrix);
-    m_cone.render();
-
-    shader->stop_using();
-}
-
 } // namespace GUI
 } // namespace Slic3r

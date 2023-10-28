@@ -40,7 +40,6 @@ private:
     float m_snap_fine_in_radius{ 0.0f };
     float m_snap_fine_out_radius{ 0.0f };
 
-    GLModel m_cone;
     GLModel m_circle;
     GLModel m_scale;
     GLModel m_snap_radii;
@@ -83,7 +82,6 @@ private:
     void render_angle_arc(const ColorRGBA& color, bool radius_changed);
     void render_grabber_connection(const ColorRGBA& color, bool radius_changed);
     void render_grabber(const BoundingBoxf3& box);
-    void render_grabber_extension(const BoundingBoxf3& box, bool picking);
 
     Transform3d local_transform(const Selection& selection) const;
 

@@ -55,6 +55,17 @@ public:
     static void update_render_colors();
     static void load_render_colors();
 
+    enum class EGrabberExtension
+    {
+        None = 0,
+        PosX = 1 << 0,
+        NegX = 1 << 1,
+        PosY = 1 << 2,
+        NegY = 1 << 3,
+        PosZ = 1 << 4,
+        NegZ = 1 << 5,
+    };
+
 protected:
     struct Grabber
     {
@@ -71,10 +82,12 @@ protected:
         Transform3d matrix{ Transform3d::Identity() };
         ColorRGBA color{GRABBER_NORMAL_COL};
         ColorRGBA hover_color{GRABBER_HOVER_COL};
+        EGrabberExtension extensions{ EGrabberExtension::None };
 
         Grabber() = default;
+        ~Grabber();
 
-        void render(bool hover, float size);
+        void render(bool hover, float size) { render(size, hover ? hover_color : color, false); }
         void render_for_picking(float size) { render(size, color, true); }
 
         float get_half_size(float size) const;
@@ -84,7 +97,8 @@ protected:
     private:
         void render(float size, const ColorRGBA& render_color, bool picking);
 
-        GLModel m_cube;
+        static GLModel s_cube;
+        static GLModel s_cone;
     };
 
 public:
@@ -107,7 +121,6 @@ public:
 
 protected:
     GLCanvas3D& m_parent;
-
     int m_group_id;
     EState m_state;
     int m_shortcut_key;

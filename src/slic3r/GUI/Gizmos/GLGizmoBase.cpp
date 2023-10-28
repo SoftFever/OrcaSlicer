@@ -69,9 +69,16 @@ void GLGizmoBase::load_render_colors()
     RenderColor::colors[RenderCol_Flatten_Plane_Hover] = ImGuiWrapper::to_ImVec4(GLGizmoBase::FLATTEN_HOVER_COLOR);
 }
 
-void GLGizmoBase::Grabber::render(bool hover, float size)
+GLModel GLGizmoBase::Grabber::s_cube;
+GLModel GLGizmoBase::Grabber::s_cone;
+
+GLGizmoBase::Grabber::~Grabber()
 {
-    render(size, hover ? hover_color : color, false);
+    if (s_cube.is_initialized())
+        s_cube.reset();
+
+    if (s_cone.is_initialized())
+        s_cone.reset();
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -86,14 +93,14 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
 
 GLModel& GLGizmoBase::Grabber::get_cube()
 {
-    if (!m_cube.is_initialized()) {
+    if (!s_cube.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
-        indexed_triangle_set its = its_make_cube(1., 1., 1.);
-        its_translate(its, Vec3f(-0.5, -0.5, -0.5));
-        m_cube.init_from(its);
+        indexed_triangle_set its = its_make_cube(1.0, 1.0, 1.0);
+        its_translate(its, -0.5f * Vec3f::Ones());
+        s_cube.init_from(its);
     }
-    return m_cube;
+    return s_cube;
 }
 
 void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking)
@@ -102,34 +109,63 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
     if (shader == nullptr)
         return;
 
-    if (!m_cube.is_initialized()) {
+    if (!s_cube.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
-        indexed_triangle_set its = its_make_cube(1., 1., 1.);
+        indexed_triangle_set its = its_make_cube(1.0, 1.0, 1.0);
         its_translate(its, -0.5f * Vec3f::Ones());
-        m_cube.init_from(its);
+        s_cube.init_from(its);
     }
+
+    if (!s_cone.is_initialized())
+        s_cone.init_from(its_make_cone(1.0, 1.0, double(PI) / 18.0));
 
     //BBS set to fixed size grabber
-    //float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
+    const float  grabber_size   = FixedGrabberSize * INV_ZOOM;
+    const double extension_size = 0.75 * FixedGrabberSize * INV_ZOOM;
 
-
-    m_cube.set_color(render_color);
+    s_cube.set_color(render_color);
+    s_cone.set_color(render_color);
 
     const Camera& camera = wxGetApp().plater()->get_camera();
     const Transform3d& view_matrix = camera.get_view_matrix();
-    const Transform3d model_matrix = matrix * Geometry::assemble_transform(center, angles, fullsize * Vec3d::Ones());
-    const Transform3d view_model_matrix = view_matrix * model_matrix;
- 
-    shader->set_uniform("view_model_matrix", view_model_matrix);
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-    shader->set_uniform("view_normal_matrix", view_normal_matrix);
-    m_cube.render();
+
+    auto render_extension = [&view_matrix, shader](GLModel &model, const Transform3d &model_matrix) {
+        shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        model.render();
+    };
+
+    if (extensions == EGrabberExtension::PosZ) {
+        const Transform3d model_matrix = matrix * Geometry::assemble_transform(center, angles, Vec3d(0.75 * extension_size, 0.75 * extension_size, 2.0 * extension_size));
+        render_extension(s_cone, model_matrix);
+    } else {
+        const Transform3d model_matrix = matrix * Geometry::assemble_transform(center, angles, grabber_size * Vec3d::Ones());
+        render_extension(s_cube, model_matrix);
+        
+        const Transform3d extension_model_matrix_base = matrix * Geometry::assemble_transform(center, angles);
+        const Vec3d extension_scale(0.75 * extension_size, 0.75 * extension_size, 3.0 * extension_size);
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosX)) != 0) {
+            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitX(), Vec3d(0.0, 0.5 * double(PI), 0.0), extension_scale));
+        }
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegX)) != 0) {
+            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitX(), Vec3d(0.0, -0.5 * double(PI), 0.0), extension_scale));
+        }
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosY)) != 0) {
+            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitY(), Vec3d(-0.5 * double(PI), 0.0, 0.0), extension_scale));
+        }
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegY)) != 0) {
+            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitY(), Vec3d(0.5 * double(PI), 0.0, 0.0), extension_scale));
+        }
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::PosZ)) != 0) {
+            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(2.0 * extension_size * Vec3d::UnitZ(), Vec3d::Zero(), extension_scale));
+        }
+        if ((int(extensions) & int(GLGizmoBase::EGrabberExtension::NegZ)) != 0) {
+            render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitZ(), Vec3d(double(PI), 0.0, 0.0), extension_scale));
+        }
+    }
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)

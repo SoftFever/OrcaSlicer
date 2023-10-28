@@ -53,8 +53,8 @@ std::string GLGizmoRotate::get_tooltip() const
 
 bool GLGizmoRotate::on_init()
 {
-    m_cone.init_from(its_make_cone(1., 1., 2 * PI / 24));
     m_grabbers.push_back(Grabber());
+    m_grabbers.back().extensions = (GLGizmoBase::EGrabberExtension)(int(GLGizmoBase::EGrabberExtension::PosY) | int(GLGizmoBase::EGrabberExtension::NegY));
     return true;
 }
 
@@ -159,7 +159,6 @@ void GLGizmoRotate::on_render()
     }
 
     render_grabber(box);
-    render_grabber_extension(box, false);
 }
 
 void GLGizmoRotate::on_render_for_picking()
@@ -172,7 +171,6 @@ void GLGizmoRotate::on_render_for_picking()
 
     const BoundingBoxf3& box = selection.get_bounding_box();
     render_grabbers_for_picking(box);
-    render_grabber_extension(box, true);
 }
 
 //BBS: add input window for move
@@ -388,49 +386,6 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box)
 {
     m_grabbers.front().color = m_highlight_color;
     render_grabbers(box);
-}
-
-void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking)
-{
-    const double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
-    //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
-
-    ColorRGBA color = m_grabbers.front().color;
-    if (!picking && m_hover_id != -1)
-        color = m_grabbers.front().hover_color;
-
-    GLShaderProgram* shader = wxGetApp().get_shader(picking ? "flat" : "gouraud_light");
-    if (shader == nullptr)
-        return;
-
-    m_cone.set_color(color);
-
-    shader->start_using();
-    shader->set_uniform("emission_factor", 0.1f);
-
-    const Vec3d& center = m_grabbers.front().center;
-
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d& view_matrix = camera.get_view_matrix();
-    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-
-    Transform3d model_matrix = m_grabbers.front().matrix * Geometry::assemble_transform(center, Vec3d(0.5 * PI, 0.0, m_angle)) *
-        Geometry::assemble_transform(2.0 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
-
-    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
-    Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-    shader->set_uniform("view_normal_matrix", view_normal_matrix);
-    m_cone.render();
-    model_matrix = m_grabbers.front().matrix * Geometry::assemble_transform(center, Vec3d(-0.5 * PI, 0.0, m_angle)) *
-        Geometry::assemble_transform(2.0 * size * Vec3d::UnitZ(), Vec3d::Zero(), Vec3d(0.75 * size, 0.75 * size, 3.0 * size));
-
-    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
-    view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
-    shader->set_uniform("view_normal_matrix", view_normal_matrix);
-    m_cone.render();
-
-    shader->stop_using();
 }
 
 Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
