@@ -83,11 +83,6 @@ Their generous support enables me to purchase filaments and other essential 3D p
 Thank you! :)
 
 ### Sponsors:  
-<style>
-table, th, td {
-  border:0px solid black;
-}
-</style>
 <table>
 <tr>
 <td>
@@ -97,18 +92,19 @@ table, th, td {
 </td> 
 </tr>
 <tr>
+<td> </td>
+</tr>
+<tr>
 <td>
 <a href="https://qidi3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\qidi.png" alt="QIDI" width="32" height="">
+    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="32" height="">
 </a>
 </td>
 </tr>
 </table>
-     
-
 
 ### Backers:  
-*todo: extract ko-fi backers list*
+Ko-fi support [list](https://github.com/SoftFever/OrcaSlicer/wiki/OrcaSlicer-backers-%E2%80%90-28-Oct-2023)
 
 Support me  
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
