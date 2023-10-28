@@ -1853,12 +1853,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_line_width");
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
-        optgroup->append_single_option_line("seam_position", "Seam");
-        optgroup->append_single_option_line("staggered_inner_seams", "Seam");
-        optgroup->append_single_option_line("seam_gap","Seam");
-        optgroup->append_single_option_line("role_based_wipe_speed","Seam");
-        optgroup->append_single_option_line("wipe_speed", "Seam");
-        optgroup->append_single_option_line("wipe_on_loops","Seam");
+        optgroup->append_single_option_line("seam_position", "seam");
+        optgroup->append_single_option_line("staggered_inner_seams", "seam");
+        optgroup->append_single_option_line("seam_gap","seam");
+        optgroup->append_single_option_line("role_based_wipe_speed","seam");
+        optgroup->append_single_option_line("wipe_speed", "seam");
+        optgroup->append_single_option_line("wipe_on_loops","seam");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
@@ -2726,8 +2726,8 @@ void TabFilament::build()
 
 
         optgroup = page->new_optgroup(L("Print chamber temperature"), L"param_chamber_temp");
-        optgroup->append_single_option_line("chamber_temperature", "Chamber-temperature");
-        optgroup->append_single_option_line("activate_chamber_temp_control", "Chamber-temperature");
+        optgroup->append_single_option_line("chamber_temperature", "chamber-temperature");
+        optgroup->append_single_option_line("activate_chamber_temp_control", "chamber-temperature");
 
         optgroup->append_separator();
 
@@ -2832,11 +2832,11 @@ void TabFilament::build()
         optgroup->append_single_option_line("support_material_interface_fan_speed");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
-        optgroup->append_single_option_line("additional_cooling_fan_speed", "Auxiliary-fan");
+        optgroup->append_single_option_line("additional_cooling_fan_speed", "auxiliary-fan");
 
         optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
 
-        optgroup->append_single_option_line("activate_air_filtration", "Air-filtration(Exhaust-fan)");
+        optgroup->append_single_option_line("activate_air_filtration", "air-filtration");
 
         line = {L("During print"), ""};
         line.append_option(optgroup->get_option("during_print_exhaust_fan_speed"));
@@ -2877,16 +2877,16 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         optgroup = page->new_optgroup(L("Toolchange parameters with single extruder MM printers"));
-        optgroup->append_single_option_line("filament_loading_speed_start");
-        optgroup->append_single_option_line("filament_loading_speed");
-        optgroup->append_single_option_line("filament_unloading_speed_start");
-        optgroup->append_single_option_line("filament_unloading_speed");
-        optgroup->append_single_option_line("filament_load_time");
-        optgroup->append_single_option_line("filament_unload_time");
-        optgroup->append_single_option_line("filament_toolchange_delay");
-        optgroup->append_single_option_line("filament_cooling_moves");
-        optgroup->append_single_option_line("filament_cooling_initial_speed");
-        optgroup->append_single_option_line("filament_cooling_final_speed");
+        optgroup->append_single_option_line("filament_loading_speed_start", "semm");
+        optgroup->append_single_option_line("filament_loading_speed", "semm");
+        optgroup->append_single_option_line("filament_unloading_speed_start", "semm");
+        optgroup->append_single_option_line("filament_unloading_speed", "semm");
+        optgroup->append_single_option_line("filament_load_time", "semm");
+        optgroup->append_single_option_line("filament_unload_time", "semm");
+        optgroup->append_single_option_line("filament_toolchange_delay", "semm");
+        optgroup->append_single_option_line("filament_cooling_moves", "semm");
+        optgroup->append_single_option_line("filament_cooling_initial_speed", "semm");
+        optgroup->append_single_option_line("filament_cooling_final_speed", "semm");
 
         create_line_with_widget(optgroup.get(), "filament_ramming_parameters", "", [this](wxWindow* parent) {
             auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
@@ -3166,8 +3166,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("nozzle_hrc");
         optgroup->append_single_option_line("auxiliary_fan", "auxiliary-fan");
-        optgroup->append_single_option_line("support_chamber_temp_control", "Chamber-temperature");
-        optgroup->append_single_option_line("support_air_filtration", "Air-filtration(Exhaust-fan)");
+        optgroup->append_single_option_line("support_chamber_temp_control", "chamber-temperature");
+        optgroup->append_single_option_line("support_air_filtration", "air-filtration");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -3469,7 +3469,7 @@ if (is_marlin_flavor)
         // create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
         auto page     = add_options_page(L("Multimaterial"), "printer", true);
         auto optgroup = page->new_optgroup(L("Single extruder multimaterial setup"));
-        optgroup->append_single_option_line("single_extruder_multi_material");
+        optgroup->append_single_option_line("single_extruder_multi_material", "semm");
         // Orca: we only support Single Extruder Multi Material, so it's always enabled
         // optgroup->m_on_change = [this, optgroup](const t_config_option_key &opt_key, const boost::any &value) {
         //     wxTheApp->CallAfter([this, opt_key, value]() {
@@ -3478,19 +3478,19 @@ if (is_marlin_flavor)
         //         }
         //     });
         // };
-        optgroup->append_single_option_line("manual_filament_change");
+        optgroup->append_single_option_line("manual_filament_change", "semm#manual-filament-change");
 
         optgroup = page->new_optgroup(L("Wipe tower"));
-        optgroup->append_single_option_line("purge_in_prime_tower");
-        optgroup->append_single_option_line("enable_filament_ramming");
+        optgroup->append_single_option_line("purge_in_prime_tower", "semm");
+        optgroup->append_single_option_line("enable_filament_ramming", "semm");
 
 
         optgroup = page->new_optgroup(L("Single extruder multimaterial parameters"));
-        optgroup->append_single_option_line("cooling_tube_retraction");
-        optgroup->append_single_option_line("cooling_tube_length");
-        optgroup->append_single_option_line("parking_pos_retraction");
-        optgroup->append_single_option_line("extra_loading_move");
-        optgroup->append_single_option_line("high_current_on_filament_swap");
+        optgroup->append_single_option_line("cooling_tube_retraction", "semm");
+        optgroup->append_single_option_line("cooling_tube_length", "semm");
+        optgroup->append_single_option_line("parking_pos_retraction", "semm");
+        optgroup->append_single_option_line("extra_loading_move", "semm");
+        optgroup->append_single_option_line("high_current_on_filament_swap", "semm");
         m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
     }
 

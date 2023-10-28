@@ -1,6 +1,7 @@
 Print settings:
 
-* [Seam](Seam)
-* [Axiliary fan](Auxiliary-fan)
-* [Chamber temperature](Chamber-temperature)
-* [Air filtration/Exhaust fan](Air-filtration(Exhaust-fan))
+* [Seam](seam)
+* [Axiliary fan](auxiliary-fan)
+* [Chamber temperature](chamber-temperature)
+* [Air filtration/Exhaust fan](air-filtration)
+* [Single Extruder Multimaterial](semm)
