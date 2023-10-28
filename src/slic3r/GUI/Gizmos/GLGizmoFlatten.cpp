@@ -95,6 +95,7 @@ void GLGizmoFlatten::on_render()
     shader->stop_using();
 }
 
+/*
 void GLGizmoFlatten::on_render_for_picking()
 {
     const Selection& selection = m_parent.get_selection();
@@ -126,6 +127,7 @@ void GLGizmoFlatten::on_render_for_picking()
     glsafe(::glEnable(GL_CULL_FACE));
     shader->stop_using();
 }
+*/
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {

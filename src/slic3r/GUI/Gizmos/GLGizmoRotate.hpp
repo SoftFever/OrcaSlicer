@@ -72,7 +72,6 @@ protected:
     void on_start_dragging() override;
     void on_update(const UpdateData& data) override;
     void on_render() override;
-    void on_render_for_picking() override;
 
 private:
     void render_circle(const ColorRGBA& color, bool radius_changed);
@@ -150,11 +149,6 @@ protected:
         }
     }
     void on_render() override;
-    void on_render_for_picking() override {
-        for (GLGizmoRotate& g : m_gizmos) {
-            g.render_for_picking();
-        }
-    }
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
 

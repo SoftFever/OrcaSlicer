@@ -485,7 +485,7 @@ void GLGizmoAdvancedCut::on_render()
 
     render_cut_line();
 }
-
+/*
 void GLGizmoAdvancedCut::on_render_for_picking()
 {
     GLGizmoRotate3D::on_render_for_picking();
@@ -545,7 +545,7 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         render_connector_model(m_shapes[connectors[i].attribs], color, model_matrix, true);
     }
 }
-
+*/
 void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_limit)
 {
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
@@ -949,7 +949,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         else
             render_color = GrabberColor;
 
-        GLModel &cube = m_move_grabber.get_cube();
+        PickingModel &cube = m_move_grabber.get_cube();
         // BBS set to fixed size grabber
         // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
         float fullsize = 8.0f;
@@ -957,7 +957,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
             fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
         }
 
-        cube.set_color(render_color);
+        cube.model.set_color(render_color);
 
         const Transform3d trafo_matrix = Geometry::assemble_transform(m_move_grabber.center) * m_rotate_matrix *
                                          Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), fullsize * Vec3d::Ones());
@@ -967,7 +967,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
-        cube.render();
+        cube.model.render();
         shader->stop_using();
     }
 

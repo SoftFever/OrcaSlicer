@@ -108,14 +108,6 @@ void GLGizmoSlaSupports::on_render()
     glsafe(::glDisable(GL_BLEND));
 }
 
-
-void GLGizmoSlaSupports::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-    //glsafe(::glEnable(GL_DEPTH_TEST));
-    render_points(selection, true);
-}
-
 void GLGizmoSlaSupports::render_points(const Selection& selection, bool picking)
 {
     const size_t cache_size = m_editing_mode ? m_editing_cache.size() : m_normal_cache.size();

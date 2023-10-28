@@ -713,15 +713,6 @@ void GLGizmosManager::render_painter_assemble_view() const
         m_assemble_view_data->model_objects_clipper()->render_cut();
 }
 
-void GLGizmosManager::render_current_gizmo_for_picking_pass() const
-{
-    if (! m_enabled || m_current == Undefined)
-
-        return;
-
-    m_gizmos[m_current]->render_for_picking();
-}
-
 void GLGizmosManager::render_overlay()
 {
     if (!m_enabled)
@@ -1594,7 +1585,6 @@ bool GLGizmosManager::activate_gizmo(EType type)
         return true;
 
     GLGizmoBase* old_gizmo = m_current == Undefined ? nullptr : m_gizmos[m_current].get();
-    GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
 
     if (old_gizmo) {
         //if (m_current == Text) {
@@ -1604,6 +1594,8 @@ bool GLGizmosManager::activate_gizmo(EType type)
         if (old_gizmo->get_state() != GLGizmoBase::Off)
             return false; // gizmo refused to be turned off, do nothing.
 
+        old_gizmo->unregister_raycasters_for_picking();
+
         if (! m_parent.get_gizmos_manager().is_serializing()
          && old_gizmo->wants_enter_leave_snapshots())
             Plater::TakeSnapshot snapshot(wxGetApp().plater(),
@@ -1611,7 +1603,16 @@ bool GLGizmosManager::activate_gizmo(EType type)
                 UndoRedo::SnapshotType::LeavingGizmoWithAction);
     }
 
-    if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
+    if (type == Undefined) { 
+        // it is deactivation of gizmo
+        m_current = Undefined;
+        return true;
+    }
+
+    // set up new gizmo
+    GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
+
+	if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
      && new_gizmo->wants_enter_leave_snapshots())
         Plater::TakeSnapshot snapshot(wxGetApp().plater(),
             new_gizmo->get_gizmo_entering_text(),
@@ -1619,12 +1620,14 @@ bool GLGizmosManager::activate_gizmo(EType type)
 
     m_current = type;
 
-    if (new_gizmo) {
-        //if (m_current == Text) {
-        //    wxGetApp().imgui()->load_fonts_texture();
-        //}
-        new_gizmo->set_state(GLGizmoBase::On);
-    }
+    //if (m_current == Text) {
+    //    wxGetApp().imgui()->load_fonts_texture();
+    //}
+    new_gizmo->set_state(GLGizmoBase::On);
+
+    new_gizmo->register_raycasters_for_picking();
+
+    // sucessful activation of gizmo
     return true;
 }
 

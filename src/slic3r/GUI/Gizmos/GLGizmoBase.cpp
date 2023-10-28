@@ -69,16 +69,16 @@ void GLGizmoBase::load_render_colors()
     RenderColor::colors[RenderCol_Flatten_Plane_Hover] = ImGuiWrapper::to_ImVec4(GLGizmoBase::FLATTEN_HOVER_COLOR);
 }
 
-GLModel GLGizmoBase::Grabber::s_cube;
-GLModel GLGizmoBase::Grabber::s_cone;
+PickingModel GLGizmoBase::Grabber::s_cube;
+PickingModel GLGizmoBase::Grabber::s_cone;
 
 GLGizmoBase::Grabber::~Grabber()
 {
-    if (s_cube.is_initialized())
-        s_cube.reset();
+    if (s_cube.model.is_initialized())
+        s_cube.model.reset();
 
-    if (s_cone.is_initialized())
-        s_cone.reset();
+    if (s_cone.model.is_initialized())
+        s_cone.model.reset();
 }
 
 float GLGizmoBase::Grabber::get_half_size(float size) const
@@ -91,16 +91,30 @@ float GLGizmoBase::Grabber::get_dragging_half_size(float size) const
     return get_half_size(size) * DraggingScaleFactor;
 }
 
-GLModel& GLGizmoBase::Grabber::get_cube()
+PickingModel &GLGizmoBase::Grabber::get_cube()
 {
-    if (!s_cube.is_initialized()) {
+    if (!s_cube.model.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
         indexed_triangle_set its = its_make_cube(1.0, 1.0, 1.0);
         its_translate(its, -0.5f * Vec3f::Ones());
-        s_cube.init_from(its);
+        s_cube.model.init_from(its);
+        s_cube.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
     }
     return s_cube;
+}
+
+void GLGizmoBase::Grabber::register_raycasters_for_picking(int id)
+{
+    picking_id = id;
+    assert(elements_registered_for_picking == false);
+}
+
+void GLGizmoBase::Grabber::unregister_raycasters_for_picking()
+{
+    wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Gizmo, picking_id);
+    picking_id = -1;
+    elements_registered_for_picking = false;
 }
 
 void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking)
@@ -109,33 +123,43 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
     if (shader == nullptr)
         return;
 
-    if (!s_cube.is_initialized()) {
+    if (!s_cube.model.is_initialized()) {
         // This cannot be done in constructor, OpenGL is not yet
         // initialized at that point (on Linux at least).
         indexed_triangle_set its = its_make_cube(1.0, 1.0, 1.0);
         its_translate(its, -0.5f * Vec3f::Ones());
-        s_cube.init_from(its);
+        s_cube.model.init_from(its);
+        s_cube.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
     }
 
-    if (!s_cone.is_initialized())
-        s_cone.init_from(its_make_cone(1.0, 1.0, double(PI) / 18.0));
+    if (!s_cone.model.is_initialized()) {
+        indexed_triangle_set its = its_make_cone(1.0, 1.0, double(PI) / 18.0);
+        s_cone.model.init_from(its);
+        s_cone.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
+    }
 
     //BBS set to fixed size grabber
     const float  grabber_size   = FixedGrabberSize * INV_ZOOM;
     const double extension_size = 0.75 * FixedGrabberSize * INV_ZOOM;
 
-    s_cube.set_color(render_color);
-    s_cone.set_color(render_color);
+    s_cube.model.set_color(render_color);
+    s_cone.model.set_color(render_color);
 
     const Camera& camera = wxGetApp().plater()->get_camera();
-    const Transform3d& view_matrix = camera.get_view_matrix();
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Matrix3d view_matrix_no_offset = view_matrix.matrix().block(0, 0, 3, 3);
 
-    auto render_extension = [&view_matrix, shader](GLModel &model, const Transform3d &model_matrix) {
+    auto render_extension = [&view_matrix, &view_matrix_no_offset, shader, register_for_picking = !elements_registered_for_picking, picking_id = picking_id](PickingModel &model, const Transform3d &model_matrix) {
         shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
-        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        const Matrix3d view_normal_matrix = view_matrix_no_offset * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
         shader->set_uniform("view_normal_matrix", view_normal_matrix);
-        model.render();
+        model.model.render();
+
+        if (register_for_picking) {
+            GLCanvas3D &canvas = *wxGetApp().plater()->canvas3D();
+            canvas.add_raycaster_for_picking(SceneRaycaster::EType::Gizmo, picking_id, *model.mesh_raycaster, model_matrix);
+        }
     };
 
     if (extensions == EGrabberExtension::PosZ) {
@@ -166,20 +190,15 @@ void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, boo
             render_extension(s_cone, extension_model_matrix_base * Geometry::assemble_transform(-2.0 * extension_size * Vec3d::UnitZ(), Vec3d(double(PI), 0.0, 0.0), extension_scale));
         }
     }
+
+    elements_registered_for_picking = true;
 }
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : m_parent(parent)
-    , m_group_id(-1)
-    , m_state(Off)
-    , m_shortcut_key(0)
     , m_icon_filename(icon_filename)
     , m_sprite_id(sprite_id)
-    , m_hover_id(-1)
-    , m_dragging(false)
     , m_imgui(wxGetApp().imgui())
-    , m_first_input_window_render(true)
-    , m_dirty(false)
 {
     m_base_color = DEFAULT_BASE_COLOR;
     m_drag_color = DEFAULT_DRAG_COLOR;
@@ -280,6 +299,20 @@ void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float 
     m_imgui->set_next_window_pos(x, y, flag, pivot_x, pivot_y);
 }
 
+void GLGizmoBase::register_grabbers_for_picking()
+{
+    for (size_t i = 0; i < m_grabbers.size(); ++i) {
+        m_grabbers[i].register_raycasters_for_picking(i);
+    }
+}
+
+void GLGizmoBase::unregister_grabbers_for_picking()
+{
+    for (size_t i = 0; i < m_grabbers.size(); ++i) {
+        m_grabbers[i].unregister_raycasters_for_picking();
+    }
+}
+
 ColorRGBA GLGizmoBase::picking_color_component(unsigned int id) const
 {
     id = BASE_ID - id;
@@ -310,28 +343,6 @@ void GLGizmoBase::render_grabbers(float size) const
             m_grabbers[i].render(m_hover_id == i, size);
     }
     shader->stop_using();
-}
-
-void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
-{
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
-    if (shader != nullptr) {
-        shader->start_using();
-
-#if ENABLE_FIXED_GRABBER
-        const float mean_size = (float)(GLGizmoBase::Grabber::FixedGrabberSize);
-#else
-        const float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
-#endif
-
-        for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i) {
-            if (m_grabbers[i].enabled) {
-                m_grabbers[i].color = picking_color_component(i);
-                m_grabbers[i].render_for_picking(mean_size);
-            }
-        }
-        shader->stop_using();
-    }
 }
 
 std::string GLGizmoBase::format(float value, unsigned int decimals) const

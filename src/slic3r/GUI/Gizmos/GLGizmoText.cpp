@@ -451,7 +451,7 @@ void GLGizmoText::on_render()
         GLShaderProgram *shader    = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            m_grabbers[0].render_for_picking(mean_size);
+            //m_grabbers[0].render_for_picking(mean_size);
 
             shader->stop_using();
         }
@@ -466,6 +466,7 @@ void GLGizmoText::on_render()
     plater->update();
 }
 
+/*
 void GLGizmoText::on_render_for_picking()
 {
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -510,6 +511,7 @@ void GLGizmoText::on_render_for_picking()
         }
     }
 }
+*/
 
 void GLGizmoText::on_update(const UpdateData &data)
 {

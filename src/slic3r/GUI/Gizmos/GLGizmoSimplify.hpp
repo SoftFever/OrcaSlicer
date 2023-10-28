@@ -37,7 +37,6 @@ protected:
     // must implement
     virtual bool on_init() override { return true;};
     virtual void on_render() override;
-    virtual void on_render_for_picking() override{};    
 
     CommonGizmosDataID on_get_requirements() const override;
 

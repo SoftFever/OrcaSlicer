@@ -161,18 +161,6 @@ void GLGizmoRotate::on_render()
     render_grabber(box);
 }
 
-void GLGizmoRotate::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    m_grabbers.front().matrix = local_transform(selection);
-
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    render_grabbers_for_picking(box);
-}
-
 //BBS: add input window for move
 void GLGizmoRotate3D::on_render_input_window(float x, float y, float bottom_limit)
 {

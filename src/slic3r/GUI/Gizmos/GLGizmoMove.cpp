@@ -182,12 +182,15 @@ void GLGizmoMove3D::on_render()
     render_grabbers(box);
 }
 
-void GLGizmoMove3D::on_render_for_picking()
+void GLGizmoMove3D::on_register_raycasters_for_picking()
 {
-    glsafe(::glDisable(GL_DEPTH_TEST));
+    // this gizmo is rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
+}
 
-    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    render_grabbers_for_picking(box);
+void GLGizmoMove3D::on_unregister_raycasters_for_picking()
+{
+    m_parent.set_raycaster_gizmos_on_top(false);
 }
 
 //BBS: add input window for move

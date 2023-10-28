@@ -89,18 +89,6 @@ void GLGizmoHollow::on_render()
     glsafe(::glDisable(GL_BLEND));
 }
 
-
-void GLGizmoHollow::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-//#if ENABLE_RENDER_PICKING_PASS
-//    m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
-//#endif
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    render_points(selection, true);
-}
-
 void GLGizmoHollow::render_points(const Selection& selection, bool picking)
 {
     GLShaderProgram* shader = picking ? wxGetApp().get_shader("flat") : wxGetApp().get_shader("gouraud_light");

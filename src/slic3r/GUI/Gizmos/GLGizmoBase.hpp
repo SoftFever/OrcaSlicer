@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GLModel.hpp"
+#include "slic3r/GUI/MeshUtils.hpp"
 
 #include <cereal/archives/binary.hpp>
 
@@ -83,22 +84,27 @@ protected:
         ColorRGBA color{GRABBER_NORMAL_COL};
         ColorRGBA hover_color{GRABBER_HOVER_COL};
         EGrabberExtension extensions{ EGrabberExtension::None };
+        // the picking id shared by all the elements
+        int picking_id{ -1 };
+        bool elements_registered_for_picking{ false };
 
         Grabber() = default;
         ~Grabber();
 
         void render(bool hover, float size) { render(size, hover ? hover_color : color, false); }
-        void render_for_picking(float size) { render(size, color, true); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
-        GLModel& get_cube();
+        PickingModel &get_cube();
+
+        void register_raycasters_for_picking(int id);
+        void unregister_raycasters_for_picking();
 
     private:
         void render(float size, const ColorRGBA& render_color, bool picking);
 
-        static GLModel s_cube;
-        static GLModel s_cone;
+        static PickingModel s_cube;
+        static PickingModel s_cone;
     };
 
 public:
@@ -121,21 +127,22 @@ public:
 
 protected:
     GLCanvas3D& m_parent;
-    int m_group_id;
-    EState m_state;
-    int m_shortcut_key;
+
+    int m_group_id{ -1 }; // TODO: remove only for rotate
+    EState m_state{ Off };
+    int m_shortcut_key{ 0 };
     std::string m_icon_filename;
     unsigned int m_sprite_id;
-    int m_hover_id;
-    bool m_dragging;
+    int m_hover_id{ -1 };
+    bool m_dragging{ false };
     ColorRGBA m_base_color;
     ColorRGBA m_drag_color;
     ColorRGBA m_highlight_color;
     mutable std::vector<Grabber> m_grabbers;
     ImGuiWrapper* m_imgui;
-    bool m_first_input_window_render;
+    bool m_first_input_window_render{ true };
     mutable std::string m_tooltip;
-    CommonGizmosDataPool* m_c;
+    CommonGizmosDataPool* m_c{ nullptr };
 
     bool m_is_dark_mode = false;
 
@@ -196,7 +203,6 @@ public:
     bool update_items_state();
 
     void render() { m_tooltip.clear(); on_render(); }
-    void render_for_picking() { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
     virtual void on_change_color_mode(bool is_dark) {  m_is_dark_mode = is_dark; }
 
@@ -204,6 +210,9 @@ public:
 
     int get_count() { return ++count; }
     std::string get_gizmo_name() { return on_get_name(); }
+
+    void register_raycasters_for_picking()   { register_grabbers_for_picking(); on_register_raycasters_for_picking(); }
+    void unregister_raycasters_for_picking() { unregister_grabbers_for_picking(); on_unregister_raycasters_for_picking(); }
 
 protected:
     float last_input_window_width = 0;
@@ -222,18 +231,22 @@ protected:
     virtual void on_stop_dragging() {}
     virtual void on_update(const UpdateData& data) {}
     virtual void on_render() = 0;
-    virtual void on_render_for_picking() = 0;
     virtual void on_render_input_window(float x, float y, float bottom_limit) {}
 
     bool GizmoImguiBegin(const std::string& name, int flags);
     void GizmoImguiEnd();
     void GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
+
+    void register_grabbers_for_picking();
+    void unregister_grabbers_for_picking();
+    virtual void on_register_raycasters_for_picking() {}
+    virtual void on_unregister_raycasters_for_picking() {}
+
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)
     ColorRGBA picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
-    void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     std::string format(float value, unsigned int decimals) const;
 
@@ -242,7 +255,7 @@ protected:
 private:
     // Flag for dirty visible state of Gizmo
     // When True then need new rendering
-    bool m_dirty;
+    bool m_dirty{ false };
     int count = 0;
 };
 
