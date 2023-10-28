@@ -83,9 +83,29 @@ Their generous support enables me to purchase filaments and other essential 3D p
 Thank you! :)
 
 ### Sponsors:  
+<style>
+table, th, td {
+  border:0px solid black;
+}
+</style>
+<table>
+<tr>
+<td>
 <a href="https://peopoly.net/">
     <img src="SoftFever_doc\sponsor_logos\peopoly-standard-logo.png" alt="Peopoly" width="64" height="">
 </a>
+</td> 
+</tr>
+<tr>
+<td>
+<a href="https://qidi3d.com/">
+    <img src="SoftFever_doc\sponsor_logos\qidi.png" alt="QIDI" width="32" height="">
+</a>
+</td>
+</tr>
+</table>
+     
+
 
 ### Backers:  
 *todo: extract ko-fi backers list*
