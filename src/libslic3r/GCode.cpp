@@ -1897,8 +1897,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_exclude_object = config().exclude_object;
     //Orca: extra check for bbl printer
     if (is_bbl_printers) {
-        if (print.extruders(true).size() == 1 &&                  // Don't support multi-color
-            print.calib_params().mode == CalibMode::Calib_None) { // Don't support skipping in cali mode
+        if (print.calib_params().mode == CalibMode::Calib_None) { // Don't support skipping in cali mode
             // list all label_object_id with sorted order here
             m_enable_exclude_object = true;
             m_label_objects_ids.clear();
