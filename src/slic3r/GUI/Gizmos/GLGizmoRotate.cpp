@@ -510,6 +510,23 @@ void GLGizmoRotate3D::on_render()
         m_gizmos[Z].render();
 }
 
+void GLGizmoRotate3D::on_register_raycasters_for_picking()
+{
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
+    for (GLGizmoRotate& g : m_gizmos) {
+        g.register_raycasters_for_picking(true);
+    }
+}
+
+void GLGizmoRotate3D::on_unregister_raycasters_for_picking()
+{
+    for (GLGizmoRotate& g : m_gizmos) {
+        g.unregister_raycasters_for_picking();
+    }
+    m_parent.set_raycaster_gizmos_on_top(false);
+}
+
 GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
                                                     State &          state,
                                                     const Alignment &alignment)

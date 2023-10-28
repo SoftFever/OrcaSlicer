@@ -255,6 +255,17 @@ void GLGizmoScale3D::on_render()
     render_grabbers(grabber_mean_size);
 }
 
+void GLGizmoScale3D::on_register_raycasters_for_picking()
+{
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
+}
+
+void GLGizmoScale3D::on_unregister_raycasters_for_picking()
+{
+    m_parent.set_raycaster_gizmos_on_top(false);
+}
+
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2, const ColorRGBA& color)
 {
     auto grabber_connection = [this](unsigned int id_1, unsigned int id_2) {

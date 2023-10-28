@@ -184,7 +184,7 @@ void GLGizmoMove3D::on_render()
 
 void GLGizmoMove3D::on_register_raycasters_for_picking()
 {
-    // this gizmo is rendered on top of the scene, so the raytraced picker should take it into account
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
     m_parent.set_raycaster_gizmos_on_top(true);
 }
 

@@ -7,6 +7,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GLModel.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
+#include "slic3r/GUI/SceneRaycaster.hpp"
 
 #include <cereal/archives/binary.hpp>
 
@@ -91,7 +92,7 @@ protected:
         Grabber() = default;
         ~Grabber();
 
-        void render(bool hover, float size) { render(size, hover ? hover_color : color, false); }
+        void render(bool hover, float size) { render(size, hover ? hover_color : color); }
 
         float get_half_size(float size) const;
         float get_dragging_half_size(float size) const;
@@ -101,7 +102,7 @@ protected:
         void unregister_raycasters_for_picking();
 
     private:
-        void render(float size, const ColorRGBA& render_color, bool picking);
+        void render(float size, const ColorRGBA& render_color);
 
         static PickingModel s_cube;
         static PickingModel s_cone;
@@ -211,7 +212,7 @@ public:
     int get_count() { return ++count; }
     std::string get_gizmo_name() { return on_get_name(); }
 
-    void register_raycasters_for_picking()   { register_grabbers_for_picking(); on_register_raycasters_for_picking(); }
+    void register_raycasters_for_picking(bool use_group_id = false) { register_grabbers_for_picking(use_group_id); on_register_raycasters_for_picking(); }
     void unregister_raycasters_for_picking() { unregister_grabbers_for_picking(); on_unregister_raycasters_for_picking(); }
 
 protected:
@@ -237,7 +238,7 @@ protected:
     void GizmoImguiEnd();
     void GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
 
-    void register_grabbers_for_picking();
+    void register_grabbers_for_picking(bool use_group_id = false);
     void unregister_grabbers_for_picking();
     virtual void on_register_raycasters_for_picking() {}
     virtual void on_unregister_raycasters_for_picking() {}

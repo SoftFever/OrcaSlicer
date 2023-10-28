@@ -117,7 +117,7 @@ void GLGizmoBase::Grabber::unregister_raycasters_for_picking()
     elements_registered_for_picking = false;
 }
 
-void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color, bool picking)
+void GLGizmoBase::Grabber::render(float size, const ColorRGBA& render_color)
 {
     GLShaderProgram* shader = wxGetApp().get_current_shader();
     if (shader == nullptr)
@@ -299,10 +299,10 @@ void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float 
     m_imgui->set_next_window_pos(x, y, flag, pivot_x, pivot_y);
 }
 
-void GLGizmoBase::register_grabbers_for_picking()
+void GLGizmoBase::register_grabbers_for_picking(bool use_group_id)
 {
     for (size_t i = 0; i < m_grabbers.size(); ++i) {
-        m_grabbers[i].register_raycasters_for_picking(i);
+        m_grabbers[i].register_raycasters_for_picking(use_group_id ? m_group_id : i);
     }
 }
 
