@@ -3309,7 +3309,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             m_dirty = true;
         },
         [this](const Vec3d& direction, bool slow, bool camera_space) {
-            m_selection.start_dragging();
+            m_selection.setup_cache();
             double multiplier = slow ? 1.0 : 10.0;
 
             Vec3d displacement;
@@ -3322,7 +3322,6 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 displacement = multiplier * direction;
 
             m_selection.translate(displacement);
-            m_selection.stop_dragging();
             m_dirty = true;
         }
     );}
@@ -3463,9 +3462,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     post_event(SimpleEvent(EVT_GLCANVAS_COLLAPSE_SIDEBAR));
                 } else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
                     auto _do_rotate = [this](double angle_z_rad) {
-                        m_selection.start_dragging();
+                        m_selection.setup_cache();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
-                        m_selection.stop_dragging();
                         m_dirty = true;
 //                        wxGetApp().obj_manipul()->set_dirty();
                     };
@@ -3903,21 +3901,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // It should be detection of volume change
         // Not only detection of some modifiers !!!
         if (evt.Dragging()) {
+            GLGizmosManager::EType c = m_gizmos.get_current_type();
             if (current_printer_technology() == ptFFF &&
                 (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
-                switch (m_gizmos.get_current_type()) {
-                case GLGizmosManager::EType::Move:
-                case GLGizmosManager::EType::Scale:
-                case GLGizmosManager::EType::Rotate:
+                if (c == GLGizmosManager::EType::Move ||
+                    c == GLGizmosManager::EType::Scale ||
+                    c == GLGizmosManager::EType::Rotate )
                     update_sequential_clearance();
-                }
             } else {
-                switch (m_gizmos.get_current_type()) {
-                case GLGizmosManager::EType::Move:
-                case GLGizmosManager::EType::Scale:
-                case GLGizmosManager::EType::Rotate: 
+                if (c == GLGizmosManager::EType::Move ||
+                    c == GLGizmosManager::EType::Scale ||
+                    c == GLGizmosManager::EType::Rotate)
                     show_sinking_contours();
-                }
             }
         }
         else if (evt.LeftUp() &&
@@ -4050,7 +4045,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             m_volumes.volumes[volume_idx]->hover = GLVolume::HS_None;
                             // The dragging operation is initiated.
                             m_mouse.drag.move_volume_idx = volume_idx;
-                            m_selection.start_dragging();
+                            m_selection.setup_cache();
                             m_mouse.drag.start_position_3D = m_mouse.scene_position;
                             m_sequential_print_clearance_first_displacement = true;
                             m_moving = true;
@@ -4218,7 +4213,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.position = pos.cast<double>();
 
         if (evt.LeftUp()) {
-            m_selection.stop_dragging();
             m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 

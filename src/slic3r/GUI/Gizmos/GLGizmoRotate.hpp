@@ -9,7 +9,7 @@
 
 namespace Slic3r {
 namespace GUI {
-
+class Selection;
 class GLGizmoRotate : public GLGizmoBase
 {
     static const float Offset;
@@ -24,9 +24,9 @@ class GLGizmoRotate : public GLGizmoBase
 public:
     enum Axis : unsigned char
     {
-        X,
-        Y,
-        Z
+        X=0,
+        Y=1,
+        Z=2
     };
 
 private:
@@ -39,6 +39,9 @@ private:
     float m_snap_coarse_out_radius{ 0.0f };
     float m_snap_fine_in_radius{ 0.0f };
     float m_snap_fine_out_radius{ 0.0f };
+	
+	ColorRGBA m_drag_color;
+    ColorRGBA m_highlight_color;
 
     GLModel m_circle;
     GLModel m_scale;
@@ -65,6 +68,14 @@ public:
     std::string get_tooltip() const override;
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
+
+    void start_dragging();
+    void stop_dragging();
+       
+    void enable_grabber();
+    void disable_grabber(); 
+
+    void set_highlight_color(const ColorRGBA &color);
 
     /// <summary>
     /// Postpone to Grabber for move
@@ -136,6 +147,7 @@ public:
     /// <returns>Return True when use the information otherwise False.</returns>
     bool on_mouse(const wxMouseEvent &mouse_event) override;
 
+    void data_changed() override;
 protected:
     bool on_init() override;
     std::string on_get_name() const override;
@@ -147,14 +159,7 @@ protected:
         for (int i = 0; i < 3; ++i)
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
     }
-    void on_enable_grabber(unsigned int id) override {
-        if (id < 3)
-            m_gizmos[id].enable_grabber(0);
-    }
-    void on_disable_grabber(unsigned int id) override {
-        if (id < 3)
-            m_gizmos[id].disable_grabber(0);
-    }
+    
     bool on_is_activable() const override;
     void on_start_dragging() override;
     void on_stop_dragging() override;

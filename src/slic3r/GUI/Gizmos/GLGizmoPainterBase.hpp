@@ -21,6 +21,7 @@ enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 struct Camera;
 class GLGizmoMmuSegmentation;
+class Selection;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
@@ -188,7 +189,7 @@ private:
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     virtual ~GLGizmoPainterBase() override;
-    virtual void set_painter_gizmo_data(const Selection& selection);
+    void data_changed() override;
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
     // Following function renders the triangles and cursor. Having this separated

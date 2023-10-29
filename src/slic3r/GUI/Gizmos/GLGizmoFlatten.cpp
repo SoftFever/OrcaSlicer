@@ -25,25 +25,45 @@ bool GLGizmoFlatten::on_mouse(const wxMouseEvent &mouse_event)
     if (mouse_event.Moving()) {
         // only for sure 
         m_mouse_left_down = false;
-
-        if (m_hover_id != -1) m_parent.set_as_dirty();
         return false;
     }
-    if (mouse_event.LeftDown() && m_hover_id != -1) {
-        Selection &selection = m_parent.get_selection();
-        if (selection.is_single_full_instance()) {
-            // Rotate the object so the normal points downward:
-            selection.flattening_rotate(m_planes[m_hover_id].normal);
-            m_parent.do_rotate(L("Gizmo-Place on Face"));
+    if (mouse_event.LeftDown()) {
+        if (m_hover_id != -1) {
+            m_mouse_left_down = true;
+            Selection &selection = m_parent.get_selection();
+            if (selection.is_single_full_instance()) {
+                // Rotate the object so the normal points downward:
+                selection.flattening_rotate(m_planes[m_hover_id].normal);
+                m_parent.do_rotate(L("Gizmo-Place on Face"));
+            }
+            return true;
         }
-        m_mouse_left_down = true;
-        return true;
-    } else if (m_mouse_left_down && mouse_event.LeftUp()) {
-        // responsible for mouse left up
+
+        // fix: prevent restart gizmo when reselect object
+        // take responsibility for left up
+        if (m_parent.get_first_hover_volume_idx() >= 0) m_mouse_left_down = true;
+        
+    } else if (mouse_event.LeftUp()) {
+        if (m_mouse_left_down) {
+            // responsible for mouse left up after selecting plane
+            m_mouse_left_down = false;
+            return true;
+        }
+    } else if (mouse_event.Leaving()) {
         m_mouse_left_down = false;
-        return true;
     }
     return false;
+}
+
+void GLGizmoFlatten::data_changed()
+{
+    const Selection &  selection    = m_parent.get_selection();
+    const ModelObject *model_object = nullptr;
+    if (selection.is_single_full_instance() ||
+        selection.is_from_single_object() ) {        
+        model_object = selection.get_model()->objects[selection.get_object_idx()];
+    }    
+    set_flattening_data(model_object);
 }
 
 bool GLGizmoFlatten::on_init()

@@ -104,11 +104,17 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     for (int i = 0; i < 4; i++)
         m_cut_plane_points[i] = { 0., 0., 0. };
 
-    set_group_id(m_gizmos.size());
+    m_group_id = (m_gizmos.size());
     m_rotation.setZero();
     //m_current_base_rotation.setZero();
     m_rotate_cmds.clear();
     m_buffered_rotation.setZero();
+}
+
+void GLGizmoAdvancedCut::data_changed()
+{
+    GLGizmoRotate3D::data_changed();
+    finish_rotation();
 }
 
 bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down)
@@ -126,7 +132,7 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
             return false;
 
         if (m_hover_id != -1) {
-            start_dragging();
+            //start_dragging();
             return true;
         }
 
@@ -449,7 +455,7 @@ void GLGizmoAdvancedCut::on_dragging(const UpdateData &data)
     m_rotation = rotation;
     //m_move_grabber.angles = m_current_base_rotation + m_rotation;
 
-    if (m_hover_id == get_group_id()) {
+    if (m_hover_id == m_group_id) {
         double move = calc_projection(data.mouse_ray);
         set_movement(m_start_movement + move);
         Vec3d plane_normal = get_plane_normal();
@@ -941,7 +947,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         // m_move_grabber.color = GrabberColor;
         // m_move_grabber.hover_color = GrabberHoverColor;
         // m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
-        bool hover = (m_hover_id == get_group_id());
+        bool hover = (m_hover_id == m_group_id);
         ColorRGBA render_color;
         if (hover) {
             render_color = GrabberHoverColor;

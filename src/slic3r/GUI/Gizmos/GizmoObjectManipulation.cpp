@@ -259,7 +259,7 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
     position(axis) = value;
 
     Selection& selection = m_glcanvas.get_selection();
-    selection.start_dragging();
+    selection.setup_cache();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
     m_glcanvas.do_move(L("Set Position"));
 
@@ -287,7 +287,7 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 		transformation_type.set_local();
 	}
 
-    selection.start_dragging();
+    selection.setup_cache();
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
 		transformation_type);
@@ -363,7 +363,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
     if (m_uniform_scale/* || selection.requires_uniform_scale()*/)
         scaling_factor = scale(axis) * Vec3d::Ones();
 
-    selection.start_dragging();
+    selection.setup_cache();
     selection.scale(scaling_factor * 0.01, transformation_type);
     m_glcanvas.do_scale(L("Set Scale"));
 }

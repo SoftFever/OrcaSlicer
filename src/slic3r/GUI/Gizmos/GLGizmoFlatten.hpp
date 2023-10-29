@@ -35,7 +35,7 @@ private:
 
     std::vector<PlaneData> m_planes;
     std::vector<std::shared_ptr<SceneRaycasterItem>> m_planes_casters;
-    bool m_mouse_left_down = false;
+    bool m_mouse_left_down = false; // for detection left_up of this gizmo
     const ModelObject* m_old_model_object = nullptr;
     std::vector<const Transform3d*> instances_matrices;
 
@@ -54,6 +54,7 @@ public:
     /// <returns>Return True when use the information otherwise False.</returns>
     bool on_mouse(const wxMouseEvent &mouse_event) override;
 
+    void data_changed() override;
 protected:
     bool on_init() override;
     std::string on_get_name() const override;

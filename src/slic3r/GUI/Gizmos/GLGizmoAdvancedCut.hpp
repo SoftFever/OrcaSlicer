@@ -138,6 +138,8 @@ public:
     
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
+    void data_changed() override;
+
 protected:
     bool on_init() override;
     void on_load(cereal::BinaryInputArchive &ar) override;
@@ -153,28 +155,6 @@ protected:
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
     void show_tooltip_information(float x, float y);
-
-    virtual void on_enable_grabber(unsigned int id)
-    {
-        if (id < 3)
-            m_gizmos[id].enable_grabber(0);
-        else if (id == 3)
-            this->enable_grabber(0);
-    }
-
-    virtual void on_disable_grabber(unsigned int id)
-    {
-        if (id < 3)
-            m_gizmos[id].disable_grabber(0);
-        else if (id == 3)
-            this->disable_grabber(0);
-    }
-
-    virtual void on_set_hover_id()
-    {
-        for (int i = 0; i < 3; ++i)
-            m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
-    }
 
 private:
     void perform_cut(const Selection& selection);

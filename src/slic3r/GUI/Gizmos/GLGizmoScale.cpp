@@ -27,6 +27,9 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filen
     : GLGizmoBase(parent, icon_filename, sprite_id)
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
+    , m_base_color(DEFAULT_BASE_COLOR)
+    , m_drag_color(DEFAULT_DRAG_COLOR)
+    , m_highlight_color(DEFAULT_HIGHLIGHT_COLOR)
 {
     m_grabber_connections[0].grabber_indices = { 0, 1 };
     m_grabber_connections[1].grabber_indices = { 2, 3 };
@@ -90,6 +93,29 @@ bool GLGizmoScale3D::on_mouse(const wxMouseEvent &mouse_event)
     return use_grabbers(mouse_event);
 }
 
+void GLGizmoScale3D::data_changed()
+{
+    const Selection &selection        = m_parent.get_selection();
+    bool             enable_scale_xyz = selection.is_single_full_instance() ||
+                            selection.is_single_volume() ||
+                            selection.is_single_modifier();
+    for (unsigned int i = 0; i < 6; ++i)
+        m_grabbers[i].enabled = enable_scale_xyz;
+
+    if (enable_scale_xyz) {
+        // all volumes in the selection belongs to the same instance, any of
+        // them contains the needed data, so we take the first
+        const GLVolume *volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        if (selection.is_single_full_instance()) {
+            set_scale(volume->get_instance_scaling_factor());
+        } else if (selection.is_single_volume() ||
+                   selection.is_single_modifier()) {
+            set_scale(volume->get_volume_scaling_factor());
+        }
+    } else {
+        set_scale(Vec3d::Ones());
+    }
+}
 
 bool GLGizmoScale3D::on_init()
 {

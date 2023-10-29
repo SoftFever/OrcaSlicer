@@ -34,13 +34,13 @@ GLGizmoPainterBase::~GLGizmoPainterBase()
         s_sphere.reset();
 }
 
-void GLGizmoPainterBase::set_painter_gizmo_data(const Selection& selection)
+void GLGizmoPainterBase::data_changed()
 {
     if (m_state != On)
         return;
 
     const ModelObject* mo = m_c->selection_info() ? m_c->selection_info()->model_object() : nullptr;
-
+    const Selection &  selection = m_parent.get_selection();
     if (mo && selection.is_from_single_instance()
      && (m_schedule_update || mo->id() != m_old_mo_id || mo->volumes.size() != m_old_volumes_size))
     {
@@ -902,22 +902,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
 bool GLGizmoPainterBase::on_mouse(const wxMouseEvent &mouse_event)
 {
-    // TODO: distribute implementation into gizmos itself
-
-    GLGizmosManager &      mng          = m_parent.get_gizmos_manager();
-    GLGizmosManager::EType current_type = mng.get_current_type();
-
     // wxCoord == int --> wx/types.h
     Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
-        if (current_type == GLGizmosManager::MmuSegmentation ||
-            current_type == GLGizmosManager::FdmSupports ||
-			current_type == GLGizmosManager::Text)
-            gizmo_event(SLAGizmoEventType::Moving, mouse_pos,
-                        mouse_event.ShiftDown(), mouse_event.AltDown(),
-                        false);
+        gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
+        return false;
     }
 
     // when control is down we allow scene pan and rotation even when clicking
@@ -927,78 +918,51 @@ bool GLGizmoPainterBase::on_mouse(const wxMouseEvent &mouse_event)
 
     const Selection &selection = m_parent.get_selection();
     int selected_object_idx = selection.get_object_idx();
-    if (mouse_event.LeftDown() && (!control_down || grabber_contains_mouse)) {
-        if ((current_type == GLGizmosManager::FdmSupports ||
-             current_type == GLGizmosManager::Seam ||
-             current_type == GLGizmosManager::MmuSegmentation ||
-			 current_type == GLGizmosManager::Text ||
-			 current_type == GLGizmosManager::Cut ||
-			 current_type == GLGizmosManager::MeshBoolean) &&
-            gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos,
-                        mouse_event.ShiftDown(), mouse_event.AltDown(), false))
+    if (mouse_event.LeftDown()) {
+        if ((!control_down || grabber_contains_mouse) &&            
+            gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false))
             // the gizmo got the event and took some action, there is no need
             // to do anything more
             return true;
-    } else if (mouse_event.RightDown() && !control_down && selected_object_idx != -1 &&
-               (current_type == GLGizmosManager::FdmSupports ||
-                current_type == GLGizmosManager::Seam ||
-                current_type == GLGizmosManager::MmuSegmentation ||
-				current_type == GLGizmosManager::Cut) &&
-               gizmo_event(SLAGizmoEventType::RightDown, mouse_pos, false, false, false)) {
-        // event was taken care of by the FdmSupports / Seam / MMUPainting / Cut gizmo
-        return true;
-    } else if (mouse_event.Dragging() &&
-               m_parent.get_move_volume_id() != -1 &&
-               (current_type == GLGizmosManager::FdmSupports ||
-                current_type == GLGizmosManager::Seam ||
-                current_type == GLGizmosManager::MmuSegmentation))
-        // don't allow dragging objects with the Sla gizmo on
-        return true;
-    else if (mouse_event.Dragging() && !control_down &&
-             (current_type == GLGizmosManager::FdmSupports ||
-              current_type == GLGizmosManager::Seam ||
-              current_type == GLGizmosManager::MmuSegmentation ||
-			  current_type == GLGizmosManager::Cut) &&
-             gizmo_event(SLAGizmoEventType::Dragging, mouse_pos,
-                         mouse_event.ShiftDown(), mouse_event.AltDown(), false)) {
-        // the gizmo got the event and took some action, no need to do
-        // anything more here
-        m_parent.set_as_dirty();
-        return true;
-    } else if (mouse_event.Dragging() && control_down &&
-               (mouse_event.LeftIsDown() || mouse_event.RightIsDown())) {
-        // CTRL has been pressed while already dragging -> stop current action
-        if (mouse_event.LeftIsDown())
-            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos,
-                        mouse_event.ShiftDown(), mouse_event.AltDown(), true);
-        else if (mouse_event.RightIsDown())
-            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos,
-                        mouse_event.ShiftDown(), mouse_event.AltDown(), true);
-
-    } else if (mouse_event.LeftUp() &&
-               (current_type == GLGizmosManager::FdmSupports ||
-                current_type == GLGizmosManager::Seam ||
-                current_type == GLGizmosManager::MmuSegmentation ||
-				current_type == GLGizmosManager::Cut) &&
-               !m_parent.is_mouse_dragging()) {
-        // in case SLA/FDM gizmo is selected, we just pass the LeftUp event
-        // and stop processing - neither object moving or selecting is
-        // suppressed in that case
-        gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos,
-                    mouse_event.ShiftDown(), mouse_event.AltDown(),
-                    control_down);
-        return true;
-    } else if (mouse_event.RightUp() &&
-               (current_type == GLGizmosManager::FdmSupports ||
-                current_type == GLGizmosManager::Seam ||
-                current_type == GLGizmosManager::MmuSegmentation ||
-				current_type == GLGizmosManager::Cut) &&
-               !m_parent.is_mouse_dragging()) {
-        gizmo_event(SLAGizmoEventType::RightUp, mouse_pos,
-                    mouse_event.ShiftDown(), mouse_event.AltDown(),
-                    control_down);
-
-        return true;
+    } else if (mouse_event.RightDown()){
+        if (!control_down && selected_object_idx != -1 &&
+            gizmo_event(SLAGizmoEventType::RightDown, mouse_pos, false, false, false)) 
+            // event was taken care of
+            return true;
+    } else if (mouse_event.Dragging()) {
+        if (m_parent.get_move_volume_id() != -1)
+            // don't allow dragging objects with the Sla gizmo on
+            return true;
+        if (!control_down && gizmo_event(SLAGizmoEventType::Dragging,
+                                         mouse_pos, mouse_event.ShiftDown(),
+                                         mouse_event.AltDown(), false)) {
+            // the gizmo got the event and took some action, no need to do
+            // anything more here
+            m_parent.set_as_dirty();
+            return true;
+        }
+        if(control_down && (mouse_event.LeftIsDown() || mouse_event.RightIsDown()))
+        {
+            // CTRL has been pressed while already dragging -> stop current action
+            if (mouse_event.LeftIsDown())
+                gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), true);
+            else if (mouse_event.RightIsDown())
+                gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), true);
+            return false;
+        }
+    } else if (mouse_event.LeftUp()) {
+        if (!m_parent.is_mouse_dragging()) {
+            // in case SLA/FDM gizmo is selected, we just pass the LeftUp
+            // event and stop processing - neither object moving or selecting
+            // is suppressed in that case
+            gizmo_event(SLAGizmoEventType::LeftUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down);
+            return true;
+        }
+    } else if (mouse_event.RightUp()) {
+        if (!m_parent.is_mouse_dragging()) {
+            gizmo_event(SLAGizmoEventType::RightUp, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down);
+            return true;
+        }
     }
     return false;
 }

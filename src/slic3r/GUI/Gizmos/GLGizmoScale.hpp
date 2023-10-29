@@ -36,7 +36,11 @@ class GLGizmoScale3D : public GLGizmoBase
     Vec3d m_offset{ Vec3d::Zero() };
     double m_snap_step{ 0.05 };
     StartingData m_starting;
-	
+
+    ColorRGBA m_base_color;
+    ColorRGBA m_drag_color;
+    ColorRGBA m_highlight_color;
+
 	struct GrabberConnection
     {
         GLModel model;
@@ -71,6 +75,7 @@ public:
     /// <returns>Return True when use the information otherwise False.</returns>
     bool on_mouse(const wxMouseEvent &mouse_event) override;
 
+    void data_changed() override;
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;

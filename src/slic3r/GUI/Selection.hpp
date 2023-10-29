@@ -229,7 +229,6 @@ private:
     Planes m_planes;
 
     float m_scale_factor;
-    bool m_dragging;
 
     // BBS
     EMode m_volume_selection_mode{ Instance };
@@ -334,9 +333,7 @@ public:
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
 
-    void start_dragging();
-    void stop_dragging() { m_dragging = false; }
-    bool is_dragging() const { return m_dragging; }
+    void setup_cache();
 
     void translate(const Vec3d& displacement, bool local = false);
     void move_to_center(const Vec3d& displacement, bool local = false);

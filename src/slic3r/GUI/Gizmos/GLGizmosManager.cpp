@@ -308,9 +308,9 @@ void GLGizmosManager::refresh_on_off_state()
     if (m_serializing || m_current == Undefined || m_gizmos.empty())
         return;
 
-    if (m_current != Undefined
-    && ! m_gizmos[m_current]->is_activable() && activate_gizmo(Undefined))
-        update_data();
+    // FS: Why update data after Undefined gizmo activation?
+    if (!m_gizmos[m_current]->is_activable() && activate_gizmo(Undefined))
+        update_data(); 
 }
 
 void GLGizmosManager::reset_all_states()
@@ -361,17 +361,6 @@ void GLGizmosManager::set_hover_id(int id)
     m_gizmos[m_current]->set_hover_id(id);
 }
 
-void GLGizmosManager::enable_grabber(EType type, unsigned int id, bool enable)
-{
-    if (!m_enabled || type == Undefined || m_gizmos.empty())
-        return;
-
-    if (enable)
-        m_gizmos[type]->enable_grabber(id);
-    else
-        m_gizmos[type]->disable_grabber(id);
-}
-
 void GLGizmosManager::update_assemble_view_data()
 {
     if (m_assemble_view_data) {
@@ -382,73 +371,14 @@ void GLGizmosManager::update_assemble_view_data()
     }
 }
 
-// TODO: divide into gizmo: on init + on selection change
 void GLGizmosManager::update_data()
 {
-    if (!m_enabled)
-        return;
-
-    const Selection& selection = m_parent.get_selection();
-
-    bool is_wipe_tower = selection.is_wipe_tower();
-    enable_grabber(Move, 2, !is_wipe_tower);
-    enable_grabber(Rotate, 0, !is_wipe_tower);
-    enable_grabber(Rotate, 1, !is_wipe_tower);
-
-    // BBS: when select multiple objects, uniform scale can be deselected, display the 0-5 grabbers
-    //bool enable_scale_xyz = selection.is_single_full_instance() || selection.is_single_volume() || selection.is_single_modifier();
-    //for (unsigned int i = 0; i < 6; ++i)
-    //{
-    //    enable_grabber(Scale, i, enable_scale_xyz);
-    //}
-
-    if (m_common_gizmos_data) {
+    if (!m_enabled) return;
+    if (m_common_gizmos_data)
         m_common_gizmos_data->update(get_current()
-            ? get_current()->get_requirements()
-            : CommonGizmosDataID(0));
-    }
-
-    if (selection.is_single_full_instance())
-    {
-        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        set_scale(volume->get_instance_scaling_factor());
-        set_rotation(Vec3d::Zero());
-        // BBS
-        finish_cut_rotation();
-        ModelObject* model_object = selection.get_model()->objects[selection.get_object_idx()];
-        set_flattening_data(model_object);
-        //set_sla_support_data(model_object);
-        set_painter_gizmo_data();
-    }
-    else if (selection.is_single_volume() || selection.is_single_modifier())
-    {
-        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
-        set_scale(volume->get_volume_scaling_factor());
-        set_rotation(Vec3d::Zero());
-        // BBS
-        finish_cut_rotation();
-        set_flattening_data(nullptr);
-        //set_sla_support_data(nullptr);
-        set_painter_gizmo_data();
-    }
-    else if (is_wipe_tower)
-    {
-        DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
-        set_scale(Vec3d::Ones());
-        set_rotation(Vec3d(0., 0., (M_PI/180.) * dynamic_cast<const ConfigOptionFloat*>(proj_cfg.option("wipe_tower_rotation_angle"))->value));
-        set_flattening_data(nullptr);
-        //set_sla_support_data(nullptr);
-        set_painter_gizmo_data();
-    }
-    else
-    {
-        set_scale(Vec3d::Ones());
-        set_rotation(Vec3d::Zero());
-        set_flattening_data(selection.is_from_single_object() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
-        //set_sla_support_data(selection.is_from_single_instance() ? selection.get_model()->objects[selection.get_object_idx()] : nullptr);
-        set_painter_gizmo_data();
-    }
+                                   ? get_current()->get_requirements()
+                                   : CommonGizmosDataID(0));
+    if (m_current != Undefined) m_gizmos[m_current]->data_changed();
 
     //BBS: GUI refactor: add object manipulation in gizmo
     m_object_manipulation.update_ui_from_settings();
@@ -490,91 +420,6 @@ bool GLGizmosManager::is_dragging() const
         return false;
 
     return m_gizmos[m_current]->is_dragging();
-}
-
-void GLGizmosManager::start_dragging()
-{
-    if (! m_enabled || m_current == Undefined)
-        return;
-    m_gizmos[m_current]->start_dragging();
-}
-
-void GLGizmosManager::stop_dragging()
-{
-    if (! m_enabled || m_current == Undefined)
-        return;
-
-    m_gizmos[m_current]->stop_dragging();
-}
-
-Vec3d GLGizmosManager::get_scale() const
-{
-    if (!m_enabled)
-        return Vec3d::Ones();
-
-    return dynamic_cast<GLGizmoScale3D*>(m_gizmos[Scale].get())->get_scale();
-}
-
-void GLGizmosManager::set_scale(const Vec3d& scale)
-{
-    if (!m_enabled || m_gizmos.empty())
-        return;
-
-    dynamic_cast<GLGizmoScale3D*>(m_gizmos[Scale].get())->set_scale(scale);
-}
-
-Vec3d GLGizmosManager::get_rotation() const
-{
-    if (!m_enabled || m_gizmos.empty())
-        return Vec3d::Zero();
-
-    return dynamic_cast<GLGizmoRotate3D*>(m_gizmos[Rotate].get())->get_rotation();
-}
-
-void GLGizmosManager::set_rotation(const Vec3d& rotation)
-{
-    if (!m_enabled || m_gizmos.empty())
-        return;
-    dynamic_cast<GLGizmoRotate3D*>(m_gizmos[Rotate].get())->set_rotation(rotation);
-}
-
-// BBS
-void GLGizmosManager::finish_cut_rotation()
-{
-    dynamic_cast<GLGizmoAdvancedCut*>(m_gizmos[Cut].get())->finish_rotation();
-}
-
-void GLGizmosManager::set_flattening_data(const ModelObject* model_object)
-{
-    if (!m_enabled || m_gizmos.empty())
-        return;
-
-    dynamic_cast<GLGizmoFlatten*>(m_gizmos[Flatten].get())->set_flattening_data(model_object);
-}
-
-/*
-void GLGizmosManager::set_sla_support_data(ModelObject* model_object)
-{
-    if (! m_enabled
-     || m_gizmos.empty()
-     || wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
-        return;
-
-    auto* gizmo_hollow = dynamic_cast<GLGizmoHollow*>(m_gizmos[Hollow].get());
-    auto* gizmo_supports = dynamic_cast<GLGizmoSlaSupports*>(m_gizmos[SlaSupports].get());
-    gizmo_hollow->set_sla_support_data(model_object, m_parent.get_selection());
-    gizmo_supports->set_sla_support_data(model_object, m_parent.get_selection());
-}
-*/
-
-void GLGizmosManager::set_painter_gizmo_data()
-{
-    if (!m_enabled || m_gizmos.empty())
-        return;
-
-    dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->set_painter_gizmo_data(m_parent.get_selection());
-    dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->set_painter_gizmo_data(m_parent.get_selection());
-    dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->set_painter_gizmo_data(m_parent.get_selection());
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.
@@ -1444,12 +1289,6 @@ bool GLGizmosManager::is_hiding_instances() const
     return (m_common_gizmos_data
          && m_common_gizmos_data->instances_hider()
          && m_common_gizmos_data->instances_hider()->is_valid());
-}
-
-
-int GLGizmosManager::get_shortcut_key(GLGizmosManager::EType type) const
-{
-    return m_gizmos[type]->get_shortcut_key();
 }
 
 std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)

@@ -49,6 +49,10 @@ public:
     /// <returns>Return True when use the information otherwise False.</returns>
     bool on_mouse(const wxMouseEvent &mouse_event) override;
 
+    /// <summary>
+    /// Detect reduction of move for wipetover on selection change
+    /// </summary>
+    void data_changed() override;
 protected:
     bool on_init() override;
     std::string on_get_name() const override;

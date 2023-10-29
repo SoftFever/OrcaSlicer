@@ -47,6 +47,12 @@ bool GLGizmoMove3D::on_mouse(const wxMouseEvent &mouse_event) {
     return use_grabbers(mouse_event);
 }
 
+void GLGizmoMove3D::data_changed() {
+    const Selection &selection = m_parent.get_selection();
+    bool is_wipe_tower = selection.is_wipe_tower();
+    m_grabbers[2].enabled = !is_wipe_tower;
+}
+
 bool GLGizmoMove3D::on_init()
 {
     for (int i = 0; i < 3; ++i) {
