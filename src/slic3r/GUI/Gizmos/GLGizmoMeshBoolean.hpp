@@ -55,7 +55,16 @@ public:
             m_src.reset();
     }
 
-    bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
+    bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
+
+    /// <summary>
+    /// Implement when want to process mouse events in gizmo
+    /// Click, Right click, move, drag, ...
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information and don't want to
+    /// propagate it otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
 
 protected:
     virtual bool on_init() override;

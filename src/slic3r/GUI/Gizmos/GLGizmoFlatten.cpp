@@ -18,9 +18,32 @@ namespace GUI {
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_normal(Vec3d::Zero())
-    , m_starting_center(Vec3d::Zero())
+{}
+
+bool GLGizmoFlatten::on_mouse(const wxMouseEvent &mouse_event)
 {
+    if (mouse_event.Moving()) {
+        // only for sure 
+        m_mouse_left_down = false;
+
+        if (m_hover_id != -1) m_parent.set_as_dirty();
+        return false;
+    }
+    if (mouse_event.LeftDown() && m_hover_id != -1) {
+        Selection &selection = m_parent.get_selection();
+        if (selection.is_single_full_instance()) {
+            // Rotate the object so the normal points downward:
+            selection.flattening_rotate(m_planes[m_hover_id].normal);
+            m_parent.do_rotate(L("Gizmo-Place on Face"));
+        }
+        m_mouse_left_down = true;
+        return true;
+    } else if (m_mouse_left_down && mouse_event.LeftUp()) {
+        // responsible for mouse left up
+        m_mouse_left_down = false;
+        return true;
+    }
+    return false;
 }
 
 bool GLGizmoFlatten::on_init()
@@ -49,15 +72,6 @@ bool GLGizmoFlatten::on_is_activable() const
     // This is assumed in GLCanvas3D::do_rotate, do not change this
     // without updating that function too.
     return m_parent.get_selection().is_single_full_instance();
-}
-
-void GLGizmoFlatten::on_start_dragging()
-{
-    if (m_hover_id != -1) {
-        assert(m_planes_valid);
-        m_normal = m_planes[m_hover_id].normal;
-        m_starting_center = m_parent.get_selection().get_bounding_box().center();
-    }
 }
 
 void GLGizmoFlatten::on_render()
@@ -121,43 +135,8 @@ void GLGizmoFlatten::on_unregister_raycasters_for_picking()
     m_planes_casters.clear();
 }
 
-/*
-void GLGizmoFlatten::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
-    if (shader == nullptr)
-        return;
-
-    shader->start_using();
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_BLEND));
-
-    if (selection.is_single_full_instance() && !wxGetKeyState(WXK_CONTROL)) {
-        const Transform3d& m = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix();
-        const Camera& camera = wxGetApp().plater()->get_camera();
-        const Transform3d view_model_matrix = camera.get_view_matrix() *
-            Geometry::assemble_transform(selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z() * Vec3d::UnitZ()) * m;
-
-        shader->set_uniform("view_model_matrix", view_model_matrix);
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        if (this->is_plane_update_necessary())
-            update_planes();
-        for (int i = 0; i < (int)m_planes.size(); ++i) {
-            m_planes[i].vbo.set_color(picking_color_component(i));
-            m_planes[i].vbo.render();
-        }
-    }
-
-    glsafe(::glEnable(GL_CULL_FACE));
-    shader->stop_using();
-}
-*/
-
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
-    m_starting_center = Vec3d::Zero();
     if (model_object != m_old_model_object) {
         m_planes.clear();
         on_unregister_raycasters_for_picking();
@@ -412,14 +391,6 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
             return true;
 
     return false;
-}
-
-Vec3d GLGizmoFlatten::get_flattening_normal() const
-{
-    Vec3d out = m_normal;
-    m_normal = Vec3d::Zero();
-    m_starting_center = Vec3d::Zero();
-    return out;
 }
 
 } // namespace GUI

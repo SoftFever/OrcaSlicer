@@ -60,17 +60,24 @@ public:
     const Vec3d& get_scale() const { return m_scale; }
     void set_scale(const Vec3d& scale) { m_starting.scale = scale; m_scale = scale; }
 
-    const Vec3d& get_offset() const { return m_offset; }
-
     std::string get_tooltip() const override;
 
     void enable_ununiversal_scale(bool enable);
+
+    /// <summary>
+    /// Postpone to Grabber for scale
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
     virtual bool on_is_activable() const override;
     virtual void on_start_dragging() override;
-    virtual void on_update(const UpdateData& data) override;
+    virtual void on_stop_dragging() override;
+    virtual void on_dragging(const UpdateData& data) override;
     virtual void on_render() override;
     virtual void on_register_raycasters_for_picking() override;
     virtual void on_unregister_raycasters_for_picking() override;

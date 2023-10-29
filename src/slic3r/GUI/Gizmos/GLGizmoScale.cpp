@@ -74,6 +74,23 @@ void GLGizmoScale3D::enable_ununiversal_scale(bool enable)
         m_grabbers[i].enabled = enable;
 }
 
+bool GLGizmoScale3D::on_mouse(const wxMouseEvent &mouse_event)
+{
+    if (mouse_event.Dragging()) {
+        if (m_dragging) {
+            // Apply new temporary scale factors
+            TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
+            if (mouse_event.AltDown()) transformation_type.set_independent();
+
+            Selection &selection = m_parent.get_selection();
+            selection.scale(get_scale(), transformation_type);
+            if (mouse_event.CmdDown()) selection.translate(m_offset, true);
+        }
+    }
+    return use_grabbers(mouse_event);
+}
+
+
 bool GLGizmoScale3D::on_init()
 {
     for (int i = 0; i < 10; ++i) {
@@ -110,24 +127,27 @@ bool GLGizmoScale3D::on_is_activable() const
 
 void GLGizmoScale3D::on_start_dragging()
 {
-    if (m_hover_id != -1) {
-        m_starting.drag_position = m_grabbers[m_hover_id].center;
-        m_starting.plane_center = m_grabbers[4].center;
-        m_starting.plane_nromal = m_grabbers[5].center - m_grabbers[4].center;
-        m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
-        m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
+    assert(m_hover_id != -1);
+    m_starting.drag_position = m_grabbers[m_hover_id].center;
+    m_starting.plane_center = m_grabbers[4].center;
+    m_starting.plane_nromal = m_grabbers[5].center - m_grabbers[4].center;
+    m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
+    m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
 
-        const Vec3d& center = m_starting.box.center();
-        m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max.x(), center.y(), center.z());
-        m_starting.pivots[1] = m_transform * Vec3d(m_starting.box.min.x(), center.y(), center.z());
-        m_starting.pivots[2] = m_transform * Vec3d(center.x(), m_starting.box.max.y(), center.z());
-        m_starting.pivots[3] = m_transform * Vec3d(center.x(), m_starting.box.min.y(), center.z());
-        m_starting.pivots[4] = m_transform * Vec3d(center.x(), center.y(), m_starting.box.max.z());
-        m_starting.pivots[5] = m_transform * Vec3d(center.x(), center.y(), m_starting.box.min.z());
-    }
+    const Vec3d& center = m_starting.box.center();
+    m_starting.pivots[0] = m_transform * Vec3d(m_starting.box.max.x(), center.y(), center.z());
+    m_starting.pivots[1] = m_transform * Vec3d(m_starting.box.min.x(), center.y(), center.z());
+    m_starting.pivots[2] = m_transform * Vec3d(center.x(), m_starting.box.max.y(), center.z());
+    m_starting.pivots[3] = m_transform * Vec3d(center.x(), m_starting.box.min.y(), center.z());
+    m_starting.pivots[4] = m_transform * Vec3d(center.x(), center.y(), m_starting.box.max.z());
+    m_starting.pivots[5] = m_transform * Vec3d(center.x(), center.y(), m_starting.box.min.z());
 }
 
-void GLGizmoScale3D::on_update(const UpdateData& data)
+void GLGizmoScale3D::on_stop_dragging() {
+    m_parent.do_scale(L("Gizmo-Scale"));
+}
+
+void GLGizmoScale3D::on_dragging(const UpdateData& data)
 {
     if (m_hover_id == 0 || m_hover_id == 1)
         do_scale_along_axis(X, data);

@@ -211,10 +211,15 @@ void GLGizmoBase::set_icon_filename(const std::string &filename) {
 
 void GLGizmoBase::set_hover_id(int id)
 {
-    if (m_grabbers.empty() || id < (int)m_grabbers.size()) {
-        m_hover_id = id;
-        on_set_hover_id();
-    }
+    // do not change hover id during dragging
+    if (m_dragging) return;
+
+    // allow empty grabbers when not using grabbers but use hover_id - flatten, rotate
+    if (!m_grabbers.empty() && id >= (int) m_grabbers.size())
+        return;
+    
+    m_hover_id = id;
+    on_set_hover_id();    
 }
 
 
@@ -260,18 +265,12 @@ void GLGizmoBase::stop_dragging()
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("this %1%, m_hover_id=%2%\n")%this %m_hover_id;
 }
 
-void GLGizmoBase::update(const UpdateData& data)
-{
-    if (m_hover_id != -1)
-        on_update(data);
-}
-
 bool GLGizmoBase::update_items_state()
 {
     bool res = m_dirty;
     m_dirty  = false;
     return res;
-};
+}
 
 bool GLGizmoBase::GizmoImguiBegin(const std::string &name, int flags)
 {
@@ -343,6 +342,62 @@ void GLGizmoBase::render_grabbers(float size) const
             m_grabbers[i].render(m_hover_id == i, size);
     }
     shader->stop_using();
+}
+
+// help function to process grabbers
+// call start_dragging, stop_dragging, on_dragging
+bool GLGizmoBase::use_grabbers(const wxMouseEvent &mouse_event) {
+    if (mouse_event.Moving()) { 
+        assert(!m_dragging);
+        // only for sure
+        if (m_dragging) m_dragging = false;
+
+        return false; 
+    }
+    if (mouse_event.LeftDown()) {
+        Selection &selection = m_parent.get_selection();
+        if (!selection.is_empty() && m_hover_id != -1) {
+            selection.start_dragging();
+
+            start_dragging();
+
+            // Let the plater know that the dragging started
+            m_parent.post_event(
+                SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_STARTED));
+            m_parent.set_as_dirty();
+            return true;
+        }
+    } else if (m_dragging) {
+        if (mouse_event.Dragging()) {
+            m_parent.set_mouse_as_dragging();
+
+            Point mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+            UpdateData data{m_parent.mouse_ray(mouse_coord), mouse_coord};
+
+            on_dragging(data);
+
+            wxGetApp().obj_manipul()->set_dirty();
+            m_parent.set_as_dirty();
+            return true;
+        } else if (mouse_event.LeftUp()) {
+            stop_dragging();
+
+            m_parent.get_gizmos_manager().update_data();
+            wxGetApp().obj_manipul()->set_dirty();
+
+            // Let the plater know that the dragging finished, so a delayed
+            // refresh of the scene with the background processing data should
+            // be performed.
+            m_parent.post_event(
+                SimpleEvent(EVT_GLCANVAS_MOUSE_DRAGGING_FINISHED));
+            // updates camera target constraints
+            m_parent.refresh_camera_scene_box();
+            return true;
+        } else if (mouse_event.Leaving()) {
+            m_dragging = false;
+        }
+    }
+    return false;
 }
 
 std::string GLGizmoBase::format(float value, unsigned int decimals) const

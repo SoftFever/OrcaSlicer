@@ -91,7 +91,7 @@ protected:
     virtual std::string on_get_name() const override;
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
-    virtual void on_update(const UpdateData &data) override;
+    virtual void on_dragging(const UpdateData &data) override;
     void push_combo_style(const float scale);
     void pop_combo_style();
     void push_button_style(bool pressed);

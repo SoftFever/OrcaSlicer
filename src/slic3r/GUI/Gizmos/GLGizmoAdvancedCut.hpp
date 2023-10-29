@@ -139,17 +139,17 @@ public:
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
 protected:
-    virtual bool on_init();
-    virtual void on_load(cereal::BinaryInputArchive &ar) override;
-    virtual void on_save(cereal::BinaryOutputArchive &ar) const override;
-    virtual std::string on_get_name() const;
-    virtual void on_set_state();
-    virtual bool on_is_activable() const;
-    virtual CommonGizmosDataID on_get_requirements() const override;
-    virtual void on_start_dragging() override;
-    virtual void on_stop_dragging() override;
-    virtual void on_update(const UpdateData& data);
-    virtual void on_render();
+    bool on_init() override;
+    void on_load(cereal::BinaryInputArchive &ar) override;
+    void on_save(cereal::BinaryOutputArchive &ar) const override;
+    std::string on_get_name() const override;
+    void on_set_state() override;
+    bool on_is_activable() const override;
+    CommonGizmosDataID on_get_requirements() const override;
+    void on_start_dragging() override;
+    void on_stop_dragging() override;
+    void on_dragging(const UpdateData& data) override;
+    void on_render() override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
     void show_tooltip_information(float x, float y);

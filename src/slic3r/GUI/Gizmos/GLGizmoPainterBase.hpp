@@ -206,6 +206,15 @@ public:
     virtual const float get_cursor_height_max() const { return CursorHeightMax; }
     virtual const float get_cursor_height_step() const { return CursorHeightStep; }
 
+    /// <summary>
+    /// Implement when want to process mouse events in gizmo
+    /// Click, Right click, move, drag, ...
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information and don't want to
+    /// propagate it otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+
 protected:
     virtual void render_triangles(const Selection& selection) const;
     void render_cursor();
@@ -349,9 +358,6 @@ private:
 
 protected:
     void on_set_state() override;
-    void on_start_dragging() override {}
-    void on_stop_dragging() override {}
-
     virtual void on_opening() = 0;
     virtual void on_shutdown() = 0;
     virtual PainterGizmoType get_painter_type() const = 0;

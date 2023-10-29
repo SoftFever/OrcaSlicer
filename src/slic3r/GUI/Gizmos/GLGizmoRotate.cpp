@@ -51,6 +51,13 @@ std::string GLGizmoRotate::get_tooltip() const
     return (m_hover_id == 0 || m_grabbers.front().dragging) ? axis + ": " + format(float(Geometry::rad2deg(m_angle)), 2) : "";
 }
 
+bool GLGizmoRotate::on_mouse(const wxMouseEvent &mouse_event)
+{
+    return use_grabbers(mouse_event);
+}
+
+void GLGizmoRotate::dragging(const UpdateData &data) { on_dragging(data); }
+
 bool GLGizmoRotate::on_init()
 {
     m_grabbers.push_back(Grabber());
@@ -69,7 +76,7 @@ void GLGizmoRotate::on_start_dragging()
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const UpdateData& data)
+void GLGizmoRotate::on_dragging(const UpdateData &data)
 {
     const Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, m_parent.get_selection()));
 
@@ -456,16 +463,25 @@ GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_fil
     load_rotoptimize_state();
 }
 
+bool GLGizmoRotate3D::on_mouse(const wxMouseEvent &mouse_event) {
+
+    if (mouse_event.Dragging() && m_dragging) {
+        // Apply new temporary rotations
+        TransformationType transformation_type(
+            TransformationType::World_Relative_Joint);
+        if (mouse_event.AltDown()) transformation_type.set_independent();
+        m_parent.get_selection().rotate(get_rotation(), transformation_type);
+    }
+    return use_grabbers(mouse_event);
+}
+
 bool GLGizmoRotate3D::on_init()
 {
-    for (GLGizmoRotate& g : m_gizmos) {
-        if (!g.init())
-            return false;
-    }
+    for (GLGizmoRotate& g : m_gizmos) 
+        if (!g.init()) return false;
 
-    for (unsigned int i = 0; i < 3; ++i) {
+    for (unsigned int i = 0; i < 3; ++i)
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
-    }
 
     m_shortcut_key = WXK_CONTROL_R;
 
@@ -486,14 +502,21 @@ bool GLGizmoRotate3D::on_is_activable() const
 
 void GLGizmoRotate3D::on_start_dragging()
 {
-    if (0 <= m_hover_id && m_hover_id < 3)
-        m_gizmos[m_hover_id].start_dragging();
+    assert(0 <= m_hover_id && m_hover_id < 3);
+    m_gizmos[m_hover_id].start_dragging();
 }
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
-    if (0 <= m_hover_id && m_hover_id < 3)
-        m_gizmos[m_hover_id].stop_dragging();
+    assert(0 <= m_hover_id && m_hover_id < 3);
+    m_parent.do_rotate(L("Gizmo-Rotate"));
+    m_gizmos[m_hover_id].stop_dragging();
+}
+
+void GLGizmoRotate3D::on_dragging(const UpdateData &data)
+{
+    assert(0 <= m_hover_id && m_hover_id < 3);
+    m_gizmos[m_hover_id].dragging(data);
 }
 
 void GLGizmoRotate3D::on_render()

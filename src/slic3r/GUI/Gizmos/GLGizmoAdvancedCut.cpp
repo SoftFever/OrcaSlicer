@@ -434,9 +434,9 @@ void GLGizmoAdvancedCut::on_stop_dragging()
     }
 }
 
-void GLGizmoAdvancedCut::on_update(const UpdateData& data)
+void GLGizmoAdvancedCut::on_dragging(const UpdateData &data)
 {
-    GLGizmoRotate3D::on_update(data);
+    GLGizmoRotate3D::on_dragging(data);
 
     Vec3d rotation;
     for (int i = 0; i < 3; i++)

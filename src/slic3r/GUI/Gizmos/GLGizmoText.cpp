@@ -253,7 +253,7 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
     }
     else if (action == SLAGizmoEventType::LeftDown) {
         if (!selection.is_empty() && get_hover_id() != -1) {
-            start_dragging();
+            //start_dragging();
             return true;
         }
 
@@ -513,7 +513,7 @@ void GLGizmoText::on_render_for_picking()
 }
 */
 
-void GLGizmoText::on_update(const UpdateData &data)
+void GLGizmoText::on_dragging(const UpdateData &data)
 {
     Vec2d              mouse_pos = Vec2d(data.mouse_pos.x(), data.mouse_pos.y());
     const ModelObject *mo = m_c->selection_info()->model_object();

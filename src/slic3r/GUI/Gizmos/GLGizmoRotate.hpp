@@ -66,11 +66,19 @@ public:
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
 
+    /// <summary>
+    /// Postpone to Grabber for move
+    /// Detect move of object by dragging
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+    void dragging(const UpdateData &data);
 protected:
     bool on_init() override;
     std::string on_get_name() const override { return ""; }
     void on_start_dragging() override;
-    void on_update(const UpdateData& data) override;
+    void on_dragging(const UpdateData &data) override;
     void on_render() override;
 
 private:
@@ -121,6 +129,13 @@ public:
         m_gizmos[Z].set_center(point);
     }
 
+    /// <summary>
+    /// Postpone to Rotation
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+
 protected:
     bool on_init() override;
     std::string on_get_name() const override;
@@ -143,11 +158,8 @@ protected:
     bool on_is_activable() const override;
     void on_start_dragging() override;
     void on_stop_dragging() override;
-    void on_update(const UpdateData& data) override {
-        for (GLGizmoRotate& g : m_gizmos) {
-            g.update(data);
-        }
-    }
+    void on_dragging(const UpdateData &data) override;
+        
     void on_render() override;
     virtual void on_register_raycasters_for_picking() override;
     virtual void on_unregister_raycasters_for_picking() override;
