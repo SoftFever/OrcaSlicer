@@ -3443,14 +3443,14 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 if (keyCode == WXK_SHIFT) {
                     translationProcessor.process(evt);
 
-                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                    if (m_picking_enabled /*&& (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)*/)
                     {
                         m_mouse.ignore_left_up = false;
 //                        set_cursor(Cross);
                     }
                 }
                 else if (keyCode == WXK_ALT) {
-                    if (m_picking_enabled && (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports))
+                    if (m_picking_enabled /*&& (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)*/)
                     {
                         m_mouse.ignore_left_up = false;
 //                        set_cursor(Cross);
@@ -3994,8 +3994,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // BBS: define Alt key to enable volume selection mode
             m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
             if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
-                if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
-                    && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
+                if (/*m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
+                    &&*/ m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
                     && m_gizmos.get_current_type() != GLGizmosManager::Seam
                     && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
                     m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
@@ -4266,7 +4266,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // if right clicking on volume, propagate event through callback (shows context menu)
                 int volume_idx = get_first_hover_volume_idx();
                 if (!m_volumes.volumes[volume_idx]->is_wipe_tower // no context menu for the wipe tower
-                    && m_gizmos.get_current_type() != GLGizmosManager::SlaSupports)  // disable context menu when the gizmo is open
+                    /*&& m_gizmos.get_current_type() != GLGizmosManager::SlaSupports*/)  // disable context menu when the gizmo is open
                 {
                     // forces the selection of the volume
                     /* m_selection.add(volume_idx); // #et_FIXME_if_needed
@@ -7010,8 +7010,8 @@ void GLCanvas3D::_render_sequential_clearance()
     {
     case GLGizmosManager::EType::Flatten:
     case GLGizmosManager::EType::Cut:
-    case GLGizmosManager::EType::Hollow:
-    case GLGizmosManager::EType::SlaSupports:
+    // case GLGizmosManager::EType::Hollow:
+    // case GLGizmosManager::EType::SlaSupports:
     case GLGizmosManager::EType::FdmSupports:
     case GLGizmosManager::EType::Seam: { return; }
     default: { break; }

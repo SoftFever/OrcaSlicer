@@ -85,10 +85,10 @@ public:
         Text,
         MmuSegmentation,
         Simplify,
-        SlaSupports,
+        //SlaSupports,
         // BBS
         //FaceRecognition,
-        Hollow,
+        //Hollow,
         Undefined,
     };
 
@@ -279,7 +279,7 @@ public:
 
     void set_flattening_data(const ModelObject* model_object);
 
-    void set_sla_support_data(ModelObject* model_object);
+    //void set_sla_support_data(ModelObject* model_object);
 
     void set_painter_gizmo_data();
 
