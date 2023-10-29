@@ -226,7 +226,6 @@ public:
 
     void refresh_on_off_state();
     void reset_all_states();
-    bool is_serializing() const { return m_serializing; }
     bool open_gizmo(EType type);
     bool check_gizmos_closed_except(EType) const;
 

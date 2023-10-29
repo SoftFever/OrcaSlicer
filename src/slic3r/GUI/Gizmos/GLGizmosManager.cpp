@@ -1584,48 +1584,41 @@ bool GLGizmosManager::activate_gizmo(EType type)
     if (m_gizmos.empty() || m_current == type)
         return true;
 
-    GLGizmoBase* old_gizmo = m_current == Undefined ? nullptr : m_gizmos[m_current].get();
-
-    if (old_gizmo) {
-        //if (m_current == Text) {
-        //    wxGetApp().imgui()->destroy_fonts_texture();
-        //}
-        old_gizmo->set_state(GLGizmoBase::Off);
-        if (old_gizmo->get_state() != GLGizmoBase::Off)
+    if (m_current != Undefined) {
+        // clean up previous gizmo
+        GLGizmoBase &old_gizmo = *m_gizmos[m_current];
+        old_gizmo.set_state(GLGizmoBase::Off);
+        if (old_gizmo.get_state() != GLGizmoBase::Off)
             return false; // gizmo refused to be turned off, do nothing.
 
-        old_gizmo->unregister_raycasters_for_picking();
+        old_gizmo.unregister_raycasters_for_picking();
 
-        if (! m_parent.get_gizmos_manager().is_serializing()
-         && old_gizmo->wants_enter_leave_snapshots())
+        if (!m_serializing
+         && old_gizmo.wants_enter_leave_snapshots())
             Plater::TakeSnapshot snapshot(wxGetApp().plater(),
-                old_gizmo->get_gizmo_leaving_text(),
+                old_gizmo.get_gizmo_leaving_text(),
                 UndoRedo::SnapshotType::LeavingGizmoWithAction);
     }
 
+    // check deactivation of gizmo
     if (type == Undefined) { 
-        // it is deactivation of gizmo
-        m_current = Undefined;
+        m_current = type;
         return true;
     }
 
     // set up new gizmo
-    GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
-
-	if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
-     && new_gizmo->wants_enter_leave_snapshots())
+    GLGizmoBase& new_gizmo = *m_gizmos[type];
+    if (!m_serializing && new_gizmo.wants_enter_leave_snapshots())
         Plater::TakeSnapshot snapshot(wxGetApp().plater(),
-            new_gizmo->get_gizmo_entering_text(),
+            new_gizmo.get_gizmo_entering_text(),
             UndoRedo::SnapshotType::EnteringGizmo);
 
     m_current = type;
+    new_gizmo.set_state(GLGizmoBase::On);
+    if (new_gizmo.get_state() != GLGizmoBase::On)
+        return false; // gizmo refused to be turned on.
 
-    //if (m_current == Text) {
-    //    wxGetApp().imgui()->load_fonts_texture();
-    //}
-    new_gizmo->set_state(GLGizmoBase::On);
-
-    new_gizmo->register_raycasters_for_picking();
+    new_gizmo.register_raycasters_for_picking();
 
     // sucessful activation of gizmo
     return true;
