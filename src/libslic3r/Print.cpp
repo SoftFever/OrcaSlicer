@@ -1366,7 +1366,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         bool before_layer_gcode_resets_extruder =
             boost::regex_search(m_config.before_layer_change_gcode.value, regex_g92e0);
         bool layer_gcode_resets_extruder = boost::regex_search(m_config.layer_change_gcode.value, regex_g92e0);
-        if (m_config.use_relative_e_distances) {
+        if (m_config.use_relative_e_distances && !is_BBL_printer()) {
             // See GH issues #6336 #5073
             if ((m_config.gcode_flavor == gcfMarlinLegacy || m_config.gcode_flavor == gcfMarlinFirmware) &&
                 !before_layer_gcode_resets_extruder && !layer_gcode_resets_extruder)

@@ -664,6 +664,9 @@ bool BackgroundSlicingProcess::empty() const
 StringObjectException BackgroundSlicingProcess::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons)
 {
 	assert(m_print != nullptr);
+    assert(m_print == m_fff_print);
+
+    m_fff_print->is_BBL_printer() = wxGetApp().preset_bundle->is_bbl_vendor();
     return m_print->validate(warning, collison_polygons, height_polygons);
 }
 
