@@ -31,13 +31,14 @@ SceneRaycaster::SceneRaycaster() {
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 }
 
-std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, int id, const MeshRaycaster& raycaster, const Transform3d& trafo)
+std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, int id, const MeshRaycaster& raycaster,
+    const Transform3d& trafo, bool use_back_faces)
 {
     switch (type) {
-    case EType::Bed:    { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
-    case EType::Volume: { return m_volumes.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
-    case EType::Gizmo:  { return m_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
-    default:            { assert(false);  return nullptr; }
+    case EType::Bed: { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    case EType::Volume: { return m_volumes.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    case EType::Gizmo: { return m_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    default: { assert(false);  return nullptr; }
     };
 }
 
@@ -105,6 +106,7 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
     auto test_raycasters = [this, is_closest, clipping_plane](EType type, const Vec2d& mouse_pos, const Camera& camera, HitResult& ret) {
         const ClippingPlane* clip_plane = (clipping_plane != nullptr && type == EType::Volume) ? clipping_plane : nullptr;
         std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
+        const Vec3f camera_forward = camera.get_dir_forward().cast<float>();
         HitResult current_hit = { type };
         for (std::shared_ptr<SceneRaycasterItem> item : *raycasters) {
             if (!item->is_active())
@@ -114,10 +116,11 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
             const Transform3d& trafo = item->get_transform();
             if (item->get_raycaster()->closest_hit(mouse_pos, trafo, camera, current_hit.position, current_hit.normal, clip_plane)) {
                 current_hit.position = (trafo * current_hit.position.cast<double>()).cast<float>();
-                if (is_closest(camera, current_hit.position)) {
-                    const Matrix3d normal_matrix = (Matrix3d)trafo.matrix().block(0, 0, 3, 3).inverse().transpose();
-                    current_hit.normal = (normal_matrix * current_hit.normal.cast<double>()).normalized().cast<float>();
-                    ret = current_hit;
+                current_hit.normal = (trafo.matrix().block(0, 0, 3, 3).inverse().transpose() * current_hit.normal.cast<double>()).normalized().cast<float>();
+                if (item->use_back_faces() || current_hit.normal.dot(camera_forward) < 0.0f){
+                    if (is_closest(camera, current_hit.position)) {
+                        ret = current_hit;
+                    }
                 }
             }
         }

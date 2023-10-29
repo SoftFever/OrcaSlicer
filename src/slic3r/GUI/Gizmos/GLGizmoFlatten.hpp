@@ -5,7 +5,6 @@
 #include "slic3r/GUI/GLModel.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
 
-
 namespace Slic3r {
 
 enum class ModelVolumeType : int;
@@ -36,7 +35,7 @@ private:
     Vec3d m_first_instance_mirror;
 
     std::vector<PlaneData> m_planes;
-    bool m_planes_valid = false;
+    std::vector<std::shared_ptr<SceneRaycasterItem>> m_planes_casters;
     mutable Vec3d m_starting_center;
     const ModelObject* m_old_model_object = nullptr;
     std::vector<const Transform3d*> instances_matrices;
