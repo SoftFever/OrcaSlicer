@@ -216,6 +216,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , force_native_color(false)
     , force_neutral_color(false)
     , force_sinking_contours(false)
+    , picking(false)
     , tverts_range(0, size_t(-1))
 {
     color = { r, g, b, a };
