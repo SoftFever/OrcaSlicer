@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-24 19:49+0800\n"
+"POT-Creation-Date: 2023-10-29 10:45+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3762,7 +3762,7 @@ msgstr "Завантаження інструментів віртуальної
 
 msgid ""
 "Another virtual camera is running.\n"
-"Bambu Studio supports only a single virtual camera.\n"
+"Orca Slicer supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
 
@@ -3874,7 +3874,7 @@ msgid "Failed to parse model infomations."
 msgstr ""
 
 msgid ""
-"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
+"The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
 
@@ -4815,7 +4815,7 @@ msgid "Project downloaded %d%%"
 msgstr "Проект завантажено %d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
 msgstr ""
 
@@ -5684,7 +5684,7 @@ msgstr "Не вдалося надіслати завдання на друк п
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "Перед надсиланням на картку SD принтера необхідно вставити картку SD."
 
-msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgid "The printer is required to be in the same LAN as Orca Slicer."
 msgstr ""
 
 msgid "The printer does not support sending to printer SD card."
@@ -6757,14 +6757,14 @@ msgid "Network plug-in update"
 msgstr "Оновлення мережевого плагіна"
 
 msgid ""
-"Click OK to update the Network plug-in when Bambu Studio launches next time."
+"Click OK to update the Network plug-in when Orca Slicer launches next time."
 msgstr ""
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "Доступний новий мережевий плагін (%s), чи хочете ви встановити його?"
 
-msgid "New version of Bambu Studio"
+msgid "New version of Orca Slicer"
 msgstr ""
 
 msgid "Don't remind me of this version again"
@@ -6777,7 +6777,7 @@ msgid "LAN Connection Failed (Sending print file)"
 msgstr "Помилка з’єднання LAN (Надсилання файлу друку)"
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
 msgstr ""
 
 msgid ""
@@ -9258,8 +9258,11 @@ msgstr ""
 msgid "Min print speed"
 msgstr "Мін. швидкість друку"
 
-msgid "The minimum printing speed when slow down for cooling"
-msgstr "Мінімальна швидкість друку при уповільненні для охолодження"
+msgid ""
+"The minimum printing speed for the filament when slow down for better layer "
+"cooling is enabled, when printing overhangs and when feature speeds are not "
+"specified explicitly."
+msgstr ""
 
 msgid "Nozzle diameter"
 msgstr "Діаметр сопла"
@@ -11973,6 +11976,9 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "The minimum printing speed when slow down for cooling"
+#~ msgstr "Мінімальна швидкість друку при уповільненні для охолодження"
 
 #~ msgid ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "

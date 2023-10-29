@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-24 19:49+0800\n"
+"POT-Creation-Date: 2023-10-29 10:45+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: Chun <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -1473,7 +1473,7 @@ msgid "Connection to printer failed"
 msgstr "連接３Ｄ列印機失敗"
 
 msgid "Please check the network connection of the printer and Studio."
-msgstr "請檢查３Ｄ列印機和 Bambu Studio 的網路連接"
+msgstr "請檢查３Ｄ列印機和 Orca Slicer 的網路連接"
 
 msgid "Connecting..."
 msgstr "連線中..."
@@ -3616,11 +3616,11 @@ msgstr "正在下載“虛擬攝影機工具包”"
 
 msgid ""
 "Another virtual camera is running.\n"
-"Bambu Studio supports only a single virtual camera.\n"
+"Orca Slicer supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
 "另一個虛擬攝影機正在工作。\n"
-"Bambu Studio 同時只能支援一個虛擬攝影機。\n"
+"Orca Slicer 同時只能支援一個虛擬攝影機。\n"
 "是否停止前一個虛擬攝影機？"
 
 #, c-format, boost-format
@@ -3729,10 +3729,10 @@ msgid "Failed to parse model infomations."
 msgstr "解析模型資訊失敗。"
 
 msgid ""
-"The .gcode.3mf file contains no G-code data.Please slice it whthBambu Studio "
+"The .gcode.3mf file contains no G-code data.Please slice it with Orca Slicer "
 "and export a new .gcode.3mf file."
 msgstr ""
-".gcode.3mf 檔案中不包含 G-code 數據。請使用 Bambu Studio 進行切片並匯出新的."
+".gcode.3mf 檔案中不包含 G-code 數據。請使用 Orca Slicer 進行切片並匯出新的."
 "gcode.3mf 檔案。"
 
 #, c-format, boost-format
@@ -4634,9 +4634,9 @@ msgid "Project downloaded %d%%"
 msgstr "專案項目已下載%d%%"
 
 msgid ""
-"Importing to Bambu Studio failed. Please download the file and manually "
+"Importing to Orca Slicer failed. Please download the file and manually "
 "import it."
-msgstr "匯入 Bambu Studio 失敗。 請下載該檔案並手動匯入。"
+msgstr "匯入 Orca Slicer 失敗。 請下載該檔案並手動匯入。"
 
 msgid "The selected file"
 msgstr "已選擇的檔案"
@@ -5474,8 +5474,8 @@ msgstr "設備升級中，無法傳送列印作業"
 msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr "傳送到３Ｄ列印機需要插入SD記憶卡"
 
-msgid "The printer is required to be in the same LAN as Bambu Studio."
-msgstr "３Ｄ列印機需要與 Bambu Studio 在同一個區域網路內。"
+msgid "The printer is required to be in the same LAN as Orca Slicer."
+msgstr "３Ｄ列印機需要與 Orca Slicer 在同一個區域網路內。"
 
 msgid "The printer does not support sending to printer SD card."
 msgstr "該３Ｄ列印機不支援傳送到３Ｄ列印機SD記憶卡。"
@@ -6507,15 +6507,15 @@ msgid "Network plug-in update"
 msgstr "網路插件升級"
 
 msgid ""
-"Click OK to update the Network plug-in when Bambu Studio launches next time."
-msgstr "按一下「確定」以在下次啟動 Bambu Studio 時更新網路插件"
+"Click OK to update the Network plug-in when Orca Slicer launches next time."
+msgstr "按一下「確定」以在下次啟動 Orca Slicer 時更新網路插件"
 
 #, c-format, boost-format
 msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr "新的網路插件(%s) 可用，您是否需要安裝它？"
 
-msgid "New version of Bambu Studio"
-msgstr "新版本的 Bambu Studio"
+msgid "New version of Orca Slicer"
+msgstr "新版本的 Orca Slicer"
 
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
@@ -6527,8 +6527,8 @@ msgid "LAN Connection Failed (Sending print file)"
 msgstr "區域網路連接失敗 (傳送列印作業)"
 
 msgid ""
-"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-msgstr "第1步，請確認 Bambu Studio 和您的３Ｄ列印機在同一個區域網路上。"
+"Step 1, please confirm Orca Slicer and your printer are in the same LAN."
+msgstr "第1步，請確認 Orca Slicer 和您的３Ｄ列印機在同一個區域網路上。"
 
 msgid ""
 "Step 2, if the IP and Access Code below are different from the actual values "
@@ -8782,8 +8782,11 @@ msgstr "擠出頭最小可列印的層高。用於限制開啟自適應層高時
 msgid "Min print speed"
 msgstr "最小列印速度"
 
-msgid "The minimum printing speed when slow down for cooling"
-msgstr "自動冷卻降速的最小列印速度"
+msgid ""
+"The minimum printing speed for the filament when slow down for better layer "
+"cooling is enabled, when printing overhangs and when feature speeds are not "
+"specified explicitly."
+msgstr ""
 
 msgid "Nozzle diameter"
 msgstr "噴嘴直徑"
@@ -11413,6 +11416,9 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "The minimum printing speed when slow down for cooling"
+#~ msgstr "自動冷卻降速的最小列印速度"
 
 #~ msgid ""
 #~ "There are currently no identical spare consumables available, and "
