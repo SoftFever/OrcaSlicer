@@ -8393,21 +8393,17 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     if (m_canvas == nullptr)
         return Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
 
-    const Camera& camera = wxGetApp().plater()->get_camera();
-    Matrix4d modelview = camera.get_view_matrix().matrix();
-    Matrix4d projection= camera.get_projection_matrix().matrix();
-    Vec4i viewport(camera.get_viewport().data());
-
-    GLint y = viewport[3] - (GLint)mouse_pos(1);
-    GLfloat mouse_z;
-    if (z == nullptr)
-        glsafe(::glReadPixels((GLint)mouse_pos(0), y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z));
-    else
-        mouse_z = *z;
-
-    Vec3d out;
-    igl::unproject(Vec3d(mouse_pos(0), y, mouse_z), modelview, projection, viewport, out);
-    return out;
+    if (z == nullptr) {
+        const SceneRaycaster::HitResult hit = m_scene_raycaster.hit(mouse_pos.cast<double>(), wxGetApp().plater()->get_camera(), nullptr);
+        return hit.is_valid() ? hit.position.cast<double>() : _mouse_to_bed_3d(mouse_pos);
+    }
+    else {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Vec4i viewport(camera.get_viewport().data());
+        Vec3d out;
+        igl::unproject(Vec3d(mouse_pos.x(), viewport[3] - mouse_pos.y(), *z), camera.get_view_matrix().matrix(), camera.get_projection_matrix().matrix(), viewport, out);
+        return out;
+    }
 }
 
 Vec3d GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
