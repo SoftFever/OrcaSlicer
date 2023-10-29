@@ -725,14 +725,18 @@ public:
     bool init();
     void post_event(wxEvent &&event);
 	
-    std::shared_ptr<SceneRaycasterItem> add_raycaster_for_picking(SceneRaycaster::EType type, PickingId id, const MeshRaycaster& raycaster, const Transform3d& trafo) {
+    std::shared_ptr<SceneRaycasterItem> add_raycaster_for_picking(SceneRaycaster::EType type, int id, const MeshRaycaster& raycaster, const Transform3d& trafo) {
         return m_scene_raycaster.add_raycaster(type, id, raycaster, trafo);
     }
-    void remove_raycasters_for_picking(SceneRaycaster::EType type, PickingId id) {
+    void remove_raycasters_for_picking(SceneRaycaster::EType type, int id) {
         m_scene_raycaster.remove_raycasters(type, id);
     }
     void remove_raycasters_for_picking(SceneRaycaster::EType type) {
         m_scene_raycaster.remove_raycasters(type);
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* get_raycasters_for_picking(SceneRaycaster::EType type) {
+        return m_scene_raycaster.get_raycasters(type);
     }
 
     void set_raycaster_gizmos_on_top(bool value) {
@@ -1144,7 +1148,7 @@ private:
     void _check_and_update_toolbar_icon_scale();
     void _render_overlays();
     void _render_style_editor();
-    void _render_volumes_for_picking() const;
+    void _render_volumes_for_picking(const Camera& camera) const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay();
     void _render_main_toolbar();

@@ -1787,7 +1787,8 @@ void GLCanvas3D::render(bool only_init)
     // and the viewport was set incorrectly, leading to tripping glAsserts further down
     // the road (in apply_projection). That's why the minimum size is forced to 10.
     Camera& camera = wxGetApp().plater()->get_camera();
-    camera.apply_viewport(0, 0, std::max(10u, (unsigned int)cnv_size.get_width()), std::max(10u, (unsigned int)cnv_size.get_height()));
+    camera.set_viewport(0, 0, std::max(10u, (unsigned int)cnv_size.get_width()), std::max(10u, (unsigned int)cnv_size.get_height()));
+    camera.apply_viewport();
 
     if (camera.requires_zoom_to_bed) {
         zoom_to_bed();
@@ -1896,7 +1897,7 @@ void GLCanvas3D::render(bool only_init)
     _render_current_gizmo();
 
 #if ENABLE_RAYCAST_PICKING_DEBUG
-    if (m_picking_enabled && !m_mouse.dragging)
+    if (m_picking_enabled && !m_mouse.dragging && !m_gizmos.is_dragging() && !m_rectangle_selection.is_dragging())
         m_scene_raycaster.render_hit(camera);
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 
@@ -5540,7 +5541,8 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     //BBS modify scene box to plate scene bounding box
     //plate_build_volume.min(2) = - plate_build_volume.max(2);
     camera.set_scene_box(plate_build_volume);
-    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.set_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_viewport();
 
     //BoundingBoxf3 plate_box = plate->get_bounding_box(false);
     //plate_box.min.z() = 0.0;
@@ -5911,7 +5913,7 @@ void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
     // restore the default framebuffer size to avoid flickering on the 3D scene
-    //wxGetApp().plater()->get_camera().apply_viewport(0, 0, cnv_size.get_width(), cnv_size.get_height());
+    //wxGetApp().plater()->get_camera().apply_viewport();
 }
 
 //BBS: GUI refractor
@@ -6412,11 +6414,13 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
-    if (!m_picking_enabled || m_mouse.dragging || m_mouse.position == Vec2d(DBL_MAX, DBL_MAX)) {
+    if (!m_picking_enabled || m_mouse.dragging || m_mouse.position == Vec2d(DBL_MAX, DBL_MAX) && !m_gizmos.is_dragging()) {
+#if ENABLE_RAYCAST_PICKING_DEBUG
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
         imgui.text("Picking disabled");
         imgui.end();
+#endif // ENABLE_RAYCAST_PICKING_DEBUG
         return;
     }
 
@@ -6502,6 +6506,7 @@ void GLCanvas3D::_picking_pass()
             object_type = "Volume";
         break;
     }
+    default: { break; }
     }
     char buf[1024];
     if (hit.type != SceneRaycaster::EType::None) {
@@ -6536,6 +6541,56 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
     std::set<int> idxs;
 
     if (m_picking_enabled) {
+        const size_t width  = std::max<size_t>(m_rectangle_selection.get_width(), 1);
+        const size_t height = std::max<size_t>(m_rectangle_selection.get_height(), 1);
+
+        const OpenGLManager::EFramebufferType framebuffers_type = OpenGLManager::get_framebuffers_type();
+        bool use_framebuffer = framebuffers_type != OpenGLManager::EFramebufferType::Unknown;
+
+        GLuint render_fbo = 0;
+        GLuint render_tex = 0;
+        GLuint render_depth = 0;
+        if (use_framebuffer) {
+            // setup a framebuffer which covers only the selection rectangle
+            if (framebuffers_type == OpenGLManager::EFramebufferType::Arb) {
+                glsafe(::glGenFramebuffers(1, &render_fbo));
+                glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, render_fbo));
+            }
+            else {
+                glsafe(::glGenFramebuffersEXT(1, &render_fbo));
+                glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, render_fbo));
+            }
+            glsafe(::glGenTextures(1, &render_tex));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, render_tex));
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+            if (framebuffers_type == OpenGLManager::EFramebufferType::Arb) {
+                glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, render_tex, 0));
+                glsafe(::glGenRenderbuffers(1, &render_depth));
+                glsafe(::glBindRenderbuffer(GL_RENDERBUFFER, render_depth));
+                glsafe(::glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height));
+                glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, render_depth));
+            }
+            else {
+                glsafe(::glFramebufferTexture2D(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, render_tex, 0));
+                glsafe(::glGenRenderbuffersEXT(1, &render_depth));
+                glsafe(::glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, render_depth));
+                glsafe(::glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height));
+                glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, render_depth));
+            }
+            const GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0 };
+            glsafe(::glDrawBuffers(1, drawBufs));
+            if (framebuffers_type == OpenGLManager::EFramebufferType::Arb) {
+                if (::glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                    use_framebuffer = false;
+            }
+            else {
+                if (::glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
+                    use_framebuffer = false;
+            }
+        }
+
         if (m_multisample_allowed)
         	// This flag is often ignored by NVIDIA drivers if rendering into a screen buffer.
             glsafe(::glDisable(GL_MULTISAMPLE));
@@ -6545,20 +6600,48 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
 
         glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        _render_volumes_for_picking();
+        Camera& main_camera = wxGetApp().plater()->get_camera();
+        Camera framebuffer_camera;
+        Camera* camera = &main_camera;
+        if (use_framebuffer) {
+            // setup a camera which covers only the selection rectangle
+            const std::array<int, 4>& viewport = camera->get_viewport();
+            const double near_left   = camera->get_near_left();
+            const double near_bottom = camera->get_near_bottom();
+            const double near_width  = camera->get_near_width();
+            const double near_height = camera->get_near_height();
+
+            const double ratio_x = near_width / double(viewport[2]);
+            const double ratio_y = near_height / double(viewport[3]);
+
+            const double rect_near_left   = near_left + double(m_rectangle_selection.get_left()) * ratio_x;
+            const double rect_near_bottom = near_bottom + (double(viewport[3]) - double(m_rectangle_selection.get_bottom())) * ratio_y;
+            double rect_near_right = near_left + double(m_rectangle_selection.get_right()) * ratio_x;
+            double rect_near_top   = near_bottom + (double(viewport[3]) - double(m_rectangle_selection.get_top())) * ratio_y;
+
+            if (rect_near_left == rect_near_right)
+                rect_near_right = rect_near_left + ratio_x;
+            if (rect_near_bottom == rect_near_top)
+                rect_near_top = rect_near_bottom + ratio_y;
+
+            framebuffer_camera.look_at(camera->get_position(), camera->get_target(), camera->get_dir_up());
+            framebuffer_camera.apply_projection(rect_near_left, rect_near_right, rect_near_bottom, rect_near_top, camera->get_near_z(), camera->get_far_z());
+            framebuffer_camera.set_viewport(0, 0, width, height);
+            framebuffer_camera.apply_viewport();
+            camera = &framebuffer_camera;
+        }
+
+        _render_volumes_for_picking(*camera);
         //BBS: remove the bed picking logic
         //_render_bed_for_picking(!wxGetApp().plater()->get_camera().is_looking_downward());
 
         if (m_multisample_allowed)
             glsafe(::glEnable(GL_MULTISAMPLE));
 
-        int width = std::max((int)m_rectangle_selection.get_width(), 1);
-        int height = std::max((int)m_rectangle_selection.get_height(), 1);
-        int px_count = width * height;
+        const size_t px_count = width * height;
 
-        int left = (int)m_rectangle_selection.get_left();
-        int top = get_canvas_size().get_height() - (int)m_rectangle_selection.get_top();
-        if (left >= 0 && top >= 0) {
+        const size_t left = use_framebuffer ? 0 : (size_t)m_rectangle_selection.get_left();
+        const size_t top  = use_framebuffer ? 0 : (size_t)get_canvas_size().get_height() - (size_t)m_rectangle_selection.get_top();
 #define USE_PARALLEL 1
 #if USE_PARALLEL
             struct Pixel
@@ -6602,7 +6685,26 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
                     idxs.insert(volume_id);
             }
 #endif // USE_PARALLEL
-        }
+            if (camera != &main_camera)
+                main_camera.apply_viewport();
+
+            if (framebuffers_type == OpenGLManager::EFramebufferType::Arb) {
+                glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, 0));
+                if (render_depth != 0)
+                    glsafe(::glDeleteRenderbuffers(1, &render_depth));
+                if (render_fbo != 0)
+                    glsafe(::glDeleteFramebuffers(1, &render_fbo));
+            }
+            else if (framebuffers_type == OpenGLManager::EFramebufferType::Ext) {
+                glsafe(::glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
+                if (render_depth != 0)
+                    glsafe(::glDeleteRenderbuffersEXT(1, &render_depth));
+                if (render_fbo != 0)
+                    glsafe(::glDeleteFramebuffersEXT(1, &render_fbo));
+            }
+
+            if (render_tex != 0)
+                glsafe(::glDeleteTextures(1, &render_tex));
     }
 
     m_hover_volume_idxs.assign(idxs.begin(), idxs.end());
@@ -7194,7 +7296,7 @@ void GLCanvas3D::_render_style_editor()
     ImGui::End();
 }
 
-void GLCanvas3D::_render_volumes_for_picking() const
+void GLCanvas3D::_render_volumes_for_picking(const Camera& camera) const
 {
     GLShaderProgram* shader = wxGetApp().get_shader("flat_clip");
     if (shader == nullptr)
@@ -7203,7 +7305,7 @@ void GLCanvas3D::_render_volumes_for_picking() const
     // do not cull backfaces to show broken geometry, if any
     glsafe(::glDisable(GL_CULL_FACE));
 
-    const Transform3d& view_matrix = wxGetApp().plater()->get_camera().get_view_matrix();
+    const Transform3d& view_matrix = camera.get_view_matrix();
     for (size_t type = 0; type < 2; ++ type) {
         GLVolumeWithIdAndZList to_render = volumes_to_render(m_volumes.volumes, (type == 0) ? GLVolumeCollection::ERenderType::Opaque : GLVolumeCollection::ERenderType::Transparent, view_matrix);
         for (const GLVolumeWithIdAndZ& volume : to_render)
@@ -7216,8 +7318,7 @@ void GLCanvas3D::_render_volumes_for_picking() const
                 //const unsigned int id = 1 + volume.second.first;
                 volume.first->model.set_color(picking_decode(id));
                 shader->start_using();
-                const Camera& camera = wxGetApp().plater()->get_camera();
-                shader->set_uniform("view_model_matrix", camera.get_view_matrix() * volume.first->world_matrix());
+                shader->set_uniform("view_model_matrix", view_matrix * volume.first->world_matrix());
                 shader->set_uniform("projection_matrix", camera.get_projection_matrix());
                 shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
                 shader->set_uniform("z_range", m_volumes.get_z_range());

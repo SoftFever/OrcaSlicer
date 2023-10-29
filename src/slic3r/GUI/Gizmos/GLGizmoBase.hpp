@@ -87,7 +87,7 @@ protected:
         ColorRGBA hover_color{GRABBER_HOVER_COL};
         EGrabberExtension extensions{ EGrabberExtension::None };
         // the picking id shared by all the elements
-        PickingId picking_id{ -1 };
+        int picking_id{ -1 };
         std::array<std::shared_ptr<SceneRaycasterItem>, GRABBER_ELEMENTS_MAX_COUNT> raycasters = { nullptr };
 
         Grabber() = default;
@@ -99,7 +99,7 @@ protected:
         float get_dragging_half_size(float size) const;
         PickingModel &get_cube();
 
-        void register_raycasters_for_picking(PickingId id);
+        void register_raycasters_for_picking(int id);
         void unregister_raycasters_for_picking();
 
     private:

@@ -1305,7 +1305,8 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 
 #if 1
     Camera camera;
-    camera.apply_viewport(0,0,thumbnail_data.width, thumbnail_data.height);
+    camera.set_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_viewport();
     camera.set_scene_box(plate_box);
     camera.set_type(Camera::EType::Ortho);
     camera.set_target(center);

@@ -31,7 +31,7 @@ SceneRaycaster::SceneRaycaster() {
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 }
 
-std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, PickingId id, const MeshRaycaster& raycaster, const Transform3d& trafo)
+std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, int id, const MeshRaycaster& raycaster, const Transform3d& trafo)
 {
     switch (type) {
     case EType::Bed:    { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo)); }
@@ -41,7 +41,7 @@ std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, Pi
     };
 }
 
-void SceneRaycaster::remove_raycasters(EType type, PickingId id)
+void SceneRaycaster::remove_raycasters(EType type, int id)
 {
     std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
     auto it = raycasters->begin();
@@ -102,7 +102,7 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
 
     HitResult ret;
 
-    auto test_raycasters = [&](EType type) {
+    auto test_raycasters = [this, is_closest, clipping_plane](EType type, const Vec2d& mouse_pos, const Camera& camera, HitResult& ret) {
         const ClippingPlane* clip_plane = (clipping_plane != nullptr && type == EType::Volume) ? clipping_plane : nullptr;
         std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
         HitResult current_hit = { type };
@@ -115,7 +115,6 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
             if (item->get_raycaster()->closest_hit(mouse_pos, trafo, camera, current_hit.position, current_hit.normal, clip_plane)) {
                 current_hit.position = (trafo * current_hit.position.cast<double>()).cast<float>();
                 if (is_closest(camera, current_hit.position)) {
-                    const Transform3d matrix = camera.get_view_matrix() * trafo;
                     const Matrix3d normal_matrix = (Matrix3d)trafo.matrix().block(0, 0, 3, 3).inverse().transpose();
                     current_hit.normal = (normal_matrix * current_hit.normal.cast<double>()).normalized().cast<float>();
                     ret = current_hit;
@@ -125,13 +124,13 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
     };
 
     if (!m_gizmos.empty())
-        test_raycasters(EType::Gizmo);
+        test_raycasters(EType::Gizmo, mouse_pos, camera, ret);
 
     if (!m_gizmos_on_top || !ret.is_valid()) {
         if (camera.is_looking_downward() && !m_bed.empty())
-            test_raycasters(EType::Bed);
+            test_raycasters(EType::Bed, mouse_pos, camera, ret);
         if (!m_volumes.empty())
-            test_raycasters(EType::Volume);
+            test_raycasters(EType::Volume, mouse_pos, camera, ret);
     }
 
     if (ret.is_valid())
@@ -146,7 +145,7 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
 #if ENABLE_RAYCAST_PICKING_DEBUG
 void SceneRaycaster::render_hit(const Camera& camera)
 {
-    if (!m_last_hit.has_value() || !m_last_hit.value().is_valid())
+    if (!m_last_hit.has_value() || !(*m_last_hit).is_valid())
         return;
 
     GLShaderProgram* shader = wxGetApp().get_shader("flat");
@@ -154,14 +153,14 @@ void SceneRaycaster::render_hit(const Camera& camera)
 
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
-    const Transform3d sphere_view_model_matrix = camera.get_view_matrix() * Geometry::translation_transform(m_last_hit.value().position.cast<double>()) *
+    const Transform3d sphere_view_model_matrix = camera.get_view_matrix() * Geometry::translation_transform((*m_last_hit).position.cast<double>()) *
         Geometry::scale_transform(4.0 * camera.get_inv_zoom());
     shader->set_uniform("view_model_matrix", sphere_view_model_matrix);
     m_sphere.render();
 
     Eigen::Quaterniond q;
     Transform3d m = Transform3d::Identity();
-    m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3d::UnitZ(), m_last_hit.value().normal.cast<double>()).toRotationMatrix();
+    m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3d::UnitZ(), (*m_last_hit).normal.cast<double>()).toRotationMatrix();
 
     const Transform3d line_view_model_matrix = sphere_view_model_matrix * m * Geometry::scale_transform(10.0);
     shader->set_uniform("view_model_matrix", line_view_model_matrix);
@@ -185,28 +184,22 @@ std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters
     return ret;
 }
 
-PickingId SceneRaycaster::base_id(EType type)
+int SceneRaycaster::base_id(EType type)
 {
     switch (type)
     {
-    case EType::Bed:    { return PickingId(EPickingIdBase::Bed); }
-    case EType::Volume: { return PickingId(EPickingIdBase::Volume); }
-    case EType::Gizmo:  { return PickingId(EPickingIdBase::Gizmo); }
+    case EType::Bed:    { return int(EIdBase::Bed); }
+    case EType::Volume: { return int(EIdBase::Volume); }
+    case EType::Gizmo:  { return int(EIdBase::Gizmo); }
+    default:            { break; }
     };
 
     assert(false);
     return -1;
 }
 
-PickingId SceneRaycaster::encode_id(EType type, PickingId id)
-{
-    return base_id(type) + id;
-}
-
-PickingId SceneRaycaster::decode_id(EType type, PickingId id)
-{
-    return id - base_id(type);
-}
+int SceneRaycaster::encode_id(EType type, int id) { return base_id(type) + id; }
+int SceneRaycaster::decode_id(EType type, int id) { return id - base_id(type); }
 
 } // namespace GUI
 } // namespace Slic3r

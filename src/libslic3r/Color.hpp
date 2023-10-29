@@ -133,41 +133,41 @@ public:
 	static const ColorRGBA Z()           { return { 0.0f, 0.0f, 0.75f, 1.0f }; }
 };
 
-extern ColorRGB operator * (float value, const ColorRGB& other);
-extern ColorRGBA operator * (float value, const ColorRGBA& other);
+ColorRGB operator * (float value, const ColorRGB& other);
+ColorRGBA operator * (float value, const ColorRGBA& other);
 
-extern ColorRGB lerp(const ColorRGB& a, const ColorRGB& b, float t);
-extern ColorRGBA lerp(const ColorRGBA& a, const ColorRGBA& b, float t);
+ColorRGB lerp(const ColorRGB& a, const ColorRGB& b, float t);
+ColorRGBA lerp(const ColorRGBA& a, const ColorRGBA& b, float t);
 
-extern ColorRGB complementary(const ColorRGB& color);
-extern ColorRGBA complementary(const ColorRGBA& color);
+ColorRGB complementary(const ColorRGB& color);
+ColorRGBA complementary(const ColorRGBA& color);
 
-extern ColorRGB saturate(const ColorRGB& color, float factor);
-extern ColorRGBA saturate(const ColorRGBA& color, float factor);
+ColorRGB saturate(const ColorRGB& color, float factor);
+ColorRGBA saturate(const ColorRGBA& color, float factor);
 
-extern ColorRGB opposite(const ColorRGB& color);
-extern ColorRGB opposite(const ColorRGB& a, const ColorRGB& b);
+ColorRGB opposite(const ColorRGB& color);
+ColorRGB opposite(const ColorRGB& a, const ColorRGB& b);
 
-extern bool can_decode_color(const std::string& color);
+bool can_decode_color(const std::string& color);
 
-extern bool decode_color(const std::string& color_in, ColorRGB& color_out);
-extern bool decode_color(const std::string& color_in, ColorRGBA& color_out);
+bool decode_color(const std::string& color_in, ColorRGB& color_out);
+bool decode_color(const std::string& color_in, ColorRGBA& color_out);
 
-extern bool decode_colors(const std::vector<std::string>& colors_in, std::vector<ColorRGB>& colors_out);
-extern bool decode_colors(const std::vector<std::string>& colors_in, std::vector<ColorRGBA>& colors_out);
+bool decode_colors(const std::vector<std::string>& colors_in, std::vector<ColorRGB>& colors_out);
+bool decode_colors(const std::vector<std::string>& colors_in, std::vector<ColorRGBA>& colors_out);
 
-extern std::string encode_color(const ColorRGB& color);
-extern std::string encode_color(const ColorRGBA& color);
+std::string encode_color(const ColorRGB& color);
+std::string encode_color(const ColorRGBA& color);
 
-extern ColorRGB  to_rgb(const ColorRGBA& other_rgba);
-extern ColorRGBA to_rgba(const ColorRGB& other_rgb);
-extern ColorRGBA to_rgba(const ColorRGB& other_rgb, float alpha);
+ColorRGB  to_rgb(const ColorRGBA& other_rgba);
+ColorRGBA to_rgba(const ColorRGB& other_rgb);
+ColorRGBA to_rgba(const ColorRGB& other_rgb, float alpha);
 
-extern ColorRGBA picking_decode(unsigned int id);
-extern unsigned int picking_encode(unsigned char r, unsigned char g, unsigned char b);
+ColorRGBA picking_decode(unsigned int id);
+unsigned int picking_encode(unsigned char r, unsigned char g, unsigned char b);
 // Produce an alpha channel checksum for the red green blue components. The alpha channel may then be used to verify, whether the rgb components
 // were not interpolated by alpha blending or multi sampling.
-extern unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue);
+unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char green, unsigned char blue);
 
 } // namespace Slic3r
 

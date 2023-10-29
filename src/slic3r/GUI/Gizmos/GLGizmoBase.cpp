@@ -104,7 +104,7 @@ PickingModel &GLGizmoBase::Grabber::get_cube()
     return s_cube;
 }
 
-void GLGizmoBase::Grabber::register_raycasters_for_picking(PickingId id)
+void GLGizmoBase::Grabber::register_raycasters_for_picking(int id)
 {
     picking_id = id;
     // registration will happen on next call to render()
