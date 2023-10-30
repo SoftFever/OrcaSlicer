@@ -1199,6 +1199,9 @@ bool CalibrationPresetPage::need_check_sdcard(MachineObject* obj)
 
 void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
 {
+    if (m_stop_update_page_status)
+        return;
+
     if (m_page_status != status)
         //BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: show_status = " << status << "(" << get_print_status_info(status) << ")";
     m_page_status = status;
@@ -1407,6 +1410,8 @@ void CalibrationPresetPage::on_cali_start_job()
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, false);
     Layout();
     Fit();
+
+    m_stop_update_page_status = true;
 }
 
 void CalibrationPresetPage::on_cali_finished_job()
@@ -1418,6 +1423,8 @@ void CalibrationPresetPage::on_cali_finished_job()
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
     Layout();
     Fit();
+
+    m_stop_update_page_status = false;
 }
 
 void CalibrationPresetPage::on_cali_cancel_job()
@@ -1438,6 +1445,8 @@ void CalibrationPresetPage::on_cali_cancel_job()
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_CALI, true);
     Layout();
     Fit();
+
+    m_stop_update_page_status = false;
 }
 
 void CalibrationPresetPage::init_with_machine(MachineObject* obj)

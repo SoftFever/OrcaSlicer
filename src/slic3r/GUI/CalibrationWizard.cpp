@@ -90,6 +90,26 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     main_sizer->Fit(this);
 
     Bind(EVT_CALIBRATION_JOB_FINISHED, &CalibrationWizard::on_cali_job_finished, this);
+    this->Bind(wxEVT_CHAR_HOOK, [this](auto& evt) {
+        const int keyCode = evt.GetKeyCode();
+        switch (keyCode)
+        {
+        case WXK_F1:
+        {
+            show_step(m_curr_step->prev);
+            break;
+        }
+        case WXK_F2:
+        {
+            show_step(m_curr_step->next);
+            break;
+        }
+        default:
+            evt.Skip();
+            break;
+        }
+        });
+
 }
 
 CalibrationWizard::~CalibrationWizard()
@@ -990,8 +1010,13 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             }
             else if (stage == CaliPresetStage::CALI_MANUAL_STAGE_2) {
                 cali_stage = 2;
-                calib_info.process_bar = coarse_page->get_sending_progress_bar();
                 temp_filament_preset->config.set_key_value("filament_flow_ratio", new ConfigOptionFloats{ cali_value });
+                if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE) {
+                    calib_info.process_bar = preset_page->get_sending_progress_bar();
+                }
+                else if (from_page == FlowRatioCaliSource::FROM_COARSE_PAGE) {
+                    calib_info.process_bar = coarse_page->get_sending_progress_bar();
+                }
             }
             calib_info.filament_prest = temp_filament_preset;
 
@@ -1021,7 +1046,12 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
         else if (cali_stage == 2) {
             CalibrationCaliPage *cali_fine_page = (static_cast<CalibrationCaliPage *>(cali_fine_step->page));
             cali_fine_page->clear_last_job_status();
-            coarse_page->on_cali_start_job();
+            if (from_page == FlowRatioCaliSource::FROM_PRESET_PAGE) {
+                preset_page->on_cali_start_job();
+            }
+            else if (from_page == FlowRatioCaliSource::FROM_COARSE_PAGE) {
+                coarse_page->on_cali_start_job();
+            }
         }
     } else {
         assert(false);
@@ -1208,6 +1238,7 @@ void FlowRateWizard::on_cali_job_finished(wxString evt_data)
                 show_step(cali_fine_step);
             }
             // change ui, hide
+            static_cast<CalibrationPresetPage*>(preset_step->page)->on_cali_finished_job();
             static_cast<CalibrationFlowCoarseSavePage*>(coarse_save_step->page)->on_cali_finished_job();
         }
         else

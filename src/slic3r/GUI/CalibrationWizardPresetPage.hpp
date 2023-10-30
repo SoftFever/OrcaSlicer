@@ -281,6 +281,7 @@ protected:
     std::map<int, DynamicPrintConfig> filament_ams_list;
 
     CaliPresetPageStatus    m_page_status { CaliPresetPageStatus::CaliPresetStatusInit };
+    bool                    m_stop_update_page_status{ false };
 
     bool m_show_custom_range { false };
     bool m_has_filament_incompatible { false };
