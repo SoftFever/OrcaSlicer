@@ -1789,7 +1789,7 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 		return;
 	}
 
-	if (with_instance_move)
+	if (with_instance_move && m_model)
 	{
 		for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 			int obj_id = it->first;
@@ -4913,7 +4913,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": plates count %1%") % m_plate_list.size();
 	update_plate_cols();
-	update_all_plates_pos_and_size(true, false);
+	update_all_plates_pos_and_size(false, false);
 	set_shapes(m_shape, m_exclude_areas, m_logo_texture_filename, m_height_to_lid, m_height_to_rod);
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
