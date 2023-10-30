@@ -2307,19 +2307,19 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type)
     auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
 
     auto preset_bundle = wxGetApp().preset_bundle;
-    for (auto filament_name : preset_bundle->filament_presets) {
-        for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
-            if (filament_name.compare(iter->name) == 0) {
-                std::string display_filament_type;
-                filament_type = iter->config.get_filament_type(display_filament_type);
-                auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(filament_type);
+    MaterialHash::iterator iter = m_materialList.begin();
+    while (iter != m_materialList.end()) {
+        Material* item = iter->second;
+        MaterialItem* m = item->item;
+        auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(m->m_material_name.ToStdString());
 
-                if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
-                    BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
-                    is_same_nozzle_type = false;
-                }
-            }
+        if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
+            filament_type = m->m_material_name.ToStdString();
+            BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
+            is_same_nozzle_type = false;
         }
+
+        iter++;
     }
 
     return is_same_nozzle_type;
@@ -3821,17 +3821,21 @@ void SelectMachineDialog::set_default_normal()
 
     
     auto preset_bundle = wxGetApp().preset_bundle;
+
     for (auto filament_name : preset_bundle->filament_presets) {
-        for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
-            if (filament_name.compare(iter->name) == 0) {
+        for (int f_index = 0; f_index < preset_bundle->filaments.size(); f_index++) {
+            PresetCollection* filament_presets = &wxGetApp().preset_bundle->filaments;
+            Preset* preset = &filament_presets->preset(f_index);
+ 
+            if (preset && filament_name.compare(preset->name) == 0) {
                 std::string display_filament_type;
-                std::string filament_type = iter->config.get_filament_type(display_filament_type);
-                std::string m_filament_id=iter->filament_id;
+                std::string filament_type = preset->config.get_filament_type(display_filament_type);
+                std::string m_filament_id=preset->filament_id;
                 display_materials.push_back(display_filament_type);
                 materials.push_back(filament_type);
                 m_filaments_id.push_back(m_filament_id);
-                if (iter->vendor && !iter->vendor->name.empty())
-                    brands.push_back(iter->vendor->name);
+                if (preset->vendor && !preset->vendor->name.empty())
+                    brands.push_back(preset->vendor->name);
                 else
                     brands.push_back("");
             }
