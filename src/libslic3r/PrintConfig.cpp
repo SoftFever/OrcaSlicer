@@ -5125,20 +5125,20 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("export_3mf", coString);
-    def->label = L("Export 3MF");
-    def->tooltip = L("Export project as 3MF.");
+    def->label = "Export 3MF";
+    def->tooltip = "Export project as 3MF.";
     def->cli_params = "filename.3mf";
     def->set_default_value(new ConfigOptionString("output.3mf"));
 
     def = this->add("export_slicedata", coString);
-    def->label = L("Export slicing data");
-    def->tooltip = L("Export slicing data to a folder.");
+    def->label = "Export slicing data";
+    def->tooltip = "Export slicing data to a folder.";
     def->cli_params = "slicing_data_directory";
     def->set_default_value(new ConfigOptionString("cached_data"));
 
     def = this->add("load_slicedata", coStrings);
-    def->label = L("Load slicing data");
-    def->tooltip = L("Load cached slicing data from directory");
+    def->label = "Load slicing data";
+    def->tooltip = "Load cached slicing data from directory";
     def->cli_params = "slicing_data_directory";
     def->set_default_value(new ConfigOptionString("cached_data"));
 
@@ -5148,8 +5148,8 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("export_stl", coBool);
-    def->label = L("Export STL");
-    def->tooltip = L("Export the objects as multiple STL.");
+    def->label = "Export STL";
+    def->tooltip = "Export the objects as multiple STL.";
     def->set_default_value(new ConfigOptionBool(false));
 
     /*def = this->add("export_gcode", coBool);
@@ -5166,46 +5166,46 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("slice", coInt);
-    def->label = L("Slice");
-    def->tooltip = L("Slice the plates: 0-all plates, i-plate i, others-invalid");
+    def->label = "Slice";
+    def->tooltip = "Slice the plates: 0-all plates, i-plate i, others-invalid";
     def->cli = "slice";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("help", coBool);
-    def->label = L("Help");
-    def->tooltip = L("Show command help.");
+    def->label = "Help";
+    def->tooltip = "Show command help.";
     def->cli = "help|h";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("uptodate", coBool);
-    def->label = L("UpToDate");
-    def->tooltip = L("Update the configs values of 3mf to latest.");
+    def->label = "UpToDate";
+    def->tooltip = "Update the configs values of 3mf to latest.";
     def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("load_defaultfila", coBool);
-    def->label = L("Load default filaments");
-    def->tooltip = L("Load first filament as default for those not loaded");
+    def->label = "Load default filaments";
+    def->tooltip = "Load first filament as default for those not loaded";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("min_save", coBool);
-    def->label = L("Minimum save");
-    def->tooltip = L("export 3mf with minimum size.");
+    def->label = "Minimum save";
+    def->tooltip = "export 3mf with minimum size.";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("mtcpp", coInt);
-    def->label = L("mtcpp");
-    def->tooltip = L("max triangle count per plate for slicing.");
+    def->label = "mtcpp";
+    def->tooltip = "max triangle count per plate for slicing.";
     def->cli = "mtcpp";
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1000000));
 
     def = this->add("mstpp", coInt);
-    def->label = L("mstpp");
-    def->tooltip = L("max slicing time per plate in seconds.");
+    def->label = "mstpp";
+    def->tooltip = "max slicing time per plate in seconds.";
     def->cli = "mstpp";
     def->cli_params = "time";
     def->set_default_value(new ConfigOptionInt(300));
@@ -5217,8 +5217,8 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("normative_check", coBool);
-    def->label = L("Normative check");
-    def->tooltip = L("Check the normative items.");
+    def->label = "Normative check";
+    def->tooltip = "Check the normative items.";
     def->cli_params = "option";
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -5233,19 +5233,19 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("info", coBool);
-    def->label = L("Output Model Info");
-    def->tooltip = L("Output the model's information.");
+    def->label = "Output Model Info";
+    def->tooltip = "Output the model's information.";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("export_settings", coString);
-    def->label = L("Export Settings");
-    def->tooltip = L("Export settings to a file.");
+    def->label = "Export Settings";
+    def->tooltip = "Export settings to a file.";
     def->cli_params = "settings.json";
     def->set_default_value(new ConfigOptionString("output.json"));
 
     def = this->add("pipe", coString);
-    def->label = L("Send progress to pipe");
-    def->tooltip = L("Send progress to pipe.");
+    def->label = "Send progress to pipe";
+    def->tooltip = "Send progress to pipe.";
     def->cli_params = "pipename";
     def->set_default_value(new ConfigOptionString(""));
 }
@@ -5289,21 +5289,21 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionPoint(Vec2d(100,100)));*/
 
     def = this->add("arrange", coInt);
-    def->label = L("Arrange Options");
-    def->tooltip = L("Arrange options: 0-disable, 1-enable, others-auto");
+    def->label = "Arrange Options";
+    def->tooltip = "Arrange options: 0-disable, 1-enable, others-auto";
     def->cli_params = "option";
     //def->cli = "arrange|a";
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("repetitions", coInt);
-    def->label = L("Repetions count");
-    def->tooltip = L("Repetions count of the whole model");
+    def->label = "Repetions count";
+    def->tooltip = "Repetions count of the whole model";
     def->cli_params = "count";
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("ensure_on_bed", coBool);
-    def->label = L("Ensure on bed");
-    def->tooltip = L("Lift the object above the bed when it is partially below. Disabled by default");
+    def->label = "Ensure on bed";
+    def->tooltip = "Lift the object above the bed when it is partially below. Disabled by default";
     def->set_default_value(new ConfigOptionBool(false));
 
     /*def = this->add("copy", coInt);
@@ -5317,19 +5317,19 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->tooltip = L("Multiply copies by creating a grid.");*/
 
     def = this->add("assemble", coBool);
-    def->label = L("Assemble");
-    def->tooltip = L("Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.");
+    def->label = "Assemble";
+    def->tooltip = "Arrange the supplied models in a plate and merge them in a single model in order to perform actions once.";
     //def->cli = "merge|m";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("convert_unit", coBool);
-    def->label = L("Convert Unit");
-    def->tooltip = L("Convert the units of model");
+    def->label = "Convert Unit";
+    def->tooltip = "Convert the units of model";
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("orient", coInt);
-    def->label = L("Orient Options");
-    def->tooltip = L("Orient options: 0-disable, 1-enable, others-auto");
+    def->label = "Orient Options";
+    def->tooltip = "Orient options: 0-disable, 1-enable, others-auto";
     //def->cli = "orient|o";
     def->set_default_value(new ConfigOptionInt(0));
 
@@ -5339,23 +5339,23 @@ CLITransformConfigDef::CLITransformConfigDef()
     def->set_default_value(new ConfigOptionBool(false));*/
 
     def = this->add("rotate", coFloat);
-    def->label = L("Rotate");
-    def->tooltip = L("Rotation angle around the Z axis in degrees.");
+    def->label = "Rotate";
+    def->tooltip = "Rotation angle around the Z axis in degrees.";
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_x", coFloat);
-    def->label = L("Rotate around X");
-    def->tooltip = L("Rotation angle around the X axis in degrees.");
+    def->label = "Rotate around X";
+    def->tooltip = "Rotation angle around the X axis in degrees.";
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("rotate_y", coFloat);
-    def->label = L("Rotate around Y");
-    def->tooltip = L("Rotation angle around the Y axis in degrees.");
+    def->label = "Rotate around Y";
+    def->tooltip = "Rotation angle around the Y axis in degrees.";
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("scale", coFloat);
-    def->label = L("Scale");
-    def->tooltip = L("Scale the model by a float factor");
+    def->label = "Scale";
+    def->tooltip = "Scale the model by a float factor";
     def->cli_params = "factor";
     def->set_default_value(new ConfigOptionFloat(1.f));
 
@@ -5396,32 +5396,32 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");*/
 
     def = this->add("load_settings", coStrings);
-    def->label = L("Load General Settings");
-    def->tooltip = L("Load process/machine settings from the specified file");
+    def->label = "Load General Settings";
+    def->tooltip = "Load process/machine settings from the specified file";
     def->cli_params = "\"setting1.json;setting2.json\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("load_filaments", coStrings);
-    def->label = L("Load Filament Settings");
-    def->tooltip = L("Load filament settings from the specified file list");
+    def->label = "Load Filament Settings";
+    def->tooltip = "Load filament settings from the specified file list";
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
     def = this->add("skip_objects", coInts);
-    def->label = L("Skip Objects");
-    def->tooltip = L("Skip some objects in this print");
+    def->label = "Skip Objects";
+    def->tooltip = "Skip some objects in this print";
     def->cli_params = "\"3,5,10,77\"";
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("clone_objects", coInts);
-    def->label = L("Clone Objects");
-    def->tooltip = L("Clone objects in the load list");
+    def->label = "Clone Objects";
+    def->tooltip = "Clone objects in the load list";
     def->cli_params = "\"1,3,1,10\"";
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("uptodate_settings", coStrings);
-    def->label = L("load uptodate process/machine settings when using uptodate");
-    def->tooltip = L("load uptodate process/machine settings from the specified file when using uptodate");
+    def->label = "load uptodate process/machine settings when using uptodate";
+    def->tooltip = "load uptodate process/machine settings from the specified file when using uptodate";
     def->cli_params = "\"setting1.json;setting2.json\"";
     def->set_default_value(new ConfigOptionStrings());
 
@@ -5443,21 +5443,21 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 */
 
     def = this->add("outputdir", coString);
-    def->label = L("Output directory");
-    def->tooltip = L("Output directory for the exported files.");
+    def->label = "Output directory";
+    def->tooltip = "Output directory for the exported files.";
     def->cli_params = "dir";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("debug", coInt);
-    def->label = L("Debug level");
-    def->tooltip = L("Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n");
+    def->label = "Debug level";
+    def->tooltip = "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n";
     def->min = 0;
     def->cli_params = "level";
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("enable_timelapse", coBool);
-    def->label = L("Enable timeplapse for print");
-    def->tooltip = L("If enabled, this slicing will be considered using timelapse");
+    def->label = "Enable timeplapse for print";
+    def->tooltip = "If enabled, this slicing will be considered using timelapse";
     def->set_default_value(new ConfigOptionBool(false));
 
 #if (defined(_MSC_VER) || defined(__MINGW32__)) && defined(SLIC3R_GUI)
@@ -5468,20 +5468,20 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 #endif /* _MSC_VER */
 
     def = this->add("load_custom_gcodes", coString);
-    def->label = L("Load custom gcode");
-    def->tooltip = L("Load custom gcode from json");
+    def->label = "Load custom gcode";
+    def->tooltip = "Load custom gcode from json";
     def->cli_params = "custom_gcode_toolchange.json";
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("load_filament_ids", coInts);
-    def->label = L("Load filament ids");
-    def->tooltip = L("Load filament ids for each object");
+    def->label = "Load filament ids";
+    def->tooltip = "Load filament ids for each object";
     def->cli_params = "\"1,2,3,1\"";
     def->set_default_value(new ConfigOptionInts());
 
     def = this->add("allow_multicolor_oneplate", coBool);
-    def->label = L("Allow multiple color on one plate");
-    def->tooltip = L("If enabled, the arrange will allow multiple color on one plate ");
+    def->label = "Allow multiple color on one plate";
+    def->tooltip = "If enabled, the arrange will allow multiple color on one plate ";
     def->set_default_value(new ConfigOptionBool(true));
 }
 
