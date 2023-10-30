@@ -3232,6 +3232,14 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         }else if (dev->get_selected_machine()->dev_id != m_printer_last_select) {
             dev->set_selected_machine(m_printer_last_select, true);
         }
+
+        // reset the timelapse check status for I3 structure
+        if (obj->get_printer_arch() == PrinterArch::ARCH_I3) {
+            m_checkbox_list["timelapse"]->SetValue(false);
+            AppConfig *config = wxGetApp().app_config;
+            if (config) config->set_str("print", "timelapse", "0");
+        }
+
         // Has changed machine unrecoverably
         GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj);
         update_select_layout(obj);
