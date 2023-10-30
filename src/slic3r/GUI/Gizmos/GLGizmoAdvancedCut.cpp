@@ -2000,6 +2000,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     m_imgui->disabled_end();
     ImGui::SameLine();
     const bool reset_clicked = m_imgui->button(_L("Reset"));
+    ImGui::PopStyleVar(2);
     if (reset_clicked) { reset_all(); }
 }
 
