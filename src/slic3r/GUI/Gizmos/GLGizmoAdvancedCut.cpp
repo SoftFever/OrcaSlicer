@@ -174,6 +174,9 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
         return true;
     }
     else if (action == SLAGizmoEventType::LeftUp) {
+        if (m_connectors_editing && m_connector_type == CutConnectorType::Snap && m_add_connector_ok && m_hover_id == -1) {
+            return true;//Snap connector special logic, due to gaps in the middle of the snap, other connectors such as cylinders are solid
+        }
         if (m_hover_id == -1 && !shift_down && !alt_down)
             unselect_all_connectors();
 
@@ -1308,6 +1311,7 @@ void GLGizmoAdvancedCut::validate_connector_settings()
 
 bool GLGizmoAdvancedCut::add_connector(CutConnectors &connectors, const Vec2d &mouse_position)
 {
+    m_add_connector_ok = false;
     if (!m_connectors_editing)
         return false;
 
@@ -1324,6 +1328,7 @@ bool GLGizmoAdvancedCut::add_connector(CutConnectors &connectors, const Vec2d &m
         assert(m_selected.size() == connectors.size());
         m_parent.set_as_dirty();
         check_and_update_connectors_state();
+        m_add_connector_ok = true;
         return true;
     }
     return false;

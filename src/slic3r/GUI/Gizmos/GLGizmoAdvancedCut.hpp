@@ -120,6 +120,7 @@ private:
     mutable Grabber m_move_x_grabber;
 
     bool m_connectors_editing{false};
+    bool m_add_connector_ok{false};
     std::vector<size_t> m_invalid_connectors_idxs;
     bool m_show_shortcuts{false};
 
