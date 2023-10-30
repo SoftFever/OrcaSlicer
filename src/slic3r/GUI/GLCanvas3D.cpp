@@ -7551,6 +7551,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                         m_sel_plate_toolbar.m_items[i]->selected = false;
                     }
                     all_plates_stats_item->selected = true;
+                    wxGetApp().plater()->update(true, true);
                     wxCommandEvent evt = wxCommandEvent(EVT_GLTOOLBAR_SLICE_ALL);
                     wxPostEvent(wxGetApp().plater(), evt);
                 }
@@ -7635,6 +7636,8 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
                 all_plates_stats_item->selected = false;
                 item->selected = true;
                 // begin to slicing plate
+                if (item->slice_state != IMToolbarItem::SliceState::SLICED)
+                    wxGetApp().plater()->update(true, true);
                 wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
                 evt->SetInt(i);
                 wxQueueEvent(wxGetApp().plater(), evt);
