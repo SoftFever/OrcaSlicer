@@ -1,18 +1,25 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966, Lukáš Hejl @hejllukas, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_MeshUtils_hpp_
 #define slic3r_MeshUtils_hpp_
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
-#include "libslic3r/SLA/IndexedMesh.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/AABBMesh.hpp"
+#include "libslic3r/CSGMesh/TriangleMeshAdapter.hpp"
+#include "libslic3r/CSGMesh/CSGMeshCopy.hpp"
 #include "admesh/stl.h"
 
 #include "slic3r/GUI/GLModel.hpp"
 
 #include <cfloat>
+#include <optional>
 #include <memory>
 
 namespace Slic3r {
-
 namespace GUI {
 
 struct Camera;
@@ -71,6 +78,10 @@ public:
 class MeshClipper
 {
 public:
+    // Set whether the cut should be triangulated and whether a cut
+    // contour should be calculated and shown.
+    void set_behaviour(bool fill_cut, double contour_width);
+    
     // Inform MeshClipper about which plane we want to use to cut the mesh
     // This is supposed to be in world coordinates.
     void set_plane(const ClippingPlane& plane);
@@ -82,9 +93,25 @@ public:
 
     // Which mesh to cut. MeshClipper remembers const * to it, caller
     // must make sure that it stays valid.
-    void set_mesh(const TriangleMesh& mesh);
+    void set_mesh(const indexed_triangle_set& mesh);
+    void set_mesh(AnyPtr<const indexed_triangle_set> &&ptr);
 
-    void set_negative_mesh(const TriangleMesh &mesh);
+    void set_negative_mesh(const indexed_triangle_set &mesh);
+    void set_negative_mesh(AnyPtr<const indexed_triangle_set> &&ptr);
+
+    template<class It>
+    void set_mesh(const Range<It> &csgrange, bool copy_meshes = false)
+    {
+        if (! csg::is_same(range(m_csgmesh), csgrange)) {
+            m_csgmesh.clear();
+            if (copy_meshes)
+                csg::copy_csgrange_deep(csgrange, std::back_inserter(m_csgmesh));
+            else
+                csg::copy_csgrange_shallow(csgrange, std::back_inserter(m_csgmesh));
+
+            m_result.reset();
+        }
+    }
 
     // Inform the MeshClipper about the transformation that transforms the mesh
     // into world coordinates.
@@ -92,34 +119,41 @@ public:
 
     // Render the triangulated cut. Transformation matrices should
     // be set in world coords.
-    void render_cut(const ColorRGBA& color);
+    void render_cut(const ColorRGBA& color, const std::vector<size_t>* ignore_idxs = nullptr);
+    void render_contour(const ColorRGBA& color, const std::vector<size_t>* ignore_idxs = nullptr);
 
-    bool is_projection_inside_cut(const Vec3d &point) const;
+    // Returns index of the contour which was clicked, -1 otherwise.
+    int is_projection_inside_cut(const Vec3d& point) const;
     bool has_valid_contour() const;
+    int get_number_of_contours() const { return m_result ? m_result->cut_islands.size() : 0; }
+    std::vector<Vec3d> point_per_contour() const;
 
 private:
     void recalculate_triangles();
 
     Geometry::Transformation m_trafo;
-    const TriangleMesh* m_mesh = nullptr;
-    const TriangleMesh* m_negative_mesh = nullptr;
+    AnyPtr<const indexed_triangle_set> m_mesh;
+    AnyPtr<const indexed_triangle_set> m_negative_mesh;
+    std::vector<csg::CSGPart> m_csgmesh;
+
     ClippingPlane m_plane;
     ClippingPlane m_limiting_plane = ClippingPlane::ClipsNothing();
-    std::vector<Vec2f> m_triangles2d;
-    GLModel m_model;
-    bool m_triangles_valid = false;
 
-    struct CutIsland
-    {
-        ExPolygon   expoly;
+    struct CutIsland {
+        GLModel model;
+        GLModel model_expanded;
+        ExPolygon expoly;
         BoundingBox expoly_bb;
+        bool disabled = false;
+        size_t hash;
     };
-    struct ClipResult
-    {
+    struct ClipResult {
         std::vector<CutIsland> cut_islands;
-        Transform3d            trafo; // this rotates the cut into world coords
+        Transform3d trafo; // this rotates the cut into world coords
     };
-    std::optional<ClipResult> m_result;  // the cut plane
+    std::optional<ClipResult> m_result;
+    bool m_fill_cut = true;
+    double m_contour_width = 0.;
 };
 
 
@@ -129,17 +163,20 @@ private:
 class MeshRaycaster {
 public:
     explicit MeshRaycaster(std::shared_ptr<const TriangleMesh> mesh)
-        : m_mesh(mesh)
-        , m_emesh(*mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
-        , m_normals(its_face_normals(mesh->its))
+        : m_mesh(std::move(mesh))
+        , m_emesh(*m_mesh, true) // calculate epsilon for triangle-ray intersection from an average edge length
+        , m_normals(its_face_normals(m_mesh->its))
     {
+        assert(m_mesh);
     }
 
-    static void line_from_mouse_pos_static(const Vec2d &mouse_pos, const Transform3d &trafo,
-        const Camera &camera, Vec3d &point, Vec3d &direction);
+    explicit MeshRaycaster(const TriangleMesh &mesh)
+        : MeshRaycaster(std::make_unique<TriangleMesh>(mesh))
+    {}
 
-    void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
-                             Vec3d& point, Vec3d& direction) const;
+    // DEPRICATED - use CameraUtils::ray_from_screen_pos
+    static void line_from_mouse_pos(const Vec2d& mouse_pos, const Transform3d& trafo, const Camera& camera,
+        Vec3d& point, Vec3d& direction);
 
     // Given a mouse position, this returns true in case it is on the mesh.
     bool unproject_on_mesh(
@@ -152,6 +189,12 @@ public:
         size_t* facet_idx = nullptr, // index of the facet hit
         bool sinking_limit = true
     ) const;
+    
+    const AABBMesh &get_aabb_mesh() const { return m_emesh; }
+
+    // Given a point and direction in world coords, returns whether the respective line
+    // intersects the mesh if it is transformed into world by trafo.
+    bool intersects_line(Vec3d point, Vec3d direction, const Transform3d& trafo) const;
 
     // Given a vector of points in woorld coordinates, this returns vector
     // of indices of points that are visible (i.e. not cut by clipping plane
@@ -188,7 +231,7 @@ public:
 
 private:
     std::shared_ptr<const TriangleMesh> m_mesh;
-    sla::IndexedMesh m_emesh;
+    AABBMesh m_emesh;
     std::vector<stl_normal> m_normals;
 };
 

@@ -70,7 +70,7 @@ public:
 
     void render_painter_gizmo() override;
 
-    void data_changed() override;
+    void data_changed(bool is_serializing) override;
 
     void render_triangles(const Selection& selection) const override;
 
@@ -104,7 +104,7 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering color painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving color painting"; }
-    std::string get_action_snapshot_name() override { return "Color painting editing"; }
+    std::string get_action_snapshot_name() const override { return "Color painting editing"; }
 
     // BBS
     size_t                            m_selected_extruder_idx = 0;

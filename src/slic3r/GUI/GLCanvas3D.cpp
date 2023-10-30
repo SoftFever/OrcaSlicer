@@ -1,3 +1,13 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, David Kocík @kocikdav, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+///|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
+///|/ Copyright (c) SuperSlicer 2023 Remi Durand @supermerill
+///|/ Copyright (c) 2020 Benjamin Greiner
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/ Copyright (c) 2019 BeldrothTheGold @BeldrothTheGold
+///|/ Copyright (c) 2019 Thomas Moore
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
 
@@ -4505,12 +4515,13 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     for (int i = 0; i < static_cast<int>(m_model->objects.size()); ++i) {
         const ModelObject* obj = m_model->objects[i];
         for (int j = 0; j < static_cast<int>(obj->instances.size()); ++j) {
-            if (snapshot_type.empty() && m_selection.get_object_idx() == i) {
+            if (snapshot_type == L("Gizmo-Place on Face") && m_selection.get_object_idx() == i) {
                 // This means we are flattening this object. In that case pretend
                 // that it is not sinking (even if it is), so it is placed on bed
                 // later on (whatever is sinking will be left sinking).
                 min_zs[{ i, j }] = SINKING_Z_THRESHOLD;
-            } else
+            }
+            else
                 min_zs[{ i, j }] = obj->instance_bounding_box(j).min.z();
 
         }
@@ -5994,21 +6005,12 @@ bool GLCanvas3D::_init_main_toolbar()
         return true;
     }
     // init arrow
-    BackgroundTexture::Metadata arrow_data;
-    arrow_data.filename = "toolbar_arrow.svg";
-    arrow_data.left = 0;
-    arrow_data.top = 0;
-    arrow_data.right = 0;
-    arrow_data.bottom = 0;
-    if (!m_main_toolbar.init_arrow(arrow_data))
-    {
+    if (!m_main_toolbar.init_arrow("toolbar_arrow.svg"))
         BOOST_LOG_TRIVIAL(error) << "Main toolbar failed to load arrow texture.";
-    }
+
     // m_gizmos is created at constructor, thus we can init arrow here.
-    if (!m_gizmos.init_arrow(arrow_data))
-    {
+    if (!m_gizmos.init_arrow("toolbar_arrow.svg"))
         BOOST_LOG_TRIVIAL(error) << "Gizmos manager failed to load arrow texture.";
-    }
 
     m_main_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
     //BBS: main toolbar is at the top and left, we don't need the rounded-corner effect at the right side and the top side
@@ -6393,7 +6395,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
-    if (!m_picking_enabled || m_mouse.dragging || m_mouse.position == Vec2d(DBL_MAX, DBL_MAX) && !m_gizmos.is_dragging()) {
+    if (!m_picking_enabled || m_mouse.dragging || m_mouse.position == Vec2d(DBL_MAX, DBL_MAX) || m_gizmos.is_dragging()) {
 #if ENABLE_RAYCAST_PICKING_DEBUG
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         imgui.begin(std::string("Hit result"), ImGuiWindowFlags_AlwaysAutoResize);
@@ -6421,10 +6423,9 @@ void GLCanvas3D::_picking_pass()
                 const GLVolume* volume = m_volumes.volumes[hit.raycaster_id];
                 if (volume->is_active && !volume->disabled && (volume->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
                     // do not add the volume id if any gizmo is active and CTRL is pressed
-                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL)) {
+                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
                         m_hover_volume_idxs.emplace_back(hit.raycaster_id);
-                        m_gizmos.set_hover_id(-1);
-                    }
+                    m_gizmos.set_hover_id(-1);
                 }
             }
             else
@@ -6435,8 +6436,8 @@ void GLCanvas3D::_picking_pass()
         case SceneRaycaster::EType::Gizmo:
         {
             const Size& cnv_size = get_canvas_size();
-            bool inside = 0 <= m_mouse.position.x() && m_mouse.position.x() < cnv_size.get_width() &&
-                          0 <= m_mouse.position.y() && m_mouse.position.y() < cnv_size.get_height();
+            const bool inside = 0 <= m_mouse.position.x() && m_mouse.position.x() < cnv_size.get_width() &&
+                0 <= m_mouse.position.y() && m_mouse.position.y() < cnv_size.get_height();
             m_gizmos.set_hover_id(inside ? hit.raycaster_id : -1);
             break;
         }

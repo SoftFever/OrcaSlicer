@@ -17,6 +17,8 @@
 
 #include <imgui/imgui_internal.h>
 
+#include "slic3r/GUI/CameraUtils.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -111,9 +113,9 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     m_buffered_rotation.setZero();
 }
 
-void GLGizmoAdvancedCut::data_changed()
+void GLGizmoAdvancedCut::data_changed(bool is_serializing)
 {
-    GLGizmoRotate3D::data_changed();
+    GLGizmoRotate3D::data_changed(is_serializing);
     finish_rotation();
 }
 
@@ -227,7 +229,7 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     Vec3d                point;
     Vec3d                direction;
     Vec3d                hit;
-    MeshRaycaster::line_from_mouse_pos_static(mouse_pos, Transform3d::Identity(), camera, point, direction);
+    CameraUtils::ray_from_screen_pos(camera, mouse_pos, point, direction);
     Vec3d  normal = -cp->get_normal().cast<double>();
     double den    = normal.dot(direction);
     if (den != 0.) {
@@ -1876,7 +1878,7 @@ bool GLGizmoAdvancedCut::process_cut_line(SLAGizmoEventType action, const Vec2d 
 
     Vec3d pt;
     Vec3d dir;
-    MeshRaycaster::line_from_mouse_pos_static(mouse_position, Transform3d::Identity(), camera, pt, dir);
+    CameraUtils::ray_from_screen_pos(camera, mouse_position, pt, dir);
     dir.normalize();
     pt += dir; // Move the pt along dir so it is not clipped.
 

@@ -430,7 +430,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         else {
             if (m_imgui->button(m_desc.at("reset_direction"))) {
                 wxGetApp().CallAfter([this]() {
-                    m_c->object_clipper()->set_position(-1., false);
+                        m_c->object_clipper()->set_position_by_ratio(-1., false);
                     });
             }
         }
@@ -444,7 +444,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 
-        if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position(clp_dist, true);
+        if (b_bbl_slider_float || b_drag_input) m_c->object_clipper()->set_position_by_ratio(clp_dist, true);
     }
 
     ImGui::Separator();

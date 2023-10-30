@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Pavel Mikuš @Godrak, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Filip Sykala @Jony01
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLGizmoPainterBase_hpp_
 #define slic3r_GLGizmoPainterBase_hpp_
 
@@ -186,10 +190,11 @@ private:
     ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
     void on_render() override {}
+
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    virtual ~GLGizmoPainterBase() override;
-    void data_changed() override;
+    ~GLGizmoPainterBase() override;
+    void data_changed(bool is_serializing) override;
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
     // Following function renders the triangles and cursor. Having this separated
@@ -227,8 +232,8 @@ protected:
     virtual void update_model_object() = 0;
     virtual void update_from_model_object(bool first_update) = 0;
 
-    virtual ColorRGBA get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
-    virtual ColorRGBA get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
+    virtual ColorRGBA get_cursor_sphere_left_button_color() const  { return { 0.0f, 0.0f, 1.0f, 0.25f }; }
+    virtual ColorRGBA get_cursor_sphere_right_button_color() const { return { 1.0f, 0.0f, 0.0f, 0.25f }; }
     // BBS
     virtual ColorRGBA get_cursor_hover_color() const { return { 0.f, 0.f, 0.f, 0.25f }; }
 
@@ -339,7 +344,7 @@ private:
         Vec3f hit;
         size_t facet;
     };
-    mutable RaycastResult m_rr;
+    mutable RaycastResult m_rr = {Vec2d::Zero(), -1, Vec3f::Zero(), 0};
 
     // BBS
     struct CutContours

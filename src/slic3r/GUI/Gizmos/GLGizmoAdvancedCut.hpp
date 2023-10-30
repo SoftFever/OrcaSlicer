@@ -138,7 +138,7 @@ public:
     
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
-    void data_changed() override;
+    void data_changed(bool is_serializing) override;
 
 protected:
     bool on_init() override;

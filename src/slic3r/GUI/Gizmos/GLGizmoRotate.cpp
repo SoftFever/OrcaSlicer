@@ -1,4 +1,7 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoRotate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
@@ -235,7 +238,7 @@ void GLGizmoRotate::render_circle(const ColorRGBA& color, bool radius_changed)
         init_data.reserve_indices(ScaleStepsCount);
 
         // vertices + indices
-        for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
+        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
             const float angle = float(i * ScaleStepRad);
             init_data.add_vertex(Vec3f(::cos(angle) * m_radius, ::sin(angle) * m_radius, 0.0f));
             init_data.add_index(i);
@@ -262,7 +265,7 @@ void GLGizmoRotate::render_scale(const ColorRGBA& color, bool radius_changed)
         init_data.reserve_indices(2 * ScaleStepsCount);
 
         // vertices + indices
-        for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
+        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
             const float angle = float(i * ScaleStepRad);
             const float cosa = ::cos(angle);
             const float sina = ::sin(angle);
@@ -271,10 +274,12 @@ void GLGizmoRotate::render_scale(const ColorRGBA& color, bool radius_changed)
             const float out_x = (i % ScaleLongEvery == 0) ? cosa * out_radius_long : cosa * out_radius_short;
             const float out_y = (i % ScaleLongEvery == 0) ? sina * out_radius_long : sina * out_radius_short;
 
+            // vertices
             init_data.add_vertex(Vec3f(in_x, in_y, 0.0f));
             init_data.add_vertex(Vec3f(out_x, out_y, 0.0f));
-            init_data.add_index(i * 2);
-            init_data.add_index(i * 2 + 1);
+
+            // indices
+            init_data.add_line(i * 2, i * 2 + 1);
         }
 
         m_scale.init_from(std::move(init_data));
@@ -299,7 +304,7 @@ void GLGizmoRotate::render_snap_radii(const ColorRGBA& color, bool radius_change
         init_data.reserve_indices(2 * ScaleStepsCount);
 
         // vertices + indices
-        for (unsigned short i = 0; i < ScaleStepsCount; ++i) {
+        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
             const float angle = float(i * step);
             const float cosa = ::cos(angle);
             const float sina = ::sin(angle);
@@ -308,10 +313,12 @@ void GLGizmoRotate::render_snap_radii(const ColorRGBA& color, bool radius_change
             const float out_x = cosa * out_radius;
             const float out_y = sina * out_radius;
 
+            // vertices
             init_data.add_vertex(Vec3f(in_x, in_y, 0.0f));
             init_data.add_vertex(Vec3f(out_x, out_y, 0.0f));
-            init_data.add_index(i * 2);
-            init_data.add_index(i * 2 + 1);
+
+            // indices
+            init_data.add_line(i * 2, i * 2 + 1);
         }
 
         m_snap_radii.init_from(std::move(init_data));
@@ -362,7 +369,7 @@ void GLGizmoRotate::render_angle_arc(const ColorRGBA& color, bool radius_changed
             init_data.reserve_indices(1 + AngleResolution);
 
             // vertices + indices
-            for (unsigned short i = 0; i <= AngleResolution; ++i) {
+            for (unsigned int i = 0; i <= AngleResolution; ++i) {
                 const float angle = float(i) * step_angle;
                 init_data.add_vertex(Vec3f(::cos(angle) * ex_radius, ::sin(angle) * ex_radius, 0.0f));
                 init_data.add_index(i);
@@ -439,7 +446,7 @@ Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
 
 Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const
 {
-    double half_pi = 0.5 * double(PI);
+    const double half_pi = 0.5 * double(PI);
 
     Transform3d m = Transform3d::Identity();
 
@@ -470,7 +477,20 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
 
     m.translate(-m_center);
 
-    return transform(mouse_ray, m).intersect_plane(0.0);
+    const Linef3 local_mouse_ray = transform(mouse_ray, m);
+    if (std::abs(local_mouse_ray.vector().dot(Vec3d::UnitZ())) < EPSILON) {
+        // if the ray is parallel to the plane containing the circle
+        if (std::abs(local_mouse_ray.vector().dot(Vec3d::UnitY())) > 1.0 - EPSILON)
+            // if the ray is parallel to grabber direction
+            return Vec3d::UnitX();
+        else {
+            const Vec3d world_pos = (local_mouse_ray.a.x() >= 0.0) ? mouse_ray.a - m_center : mouse_ray.b - m_center;
+            m.translate(m_center);
+            return m * world_pos;
+        }
+    }
+    else
+        return local_mouse_ray.intersect_plane(0.0);
 }
 
 //BBS: GUI refactor: add obj manipulation
@@ -489,13 +509,14 @@ bool GLGizmoRotate3D::on_mouse(const wxMouseEvent &mouse_event) {
         // Apply new temporary rotations
         TransformationType transformation_type(
             TransformationType::World_Relative_Joint);
-        if (mouse_event.AltDown()) transformation_type.set_independent();
+        if (mouse_event.AltDown())
+            transformation_type.set_independent();
         m_parent.get_selection().rotate(get_rotation(), transformation_type);
     }
     return use_grabbers(mouse_event);
 }
 
-void GLGizmoRotate3D::data_changed() {
+void GLGizmoRotate3D::data_changed(bool is_serializing) {
     const Selection &selection = m_parent.get_selection();
     bool is_wipe_tower = selection.is_wipe_tower();
     if (is_wipe_tower) {

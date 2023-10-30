@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, David Kocík @kocikdav, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/libslic3r.h"
 #include "GLGizmosManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -269,20 +274,13 @@ float GLGizmosManager::get_layout_scale()
     return m_layout.scale;
 }
 
-bool GLGizmosManager::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
+bool GLGizmosManager::init_arrow(const std::string& filename)
 {
-    if (m_arrow_texture.texture.get_id() != 0)
+    if (m_arrow_texture.get_id() != 0)
         return true;
 
-    std::string path = resources_dir() + "/images/";
-    bool res = false;
-
-    if (!arrow_texture.filename.empty())
-        res = m_arrow_texture.texture.load_from_svg_file(path + arrow_texture.filename, false, false, false, 1000);
-    if (res)
-        m_arrow_texture.metadata = arrow_texture;
-
-    return res;
+    const std::string path = resources_dir() + "/images/";
+    return (!filename.empty()) ? m_arrow_texture.load_from_svg_file(path + filename, false, false, false, 1000) : false;
 }
 
 void GLGizmosManager::set_overlay_icon_size(float size)
@@ -378,7 +376,7 @@ void GLGizmosManager::update_data()
         m_common_gizmos_data->update(get_current()
                                    ? get_current()->get_requirements()
                                    : CommonGizmosDataID(0));
-    if (m_current != Undefined) m_gizmos[m_current]->data_changed();
+    if (m_current != Undefined) m_gizmos[m_current]->data_changed(m_serializing);
 
     //BBS: GUI refactor: add object manipulation in gizmo
     m_object_manipulation.update_ui_from_settings();
@@ -600,10 +598,12 @@ bool GLGizmosManager::gizmos_toolbar_on_mouse(const wxMouseEvent &mouse_event) {
             mc.left = true;
             open_gizmo(gizmo);
             return true;
-        } else if (mouse_event.RightDown()) {
+        }
+        else if (mouse_event.RightDown()) {
             mc.right  = true;
             return true;
-        } else if (mouse_event.MiddleDown()) {
+        }
+        else if (mouse_event.MiddleDown()) {
             mc.middle = true;
             return true;
         }
@@ -618,18 +618,21 @@ bool GLGizmosManager::gizmos_toolbar_on_mouse(const wxMouseEvent &mouse_event) {
                 update_hover_state(Undefined);
             }
             // draging start on toolbar so no propagation into scene
-            return true;            
-        } else if (mc.left && mouse_event.LeftUp()) {
+            return true;
+        }
+        else if (mc.left && mouse_event.LeftUp()) {
             mc.left = false;
             return true;
-        } else if (mc.right && mouse_event.RightUp()) {
+        }
+        else if (mc.right && mouse_event.RightUp()) {
             mc.right = false;
             return true;
-        } else if (mc.middle && mouse_event.MiddleUp()) {
+        }
+        else if (mc.middle && mouse_event.MiddleUp()) {
             mc.middle = false;
             return true;
         }
-
+    
         // event out of window is not porocessed
         // left down on gizmo -> keep down -> move out of window -> release left
         if (mouse_event.Leaving()) mc.reset();
@@ -650,7 +653,7 @@ bool GLGizmosManager::on_mouse(const wxMouseEvent &mouse_event)
         // &m_gizmos[m_current]->on_mouse != &GLGizmoBase::on_mouse &&
         m_gizmos[m_current]->on_mouse(mouse_event))
         return true;
-
+        
     return false;
 }
 
@@ -662,8 +665,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
     bool processed = false;
 
-    if ((evt.GetModifiers() & ctrlMask) != 0)
-    {
+    if ((evt.GetModifiers() & ctrlMask) != 0) {
         switch (keyCode)
         {
 #ifdef __APPLE__
@@ -681,8 +683,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         }
         }
     }
-    else if (!evt.HasModifiers())
-    {
+    else if (!evt.HasModifiers()) {
         switch (keyCode)
         {
         // key ESC
@@ -775,8 +776,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         }
     }
 
-    if (!processed && !evt.HasModifiers())
-    {
+    if (!processed && !evt.HasModifiers()) {
         if (handle_shortcut(keyCode))
             processed = true;
     }
@@ -792,15 +792,7 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
     const int keyCode = evt.GetKeyCode();
     bool processed = false;
 
-    // todo: zhimin Each gizmo should handle key event in it own on_key() function
-    if (m_current == Cut) {
-        if (GLGizmoAdvancedCut *gizmo_cut = dynamic_cast<GLGizmoAdvancedCut *>(get_current())) {
-            return gizmo_cut->on_key(evt);
-        }
-    }
-
-    if (evt.GetEventType() == wxEVT_KEY_UP)
-    {
+    if (evt.GetEventType() == wxEVT_KEY_UP) {
         /*if (m_current == SlaSupports || m_current == Hollow)
         {
             bool is_editing = true;
@@ -987,7 +979,7 @@ void GLGizmosManager::render_background(float left, float top, float right, floa
 
 void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_type) const
 {
-    std::vector<size_t> selectable_idxs = get_selectable_idxs();
+    const std::vector<size_t> selectable_idxs = get_selectable_idxs();
     if (selectable_idxs.empty())
         return;
     float cnv_w = (float)m_parent.get_canvas_size().get_width();
@@ -1006,18 +998,18 @@ void GLGizmosManager::render_arrow(const GLCanvas3D& parent, EType highlighted_t
         if (idx == highlighted_type) {
             int tex_width = m_icons_texture.get_width();
             int tex_height = m_icons_texture.get_height();
-            unsigned int tex_id = m_arrow_texture.texture.get_id();
+            unsigned int tex_id = m_arrow_texture.get_id();
             float inv_tex_width = (tex_width != 0.0f) ? 1.0f / tex_width : 0.0f;
             float inv_tex_height = (tex_height != 0.0f) ? 1.0f / tex_height : 0.0f;
 
-            float internal_left_uv = (float)m_arrow_texture.metadata.left * inv_tex_width;
-            float internal_right_uv = 1.0f - (float)m_arrow_texture.metadata.right * inv_tex_width;
-            float internal_top_uv = 1.0f - (float)m_arrow_texture.metadata.top * inv_tex_height;
-            float internal_bottom_uv = (float)m_arrow_texture.metadata.bottom * inv_tex_height;
+            const float left_uv   = 0.0f;
+            const float right_uv  = 1.0f;
+            const float top_uv    = 1.0f;
+            const float bottom_uv = 0.0f;
 
-            float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
+            float arrow_sides_ratio = (float)m_arrow_texture.get_height() / (float)m_arrow_texture.get_width();
 
-            GLTexture::render_sub_texture(tex_id, zoomed_top_x + zoomed_icons_size * 1.2f, zoomed_top_x + zoomed_icons_size * 1.2f + zoomed_icons_size * 2.2f * arrow_sides_ratio, zoomed_top_y - zoomed_icons_size * 1.6f , zoomed_top_y + zoomed_icons_size * 0.6f, { { internal_left_uv, internal_bottom_uv }, { internal_left_uv, internal_top_uv }, { internal_right_uv, internal_top_uv }, { internal_right_uv, internal_bottom_uv } });
+            GLTexture::render_sub_texture(tex_id, zoomed_top_x + zoomed_icons_size * 1.2f, zoomed_top_x + zoomed_icons_size * 1.2f + zoomed_icons_size * 2.2f * arrow_sides_ratio, zoomed_top_y - zoomed_icons_size * 1.6f , zoomed_top_y + zoomed_icons_size * 0.6f, { { left_uv, bottom_uv }, { left_uv, top_uv }, { right_uv, top_uv }, { right_uv, bottom_uv } });
             break;
         }
         zoomed_top_y -= zoomed_stride_y;
@@ -1170,9 +1162,12 @@ bool GLGizmosManager::generate_icons_texture()
 {
     std::string path = resources_dir() + "/images/";
     std::vector<std::string> filenames;
-    for (size_t idx = 0; idx<m_gizmos.size(); ++idx) {
-        if (m_gizmos[idx] != nullptr) {
-            const std::string& icon_filename = m_gizmos[idx]->get_icon_filename();
+    for (size_t idx=0; idx<m_gizmos.size(); ++idx)
+    {
+        auto &gizmo = m_gizmos[idx];
+        if (gizmo != nullptr)
+        {
+            const std::string& icon_filename = gizmo->get_icon_filename();
             if (!icon_filename.empty())
                 filenames.push_back(path + icon_filename);
         }

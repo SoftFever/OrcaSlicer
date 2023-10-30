@@ -40,7 +40,7 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering Paint-on supports"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving Paint-on supports"; }
-    std::string get_action_snapshot_name() override { return "Paint-on supports editing"; }
+    std::string get_action_snapshot_name() const override { return "Paint-on supports editing"; }
 
     // BBS
     wchar_t                           m_current_tool = 0;

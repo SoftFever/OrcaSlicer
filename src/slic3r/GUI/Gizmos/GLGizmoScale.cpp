@@ -1,4 +1,7 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoScale.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -83,18 +86,18 @@ bool GLGizmoScale3D::on_mouse(const wxMouseEvent &mouse_event)
         if (m_dragging) {
             // Apply new temporary scale factors
             TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
-            if (mouse_event.AltDown()) transformation_type.set_independent();
+            if (mouse_event.AltDown())
+                transformation_type.set_independent();
 
-            Selection &selection = m_parent.get_selection();
-            selection.scale(get_scale(), transformation_type);
+            Selection& selection = m_parent.get_selection();
+            selection.scale(m_scale, transformation_type);
             if (mouse_event.CmdDown()) selection.translate(m_offset, true);
         }
     }
     return use_grabbers(mouse_event);
 }
 
-void GLGizmoScale3D::data_changed()
-{
+void GLGizmoScale3D::data_changed(bool is_serializing) {
     const Selection &selection        = m_parent.get_selection();
     bool             enable_scale_xyz = selection.is_single_full_instance() ||
                             selection.is_single_volume() ||
@@ -298,7 +301,13 @@ void GLGizmoScale3D::on_render()
     }
 
     // draw grabbers
-    render_grabbers(grabber_mean_size);
+    shader = wxGetApp().get_shader("gouraud_light");
+    if (shader != nullptr) {
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.1f);
+        render_grabbers(grabber_mean_size);
+        shader->stop_using();
+    }
 }
 
 void GLGizmoScale3D::on_register_raycasters_for_picking()
@@ -388,9 +397,9 @@ void GLGizmoScale3D::do_scale_along_axis(Axis axis, const UpdateData& data)
     }
 }
 
-void GLGizmoScale3D::do_scale_uniform(const UpdateData& data)
+void GLGizmoScale3D::do_scale_uniform(const UpdateData & data)
 {
-    double ratio = calc_ratio(data);
+    const double ratio = calc_ratio(data);
     if (ratio > 0.0) {
         m_scale = m_starting.scale * ratio;
         m_offset = Vec3d::Zero();

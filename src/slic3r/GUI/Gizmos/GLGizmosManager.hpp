@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2022 Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GUI_GLGizmosManager_hpp_
 #define slic3r_GUI_GLGizmosManager_hpp_
 
@@ -116,10 +120,10 @@ private:
     GLCanvas3D& m_parent;
     bool m_enabled;
     std::vector<std::unique_ptr<GLGizmoBase>> m_gizmos;
-    mutable GLTexture m_icons_texture;
-    mutable bool m_icons_texture_dirty;
+    GLTexture m_icons_texture;
+    bool m_icons_texture_dirty;
     BackgroundTexture m_background_texture;
-    BackgroundTexture m_arrow_texture;
+    GLTexture m_arrow_texture;
     Layout m_layout;
     EType m_current;
     EType m_hover;
@@ -175,7 +179,7 @@ public:
 
     float get_layout_scale();
 
-    bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
+    bool init_arrow(const std::string& filename);
 
     template<class Archive>
     void load(Archive& ar)

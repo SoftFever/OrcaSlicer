@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2022 Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/Point.hpp"
 #include "libslic3r/libslic3r.h"
 
@@ -281,21 +285,13 @@ bool GLToolbar::init(const BackgroundTexture::Metadata& background_texture)
     return res;
 }
 
-bool GLToolbar::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
+bool GLToolbar::init_arrow(const std::string& filename)
 {
-    if (m_arrow_texture.texture.get_id() != 0)
+    if (m_arrow_texture.get_id() != 0)
         return true;
 
-    std::string path = resources_dir() + "/images/";
-    bool res = false;
-
-    if (!arrow_texture.filename.empty()) {
-        res = m_arrow_texture.texture.load_from_svg_file(path + arrow_texture.filename, false, false, false, 1000);
-    }
-    if (res)
-        m_arrow_texture.metadata = arrow_texture;
-
-    return res;
+    const std::string path = resources_dir() + "/images/";
+    return (!filename.empty()) ? m_arrow_texture.load_from_svg_file(path + filename, false, false, false, 1000) : false;
 }
 
 GLToolbar::Layout::EType GLToolbar::get_layout_type() const
@@ -1300,7 +1296,7 @@ void GLToolbar::render_background(float left, float top, float right, float bott
 void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighted_item)
 {
     // arrow texture not initialized
-    if (m_arrow_texture.texture.get_id() == 0)
+    if (m_arrow_texture.get_id() == 0)
         return;
 
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
@@ -1339,27 +1335,24 @@ void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighte
     top -= separator_stride;
     float right = left + scaled_icons_size;
 
-    unsigned int tex_id = m_arrow_texture.texture.get_id();
+    const unsigned int tex_id = m_arrow_texture.get_id();
     // arrow width and height
-    float arr_tex_width = (float)m_arrow_texture.texture.get_width();
-    float arr_tex_height = (float)m_arrow_texture.texture.get_height();
-    if ((tex_id != 0) && (arr_tex_width > 0) && (arr_tex_height > 0)) {
-        float inv_tex_width = (arr_tex_width != 0.0f) ? 1.0f / arr_tex_width : 0.0f;
-        float inv_tex_height = (arr_tex_height != 0.0f) ? 1.0f / arr_tex_height : 0.0f;
-
+    const float arr_tex_width = (float)m_arrow_texture.get_width();
+    const float arr_tex_height = (float)m_arrow_texture.get_height();
+    if (tex_id != 0 && arr_tex_width > 0.0f && arr_tex_height > 0.0f) {
         float internal_left = left + border - scaled_icons_size * 1.5f; // add scaled_icons_size for huge arrow
         float internal_right = right - border + scaled_icons_size * 1.5f;
         float internal_top = top - border;
         // bottom is not moving and should be calculated from arrow texture sides ratio
-        float arrow_sides_ratio = (float)m_arrow_texture.texture.get_height() / (float)m_arrow_texture.texture.get_width();
+        float arrow_sides_ratio = (float)m_arrow_texture.get_height() / (float)m_arrow_texture.get_width();
         float internal_bottom = internal_top - (internal_right - internal_left) * arrow_sides_ratio ;
 
-        float internal_left_uv = (float)m_arrow_texture.metadata.left * inv_tex_width;
-        float internal_right_uv = 1.0f - (float)m_arrow_texture.metadata.right * inv_tex_width;
-        float internal_top_uv = 1.0f - (float)m_arrow_texture.metadata.top * inv_tex_height;
-        float internal_bottom_uv = (float)m_arrow_texture.metadata.bottom * inv_tex_height;
+        const float left_uv   = 0.0f;
+        const float right_uv  = 1.0f;
+        const float top_uv    = 1.0f;
+        const float bottom_uv = 0.0f;
 
-        GLTexture::render_sub_texture(tex_id, internal_left, internal_right, internal_bottom, internal_top, { { internal_left_uv, internal_top_uv }, { internal_right_uv, internal_top_uv }, { internal_right_uv, internal_bottom_uv }, { internal_left_uv, internal_bottom_uv } });
+        GLTexture::render_sub_texture(tex_id, internal_left, internal_right, internal_bottom, internal_top, { { left_uv, top_uv }, { right_uv, top_uv }, { right_uv, bottom_uv }, { left_uv, bottom_uv } });
     }
 }
 

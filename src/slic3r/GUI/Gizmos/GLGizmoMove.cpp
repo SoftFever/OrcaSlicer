@@ -1,4 +1,7 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+///|/ Copyright (c) Prusa Research 2019 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoMove.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -47,10 +50,8 @@ bool GLGizmoMove3D::on_mouse(const wxMouseEvent &mouse_event) {
     return use_grabbers(mouse_event);
 }
 
-void GLGizmoMove3D::data_changed() {
-    const Selection &selection = m_parent.get_selection();
-    bool is_wipe_tower = selection.is_wipe_tower();
-    m_grabbers[2].enabled = !is_wipe_tower;
+void GLGizmoMove3D::data_changed(bool is_serializing) {
+    m_grabbers[2].enabled = !m_parent.get_selection().is_wipe_tower();
 }
 
 bool GLGizmoMove3D::on_init()
@@ -219,17 +220,17 @@ double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {
     double projection = 0.0;
 
-    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
-    double len_starting_vec = starting_vec.norm();
+    const Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
+    const double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0) {
-        Vec3d mouse_dir = data.mouse_ray.unit_vector();
+        const Vec3d mouse_dir = data.mouse_ray.unit_vector();
         // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
         // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
         // in our case plane normal and ray direction are the same (orthogonal view)
         // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        const Vec3d inters = data.mouse_ray.a + (m_starting_drag_position - data.mouse_ray.a).dot(mouse_dir) * mouse_dir;
         // vector from the starting position to the found intersection
-        Vec3d inters_vec = inters - m_starting_drag_position;
+        const Vec3d inters_vec = inters - m_starting_drag_position;
 
         // finds projection of the vector along the staring direction
         projection = inters_vec.dot(starting_vec.normalized());

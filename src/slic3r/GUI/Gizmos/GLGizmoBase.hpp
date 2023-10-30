@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLGizmoBase_hpp_
 #define slic3r_GLGizmoBase_hpp_
 
@@ -68,6 +72,9 @@ public:
         NegZ = 1 << 5,
     };
 
+    // Represents NO key(button on keyboard) value
+    static const int NO_SHORTCUT_KEY_VALUE = 0;
+
 protected:
     struct Grabber
     {
@@ -129,9 +136,9 @@ public:
 protected:
     GLCanvas3D& m_parent;
 
-    int m_group_id{ -1 }; // TODO: remove only for rotate
-    EState m_state{ Off };
-    int m_shortcut_key{ 0 };
+    int m_group_id; // TODO: remove only for rotate
+    EState m_state;
+    int m_shortcut_key;
     std::string m_icon_filename;
     unsigned int m_sprite_id;
     int m_hover_id{ -1 };
@@ -171,7 +178,7 @@ public:
     virtual bool wants_enter_leave_snapshots() const { return false; }
     virtual std::string get_gizmo_entering_text() const { assert(false); return ""; }
     virtual std::string get_gizmo_leaving_text() const { assert(false); return ""; }
-    virtual std::string get_action_snapshot_name() { return "Gizmo action"; }
+    virtual std::string get_action_snapshot_name() const;
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     virtual bool apply_clipping_plane() { return true; }
@@ -202,7 +209,7 @@ public:
     /// <summary>
     /// Is called when data (Selection) is changed
     /// </summary>
-    virtual void data_changed(){};
+    virtual void data_changed(bool is_serializing){};
 
     /// <summary>
     /// Implement when want to process mouse events in gizmo
@@ -246,11 +253,9 @@ protected:
     virtual void on_register_raycasters_for_picking() {}
     virtual void on_unregister_raycasters_for_picking() {}
 
-    // Returns the picking color for the given id, based on the BASE_ID constant
-    // No check is made for clashing with other picking color (i.e. GLVolumes)
-    ColorRGBA picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
     void render_grabbers(float size) const;
+    void render_grabbers(size_t first, size_t last, float size, bool force_hover) const;
 
     std::string format(float value, unsigned int decimals) const;
 
@@ -265,6 +270,9 @@ protected:
     /// <param name="mouse_event">Keep information about mouse click</param>
     /// <returns>same as on_mouse</returns>
     bool use_grabbers(const wxMouseEvent &mouse_event);
+
+    void do_stop_dragging(bool perform_mouse_cleanup);
+
 private:
     // Flag for dirty visible state of Gizmo
     // When True then need new rendering

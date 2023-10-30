@@ -1,4 +1,7 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoPainterBase.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosCommon.hpp"
@@ -34,7 +37,7 @@ GLGizmoPainterBase::~GLGizmoPainterBase()
         s_sphere.reset();
 }
 
-void GLGizmoPainterBase::data_changed()
+void GLGizmoPainterBase::data_changed(bool is_serializing)
 {
     if (m_state != On)
         return;
@@ -120,12 +123,10 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
         shader->set_uniform("volume_world_matrix", trafo_matrix);
 
         m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
-
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
 }
-
 
 void GLGizmoPainterBase::render_cursor()
 {
@@ -165,11 +166,9 @@ void GLGizmoPainterBase::render_cursor()
     }
 }
 
-
-
 void GLGizmoPainterBase::render_cursor_circle()
 {
-    const Size  cnv_size        = m_parent.get_canvas_size();
+    const Size cnv_size = m_parent.get_canvas_size();
     const float cnv_width  = float(cnv_size.get_width());
     const float cnv_height = float(cnv_size.get_height());
     if (cnv_width == 0.0f || cnv_height == 0.0f)
@@ -202,7 +201,7 @@ void GLGizmoPainterBase::render_cursor_circle()
         init_data.reserve_indices(StepsCount);
 
         // vertices + indices
-        for (unsigned short i = 0; i < StepsCount; ++i) {
+        for (unsigned int i = 0; i < StepsCount; ++i) {
             const float angle = float(i * StepSize);
             init_data.add_vertex(Vec2f(2.0f * ((center.x() + ::cos(angle) * radius) * cnv_inv_width - 0.5f),
                                        -2.0f * ((center.y() + ::sin(angle) * radius) * cnv_inv_height - 0.5f)));
@@ -220,8 +219,8 @@ void GLGizmoPainterBase::render_cursor_circle()
         render_color = this->get_cursor_sphere_right_button_color();
 
     m_circle.set_color(render_color);
-	
-    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+
+    GLShaderProgram* shader = GUI::wxGetApp().get_shader("flat");
     if (shader != nullptr) {
         shader->start_using();
         shader->set_uniform("view_model_matrix", Transform3d::Identity());
@@ -247,10 +246,6 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         return;
 
     const Transform3d complete_scaling_matrix_inverse = Geometry::Transformation(trafo).get_matrix(true, true, false, true).inverse();
-    const bool is_left_handed = Geometry::Transformation(trafo).is_left_handed();
-
-    if (is_left_handed)
-        glFrontFace(GL_CW);
 
     // BBS
     ColorRGBA render_color = this->get_cursor_hover_color();
@@ -258,6 +253,7 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
         render_color = this->get_cursor_sphere_left_button_color();
     else if (m_button_down == Button::Right)
         render_color = this->get_cursor_sphere_right_button_color();
+
     shader->start_using();
 
     const Camera& camera = wxGetApp().plater()->get_camera();
@@ -268,13 +264,18 @@ void GLGizmoPainterBase::render_cursor_sphere(const Transform3d& trafo) const
     shader->set_uniform("view_model_matrix", view_model_matrix);
     shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
+    const bool is_left_handed = Geometry::Transformation(view_model_matrix).is_left_handed();
+    if (is_left_handed)
+        glsafe(::glFrontFace(GL_CW));
+
     assert(s_sphere != nullptr);
     s_sphere->set_color(render_color);
     s_sphere->render();
 
-    shader->stop_using();
     if (is_left_handed)
-        glFrontFace(GL_CCW);
+        glsafe(::glFrontFace(GL_CCW));
+
+    shader->stop_using();
 }
 
 // BBS
@@ -631,13 +632,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             pos = action == SLAGizmoEventType::MouseWheelDown
                       ? std::max(0., pos - 0.01)
                       : std::min(1., pos + 0.01);
-            m_c->object_clipper()->set_position(pos, true);
+            m_c->object_clipper()->set_position_by_ratio(pos, true);
             return true;
         }
     }
 
     if (action == SLAGizmoEventType::ResetClippingPlane) {
-        m_c->object_clipper()->set_position(-1., false);
+        m_c->object_clipper()->set_position_by_ratio(-1., false);
         return true;
     }
 
@@ -788,14 +789,13 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 assert(m_cursor_type == TriangleSelector::CursorType::CIRCLE || m_cursor_type == TriangleSelector::CursorType::SPHERE);
 
                 if (projected_mouse_positions.size() == 1) {
-                    const ProjectedMousePosition& first_position = projected_mouse_positions.front();
-                    std::unique_ptr<TriangleSelector::Cursor> cursor = TriangleSelector::SinglePointCursor::cursor_factory(first_position.mesh_hit,
-                        camera_pos, m_cursor_radius,
-                        m_cursor_type, trafo_matrix, clp);
+                    const ProjectedMousePosition             &first_position = projected_mouse_positions.front();
+                    std::unique_ptr<TriangleSelector::Cursor> cursor         = TriangleSelector::SinglePointCursor::cursor_factory(first_position.mesh_hit,
+                                                                                                                                   camera_pos, m_cursor_radius,
+                                                                                                                                   m_cursor_type, trafo_matrix, clp);
                     m_triangle_selectors[mesh_idx]->select_patch(int(first_position.facet_idx), std::move(cursor), new_state, trafo_matrix_not_translate,
-                        m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
-                }
-                else {
+                                                                 m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
+                } else {
                     for (auto first_position_it = projected_mouse_positions.cbegin(); first_position_it != projected_mouse_positions.cend() - 1; ++first_position_it) {
                         auto second_position_it = first_position_it + 1;
                         std::unique_ptr<TriangleSelector::Cursor> cursor = TriangleSelector::DoublePointCursor::cursor_factory(first_position_it->mesh_hit, second_position_it->mesh_hit, camera_pos, m_cursor_radius, m_cursor_type, trafo_matrix, clp);
@@ -1190,10 +1190,6 @@ void TriangleSelectorGUI::update_render_data()
     static const float offset = 0.001f;
 
     for (const Triangle &tr : m_triangles) {
-        bool is_valid = tr.valid();
-        bool is_split = tr.is_split();
-        EnforcerBlockerType type = tr.get_state();
-        bool is_select_by_seed_fill = tr.is_selected_by_seed_fill();
         if (!tr.valid() || tr.is_split() || (tr.get_state() == EnforcerBlockerType::NONE && !tr.is_selected_by_seed_fill()))
             continue;
 
