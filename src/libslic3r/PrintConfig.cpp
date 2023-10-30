@@ -662,7 +662,6 @@ void PrintConfigDef::init_fff_params()
     def = this->add("first_layer_sequence_choice", coEnum);
     def->category = L("Quality");
     def->label = L("First layer filament sequence");
-    def->tooltip = L("test");
     def->enum_keys_map = &ConfigOptionEnum<FirstLayerSeq>::get_enum_values();
     def->enum_values.push_back("Auto");
     def->enum_values.push_back("Customize");

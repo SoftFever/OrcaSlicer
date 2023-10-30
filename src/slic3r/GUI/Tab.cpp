@@ -2477,7 +2477,7 @@ void TabPrintModel::update_custom_dirty()
 }
 
 //BBS: GUI refactor
-static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "print_sequence", "spiral_mode"};
+static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "print_sequence"/*, "spiral_mode"*/};
 TabPrintPlate::TabPrintPlate(ParamsPanel* parent) :
     TabPrintModel(parent, plate_keys)
 {
@@ -2505,7 +2505,8 @@ void TabPrintPlate::build()
     optgroup->append_single_option_line("curr_bed_type");
     optgroup->append_single_option_line("print_sequence");
     optgroup->append_single_option_line("first_layer_sequence_choice");
-    optgroup->append_single_option_line("spiral_mode");
+    // hidden
+    //optgroup->append_single_option_line("spiral_mode");
     for (auto& line : const_cast<std::vector<Line>&>(optgroup->get_lines())) {
         line.undo_to_sys = true;
     }

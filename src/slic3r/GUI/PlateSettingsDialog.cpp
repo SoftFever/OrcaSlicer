@@ -74,15 +74,16 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     top_sizer->Add(0, 0, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(0));
     top_sizer->Add(m_drag_canvas, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
 
-    m_spiral_mode_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0, NULL, wxCB_READONLY);
-    m_spiral_mode_choice->Append(_L("Same as Global"));
-    m_spiral_mode_choice->Append(_L("Enable"));
-    m_spiral_mode_choice->Append(_L("Disable"));
-    m_spiral_mode_choice->SetSelection(0);
-    wxStaticText* spiral_mode_txt = new wxStaticText(this, wxID_ANY, _L("Spiral vase"));
-    spiral_mode_txt->SetFont(Label::Body_14);
-    top_sizer->Add(spiral_mode_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_spiral_mode_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    // hidden
+    //m_spiral_mode_choice = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(240), -1), 0, NULL, wxCB_READONLY);
+    //m_spiral_mode_choice->Append(_L("Same as Global"));
+    //m_spiral_mode_choice->Append(_L("Enable"));
+    //m_spiral_mode_choice->Append(_L("Disable"));
+    //m_spiral_mode_choice->SetSelection(0);
+    //wxStaticText* spiral_mode_txt = new wxStaticText(this, wxID_ANY, _L("Spiral vase"));
+    //spiral_mode_txt->SetFont(Label::Body_14);
+    //top_sizer->Add(spiral_mode_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    //top_sizer->Add(m_spiral_mode_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
 
     m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
