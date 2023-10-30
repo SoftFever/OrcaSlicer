@@ -89,6 +89,7 @@ private:
     wxScrolledWindow *                                               m_scrolled_preset_panel        = nullptr;
     TextInput *                                                      m_filament_serial_input        = nullptr;
     wxBoxSizer *                                                     m_scrolled_sizer               = nullptr;
+    wxStaticText *                                                   m_filament_preset_text         = nullptr;
 
 };
 
@@ -344,8 +345,10 @@ private:
     Button *                             m_add_filament_btn  = nullptr;
     Button *                             m_del_filament_btn  = nullptr;
     Button *                             m_ok_btn            = nullptr;
-    wxGridSizer *                        m_preset_tree_sizer = nullptr;
+    wxBoxSizer *                         m_preset_tree_sizer = nullptr;
+    wxPanel *                            m_preset_tree_panel  = nullptr;
     wxScrolledWindow *                   m_preset_tree_window = nullptr;
+    wxBoxSizer *                         m_preset_tree_window_sizer = nullptr;
     std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_presets;
 
 };

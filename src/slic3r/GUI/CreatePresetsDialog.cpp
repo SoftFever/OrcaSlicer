@@ -231,8 +231,8 @@ static wxBoxSizer *create_preset_tree(wxWindow *parent, std::pair<std::string, s
 
     treeCtrl->Expand(rootId);
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    treeCtrl->SetMinSize(wxSize(-1, row * 30));
-    treeCtrl->SetMaxSize(wxSize(-1, row * 30));
+    treeCtrl->SetMinSize(wxSize(-1, row * 22));
+    treeCtrl->SetMaxSize(wxSize(-1, row * 22));
     sizer->Add(treeCtrl, 0, wxEXPAND | wxALL, 0);
 
     return sizer;
@@ -434,8 +434,11 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
     if (delete_preset_name == selected_preset_name) {
         const std::deque<Preset> &presets     = m_presets.get_presets();
         size_t                    idx_current = m_presets.get_idx_selected();
+        
         // Find the visible preset.
         size_t idx_new = idx_current;
+        if (idx_current > presets.size()) idx_current = presets.size();
+        if (idx_current < 0) idx_current = 0;
         if (idx_new < presets.size())
             for (; idx_new < presets.size() && (presets[idx_new].name == delete_preset_name || !presets[idx_new].is_visible); ++idx_new)
                 ;
@@ -490,21 +493,36 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
+    wxStaticText *basic_infomation = new wxStaticText(this, wxID_ANY, _L("Basic Information"));
+    basic_infomation->SetFont(Label::Head_16);
+    m_main_sizer->Add(basic_infomation, 0, wxLEFT, FromDIP(10));
+
     m_main_sizer->Add(create_item(FilamentOptionType::VENDOR), 0, wxEXPAND | wxALL, FromDIP(5));
     m_main_sizer->Add(create_item(FilamentOptionType::TYPE), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_main_sizer->Add(create_item(FilamentOptionType::SERIAL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+
+    // divider line
+    auto line_divider = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    line_divider->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
+    m_main_sizer->Add(line_divider, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    wxStaticText *presets_infomation = new wxStaticText(this, wxID_ANY, _L("Add Filament Preset under this filament"));
+    presets_infomation->SetFont(Label::Head_16);
+    m_main_sizer->Add(presets_infomation, 0, wxLEFT | wxRIGHT, FromDIP(15));
+
     m_main_sizer->Add(create_item(FilamentOptionType::FILAMENT_PRESET), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
 
     m_scrolled_preset_panel = new wxScrolledWindow(this, wxID_ANY);
-    m_scrolled_preset_panel->SetMinSize(PRESET_TEMPLATE_SIZE);
+    m_scrolled_preset_panel->SetMaxSize(wxSize(-1, FromDIP(350)));
     m_scrolled_preset_panel->SetBackgroundColour(*wxWHITE);
     m_scrolled_preset_panel->SetScrollRate(5, 5);
     m_scrolled_sizer = new wxBoxSizer(wxVERTICAL);
     m_scrolled_sizer->Add(create_item(FilamentOptionType::PRESET_FOR_PRINTER), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_scrolled_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
-    m_scrolled_sizer->Add(create_button_item(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
     m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
     m_main_sizer->Add(m_scrolled_preset_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    m_main_sizer->Add(create_button_item(), 0, wxEXPAND | wxALL, FromDIP(10));
 
     get_all_filament_presets();
     get_all_visible_printer_name();
@@ -565,7 +583,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     wxStaticText *static_vendor_text = new wxStaticText(this, wxID_ANY, _L("Vendor"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_vendor_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
-    horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10)); 
+    horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5)); 
 
     wxArrayString choices;
     for (const wxString &vendor : filament_vendors) {
@@ -592,7 +610,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
         Fit();
     });
 
-    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxBoxSizer *textInputSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_custom_vendor_input = new TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
@@ -623,7 +641,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     wxStaticText *static_type_text = new wxStaticText(this, wxID_ANY, _L("Type"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_type_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
-    horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString filament_type;
     for (const wxString &filament : system_filament_types) {
@@ -636,7 +654,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     m_filament_type_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_filament_type_combobox->Set(filament_type);
     comboBoxSizer->Add(m_filament_type_combobox, 0, wxEXPAND | wxALL, 0);
-    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     m_filament_type_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) { 
         m_filament_type_combobox->SetLabelColor(*wxBLACK);
@@ -671,7 +689,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_serial_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
-    horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
@@ -690,7 +708,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     static_eg_text->SetForegroundColour(wxColour("#6B6B6B"));
     static_eg_text->SetFont(::Label::Body_12);
     comboBoxSizer->Add(static_eg_text, 0, wxEXPAND | wxTOP, FromDIP(5));
-    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     return horizontal_sizer;
 }
@@ -781,9 +799,9 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
 wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item()
 {
     wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_filament_preset_text = new wxStaticText(m_scrolled_preset_panel, wxID_ANY, _L("We could create the filament presets for your following printer:"),
+    m_filament_preset_text = new wxStaticText(m_scrolled_preset_panel, wxID_ANY, _L("We could create the filament presets for your following printer:"),
                                                                  wxDefaultPosition, wxDefaultSize);
-    vertical_sizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, 0);
+    vertical_sizer->Add(m_filament_preset_text, 0, wxEXPAND | wxALL, 0);
     m_filament_preset_panel = new wxPanel(m_scrolled_preset_panel, wxID_ANY);
     m_filament_preset_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
     m_filament_preset_panel->SetSize(PRINTER_LIST_SIZE);
@@ -802,7 +820,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
-    m_button_create = new Button(m_scrolled_preset_panel, _L("Create"));
+    m_button_create = new Button(this, _L("Create"));
     m_button_create->SetBackgroundColor(btn_bg_green);
     m_button_create->SetBorderColor(*wxWHITE);
     m_button_create->SetTextColor(wxColour(0xFFFFFE));
@@ -930,7 +948,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_cancel = new Button(m_scrolled_preset_panel, _L("Cancel"));
+    m_button_cancel = new Button(this, _L("Cancel"));
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
@@ -1026,6 +1044,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
             const wxString &curr_selected_type = radiobox_list[i].second;
             this->Freeze();
             if (curr_selected_type == m_create_type.base_filament) {
+                m_filament_preset_text->SetLabel(_L("We could create the filament presets for your following printer:"));
                 m_filament_preset_combobox->Show();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     clear_filament_preset_map();
@@ -1035,6 +1054,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
+                m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more prinetrs, Please go to printer selection"));
                 m_filament_preset_combobox->Hide();
                 if (_L("Select Type") != m_filament_type_combobox->GetLabel()) {
                     
@@ -3861,9 +3881,9 @@ void EditFilamentPresetDialog::update_preset_tree()
     this->Freeze();
     m_preset_tree_sizer->Clear(true);
     for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets : m_printer_compatible_presets) {
-        m_preset_tree_sizer->Add(create_preset_tree(m_preset_tree_window, printer_and_presets));
+        m_preset_tree_sizer->Add(create_preset_tree(m_preset_tree_panel, printer_and_presets),0,wxEXPAND|wxALL,0);
     }
-    m_preset_tree_window->SetSizerAndFit(m_preset_tree_sizer);
+    m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
     
     this->Thaw();
     this->Layout();
@@ -3884,31 +3904,31 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
     wxStaticText *static_vendor_text = new wxStaticText(this, wxID_ANY, _L("Vendor"), wxDefaultPosition, wxDefaultSize);
     vendor_key_sizer->Add(static_vendor_text, 0, wxEXPAND | wxALL, 0);
     vendor_key_sizer->SetMinSize(OPTION_SIZE);
-    vendor_sizer->Add(vendor_key_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    vendor_sizer->Add(vendor_key_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *vendor_value_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText *vendor_text = new wxStaticText(this, wxID_ANY, from_u8(m_vendor_name), wxDefaultPosition, wxDefaultSize);
     vendor_value_sizer->Add(vendor_text, 0, wxEXPAND | wxALL, 0);
-    vendor_sizer->Add(vendor_value_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    vendor_sizer->Add(vendor_value_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     //type
     wxBoxSizer *  type_key_sizer   = new wxBoxSizer(wxVERTICAL);
     wxStaticText *static_type_text = new wxStaticText(this, wxID_ANY, _L("Type"), wxDefaultPosition, wxDefaultSize);
     type_key_sizer->Add(static_type_text, 0, wxEXPAND | wxALL, 0);
     type_key_sizer->SetMinSize(OPTION_SIZE);
-    type_sizer->Add(type_key_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    type_sizer->Add(type_key_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  type_value_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText *type_text        = new wxStaticText(this, wxID_ANY, from_u8(m_filament_type), wxDefaultPosition, wxDefaultSize);
     type_value_sizer->Add(type_text, 0, wxEXPAND | wxALL, 0);
-    type_sizer->Add(type_value_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    type_sizer->Add(type_value_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     //serial
     wxBoxSizer *  serial_key_sizer   = new wxBoxSizer(wxVERTICAL);
     wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial"), wxDefaultPosition, wxDefaultSize);
     serial_key_sizer->Add(static_serial_text, 0, wxEXPAND | wxALL, 0);
     serial_key_sizer->SetMinSize(OPTION_SIZE);
-    serial_sizer->Add(serial_key_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    serial_sizer->Add(serial_key_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  serial_value_sizer = new wxBoxSizer(wxVERTICAL);
     wxString      full_filamnet_serial = from_u8(m_filament_serial);
@@ -3920,7 +3940,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
     wxToolTip *   toolTip     = new wxToolTip(full_filamnet_serial);
     serial_text->SetToolTip(toolTip);
     serial_value_sizer->Add(serial_text, 0, wxEXPAND | wxALL, 0);
-    serial_sizer->Add(serial_value_sizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    serial_sizer->Add(serial_value_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     basic_info_sizer->Add(vendor_sizer, 0, wxEXPAND | wxALL, 0);
     basic_info_sizer->Add(type_sizer, 0, wxEXPAND | wxALL, 0);
@@ -3967,11 +3987,21 @@ wxBoxSizer *EditFilamentPresetDialog::create_add_filament_btn()
 wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
 {
     wxBoxSizer *filament_preset_tree_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_preset_tree_window                   = new wxScrolledWindow(this);
+    m_preset_tree_window = new wxScrolledWindow(this);
+    m_preset_tree_window->SetScrollRate(5, 5);
     m_preset_tree_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
-    m_preset_tree_window->SetMaxSize(wxSize(-1, FromDIP(500)));
-    m_preset_tree_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
-    m_preset_tree_window->SetSizer(m_preset_tree_sizer);
+    m_preset_tree_window->SetMinSize(wxSize(-1, FromDIP(400)));
+    m_preset_tree_window->SetMaxSize(wxSize(-1, FromDIP(300)));
+    m_preset_tree_window->SetSize(wxSize(-1, FromDIP(300)));
+    m_preset_tree_panel = new wxPanel(m_preset_tree_window);
+    m_preset_tree_sizer = new wxBoxSizer(wxVERTICAL);
+    m_preset_tree_panel->SetSizer(m_preset_tree_sizer);
+    m_preset_tree_panel->SetMinSize(wxSize(580, -1));
+    m_preset_tree_window_sizer = new wxBoxSizer(wxVERTICAL);
+    /*wxStaticText *static_text    = new wxStaticText(m_preset_tree_window, wxID_ANY, _L("There are filament presets compatible printers."));
+    m_preset_tree_window_sizer->Add(static_text, 0, wxEXPAND | wxALL, FromDIP(10));*/
+    m_preset_tree_window_sizer->Add(m_preset_tree_panel, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
     filament_preset_tree_sizer->Add(m_preset_tree_window, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     return filament_preset_tree_sizer;
