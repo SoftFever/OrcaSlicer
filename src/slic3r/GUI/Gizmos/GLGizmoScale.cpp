@@ -49,9 +49,9 @@ std::string GLGizmoScale3D::get_tooltip() const
 
     Vec3f scale = 100.0f * Vec3f::Ones();
     if (single_instance)
-        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>();
+        scale = 100.0f * selection.get_first_volume()->get_instance_scaling_factor().cast<float>();
     else if (single_volume)
-        scale = 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_volume_scaling_factor().cast<float>();
+        scale = 100.0f * selection.get_first_volume()->get_volume_scaling_factor().cast<float>();
 
     if (m_hover_id == 0 || m_hover_id == 1 || m_grabbers[0].dragging || m_grabbers[1].dragging)
         return "X: " + format(scale.x(), 4) + "%";
@@ -105,7 +105,7 @@ void GLGizmoScale3D::data_changed()
     if (enable_scale_xyz) {
         // all volumes in the selection belongs to the same instance, any of
         // them contains the needed data, so we take the first
-        const GLVolume *volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        const GLVolume *volume = selection.get_first_volume();
         if (selection.is_single_full_instance()) {
             set_scale(volume->get_instance_scaling_factor());
         } else if (selection.is_single_volume() ||
@@ -211,7 +211,7 @@ void GLGizmoScale3D::on_render()
         }
 
         // gets transform from first selected volume
-        const GLVolume* v = selection.get_volume(*idxs.begin());
+        const GLVolume* v = selection.get_first_volume();
         m_transform = v->get_instance_transformation().get_matrix();
         // gets angles from first selected volume
         angles = v->get_instance_rotation();
@@ -220,7 +220,7 @@ void GLGizmoScale3D::on_render()
         m_offsets_transform = offsets_transform;
     }
     else if (single_volume) {
-        const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+        const GLVolume* v = selection.get_first_volume();
         m_box = v->bounding_box();
         m_transform = v->world_matrix();
         angles = Geometry::extract_euler_angles(m_transform);

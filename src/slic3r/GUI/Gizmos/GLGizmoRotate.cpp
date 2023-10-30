@@ -432,7 +432,7 @@ Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
     }
 
     if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        ret = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true) * ret;
+        ret = selection.get_first_volume()->get_instance_transformation().get_matrix(true, false, true, true) * ret;
 
     return Geometry::assemble_transform(m_center) * ret;
 }
@@ -466,7 +466,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     }
 
     if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        m = m * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true).inverse();
+        m = m * selection.get_first_volume()->get_instance_transformation().get_matrix(true, false, true, true).inverse();
 
     m.translate(-m_center);
 

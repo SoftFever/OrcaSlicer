@@ -119,7 +119,7 @@ void SelectionInfo::on_update()
     const Selection& selection = get_pool()->get_canvas()->get_selection();
     if (selection.is_single_full_instance()) {
         m_model_object = selection.get_model()->objects[selection.get_object_idx()];
-        m_z_shift = selection.get_volume(*selection.get_volume_idxs().begin())->get_sla_shift_z();
+        m_z_shift = selection.get_first_volume()->get_sla_shift_z();
     }
     else
         m_model_object = nullptr;

@@ -341,7 +341,7 @@ BoundingBoxf3 GLGizmoPainterBase::bounding_box() const
 void GLGizmoPainterBase::update_contours(const TriangleMesh& vol_mesh, float cursor_z, float max_z, float min_z) const
 {
     const Selection& selection = m_parent.get_selection();
-    const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
+    const GLVolume* first_glvolume = selection.get_first_volume();
     const BoundingBoxf3& box = first_glvolume->transformed_convex_hull_bounding_box();
 
     const ModelObject* model_object = wxGetApp().model().objects[selection.get_object_idx()];

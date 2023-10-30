@@ -652,7 +652,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     const Selection &selection = m_parent.get_selection();
     if (selection.is_single_full_instance() || selection.is_single_full_object()) {
-        const GLVolume * gl_volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        const GLVolume * gl_volume = selection.get_first_volume();
         int object_idx = gl_volume->object_idx();
         if (object_idx != m_object_idx || (object_idx == m_object_idx && m_volume_idx != -1)) {
             m_object_idx = object_idx;
@@ -917,7 +917,7 @@ ModelVolume *GLGizmoText::get_selected_single_volume(int &out_object_idx, int &o
 {
     if (m_parent.get_selection().is_single_volume() || m_parent.get_selection().is_single_modifier()) {
         const Selection &selection = m_parent.get_selection();
-        const GLVolume * gl_volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        const GLVolume * gl_volume = selection.get_first_volume();
         out_object_idx             = gl_volume->object_idx();
         ModelObject *model_object  = selection.get_model()->objects[out_object_idx];
         out_volume_idx             = gl_volume->volume_idx();
