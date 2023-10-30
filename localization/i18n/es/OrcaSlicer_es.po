@@ -8087,8 +8087,6 @@ msgstr ""
 msgid "Activate air filtration"
 msgstr "Activar filtración de aire"
 
-msgstr ""
-
 msgid "Activate for better air filtration. G-code command: M106 P3 S(0-255)"
 msgstr ""
 
@@ -9148,8 +9146,6 @@ msgstr ""
 
 msgid "Support air filtration"
 msgstr "Soportar filtración de aire"
-
-msgstr ""
 
 msgid ""
 "Enable this if printer support air filtration\n"
