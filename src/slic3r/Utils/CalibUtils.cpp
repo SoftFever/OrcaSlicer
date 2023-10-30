@@ -840,6 +840,16 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     plate_size[1] = bedfs[2].y() - bedfs[0].y();
     plate_size[2] = print_height;
 
+    if (params.mode == CalibMode::Calib_PA_Line) {
+        double space_y       = 3.5;
+        int    max_line_nums = int(plate_size[1] - 10) / space_y;
+        int    count         = std::llround(std::ceil((params.end - params.start) / params.step));
+        if (count > max_line_nums) {
+            error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
+            return;
+        }
+    }
+
     if (params.mode == CalibMode::Calib_PA_Pattern) {
         ModelInstance *instance = model->objects[0]->instances[0];
         Vec3d offset = model->calib_pa_pattern->get_start_offset() +
