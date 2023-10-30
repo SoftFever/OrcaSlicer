@@ -90,26 +90,6 @@ CalibrationWizard::CalibrationWizard(wxWindow* parent, CalibMode mode, wxWindowI
     main_sizer->Fit(this);
 
     Bind(EVT_CALIBRATION_JOB_FINISHED, &CalibrationWizard::on_cali_job_finished, this);
-    this->Bind(wxEVT_CHAR_HOOK, [this](auto& evt) {
-        const int keyCode = evt.GetKeyCode();
-        switch (keyCode)
-        {
-        case WXK_F1:
-        {
-            show_step(m_curr_step->prev);
-            break;
-        }
-        case WXK_F2:
-        {
-            show_step(m_curr_step->next);
-            break;
-        }
-        default:
-            evt.Skip();
-            break;
-        }
-        });
-
 }
 
 CalibrationWizard::~CalibrationWizard()
