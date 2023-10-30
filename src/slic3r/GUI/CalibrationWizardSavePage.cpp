@@ -8,6 +8,7 @@ namespace Slic3r { namespace GUI {
 
 #define CALIBRATION_SAVE_INPUT_SIZE     wxSize(FromDIP(240), FromDIP(24))
 #define FLOW_RATE_MAX_VALUE  1.15
+static const wxString k_tips = "Please input a valid value (K in 0~0.3)";
 
 static wxString get_default_name(wxString filament_name, CalibMode mode){
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
@@ -363,10 +364,11 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         if (input->get_type() == GridTextInputType::K) {
             float k = 0.0f;
             if (!CalibUtils::validate_input_k_value(input->GetTextCtrl()->GetValue(), &k)) {
-                *out_msg = _L("Please input a valid value (K in 0~0.5)");
+                *out_msg = _L("Please input a valid value (K in 0~0.3)");
                 *out_is_valid = false;
             }
-            m_calib_results[tray_id].k_value = k;
+            else
+                m_calib_results[tray_id].k_value = k;
         }
         else if (input->get_type() == GridTextInputType::N) {
         }
@@ -546,7 +548,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     // Check if the value is valid
     float k;
     if (!CalibUtils::validate_input_k_value(m_k_val->GetTextCtrl()->GetValue(), &k)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
@@ -698,7 +700,7 @@ void CaliPASaveP1PPanel::set_pa_cali_method(ManualPaCaliMethod method)
 bool CaliPASaveP1PPanel::get_result(float* out_k, float* out_n){
     // Check if the value is valid
     if (!CalibUtils::validate_input_k_value(m_k_val->GetTextCtrl()->GetValue(), out_k)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
