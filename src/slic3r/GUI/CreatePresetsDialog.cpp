@@ -2265,7 +2265,6 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             MessageDialog dlg(this, _L("You have not yet chosen which printer preset to create based on. Please choose the vendor and model of the printer"),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
-            show_page1();
             return;
         }
 
@@ -2285,7 +2284,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         if (curr_selected_printer_type == m_create_type.create_printer) {
             if (m_can_not_find_vendor_combox->GetValue()) {
                 std::string custom_vendor = into_u8(m_custom_vendor_text_ctrl->GetValue());
-                std::string custom_model  = into_u8(m_custom_vendor_text_ctrl->GetValue());
+                std::string custom_model  = into_u8(m_custom_model_text_ctrl->GetValue());
                 if (custom_vendor.empty() || custom_model.empty()) {
                     MessageDialog dlg(this, _L("The custom printer or model is not inputed, place input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -2624,17 +2623,17 @@ wxArrayString CreatePrinterPresetDialog::printer_preset_sort_with_nozzle_diamete
             float right_nozzle_diff = std::abs(nozzle_diameter - preset_sort[right_index].first);
             bool  left_is_little    = left_nozzle_diff < right_nozzle_diff;
             if (left_is_little) {
-                printer_preset_model_selection.Add(preset_sort[index_nearest_nozzle].second);
+                printer_preset_model_selection.Add(from_u8(preset_sort[index_nearest_nozzle].second));
                 index_nearest_nozzle--;
             } else {
-                printer_preset_model_selection.Add(preset_sort[right_index].second);
+                printer_preset_model_selection.Add(from_u8(preset_sort[right_index].second));
                 right_index++;
             }
         } else if (index_nearest_nozzle >= 0) {
-            printer_preset_model_selection.Add(preset_sort[index_nearest_nozzle].second);
+            printer_preset_model_selection.Add(from_u8(preset_sort[index_nearest_nozzle].second));
             index_nearest_nozzle--;
         } else if (right_index < preset_sort.size()) {
-            printer_preset_model_selection.Add(preset_sort[right_index].second);
+            printer_preset_model_selection.Add(from_u8(preset_sort[right_index].second));
             right_index++;
         }    
     }
