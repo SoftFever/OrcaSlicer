@@ -1362,7 +1362,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
     // Orca: G92 E0 is not supported when using absolute extruder addressing
     // This check is copied from PrusaSlicer, the original author is Vojtech Bubnik
-    {
+    if(!is_BBL_printer()) {
         bool before_layer_gcode_resets_extruder =
             boost::regex_search(m_config.before_layer_change_gcode.value, regex_g92e0);
         bool layer_gcode_resets_extruder = boost::regex_search(m_config.layer_change_gcode.value, regex_g92e0);

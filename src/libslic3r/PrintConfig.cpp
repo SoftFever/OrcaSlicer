@@ -291,7 +291,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
     { "0%",         Overhang_threshold_none },
-    { "10%",         Overhang_threshold_1_4  },
+    { "10%",        Overhang_threshold_1_4  },
     { "25%",        Overhang_threshold_2_4  },
     { "50%",        Overhang_threshold_3_4  },
     { "75%",        Overhang_threshold_4_4  },
@@ -1867,7 +1867,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
-    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhensive");
+    def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhesive");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2597,7 +2597,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->readonly = false;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
+    def->set_default_value(new ConfigOptionFloats{ 0., 0. });
 
     def = this->add("fan_max_speed", coInts);
     def->label = L("Fan speed");
@@ -2680,7 +2680,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("slow_down_min_speed", coFloats);
     def->label = L("Min print speed");
-    def->tooltip = L("The minimum printing speed when slow down for cooling");
+    def->tooltip = L("The minimum printing speed for the filament when slow down for better layer cooling is enabled, when printing overhangs and when feature speeds are not specified explicitly.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;

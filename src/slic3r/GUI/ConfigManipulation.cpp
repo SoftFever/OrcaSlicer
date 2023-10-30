@@ -734,6 +734,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase;
     toggle_field("overhang_reverse", allow_overhang_reverse);
     toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
+    toggle_line("timelapse_type", is_BBL_Printer);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
