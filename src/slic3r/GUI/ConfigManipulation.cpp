@@ -724,6 +724,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted" })
         toggle_line(el, config->opt_bool("hole_to_polyhole"));
+    bool has_detect_overhang_wall = config->opt_bool("detect_overhang_wall");
+    bool has_overhang_reverse     = config->opt_bool("overhang_reverse");
+    bool allow_overhang_reverse   = has_detect_overhang_wall && !has_spiral_vase;
+    toggle_field("overhang_reverse", allow_overhang_reverse);
+    toggle_line("overhang_reverse_threshold", allow_overhang_reverse && has_overhang_reverse);
+    toggle_line("timelapse_type", is_BBL_Printer);
+
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

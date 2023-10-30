@@ -2096,15 +2096,7 @@ void GUI_App::init_app_config()
             data_dir_path = boost::filesystem::path(data_dir());
         #endif
         if (!boost::filesystem::exists(data_dir_path)){
-            auto older_data_dir = data_dir_path.parent_path() / "BambuStudio-SoftFever";
-            if(boost::filesystem::exists(older_data_dir)){
-                copy_directory_recursively(older_data_dir,data_dir_path);
-                boost::system::error_code ec;
-                boost::filesystem::rename(data_dir_path / "BambuStudio.conf", data_dir_path / "OrcaSlicer.conf", ec);
-                boost::filesystem::rename(data_dir_path / "BambuStudio.conf.bak", data_dir_path / "OrcaSlicer.conf.bak", ec);
-            }
-            else
-                boost::filesystem::create_directory(data_dir_path);
+            boost::filesystem::create_directory(data_dir_path);
         }
     } else {
         m_datadir_redefined = true;
@@ -2338,6 +2330,8 @@ bool GUI_App::on_init_inner()
         return false;
     }
 #endif
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("gui mode, Current OrcaSlicer Version %1%")%SoftFever_VERSION;
 
     // Enable this to get the default Win32 COMCTRL32 behavior of static boxes.
 //    wxSystemOptions::SetOption("msw.staticbox.optimized-paint", 0);
@@ -4952,7 +4946,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by BambuStudio.conf: %1%") % language;
+        	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by OrcaSlicer.conf: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());

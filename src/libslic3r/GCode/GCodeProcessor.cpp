@@ -1,4 +1,5 @@
 #include "ExtrusionEntity.hpp"
+#include "PrintConfig.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
@@ -18,6 +19,8 @@
 #include <float.h>
 #include <assert.h>
 #include <regex>
+#include <charconv>
+#include <system_error>
 
 #if __has_include(<charconv>)
     #include <charconv>
@@ -973,7 +976,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware || m_flavor == gcfKlipper || m_flavor == gcfRepRapFirmware) {
         m_time_processor.machine_limits = reinterpret_cast<const MachineEnvelopeConfig&>(config);
-        if (m_flavor == gcfMarlinLegacy) {
+        if (m_flavor == gcfMarlinLegacy || m_flavor == gcfKlipper) {
             // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
             m_time_processor.machine_limits.machine_max_acceleration_travel = m_time_processor.machine_limits.machine_max_acceleration_extruding;
         }
@@ -993,13 +996,18 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
-        m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+        m_time_processor.machines[i].acceleration     = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
         float max_retract_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i);
         m_time_processor.machines[i].max_retract_acceleration = max_retract_acceleration;
-        m_time_processor.machines[i].retract_acceleration = (max_retract_acceleration > 0.0f) ? max_retract_acceleration : DEFAULT_RETRACT_ACCELERATION;
+        m_time_processor.machines[i].retract_acceleration     = (max_retract_acceleration > 0.0f) ? max_retract_acceleration :
+                                                                                                    DEFAULT_RETRACT_ACCELERATION;
         float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
+        if (!GCodeWriter::supports_separate_travel_acceleration(config.gcode_flavor.value)){
+            max_travel_acceleration = 0;
+        }
         m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
-        m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
+        m_time_processor.machines[i].travel_acceleration     = (max_travel_acceleration > 0.0f) ? max_travel_acceleration :
+                                                                                                  DEFAULT_TRAVEL_ACCELERATION;
     }
 
     const ConfigOptionFloat* initial_layer_print_height = config.option<ConfigOptionFloat>("initial_layer_print_height");
@@ -1242,7 +1250,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
 
         // Legacy Marlin does not have separate travel acceleration, it uses the 'extruding' value instead.
-        const ConfigOptionFloats* machine_max_acceleration_travel = config.option<ConfigOptionFloats>(m_flavor == gcfMarlinLegacy
+        const ConfigOptionFloats* machine_max_acceleration_travel = config.option<ConfigOptionFloats>(m_flavor == gcfMarlinLegacy || m_flavor == gcfKlipper
                                                                                                     ? "machine_max_acceleration_extruding"
                                                                                                     : "machine_max_acceleration_travel");
         if (machine_max_acceleration_travel != nullptr)
@@ -1261,13 +1269,15 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
         float max_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_extruding, i);
         m_time_processor.machines[i].max_acceleration = max_acceleration;
-        m_time_processor.machines[i].acceleration = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
+        m_time_processor.machines[i].acceleration     = (max_acceleration > 0.0f) ? max_acceleration : DEFAULT_ACCELERATION;
         float max_retract_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_retracting, i);
         m_time_processor.machines[i].max_retract_acceleration = max_retract_acceleration;
-        m_time_processor.machines[i].retract_acceleration = (max_retract_acceleration > 0.0f) ? max_retract_acceleration : DEFAULT_RETRACT_ACCELERATION;
+        m_time_processor.machines[i].retract_acceleration     = (max_retract_acceleration > 0.0f) ? max_retract_acceleration :
+                                                                                                    DEFAULT_RETRACT_ACCELERATION;
         float max_travel_acceleration = get_option_value(m_time_processor.machine_limits.machine_max_acceleration_travel, i);
         m_time_processor.machines[i].max_travel_acceleration = max_travel_acceleration;
-        m_time_processor.machines[i].travel_acceleration = (max_travel_acceleration > 0.0f) ? max_travel_acceleration : DEFAULT_TRAVEL_ACCELERATION;
+        m_time_processor.machines[i].travel_acceleration     = (max_travel_acceleration > 0.0f) ? max_travel_acceleration :
+                                                                                                  DEFAULT_TRAVEL_ACCELERATION;
     }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
@@ -4053,19 +4063,23 @@ void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_T(const std::string_view command)
 {
+    unsigned int new_extruder = 0;
+    auto         ret          = std::from_chars(command.data() + 1, command.data()+command.size(), new_extruder);
+    if (std::errc::invalid_argument == ret.ec)
+        return;
+
     if (command.length() > 1) {
-        int eid = 0;
-        if (! parse_number(command.substr(1), eid) || eid < 0 || eid > 254) {
+        if (new_extruder < 0 || new_extruder > 254) {
             //BBS: T255, T1000 and T1100 is used as special command for BBL machine and does not cost time. return directly
             if ((m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) && (command == "Tx" || command == "Tc" || command == "T?" ||
-                 eid == 1000 || eid == 1100 || eid == 255))
+                 new_extruder == 1000 || new_extruder == 1100 || new_extruder == 255))
                 return;
 
             // T-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools)
-            if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
+            if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || new_extruder != -1)
                 BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
         } else {
-            unsigned char id = static_cast<unsigned char>(eid);
+            unsigned char id = static_cast<unsigned char>(new_extruder);
             if (m_extruder_id != id) {
                 if (id >= m_result.extruders_count)
                     BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";

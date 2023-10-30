@@ -116,6 +116,8 @@ public:
     void set_is_first_layer(bool bval) { m_is_first_layer = bval; }
     GCodeFlavor get_gcode_flavor() const { return config.gcode_flavor; }
 
+    // Returns whether this flavor supports separate print and travel acceleration.
+    static bool supports_separate_travel_acceleration(GCodeFlavor flavor);
   private:
 	// Extruders are sorted by their ID, so that binary search is possible.
     std::vector<Extruder> m_extruders;

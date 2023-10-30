@@ -1929,8 +1929,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_enable_exclude_object = config().exclude_object;
     //Orca: extra check for bbl printer
     if (is_bbl_printers) {
-        if (print.extruders(true).size() == 1 &&                  // Don't support multi-color
-            print.calib_params().mode == CalibMode::Calib_None) { // Don't support skipping in cali mode
+        if (print.calib_params().mode == CalibMode::Calib_None) { // Don't support skipping in cali mode
             // list all label_object_id with sorted order here
             m_enable_exclude_object = true;
             m_label_objects_ids.clear();
@@ -2210,6 +2209,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x(), bbox.min.y()}));
         this->placeholder_parser().set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x(), bbox.max.y()}));
         this->placeholder_parser().set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+
+        // get center without wipe tower
+        BoundingBoxf bbox_wo_wt; // bounding box without wipe tower
+        for (auto &objPtr : print.objects()) {
+            BBoxData data;
+            bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
+        }
+        auto center = bbox_wo_wt.center();
+        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(), center.y()));
     }
     float outer_wall_volumetric_speed = 0.0f;
     {
@@ -3425,16 +3433,28 @@ LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
-    if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
-        std::string timepals_gcode = insert_timelapse_gcode();
-        gcode += timepals_gcode;
-        m_writer.set_current_position_clear(false);
-        //BBS: check whether custom gcode changes the z position. Update if changed
-        double temp_z_after_timepals_gcode;
-        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
-            Vec3d pos = m_writer.get_position();
-            pos(2) = temp_z_after_timepals_gcode;
-            m_writer.set_position(pos);
+    if(is_BBL_Printer()){
+        if (printer_structure == PrinterStructure::psI3 && !need_insert_timelapse_gcode_for_traditional && !m_spiral_vase && print.config().print_sequence == PrintSequence::ByLayer) {
+            std::string timepals_gcode = insert_timelapse_gcode();
+            gcode += timepals_gcode;
+            m_writer.set_current_position_clear(false);
+            //BBS: check whether custom gcode changes the z position. Update if changed
+            double temp_z_after_timepals_gcode;
+            if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_timepals_gcode)) {
+                Vec3d pos = m_writer.get_position();
+                pos(2) = temp_z_after_timepals_gcode;
+                m_writer.set_position(pos);
+            }
+        }
+    } else {
+        if (!print.config().time_lapse_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            gcode += this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.extruder()->id(),
+                                                      &config) +
+                     "\n";
         }
     }
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -4801,15 +4821,18 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
 
     //    { "0%", Overhang_threshold_none },
-    //    { "5%", Overhang_threshold_1_4 },
+    //    { "10%", Overhang_threshold_1_4 },
     //    { "25%", Overhang_threshold_2_4 },
     //    { "50%", Overhang_threshold_3_4 },
     //    { "75%", Overhang_threshold_4_4 },
     //    { "95%", Overhang_threshold_bridge }
-    auto check_overhang_fan = [&overhang_fan_threshold](float overlap) {
+    auto check_overhang_fan = [&overhang_fan_threshold](float overlap, ExtrusionRole role) {
+      if (is_bridge(role)) {
+        return true;
+      }
       switch (overhang_fan_threshold) {
       case (int)Overhang_threshold_1_4:
-        return overlap <= 0.95f;
+        return overlap <= 0.9f;
         break;
       case (int)Overhang_threshold_2_4:
         return overlap <= 0.75f;
@@ -4821,10 +4844,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         return overlap <= 0.25f;
         break;
       case (int)Overhang_threshold_bridge:
-        return overlap <= 0.1f;
+        return overlap <= 0.05f;
         break;
       case (int)Overhang_threshold_none:
-        return true;
+        return is_external_perimeter(role);
         break;
       default:
         return false;
@@ -4849,7 +4872,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     // perimeter
                     int overhang_threshold = overhang_fan_threshold == Overhang_threshold_none ? Overhang_threshold_none
                     : overhang_fan_threshold - 1;
-                    if ((overhang_fan_threshold == Overhang_threshold_none && is_perimeter(path.role())) ||
+                    if ((overhang_fan_threshold == Overhang_threshold_none && is_external_perimeter(path.role())) ||
                         (path.get_overhang_degree() > overhang_threshold || is_bridge(path.role()))) {
                         if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
@@ -4934,7 +4957,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         bool pre_fan_enabled = false;
         bool cur_fan_enabled = false;
         if( m_enable_cooling_markers && enable_overhang_bridge_fan)
-            pre_fan_enabled = check_overhang_fan(new_points[0].overlap);
+            pre_fan_enabled = check_overhang_fan(new_points[0].overlap, path.role());
 
         for (size_t i = 1; i < new_points.size(); i++) {
             const ProcessedPoint &processed_point = new_points[i];
@@ -4942,10 +4965,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             Vec2d p = this->point_to_gcode_quantized(processed_point.p);
             if (m_enable_cooling_markers) {
                 if (enable_overhang_bridge_fan) {
-                    cur_fan_enabled = check_overhang_fan(processed_point.overlap);
-                    if (is_bridge(path.role()) ||
-                        (is_perimeter(path.role()) &&
-                         pre_fan_enabled && pre_fan_enabled)) {
+                    cur_fan_enabled = check_overhang_fan(processed_point.overlap, path.role());
+                    if (pre_fan_enabled && cur_fan_enabled) {
                         if (!m_is_overhang_fan_on) {
                             gcode += ";_OVERHANG_FAN_START\n";
                             m_is_overhang_fan_on = true;
