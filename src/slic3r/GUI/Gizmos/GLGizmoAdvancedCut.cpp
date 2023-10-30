@@ -501,6 +501,7 @@ void GLGizmoAdvancedCut::on_set_state()
 
     // Reset m_cut_z on gizmo activation
     if (get_state() == On) {
+        m_hover_id           = -1;
         m_connectors_editing = false;
         reset_cut_plane();
 
