@@ -643,7 +643,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                                                         std::function<int(std::string const &)> override_confirm,
                                                         ForwardCompatibilitySubstitutionRule    rule)
 {
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << " entry";
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry";
     PresetsConfigSubstitutions substitutions;
     int overwrite = 0;
     std::vector<std::string>   result;
@@ -657,18 +657,18 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             // create user folder
             fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
             if (!fs::exists(user_folder)) fs::create_directory(user_folder, ec);
-            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
+            if (ec) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " create directory failed: " << ec.message();
             // create default folder
             fs::path default_folder(user_folder / DEFAULT_USER_FOLDER_NAME);
             if (!fs::exists(default_folder)) fs::create_directory(default_folder, ec);
-            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
+            if (ec) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " create directory failed: " << ec.message();
             //create temp folder
             //std::string user_default_temp_dir = data_dir() + "/" + PRESET_USER_DIR + "/" + DEFAULT_USER_FOLDER_NAME + "/" + "temp";
             fs::path temp_folder(default_folder / "temp");
             std::string user_default_temp_dir = temp_folder.make_preferred().string();
             if (fs::exists(temp_folder)) fs::remove_all(temp_folder);
             fs::create_directory(temp_folder, ec);
-            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
+            if (ec) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " create directory failed: " << ec.message();
 
             file = boost::filesystem::path(file).make_preferred().string();
             mz_zip_archive zip_archive;
@@ -685,10 +685,10 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
             FILE *zipFile = boost::nowide::fopen(file.c_str(), "rb");
             status        = mz_zip_reader_init_cfile(&zip_archive, zipFile, 0, MZ_ZIP_FLAG_CASE_SENSITIVE | MZ_ZIP_FLAG_IGNORE_PATH);
             if (MZ_FALSE == status) {
-                BOOST_LOG_TRIVIAL(info) << "Failed to initialize reader ZIP archive";
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to initialize reader ZIP archive";
                 return substitutions;
             } else {
-                BOOST_LOG_TRIVIAL(info) << "Success to initialize reader ZIP archive";
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Success to initialize reader ZIP archive";
             }
 
             // Extract Files
@@ -698,7 +698,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 status = mz_zip_reader_file_stat(&zip_archive, i, &file_stat);
                 if (status) {
                     std::string file_name = file_stat.m_filename;
-                    BOOST_LOG_TRIVIAL(info) << "Form zip file: " << file << ". Read file name: " << file_stat.m_filename;
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Form zip file: " << file << ". Read file name: " << file_stat.m_filename;
                     size_t index = file_name.find_last_of('/');
                     if (std::string::npos != index) {
                         file_name = file_name.substr(index + 1);
@@ -710,16 +710,16 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                     status = mz_zip_reader_extract_to_file(&zip_archive, i, target_file_path.c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
                     // target file is opened
                     if (MZ_FALSE == status) {
-                        BOOST_LOG_TRIVIAL(info) << "Failed to open target file: " << target_file_path;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to open target file: " << target_file_path;
                     } else {
-                        import_json_presets(substitutions, target_file_path, override_confirm, rule, overwrite, result);
-                        BOOST_LOG_TRIVIAL(info) << "Successed to open target file: " << target_file_path;
+                        bool is_success = import_json_presets(substitutions, target_file_path, override_confirm, rule, overwrite, result);
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " import target file: " << target_file_path << " import result" << is_success;
                     }
                 }
             }
             fclose(zipFile);
             if (fs::exists(temp_folder)) fs::remove_all(temp_folder, ec);
-            if (ec) BOOST_LOG_TRIVIAL(error) << "create directory failed: " << ec.message();
+            if (ec) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " remove directory failed: " << ec.message();
         }
     }
     files = result;
@@ -746,7 +746,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         if (!version) return false;
         Semver app_version = *(Semver::parse(SLIC3R_VERSION));
         if (version->maj() != app_version.maj()) {
-            BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset incompatibla, not loading: " << name;
             return false;
         }
 
@@ -758,19 +758,19 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         else if (config.has("filament_settings_id"))
             collection = &filaments;
         if (collection == nullptr) {
-            BOOST_LOG_TRIVIAL(warning) << "Preset type is unknown, not loading: " << name;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset type is unknown, not loading: " << name;
             return false;
         }
         if (overwrite == 0) overwrite = 1;
         if (auto p = collection->find_preset(name, false)) {
             if (p->is_default || p->is_system) {
-                BOOST_LOG_TRIVIAL(warning) << "Preset already present and is system preset, not loading: " << name;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset already present and is system preset, not loading: " << name;
                 return false;
             }
             overwrite = override_confirm(name);
         }
         if (overwrite == 0 || overwrite == 2) {
-            BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset already present, not loading: " << name;
             return false;
         }
 
