@@ -2236,51 +2236,51 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std
 {
     bool  is_same_nozzle_diameters = true;
 
-    float       preset_nozzle_diameters;
-    std::string preset_nozzle_type;
+    //float       preset_nozzle_diameters;
+    //std::string preset_nozzle_type;
 
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return true;
+    //DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    //if (!dev) return true;
 
-    MachineObject* obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return true;
+    //MachineObject* obj_ = dev->get_selected_machine();
+    //if (obj_ == nullptr) return true;
 
-    try
-    {
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
+    //try
+    //{
+    //    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    //    auto opt_nozzle_diameters = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter");
 
-        const ConfigOptionEnum<NozzleType>* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
+    //    const ConfigOptionEnum<NozzleType>* nozzle_type = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<NozzleType>>("nozzle_type");
 
-        if (nozzle_type->value == NozzleType::ntHardenedSteel) {
-            preset_nozzle_type = "hardened_steel";
-        }
-        else if (nozzle_type->value == NozzleType::ntStainlessSteel) {
-            preset_nozzle_type = "stainless_steel";
-        }
+    //    if (nozzle_type->value == NozzleType::ntHardenedSteel) {
+    //        preset_nozzle_type = "hardened_steel";
+    //    }
+    //    else if (nozzle_type->value == NozzleType::ntStainlessSteel) {
+    //        preset_nozzle_type = "stainless_steel";
+    //    }
 
-        if (obj_->nozzle_type != preset_nozzle_type) {
-            is_same_nozzle_diameters = false;
-        }
+    //    if (obj_->nozzle_type != preset_nozzle_type) {
+    //        is_same_nozzle_diameters = false;
+    //    }
 
-        auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
-        if (opt_nozzle_diameters != nullptr) {
-            for (auto i = 0; i < extruders.size(); i++) {
-                auto extruder = extruders[i] - 1;
-                preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
-                if (preset_nozzle_diameters != obj_->nozzle_diameter) {
-                    is_same_nozzle_diameters = false;
-                }
-            }
-        }
-            
-    }
-    catch (...)
-    {	
-    }
+    //    auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
+    //    if (opt_nozzle_diameters != nullptr) {
+    //        for (auto i = 0; i < extruders.size(); i++) {
+    //            auto extruder = extruders[i] - 1;
+    //            preset_nozzle_diameters = float(opt_nozzle_diameters->get_at(extruder));
+    //            if (preset_nozzle_diameters != obj_->nozzle_diameter) {
+    //                is_same_nozzle_diameters = false;
+    //            }
+    //        }
+    //    }
+    //        
+    //}
+    //catch (...)
+    //{	
+    //}
 
-    nozzle_type = preset_nozzle_type;
-    nozzle_diameter = wxString::Format("%.1f",preset_nozzle_diameters).ToStdString();
+    //nozzle_type = preset_nozzle_type;
+    //nozzle_diameter = wxString::Format("%.1f",preset_nozzle_diameters).ToStdString();
 
     return is_same_nozzle_diameters;
 }
