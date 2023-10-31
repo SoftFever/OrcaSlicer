@@ -2140,6 +2140,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
                 connectors[idx].radius_tolerance = m_connector_size_tolerance;
         });
     if (m_connector_type == CutConnectorType::Snap) {
+        m_imgui->text(_L("Snap global parameters") +": ");
         const std::string format = "%.0f %%";
         bool is_changed = false;
         if (render_slider_double_input_by_format(_u8L("Bulge"), m_snap_bulge_proportion, 5.f, 100.f * m_snap_space_proportion, DoubleShowType::PERCENTAGE)) {
