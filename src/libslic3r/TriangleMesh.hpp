@@ -1,3 +1,14 @@
+///|/ Copyright (c) Prusa Research 2017 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966, Filip Sykala @Jony01
+///|/ Copyright (c) 2019 Sijmen Schoon
+///|/ Copyright (c) 2016 Joseph Lenox @lordofhyphens
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/
+///|/ ported from lib/Slic3r/TriangleMesh.pm:
+///|/ Copyright (c) Slic3r 2011 - 2014 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2012 - 2013 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_TriangleMesh_hpp_
 #define slic3r_TriangleMesh_hpp_
 
@@ -337,9 +348,11 @@ indexed_triangle_set    its_make_cube(double x, double y, double z);
 indexed_triangle_set    its_make_prism(float width, float length, float height);
 indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/360));
 indexed_triangle_set    its_make_cone(double r, double h, double fa=(2*PI/360));
+indexed_triangle_set    its_make_frustum(double r, double h, double fa=(2*PI/360));
 indexed_triangle_set    its_make_frustum_dowel(double r, double h, int sectorCount);
 indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
+indexed_triangle_set    its_make_snap(double r, double h, float space_proportion = 0.25f, float bulge_proportion = 0.125f);
 
 indexed_triangle_set        its_convex_hull(const std::vector<Vec3f> &pts);
 inline indexed_triangle_set its_convex_hull(const indexed_triangle_set &its) { return its_convex_hull(its.vertices); }

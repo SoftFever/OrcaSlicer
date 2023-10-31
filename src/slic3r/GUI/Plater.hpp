@@ -1,3 +1,19 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Tomáš Mészáros @tamasmeszaros, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
+///|/
+///|/ ported from lib/Slic3r/GUI/Plater.pm:
+///|/ Copyright (c) Prusa Research 2016 - 2019 Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros
+///|/ Copyright (c) 2018 Martin Loidl @LoidlM
+///|/ Copyright (c) 2017 Matthias Gazzari @qtux
+///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2017 Joseph Lenox @lordofhyphens
+///|/ Copyright (c) 2015 Daren Schwenke
+///|/ Copyright (c) 2014 Mark Hindess
+///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
+///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
+///|/ Copyright (c) 2012 Sam Wong
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Plater_hpp_
 #define slic3r_Plater_hpp_
 
@@ -25,6 +41,7 @@
 #include "libslic3r/PrintBase.hpp"
 
 #include "libslic3r/calib.hpp"
+#include "libslic3r/CutUtils.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -41,8 +58,6 @@ class BuildVolume;
 enum class BuildVolume_Type : unsigned char;
 class Model;
 class ModelObject;
-enum class ModelObjectCutAttribute : int;
-using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
 class ModelInstance;
 class Print;
 class SLAPrint;
@@ -323,12 +338,7 @@ public:
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
 
-    // BBS: replace z with plane_points
-    void cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
-
-    // BBS: segment model with CGAL
-    void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
-    void merge(size_t obj_idx, std::vector<int>& vol_indeces);
+    void apply_cut_object_to_model(size_t init_obj_idx, const ModelObjectPtrs& cut_objects);
 
     void send_to_printer(bool isall = false);
     void export_gcode(bool prefer_removable);
@@ -741,6 +751,8 @@ private:
     void _calib_pa_pattern(const Calib_Params& params);
     void _calib_pa_tower(const Calib_Params& params);
     void _calib_pa_select_added_objects();
+
+    void cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes);
 
     friend class SuppressBackgroundProcessingUpdate;
 };

@@ -222,6 +222,9 @@ public:
     void register_raycasters_for_picking()   { register_grabbers_for_picking(); on_register_raycasters_for_picking(); }
     void unregister_raycasters_for_picking() { unregister_grabbers_for_picking(); on_unregister_raycasters_for_picking(); }
 
+    virtual bool is_in_editing_mode() const { return false; }
+    virtual bool is_selection_rectangle_dragging() const { return false; }
+
 protected:
     float last_input_window_width = 0;
     virtual bool on_init() = 0;

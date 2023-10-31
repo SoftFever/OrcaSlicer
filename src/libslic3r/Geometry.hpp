@@ -440,6 +440,8 @@ public:
     const Vec3d& get_rotation() const { return m_rotation; }
     double get_rotation(Axis axis) const { return m_rotation(axis); }
 
+    Transform3d get_rotation_matrix() const;
+
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
 

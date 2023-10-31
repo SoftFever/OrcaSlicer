@@ -1,3 +1,17 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, Tomáš Mészáros @tamasmeszaros
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/
+///|/ ported from lib/Slic3r/Geometry.pm:
+///|/ Copyright (c) Prusa Research 2017 - 2022 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2013 Jose Luis Perez Diez
+///|/ Copyright (c) 2013 Anders Sundman
+///|/ Copyright (c) 2013 Jesse Vincent
+///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
+///|/ Copyright (c) 2012 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r.h"
 #include "Exception.hpp"
 #include "Geometry.hpp"
@@ -432,6 +446,14 @@ Vec3d extract_euler_angles(const Transform3d& transform)
     return extract_euler_angles(m);
 }
 
+static Transform3d extract_rotation_matrix(const Transform3d& trafo)
+{
+    Matrix3d rotation;
+    Matrix3d scale;
+    trafo.computeRotationScaling(&rotation, &scale);
+    return Transform3d(rotation);
+}
+
 void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix)
 {
     double epsilon = 1e-5;
@@ -502,6 +524,11 @@ void Transformation::set_offset(Axis axis, double offset)
         m_offset(axis) = offset;
         m_dirty = true;
     }
+}
+
+Transform3d Transformation::get_rotation_matrix() const
+{
+    return extract_rotation_matrix(m_matrix);
 }
 
 void Transformation::set_rotation(const Vec3d& rotation)

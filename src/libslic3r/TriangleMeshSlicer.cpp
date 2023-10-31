@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Tesselate.hpp"
@@ -2299,80 +2303,5 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
 #endif // NDEBUG
     }
 }
-
-// BBS: implement plane cut with cgal
-static Vec3d calc_plane_normal(const std::array<Vec3d, 4>& plane_points)
-{
-    Vec3d v01 = plane_points[1] - plane_points[0];
-    Vec3d v12 = plane_points[2] - plane_points[1];
-
-    Vec3d plane_normal = v01.cross(v12);
-    plane_normal.normalize();
-    return plane_normal;
-}
-
-void cut_mesh
-(
-    const indexed_triangle_set& mesh, // model object coordinate
-    std::array<Vec3d, 4> plane_points, // model object coordinate
-    indexed_triangle_set* upper,
-    indexed_triangle_set* lower,
-    bool triangulate_caps
-)
-{
-    assert(upper || lower);
-    if (upper == nullptr && lower == nullptr)
-        return;
-
-    BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
-
-    Vec3d plane_normal = calc_plane_normal(plane_points);
-    if (std::abs(plane_normal(0)) < EPSILON && std::abs(plane_normal(1)) < EPSILON) {
-        cut_mesh(mesh, plane_points[0](2), upper, lower);
-        return;
-    }
-
-    // BBS
-    if (std::abs(plane_normal(2)) < EPSILON) {
-        // keep the side on the normal direction
-    }
-    else if (plane_normal(2) < 0.0) {
-        std::reverse(plane_points.begin(), plane_points.end());
-    }
-    plane_normal = calc_plane_normal(plane_points);
-
-    Vec3d mid_point = { 0.0, 0.0, 0.0 };
-    for (auto pt : plane_points)
-        mid_point += pt;
-    mid_point /= (double)plane_points.size();
-    Vec3d movement = -mid_point;
-
-    Vec3d axis = { 0.0, 0.0, 0.0 };
-    double phi = 0.0;
-    Matrix3d matrix;
-    matrix.setIdentity();
-    Geometry::rotation_from_two_vectors(plane_normal, { 0.0, 0.0, 1.0 }, axis, phi, &matrix);
-    Vec3d angles = Geometry::extract_euler_angles(matrix);
-
-    movement = matrix * movement;
-    Transform3d transfo;
-    transfo.setIdentity();
-    transfo.translate(movement);
-    transfo.rotate(Eigen::AngleAxisd(angles(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(angles(1), Vec3d::UnitY()) * Eigen::AngleAxisd(angles(0), Vec3d::UnitX()));
-    
-    indexed_triangle_set mesh_temp = mesh;
-    its_transform(mesh_temp, transfo);
-    cut_mesh(mesh_temp, 0., upper, lower);
-    
-    Transform3d transfo_inv = transfo.inverse();
-    if (upper) {
-        its_transform(*upper, transfo_inv);
-    }
-
-    if (lower) {
-        its_transform(*lower, transfo_inv);
-    }
-}
-
 
 } // namespace Slic3r

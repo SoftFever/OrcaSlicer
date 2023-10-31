@@ -202,6 +202,8 @@ set(lisbslic3r_sources
     BlacklistedLibraryCheck.hpp
     LocalesUtils.cpp
     LocalesUtils.hpp
+    CutUtils.cpp
+    CutUtils.hpp
     Model.cpp
     Model.hpp
     ModelArrange.hpp

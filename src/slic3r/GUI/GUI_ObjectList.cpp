@@ -2811,7 +2811,7 @@ void ObjectList::merge(bool to_multipart_object)
     }
 }
 
-void ObjectList::merge_volumes()
+/*void ObjectList::merge_volumes()
 {
     std::vector<int> obj_idxs, vol_idxs;
     get_selection_indexes(obj_idxs, vol_idxs);
@@ -2839,11 +2839,11 @@ void ObjectList::merge_volumes()
     else {
         for (int vol_idx : vol_idxs)
             selection.add_volume(last_obj_idx, vol_idx, 0, false);
-    }*/
+    }#1#
 #else
     wxGetApp().plater()->merge(obj_idxs[0], vol_idxs);
 #endif
-}
+}*/
 
 void ObjectList::layers_editing()
 {

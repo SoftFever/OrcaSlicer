@@ -807,6 +807,10 @@ public:
     bool                                get_use_clipping_planes() const { return m_use_clipping_planes; }
     const std::array<ClippingPlane, 2> &get_clipping_planes() const { return m_clipping_planes; };
 
+    void set_use_color_clip_plane(bool use) { m_volumes.set_use_color_clip_plane(use); }
+    void set_color_clip_plane(const Vec3d& cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
+    void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_volumes.set_color_clip_plane_colors(colors); }
+
     void refresh_camera_scene_box();
 
     BoundingBoxf3 volumes_bounding_box(bool current_plate_only = false) const;

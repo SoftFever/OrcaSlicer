@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "MsgDialog.hpp"
 
 #include <wx/settings.h>
@@ -409,6 +413,58 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& 
 {
     add_msg_content(this, content_sizer, msg, false, is_marked_msg);
     finalize();
+}
+
+wxString get_wraped_wxString(const wxString& in, size_t line_len /*=80*/)
+{
+    wxString out;
+
+    for (size_t i = 0; i < in.size();) {
+        // Overwrite the character (space or newline) starting at ibreak?
+        bool   overwrite = false;
+        // UTF8 representation of wxString.
+        // Where to break the line, index of character at the start of a UTF-8 sequence.
+        size_t ibreak    = size_t(-1);
+        // Overwrite the character at ibreak (it is a whitespace) or not?
+        size_t j = i;
+        for (size_t cnt = 0; j < in.size();) {
+            if (bool newline = in[j] == '\n'; in[j] == ' ' || in[j] == '\t' || newline) {
+                // Overwrite the whitespace.
+                ibreak    = j ++;
+                overwrite = true;
+                if (newline)
+                    break;
+            } else if (in[j] == '/'
+#ifdef _WIN32
+                 || in[j] == '\\'
+#endif // _WIN32
+                 ) {
+                // Insert after the slash.
+                ibreak    = ++ j;
+                overwrite = false;
+            } else
+                j += get_utf8_sequence_length(in.c_str() + j, in.size() - j);
+            if (++ cnt == line_len) {
+                if (ibreak == size_t(-1)) {
+                    ibreak    = j;
+                    overwrite = false;
+                }
+                break;
+            }
+        }
+        if (j == in.size()) {
+            out.append(in.begin() + i, in.end());
+            break;
+        }
+        assert(ibreak != size_t(-1));
+        out.append(in.begin() + i, in.begin() + ibreak);
+        out.append('\n');
+        i = ibreak;
+        if (overwrite)
+            ++ i;
+    }
+
+    return out;
 }
 
 // InfoDialog

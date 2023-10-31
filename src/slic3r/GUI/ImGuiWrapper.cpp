@@ -511,10 +511,12 @@ void ImGuiWrapper::render()
     m_new_frame_open = false;
 }
 
-ImVec2 ImGuiWrapper::calc_text_size(const wxString &text, float wrap_width) const
+ImVec2 ImGuiWrapper::calc_text_size(const wxString &text,
+                                    bool  hide_text_after_double_hash,
+                                    float wrap_width) const
 {
     auto text_utf8 = into_u8(text);
-    ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, false, wrap_width);
+    ImVec2 size = ImGui::CalcTextSize(text_utf8.c_str(), NULL, hide_text_after_double_hash, wrap_width);
 
 /*#ifdef __linux__
     size.x *= m_style_scaling;
@@ -773,22 +775,47 @@ void ImGuiWrapper::end()
     ImGui::End();
 }
 
-bool ImGuiWrapper::button(const wxString &label)
+bool ImGuiWrapper::button(const wxString &label, const wxString& tooltip)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::Button(label_utf8.c_str());
+    const bool ret = ImGui::Button(label_utf8.c_str());
+
+    if (!tooltip.IsEmpty() && ImGui::IsItemHovered()) {
+        auto tooltip_utf8 = into_u8(tooltip);
+        ImGui::SetTooltip(tooltip_utf8.c_str(), nullptr);
+    }
+
+    return ret;
 }
 
-bool ImGuiWrapper::bbl_button(const wxString &label)
+bool ImGuiWrapper::bbl_button(const wxString &label, const wxString& tooltip)
 {
     auto label_utf8 = into_u8(label);
-    return ImGui::BBLButton(label_utf8.c_str());
+    const bool ret = ImGui::BBLButton(label_utf8.c_str());
+
+    if (!tooltip.IsEmpty() && ImGui::IsItemHovered()) {
+        auto tooltip_utf8 = into_u8(tooltip);
+        ImGui::SetTooltip(tooltip_utf8.c_str(), nullptr);
+    }
+
+    return ret;
 }
 
 bool ImGuiWrapper::button(const wxString& label, float width, float height)
 {
     auto label_utf8 = into_u8(label);
     return ImGui::Button(label_utf8.c_str(), ImVec2(width, height));
+}
+
+bool ImGuiWrapper::button(const wxString& label, const ImVec2 &size, bool enable)
+{
+    disabled_begin(!enable);
+
+    auto label_utf8 = into_u8(label);
+    bool res = ImGui::Button(label_utf8.c_str(), size);
+
+    disabled_end();
+    return (enable) ? res : false;
 }
 
 bool ImGuiWrapper::radio_button(const wxString &label, bool active)
@@ -965,6 +992,8 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
     m_last_slider_status.edited = ImGui::IsItemEdited();
     m_last_slider_status.clicked = ImGui::IsItemClicked();
     m_last_slider_status.deactivated_after_edit = ImGui::IsItemDeactivatedAfterEdit();
+    if (!m_last_slider_status.can_take_snapshot)
+        m_last_slider_status.can_take_snapshot = ImGui::IsItemClicked();
 
     if (!tooltip.empty() && ImGui::IsItemHovered())
         this->tooltip(into_u8(tooltip).c_str(), max_tooltip_width);
@@ -1103,25 +1132,34 @@ bool ImGuiWrapper::image_button(const wchar_t icon, const wxString& tooltip)
     return res;
 }
 
-bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
+bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection, ImGuiComboFlags flags/* = 0*/, float label_width/* = 0.0f*/, float item_width/* = 0.0f*/)
+{
+    return combo(into_u8(label), options, selection, flags, label_width, item_width);
+}
+
+bool ImGuiWrapper::combo(const std::string& label, const std::vector<std::string>& options, int& selection, ImGuiComboFlags flags/* = 0*/, float label_width/* = 0.0f*/, float item_width/* = 0.0f*/)
 {
     // this is to force the label to the left of the widget:
-    text(label);
-    ImGui::SameLine();
+    const bool hidden_label = boost::starts_with(label, "##");
+    if (!label.empty() && !hidden_label) {
+        text(label);
+        ImGui::SameLine(label_width);
+    }
+    ImGui::PushItemWidth(item_width);
 
     int selection_out = selection;
     bool res = false;
 
     const char *selection_str = selection < int(options.size()) && selection >= 0 ? options[selection].c_str() : "";
-    if (ImGui::BeginCombo("", selection_str)) {
+    if (ImGui::BeginCombo(hidden_label ? label.c_str() : ("##" + label).c_str(), selection_str, flags)) {
         for (int i = 0; i < (int)options.size(); i++) {
             if (ImGui::Selectable(options[i].c_str(), i == selection)) {
                 selection_out = i;
+                res = true;
             }
         }
 
         ImGui::EndCombo();
-        res = true;
     }
 
     selection = selection_out;

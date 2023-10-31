@@ -4,6 +4,7 @@
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/ProgressIndicator.hpp"
 #include "../GUI/PartPlate.hpp"
+#include "libslic3r/CutUtils.hpp"
 
 #include "libslic3r/Model.hpp"
 
@@ -133,7 +134,7 @@ bool CalibUtils::validate_input_flow_ratio(wxString flow_ratio, float* output_va
     return true;
 }
 
-static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
+static void cut_model(Model &model, double z, ModelObjectCutAttributes attributes)
 {
     size_t obj_idx = 0;
     size_t instance_idx = 0;
@@ -142,7 +143,7 @@ static void cut_model(Model &model, std::array<Vec3d, 4> plane_points, ModelObje
 
     auto* object = model.objects[0];
 
-    const auto new_objects = object->cut(instance_idx, plane_points, attributes);
+    const auto new_objects = Cut::cut_horizontal(object, instance_idx, z, attributes);
     model.delete_object(obj_idx);
 
     for (ModelObject *model_object : new_objects) {
@@ -171,16 +172,6 @@ static void read_model_from_file(const std::string& input_file, Model& model)
     model.add_default_instances();
     for (auto object : model.objects)
         object->ensure_on_bed();
-}
-
-std::array<Vec3d, 4> get_cut_plane_points(const BoundingBoxf3 &bbox, const double &cut_height)
-{
-    std::array<Vec3d, 4> plane_pts;
-    plane_pts[0] = Vec3d(bbox.min(0), bbox.min(1), cut_height);
-    plane_pts[1] = Vec3d(bbox.max(0), bbox.min(1), cut_height);
-    plane_pts[2] = Vec3d(bbox.max(0), bbox.max(1), cut_height);
-    plane_pts[3] = Vec3d(bbox.min(0), bbox.max(1), cut_height);
-    return plane_pts;
 }
 
 void CalibUtils::calib_PA(const X1CCalibInfos& calib_infos, int mode, wxString& error_message)
@@ -564,12 +555,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
         // add EPSILON offset to avoid cutting at the exact location where the flat surface is
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+            cut_model(model, new_height, ModelObjectCutAttribute::KeepLower);
         }
     }
 
@@ -579,12 +565,7 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
     if (block_count > 0) {
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts;
-            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
-            plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
-            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
-            plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
-            cut_model(model, plane_pts, ModelObjectCutAttribute::KeepUpper);
+            cut_model(model, new_height, ModelObjectCutAttribute::KeepUpper);
         }
     }
 
@@ -670,12 +651,7 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     auto obj_bb = obj->bounding_box();
     double height = (params.end - params.start + 1) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts;
-        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
-        plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
-        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
-        plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
-        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_model(model, height, ModelObjectCutAttribute::KeepLower);
     }
 
     auto new_params  = params;
@@ -731,12 +707,7 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     auto obj_bb = model.objects[0]->bounding_box();
     auto height = 5 * ((params.end - params.start) / params.step + 1);
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts;
-        plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), height);
-        plane_pts[1] = Vec3d(obj_bb.max(0), obj_bb.min(1), height);
-        plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), height);
-        plane_pts[3] = Vec3d(obj_bb.min(0), obj_bb.max(1), height);
-        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_model(model, height, ModelObjectCutAttribute::KeepLower);
     }
     else {
         error_message = _L("The start, end or step is not valid value.");
@@ -790,8 +761,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     auto obj_bb = obj->bounding_box();
     auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane_points(obj_bb, height);
-        cut_model(model, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_model(model, height, ModelObjectCutAttribute::KeepLower);
     }
 
     DynamicPrintConfig full_config;

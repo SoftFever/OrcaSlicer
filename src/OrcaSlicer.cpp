@@ -1553,23 +1553,11 @@ int CLI::run(int argc, char **argv)
                         o->cut(Z, m_config.opt_float("cut"), &out);
                     }
 #else
-                    ModelObject* object = model.objects.front();
-                    const BoundingBoxf3& box = object->bounding_box();
-                    const float Margin = 20.0;
-                    const float max_x = box.size()(0) / 2.0 + Margin;
-                    const float min_x = -max_x;
-                    const float max_y = box.size()(1) / 2.0 + Margin;
-                    const float min_y = -max_y;
-
-                    std::array<Vec3d, 4> plane_points;
-                    plane_points[0] = { min_x, min_y, 0 };
-                    plane_points[1] = { max_x, min_y, 0 };
-                    plane_points[2] = { max_x, max_y, 0 };
-                    plane_points[3] = { min_x, max_y, 0 };
-                    for (Vec3d& point : plane_points) {
-                        point += box.center();
-                    }
-                    model.objects.front()->cut(0, plane_points, ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::KeepLower);
+                    Cut cut(model.objects.front(), 0, Geometry::translation_transform(m_config.opt_float("cut") * Vec3d::UnitZ()),
+                                               ModelObjectCutAttribute::KeepLower | ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::PlaceOnCutUpper);
+                    auto cut_objects = cut.perform_with_plane();
+                    for (ModelObject* obj : cut_objects)
+                        model.add_object(*obj);
 #endif
                     model.delete_object(size_t(0));
                 }

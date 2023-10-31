@@ -411,6 +411,12 @@ private:
     // plane coeffs for clipping in shaders
     std::array<double, 4> m_clipping_plane;
 
+    // plane coeffs for render volumes with different colors in shaders
+    // used by cut gizmo
+    std::array<double, 4> m_color_clip_plane;
+    bool m_use_color_clip_plane{ false };
+    std::array<ColorRGBA, 2> m_color_clip_plane_colors{ ColorRGBA::RED(), ColorRGBA::BLUE() };
+
     struct Slope
     {
         // toggle for slope rendering
@@ -481,6 +487,14 @@ public:
 
     const std::array<float, 2>& get_z_range() const { return m_z_range; }
     const std::array<double, 4>& get_clipping_plane() const { return m_clipping_plane; }
+
+    void set_use_color_clip_plane(bool use) { m_use_color_clip_plane = use; }
+    void set_color_clip_plane(const Vec3d& cp_normal, double offset) {
+        for (int i = 0; i < 3; ++i)
+            m_color_clip_plane[i] = -cp_normal[i];
+        m_color_clip_plane[3] = offset;
+    }
+    void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_color_clip_plane_colors = colors; }
 
     bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }

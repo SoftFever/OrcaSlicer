@@ -20,8 +20,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoFlatten.hpp"
 //#include "slic3r/GUI/Gizmos/GLGizmoSlaSupports.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoFdmSupports.hpp"
-// BBS
-#include "slic3r/GUI/Gizmos/GLGizmoAdvancedCut.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoCut.hpp"
 //#include "slic3r/GUI/Gizmos/GLGizmoFaceDetector.hpp"
 //#include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
@@ -193,7 +192,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, m_is_dark ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg", EType::Rotate, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, m_is_dark ? "toolbar_scale_dark.svg" : "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, m_is_dark ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg", EType::Flatten));
-    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, m_is_dark ? "toolbar_cut_dark.svg" : "toolbar_cut.svg", EType::Cut));
+    m_gizmos.emplace_back(new GLGizmoCut3D(m_parent, m_is_dark ? "toolbar_cut_dark.svg" : "toolbar_cut.svg", EType::Cut));
     m_gizmos.emplace_back(new GLGizmoMeshBoolean(m_parent, m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg", EType::MeshBoolean));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
@@ -446,7 +445,7 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
     else if (m_current == Measure)
         return dynamic_cast<GLGizmoMeasure*>(m_gizmos[Measure].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == Cut)
-        return dynamic_cast<GLGizmoAdvancedCut *>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+        return dynamic_cast<GLGizmoCut3D*>(m_gizmos[Cut].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MeshBoolean)
         return dynamic_cast<GLGizmoMeshBoolean*>(m_gizmos[MeshBoolean].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else
@@ -861,13 +860,10 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
 //            m_parent.set_cursor(GLCanvas3D::Cross);
             processed = true;
         }
-        else*/ if (m_current == Cut)
-        {
-            // BBS
-#if 0
+        else*/ if (m_current == Cut) {
             auto do_move = [this, &processed](double delta_z) {
-                GLGizmoAdvancedCut* cut = dynamic_cast<GLGizmoAdvancedCut*>(get_current());
-                cut->set_cut_z(delta_z + cut->get_cut_z());
+                GLGizmoCut3D* cut = dynamic_cast<GLGizmoCut3D*>(get_current());
+                cut->shift_cut(delta_z);
                 processed = true;
             };
 
@@ -875,10 +871,13 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
             {
             case WXK_NUMPAD_UP:   case WXK_UP:   { do_move(1.0); break; }
             case WXK_NUMPAD_DOWN: case WXK_DOWN: { do_move(-1.0); break; }
+            case WXK_SHIFT :      case WXK_ALT: {
+                processed = get_current()->is_in_editing_mode();
+            }
             default: { break; }
             }
-#endif
-        } else if (m_current == Simplify && keyCode == WXK_ESCAPE) {
+        }
+        else if (m_current == Simplify && keyCode == WXK_ESCAPE) {
             GLGizmoSimplify *simplify = dynamic_cast<GLGizmoSimplify *>(get_current());
             if (simplify != nullptr)
                 processed = simplify->on_esc_key_down();
