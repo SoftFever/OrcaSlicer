@@ -2733,9 +2733,11 @@ void StatusPanel::update_basic_print_data(bool def)
 void StatusPanel::update_model_info()
 {
     auto get_subtask_fn = [this](BBLModelTask* subtask) {
-        if (obj && obj->subtask_id_ == subtask->task_id) {
-            obj->set_modeltask(subtask);
-        }
+        CallAfter([this, subtask]() { 
+            if (obj && obj->subtask_id_ == subtask->task_id) {
+                obj->set_modeltask(subtask);
+            }
+        });
     };
 
      

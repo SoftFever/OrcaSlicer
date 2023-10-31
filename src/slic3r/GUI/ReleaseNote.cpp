@@ -1255,7 +1255,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_body->Add(m_trouble_shoot, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(40));
 
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(8));
-    m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(18));
+    m_sizer_body->Add(m_sizer_button, 0, wxRIGHT | wxEXPAND, FromDIP(25));
     m_sizer_body->Layout();
     
     SetSizer(m_sizer_body);

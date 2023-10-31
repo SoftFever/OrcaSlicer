@@ -114,7 +114,7 @@ private:
 	wxTimer*							m_refresh_timer{ nullptr };
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
 	wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
-
+    std::shared_ptr<int>                m_token = std::make_shared<int>(0);
    
 public:
 	SendToPrinterDialog(Plater* plater = nullptr);

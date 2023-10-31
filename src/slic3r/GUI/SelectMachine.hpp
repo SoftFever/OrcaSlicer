@@ -215,7 +215,8 @@ private:
     std::vector<MachinePanel*>        m_user_list_machine_panel;
     std::vector<MachinePanel*>        m_other_list_machine_panel;
     boost::thread*                    get_print_info_thread{ nullptr };
-    std::string                       m_print_info;
+    std::shared_ptr<int>              m_token = std::make_shared<int>(0);
+    std::string                       m_print_info = "";
     bool                              m_dismiss { false };
 
     std::map<std::string, MachineObject*> m_bind_machine_list; 
@@ -304,6 +305,7 @@ private:
     wxColour                            m_colour_bold_color{wxColour(38, 46, 48)};
     StateColor                          m_btn_bg_enable;
     
+    std::shared_ptr<int>                m_token = std::make_shared<int>(0);
     std::map<std::string, CheckBox *>   m_checkbox_list;
     //std::map<std::string, bool>         m_checkbox_state_list;
     std::vector<wxString>               m_bedtype_list;
