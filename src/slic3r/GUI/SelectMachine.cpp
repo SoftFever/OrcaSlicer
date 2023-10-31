@@ -552,15 +552,6 @@ void SelectMachinePopup::update_other_devices()
         MachineObjectPanel* op = nullptr;
         if (i < m_other_list_machine_panel.size()) {
             op = m_other_list_machine_panel[i]->mPanel;
-#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
-			if (!search_for_printer(mobj)) {
-				op->Hide();
-			} else {
-                op->Show();
-            }
-#else
-            op->Show();
-#endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
             MachinePanel* mpanel = new MachinePanel();
@@ -569,6 +560,16 @@ void SelectMachinePopup::update_other_devices()
             m_other_list_machine_panel.push_back(mpanel);
             m_sizer_other_devices->Add(op, 0, wxEXPAND, 0);
         }
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+        if (!search_for_printer(mobj)) {
+            op->Hide();
+        }
+        else {
+            op->Show();
+        }
+#else
+        op->Show();
+#endif
         i++;
 
         op->update_machine_info(mobj);
