@@ -526,6 +526,16 @@ bool GLGizmoMeasure::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_po
 bool GLGizmoMeasure::on_init()
 {
     m_shortcut_key = WXK_CONTROL_U;
+
+    m_desc["feature_selection_caption"] = _L("ShiftLeft mouse button");
+    m_desc["feature_selection"]         = _L("Select feature");
+    m_desc["point_selection_caption"]   = _L("Shift + Left mouse button");
+    m_desc["point_selection"]           = _L("Select point");
+    m_desc["reset_caption"]             = _L("Delete");
+    m_desc["reset"]                     = _L("Restart selection");
+    m_desc["unselect_caption"]          = _L("Esc");
+    m_desc["unselect"]                  = _L("Unselect");
+
     return true;
 }
 
@@ -1822,177 +1832,22 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
         if (last_y != y)
             last_y = y;
     }
+    
+    // Orca
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
 
-    GizmoImguiBegin(get_name(), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-    if (ImGui::BeginTable("Commands", 2)) {
-        unsigned int row_count = 1;
-        add_row_to_table(
-            [this]() {
-                m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Left mouse button"));
-            },
-            [this]() {
-                std::string text;
-                ColorRGBA color;
-                if (m_selected_features.second.feature.has_value()) {
-                    if (m_selected_features.first.feature == m_curr_feature && m_mode == EMode::FeatureSelection) {
-                        // hovering over 1st selected feature
-                        text = _u8L("Unselect feature");
-                        color = SELECTED_1ST_COLOR;
-                    }
-                    else if (m_hover_id == SEL_SPHERE_1_ID) {
-                        if (m_selected_features.first.is_center) {
-                            // hovering over center selected as 1st feature
-                            text = _u8L("Unselect center");
-                            color = SELECTED_1ST_COLOR;
-                        }
-                        else if (is_feature_with_center(*m_selected_features.first.feature)) {
-                            // hovering over center of 1st selected feature
-                            text = _u8L("Select center");
-                            color = SELECTED_1ST_COLOR;
-                        }
-                        else {
-                            // hovering over point selected as 1st feature
-                            text = _u8L("Unselect point");
-                            color = SELECTED_1ST_COLOR;
-                        }
-                    }
-                    else if (m_selected_features.first.is_center && m_selected_features.first.source == m_curr_feature) {
-                        // hovering over feature whose center is selected as 1st feature
-                        text = _u8L("Select feature");
-                        color = SELECTED_1ST_COLOR;
-                    }
-                    else if (m_selected_features.second.feature == m_curr_feature && m_mode == EMode::FeatureSelection) {
-                        // hovering over 2nd selected feature
-                        text = _u8L("Unselect feature");
-                        color = SELECTED_2ND_COLOR;
-                    }
-                    else if (m_hover_id == SEL_SPHERE_2_ID) {
-                        if (m_selected_features.second.is_center) {
-                            // hovering over center selected as 2nd feature
-                            text = _u8L("Unselect feature");
-                            color = SELECTED_2ND_COLOR;
-                        }
-                        else if (is_feature_with_center(*m_selected_features.second.feature)) {
-                            // hovering over center of 2nd selected feature
-                            text = _u8L("Select center");
-                            color = SELECTED_2ND_COLOR;
-                        }
-                        else {
-                            // hovering over point selected as 2nd feature
-                            text = _u8L("Unselect point");
-                            color = SELECTED_2ND_COLOR;
-                        }
-                    }
-                    else if (m_selected_features.second.is_center && m_selected_features.second.source == m_curr_feature) {
-                        // hovering over feature whose center is selected as 2nd feature
-                        text = _u8L("Select feature");
-                        color = SELECTED_2ND_COLOR;
-                    }
-                    else {
-                        // 1st feature selected
-                        text = (m_mode == EMode::PointSelection) ? _u8L("Select point") : _u8L("Select feature");
-                        color = SELECTED_2ND_COLOR;
-                    }
-                }
-                else {
-                    if (m_selected_features.first.feature.has_value()) {
-                        if (m_selected_features.first.feature == m_curr_feature && m_mode == EMode::FeatureSelection) {
-                            // hovering over 1st selected feature
-                            text = _u8L("Unselect feature");
-                            color = SELECTED_1ST_COLOR;
-                        }
-                        else {
-                            if (m_hover_id == SEL_SPHERE_1_ID) {
-                                if (m_selected_features.first.is_center) {
-                                    // hovering over center selected as 1st feature
-                                    text = _u8L("Unselect feature");
-                                    color = SELECTED_1ST_COLOR;
-                                }
-                                else if (is_feature_with_center(*m_selected_features.first.feature)) {
-                                    // hovering over center of 1st selected feature
-                                    text = _u8L("Select center");
-                                    color = SELECTED_1ST_COLOR;
-                                }
-                                else {
-                                    // hovering over point selected as 1st feature
-                                    text = _u8L("Unselect point");
-                                    color = SELECTED_1ST_COLOR;
-                                }
-                            }
-                            else {
-                                if (m_selected_features.first.is_center && m_selected_features.first.source == m_curr_feature) {
-                                    // hovering over feature whose center is selected as 1st feature
-                                    text = _u8L("Select feature");
-                                    color = SELECTED_1ST_COLOR;
-                                }
-                                else {
-                                    // 1st feature selected
-                                    text = (m_mode == EMode::PointSelection) ? _u8L("Select point") : _u8L("Select feature");
-                                    color = SELECTED_2ND_COLOR;
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        // nothing is selected
-                        text = (m_mode == EMode::PointSelection) ? _u8L("Select point") : _u8L("Select feature");
-                        color = SELECTED_1ST_COLOR;
-                    }
-                }
-
-                assert(!text.empty());
-
-                m_imgui->text_colored(ImGui::GetStyleColorVec4(ImGuiCol_Text), text);
-                ImGui::SameLine();
-                const ImVec2 pos = ImGui::GetCursorScreenPos();
-                const float rect_size = ImGui::GetTextLineHeight();
-                ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + rect_size, pos.y + rect_size), ImGuiWrapper::to_ImU32(color));
-                ImGui::Dummy(ImVec2(rect_size, rect_size));
-            }
-            );
-
-        if (m_mode == EMode::FeatureSelection && m_hover_id != -1) {
-            add_strings_row_to_table(*m_imgui, "Shift", ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Enable point selection"), ImGui::GetStyleColorVec4(ImGuiCol_Text));
-            ++row_count;
-        }
-
-        if (m_selected_features.first.feature.has_value()) {
-            add_strings_row_to_table(*m_imgui, "Delete", ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Restart selection"), ImGui::GetStyleColorVec4(ImGuiCol_Text));
-            ++row_count;
-        }
-
-        if (m_selected_features.first.feature.has_value() || m_selected_features.second.feature.has_value()) {
-          add_row_to_table(
-            [this]() {
-                m_imgui->text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, "Esc");
-            },
-            [this]() {
-                m_imgui->text_colored(ImGui::GetStyleColorVec4(ImGuiCol_Text), _u8L("Unselect"));
-                ImGui::SameLine();
-                const ImVec2 pos = ImGui::GetCursorScreenPos();
-                const float rect_size = ImGui::GetTextLineHeight();
-                const ColorRGBA color = m_selected_features.second.feature.has_value() ? SELECTED_2ND_COLOR : SELECTED_1ST_COLOR;
-                ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(pos.x + 1.0f, pos.y + 1.0f), ImVec2(pos.x + rect_size, pos.y + rect_size), ImGuiWrapper::to_ImU32(color));
-                ImGui::Dummy(ImVec2(rect_size, rect_size));
-            }
-            );
-          
-          ++row_count;
-        }
-
-        // add dummy rows to keep dialog size fixed
-        for (unsigned int i = row_count; i < 4; ++i) {
-            add_strings_row_to_table(*m_imgui, " ", ImGuiWrapper::COL_ORANGE_LIGHT, " ", ImGui::GetStyleColorVec4(ImGuiCol_Text));
-        }
-
-        ImGui::EndTable();
+    float caption_max    = 0.f;
+    float total_text_max = 0.f;
+    for (const auto &t : std::array<std::string, 4>{"feature_selection", "point_selection", "reset", "unselect"}) {
+        caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
+        total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
 
     const bool use_inches = wxGetApp().app_config->get_bool("use_inches");
     const std::string units = use_inches ? " " + _u8L("in") : " " + _u8L("mm");
 
-    ImGui::Separator();
     const ImGuiTableFlags flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersH;
     if (ImGui::BeginTable("Selection", 2, flags)) {
         auto format_item_text = [this, use_inches, &units](const SelectedFeatures::Item& item) {
@@ -2106,6 +1961,17 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
         ImGui::EndTable();
     }
 
+    ImGui::Separator();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
+    float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
+    show_tooltip_information(caption_max, x, get_cur_y);
+
+    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+
+    ImGui::PopStyleVar(2);
+
     if (last_feature != m_curr_feature || last_mode != m_mode || last_selected_features != m_selected_features) {
         // the dialog may have changed its size, ask for an extra frame to render it properly
         last_feature = m_curr_feature;
@@ -2115,6 +1981,9 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
     }
 
     GizmoImguiEnd();
+
+    // Orca
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 void GLGizmoMeasure::on_register_raycasters_for_picking()
@@ -2148,6 +2017,33 @@ void GLGizmoMeasure::update_measurement_result()
         m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, *m_selected_features.second.feature, m_measuring.get());
     else if (!m_selected_features.second.feature.has_value() && m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Circle)
         m_measurement_result = Measure::get_measurement(*m_selected_features.first.feature, Measure::SurfaceFeature(std::get<0>(m_selected_features.first.feature->get_circle())), m_measuring.get());
+}
+
+void GLGizmoMeasure::show_tooltip_information(float caption_max, float x, float y)
+{
+    ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
+    ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
+
+    caption_max += m_imgui->calc_text_size(": ").x + 35.f;
+
+    float font_size = ImGui::GetFontSize();
+    ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
+    ImGui::ImageButton3(normal_id, hover_id, button_size);
+
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip2(ImVec2(x, y));
+        auto draw_text_with_caption = [this, &caption_max](const wxString &caption, const wxString &text) {
+            m_imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
+            ImGui::SameLine(caption_max);
+            m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
+        };
+
+        for (const auto &t : std::array<std::string, 4>{"feature_selection", "point_selection", "reset", "unselect"}) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
+        ImGui::EndTooltip();
+    }
+    ImGui::PopStyleVar(2);
 }
 
 } // namespace GUI
