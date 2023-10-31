@@ -432,6 +432,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/FixModelByWin10.hpp
     Utils/Bonjour.cpp
     Utils/Bonjour.hpp
+    Utils/FileHelp.cpp
+    Utils/FileHelp.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
     Utils/Process.cpp

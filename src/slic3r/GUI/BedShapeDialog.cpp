@@ -13,8 +13,8 @@
 #include "libslic3r/Polygon.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
-
+#include "FileHelp.hpp"
+#include <wx/dcgraph.h>
 #include <algorithm>
 
 namespace Slic3r {
@@ -311,7 +311,9 @@ wxPanel *BedShapePanel::init_texture_panel()
                          }));
 
         filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) {
-                               e.SetText(_(boost::filesystem::path(m_custom_texture).filename().string()));
+                               wxGCDC dc;
+                               auto   text = wxControl::Ellipsize(_L(boost::filesystem::path(m_custom_texture).filename().string()), dc, wxELLIPSIZE_END, FromDIP(150));
+                               e.SetText(text);
                                wxStaticText *lbl = dynamic_cast<wxStaticText *>(e.GetEventObject());
                                if (lbl != nullptr) {
                                    bool exists = (m_custom_texture == NONE) || boost::filesystem::exists(m_custom_texture);
@@ -379,7 +381,9 @@ wxPanel *BedShapePanel::init_model_panel()
                          }));
 
         filename_lbl->Bind(wxEVT_UPDATE_UI, ([this](wxUpdateUIEvent &e) {
-                               e.SetText(_(boost::filesystem::path(m_custom_model).filename().string()));
+                               wxGCDC dc;
+                               auto text = wxControl::Ellipsize(_L(boost::filesystem::path(m_custom_model).filename().string()), dc, wxELLIPSIZE_END, FromDIP(150));
+                               e.SetText(text);
                                wxStaticText *lbl = dynamic_cast<wxStaticText *>(e.GetEventObject());
                                if (lbl != nullptr) {
                                    bool exists = (m_custom_model == NONE) || boost::filesystem::exists(m_custom_model);
@@ -576,7 +580,15 @@ void BedShapePanel::load_texture()
         show_error(this, _L("Invalid file format."));
         return;
     }
-
+    bool try_ok;
+    if (Utils::is_file_too_large(file_name, try_ok)) {
+        if (try_ok) {
+            wxMessageBox(wxString::Format(_L("The file exceeds %d MB, please import again."), STL_SVG_MAX_FILE_SIZE_MB), "Error", wxOK | wxICON_ERROR);
+        } else {
+            wxMessageBox(_L("Exception in obtaining file size, please import again."));
+        }
+        return;
+    }
     wxBusyCursor wait;
 
     m_custom_texture = file_name;
@@ -598,7 +610,15 @@ void BedShapePanel::load_model()
         show_error(this, _L("Invalid file format."));
         return;
     }
-
+    bool try_ok;
+    if (Utils::is_file_too_large(file_name, try_ok)) {
+        if (try_ok) {
+            wxMessageBox(wxString::Format(_L("The file exceeds %d MB, please import again."), STL_SVG_MAX_FILE_SIZE_MB), "Error", wxOK | wxICON_ERROR);
+        } else {
+            wxMessageBox(_L("Exception in obtaining file size, please import again."));
+        }
+        return;
+    }
     wxBusyCursor wait;
 
     m_custom_model = file_name;

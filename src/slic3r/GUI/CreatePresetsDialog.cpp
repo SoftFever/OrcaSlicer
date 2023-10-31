@@ -9,7 +9,8 @@
 #include "MsgDialog.hpp"
 #include <openssl/md5.h>
 #include <openssl/evp.h>
-
+#include "FileHelp.hpp"
+#include <wx/dcgraph.h>
 #define NAME_OPTION_COMBOBOX_SIZE wxSize(FromDIP(200), FromDIP(24))
 #define FILAMENT_PRESET_COMBOBOX_SIZE wxSize(FromDIP(300), FromDIP(24))
 #define OPTION_SIZE wxSize(FromDIP(100), FromDIP(24))
@@ -1805,8 +1806,19 @@ void CreatePrinterPresetDialog::load_texture() {
         show_error(this, _L("Invalid file format."));
         return;
     }
+    bool try_ok;
+    if (Utils::is_file_too_large(file_name, try_ok)) {
+        if (try_ok) {
+            m_upload_svg_tip_text->SetLabelText(wxString::Format(_L("The file exceeds %d MB, please import again."), STL_SVG_MAX_FILE_SIZE_MB));
+        } else {
+            m_upload_svg_tip_text->SetLabelText(_L("Exception in obtaining file size, please import again."));
+        }
+        return;
+    }
     m_custom_texture = file_name;
-    m_upload_svg_tip_text->SetLabelText(_L(boost::filesystem::path(file_name).filename().string()));
+    wxGCDC dc;
+    auto text = wxControl::Ellipsize(_L(boost::filesystem::path(file_name).filename().string()), dc, wxELLIPSIZE_END, FromDIP(200));
+    m_upload_svg_tip_text->SetLabelText(text);
 }
 
 void CreatePrinterPresetDialog::load_model_stl()
@@ -1824,8 +1836,20 @@ void CreatePrinterPresetDialog::load_model_stl()
         show_error(this, _L("Invalid file format."));
         return;
     }
+    bool try_ok;
+    if (Utils::is_file_too_large(file_name, try_ok)) {
+        if (try_ok) {
+            m_upload_stl_tip_text->SetLabelText(wxString::Format(_L("The file exceeds %d MB, please import again."), STL_SVG_MAX_FILE_SIZE_MB));
+        }
+        else {
+            m_upload_stl_tip_text->SetLabelText(_L("Exception in obtaining file size, please import again."));
+        }
+        return;
+    }
     m_custom_model = file_name;
-    m_upload_stl_tip_text->SetLabelText(_L(boost::filesystem::path(file_name).filename().string()));
+    wxGCDC dc;
+    auto text      = wxControl::Ellipsize(_L(boost::filesystem::path(file_name).filename().string()), dc, wxELLIPSIZE_END, FromDIP(200));
+    m_upload_stl_tip_text->SetLabelText(text);
 }
 
 bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(PresetBundle &temp_preset_bundle, bool just_template)
