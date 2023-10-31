@@ -2126,11 +2126,11 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         }
         preset.file                = this->path_for_preset(preset);
         if (m_type == Preset::TYPE_PRINT)
-            preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value = preset.name;
         else if (m_type == Preset::TYPE_FILAMENT)
-            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = preset.name;
         else if (m_type == Preset::TYPE_PRINTER)
-            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = preset.name;
     }
     if (!failures.empty() && !force_rewritten)
         return false;
@@ -2245,11 +2245,11 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         //BBS: add lock logic for sync preset in background
 
         if (m_type == Preset::TYPE_PRINT)
-            preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value = new_name;
         else if (m_type == Preset::TYPE_FILAMENT)
-            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
         else if (m_type == Preset::TYPE_PRINTER)
-            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
         final_inherits = preset.inherits();
         unlock();
         // TODO: apply change from custom root to devided presets.
@@ -2293,11 +2293,11 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         else
             preset.is_project_embedded = false;
         if (m_type == Preset::TYPE_PRINT)
-            preset.config.option<ConfigOptionString>("print_settings_id", true)->value.clear();
+            preset.config.option<ConfigOptionString>("print_settings_id", true)->value = new_name;
         else if (m_type == Preset::TYPE_FILAMENT)
-            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0].clear();
+            preset.config.option<ConfigOptionStrings>("filament_settings_id", true)->values[0] = new_name;
         else if (m_type == Preset::TYPE_PRINTER)
-            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value.clear();
+            preset.config.option<ConfigOptionString>("printer_settings_id", true)->value = new_name;
         //BBS: add lock logic for sync preset in background
         final_inherits = inherits;
         unlock();

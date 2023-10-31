@@ -3084,6 +3084,19 @@ bool ExportConfigsDialog::has_check_box_selected()
     return false;
 }
 
+bool ExportConfigsDialog::preset_is_not_compatible_bbl_printer(Preset *preset)
+{
+    if (preset->type != Preset::Type::TYPE_PRINT && preset->type != Preset::Type::TYPE_FILAMENT) return true;
+    PresetBundle *      preset_bundle = wxGetApp().preset_bundle;
+    vector<std::string> printers;
+    get_filament_compatible_printer(preset, printers);
+    if (printers.empty()) return true;
+    Preset *printer_preset = preset_bundle->printers.find_preset(printers[0], false);
+    if (!printer_preset) return true;
+    if (!printer_preset->is_bbl_vendor_preset(preset_bundle)) return true;
+    return false;
+}
+
 std::string ExportConfigsDialog::initial_file_path(const wxString &path, const std::string &sub_file_path)
 {
     std::string             export_path         = into_u8(path);
@@ -3305,6 +3318,7 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
             m_preset_sizer->Clear(true);
             m_printer_name.clear();
             m_preset.clear();
+            PresetBundle *preset_bundle = wxGetApp().preset_bundle;
             if (export_type == m_exprot_type.preset_bundle) {
                 for (std::pair<std::string, Preset *> preset : m_printer_presets) {
                     std::string preset_name = preset.first;
@@ -3316,6 +3330,13 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
                 m_serial_text->SetLabel(_L("Only display printer names with changes to printer, filament, and process presets for uploading to the model mall."));
             }else if (export_type == m_exprot_type.filament_bundle) {
                 for (std::pair<std::string, std::vector<std::pair<std::string, Preset*>>> filament_name_to_preset : m_filament_name_to_presets) {
+                    if (filament_name_to_preset.second.empty()) continue;
+                    bool all_preset_is_compatible_third_printer = true;
+                    for (std::pair<std::string, Preset *> filament_preset : filament_name_to_preset.second) {
+                        if (!preset_is_not_compatible_bbl_printer(filament_preset.second))
+                            all_preset_is_compatible_third_printer = false;
+                    }
+                    if (all_preset_is_compatible_third_printer) continue;
                     wxString filament_name = wxString::FromUTF8(filament_name_to_preset.first);
                     m_preset_sizer->Add(create_checkbox(m_presets_window, filament_name, m_printer_name), 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(5));
                 }
@@ -3330,12 +3351,23 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
                 m_serial_text->SetLabel(_L("Only printer names with user printer presets will be displayed, and each preset you choose will be exported as a zip."));
             } else if (export_type == m_exprot_type.filament_preset) {
                 for (std::pair<std::string, std::vector<std::pair<std::string, Preset *>>> filament_name_to_preset : m_filament_name_to_presets) {
+                    if (filament_name_to_preset.second.empty()) continue;
+                    bool    all_preset_is_compatible_third_printer = true;
+                    for (std::pair<std::string, Preset*> filament_preset : filament_name_to_preset.second) {
+                        if (!preset_is_not_compatible_bbl_printer(filament_preset.second))
+                            all_preset_is_compatible_third_printer = false;
+                    }
+                    if (all_preset_is_compatible_third_printer) continue;
                     wxString filament_name = wxString::FromUTF8(filament_name_to_preset.first);
                     m_preset_sizer->Add(create_checkbox(m_presets_window, filament_name, m_printer_name), 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(5));
                 }
                 m_serial_text->SetLabel(_L("Only the filament names with user filament presets will be displayed, \nand all user filament presets in each filament name you select will be exported as a zip."));
             } else if (export_type == m_exprot_type.process_preset) {
                 for (std::pair<std::string, std::vector<Preset *>> presets : m_process_presets) {
+                    Preset *      printer_preset = preset_bundle->printers.find_preset(presets.first, false);
+                    if (!printer_preset) continue;
+                    if (!printer_preset->is_system) continue;
+                    if (preset_bundle->printers.get_preset_base(*printer_preset) != printer_preset) continue;
                     for (Preset *preset : presets.second) {
                         if (!preset->is_system) {
                             wxString printer_name = wxString::FromUTF8(presets.first);
@@ -3519,10 +3551,14 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 BOOST_LOG_TRIVIAL(info) << "Filament name do not find, filament name:" << filament_name;
                 continue;
             }
+            std::set<std::pair<std::string, std::string>> vendor_to_filament_name;
             for (std::pair<std::string, Preset *> printer_name_to_preset : iter->second) {
                 std::string printer_vendor = printer_name_to_preset.first;
                 if (printer_vendor.empty()) continue;
                 Preset *    filament_preset = printer_name_to_preset.second;
+                if (preset_is_not_compatible_bbl_printer(filament_preset)) continue;
+                if (vendor_to_filament_name.find(std::make_pair(printer_vendor, filament_preset->name)) != vendor_to_filament_name.end()) continue;
+                vendor_to_filament_name.insert(std::make_pair(printer_vendor, filament_preset->name));
                 std::string preset_path     = boost::filesystem::path(filament_preset->file).make_preferred().string();
                 if (preset_path.empty()) {
                     BOOST_LOG_TRIVIAL(info) << "Export printer preset: " << filament_preset->name << " skip because of the preset file path is empty.";
@@ -3615,6 +3651,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_preset_to_
 
     std::vector<std::pair<std::string, std::string>> config_paths;
 
+    std::set<std::string> filament_presets;
     for (std::pair<CheckBox *, std::string> checkbox_preset : m_printer_name) {
         if (checkbox_preset.first->GetValue()) {
             std::string filament_name = checkbox_preset.second;
@@ -3626,6 +3663,9 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_preset_to_
             }
             for (std::pair<std::string, Preset*> printer_name_preset : iter->second) {
                 Preset *    filament_preset = printer_name_preset.second;
+                if (preset_is_not_compatible_bbl_printer(filament_preset)) continue;
+                if (filament_presets.find(filament_preset->name) != filament_presets.end()) continue;
+                filament_presets.insert(filament_preset->name);
                 std::string preset_path     = boost::filesystem::path(filament_preset->file).make_preferred().string();
                 if (preset_path.empty()) {
                     BOOST_LOG_TRIVIAL(info) << "Export filament preset: " << filament_preset->name << " skip because of the filament file path is empty.";
@@ -3655,12 +3695,16 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_process_preset_to_f
 
     std::vector<std::pair<std::string, std::string>> config_paths;
 
+    std::set<std::string> process_presets;
     for (std::pair<CheckBox *, std::string> checkbox_preset : m_printer_name) {
         if (checkbox_preset.first->GetValue()) {
             std::string printer_name = checkbox_preset.second;
             std::unordered_map<std::string, std::vector<Preset *>>::iterator iter = m_process_presets.find(printer_name);
             if (m_process_presets.end() != iter) {
                 for (Preset *process_preset : iter->second) {
+                    if (preset_is_not_compatible_bbl_printer(process_preset)) continue;
+                    if (process_presets.find(process_preset->name) != process_presets.end()) continue;
+                    process_presets.insert(process_preset->name);
                     std::string preset_path = boost::filesystem::path(process_preset->file).make_preferred().string();
                     if (preset_path.empty()) {
                         BOOST_LOG_TRIVIAL(info) << "Export process preset: " << process_preset->name << " skip because of the preset file path is empty.";

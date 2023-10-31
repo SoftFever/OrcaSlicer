@@ -707,7 +707,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                     // create target file path
                     std::string target_file_path = boost::filesystem::path(temp_folder / file_name).make_preferred().string();
 
-                    status = mz_zip_reader_extract_to_file(&zip_archive, i, target_file_path.c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
+                    status = mz_zip_reader_extract_to_file(&zip_archive, i, encode_path(target_file_path.c_str()).c_str(), MZ_ZIP_FLAG_CASE_SENSITIVE);
                     // target file is opened
                     if (MZ_FALSE == status) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Failed to open target file: " << target_file_path;
