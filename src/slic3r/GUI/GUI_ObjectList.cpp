@@ -977,8 +977,8 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
             auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
             if (plate->get_plate_name() != name) {
                 plate->set_plate_name(name);
-                m_objects_model->SetCurSelectedPlateFullName(plate_idx, name);
             }
+            m_objects_model->SetCurSelectedPlateFullName(plate_idx, name);
         }
         return;
     }
@@ -5664,6 +5664,17 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
         return;
+
+    if (event.IsEditCancelled()) {
+        if (m_objects_model->GetItemType(event.GetItem()) & itPlate) {
+            int plate_idx = -1;
+            m_objects_model->GetItemType(event.GetItem(), plate_idx);
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetCurSelectedPlateFullName(plate_idx, plate->get_plate_name());
+            }
+        }
+    }
 
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(colName)->GetRenderer());
 #if __WXOSX__
