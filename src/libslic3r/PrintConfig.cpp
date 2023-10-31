@@ -929,7 +929,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("Speed of bridge and completely overhang wall");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(25));
 
@@ -939,7 +939,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Speed of internal bridge. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "bridge_speed";
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(150, true));
 
@@ -1242,7 +1242,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Speed of outer wall which is outermost and visible. "
                      "It's used to be slower than inner wall speed to get better quality.");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
@@ -1254,7 +1254,7 @@ void PrintConfigDef::init_fff_params()
                    "on the outer wall speed setting above. Set to zero for auto.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "outer_wall_speed";
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
 
@@ -1977,7 +1977,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->label = L("Initial layer");
     def->tooltip = L("Speed of initial layer except the solid infill part");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(30));
 
@@ -1995,7 +1995,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Speed");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "travel_speed";
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
@@ -2089,7 +2089,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Speed");
     def->tooltip = L("Speed of gap infill. Gap usually has irregular line width and should be printed more slowly");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(30));
 
@@ -2329,7 +2329,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Speed");
     def->tooltip = L("Speed of internal sparse infill");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(100));
 
@@ -2415,7 +2415,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Quality");
     def->tooltip = L("Print speed of ironing lines");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
 
@@ -2877,7 +2877,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("Speed of inner wall");
     def->sidetext = L("mm/s");
     def->aliases = { "perimeter_feed_rate" };
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
@@ -3253,7 +3253,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->sidetext = L("mm/s");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0.0));
+    def->set_default_value(new ConfigOptionFloat(50.0));
 
     def = this->add("slow_down_layer_time", coFloats);
     def->label = L("Layer time");
@@ -3302,7 +3302,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Speed");
     def->tooltip = L("Speed of internal solid infill, not the top and bottom surface");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(100));
 
@@ -3708,7 +3708,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Speed");
     def->tooltip = L("Speed of support");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(80));
 
@@ -3994,7 +3994,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->category = L("Speed");
     def->tooltip = L("Speed of top surface infill which is solid");
     def->sidetext = L("mm/s");
-    def->min = 0;
+    def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(100));
 

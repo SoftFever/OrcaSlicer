@@ -97,14 +97,14 @@ Thank you! :)
 <tr>
 <td>
 <a href="https://qidi3d.com/">
-    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="32" height="">
+    <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="64" height="">
 </a>
 </td>
 </tr>
 </table>
 
 ### Backers:  
-Ko-fi support [list](https://github.com/SoftFever/OrcaSlicer/wiki/OrcaSlicer-backers-%E2%80%90-28-Oct-2023)
+Ko-fi supporters: [Backers list](https://github.com/SoftFever/OrcaSlicer/wiki/OrcaSlicer-backers-%E2%80%90-28-Oct-2023)
 
 Support me  
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G5IP3CP)
