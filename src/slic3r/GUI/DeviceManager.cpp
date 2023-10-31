@@ -2749,7 +2749,7 @@ int MachineObject::parse_json(std::string payload)
                         module_vers.emplace(ver_info.name, ver_info);
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();
-                            if (agent) agent->track_update_property("dev_ota_version", ver_info.sw_ver);
+                            if (agent) agent->track_update_property("dev_ota_ver", ver_info.sw_ver);
                         }
                     }
 
