@@ -1916,7 +1916,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
         ImGui::TableSetColumnIndex(2);
         if (m_imgui->image_button(m_is_dark_mode ? ImGui::ClipboardBtnDarkIcon : ImGui::ClipboardBtnIcon, _L("Copy to clipboard"))) {
             wxTheClipboard->Open();
-            wxTheClipboard->SetData(new wxTextDataObject(col_1 + ": " + col_2));
+            wxTheClipboard->SetData(new wxTextDataObject(wxString((col_1 + ": " + col_2).c_str(), wxConvUTF8)));
             wxTheClipboard->Close();
         }
     };
