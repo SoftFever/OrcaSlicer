@@ -433,8 +433,9 @@ private:
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
     float    DO_NOT_MOVER_UNDER_MM = 0.0;
     coordf_t MAX_BRANCH_RADIUS = 10.0;
-    coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
     coordf_t MIN_BRANCH_RADIUS = 0.5;
+    coordf_t MAX_BRANCH_RADIUS_FIRST_LAYER = 12.0;
+    coordf_t MIN_BRANCH_RADIUS_FIRST_LAYER = 2.0;
     float tree_support_branch_diameter_angle = 5.0;
     coord_t m_min_radius = scale_(1); // in mm
     bool  is_strong = false;

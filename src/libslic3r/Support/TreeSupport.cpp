@@ -2273,7 +2273,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             }
                         }
                         if (layer_nr == 0 && m_raft_layers == 0) {
-                            double brim_width = tree_brim_width > 0 ? tree_brim_width : std::max(0.0, std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
+                            double brim_width = tree_brim_width > 0 ? tree_brim_width : std::max(MIN_BRANCH_RADIUS_FIRST_LAYER, std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
                             auto tmp=offset(circle, scale_(brim_width));
                             if(!tmp.empty())
                                 circle = tmp[0];
@@ -2296,14 +2296,14 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                             need_extra_wall = true;
                     }
 
-                    if (node.distance_to_top < 0)
+                    if (layer_nr>0 && node.distance_to_top < 0)
                         append(roof_gap_areas, area);
-                    else if (node.support_roof_layers_below == 1)
+                    else if (layer_nr > 0 && node.support_roof_layers_below == 1)
                     {
                         append(roof_1st_layer, area);
                         max_layers_above_roof1 = std::max(max_layers_above_roof1, node.dist_mm_to_top);
                     }
-                    else if (node.support_roof_layers_below > 0)
+                    else if (layer_nr > 0 && node.support_roof_layers_below > 0)
                     {
                         append(roof_areas, area);
                         max_layers_above_roof = std::max(max_layers_above_roof, node.dist_mm_to_top);
