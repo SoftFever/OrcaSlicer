@@ -85,6 +85,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::PreferencesDarkButton      , "notification_preferences_dark"      },
     {ImGui::PreferencesHoverDarkButton , "notification_preferences_hover_dark"},
 
+    {ImGui::ClipboardBtnDarkIcon       , "copy_menu_dark"                     },
     {ImGui::CircleButtonDarkIcon       , "circle_paint_dark"                  },
     {ImGui::TriangleButtonDarkIcon     , "triangle_paint_dark"                },
     {ImGui::FillButtonDarkIcon         , "fill_paint_dark"                    },
@@ -154,6 +155,7 @@ const ImVec4 ImGuiWrapper::COL_SEPARATOR_DARK    = { 0.24f, 0.24f, 0.27f, 1.0f }
 const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_WINDOW_BG_DARK    = { 45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f };
+const ImVec4 ImGuiWrapper::COL_ORCA              = to_ImVec4(ColorRGBA::ORCA());
 
 int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoMove
