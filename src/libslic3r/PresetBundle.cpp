@@ -767,7 +767,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset already present and is system preset, not loading: " << name;
                 return false;
             }
-            overwrite = override_confirm(name);
+            if (overwrite != 2 && overwrite != 3) overwrite = override_confirm(name); //3: yes to all  2: no to all
         }
         if (overwrite == 0 || overwrite == 2) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Preset already present, not loading: " << name;
