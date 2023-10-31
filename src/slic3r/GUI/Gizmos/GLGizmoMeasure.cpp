@@ -1856,8 +1856,8 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
     const bool use_inches = wxGetApp().app_config->get_bool("use_inches");
     const std::string units = use_inches ? " " + _u8L("in") : " " + _u8L("mm");
 
-    const ImGuiTableFlags flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersH;
-    if (ImGui::BeginTable("Selection", 2, flags)) {
+    // Show selection
+    {
         auto format_item_text = [this, use_inches, &units](const SelectedFeatures::Item& item) {
             if (!item.feature.has_value())
                 return _u8L("None");
@@ -1882,11 +1882,21 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
             return text;
         };
 
-        add_strings_row_to_table(*m_imgui, _u8L("Selection") + " 1:", ImGuiWrapper::to_ImVec4(SELECTED_1ST_COLOR), format_item_text(m_selected_features.first),
-          ImGuiWrapper::to_ImVec4(SELECTED_1ST_COLOR));
-        add_strings_row_to_table(*m_imgui, _u8L("Selection") + " 2:", ImGuiWrapper::to_ImVec4(SELECTED_2ND_COLOR), format_item_text(m_selected_features.second),
-          ImGuiWrapper::to_ImVec4(SELECTED_2ND_COLOR));
-        ImGui::EndTable();
+        const float selection_cap_length = ImGui::CalcTextSize((_u8L("Selection") + " 1").c_str()).x * 2;
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(SELECTED_1ST_COLOR));
+        m_imgui->text(_u8L("Selection") + " 1");
+        ImGui::SameLine(selection_cap_length);
+        m_imgui->text(format_item_text(m_selected_features.first));
+        ImGui::PopStyleColor();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGuiWrapper::to_ImVec4(SELECTED_2ND_COLOR));
+        m_imgui->text(_u8L("Selection") + " 2");
+        ImGui::SameLine(selection_cap_length);
+        m_imgui->text(format_item_text(m_selected_features.second));
+        ImGui::PopStyleColor();
     }
 
     m_imgui->disabled_begin(!m_selected_features.first.feature.has_value());
