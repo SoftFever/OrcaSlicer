@@ -2189,14 +2189,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     if (!m_initialized)
         return;
-
+    
     _set_current();
 
     m_hover_volume_idxs.clear();
-
-    GLGizmoBase* curr_gizmo = m_gizmos.get_current();
-    if (curr_gizmo != nullptr)
-        curr_gizmo->unregister_raycasters_for_picking();
 
     struct ModelVolumeState {
         ModelVolumeState(const GLVolume* volume) :
@@ -2656,6 +2652,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     else
         m_selection.volumes_changed(map_glvolume_old_to_new);
 
+    // @Enrico suggest this solution to preven accessing pointer on caster without data
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Volume);
     m_gizmos.update_data();
     m_gizmos.update_assemble_view_data();
     m_gizmos.refresh_on_off_state();
@@ -2663,9 +2661,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     // Update the toolbar
     //BBS: notify the PartPlateList to reload all objects
     if (update_object_list)
-    {
         post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-    }
 
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
@@ -2711,14 +2707,19 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     }
 
     // refresh volume raycasters for picking
-    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Volume);
     for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
-        assert(m_volumes.volumes[i]->mesh_raycaster != nullptr);
-        add_raycaster_for_picking(SceneRaycaster::EType::Volume, i, *m_volumes.volumes[i]->mesh_raycaster, m_volumes.volumes[i]->world_matrix());
+        const GLVolume* v = m_volumes.volumes[i];
+        assert(v->mesh_raycaster != nullptr);
+        std::shared_ptr<SceneRaycasterItem> raycaster = add_raycaster_for_picking(SceneRaycaster::EType::Volume, i, *v->mesh_raycaster, v->world_matrix());
+        raycaster->set_active(v->is_active);
     }
 
     // refresh gizmo elements raycasters for picking
+    GLGizmoBase* curr_gizmo = m_gizmos.get_current();
+    if (curr_gizmo != nullptr)
+        curr_gizmo->unregister_raycasters_for_picking();
     m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Gizmo);
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::FallbackGizmo);
     if (curr_gizmo != nullptr && !m_selection.is_empty())
         curr_gizmo->register_raycasters_for_picking();
 
@@ -6434,6 +6435,7 @@ void GLCanvas3D::_picking_pass()
             break;
         }
         case SceneRaycaster::EType::Gizmo:
+        case SceneRaycaster::EType::FallbackGizmo:
         {
             const Size& cnv_size = get_canvas_size();
             const bool inside = 0 <= m_mouse.position.x() && m_mouse.position.x() < cnv_size.get_width() &&
@@ -6474,42 +6476,94 @@ void GLCanvas3D::_picking_pass()
     {
     case SceneRaycaster::EType::Bed:   { object_type = "Bed"; break; }
     case SceneRaycaster::EType::Gizmo: { object_type = "Gizmo element"; break; }
+    case SceneRaycaster::EType::FallbackGizmo: { object_type = "Gizmo2 element"; break; }
     case SceneRaycaster::EType::Volume:
     {
         if (m_volumes.volumes[hit.raycaster_id]->is_wipe_tower)
-            object_type = "Wipe tower";
+            object_type = "Volume (Wipe tower)";
         else if (m_volumes.volumes[hit.raycaster_id]->volume_idx() == -int(slaposPad))
-            object_type = "SLA pad";
+            object_type = "Volume (SLA pad)";
         else if (m_volumes.volumes[hit.raycaster_id]->volume_idx() == -int(slaposSupportTree))
-            object_type = "SLA supports";
+            object_type = "Volume (SLA supports)";
+        else if (m_volumes.volumes[hit.raycaster_id]->is_modifier)
+            object_type = "Volume (Modifier)";
         else
-            object_type = "Volume";
+            object_type = "Volume (Part)";
         break;
     }
     default: { break; }
     }
+
+    auto add_strings_row_to_table = [&imgui](const std::string& col_1, const ImVec4& col_1_color, const std::string& col_2, const ImVec4& col_2_color,
+        const std::string& col_3 = "", const ImVec4& col_3_color = ImGui::GetStyleColorVec4(ImGuiCol_Text)) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        imgui.text_colored(col_1_color, col_1.c_str());
+        ImGui::TableSetColumnIndex(1);
+        imgui.text_colored(col_2_color, col_2.c_str());
+        if (!col_3.empty()) {
+            ImGui::TableSetColumnIndex(2);
+            imgui.text_colored(col_3_color, col_3.c_str());
+        }
+    };
+
     char buf[1024];
     if (hit.type != SceneRaycaster::EType::None) {
-        sprintf(buf, "Object ID: %d", hit.raycaster_id);
-        imgui.text(std::string(buf));
-        sprintf(buf, "Type: %s", object_type.c_str());
-        imgui.text(std::string(buf));
-        sprintf(buf, "Position: %.3f, %.3f, %.3f", hit.position.x(), hit.position.y(), hit.position.z());
-        imgui.text(std::string(buf));
-        sprintf(buf, "Normal: %.3f, %.3f, %.3f", hit.normal.x(), hit.normal.y(), hit.normal.z());
-        imgui.text(std::string(buf));
+        if (ImGui::BeginTable("Hit", 2)) {
+            add_strings_row_to_table("Object ID", ImGuiWrapper::COL_ORANGE_LIGHT, std::to_string(hit.raycaster_id), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            add_strings_row_to_table("Type", ImGuiWrapper::COL_ORANGE_LIGHT, object_type, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            sprintf(buf, "%.3f, %.3f, %.3f", hit.position.x(), hit.position.y(), hit.position.z());
+            add_strings_row_to_table("Position", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            sprintf(buf, "%.3f, %.3f, %.3f", hit.normal.x(), hit.normal.y(), hit.normal.z());
+            add_strings_row_to_table("Normal", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            ImGui::EndTable();
+        }
     }
     else
         imgui.text("NO HIT");
 
     ImGui::Separator();
     imgui.text("Registered for picking:");
-    sprintf(buf, "Beds: %d", (int)m_scene_raycaster.beds_count());
-    imgui.text(std::string(buf));
-    sprintf(buf, "Volumes: %d", (int)m_scene_raycaster.volumes_count());
-    imgui.text(std::string(buf));
-    sprintf(buf, "Gizmo elements: %d", (int)m_scene_raycaster.gizmos_count());
-    imgui.text(std::string(buf));
+    if (ImGui::BeginTable("Raycasters", 2)) {
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.beds_count(), (int)m_scene_raycaster.active_beds_count());
+        add_strings_row_to_table("Beds", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.volumes_count(), (int)m_scene_raycaster.active_volumes_count());
+        add_strings_row_to_table("Volumes", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.gizmos_count(), (int)m_scene_raycaster.active_gizmos_count());
+        add_strings_row_to_table("Gizmo elements", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        sprintf(buf, "%d (%d)", (int)m_scene_raycaster.fallback_gizmos_count(), (int)m_scene_raycaster.active_fallback_gizmos_count());
+        add_strings_row_to_table("Gizmo2 elements", ImGuiWrapper::COL_ORANGE_LIGHT, std::string(buf), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        ImGui::EndTable();
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* gizmo_raycasters = m_scene_raycaster.get_raycasters(SceneRaycaster::EType::Gizmo);
+    if (gizmo_raycasters != nullptr && !gizmo_raycasters->empty()) {
+        ImGui::Separator();
+        imgui.text("Gizmo raycasters IDs:");
+        if (ImGui::BeginTable("GizmoRaycasters", 3)) {
+            for (size_t i = 0; i < gizmo_raycasters->size(); ++i) {
+                add_strings_row_to_table(std::to_string(i), ImGuiWrapper::COL_ORANGE_LIGHT,
+                    std::to_string(SceneRaycaster::decode_id(SceneRaycaster::EType::Gizmo, (*gizmo_raycasters)[i]->get_id())), ImGui::GetStyleColorVec4(ImGuiCol_Text),
+                    to_string(Geometry::Transformation((*gizmo_raycasters)[i]->get_transform()).get_offset()), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            }
+            ImGui::EndTable();
+        }
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* gizmo2_raycasters = m_scene_raycaster.get_raycasters(SceneRaycaster::EType::FallbackGizmo);
+    if (gizmo2_raycasters != nullptr && !gizmo2_raycasters->empty()) {
+        ImGui::Separator();
+        imgui.text("Gizmo2 raycasters IDs:");
+        if (ImGui::BeginTable("Gizmo2Raycasters", 3)) {
+            for (size_t i = 0; i < gizmo2_raycasters->size(); ++i) {
+                add_strings_row_to_table(std::to_string(i), ImGuiWrapper::COL_ORANGE_LIGHT,
+                    std::to_string(SceneRaycaster::decode_id(SceneRaycaster::EType::FallbackGizmo, (*gizmo2_raycasters)[i]->get_id())), ImGui::GetStyleColorVec4(ImGuiCol_Text),
+                    to_string(Geometry::Transformation((*gizmo2_raycasters)[i]->get_transform()).get_offset()), ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            }
+            ImGui::EndTable();
+        }
+    }
+
     imgui.end();
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 }

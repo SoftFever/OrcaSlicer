@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2022 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_SceneRaycaster_hpp_
 #define slic3r_SceneRaycaster_hpp_
 
@@ -42,14 +46,16 @@ public:
         None,
         Bed,
         Volume,
-        Gizmo
+        Gizmo,
+        FallbackGizmo // Is used for gizmo grabbers which will be hit after all grabbers of Gizmo type
     };
 
     enum class EIdBase
     {
         Bed    = 0,
         Volume = 1000,
-        Gizmo  = 1000000
+        Gizmo  = 1000000,
+        FallbackGizmo = 2000000
     };
 
     struct HitResult
@@ -66,6 +72,7 @@ private:
     std::vector<std::shared_ptr<SceneRaycasterItem>> m_bed;
     std::vector<std::shared_ptr<SceneRaycasterItem>> m_volumes;
     std::vector<std::shared_ptr<SceneRaycasterItem>> m_gizmos;
+    std::vector<std::shared_ptr<SceneRaycasterItem>> m_fallback_gizmos;
 
     // When set to true, if checking gizmos returns a valid hit,
     // the search is not performed on other types
@@ -87,10 +94,11 @@ public:
     void remove_raycaster(std::shared_ptr<SceneRaycasterItem> item);
 
     std::vector<std::shared_ptr<SceneRaycasterItem>>* get_raycasters(EType type);
+    const std::vector<std::shared_ptr<SceneRaycasterItem>>* get_raycasters(EType type) const;
 
     void set_gizmos_on_top(bool value) { m_gizmos_on_top = value; }
 
-    HitResult hit(const Vec2d& mouse_pos, const Camera& camera, const ClippingPlane* clipping_plane = nullptr);
+    HitResult hit(const Vec2d& mouse_pos, const Camera& camera, const ClippingPlane* clipping_plane = nullptr) const;
 
 #if ENABLE_RAYCAST_PICKING_DEBUG
     void render_hit(const Camera& camera);
@@ -98,11 +106,17 @@ public:
     size_t beds_count() const    { return m_bed.size(); }
     size_t volumes_count() const { return m_volumes.size(); }
     size_t gizmos_count() const  { return m_gizmos.size(); }
+    size_t fallback_gizmos_count() const  { return m_fallback_gizmos.size(); }
+    size_t active_beds_count() const;
+    size_t active_volumes_count() const;
+    size_t active_gizmos_count() const;
+    size_t active_fallback_gizmos_count() const;
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
+
+    static int decode_id(EType type, int id);
 
 private:
     static int encode_id(EType type, int id);
-    static int decode_id(EType type, int id);
     static int base_id(EType type);
 };
 

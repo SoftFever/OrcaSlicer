@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GUI_Utils_hpp_
 #define slic3r_GUI_Utils_hpp_
 
@@ -461,6 +465,16 @@ public:
     TaskTimer(std::string task_name);
 
     ~TaskTimer();
+};
+
+class KeyAutoRepeatFilter
+{
+    size_t m_count{ 0 };
+
+public:
+    void increase_count() { ++m_count; }
+    void reset_count() { m_count = 0; }
+    bool is_first() const { return m_count == 0; }
 };
 
 

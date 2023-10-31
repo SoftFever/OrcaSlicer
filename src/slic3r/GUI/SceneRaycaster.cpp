@@ -1,8 +1,14 @@
+///|/ Copyright (c) Prusa Research 2022 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/libslic3r.h"
 #include "SceneRaycaster.hpp"
 
 #include "Camera.hpp"
 #include "GUI_App.hpp"
+#include "Selection.hpp"
+#include "Plater.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -35,10 +41,11 @@ std::shared_ptr<SceneRaycasterItem> SceneRaycaster::add_raycaster(EType type, in
     const Transform3d& trafo, bool use_back_faces)
 {
     switch (type) {
-    case EType::Bed: { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    case EType::Bed:    { return m_bed.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
     case EType::Volume: { return m_volumes.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
-    case EType::Gizmo: { return m_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
-    default: { assert(false);  return nullptr; }
+    case EType::Gizmo:  { return m_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    case EType::FallbackGizmo:  { return m_fallback_gizmos.emplace_back(std::make_shared<SceneRaycasterItem>(encode_id(type, id), raycaster, trafo, use_back_faces)); }
+    default:            { assert(false);  return nullptr; }
     };
 }
 
@@ -60,6 +67,7 @@ void SceneRaycaster::remove_raycasters(EType type)
     case EType::Bed:    { m_bed.clear(); break; }
     case EType::Volume: { m_volumes.clear(); break; }
     case EType::Gizmo:  { m_gizmos.clear(); break; }
+    case EType::FallbackGizmo:  { m_fallback_gizmos.clear(); break; }
     default:            { break; }
     };
 }
@@ -84,28 +92,72 @@ void SceneRaycaster::remove_raycaster(std::shared_ptr<SceneRaycasterItem> item)
             return;
         }
     }
+    for (auto it = m_fallback_gizmos.begin(); it != m_fallback_gizmos.end(); ++it) {
+        if (*it == item) {
+            m_fallback_gizmos.erase(it);
+            return;
+        }
+    }
 }
 
-SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Camera& camera, const ClippingPlane* clipping_plane)
+SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Camera& camera, const ClippingPlane* clipping_plane) const
 {
+    // helper class used to return currently selected volume as hit when overlapping with other volumes
+    // to allow the user to click and drag on a selected volume
+    class VolumeKeeper
+    {
+        std::optional<unsigned int> m_selected_volume_id;
+        Vec3f m_closest_hit_pos{ std::numeric_limits<float>::max(), std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+        bool m_selected_volume_already_found{ false };
+
+    public:
+        VolumeKeeper() {
+            const Selection& selection = wxGetApp().plater()->get_selection();
+            if (selection.is_single_volume() || selection.is_single_modifier()) {
+                const GLVolume* volume = selection.get_first_volume();
+                if (!volume->is_wipe_tower && !volume->is_sla_pad() && !volume->is_sla_support())
+                    m_selected_volume_id = *selection.get_volume_idxs().begin();
+            }
+        }
+
+        bool is_active() const { return m_selected_volume_id.has_value(); }
+        const Vec3f& get_closest_hit_pos() const { return m_closest_hit_pos; }
+        bool check_hit_result(const HitResult& hit) {
+            assert(is_active());
+
+            if (m_selected_volume_already_found && hit.type == SceneRaycaster::EType::Volume && hit.position.isApprox(m_closest_hit_pos))
+                return false;
+
+            if (hit.type == SceneRaycaster::EType::Volume)
+                m_selected_volume_already_found = *m_selected_volume_id == (unsigned int)decode_id(hit.type, hit.raycaster_id);
+
+            m_closest_hit_pos = hit.position;
+            return true;
+        }
+    };
+
+    VolumeKeeper volume_keeper;
+
     double closest_hit_squared_distance = std::numeric_limits<double>::max();
-    auto is_closest = [&closest_hit_squared_distance](const Camera& camera, const Vec3f& hit) {
+    auto is_closest = [&closest_hit_squared_distance, &volume_keeper](const Camera& camera, const Vec3f& hit) {
         const double hit_squared_distance = (camera.get_position() - hit.cast<double>()).squaredNorm();
-        const bool ret = hit_squared_distance < closest_hit_squared_distance;
+        bool ret = hit_squared_distance < closest_hit_squared_distance;
+        if (volume_keeper.is_active())
+            ret |= hit.isApprox(volume_keeper.get_closest_hit_pos());
         if (ret)
             closest_hit_squared_distance = hit_squared_distance;
         return ret;
     };
 
 #if ENABLE_RAYCAST_PICKING_DEBUG
-    m_last_hit.reset();
+    const_cast<std::optional<HitResult>*>(&m_last_hit)->reset();
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 
     HitResult ret;
 
-    auto test_raycasters = [this, is_closest, clipping_plane](EType type, const Vec2d& mouse_pos, const Camera& camera, HitResult& ret) {
+    auto test_raycasters = [this, is_closest, clipping_plane, &volume_keeper](EType type, const Vec2d& mouse_pos, const Camera& camera, HitResult& ret) {
         const ClippingPlane* clip_plane = (clipping_plane != nullptr && type == EType::Volume) ? clipping_plane : nullptr;
-        std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
+        const std::vector<std::shared_ptr<SceneRaycasterItem>>* raycasters = get_raycasters(type);
         const Vec3f camera_forward = camera.get_dir_forward().cast<float>();
         HitResult current_hit = { type };
         for (std::shared_ptr<SceneRaycasterItem> item : *raycasters) {
@@ -117,9 +169,14 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
             if (item->get_raycaster()->closest_hit(mouse_pos, trafo, camera, current_hit.position, current_hit.normal, clip_plane)) {
                 current_hit.position = (trafo * current_hit.position.cast<double>()).cast<float>();
                 current_hit.normal = (trafo.matrix().block(0, 0, 3, 3).inverse().transpose() * current_hit.normal.cast<double>()).normalized().cast<float>();
-                if (item->use_back_faces() || current_hit.normal.dot(camera_forward) < 0.0f){
+                if (item->use_back_faces() || current_hit.normal.dot(camera_forward) < 0.0f) {
                     if (is_closest(camera, current_hit.position)) {
-                        ret = current_hit;
+                        if (volume_keeper.is_active()) {
+                            if (volume_keeper.check_hit_result(current_hit))
+                                ret = current_hit;
+                        }
+                        else
+                            ret = current_hit;
                     }
                 }
             }
@@ -128,6 +185,9 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
 
     if (!m_gizmos.empty())
         test_raycasters(EType::Gizmo, mouse_pos, camera, ret);
+
+    if (!m_fallback_gizmos.empty() && !ret.is_valid())
+        test_raycasters(EType::FallbackGizmo, mouse_pos, camera, ret);
 
     if (!m_gizmos_on_top || !ret.is_valid()) {
         if (camera.is_looking_downward() && !m_bed.empty())
@@ -140,7 +200,7 @@ SceneRaycaster::HitResult SceneRaycaster::hit(const Vec2d& mouse_pos, const Came
         ret.raycaster_id = decode_id(ret.type, ret.raycaster_id);
 
 #if ENABLE_RAYCAST_PICKING_DEBUG
-    m_last_hit = ret;
+    *const_cast<std::optional<HitResult>*>(&m_last_hit) = ret;
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
     return ret;
 }
@@ -171,6 +231,39 @@ void SceneRaycaster::render_hit(const Camera& camera)
 
     shader->stop_using();
 }
+
+size_t SceneRaycaster::active_beds_count() const {
+    size_t count = 0;
+    for (const auto& b : m_bed) {
+        if (b->is_active())
+            ++count;
+    }
+    return count;
+}
+size_t SceneRaycaster::active_volumes_count() const {
+    size_t count = 0;
+    for (const auto& v : m_volumes) {
+        if (v->is_active())
+            ++count;
+    }
+    return count;
+}
+size_t SceneRaycaster::active_gizmos_count() const {
+    size_t count = 0;
+    for (const auto& g : m_gizmos) {
+        if (g->is_active())
+            ++count;
+    }
+    return count;
+}
+size_t SceneRaycaster::active_fallback_gizmos_count() const {
+    size_t count = 0;
+    for (const auto& g : m_fallback_gizmos) {
+        if (g->is_active())
+            ++count;
+    }
+    return count;
+}
 #endif // ENABLE_RAYCAST_PICKING_DEBUG
 
 std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters(EType type)
@@ -181,6 +274,22 @@ std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters
     case EType::Bed:    { ret = &m_bed; break; }
     case EType::Volume: { ret = &m_volumes; break; }
     case EType::Gizmo:  { ret = &m_gizmos; break; }
+    case EType::FallbackGizmo:  { ret = &m_fallback_gizmos; break; }
+    default:            { break; }
+    }
+    assert(ret != nullptr);
+    return ret;
+}
+
+const std::vector<std::shared_ptr<SceneRaycasterItem>>* SceneRaycaster::get_raycasters(EType type) const
+{
+    const std::vector<std::shared_ptr<SceneRaycasterItem>>* ret = nullptr;
+    switch (type)
+    {
+    case EType::Bed:    { ret = &m_bed; break; }
+    case EType::Volume: { ret = &m_volumes; break; }
+    case EType::Gizmo:  { ret = &m_gizmos; break; }
+    case EType::FallbackGizmo:  { ret = &m_fallback_gizmos; break; }
     default:            { break; }
     }
     assert(ret != nullptr);
@@ -194,6 +303,7 @@ int SceneRaycaster::base_id(EType type)
     case EType::Bed:    { return int(EIdBase::Bed); }
     case EType::Volume: { return int(EIdBase::Volume); }
     case EType::Gizmo:  { return int(EIdBase::Gizmo); }
+    case EType::FallbackGizmo:  { return int(EIdBase::FallbackGizmo); }
     default:            { break; }
     };
 

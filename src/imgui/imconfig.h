@@ -161,6 +161,7 @@ namespace ImGui
     const wchar_t ClippyMarker             = 0x0802;
     const wchar_t InfoMarker               = 0x0803;
     const wchar_t SliderFloatEditBtnIcon   = 0x0804;
+    const wchar_t ClipboardBtnIcon         = 0x0805;
 
     // BBS
     const wchar_t CircleButtonIcon         = 0x0810;

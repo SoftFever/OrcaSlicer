@@ -208,6 +208,9 @@ set(lisbslic3r_sources
     ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
+    Measure.hpp
+    Measure.cpp
+    MeasureUtils.hpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp
@@ -307,6 +310,7 @@ set(lisbslic3r_sources
     Surface.hpp
     SurfaceCollection.cpp
     SurfaceCollection.hpp
+    SurfaceMesh.hpp
     SVG.cpp
     SVG.hpp
     Technologies.hpp

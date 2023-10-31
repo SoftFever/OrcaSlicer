@@ -88,6 +88,7 @@ public:
         // BBS
         Text,
         MmuSegmentation,
+        Measure,
         Simplify,
         //SlaSupports,
         // BBS

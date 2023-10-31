@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 - 2022 Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Geometry_Circle_hpp_
 #define slic3r_Geometry_Circle_hpp_
 
@@ -102,7 +106,7 @@ inline Vec2d circle_center_taubin_newton(const Vec2ds& input, size_t cycles = 20
 Circled circle_taubin_newton(const Vec2ds& input, size_t cycles = 20);
 
 // Find circle using RANSAC randomized algorithm.
-Circled circle_ransac(const Vec2ds& input, size_t iterations = 20);
+Circled circle_ransac(const Vec2ds& input, size_t iterations = 20, double* min_error = nullptr);
 
 // Randomized algorithm by Emo Welzl, working with squared radii for efficiency. The returned circle radius is inflated by epsilon.
 template<typename Vector, typename Points>

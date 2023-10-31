@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2019 Jason Tibbitts @jasontibbitts
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "ImGuiWrapper.hpp"
 
 #include <cstdio>
@@ -63,6 +68,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     {ImGui::SliderFloatEditBtnIcon, "edit_button"                    },
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    {ImGui::ClipboardBtnIcon      , "copy_menu"                     },
     {ImGui::CircleButtonIcon       , "circle_paint"                  },
     {ImGui::TriangleButtonIcon     , "triangle_paint"                },
     {ImGui::FillButtonIcon         , "fill_paint"                    },
@@ -789,11 +795,6 @@ bool ImGuiWrapper::radio_button(const wxString &label, bool active)
     return ImGui::RadioButton(label_utf8.c_str(), active);
 }
 
-bool ImGuiWrapper::image_button()
-{
-    return false;
-}
-
 bool ImGuiWrapper::input_double(const std::string &label, const double &value, const std::string &format)
 {
     return ImGui::InputDouble(label.c_str(), const_cast<double*>(&value), 0.0f, 0.0f, format.c_str(), ImGuiInputTextFlags_CharsDecimal);
@@ -1034,6 +1035,71 @@ bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, fl
     return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power, clamp);
 }
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+
+static bool image_button_ex(ImGuiID id, ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& padding, const ImVec4& bg_col, const ImVec4& tint_col, ImGuiButtonFlags flags)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size + padding * 2);
+    ImGui::ItemSize(bb);
+    if (!ImGui::ItemAdd(bb, id))
+        return false;
+
+    bool hovered, held;
+    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
+
+    // Render
+    const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    ImGui::RenderNavHighlight(bb, id);
+    ImGui::RenderFrame(bb.Min, bb.Max, col, true, ImClamp((float)ImMin(padding.x, padding.y), 0.0f, g.Style.FrameRounding));
+    if (bg_col.w > 0.0f)
+        window->DrawList->AddRectFilled(bb.Min + padding, bb.Max - padding, ImGui::GetColorU32(bg_col));
+    window->DrawList->AddImage(texture_id, bb.Min + padding, bb.Max - padding, uv0, uv1, ImGui::GetColorU32(tint_col));
+
+    return pressed;
+}
+
+bool ImGuiWrapper::image_button(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col, ImGuiButtonFlags flags)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+    if (window->SkipItems)
+        return false;
+
+    // Default to using texture ID as ID. User can still push string/integer prefixes.
+    ImGui::PushID((void*)(intptr_t)user_texture_id);
+    const ImGuiID id = window->GetID("#image");
+    ImGui::PopID();
+
+    const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : g.Style.FramePadding;
+    return image_button_ex(id, user_texture_id, size, uv0, uv1, padding, bg_col, tint_col, flags);
+}
+
+bool ImGuiWrapper::image_button(const wchar_t icon, const wxString& tooltip)
+{
+    const ImGuiIO& io = ImGui::GetIO();
+    const ImTextureID tex_id = io.Fonts->TexID;
+    assert(io.Fonts->TexWidth > 0 && io.Fonts->TexHeight > 0);
+    const float inv_tex_w = 1.0f / float(io.Fonts->TexWidth);
+    const float inv_tex_h = 1.0f / float(io.Fonts->TexHeight);
+    const ImFontAtlasCustomRect* const rect = GetTextureCustomRect(icon);
+    const ImVec2 size = { float(rect->Width), float(rect->Height) };
+    const ImVec2 uv0 = ImVec2(float(rect->X) * inv_tex_w, float(rect->Y) * inv_tex_h);
+    const ImVec2 uv1 = ImVec2(float(rect->X + rect->Width) * inv_tex_w, float(rect->Y + rect->Height) * inv_tex_h);
+    ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 0.0f });
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.4f, 0.4f, 0.4f, 1.0f });
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.25f, 0.25f, 0.25f, 1.0f });
+    const bool res = image_button(tex_id, size, uv0, uv1);
+    ImGui::PopStyleColor(3);
+
+    if (!tooltip.empty() && ImGui::IsItemHovered())
+        this->tooltip(tooltip, ImGui::GetFontSize() * 20.0f);
+
+    return res;
+}
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
 {
@@ -1780,6 +1846,17 @@ bool ImGuiWrapper::want_any_input() const
     return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
 }
 
+ImFontAtlasCustomRect* ImGuiWrapper::GetTextureCustomRect(const wchar_t& tex_id)
+{
+    auto item = m_custom_glyph_rects_ids.find(tex_id);
+    return (item != m_custom_glyph_rects_ids.end()) ? ImGui::GetIO().Fonts->GetCustomRectByIndex(m_custom_glyph_rects_ids[tex_id]) : nullptr;
+}
+
+void ImGuiWrapper::disable_background_fadeout_animation()
+{
+    GImGui->DimBgRatio = 1.0f;
+}
+
 ImU32 ImGuiWrapper::to_ImU32(const ColorRGBA& color)
 {
     return ImGui::GetColorU32({ color.r(), color.g(), color.b(), color.a() });
@@ -2151,12 +2228,18 @@ void ImGuiWrapper::init_font(bool compress)
 
     int rect_id = io.Fonts->CustomRects.Size;  // id of the rectangle added next
     // add rectangles for the icons to the font atlas
-    for (auto& icon : font_icons)
+    for (auto& icon : font_icons) {
+        m_custom_glyph_rects_ids[icon.first] =
         io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
-    for (auto& icon : font_icons_large)
+    }
+    for (auto& icon : font_icons_large) {
+        m_custom_glyph_rects_ids[icon.first] =
         io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
-    for (auto& icon : font_icons_extra_large)
+    }
+    for (auto& icon : font_icons_extra_large) {
+        m_custom_glyph_rects_ids[icon.first] =
         io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
+    }
 
     // Build texture atlas
     unsigned char* pixels;
@@ -2164,55 +2247,37 @@ void ImGuiWrapper::init_font(bool compress)
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
     BOOST_LOG_TRIVIAL(trace) << "Build default font texture done. width: " << width << ", height: " << height;
 
-    // Fill rectangles from the SVG-icons
-    for (auto icon : font_icons) {
+    auto load_icon_from_svg = [this, &io, pixels, width, &rect_id](const std::pair<const wchar_t, std::string> icon, int icon_sz) {
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            unsigned outwidth, outheight;
+            unsigned                   outwidth, outheight;
             std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
-            const ImU32* pIn = (ImU32*)raw_data.data();
-            for (unsigned y = 0; y < outheight; y++) {
-                ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (unsigned x = 0; x < outwidth; x++)
-                    *pOut++ = *pIn++;
+            if (!raw_data.empty()) {
+                const ImU32* pIn = (ImU32*)raw_data.data();
+                for (unsigned y = 0; y < outheight; y++) {
+                    ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
+                    for (unsigned x = 0; x < outwidth; x++)
+                        *pOut++ = *pIn++;
+                }
             }
         }
         rect_id++;
+    };
+
+    // Fill rectangles from the SVG-icons
+    for (auto icon : font_icons) {
+        load_icon_from_svg(icon, icon_sz);
     }
 
     icon_sz *= 2; // default size of large icon is 32 px
     for (auto icon : font_icons_large) {
-        if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
-            assert(rect->Width == icon_sz);
-            assert(rect->Height == icon_sz);
-            unsigned outwidth, outheight;
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
-            const ImU32* pIn = (ImU32*)raw_data.data();
-            for (unsigned y = 0; y < outheight; y++) {
-                ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (unsigned x = 0; x < outwidth; x++)
-                    *pOut++ = *pIn++;
-            }
-        }
-        rect_id++;
+        load_icon_from_svg(icon, icon_sz);
     }
 
     icon_sz *= 2; // default size of extra large icon is 64 px
     for (auto icon : font_icons_extra_large) {
-        if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
-            assert(rect->Width == icon_sz);
-            assert(rect->Height == icon_sz);
-            unsigned outwidth, outheight;
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
-            const ImU32* pIn = (ImU32*)raw_data.data();
-            for (unsigned y = 0; y < outheight; y++) {
-                ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (unsigned x = 0; x < outwidth; x++)
-                    *pOut++ = *pIn++;
-            }
-        }
-        rect_id++;
+        load_icon_from_svg(icon, icon_sz);
     }
 
     // Upload texture to graphics system

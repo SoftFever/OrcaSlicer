@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, Lukáš Matěna @lukasmatena
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLModel_hpp_
 #define slic3r_GLModel_hpp_
 
@@ -100,6 +104,8 @@ namespace GUI {
             size_t vertices_size_floats() const { return vertices.size(); }
             size_t vertices_size_bytes() const  { return vertices_size_floats() * sizeof(float); }
             size_t indices_size_bytes() const { return indices.size() * index_stride_bytes(*this); }
+
+            indexed_triangle_set get_as_indexed_triangle_set() const;
 
             static size_t vertex_stride_floats(const Format& format);
             static size_t vertex_stride_bytes(const Format& format) { return vertex_stride_floats(format) * sizeof(float); }
@@ -232,6 +238,18 @@ namespace GUI {
     // the origin of the diamond is in its center
     // the diamond is contained into a box with size [1, 1, 1]
     GLModel::Geometry diamond(unsigned int resolution);
+
+    // create a sphere with smooth normals
+    // the origin of the sphere is in its center
+    GLModel::Geometry smooth_sphere(unsigned int resolution, float radius);
+    // create a cylinder with smooth normals
+    // the axis of the cylinder is the Z axis
+    // the origin of the cylinder is the center of its bottom cap face
+    GLModel::Geometry smooth_cylinder(unsigned int resolution, float radius, float height);
+    // create a torus with smooth normals
+    // the axis of the torus is the Z axis
+    // the origin of the torus is in its center
+    GLModel::Geometry smooth_torus(unsigned int primary_resolution, unsigned int secondary_resolution, float radius, float thickness);
 
 } // namespace GUI
 } // namespace Slic3r

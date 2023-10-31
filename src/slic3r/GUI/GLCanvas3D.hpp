@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Král @vojtechkral
+///|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
@@ -724,9 +729,9 @@ public:
 
     bool init();
     void post_event(wxEvent &&event);
-	
+
     std::shared_ptr<SceneRaycasterItem> add_raycaster_for_picking(SceneRaycaster::EType type, int id, const MeshRaycaster& raycaster,
-        const Transform3d& trafo, bool use_back_faces = false) {
+        const Transform3d& trafo = Transform3d::Identity(), bool use_back_faces = false) {
         return m_scene_raycaster.add_raycaster(type, id, raycaster, trafo, use_back_faces);
     }
     void remove_raycasters_for_picking(SceneRaycaster::EType type, int id) {
