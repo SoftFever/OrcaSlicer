@@ -89,6 +89,7 @@ std::vector<std::array<float, 4>> get_extruders_colors()
 }
 float FullyTransparentMaterialThreshold  = 0.1f;
 float FullTransparentModdifiedToFixAlpha = 0.3f;
+const float BlackThreshold               = 0.2f;
 std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colors)
 {
    if (colors[3] < FullyTransparentMaterialThreshold) { // completely transparent
@@ -99,11 +100,11 @@ std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4> &colo
                 new_color[3] = FullTransparentModdifiedToFixAlpha;
                 return new_color;
     }
-    else if ((colors[0] < 0.1) && (colors[1] < 0.1) && (colors[2] < 0.1)) {//black filament deal
+    else if ((colors[0] < BlackThreshold) && (colors[1] < BlackThreshold) && (colors[2] < BlackThreshold)) { // black filament deal
         std::array<float, 4> new_color;
-        new_color[0] = 0.1;
-        new_color[1] = 0.1;
-        new_color[2] = 0.1;
+        new_color[0] = BlackThreshold;
+        new_color[1] = BlackThreshold;
+        new_color[2] = BlackThreshold;
         new_color[3] = colors[3];
         return new_color;
     }
