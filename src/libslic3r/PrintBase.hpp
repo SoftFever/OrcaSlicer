@@ -510,6 +510,7 @@ public:
     // If the filename_base is set, it is used as the input for the template processing. In that case the path is expected to be the directory (may be empty).
     // If filename_set is empty, than the path may be a file or directory. If it is a file, then the macro will not be processed.
     std::string                output_filepath(const std::string &path, const std::string &filename_base = std::string()) const;
+    std::string                output_filepath_for_upload() const;
 
     //BBS: get/set plate id
     int get_plate_index() const { return m_plate_index; }

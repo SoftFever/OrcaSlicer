@@ -46,6 +46,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
     , combo_storage(storage_names.GetCount() > 1 ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, storage_names, wxCB_READONLY) : nullptr)
     , post_upload_action(PrintHostPostUploadAction::None)
     , m_paths(storage_paths)
+    , m_save_recent_path(true)
 {
 #ifdef __APPLE__
     txt_filename->OSXDisableAllSmartSubstitutions();
@@ -90,8 +91,17 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
     if (recent_path.Length() > 0 && recent_path[recent_path.Length() - 1] != '/') {
         recent_path += '/';
     }
-    const auto recent_path_len = recent_path.Length();
-    recent_path += path.filename().wstring();
+    auto recent_path_len = recent_path.Length();
+
+    if (path.wstring().find('/') != std::string::npos || path.wstring().find('\\') != std::string::npos) {
+        auto replaced = path.wstring();
+        boost::replace_all(replaced, "\\", "/");
+        recent_path = replaced;
+        recent_path_len = path.wstring().rfind('/') + 1;
+        m_save_recent_path = false;
+    } else
+        recent_path += path.filename().wstring();
+    
     wxString stem(path.stem().wstring());
     const auto stem_len = stem.Length();
 
@@ -214,7 +224,7 @@ void PrintHostSendDialog::EndModal(int ret)
             path = path.SubString(0, last_slash);
                 
 		AppConfig *app_config = wxGetApp().app_config;
-		app_config->set("recent", CONFIG_KEY_PATH, into_u8(path));
+		app_config->set("recent", CONFIG_KEY_PATH, into_u8(m_save_recent_path ? path : ""));
 
         if (combo_groups != nullptr) {
             wxString group = combo_groups->GetValue();

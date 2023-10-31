@@ -190,6 +190,11 @@ std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::f
     return m_print->output_filepath(project_path.parent_path().string(), project_path.stem().string());
 }
 
+std::string BackgroundSlicingProcess::output_filepath_for_upload()
+{
+    return m_print->output_filepath_for_upload();
+}
+
 // This function may one day be merged into the Print, but historically the print was separated
 // from the G-code generator.
 void BackgroundSlicingProcess::process_fff()

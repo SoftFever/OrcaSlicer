@@ -130,6 +130,7 @@
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
+#include <boost/range/algorithm/count.hpp>
 
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/Platform.hpp"
@@ -10901,7 +10902,16 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         unsigned int state = this->p->update_restart_background_process(false, false);
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
-        default_output_file = this->p->background_process.output_filepath_for_project("");
+
+//        auto plain_output_file_string = this->p->background_process.output_filepath_for_project("");
+//        auto index = model().propose_export_file_name_and_path().find_last_of('\\');
+//        if (index != std::string::npos) {
+//            auto temp_path = model().propose_export_file_name_and_path().substr(0, index + 1);
+//            boost::replace_all(plain_output_file_string, temp_path, "");
+//        }
+
+        default_output_file = this->p->background_process.output_filepath_for_upload();
+
     } catch (const Slic3r::PlaceholderParserError& ex) {
         // Show the error with monospaced font.
         show_error(this, ex.what(), true);

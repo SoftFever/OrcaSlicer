@@ -41,6 +41,7 @@ private:
     wxString    m_valid_suffix;
     wxString    m_preselected_storage;
     wxArrayString m_paths;
+    bool m_save_recent_path;
 };
 
 
