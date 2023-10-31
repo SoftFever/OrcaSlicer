@@ -101,6 +101,7 @@ src/slic3r/GUI/Tab.hpp
 src/slic3r/GUI/UnsavedChangesDialog.cpp
 src/slic3r/GUI/Auxiliary.cpp
 src/slic3r/GUI/UpdateDialogs.cpp
+src/slic3r/GUI/UnsavedChangesDialog.cpp
 src/slic3r/GUI/WipeTowerDialog.cpp
 src/slic3r/GUI/wxExtensions.cpp
 src/slic3r/GUI/WebUserLoginDialog.cpp
@@ -110,7 +111,6 @@ src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/ReleaseNote.cpp
 src/slic3r/GUI/ReleaseNote.hpp
 src/slic3r/GUI/UpgradePanel.cpp
-src/slic3r/GUI/UnsavedChangesDialog.cpp
 src/slic3r/Utils/FixModelByWin10.cpp
 src/slic3r/Utils/PresetUpdater.cpp
 src/slic3r/Utils/Http.cpp
@@ -129,7 +129,7 @@ src/libslic3r/Zipper.cpp
 src/libslic3r/PrintObject.cpp
 src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/PlaceholderParser.cpp
-src/libslic3r/TreeSupport.cpp
+src/libslic3r/Support/TreeSupport.cpp
 src/libslic3r/Model.cpp
 src/libslic3r/Format/OBJ.cpp
 src/slic3r/GUI/CalibrationWizardPage.cpp
@@ -147,4 +147,5 @@ src/slic3r/GUI/PrintHostDialogs.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMeshBoolean.cpp
 src/slic3r/GUI/NetworkTestDialog.cpp
 src/slic3r/GUI/CreatePresetsDialog.cpp
+src/slic3r/GUI/DailyTips.cpp
 src/slic3r/Utils/CalibUtils.cpp

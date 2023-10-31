@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 17:49+0800\n"
+"POT-Creation-Date: 2023-10-31 12:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2084,11 +2084,11 @@ msgstr "Are you sure you want to clear the filament information?"
 msgid "You need to select the material type and color first."
 msgstr "You need to select the material type and color first."
 
-msgid "Please input a valid value (K in 0~0.5)"
-msgstr "Adj meg egy érvényes értéket (K 0-0,5 között)"
+msgid "Please input a valid value (K in 0~0.3)"
+msgstr ""
 
-msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr "Adj meg egy érvényes értéket (K 0-0,5, N 0,6-2,0 között)"
+msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Other Color"
@@ -4397,9 +4397,6 @@ msgstr "KÉSZ"
 msgid "Cancel upload"
 msgstr "Feltöltés megszakítása"
 
-msgid "Slice ok."
-msgstr "Szeletelés kész."
-
 msgid "Jump to"
 msgstr "Ugrás ide:"
 
@@ -5176,12 +5173,6 @@ msgstr ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 
-msgid "Show \"Tip of the day\" notification after start"
-msgstr "A nap tippje értesítés megjelenítése indítás után"
-
-msgid "If enabled, useful hints are displayed at startup."
-msgstr "Ha engedélyezve van, hasznos tippek jelennek meg indításkor."
-
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
@@ -5429,18 +5420,6 @@ msgstr ""
 
 msgid "First layer filament sequence"
 msgstr ""
-
-msgid "Same as Global"
-msgstr ""
-
-msgid "Enable"
-msgstr "Engedélyezve"
-
-msgid "Disable"
-msgstr ""
-
-msgid "Spiral vase"
-msgstr "Spirál (váza)"
 
 msgid "Same as Global Plate Type"
 msgstr "Same as Global Plate Type"
@@ -7619,9 +7598,6 @@ msgstr "Nyomtató által támogatott asztaltípusok"
 msgid "First layer print sequence"
 msgstr ""
 
-msgid "test"
-msgstr ""
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ez a G-kód minden rétegváltáshoz bekerül a Z tengely emelése előtt."
 
@@ -8952,6 +8928,9 @@ msgstr ""
 "komplex modelleknél, de egyúttal lassabbá teszi a szeletelést és a G-kód "
 "generálást"
 
+msgid "Enable"
+msgstr "Engedélyezve"
+
 msgid "Filename format"
 msgstr "Fájlnév formátum"
 
@@ -9228,6 +9207,9 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "A belső szilárd kitöltés sebessége, de az az érték nem vonatkozik a felső és "
 "alsó felületre"
+
+msgid "Spiral vase"
+msgstr "Spirál (váza)"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -9919,218 +9901,11 @@ msgstr "too large line width "
 msgid " not in range "
 msgstr " not in range "
 
-msgid "Export 3MF"
-msgstr "3MF exportálása"
-
-msgid "Export project as 3MF."
-msgstr "Projekt exportálása 3MF formátumban."
-
-msgid "Export slicing data"
-msgstr "Szeletelési adatok exportálása"
-
-msgid "Export slicing data to a folder."
-msgstr "Szeletelési adatok exportálása egy mappába"
-
-msgid "Load slicing data"
-msgstr "Szeletelési adatok betöltése"
-
-msgid "Load cached slicing data from directory"
-msgstr "Gyorsítótárazott szeletelési adatok betöltése mappából"
-
-msgid "Export STL"
-msgstr ""
-
-msgid "Export the objects as multiple STL."
-msgstr ""
-
-msgid "Slice"
-msgstr "Szeletelés"
-
-msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr "Tálcák szeletelése: 0 - összes tálca, i - i tálca, egyéb - érvénytelen"
-
-msgid "Show command help."
-msgstr "Parancs súgó megjelenítése."
-
-msgid "UpToDate"
-msgstr "Naprakész"
-
-msgid "Update the configs values of 3mf to latest."
-msgstr "Frissítsd a 3mf konfigurációs értékeit a legújabbra."
-
-msgid "Load default filaments"
-msgstr ""
-
-msgid "Load first filament as default for those not loaded"
-msgstr ""
-
-msgid "Minimum save"
-msgstr ""
-
-msgid "export 3mf with minimum size."
-msgstr ""
-
-msgid "mtcpp"
-msgstr "mtcpp"
-
-msgid "max triangle count per plate for slicing."
-msgstr "max triangle count per plate for slicing"
-
-msgid "mstpp"
-msgstr "mstpp"
-
-msgid "max slicing time per plate in seconds."
-msgstr "max slicing time per plate in seconds"
-
 msgid "No check"
 msgstr "No check"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "Do not run any validity checks, such as G-code path conflicts check."
-
-msgid "Normative check"
-msgstr "Normative check"
-
-msgid "Check the normative items."
-msgstr "Check the normative items."
-
-msgid "Output Model Info"
-msgstr "Kimeneti modell információ"
-
-msgid "Output the model's information."
-msgstr "Kimeneti modell információ."
-
-msgid "Export Settings"
-msgstr "Beállítások exportálása"
-
-msgid "Export settings to a file."
-msgstr "Beállítások exportálása egy fájlba."
-
-msgid "Send progress to pipe"
-msgstr "Folyamat elküldése"
-
-msgid "Send progress to pipe."
-msgstr "Folyamat elküldése."
-
-msgid "Arrange Options"
-msgstr "Elrendezési lehetőségek"
-
-msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr "Elrendezési lehetőségek: 0-letiltás, 1-engedélyezés, egyéb-auto"
-
-msgid "Repetions count"
-msgstr ""
-
-msgid "Repetions count of the whole model"
-msgstr ""
-
-msgid "Ensure on bed"
-msgstr ""
-
-msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default"
-msgstr ""
-
-msgid ""
-"Arrange the supplied models in a plate and merge them in a single model in "
-"order to perform actions once."
-msgstr ""
-
-msgid "Convert Unit"
-msgstr "Mértékegység átváltása"
-
-msgid "Convert the units of model"
-msgstr "Modell mértékegységének átváltása"
-
-msgid "Orient Options"
-msgstr ""
-
-msgid "Orient options: 0-disable, 1-enable, others-auto"
-msgstr ""
-
-msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
-
-msgid "Rotate around X"
-msgstr ""
-
-msgid "Rotation angle around the X axis in degrees."
-msgstr ""
-
-msgid "Rotate around Y"
-msgstr ""
-
-msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
-
-msgid "Scale the model by a float factor"
-msgstr "A modell méretezése egy lebegő tényezővel"
-
-msgid "Load General Settings"
-msgstr "Általános beállítások betöltése"
-
-msgid "Load process/machine settings from the specified file"
-msgstr "Folyamat/gépbeállítások betöltése a megadott fájlból"
-
-msgid "Load Filament Settings"
-msgstr "Filamentbeállítások betöltése"
-
-msgid "Load filament settings from the specified file list"
-msgstr "Filamentbeállítások betöltése a megadott fájllistából"
-
-msgid "Skip Objects"
-msgstr "Skip Objects"
-
-msgid "Skip some objects in this print"
-msgstr "Skip some objects in this print"
-
-msgid "Clone Objects"
-msgstr ""
-
-msgid "Clone objects in the load list"
-msgstr ""
-
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
-msgstr ""
-
-msgid "Output directory"
-msgstr "Kimeneti mappa"
-
-msgid "Output directory for the exported files."
-msgstr "Az exportált fájlok kimeneti mappája."
-
-msgid "Debug level"
-msgstr "Hibakeresés szintje"
-
-msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
-msgstr ""
-"A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
-"info, 4:debug, 5:trace\n"
-
-msgid "Load custom gcode"
-msgstr ""
-
-msgid "Load custom gcode from json"
-msgstr ""
-
-msgid "Load filament ids"
-msgstr ""
-
-msgid "Load filament ids for each object"
-msgstr ""
-
-msgid "Allow multiple color on one plate"
-msgstr ""
-
-msgid "If enabled, the arrange will allow multiple color on one plate "
-msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Hiba a zip fájlban"
@@ -10992,6 +10767,12 @@ msgstr ""
 msgid "Copy current filament preset "
 msgstr ""
 
+msgid "Basic Information"
+msgstr ""
+
+msgid "Add Filament Preset under this filament"
+msgstr ""
+
 msgid "No vendor I want"
 msgstr ""
 
@@ -11044,6 +10825,12 @@ msgstr ""
 msgid ""
 "\n"
 "Do you want to rewrite it?"
+msgstr ""
+
+msgid ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -11301,9 +11088,6 @@ msgstr ""
 msgid "Edit Filament"
 msgstr ""
 
-msgid "Basic Information"
-msgstr ""
-
 msgid "Filament presets under this filament"
 msgstr ""
 
@@ -11333,6 +11117,15 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Daily Tips"
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr ""
 
@@ -11344,15 +11137,12 @@ msgstr ""
 msgid "Need select printer"
 msgstr ""
 
-#: resources/data/hints.ini: [hint:3D Scene Operations]
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
+"How to use keyboard shortcuts\n"
+"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
+"operations."
 msgstr ""
-"3D-jelenettel kapcsolatos műveletek\n"
-"Tudod, hogyan változtathatod meg a nézetet és hogyan választhatod ki az "
-"objektumot/tárgyat egérrel és érintőképernyővel a 3D-jelenetben?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -11368,11 +11158,8 @@ msgstr ""
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
+"problems on the Windows system?"
 msgstr ""
-"Modell javítása\n"
-"Tudtad, hogy a sérült 3D-modelleket megjavíthatod, amivel elkerülhetsz sok "
-"szeletelési problémát?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -11620,6 +11407,165 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"When printing materials that are prone to warping such as ABS, appropriately "
+"increasing the heatbed temperature can reduce the probability of warping."
+msgstr ""
+
+#~ msgid "Please input a valid value (K in 0~0.5)"
+#~ msgstr "Adj meg egy érvényes értéket (K 0-0,5 között)"
+
+#~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+#~ msgstr "Adj meg egy érvényes értéket (K 0-0,5, N 0,6-2,0 között)"
+
+#~ msgid "Slice ok."
+#~ msgstr "Szeletelés kész."
+
+#~ msgid "Show \"Tip of the day\" notification after start"
+#~ msgstr "A nap tippje értesítés megjelenítése indítás után"
+
+#~ msgid "If enabled, useful hints are displayed at startup."
+#~ msgstr "Ha engedélyezve van, hasznos tippek jelennek meg indításkor."
+
+#~ msgid "Export 3MF"
+#~ msgstr "3MF exportálása"
+
+#~ msgid "Export project as 3MF."
+#~ msgstr "Projekt exportálása 3MF formátumban."
+
+#~ msgid "Export slicing data"
+#~ msgstr "Szeletelési adatok exportálása"
+
+#~ msgid "Export slicing data to a folder."
+#~ msgstr "Szeletelési adatok exportálása egy mappába"
+
+#~ msgid "Load slicing data"
+#~ msgstr "Szeletelési adatok betöltése"
+
+#~ msgid "Load cached slicing data from directory"
+#~ msgstr "Gyorsítótárazott szeletelési adatok betöltése mappából"
+
+#~ msgid "Slice"
+#~ msgstr "Szeletelés"
+
+#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+#~ msgstr ""
+#~ "Tálcák szeletelése: 0 - összes tálca, i - i tálca, egyéb - érvénytelen"
+
+#~ msgid "Show command help."
+#~ msgstr "Parancs súgó megjelenítése."
+
+#~ msgid "UpToDate"
+#~ msgstr "Naprakész"
+
+#~ msgid "Update the configs values of 3mf to latest."
+#~ msgstr "Frissítsd a 3mf konfigurációs értékeit a legújabbra."
+
+#~ msgid "mtcpp"
+#~ msgstr "mtcpp"
+
+#~ msgid "max triangle count per plate for slicing."
+#~ msgstr "max triangle count per plate for slicing"
+
+#~ msgid "mstpp"
+#~ msgstr "mstpp"
+
+#~ msgid "max slicing time per plate in seconds."
+#~ msgstr "max slicing time per plate in seconds"
+
+#~ msgid "Normative check"
+#~ msgstr "Normative check"
+
+#~ msgid "Check the normative items."
+#~ msgstr "Check the normative items."
+
+#~ msgid "Output Model Info"
+#~ msgstr "Kimeneti modell információ"
+
+#~ msgid "Output the model's information."
+#~ msgstr "Kimeneti modell információ."
+
+#~ msgid "Export Settings"
+#~ msgstr "Beállítások exportálása"
+
+#~ msgid "Export settings to a file."
+#~ msgstr "Beállítások exportálása egy fájlba."
+
+#~ msgid "Send progress to pipe"
+#~ msgstr "Folyamat elküldése"
+
+#~ msgid "Send progress to pipe."
+#~ msgstr "Folyamat elküldése."
+
+#~ msgid "Arrange Options"
+#~ msgstr "Elrendezési lehetőségek"
+
+#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
+#~ msgstr "Elrendezési lehetőségek: 0-letiltás, 1-engedélyezés, egyéb-auto"
+
+#~ msgid "Convert Unit"
+#~ msgstr "Mértékegység átváltása"
+
+#~ msgid "Convert the units of model"
+#~ msgstr "Modell mértékegységének átváltása"
+
+#~ msgid "Scale the model by a float factor"
+#~ msgstr "A modell méretezése egy lebegő tényezővel"
+
+#~ msgid "Load General Settings"
+#~ msgstr "Általános beállítások betöltése"
+
+#~ msgid "Load process/machine settings from the specified file"
+#~ msgstr "Folyamat/gépbeállítások betöltése a megadott fájlból"
+
+#~ msgid "Load Filament Settings"
+#~ msgstr "Filamentbeállítások betöltése"
+
+#~ msgid "Load filament settings from the specified file list"
+#~ msgstr "Filamentbeállítások betöltése a megadott fájllistából"
+
+#~ msgid "Skip Objects"
+#~ msgstr "Skip Objects"
+
+#~ msgid "Skip some objects in this print"
+#~ msgstr "Skip some objects in this print"
+
+#~ msgid "Output directory"
+#~ msgstr "Kimeneti mappa"
+
+#~ msgid "Output directory for the exported files."
+#~ msgstr "Az exportált fájlok kimeneti mappája."
+
+#~ msgid "Debug level"
+#~ msgstr "Hibakeresés szintje"
+
+#~ msgid ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+#~ msgstr ""
+#~ "A hibakeresési naplózási szint beállítása. 0:fatal, 1:error, 2:warning, 3:"
+#~ "info, 4:debug, 5:trace\n"
+
+#~ msgid ""
+#~ "3D Scene Operations\n"
+#~ "Did you know how to control view and object/part selection with mouse and "
+#~ "touchpanel in the 3D scene?"
+#~ msgstr ""
+#~ "3D-jelenettel kapcsolatos műveletek\n"
+#~ "Tudod, hogyan változtathatod meg a nézetet és hogyan választhatod ki az "
+#~ "objektumot/tárgyat egérrel és érintőképernyővel a 3D-jelenetben?"
+
+#~ msgid ""
+#~ "Fix Model\n"
+#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
+#~ "slicing problems?"
+#~ msgstr ""
+#~ "Modell javítása\n"
+#~ "Tudtad, hogy a sérült 3D-modelleket megjavíthatod, amivel elkerülhetsz "
+#~ "sok szeletelési problémát?"
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

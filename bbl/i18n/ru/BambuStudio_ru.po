@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 17:49+0800\n"
+"POT-Creation-Date: 2023-10-31 12:18+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2071,12 +2071,11 @@ msgstr "Вы уверены, что хотите удалить информац
 msgid "You need to select the material type and color first."
 msgstr "Сначала необходимо выбрать тип материала и цвет."
 
-msgid "Please input a valid value (K in 0~0.5)"
-msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0,5)"
-
-msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgid "Please input a valid value (K in 0~0.3)"
 msgstr ""
-"Введите допустимое значение (K в диапазоне 0~0,5, N в диапазоне 0,6~2,0)"
+
+msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+msgstr ""
 
 msgid "Other Color"
 msgstr ""
@@ -4416,9 +4415,6 @@ msgstr "ВЫПОЛНЕНО"
 msgid "Cancel upload"
 msgstr "Отменить загрузку"
 
-msgid "Slice ok."
-msgstr "Нарезка ок."
-
 msgid "Jump to"
 msgstr "Перейти к"
 
@@ -5186,12 +5182,6 @@ msgid ""
 msgstr ""
 "Приблизьтесь к положению указателя мыши в 3D-виде, а не к центру 2D окна."
 
-msgid "Show \"Tip of the day\" notification after start"
-msgstr "Показывать уведомление \"Совет дня\" после запуска"
-
-msgid "If enabled, useful hints are displayed at startup."
-msgstr "Если включено, при запуске отображаются полезные подсказки."
-
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
@@ -5433,18 +5423,6 @@ msgstr ""
 
 msgid "First layer filament sequence"
 msgstr ""
-
-msgid "Same as Global"
-msgstr ""
-
-msgid "Enable"
-msgstr "Включение"
-
-msgid "Disable"
-msgstr ""
-
-msgid "Spiral vase"
-msgstr "Спиральная ваза"
 
 msgid "Same as Global Plate Type"
 msgstr ""
@@ -7597,9 +7575,6 @@ msgstr "Типы кроватей, поддерживаемые принтеро
 msgid "First layer print sequence"
 msgstr ""
 
-msgid "test"
-msgstr ""
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Типы кроватей, поддерживаемые принтером"
 
@@ -8911,6 +8886,9 @@ msgstr ""
 "сократить время втягивания сложной модели и сэкономить время печати, но "
 "замедлит нарезку и генерацию G-кода"
 
+msgid "Enable"
+msgstr "Включение"
+
 msgid "Filename format"
 msgstr "Формат имени файла"
 
@@ -9177,6 +9155,9 @@ msgstr "Ширина линии внутреннего сплошного зап
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Скорость внутреннего твердого заполнения, а не верхней и нижней поверхности"
+
+msgid "Spiral vase"
+msgstr "Спиральная ваза"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -9861,69 +9842,6 @@ msgstr "слишком большая ширина линии "
 msgid " not in range "
 msgstr " не в зоне "
 
-msgid "Export 3MF"
-msgstr "Экспорт 3MF"
-
-msgid "Export project as 3MF."
-msgstr "Экспортируйте проект как 3MF."
-
-msgid "Export slicing data"
-msgstr "Экспорт данных нарезки"
-
-msgid "Export slicing data to a folder."
-msgstr "Экспорт данных нарезки в папку."
-
-msgid "Load slicing data"
-msgstr "Загрузить данные о нарезке"
-
-msgid "Load cached slicing data from directory"
-msgstr "Загрузить кэшированные данные нарезки из каталога"
-
-msgid "Export STL"
-msgstr ""
-
-msgid "Export the objects as multiple STL."
-msgstr ""
-
-msgid "Slice"
-msgstr "Нарезка"
-
-msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr "Нарезать пластины: 0-все пластины, i-пластина i, другие-недопустимые"
-
-msgid "Show command help."
-msgstr "Показать справку по команде."
-
-msgid "UpToDate"
-msgstr "До настоящего времени"
-
-msgid "Update the configs values of 3mf to latest."
-msgstr "Обновите значения конфигурации 3mf до последних."
-
-msgid "Load default filaments"
-msgstr ""
-
-msgid "Load first filament as default for those not loaded"
-msgstr ""
-
-msgid "Minimum save"
-msgstr ""
-
-msgid "export 3mf with minimum size."
-msgstr ""
-
-msgid "mtcpp"
-msgstr "mtcpp"
-
-msgid "max triangle count per plate for slicing."
-msgstr "максимальное количество треугольников на стол для нарезки."
-
-msgid "mstpp"
-msgstr "mstpp"
-
-msgid "max slicing time per plate in seconds."
-msgstr "максимальное время нарезки на стол в секундах."
-
 msgid "No check"
 msgstr "Без проверки"
 
@@ -9931,150 +9849,6 @@ msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 "Не выполняйте проверки действительности, например проверку конфликтов пути "
 "gcode."
-
-msgid "Normative check"
-msgstr "Нормативная проверка"
-
-msgid "Check the normative items."
-msgstr "Проверьте нормативные позиции."
-
-msgid "Output Model Info"
-msgstr "Выходная информация о модели"
-
-msgid "Output the model's information."
-msgstr "Выведите информацию о модели."
-
-msgid "Export Settings"
-msgstr "Экспорт настроек"
-
-msgid "Export settings to a file."
-msgstr "Экспорт настроек в файл."
-
-msgid "Send progress to pipe"
-msgstr "Отправить прогресс в канал"
-
-msgid "Send progress to pipe."
-msgstr "Отправить прогресс в канал."
-
-msgid "Arrange Options"
-msgstr "Упорядочить параметры"
-
-msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr "Параметры упорядочивания: 0-disable, 1-enable, другие-auto"
-
-msgid "Repetions count"
-msgstr ""
-
-msgid "Repetions count of the whole model"
-msgstr ""
-
-msgid "Ensure on bed"
-msgstr ""
-
-msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default"
-msgstr ""
-
-msgid ""
-"Arrange the supplied models in a plate and merge them in a single model in "
-"order to perform actions once."
-msgstr ""
-
-msgid "Convert Unit"
-msgstr "Преобразовать единицу измерения"
-
-msgid "Convert the units of model"
-msgstr "Преобразование единиц модели"
-
-msgid "Orient Options"
-msgstr ""
-
-msgid "Orient options: 0-disable, 1-enable, others-auto"
-msgstr ""
-
-msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
-
-msgid "Rotate around X"
-msgstr ""
-
-msgid "Rotation angle around the X axis in degrees."
-msgstr ""
-
-msgid "Rotate around Y"
-msgstr ""
-
-msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
-
-msgid "Scale the model by a float factor"
-msgstr "Масштабируйте модель с помощью плавающего коэффициента"
-
-msgid "Load General Settings"
-msgstr "Загрузить общие настройки"
-
-msgid "Load process/machine settings from the specified file"
-msgstr "Загрузить настройки процесса/машины из указанного файла"
-
-msgid "Load Filament Settings"
-msgstr "Загрузить настройки филамента"
-
-msgid "Load filament settings from the specified file list"
-msgstr "Загрузить настройки филамента из указанного списка файлов"
-
-msgid "Skip Objects"
-msgstr "Пропустить объекты"
-
-msgid "Skip some objects in this print"
-msgstr "Пропустить некоторые объекты в этом принте"
-
-msgid "Clone Objects"
-msgstr ""
-
-msgid "Clone objects in the load list"
-msgstr ""
-
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
-msgstr ""
-
-msgid "Output directory"
-msgstr "Выходной каталог"
-
-msgid "Output directory for the exported files."
-msgstr "Выходной каталог для экспортируемых файлов."
-
-msgid "Debug level"
-msgstr "Уровень отладки"
-
-msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
-msgstr ""
-"Устанавливает уровень регистрации отладки. 0: неустранимый, 1: ошибка, 2: "
-"предупреждение, 3: информация, 4: отладка, 5: трассировка\n"
-
-msgid "Load custom gcode"
-msgstr ""
-
-msgid "Load custom gcode from json"
-msgstr ""
-
-msgid "Load filament ids"
-msgstr ""
-
-msgid "Load filament ids for each object"
-msgstr ""
-
-msgid "Allow multiple color on one plate"
-msgstr ""
-
-msgid "If enabled, the arrange will allow multiple color on one plate "
-msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Ошибка в zip архиве"
@@ -10948,6 +10722,12 @@ msgstr ""
 msgid "Copy current filament preset "
 msgstr ""
 
+msgid "Basic Information"
+msgstr ""
+
+msgid "Add Filament Preset under this filament"
+msgstr ""
+
 msgid "No vendor I want"
 msgstr ""
 
@@ -11000,6 +10780,12 @@ msgstr ""
 msgid ""
 "\n"
 "Do you want to rewrite it?"
+msgstr ""
+
+msgid ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -11257,9 +11043,6 @@ msgstr ""
 msgid "Edit Filament"
 msgstr ""
 
-msgid "Basic Information"
-msgstr ""
-
 msgid "Filament presets under this filament"
 msgstr ""
 
@@ -11289,6 +11072,15 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Daily Tips"
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr ""
 
@@ -11300,15 +11092,12 @@ msgstr ""
 msgid "Need select printer"
 msgstr ""
 
-#: resources/data/hints.ini: [hint:3D Scene Operations]
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
+"How to use keyboard shortcuts\n"
+"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
+"operations."
 msgstr ""
-"Операции с 3D сценами\n"
-"Знаете ли вы, как управлять видом и выбором объекта/детали с помощью мыши и "
-"сенсорной панели в 3D сцене?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -11324,11 +11113,8 @@ msgstr ""
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
+"problems on the Windows system?"
 msgstr ""
-"Исправить модель\n"
-"Знаете ли вы, что вы можете исправить поврежденную 3D-модель, чтобы избежать "
-"большого количества проблем с нарезкой?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -11567,6 +11353,166 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"When printing materials that are prone to warping such as ABS, appropriately "
+"increasing the heatbed temperature can reduce the probability of warping."
+msgstr ""
+
+#~ msgid "Please input a valid value (K in 0~0.5)"
+#~ msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0,5)"
+
+#~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+#~ msgstr ""
+#~ "Введите допустимое значение (K в диапазоне 0~0,5, N в диапазоне 0,6~2,0)"
+
+#~ msgid "Slice ok."
+#~ msgstr "Нарезка ок."
+
+#~ msgid "Show \"Tip of the day\" notification after start"
+#~ msgstr "Показывать уведомление \"Совет дня\" после запуска"
+
+#~ msgid "If enabled, useful hints are displayed at startup."
+#~ msgstr "Если включено, при запуске отображаются полезные подсказки."
+
+#~ msgid "Export 3MF"
+#~ msgstr "Экспорт 3MF"
+
+#~ msgid "Export project as 3MF."
+#~ msgstr "Экспортируйте проект как 3MF."
+
+#~ msgid "Export slicing data"
+#~ msgstr "Экспорт данных нарезки"
+
+#~ msgid "Export slicing data to a folder."
+#~ msgstr "Экспорт данных нарезки в папку."
+
+#~ msgid "Load slicing data"
+#~ msgstr "Загрузить данные о нарезке"
+
+#~ msgid "Load cached slicing data from directory"
+#~ msgstr "Загрузить кэшированные данные нарезки из каталога"
+
+#~ msgid "Slice"
+#~ msgstr "Нарезка"
+
+#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+#~ msgstr ""
+#~ "Нарезать пластины: 0-все пластины, i-пластина i, другие-недопустимые"
+
+#~ msgid "Show command help."
+#~ msgstr "Показать справку по команде."
+
+#~ msgid "UpToDate"
+#~ msgstr "До настоящего времени"
+
+#~ msgid "Update the configs values of 3mf to latest."
+#~ msgstr "Обновите значения конфигурации 3mf до последних."
+
+#~ msgid "mtcpp"
+#~ msgstr "mtcpp"
+
+#~ msgid "max triangle count per plate for slicing."
+#~ msgstr "максимальное количество треугольников на стол для нарезки."
+
+#~ msgid "mstpp"
+#~ msgstr "mstpp"
+
+#~ msgid "max slicing time per plate in seconds."
+#~ msgstr "максимальное время нарезки на стол в секундах."
+
+#~ msgid "Normative check"
+#~ msgstr "Нормативная проверка"
+
+#~ msgid "Check the normative items."
+#~ msgstr "Проверьте нормативные позиции."
+
+#~ msgid "Output Model Info"
+#~ msgstr "Выходная информация о модели"
+
+#~ msgid "Output the model's information."
+#~ msgstr "Выведите информацию о модели."
+
+#~ msgid "Export Settings"
+#~ msgstr "Экспорт настроек"
+
+#~ msgid "Export settings to a file."
+#~ msgstr "Экспорт настроек в файл."
+
+#~ msgid "Send progress to pipe"
+#~ msgstr "Отправить прогресс в канал"
+
+#~ msgid "Send progress to pipe."
+#~ msgstr "Отправить прогресс в канал."
+
+#~ msgid "Arrange Options"
+#~ msgstr "Упорядочить параметры"
+
+#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
+#~ msgstr "Параметры упорядочивания: 0-disable, 1-enable, другие-auto"
+
+#~ msgid "Convert Unit"
+#~ msgstr "Преобразовать единицу измерения"
+
+#~ msgid "Convert the units of model"
+#~ msgstr "Преобразование единиц модели"
+
+#~ msgid "Scale the model by a float factor"
+#~ msgstr "Масштабируйте модель с помощью плавающего коэффициента"
+
+#~ msgid "Load General Settings"
+#~ msgstr "Загрузить общие настройки"
+
+#~ msgid "Load process/machine settings from the specified file"
+#~ msgstr "Загрузить настройки процесса/машины из указанного файла"
+
+#~ msgid "Load Filament Settings"
+#~ msgstr "Загрузить настройки филамента"
+
+#~ msgid "Load filament settings from the specified file list"
+#~ msgstr "Загрузить настройки филамента из указанного списка файлов"
+
+#~ msgid "Skip Objects"
+#~ msgstr "Пропустить объекты"
+
+#~ msgid "Skip some objects in this print"
+#~ msgstr "Пропустить некоторые объекты в этом принте"
+
+#~ msgid "Output directory"
+#~ msgstr "Выходной каталог"
+
+#~ msgid "Output directory for the exported files."
+#~ msgstr "Выходной каталог для экспортируемых файлов."
+
+#~ msgid "Debug level"
+#~ msgstr "Уровень отладки"
+
+#~ msgid ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+#~ msgstr ""
+#~ "Устанавливает уровень регистрации отладки. 0: неустранимый, 1: ошибка, 2: "
+#~ "предупреждение, 3: информация, 4: отладка, 5: трассировка\n"
+
+#~ msgid ""
+#~ "3D Scene Operations\n"
+#~ "Did you know how to control view and object/part selection with mouse and "
+#~ "touchpanel in the 3D scene?"
+#~ msgstr ""
+#~ "Операции с 3D сценами\n"
+#~ "Знаете ли вы, как управлять видом и выбором объекта/детали с помощью мыши "
+#~ "и сенсорной панели в 3D сцене?"
+
+#~ msgid ""
+#~ "Fix Model\n"
+#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
+#~ "slicing problems?"
+#~ msgstr ""
+#~ "Исправить модель\n"
+#~ "Знаете ли вы, что вы можете исправить поврежденную 3D-модель, чтобы "
+#~ "избежать большого количества проблем с нарезкой?"
 
 #, c-format, boost-format
 #~ msgid "%s is not supported by AMS."

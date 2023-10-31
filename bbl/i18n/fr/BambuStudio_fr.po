@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 17:49+0800\n"
+"POT-Creation-Date: 2023-10-31 12:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2099,12 +2099,11 @@ msgstr "Êtes-vous sûr de vouloir effacer les informations du filament ?"
 msgid "You need to select the material type and color first."
 msgstr "Vous devez d'abord sélectionner le type de matériau et sa couleur."
 
-msgid "Please input a valid value (K in 0~0.5)"
-msgstr "Veuillez saisir une valeur valide (K entre 0 et 0,5)"
-
-msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgid "Please input a valid value (K in 0~0.3)"
 msgstr ""
-"Veuillez saisir une valeur valide (K entre 0 et 0,5, N entre 0,6 et 2,0)"
+
+msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Autre couleur"
@@ -4428,9 +4427,6 @@ msgstr "Terminé"
 msgid "Cancel upload"
 msgstr "Annuler le téléversement"
 
-msgid "Slice ok."
-msgstr "Tranchage terminé"
-
 msgid "Jump to"
 msgstr "Sauter à"
 
@@ -5219,13 +5215,6 @@ msgstr ""
 "Zoomez sur la position du pointeur de la souris dans la vue 3D, plutôt que "
 "sur le centre de la fenêtre 2D."
 
-msgid "Show \"Tip of the day\" notification after start"
-msgstr "Afficher la notification \"Astuce du jour\" après le démarrage"
-
-msgid "If enabled, useful hints are displayed at startup."
-msgstr ""
-"Si cette option est activée, des conseils utiles s'affichent au démarrage."
-
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
@@ -5474,18 +5463,6 @@ msgstr ""
 
 msgid "First layer filament sequence"
 msgstr ""
-
-msgid "Same as Global"
-msgstr ""
-
-msgid "Enable"
-msgstr "Activer"
-
-msgid "Disable"
-msgstr ""
-
-msgid "Spiral vase"
-msgstr "Vase spirale"
 
 msgid "Same as Global Plate Type"
 msgstr "Identique au type de plaque général"
@@ -7719,9 +7696,6 @@ msgstr "Types de lit pris en charge par l'imprimante"
 msgid "First layer print sequence"
 msgstr ""
 
-msgid "test"
-msgstr ""
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Ce G-code est inséré à chaque changement de couche avant de soulever z"
 
@@ -9077,6 +9051,9 @@ msgstr ""
 "peut réduire les rétractations pour les modèles complexes et économiser du "
 "temps d’impression, mais ralentit le tranchage et la génération du G-code."
 
+msgid "Enable"
+msgstr "Activer"
+
 msgid "Filename format"
 msgstr "Format du nom de fichier"
 
@@ -9349,6 +9326,9 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Vitesse du remplissage solide interne, pas de la surface supérieure et "
 "inférieure"
+
+msgid "Spiral vase"
+msgstr "Vase spirale"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -10053,70 +10033,6 @@ msgstr "largeur de ligne trop importante "
 msgid " not in range "
 msgstr " hors plage "
 
-msgid "Export 3MF"
-msgstr "Exporter 3MF"
-
-msgid "Export project as 3MF."
-msgstr "Exporter le projet au format 3MF."
-
-msgid "Export slicing data"
-msgstr "Exporter les données de tranchage"
-
-msgid "Export slicing data to a folder."
-msgstr "Exporter les données de tranchage vers un dossier"
-
-msgid "Load slicing data"
-msgstr "Charger les données de tranchage"
-
-msgid "Load cached slicing data from directory"
-msgstr "Charger les données de tranchage mises en cache à partir du répertoire"
-
-msgid "Export STL"
-msgstr ""
-
-msgid "Export the objects as multiple STL."
-msgstr ""
-
-msgid "Slice"
-msgstr "Découper"
-
-msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr "Trancher toutes les plaques : 0-toutes, i-plaque i, autres-invalides"
-
-msgid "Show command help."
-msgstr "Afficher l'aide de la commande."
-
-msgid "UpToDate"
-msgstr "À jour"
-
-msgid "Update the configs values of 3mf to latest."
-msgstr ""
-"Mettez à jour les valeurs de configuration 3mf à la version la plus récente."
-
-msgid "Load default filaments"
-msgstr ""
-
-msgid "Load first filament as default for those not loaded"
-msgstr ""
-
-msgid "Minimum save"
-msgstr ""
-
-msgid "export 3mf with minimum size."
-msgstr ""
-
-msgid "mtcpp"
-msgstr "mtcpp"
-
-msgid "max triangle count per plate for slicing."
-msgstr "nombre maximal de triangles par plaque pour le tranchage"
-
-msgid "mstpp"
-msgstr "mstpp"
-
-msgid "max slicing time per plate in seconds."
-msgstr "temps de tranchage maximal par plaque en secondes"
-
 msgid "No check"
 msgstr "Pas de vérification"
 
@@ -10124,152 +10040,6 @@ msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 "Ne pas effectuer de contrôle de validité, tel que le contrôle des conflits "
 "de parcours de G-code."
-
-msgid "Normative check"
-msgstr "Contrôle normatif"
-
-msgid "Check the normative items."
-msgstr "Vérifiez les éléments normatifs."
-
-msgid "Output Model Info"
-msgstr "Information du Modèle de Sortie"
-
-msgid "Output the model's information."
-msgstr "Sortie des informations du modèle."
-
-msgid "Export Settings"
-msgstr "Paramètres d'exportation"
-
-msgid "Export settings to a file."
-msgstr "Exporter les paramètres vers un fichier."
-
-msgid "Send progress to pipe"
-msgstr "Envoyer la progression à la queue"
-
-msgid "Send progress to pipe."
-msgstr "Envoyer la progression à la queue."
-
-msgid "Arrange Options"
-msgstr "Options d'organisation"
-
-msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr "Options d'organisation : 0-désactiver, 1-activer, autres-auto"
-
-msgid "Repetions count"
-msgstr ""
-
-msgid "Repetions count of the whole model"
-msgstr ""
-
-msgid "Ensure on bed"
-msgstr ""
-
-msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default"
-msgstr ""
-
-msgid ""
-"Arrange the supplied models in a plate and merge them in a single model in "
-"order to perform actions once."
-msgstr ""
-
-msgid "Convert Unit"
-msgstr "Convertir l'unité"
-
-msgid "Convert the units of model"
-msgstr "Convertir les unités du modèle"
-
-msgid "Orient Options"
-msgstr ""
-
-msgid "Orient options: 0-disable, 1-enable, others-auto"
-msgstr ""
-
-msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
-
-msgid "Rotate around X"
-msgstr ""
-
-msgid "Rotation angle around the X axis in degrees."
-msgstr ""
-
-msgid "Rotate around Y"
-msgstr ""
-
-msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
-
-msgid "Scale the model by a float factor"
-msgstr "Mettre à l'échelle le modèle par un facteur flottant"
-
-msgid "Load General Settings"
-msgstr "Charger les paramètres généraux"
-
-msgid "Load process/machine settings from the specified file"
-msgstr ""
-"Charger les paramètres de processus/machine à partir du fichier spécifié"
-
-msgid "Load Filament Settings"
-msgstr "Charger les paramètres de filament"
-
-msgid "Load filament settings from the specified file list"
-msgstr ""
-"Charger les paramètres de filament à partir de la liste de fichiers spécifiée"
-
-msgid "Skip Objects"
-msgstr "Ignorer les Objets"
-
-msgid "Skip some objects in this print"
-msgstr "Ignorer certains objets de cette impression"
-
-msgid "Clone Objects"
-msgstr ""
-
-msgid "Clone objects in the load list"
-msgstr ""
-
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
-msgstr ""
-
-msgid "Output directory"
-msgstr "Répertoire de sortie"
-
-msgid "Output directory for the exported files."
-msgstr "Répertoire de sortie des fichiers exportés."
-
-msgid "Debug level"
-msgstr "Niveau de débogage"
-
-msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
-msgstr ""
-"Définit le niveau de journalisation du débogage. 0 :fatal, 1 :erreur, 2 :"
-"avertissement, 3 :info, 4 :débogage, 5 :trace\n"
-
-msgid "Load custom gcode"
-msgstr ""
-
-msgid "Load custom gcode from json"
-msgstr ""
-
-msgid "Load filament ids"
-msgstr ""
-
-msgid "Load filament ids for each object"
-msgstr ""
-
-msgid "Allow multiple color on one plate"
-msgstr ""
-
-msgid "If enabled, the arrange will allow multiple color on one plate "
-msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Erreur dans l'archive zip"
@@ -11136,6 +10906,12 @@ msgstr ""
 msgid "Copy current filament preset "
 msgstr ""
 
+msgid "Basic Information"
+msgstr ""
+
+msgid "Add Filament Preset under this filament"
+msgstr ""
+
 msgid "No vendor I want"
 msgstr ""
 
@@ -11188,6 +10964,12 @@ msgstr ""
 msgid ""
 "\n"
 "Do you want to rewrite it?"
+msgstr ""
+
+msgid ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -11445,9 +11227,6 @@ msgstr ""
 msgid "Edit Filament"
 msgstr ""
 
-msgid "Basic Information"
-msgstr ""
-
 msgid "Filament presets under this filament"
 msgstr ""
 
@@ -11477,6 +11256,15 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Daily Tips"
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr ""
 
@@ -11488,15 +11276,12 @@ msgstr ""
 msgid "Need select printer"
 msgstr ""
 
-#: resources/data/hints.ini: [hint:3D Scene Operations]
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
+"How to use keyboard shortcuts\n"
+"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
+"operations."
 msgstr ""
-"Opérations dans une scène 3D\n"
-"Savez-vous comment contrôler la vue et la sélection des objets/pièces avec "
-"la souris et l'écran tactile dans la scène 3D ?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -11512,11 +11297,8 @@ msgstr ""
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
+"problems on the Windows system?"
 msgstr ""
-"Réparer le Modèle\n"
-"Saviez-vous que vous pouvez réparer un modèle 3D corrompu pour éviter de "
-"nombreux problèmes de découpage ?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -11772,6 +11554,173 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"When printing materials that are prone to warping such as ABS, appropriately "
+"increasing the heatbed temperature can reduce the probability of warping."
+msgstr ""
+
+#~ msgid "Please input a valid value (K in 0~0.5)"
+#~ msgstr "Veuillez saisir une valeur valide (K entre 0 et 0,5)"
+
+#~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+#~ msgstr ""
+#~ "Veuillez saisir une valeur valide (K entre 0 et 0,5, N entre 0,6 et 2,0)"
+
+#~ msgid "Slice ok."
+#~ msgstr "Tranchage terminé"
+
+#~ msgid "Show \"Tip of the day\" notification after start"
+#~ msgstr "Afficher la notification \"Astuce du jour\" après le démarrage"
+
+#~ msgid "If enabled, useful hints are displayed at startup."
+#~ msgstr ""
+#~ "Si cette option est activée, des conseils utiles s'affichent au démarrage."
+
+#~ msgid "Export 3MF"
+#~ msgstr "Exporter 3MF"
+
+#~ msgid "Export project as 3MF."
+#~ msgstr "Exporter le projet au format 3MF."
+
+#~ msgid "Export slicing data"
+#~ msgstr "Exporter les données de tranchage"
+
+#~ msgid "Export slicing data to a folder."
+#~ msgstr "Exporter les données de tranchage vers un dossier"
+
+#~ msgid "Load slicing data"
+#~ msgstr "Charger les données de tranchage"
+
+#~ msgid "Load cached slicing data from directory"
+#~ msgstr ""
+#~ "Charger les données de tranchage mises en cache à partir du répertoire"
+
+#~ msgid "Slice"
+#~ msgstr "Découper"
+
+#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+#~ msgstr ""
+#~ "Trancher toutes les plaques : 0-toutes, i-plaque i, autres-invalides"
+
+#~ msgid "Show command help."
+#~ msgstr "Afficher l'aide de la commande."
+
+#~ msgid "UpToDate"
+#~ msgstr "À jour"
+
+#~ msgid "Update the configs values of 3mf to latest."
+#~ msgstr ""
+#~ "Mettez à jour les valeurs de configuration 3mf à la version la plus "
+#~ "récente."
+
+#~ msgid "mtcpp"
+#~ msgstr "mtcpp"
+
+#~ msgid "max triangle count per plate for slicing."
+#~ msgstr "nombre maximal de triangles par plaque pour le tranchage"
+
+#~ msgid "mstpp"
+#~ msgstr "mstpp"
+
+#~ msgid "max slicing time per plate in seconds."
+#~ msgstr "temps de tranchage maximal par plaque en secondes"
+
+#~ msgid "Normative check"
+#~ msgstr "Contrôle normatif"
+
+#~ msgid "Check the normative items."
+#~ msgstr "Vérifiez les éléments normatifs."
+
+#~ msgid "Output Model Info"
+#~ msgstr "Information du Modèle de Sortie"
+
+#~ msgid "Output the model's information."
+#~ msgstr "Sortie des informations du modèle."
+
+#~ msgid "Export Settings"
+#~ msgstr "Paramètres d'exportation"
+
+#~ msgid "Export settings to a file."
+#~ msgstr "Exporter les paramètres vers un fichier."
+
+#~ msgid "Send progress to pipe"
+#~ msgstr "Envoyer la progression à la queue"
+
+#~ msgid "Send progress to pipe."
+#~ msgstr "Envoyer la progression à la queue."
+
+#~ msgid "Arrange Options"
+#~ msgstr "Options d'organisation"
+
+#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
+#~ msgstr "Options d'organisation : 0-désactiver, 1-activer, autres-auto"
+
+#~ msgid "Convert Unit"
+#~ msgstr "Convertir l'unité"
+
+#~ msgid "Convert the units of model"
+#~ msgstr "Convertir les unités du modèle"
+
+#~ msgid "Scale the model by a float factor"
+#~ msgstr "Mettre à l'échelle le modèle par un facteur flottant"
+
+#~ msgid "Load General Settings"
+#~ msgstr "Charger les paramètres généraux"
+
+#~ msgid "Load process/machine settings from the specified file"
+#~ msgstr ""
+#~ "Charger les paramètres de processus/machine à partir du fichier spécifié"
+
+#~ msgid "Load Filament Settings"
+#~ msgstr "Charger les paramètres de filament"
+
+#~ msgid "Load filament settings from the specified file list"
+#~ msgstr ""
+#~ "Charger les paramètres de filament à partir de la liste de fichiers "
+#~ "spécifiée"
+
+#~ msgid "Skip Objects"
+#~ msgstr "Ignorer les Objets"
+
+#~ msgid "Skip some objects in this print"
+#~ msgstr "Ignorer certains objets de cette impression"
+
+#~ msgid "Output directory"
+#~ msgstr "Répertoire de sortie"
+
+#~ msgid "Output directory for the exported files."
+#~ msgstr "Répertoire de sortie des fichiers exportés."
+
+#~ msgid "Debug level"
+#~ msgstr "Niveau de débogage"
+
+#~ msgid ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+#~ msgstr ""
+#~ "Définit le niveau de journalisation du débogage. 0 :fatal, 1 :erreur, 2 :"
+#~ "avertissement, 3 :info, 4 :débogage, 5 :trace\n"
+
+#~ msgid ""
+#~ "3D Scene Operations\n"
+#~ "Did you know how to control view and object/part selection with mouse and "
+#~ "touchpanel in the 3D scene?"
+#~ msgstr ""
+#~ "Opérations dans une scène 3D\n"
+#~ "Savez-vous comment contrôler la vue et la sélection des objets/pièces "
+#~ "avec la souris et l'écran tactile dans la scène 3D ?"
+
+#~ msgid ""
+#~ "Fix Model\n"
+#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
+#~ "slicing problems?"
+#~ msgstr ""
+#~ "Réparer le Modèle\n"
+#~ "Saviez-vous que vous pouvez réparer un modèle 3D corrompu pour éviter de "
+#~ "nombreux problèmes de découpage ?"
 
 #~ msgid "\\u2103"
 #~ msgstr "\\u2103"

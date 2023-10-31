@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 17:49+0800\n"
+"POT-Creation-Date: 2023-10-31 12:18+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2010,11 +2010,11 @@ msgstr "您确定要清除耗材丝信息吗？"
 msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
-msgid "Please input a valid value (K in 0~0.5)"
-msgstr "请输入有效的数值 (K的范围为0~0.5）"
+msgid "Please input a valid value (K in 0~0.3)"
+msgstr "请输入有效的数值 (K的范围为0~0.3)"
 
-msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr "请输入有效的数值 (K的范围为0~0.5, N的范围为0.6~2.0）"
+msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+msgstr "请输入有效的数值 (K的范围为0~0.3，N的范围为0.6~2.0)"
 
 msgid "Other Color"
 msgstr "其他颜色"
@@ -4280,9 +4280,6 @@ msgstr "已完成"
 msgid "Cancel upload"
 msgstr "取消上传"
 
-msgid "Slice ok."
-msgstr "切片完成."
-
 msgid "Jump to"
 msgstr "跳转到"
 
@@ -5029,12 +5026,6 @@ msgid ""
 "2D window center."
 msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
 
-msgid "Show \"Tip of the day\" notification after start"
-msgstr "启动后显示“每日小贴士”通知"
-
-msgid "If enabled, useful hints are displayed at startup."
-msgstr "如果启用，将在启动时显示有用的提示。"
-
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr "冲刷体积：每一次更换颜色时自动计算。"
 
@@ -5272,18 +5263,6 @@ msgstr "自定义"
 
 msgid "First layer filament sequence"
 msgstr "首层耗材打印顺序"
-
-msgid "Same as Global"
-msgstr "跟随全局"
-
-msgid "Enable"
-msgstr "开启"
-
-msgid "Disable"
-msgstr "禁用"
-
-msgid "Spiral vase"
-msgstr "旋转花瓶"
 
 msgid "Same as Global Plate Type"
 msgstr "跟随全局打印板类型"
@@ -7304,9 +7283,6 @@ msgstr "打印机所支持的打印板类型"
 msgid "First layer print sequence"
 msgstr "首层打印顺序"
 
-msgid "test"
-msgstr "测试"
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
 
@@ -8532,6 +8508,9 @@ msgstr ""
 "当空驶完全在填充区域内时不触发回抽。这意味着即使漏料也是不可见的。对于复杂模"
 "型，该设置能够减少回抽次数以及打印时长，但是会造成G-code生成变慢"
 
+msgid "Enable"
+msgstr "开启"
+
 msgid "Filename format"
 msgstr "文件名格式"
 
@@ -8785,6 +8764,9 @@ msgstr "内部实心填充的线宽"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "内部实心填充的速度，不是顶面和底面。"
+
+msgid "Spiral vase"
+msgstr "旋转花瓶"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -9417,218 +9399,11 @@ msgstr "线宽过大"
 msgid " not in range "
 msgstr " 不在合理的区间"
 
-msgid "Export 3MF"
-msgstr "导出3MF"
-
-msgid "Export project as 3MF."
-msgstr "导出项目为3MF。"
-
-msgid "Export slicing data"
-msgstr "导出切片数据"
-
-msgid "Export slicing data to a folder."
-msgstr "导出切片数据到目录"
-
-msgid "Load slicing data"
-msgstr "导入切片数据"
-
-msgid "Load cached slicing data from directory"
-msgstr "从目录导入缓存的切片数据"
-
-msgid "Export STL"
-msgstr "导出STL文件"
-
-msgid "Export the objects as multiple STL."
-msgstr "将对象导出为多个STL文件"
-
-msgid "Slice"
-msgstr "切片"
-
-msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr "切片平台：0-所有平台，i-第i个平台，其他-无效"
-
-msgid "Show command help."
-msgstr "显示命令行帮助。"
-
-msgid "UpToDate"
-msgstr ""
-
-msgid "Update the configs values of 3mf to latest."
-msgstr "将3mf的配置值更新为最新值。"
-
-msgid "Load default filaments"
-msgstr "加载默认打印材料"
-
-msgid "Load first filament as default for those not loaded"
-msgstr "加载第一个打印材料为默认材料"
-
-msgid "Minimum save"
-msgstr "最小保存"
-
-msgid "export 3mf with minimum size."
-msgstr "以最小大小导出3mf文件。"
-
-msgid "mtcpp"
-msgstr ""
-
-msgid "max triangle count per plate for slicing."
-msgstr "切片时每个盘的最大三角形数。"
-
-msgid "mstpp"
-msgstr ""
-
-msgid "max slicing time per plate in seconds."
-msgstr "每个盘的最大切片时间（秒）。"
-
 msgid "No check"
 msgstr "不要检查"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "不要运行任何有效性检查，如gcode路径冲突检查。"
-
-msgid "Normative check"
-msgstr "规范性检查"
-
-msgid "Check the normative items."
-msgstr "检查规范性项目。"
-
-msgid "Output Model Info"
-msgstr "输出模型信息"
-
-msgid "Output the model's information."
-msgstr "输出模型的信息。"
-
-msgid "Export Settings"
-msgstr "导出配置"
-
-msgid "Export settings to a file."
-msgstr "导出配置到文件。"
-
-msgid "Send progress to pipe"
-msgstr "将进度发送到管道"
-
-msgid "Send progress to pipe."
-msgstr "将进度发送到管道。"
-
-msgid "Arrange Options"
-msgstr "摆放选项"
-
-msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr "摆放选项：0-关闭，1-开启，其他-自动"
-
-msgid "Repetions count"
-msgstr "重复次数"
-
-msgid "Repetions count of the whole model"
-msgstr "整个模型的重复次数"
-
-msgid "Ensure on bed"
-msgstr "确保在热床上"
-
-msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default"
-msgstr "当对象部分位于床下时，将对象抬离床。默认情况下禁用。"
-
-msgid ""
-"Arrange the supplied models in a plate and merge them in a single model in "
-"order to perform actions once."
-msgstr ""
-
-msgid "Convert Unit"
-msgstr "转换单位"
-
-msgid "Convert the units of model"
-msgstr "转换模型的单位"
-
-msgid "Orient Options"
-msgstr "方向选项"
-
-msgid "Orient options: 0-disable, 1-enable, others-auto"
-msgstr "方向选项：0-禁用，1-启用，其他-自动"
-
-msgid "Rotation angle around the Z axis in degrees."
-msgstr "绕Z轴的旋转角度，以度为单位。"
-
-msgid "Rotate around X"
-msgstr "绕X轴旋转"
-
-msgid "Rotation angle around the X axis in degrees."
-msgstr "绕X轴的旋转角度，以度为单位。"
-
-msgid "Rotate around Y"
-msgstr "绕Y轴旋转"
-
-msgid "Rotation angle around the Y axis in degrees."
-msgstr "绕Y轴的旋转角度，以度为单位。"
-
-msgid "Scale the model by a float factor"
-msgstr "根据因子缩放模型"
-
-msgid "Load General Settings"
-msgstr "加载通用设置"
-
-msgid "Load process/machine settings from the specified file"
-msgstr "从指定文件加载工艺/打印机设置"
-
-msgid "Load Filament Settings"
-msgstr "加载耗材丝设置"
-
-msgid "Load filament settings from the specified file list"
-msgstr "从指定文件加载耗材丝设置"
-
-msgid "Skip Objects"
-msgstr "零件跳过"
-
-msgid "Skip some objects in this print"
-msgstr "打印过程中跳过一些零件"
-
-msgid "Clone Objects"
-msgstr ""
-
-msgid "Clone objects in the load list"
-msgstr ""
-
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr "在使用最新设置时加载最新的进程/机器设置"
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
-msgstr "在使用最新设置时，从指定的文件中加载最新的进程/机器设置。"
-
-msgid "Output directory"
-msgstr "输出路径"
-
-msgid "Output directory for the exported files."
-msgstr "导出文件的输出路径。"
-
-msgid "Debug level"
-msgstr "调试等级"
-
-msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
-msgstr ""
-"设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
-"trace\n"
-
-msgid "Load custom gcode"
-msgstr "加载自定义 gcode"
-
-msgid "Load custom gcode from json"
-msgstr "从 json 中加载自定义 gcode"
-
-msgid "Load filament ids"
-msgstr ""
-
-msgid "Load filament ids for each object"
-msgstr ""
-
-msgid "Allow multiple color on one plate"
-msgstr ""
-
-msgid "If enabled, the arrange will allow multiple color on one plate "
-msgstr ""
 
 msgid "Error in zip archive"
 msgstr "zip文件中存在错误"
@@ -10550,6 +10325,12 @@ msgstr "基于当前材料创建"
 msgid "Copy current filament preset "
 msgstr "复制当前材料预设"
 
+msgid "Basic Information"
+msgstr "基本信息"
+
+msgid "Add Filament Preset under this filament"
+msgstr ""
+
 msgid "No vendor I want"
 msgstr "没有我想要的供应商"
 
@@ -10605,6 +10386,12 @@ msgid ""
 msgstr ""
 "\n"
 "你想重写预设吗"
+
+msgid ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
+msgstr ""
 
 msgid "Create Printer/Nozzle"
 msgstr "创建打印机/喷嘴"
@@ -10876,9 +10663,6 @@ msgstr "请选择一个你想导出的类型"
 msgid "Edit Filament"
 msgstr "编辑材料"
 
-msgid "Basic Information"
-msgstr "基本信息"
-
 msgid "Filament presets under this filament"
 msgstr "此材料下的所有材料预设"
 
@@ -10910,6 +10694,15 @@ msgstr "从材料中复制预设"
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr "您选择的材料未找到材料预设，请重新选择。"
 
+msgid "For more information, please check out Wiki"
+msgstr "了解更多信息，请参阅Wiki"
+
+msgid "Daily Tips"
+msgstr "每日贴士"
+
+msgid "Collapse"
+msgstr "收起"
+
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
 
@@ -10921,14 +10714,14 @@ msgstr "无法标定：可能是标定值范围过大，或者是补偿过小"
 msgid "Need select printer"
 msgstr "需要选择打印机"
 
-#: resources/data/hints.ini: [hint:3D Scene Operations]
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
+"How to use keyboard shortcuts\n"
+"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
+"operations."
 msgstr ""
-"3D场景操作\n"
-"如何在3D场景中使用鼠标和触摸面板进行视角控制和对象/部件选择"
+"快捷键操作\n"
+"BambuStudio提供了丰富的快捷键操作和3D场景操作"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -10943,10 +10736,10 @@ msgstr ""
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
+"problems on the Windows system?"
 msgstr ""
 "修复模型\n"
-"您知道吗？您可以修复一个损坏的3D模型以避免诸多切片问题。"
+"您知道吗？在Windows系统上，您可以修复一个损坏的3D模型以避免诸多切片问题。"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -10980,8 +10773,8 @@ msgid ""
 "sits on the print bed? Select the \"Place on face\" function or press the "
 "<b>F</b> key."
 msgstr ""
-"放置在面部\n"
-"您知道吗，您可以快速指定模型的底面，使其位于打印床上。选择“放置在面部”功能或"
+"选择底面\n"
+"您知道吗，您可以快速指定模型的底面，使其位于打印床上。选择“选择底面”功能或"
 "按<b>F</b>键。"
 
 #: resources/data/hints.ini: [hint:Object List]
@@ -11054,7 +10847,7 @@ msgid ""
 "the overall look of your model. Check it out!"
 msgstr ""
 "Z接缝位置\n"
-"您知道吗，您可以自定义Z接缝的位置，甚至可以将其绘制在打印上，使其位于不太可见"
+"您知道吗，您可以自定义Z接缝的位置，甚至可以手动绘制在模型的指定位置上，使其位于不太可见"
 "的位置。这样可以改善模型的整体外观。试试看！"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
@@ -11177,6 +10970,225 @@ msgstr ""
 "什么时候需要打开机箱门打印\n"
 "在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更"
 "多信息，请参阅Wiki。"
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"When printing materials that are prone to warping such as ABS, appropriately "
+"increasing the heatbed temperature can reduce the probability of warping."
+msgstr ""
+"避免翘曲\n"
+"打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率"
+
+#~ msgid "Slice ok."
+#~ msgstr "切片完成."
+
+#~ msgid "Show \"Tip of the day\" notification after start"
+#~ msgstr "启动后显示“每日小贴士”通知"
+
+#~ msgid "If enabled, useful hints are displayed at startup."
+#~ msgstr "如果启用，将在启动时显示有用的提示。"
+
+#~ msgid "Same as Global"
+#~ msgstr "跟随全局"
+
+#~ msgid "Disable"
+#~ msgstr "禁用"
+
+#~ msgid "test"
+#~ msgstr "测试"
+
+#~ msgid "Export 3MF"
+#~ msgstr "导出3MF"
+
+#~ msgid "Export project as 3MF."
+#~ msgstr "导出项目为3MF。"
+
+#~ msgid "Export slicing data"
+#~ msgstr "导出切片数据"
+
+#~ msgid "Export slicing data to a folder."
+#~ msgstr "导出切片数据到目录"
+
+#~ msgid "Load slicing data"
+#~ msgstr "导入切片数据"
+
+#~ msgid "Load cached slicing data from directory"
+#~ msgstr "从目录导入缓存的切片数据"
+
+#~ msgid "Export STL"
+#~ msgstr "导出STL文件"
+
+#~ msgid "Export the objects as multiple STL."
+#~ msgstr "将对象导出为多个STL文件"
+
+#~ msgid "Slice"
+#~ msgstr "切片"
+
+#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+#~ msgstr "切片平台：0-所有平台，i-第i个平台，其他-无效"
+
+#~ msgid "Show command help."
+#~ msgstr "显示命令行帮助。"
+
+#~ msgid "Update the configs values of 3mf to latest."
+#~ msgstr "将3mf的配置值更新为最新值。"
+
+#~ msgid "Load default filaments"
+#~ msgstr "加载默认打印材料"
+
+#~ msgid "Load first filament as default for those not loaded"
+#~ msgstr "加载第一个打印材料为默认材料"
+
+#~ msgid "Minimum save"
+#~ msgstr "最小保存"
+
+#~ msgid "export 3mf with minimum size."
+#~ msgstr "以最小大小导出3mf文件。"
+
+#~ msgid "max triangle count per plate for slicing."
+#~ msgstr "切片时每个盘的最大三角形数。"
+
+#~ msgid "max slicing time per plate in seconds."
+#~ msgstr "每个盘的最大切片时间（秒）。"
+
+#~ msgid "Normative check"
+#~ msgstr "规范性检查"
+
+#~ msgid "Check the normative items."
+#~ msgstr "检查规范性项目。"
+
+#~ msgid "Output Model Info"
+#~ msgstr "输出模型信息"
+
+#~ msgid "Output the model's information."
+#~ msgstr "输出模型的信息。"
+
+#~ msgid "Export Settings"
+#~ msgstr "导出配置"
+
+#~ msgid "Export settings to a file."
+#~ msgstr "导出配置到文件。"
+
+#~ msgid "Send progress to pipe"
+#~ msgstr "将进度发送到管道"
+
+#~ msgid "Send progress to pipe."
+#~ msgstr "将进度发送到管道。"
+
+#~ msgid "Arrange Options"
+#~ msgstr "摆放选项"
+
+#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
+#~ msgstr "摆放选项：0-关闭，1-开启，其他-自动"
+
+#~ msgid "Repetions count"
+#~ msgstr "重复次数"
+
+#~ msgid "Repetions count of the whole model"
+#~ msgstr "整个模型的重复次数"
+
+#~ msgid "Ensure on bed"
+#~ msgstr "确保在热床上"
+
+#~ msgid ""
+#~ "Lift the object above the bed when it is partially below. Disabled by "
+#~ "default"
+#~ msgstr "当对象部分位于床下时，将对象抬离床。默认情况下禁用。"
+
+#~ msgid "Convert Unit"
+#~ msgstr "转换单位"
+
+#~ msgid "Convert the units of model"
+#~ msgstr "转换模型的单位"
+
+#~ msgid "Orient Options"
+#~ msgstr "方向选项"
+
+#~ msgid "Orient options: 0-disable, 1-enable, others-auto"
+#~ msgstr "方向选项：0-禁用，1-启用，其他-自动"
+
+#~ msgid "Rotation angle around the Z axis in degrees."
+#~ msgstr "绕Z轴的旋转角度，以度为单位。"
+
+#~ msgid "Rotate around X"
+#~ msgstr "绕X轴旋转"
+
+#~ msgid "Rotation angle around the X axis in degrees."
+#~ msgstr "绕X轴的旋转角度，以度为单位。"
+
+#~ msgid "Rotate around Y"
+#~ msgstr "绕Y轴旋转"
+
+#~ msgid "Rotation angle around the Y axis in degrees."
+#~ msgstr "绕Y轴的旋转角度，以度为单位。"
+
+#~ msgid "Scale the model by a float factor"
+#~ msgstr "根据因子缩放模型"
+
+#~ msgid "Load General Settings"
+#~ msgstr "加载通用设置"
+
+#~ msgid "Load process/machine settings from the specified file"
+#~ msgstr "从指定文件加载工艺/打印机设置"
+
+#~ msgid "Load Filament Settings"
+#~ msgstr "加载耗材丝设置"
+
+#~ msgid "Load filament settings from the specified file list"
+#~ msgstr "从指定文件加载耗材丝设置"
+
+#~ msgid "Skip Objects"
+#~ msgstr "零件跳过"
+
+#~ msgid "Skip some objects in this print"
+#~ msgstr "打印过程中跳过一些零件"
+
+#~ msgid "load uptodate process/machine settings when using uptodate"
+#~ msgstr "在使用最新设置时加载最新的进程/机器设置"
+
+#~ msgid ""
+#~ "load uptodate process/machine settings from the specified file when using "
+#~ "uptodate"
+#~ msgstr "在使用最新设置时，从指定的文件中加载最新的进程/机器设置。"
+
+#~ msgid "Output directory"
+#~ msgstr "输出路径"
+
+#~ msgid "Output directory for the exported files."
+#~ msgstr "导出文件的输出路径。"
+
+#~ msgid "Debug level"
+#~ msgstr "调试等级"
+
+#~ msgid ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+#~ msgstr ""
+#~ "设置调试日志等级。0:fatal， 1:error， 2:warning， 3:info， 4:debug， 5:"
+#~ "trace\n"
+
+#~ msgid "Load custom gcode"
+#~ msgstr "加载自定义 gcode"
+
+#~ msgid "Load custom gcode from json"
+#~ msgstr "从 json 中加载自定义 gcode"
+
+#~ msgid ""
+#~ "3D Scene Operations\n"
+#~ "Did you know how to control view and object/part selection with mouse and "
+#~ "touchpanel in the 3D scene?"
+#~ msgstr ""
+#~ "3D场景操作\n"
+#~ "如何在3D场景中使用鼠标和触摸面板进行视角控制和对象/部件选择"
+
+#~ msgid ""
+#~ "Fix Model\n"
+#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
+#~ "slicing problems?"
+#~ msgstr ""
+#~ "修复模型\n"
+#~ "您知道吗？您可以修复一个损坏的3D模型以避免诸多切片问题。"
 
 #~ msgid ""
 #~ "The current chamber temperature or the target chamber temperature exceeds "

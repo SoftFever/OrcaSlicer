@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 17:49+0800\n"
+"POT-Creation-Date: 2023-10-31 12:18+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -2077,11 +2077,11 @@ msgstr "Jste si jistý, že chcete vymazat informace o filamentu?"
 msgid "You need to select the material type and color first."
 msgstr "Nejprve musíte vybrat typ materiálu a barvu."
 
-msgid "Please input a valid value (K in 0~0.5)"
-msgstr "Zadejte prosím platnou hodnotu (K v 0~0,5)"
+msgid "Please input a valid value (K in 0~0.3)"
+msgstr ""
 
-msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr "Zadejte platnou hodnotu (K v 0~0,5, N v 0,6~2,0)"
+msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Jiná Barva"
@@ -4406,9 +4406,6 @@ msgstr "DOKONČENO"
 msgid "Cancel upload"
 msgstr "Zrušit nahrávání"
 
-msgid "Slice ok."
-msgstr "Slicování Dokončeno."
-
 msgid "Jump to"
 msgstr "Přejít na"
 
@@ -5179,12 +5176,6 @@ msgid ""
 "2D window center."
 msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
 
-msgid "Show \"Tip of the day\" notification after start"
-msgstr "Zobrazovat \"Tip dne\" po spuštění"
-
-msgid "If enabled, useful hints are displayed at startup."
-msgstr "Pokud je povoleno, při spuštění se zobrazí užitečné rady."
-
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""
 
@@ -5430,18 +5421,6 @@ msgstr ""
 
 msgid "First layer filament sequence"
 msgstr ""
-
-msgid "Same as Global"
-msgstr ""
-
-msgid "Enable"
-msgstr "Zapnout"
-
-msgid "Disable"
-msgstr ""
-
-msgid "Spiral vase"
-msgstr "Spirálová váza"
 
 msgid "Same as Global Plate Type"
 msgstr "Stejné jako Globální Typ podložky"
@@ -7587,9 +7566,6 @@ msgstr "Typy podložek podporované tiskárnou"
 msgid "First layer print sequence"
 msgstr ""
 
-msgid "test"
-msgstr ""
-
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "Tento G-kód se vkládá při každé změně vrstvy před zvednutím z"
 
@@ -8911,6 +8887,9 @@ msgstr ""
 "vytékání není vidět. To může zkrátit dobu retrakcí u složitého modelu a "
 "ušetřit čas tisku, ale zpomalit krájení a generování G-kódu"
 
+msgid "Enable"
+msgstr "Zapnout"
+
 msgid "Filename format"
 msgstr "Formát názvu souboru"
 
@@ -9182,6 +9161,9 @@ msgstr "Šířka extruze pro vnitřní výplň"
 
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Rychlost vnitřní plné výplně, nikoli horní a spodní plochy"
+
+msgid "Spiral vase"
+msgstr "Spirálová váza"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -9860,219 +9842,12 @@ msgstr "příliš velká šířka extruze "
 msgid " not in range "
 msgstr " není v dosahu "
 
-msgid "Export 3MF"
-msgstr "Exportovat 3MF"
-
-msgid "Export project as 3MF."
-msgstr "Exportovat projekt jako 3MF."
-
-msgid "Export slicing data"
-msgstr "Exportovat data Slicování"
-
-msgid "Export slicing data to a folder."
-msgstr "Exportovat data Slicování do složky."
-
-msgid "Load slicing data"
-msgstr "Načíst data Slicování"
-
-msgid "Load cached slicing data from directory"
-msgstr "Načíst data dělení z mezipaměti z adresáře"
-
-msgid "Export STL"
-msgstr "Exportovat STL"
-
-msgid "Export the objects as multiple STL."
-msgstr "Exportovat objekty jako více STL souborů."
-
-msgid "Slice"
-msgstr "Slicovat"
-
-msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr "Slicovat podložky: 0-všechny podložky, i- podložku i, ostatní-neplatné"
-
-msgid "Show command help."
-msgstr "Zobrazit nápovědu k příkazu."
-
-msgid "UpToDate"
-msgstr "Aktualizováno"
-
-msgid "Update the configs values of 3mf to latest."
-msgstr "Aktualizujte konfigurační hodnoty 3mf na nejnovější."
-
-msgid "Load default filaments"
-msgstr ""
-
-msgid "Load first filament as default for those not loaded"
-msgstr ""
-
-msgid "Minimum save"
-msgstr ""
-
-msgid "export 3mf with minimum size."
-msgstr ""
-
-msgid "mtcpp"
-msgstr "mtcpp"
-
-msgid "max triangle count per plate for slicing."
-msgstr "max počet trojúhelníků na podložku pro slicování."
-
-msgid "mstpp"
-msgstr "mstpp"
-
-msgid "max slicing time per plate in seconds."
-msgstr "max čas slicování na podložku v sekundách."
-
 msgid "No check"
 msgstr "Žádná kontrola"
 
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr ""
 "Neprovádět žádné kontrolní testy, například kontrolu konfliktů cesty g-kódu."
-
-msgid "Normative check"
-msgstr "Normativní kontrola"
-
-msgid "Check the normative items."
-msgstr "Kontrola normativních prvků."
-
-msgid "Output Model Info"
-msgstr "Info o výstupním modelu"
-
-msgid "Output the model's information."
-msgstr "Vytisknout informace o modelu."
-
-msgid "Export Settings"
-msgstr "Nastavení exportu"
-
-msgid "Export settings to a file."
-msgstr "Exportovat nastavení do souboru."
-
-msgid "Send progress to pipe"
-msgstr "Poslat průběh do roury"
-
-msgid "Send progress to pipe."
-msgstr "Poslat průběh do roury."
-
-msgid "Arrange Options"
-msgstr "Volby uspořádání"
-
-msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr "Volby uspořádání: 0-zakázat, 1-povolit, ostatní-automaticky"
-
-msgid "Repetions count"
-msgstr "Počet opakování"
-
-msgid "Repetions count of the whole model"
-msgstr "Počet opakování celého modelu"
-
-msgid "Ensure on bed"
-msgstr ""
-
-msgid ""
-"Lift the object above the bed when it is partially below. Disabled by default"
-msgstr ""
-
-msgid ""
-"Arrange the supplied models in a plate and merge them in a single model in "
-"order to perform actions once."
-msgstr ""
-
-msgid "Convert Unit"
-msgstr "Převést jednotku"
-
-msgid "Convert the units of model"
-msgstr "Převést jednotky modelu"
-
-msgid "Orient Options"
-msgstr ""
-
-msgid "Orient options: 0-disable, 1-enable, others-auto"
-msgstr ""
-
-msgid "Rotation angle around the Z axis in degrees."
-msgstr ""
-
-msgid "Rotate around X"
-msgstr ""
-
-msgid "Rotation angle around the X axis in degrees."
-msgstr ""
-
-msgid "Rotate around Y"
-msgstr ""
-
-msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
-
-msgid "Scale the model by a float factor"
-msgstr "Měřítko modelu pomocí plovoucího faktoru"
-
-msgid "Load General Settings"
-msgstr "Načíst obecná nastavení"
-
-msgid "Load process/machine settings from the specified file"
-msgstr "Načíst nastavení procesu/stroje ze zadaného souboru"
-
-msgid "Load Filament Settings"
-msgstr "Načíst nastavení filamentu"
-
-msgid "Load filament settings from the specified file list"
-msgstr "Načíst nastavení filamentu ze zadaného seznamu souborů"
-
-msgid "Skip Objects"
-msgstr "Přeskočit objekty"
-
-msgid "Skip some objects in this print"
-msgstr "Přeskočit některé objekty při tisku"
-
-msgid "Clone Objects"
-msgstr ""
-
-msgid "Clone objects in the load list"
-msgstr ""
-
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
-msgstr ""
-
-msgid "Output directory"
-msgstr "Výstupní adresář"
-
-msgid "Output directory for the exported files."
-msgstr "Výstupní adresář pro exportované soubory."
-
-msgid "Debug level"
-msgstr "Úroveň ladění"
-
-msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
-msgstr ""
-"Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, 4:"
-"debug, 5:sledovat\n"
-
-msgid "Load custom gcode"
-msgstr ""
-
-msgid "Load custom gcode from json"
-msgstr ""
-
-msgid "Load filament ids"
-msgstr ""
-
-msgid "Load filament ids for each object"
-msgstr ""
-
-msgid "Allow multiple color on one plate"
-msgstr ""
-
-msgid "If enabled, the arrange will allow multiple color on one plate "
-msgstr ""
 
 msgid "Error in zip archive"
 msgstr "Chyba v archivu zip"
@@ -11029,6 +10804,12 @@ msgstr ""
 msgid "Copy current filament preset "
 msgstr ""
 
+msgid "Basic Information"
+msgstr ""
+
+msgid "Add Filament Preset under this filament"
+msgstr ""
+
 msgid "No vendor I want"
 msgstr ""
 
@@ -11081,6 +10862,12 @@ msgstr ""
 msgid ""
 "\n"
 "Do you want to rewrite it?"
+msgstr ""
+
+msgid ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 
 msgid "Create Printer/Nozzle"
@@ -11338,9 +11125,6 @@ msgstr ""
 msgid "Edit Filament"
 msgstr ""
 
-msgid "Basic Information"
-msgstr ""
-
 msgid "Filament presets under this filament"
 msgstr ""
 
@@ -11370,6 +11154,15 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Daily Tips"
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr ""
 
@@ -11381,15 +11174,12 @@ msgstr ""
 msgid "Need select printer"
 msgstr ""
 
-#: resources/data/hints.ini: [hint:3D Scene Operations]
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
+"How to use keyboard shortcuts\n"
+"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
+"operations."
 msgstr ""
-"Operace v 3D scéně\n"
-"Věděli jste, že můžete ovládat zobrazení a výběr objektů nebo částí pomocí "
-"myši a dotykového panelu v 3D scéně?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -11405,11 +11195,8 @@ msgstr ""
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
+"problems on the Windows system?"
 msgstr ""
-"Opravit model\n"
-"Věděli jste, že můžete opravit poškozený 3D model a vyhnout se tak mnoha "
-"problémům při slicování?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -11658,6 +11445,177 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"When printing materials that are prone to warping such as ABS, appropriately "
+"increasing the heatbed temperature can reduce the probability of warping."
+msgstr ""
+
+#~ msgid "Please input a valid value (K in 0~0.5)"
+#~ msgstr "Zadejte prosím platnou hodnotu (K v 0~0,5)"
+
+#~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+#~ msgstr "Zadejte platnou hodnotu (K v 0~0,5, N v 0,6~2,0)"
+
+#~ msgid "Slice ok."
+#~ msgstr "Slicování Dokončeno."
+
+#~ msgid "Show \"Tip of the day\" notification after start"
+#~ msgstr "Zobrazovat \"Tip dne\" po spuštění"
+
+#~ msgid "If enabled, useful hints are displayed at startup."
+#~ msgstr "Pokud je povoleno, při spuštění se zobrazí užitečné rady."
+
+#~ msgid "Export 3MF"
+#~ msgstr "Exportovat 3MF"
+
+#~ msgid "Export project as 3MF."
+#~ msgstr "Exportovat projekt jako 3MF."
+
+#~ msgid "Export slicing data"
+#~ msgstr "Exportovat data Slicování"
+
+#~ msgid "Export slicing data to a folder."
+#~ msgstr "Exportovat data Slicování do složky."
+
+#~ msgid "Load slicing data"
+#~ msgstr "Načíst data Slicování"
+
+#~ msgid "Load cached slicing data from directory"
+#~ msgstr "Načíst data dělení z mezipaměti z adresáře"
+
+#~ msgid "Export STL"
+#~ msgstr "Exportovat STL"
+
+#~ msgid "Export the objects as multiple STL."
+#~ msgstr "Exportovat objekty jako více STL souborů."
+
+#~ msgid "Slice"
+#~ msgstr "Slicovat"
+
+#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+#~ msgstr ""
+#~ "Slicovat podložky: 0-všechny podložky, i- podložku i, ostatní-neplatné"
+
+#~ msgid "Show command help."
+#~ msgstr "Zobrazit nápovědu k příkazu."
+
+#~ msgid "UpToDate"
+#~ msgstr "Aktualizováno"
+
+#~ msgid "Update the configs values of 3mf to latest."
+#~ msgstr "Aktualizujte konfigurační hodnoty 3mf na nejnovější."
+
+#~ msgid "mtcpp"
+#~ msgstr "mtcpp"
+
+#~ msgid "max triangle count per plate for slicing."
+#~ msgstr "max počet trojúhelníků na podložku pro slicování."
+
+#~ msgid "mstpp"
+#~ msgstr "mstpp"
+
+#~ msgid "max slicing time per plate in seconds."
+#~ msgstr "max čas slicování na podložku v sekundách."
+
+#~ msgid "Normative check"
+#~ msgstr "Normativní kontrola"
+
+#~ msgid "Check the normative items."
+#~ msgstr "Kontrola normativních prvků."
+
+#~ msgid "Output Model Info"
+#~ msgstr "Info o výstupním modelu"
+
+#~ msgid "Output the model's information."
+#~ msgstr "Vytisknout informace o modelu."
+
+#~ msgid "Export Settings"
+#~ msgstr "Nastavení exportu"
+
+#~ msgid "Export settings to a file."
+#~ msgstr "Exportovat nastavení do souboru."
+
+#~ msgid "Send progress to pipe"
+#~ msgstr "Poslat průběh do roury"
+
+#~ msgid "Send progress to pipe."
+#~ msgstr "Poslat průběh do roury."
+
+#~ msgid "Arrange Options"
+#~ msgstr "Volby uspořádání"
+
+#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
+#~ msgstr "Volby uspořádání: 0-zakázat, 1-povolit, ostatní-automaticky"
+
+#~ msgid "Repetions count"
+#~ msgstr "Počet opakování"
+
+#~ msgid "Repetions count of the whole model"
+#~ msgstr "Počet opakování celého modelu"
+
+#~ msgid "Convert Unit"
+#~ msgstr "Převést jednotku"
+
+#~ msgid "Convert the units of model"
+#~ msgstr "Převést jednotky modelu"
+
+#~ msgid "Scale the model by a float factor"
+#~ msgstr "Měřítko modelu pomocí plovoucího faktoru"
+
+#~ msgid "Load General Settings"
+#~ msgstr "Načíst obecná nastavení"
+
+#~ msgid "Load process/machine settings from the specified file"
+#~ msgstr "Načíst nastavení procesu/stroje ze zadaného souboru"
+
+#~ msgid "Load Filament Settings"
+#~ msgstr "Načíst nastavení filamentu"
+
+#~ msgid "Load filament settings from the specified file list"
+#~ msgstr "Načíst nastavení filamentu ze zadaného seznamu souborů"
+
+#~ msgid "Skip Objects"
+#~ msgstr "Přeskočit objekty"
+
+#~ msgid "Skip some objects in this print"
+#~ msgstr "Přeskočit některé objekty při tisku"
+
+#~ msgid "Output directory"
+#~ msgstr "Výstupní adresář"
+
+#~ msgid "Output directory for the exported files."
+#~ msgstr "Výstupní adresář pro exportované soubory."
+
+#~ msgid "Debug level"
+#~ msgstr "Úroveň ladění"
+
+#~ msgid ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+#~ msgstr ""
+#~ "Nastaví úroveň protokolování ladění. 0:fatal, 1:error, 2:warning, 3:info, "
+#~ "4:debug, 5:sledovat\n"
+
+#~ msgid ""
+#~ "3D Scene Operations\n"
+#~ "Did you know how to control view and object/part selection with mouse and "
+#~ "touchpanel in the 3D scene?"
+#~ msgstr ""
+#~ "Operace v 3D scéně\n"
+#~ "Věděli jste, že můžete ovládat zobrazení a výběr objektů nebo částí "
+#~ "pomocí myši a dotykového panelu v 3D scéně?"
+
+#~ msgid ""
+#~ "Fix Model\n"
+#~ "Did you know that you can fix a corrupted 3D model to avoid a lot of "
+#~ "slicing problems?"
+#~ msgstr ""
+#~ "Opravit model\n"
+#~ "Věděli jste, že můžete opravit poškozený 3D model a vyhnout se tak mnoha "
+#~ "problémům při slicování?"
 
 #, c-format, boost-format
 #~ msgid "%s is not supported by AMS."
