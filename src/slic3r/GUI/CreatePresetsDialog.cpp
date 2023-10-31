@@ -30,13 +30,9 @@
 namespace Slic3r { 
 namespace GUI {
 
-static const std::vector<std::string> filament_vendors =
-    {"Made for Prusa", "Prusa",       "Prusa Polymers", "123-3D",        "3DJAKE",       "AmazonBasics", "AMOLEN",        "Atoraie Filarmetl",
-     "AzureFilm",      "BIBO",        "ColorFabb",      "Creality",      "Das Filament", "Devil Design", "E3D",           "Eolas Prints",
-     "Esun",           "Extrudr",     "Fiberlogy",      "Filament PM",   "Filatech",     "Fillamentum",  "FormFutura",    "Geeetech",
-     "Generic",        "Hatchbox",    "Infinity3D",     "Inland",        "KVP",          "MakerGear",    "MatterHackers", "Overture",
-     "Polymaker",      "PrimaSelect", "Print4Taste",    "Printed Solid", "Proto-pasta",  "ProtoPasta",   "Push Plastic",  "Real Filament",
-     "SainSmart",      "Smartfil",    "Snapmaker",      "Solutech",      "Velleman",     "Verbatim",     "VOXELPLA"};
+static const std::vector<std::string> filament_vendors = {"Polymaker", "OVERTURE", "Kexcelled", "HATCHBOX",  "eSUN",       "SUNLU",    "Prusament", "Creality", "Protopasta",
+                                                          "Anycubic",  "Basf",     "ELEGOO",    "INLAND",    "FLASHFORGE", "AMOLEN",   "MIKA3D",    "3DXTECH",  "Duramic",
+                                                          "Priline",   "Eryone",   "3Dgunius",  "Novamaker", "Justmaker",  "Giantarm", "iProspect"};
 
 static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA Tough", "PETG",  "ABS",    "ASA",    "FLEX",        "HIPS",   "PA",     "PACF",
                                                         "NYLON",  "PVA",   "PC",        "PCABS", "PCTG",   "PCCF",   "PP",          "PEI",    "PET",    "PETG",
@@ -589,29 +585,13 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     for (const wxString &vendor : filament_vendors) {
         choices.push_back(vendor);
     }
-    wxString no_vendor_choice = _L("No vendor I want");
-    choices.push_back(no_vendor_choice);
 
-    wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *vendor_sizer   = new wxBoxSizer(wxHORIZONTAL);
     m_filament_vendor_combobox = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     m_filament_vendor_combobox->SetLabel(_L("Select Vendor"));
     m_filament_vendor_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_filament_vendor_combobox->Set(choices);
-    comboBoxSizer->Add(m_filament_vendor_combobox, 0, wxEXPAND | wxALL, 0);
-    m_filament_vendor_combobox->Bind(wxEVT_COMBOBOX, [this, no_vendor_choice](wxCommandEvent &e) { 
-        m_filament_vendor_combobox->SetLabelColor(*wxBLACK);
-        wxString vendor_name = m_filament_vendor_combobox->GetStringSelection();
-        if (vendor_name == no_vendor_choice) { 
-            m_filament_custom_vendor_input->Show();
-        } else {
-            m_filament_custom_vendor_input->Hide();
-        }
-        Layout();
-        Fit();
-    });
-
-    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-
+    vendor_sizer->Add(m_filament_vendor_combobox, 0, wxEXPAND | wxALL, 0);
     wxBoxSizer *textInputSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_custom_vendor_input = new TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
     m_filament_custom_vendor_input->GetTextCtrl()->SetMaxLength(50);
@@ -627,7 +607,42 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
         event.Skip();
     });
     m_filament_custom_vendor_input->Hide();
-    horizontal_sizer->Add(textInputSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    vendor_sizer->Add(textInputSizer, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+
+    wxBoxSizer *comboBoxSizer      = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *checkbox_sizer     = new wxBoxSizer(wxHORIZONTAL);
+    m_can_not_find_vendor_checkbox = new CheckBox(this);
+
+    checkbox_sizer->Add(m_can_not_find_vendor_checkbox, 0, wxALIGN_CENTER, 0);
+    checkbox_sizer->Add(0, 0, 0, wxEXPAND | wxRIGHT, FromDIP(5));
+
+    wxStaticText *m_can_not_find_vendor_text = new wxStaticText(this, wxID_ANY, _L("Can't find vendor I want"), wxDefaultPosition, wxDefaultSize, 0);
+    m_can_not_find_vendor_text->SetFont(::Label::Body_13);
+
+    wxSize size = m_can_not_find_vendor_text->GetTextExtent(_L("Can't find vendor I want"));
+    m_can_not_find_vendor_text->SetMinSize(wxSize(size.x + FromDIP(4), -1));
+    m_can_not_find_vendor_text->Wrap(-1);
+    checkbox_sizer->Add(m_can_not_find_vendor_text, 0, wxALIGN_CENTER, 0);
+
+    m_can_not_find_vendor_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        bool value = m_can_not_find_vendor_checkbox->GetValue();
+        if (value) {
+            m_can_not_find_vendor_checkbox->SetValue(true);
+            m_filament_vendor_combobox->Hide();
+            m_filament_custom_vendor_input->Show();
+        } else {
+            m_can_not_find_vendor_checkbox->SetValue(false);
+            m_filament_vendor_combobox->Show();
+            m_filament_custom_vendor_input->Hide();
+        }
+        Refresh();
+        Layout();
+        Fit();
+    });
+
+    comboBoxSizer->Add(vendor_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+    comboBoxSizer->Add(checkbox_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+    horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     return horizontal_sizer;
 
@@ -834,11 +849,17 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         //get vendor name
         wxString vendor_str = m_filament_vendor_combobox->GetLabel();
         std::string vendor_name;
-        if (_L("Select Vendor") == vendor_str) {
-            MessageDialog dlg(this, _L("Vendor is not selected, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
-            dlg.ShowModal();
-            return;
-        } else if (_L("No vendor I want") == vendor_str) {
+
+        if (!m_can_not_find_vendor_checkbox->GetValue()) {
+            if (_L("Select Vendor") == vendor_str) {
+                MessageDialog dlg(this, _L("Vendor is not selected, please reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                                  wxYES | wxYES_DEFAULT | wxCENTRE);
+                dlg.ShowModal();
+                return;
+            } else {
+                vendor_name = into_u8(vendor_str);
+            }
+        } else {
             if (m_filament_custom_vendor_input->GetTextCtrl()->GetValue().empty()) {
                 MessageDialog dlg(this, _L("Custom vendor is not input, please input custom vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                   wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -847,8 +868,6 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             } else {
                 vendor_name = into_u8(m_filament_custom_vendor_input->GetTextCtrl()->GetValue());
             }
-        } else {
-            vendor_name = into_u8(vendor_str);
         }
 
         //get fialment type name

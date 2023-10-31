@@ -80,6 +80,7 @@ private:
     Button *                                                         m_button_create                = nullptr;
     Button *                                                         m_button_cancel                = nullptr;
     ComboBox *                                                       m_filament_vendor_combobox     = nullptr;
+    CheckBox *                                                       m_can_not_find_vendor_checkbox = nullptr;
     ComboBox *                                                       m_filament_type_combobox       = nullptr;
     ComboBox *                                                       m_exist_vendor_combobox        = nullptr;
     ComboBox *                                                       m_filament_preset_combobox     = nullptr;
