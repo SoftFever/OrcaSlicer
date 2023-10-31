@@ -274,6 +274,7 @@ private:
     Slic3r::DeviceManager* m_device_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
+    std::vector<bool> m_create_preset_blocked { false, false, false, false, false, false }; // excceed limit
     bool m_networking_compatible { false };
     bool m_networking_need_update { false };
     bool m_networking_cancel_update { false };

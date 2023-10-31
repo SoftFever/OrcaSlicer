@@ -144,6 +144,7 @@ enum class NotificationType
 	BBLPluginUpdateAvailable,
 	BBLPreviewOnlyMode,
     BBLPrinterConfigUpdateAvailable,
+	BBLUserPresetExceedLimit,
 };
 
 class NotificationManager
@@ -857,11 +858,17 @@ private:
              }},
 
         NotificationData{NotificationType::BBLPrinterConfigUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
-			_u8L("New printer config available."),
-			_u8L("Details"),
+                         _u8L("New printer config available."), _u8L("Details"),
+                         [](wxEvtHandler *evnthndlr) {
+                             if (evnthndlr != nullptr) wxPostEvent(evnthndlr, PrinterConfigUpdateAvailableClickedEvent(EVT_PRINTER_CONFIG_UPDATE_AVAILABLE_CLICKED));
+                             return true;
+                         }},
+
+        NotificationData{NotificationType::BBLUserPresetExceedLimit, NotificationLevel::WarningNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
+			_u8L("The number of user presets cached in the cloud has exceeded the upper limit, newly created user presets can only be used locally."),
+			_u8L("Wiki"),
                          [](wxEvtHandler* evnthndlr) {
-				if (evnthndlr != nullptr)
-					wxPostEvent(evnthndlr, PrinterConfigUpdateAvailableClickedEvent(EVT_PRINTER_CONFIG_UPDATE_AVAILABLE_CLICKED));
+				wxLaunchDefaultBrowser("https://");
 				return true;
              }},
 

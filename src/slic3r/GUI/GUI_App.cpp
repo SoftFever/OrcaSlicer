@@ -4481,6 +4481,8 @@ void GUI_App::sync_preset(Preset* preset)
     auto setting_id = preset->setting_id;
     std::map<std::string, std::string> values_map;
     if (setting_id.empty() && preset->sync_info.empty()) {
+        if (m_create_preset_blocked[preset->type])
+            return;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
             std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
@@ -4497,7 +4499,6 @@ void GUI_App::sync_preset(Preset* preset)
                 if (http_code >= 400) {
                     result = 0;
                     updated_info = "hold";
-                    values_map.clear();
                 }
                 else
                     result = -1;
@@ -4510,6 +4511,8 @@ void GUI_App::sync_preset(Preset* preset)
         }
     }
     else if (preset->sync_info.compare("create") == 0) {
+        if (m_create_preset_blocked[preset->type])
+            return;
         int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
         if (!ret) {
             std::string new_setting_id = m_agent->request_setting_id(preset->name, &values_map, &http_code);
@@ -4569,8 +4572,23 @@ void GUI_App::sync_preset(Preset* preset)
         }
     }
 
-    //update sync_info preset info in file
+    if (http_code >= 400 && values_map["code"] == "14") { // Limit
+        m_create_preset_blocked[preset->type] = true;
+        plater()->get_notification_manager()->push_notification(NotificationType::BBLUserPresetExceedLimit);
+        static bool dialog_notified = false;
+        if (dialog_notified)
+            return;
+        dialog_notified = true;
+        CallAfter([this] {
+            if (mainframe == nullptr)
+                return;
+            auto msg = _L("The number of user presets cached in the cloud has exceeded the upper limit, newly created user presets can only be used locally.");
+            MessageDialog(mainframe, msg, _L("Sync user presets"), wxICON_WARNING | wxOK).ShowModal();
+        });
+        return; // this error not need hold, and should not hold
+    }
 
+    // update sync_info preset info in file
     if (result == 0) {
         //PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (!this->preset_bundle) return;
@@ -4583,11 +4601,6 @@ void GUI_App::sync_preset(Preset* preset)
         } else if (preset->type == Preset::Type::TYPE_PRINTER) {
             preset_bundle->printers.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
         }
-    }
-    if (http_code >= 400 && values_map["code"] == "14") { // Limit
-        auto msg = wxString::Format(_L("An error occurred when uploading user presets, affecting the synchronization of user presets on other devices.\n"
-            "Error message: %s"), from_u8(values_map["error"]));
-        MessageDialog(mainframe, msg, _L("Sync user presets"), wxICON_WARNING | wxOK).ShowModal();
     }
 }
 
@@ -4667,6 +4680,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         //sync preset
                         if (!preset_bundle) continue;
 
+                        int total_count = 0;
                         sync_count = preset_bundle->prints.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
                             for (Preset& preset : presets_to_sync) {
@@ -4674,6 +4688,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
+                        total_count += sync_count;
 
                         sync_count = preset_bundle->filaments.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
@@ -4682,6 +4697,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
                         }
+                        total_count += sync_count;
 
                         sync_count = preset_bundle->printers.get_user_presets(preset_bundle, presets_to_sync);
                         if (sync_count > 0) {
@@ -4689,6 +4705,11 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                 sync_preset(&preset);
                                 boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
                             }
+                        }
+                        total_count += sync_count;
+
+                        if (total_count == 0) {
+                            plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
                         }
 
                         unsigned int http_code = 200;
@@ -4702,6 +4723,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                             if (result == 0) {
                                 preset_deleted_from_cloud(del_setting_id);
                                 it = delete_cache_presets.erase(it);
+                                m_create_preset_blocked = { false, false, false, false, false, false };
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
                             }
                             else {
