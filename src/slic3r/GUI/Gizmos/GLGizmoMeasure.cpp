@@ -1810,12 +1810,10 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
     if (m_editing_distance)
         return;
 
-    m_imgui->begin(get_name(), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-
     // adjust window position to avoid overlap the view toolbar
     const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
-    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
+    GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     if (last_h != win_h || last_y != y) {
         // ask canvas for another frame to render the window in the correct position
         m_imgui->set_requires_extra_frame();
@@ -1824,6 +1822,8 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
         if (last_y != y)
             last_y = y;
     }
+
+    GizmoImguiBegin(get_name(), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     if (ImGui::BeginTable("Commands", 2)) {
         unsigned int row_count = 1;
@@ -2114,7 +2114,7 @@ void GLGizmoMeasure::on_render_input_window(float x, float y, float bottom_limit
         m_imgui->set_requires_extra_frame();
     }
 
-    m_imgui->end();
+    GizmoImguiEnd();
 }
 
 void GLGizmoMeasure::on_register_raycasters_for_picking()
