@@ -1978,6 +1978,94 @@ bool CreatePrinterPresetDialog::load_system_and_user_presets_with_curr_model(Pre
     return true;
 }
 
+void CreatePrinterPresetDialog::generate_process_presets_data(std::vector<Preset const *> presets, std::string nozzle)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and nozzle is: " << nozzle;
+    std::unordered_map<std::string, float> nozzle_diameter_map_ = nozzle_diameter_map;
+    for (const Preset *preset : presets) {
+        float nozzle_dia = nozzle_diameter_map_[nozzle];
+        assert(nozzle_dia != 0);
+
+        auto layer_height = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("layer_height", true));
+        if (layer_height)
+            layer_height->value = nozzle_dia / 2;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no layer_height";
+
+        auto initial_layer_print_height = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("initial_layer_print_height", true));
+        if (initial_layer_print_height)
+            initial_layer_print_height->value = nozzle_dia / 2;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no initial_layer_print_height";
+       
+        auto line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("line_width", true));
+        if (line_width)
+            line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no line_width";
+
+        auto initial_layer_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("initial_layer_line_width", true));
+        if (initial_layer_line_width)
+            initial_layer_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no initial_layer_line_width";
+
+        auto outer_wall_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("outer_wall_line_width", true));
+        if (outer_wall_line_width)
+            outer_wall_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no outer_wall_line_width";
+
+        auto inner_wall_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("inner_wall_line_width", true));
+        if (inner_wall_line_width)
+            inner_wall_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no inner_wall_line_width";
+
+        auto top_surface_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("top_surface_line_width", true));
+        if (top_surface_line_width)
+            top_surface_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no top_surface_line_width";
+
+        auto sparse_infill_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("sparse_infill_line_width", true));
+        if (sparse_infill_line_width)
+            sparse_infill_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no sparse_infill_line_width";
+
+        auto internal_solid_infill_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("internal_solid_infill_line_width", true));
+        if (internal_solid_infill_line_width)
+            internal_solid_infill_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no internal_solid_infill_line_width";
+
+        auto support_line_width = dynamic_cast<ConfigOptionFloat *>(const_cast<Preset *>(preset)->config.option("support_line_width", true));
+        if (support_line_width)
+            support_line_width->value = nozzle_dia;
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no support_line_width";
+
+        auto wall_loops = dynamic_cast<ConfigOptionInt *>(const_cast<Preset *>(preset)->config.option("wall_loops", true));
+        if (wall_loops)
+            wall_loops->value = std::max(2, (int) std::ceil(2 * 0.4 / nozzle_dia));
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no wall_loops";
+
+        auto top_shell_layers = dynamic_cast<ConfigOptionInt *>(const_cast<Preset *>(preset)->config.option("top_shell_layers", true));
+        if (top_shell_layers)
+            top_shell_layers->value = std::max(5, (int) std::ceil(5 * 0.4 / nozzle_dia));
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no top_shell_layers";
+
+        auto bottom_shell_layers = dynamic_cast<ConfigOptionInt *>(const_cast<Preset *>(preset)->config.option("bottom_shell_layers", true));
+        if (bottom_shell_layers)
+            bottom_shell_layers->value = std::max(3, (int) std::ceil(3 * 0.4 / nozzle_dia));
+        else
+            BOOST_LOG_TRIVIAL(info) << "process template has no bottom_shell_layers";
+    }
+}
+
 wxBoxSizer *CreatePrinterPresetDialog::create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list)
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2396,7 +2484,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             /******************************   clone process preset    ********************************/
             failures.clear();
             if (!selected_process_presets.empty()) {
-                bool create_preset_result = preset_bundle->prints.create_presets_from_template_for_printer(selected_process_presets, failures, printer_preset_name, get_filament_id, rewritten);
+                generate_process_presets_data(selected_process_presets, nozzle_diameter);
+                bool create_preset_result = preset_bundle->prints.create_presets_from_template_for_printer(selected_process_presets, failures, printer_preset_name,
+                                                                                                           get_filament_id, rewritten);
                 if (!create_preset_result) {
                     std::string message;
                     for (const std::string &failure : failures) { message += "\t" + failure + "\n"; }
@@ -2941,7 +3031,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
     
     if (PRINTER == create_success_type) {
-        m_button_cancel = new Button(this, _L("Cancle"));
+        m_button_cancel = new Button(this, _L("Cancel"));
         m_button_cancel->SetBackgroundColor(btn_bg_white);
         m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
         m_button_cancel->SetTextColor(wxColour(38, 46, 48));

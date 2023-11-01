@@ -7,20 +7,8 @@
     ],
   "process_list": [
     {
-      "name": "process_0.2_nozzle_template",
-      "sub_path": "process/process_0.2_nozzle_template.json"
-    },
-    {
-      "name": "process_0.4_nozzle_template",
-      "sub_path": "process/process_0.4_nozzle_template.json"
-    },
-    {
-      "name": "process_0.6_nozzle_template",
-      "sub_path": "process/process_0.6_nozzle_template.json"
-    },
-    {
-      "name": "process_0.8_nozzle_template",
-      "sub_path": "process/process_0.8_nozzle_template.json"
+      "name": "process template",
+      "sub_path": "process/process template.json"
     }
   ],
   "filament_list": [

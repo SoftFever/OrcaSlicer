@@ -994,11 +994,7 @@ void Sidebar::create_printer_preset()
     if (wxID_OK == res) {
         wxGetApp().mainframe->update_side_preset_ui();
         update_all_preset_comboboxes();
-        Tab *printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
-        if (printer_tab) {
-            printer_tab->load_current_preset();
-            printer_tab->update();
-        }
+        wxGetApp().load_current_presets();
         CreatePresetSuccessfulDialog success_dlg(p->m_panel_filament_title, SuccessType::PRINTER);
         int                          res = success_dlg.ShowModal();
         if (res == wxID_OK) {
