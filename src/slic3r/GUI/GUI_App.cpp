@@ -4074,10 +4074,16 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
 
     // Version limit
     if (code == HttpErrorVersionLimited) {
-        MessageDialog msg_dlg(nullptr, _L("The version of Bambu studio is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
-        if (msg_dlg.ShowModal() == wxOK) {
-            return;
+        if (!m_show_http_errpr_msgdlg) {
+            MessageDialog msg_dlg(nullptr, _L("The version of Bambu studio is too low and needs to be updated to the latest version before it can be used normally"), "", wxAPPLY | wxOK);
+            m_show_http_errpr_msgdlg = true;
+            auto modal_result = msg_dlg.ShowModal();
+            if (modal_result == wxOK || modal_result == wxCLOSE) {
+                m_show_http_errpr_msgdlg = false;
+                return;
+            }
         }
+       
     }
 
     // request login
@@ -4085,9 +4091,15 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
         if (m_agent) {
             if (m_agent->is_user_login()) {
                 this->request_user_logout();
-                MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
-                if (msg_dlg.ShowModal() == wxOK) {
-                    return;
+
+                if (!m_show_http_errpr_msgdlg) {
+                    MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
+                    m_show_http_errpr_msgdlg = true;
+                    auto modal_result = msg_dlg.ShowModal();
+                    if (modal_result == wxOK || modal_result == wxCLOSE) {
+                        m_show_http_errpr_msgdlg = false;
+                        return;
+                    }
                 }
             }
         }
