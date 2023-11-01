@@ -10902,13 +10902,6 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
             return;
 
-//        auto plain_output_file_string = this->p->background_process.output_filepath_for_project("");
-//        auto index = model().propose_export_file_name_and_path().find_last_of('\\');
-//        if (index != std::string::npos) {
-//            auto temp_path = model().propose_export_file_name_and_path().substr(0, index + 1);
-//            boost::replace_all(plain_output_file_string, temp_path, "");
-//        }
-
         default_output_file = this->p->background_process.output_filepath_for_upload();
 
     } catch (const Slic3r::PlaceholderParserError& ex) {
