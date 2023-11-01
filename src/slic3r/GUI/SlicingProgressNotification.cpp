@@ -222,6 +222,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 		init();
 
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
+	float scale = imgui.get_font_size() / 15.0f;
 
 	bool fading_pop = false;
 	if (m_state == EState::FadingOut) {
@@ -231,7 +232,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 		fading_pop = true;
 	}
 	use_bbl_theme();
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * m_scale, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 0));
 	if (m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_COMPLETED || m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_CANCELLED)
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize,m_WindowRadius / 4);
@@ -242,13 +243,13 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 		push_style_color(ImGuiCol_Border, { 0, 0, 0, 0 }, true, m_current_fade_opacity);
 	}
 
-	const ImVec2 progress_child_window_padding = ImVec2(25.f, 5.f) * m_scale;
-	const ImVec2 dailytips_child_window_padding = ImVec2(25.f, 2.f) * m_scale;
-	const ImVec2 bottom_padding = ImVec2(25.f, 20.f) * m_scale;
+	const ImVec2 progress_child_window_padding = ImVec2(25.f, 5.f) * scale;
+	const ImVec2 dailytips_child_window_padding = ImVec2(25.f, 2.f) * scale;
+	const ImVec2 bottom_padding = ImVec2(25.f, 20.f) * scale;
 	const float  progress_panel_width = (m_window_width - 2 * progress_child_window_padding.x);
-	const float  progress_panel_height = (78.0f * m_scale);
+	const float  progress_panel_height = (78.0f * scale);
 	const float  dailytips_panel_width = (m_window_width - 2 * dailytips_child_window_padding.x);
-	const float  dailytips_panel_height = (395.0f * m_scale);
+	const float  dailytips_panel_height = (395.0f * scale);
 
 	Size cnv_size = canvas.get_canvas_size();
 	float right_gap = right_margin + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
@@ -256,7 +257,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	imgui.set_next_window_pos(window_pos.x, window_pos.y, ImGuiCond_Always, 0.0f, 0.0f);
 	// dynamically resize window by progress state
 	if (m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_COMPLETED || m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_CANCELLED)
-		m_window_height = 64.0f * m_scale;
+		m_window_height = 64.0f * scale;
 	else
 		m_window_height = progress_panel_height + m_dailytips_panel->get_size().y + progress_child_window_padding.y + dailytips_child_window_padding.y + bottom_padding.y;
 	m_top_y = initial_y + m_window_height;
@@ -279,10 +280,10 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 		ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
 
 		if (m_sp_state == SlicingProgressState::SP_CANCELLED || m_sp_state == SlicingProgressState::SP_COMPLETED) {
-			ImVec2 button_size = ImVec2(38.f, 38.f) * m_scale;
-			float  button_right_margin_x = 3.0f * m_scale;
+			ImVec2 button_size = ImVec2(38.f, 38.f) * scale;
+			float  button_right_margin_x = 3.0f * scale;
 			ImVec2 button_pos = window_pos + ImVec2(m_window_width - button_size.x - button_right_margin_x, (m_window_height - button_size.y) / 2.0f);
-			float  text_left_margin_x = 15.0f * m_scale;
+			float  text_left_margin_x = 15.0f * scale;
 			ImVec2 text_pos = window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f - m_line_height * 1.2f);
 			ImVec2 view_dailytips_text_pos = window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f + m_line_height * 0.2f);
 
@@ -298,11 +299,11 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 			ImGui::SetNextWindowPos(parent_window->Pos + progress_child_window_padding);
 			if (ImGui::BeginChild(child_name.c_str(), ImVec2(progress_panel_width, progress_panel_height), false, child_window_flags)) {
 				ImVec2 child_window_pos = ImGui::GetWindowPos();
-				ImVec2 button_size = ImVec2(38.f, 38.f) * m_scale;
+				ImVec2 button_size = ImVec2(38.f, 38.f) * scale;
 				ImVec2 button_pos = child_window_pos + ImVec2(progress_panel_width - button_size.x, (progress_panel_height - button_size.y) / 2.0f);
-				float  margin_x = 8.0f * m_scale;
+				float  margin_x = 8.0f * scale;
 				ImVec2 progress_bar_pos = child_window_pos + ImVec2(0, progress_panel_height / 2.0f);
-				ImVec2 progress_bar_size = ImVec2(progress_panel_width - button_size.x - margin_x, 4.0f * m_scale);
+				ImVec2 progress_bar_size = ImVec2(progress_panel_width - button_size.x - margin_x, 4.0f * scale);
 				ImVec2 text_pos = ImVec2(progress_bar_pos.x, progress_bar_pos.y - m_line_height * 1.2f);
 
 				render_text(text_pos);
@@ -346,7 +347,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(const ImVec2& pos)
 {
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
-
+	float scale = imgui.get_font_size() / 15.0f;
 	if (m_sp_state == SlicingProgressState::SP_BEFORE_COMPLETED) {
 		// complete icon
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -355,7 +356,7 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 		push_style_color(ImGuiCol_TextSelectedBg, ImVec4(0, .75f, .75f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
-		ImVec2 icon_size = ImVec2(38.f, 38.f) * m_scale;
+		ImVec2 icon_size = ImVec2(38.f, 38.f) * scale;
 		ImGui::SetCursorScreenPos(pos);
 		std::wstring icon_text;
 		icon_text = ImGui::CompleteIcon;
@@ -423,7 +424,6 @@ void NotificationManager::SlicingProgressNotification::render_dailytips_panel(co
 		m_dailytips_panel->set_can_expand(false);
 	else
 		m_dailytips_panel->set_can_expand(true);
-	m_dailytips_panel->set_scale(m_scale);
 	m_dailytips_panel->set_position(pos);
 	m_dailytips_panel->set_size(size);
 	m_dailytips_panel->render();

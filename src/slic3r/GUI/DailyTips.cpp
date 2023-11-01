@@ -204,7 +204,6 @@ void DailyTipsPanel::set_size(const ImVec2& size)
 {
     m_width = size.x;
     m_height = size.y;
-    m_content_height = m_height - m_header_height - m_footer_height;
 }
 
 void DailyTipsPanel::set_can_expand(bool can_expand)
@@ -230,8 +229,11 @@ DailyTipsPanel::DailyTipsPanel(const ImVec2& pos, const ImVec2& size, bool can_e
 
 void DailyTipsPanel::render()
 {
-    m_header_height = m_can_expand ? 38.0f * m_scale : 0;
-    m_footer_height = 38.0f * m_scale;
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    float scale = imgui.get_font_size() / 15.0f;
+
+    m_header_height = m_can_expand ? 38.0f * scale : 0;
+    m_footer_height = 38.0f * scale;
     m_content_height = m_height - m_header_height - m_footer_height;
 
     if (!m_first_enter) {
@@ -322,11 +324,6 @@ bool DailyTipsPanel::is_expanded()
     return m_is_expanded;
 }
 
-void DailyTipsPanel::set_scale(float scale)
-{
-    m_scale = scale;
-}
-
 void DailyTipsPanel::on_change_color_mode(bool is_dark)
 {
     m_is_dark = is_dark;
@@ -353,6 +350,7 @@ void DailyTipsPanel::render_header(const ImVec2& pos, const ImVec2& size)
 void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& size)
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+    float scale = imgui.get_font_size() / 15.0f;
     ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
     int window_flags = parent_window->Flags;
     std::string name = "##DailyTipsPanelControllers" + std::to_string(parent_window->ID);
@@ -406,7 +404,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::SetCursorScreenPos(ImVec2(btn_pos.x + expand_btn_size.x + ImGui::CalcTextSize(" ").x, btn_pos.y));
                 button_text = ImGui::ExpandArrowIcon;
                 imgui.button(button_text.c_str());
-                expand_btn_size.x += 19.0f * m_scale;
+                expand_btn_size.x += 19.0f * scale;
                 if (ImGui::IsMouseHoveringRect(btn_pos, btn_pos + expand_btn_size, true))
                 {
                     //underline
@@ -483,7 +481,8 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
 void DailyTipsPanel::push_styles()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    imgui.push_common_window_style(m_scale);
+    float scale = imgui.get_font_size() / 15.0f;
+    imgui.push_common_window_style(scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     // framePadding cannot be zero. Otherwise, there is a problem with icon font button display
@@ -524,16 +523,18 @@ void DailyTipsWindow::render()
     //    ImGui::OpenPopup((_u8L("Daily Tips")).c_str());
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+    float scale = imgui.get_font_size() / 15.0f;
+
     const Size& cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
     ImVec2 center = ImVec2(cnv_size.get_width() * 0.5f, cnv_size.get_height() * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-    ImVec2 padding = ImVec2(25, 25) * m_scale;
-    imgui.push_menu_style(m_scale);
+    ImVec2 padding = ImVec2(25, 25) * scale;
+    imgui.push_menu_style(scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * scale);
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, m_is_dark ? ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f) : ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));
     ImGui::GetCurrentContext()->DimBgRatio = 1.0f;
     int windows_flag =
@@ -549,7 +550,7 @@ void DailyTipsWindow::render()
         imgui.pop_bold_font();
 
         ImVec2 panel_pos = ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin();
-        ImVec2 panel_size = ImVec2(400.0f, 435.0f) * m_scale;
+        ImVec2 panel_size = ImVec2(400.0f, 435.0f) * scale;
         m_panel->set_position(panel_pos);
         m_panel->set_size(panel_size);
         m_panel->render();
@@ -567,12 +568,6 @@ void DailyTipsWindow::render()
     ImGui::PopStyleVar(4);
     ImGui::PopStyleColor();
     imgui.pop_menu_style();
-}
-
-void DailyTipsWindow::set_scale(float scale)
-{
-    m_scale = scale;
-    m_panel->set_scale(scale);
 }
 
 void DailyTipsWindow::on_change_color_mode(bool is_dark)

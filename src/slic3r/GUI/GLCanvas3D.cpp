@@ -7010,7 +7010,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
         auto* m_notification = wxGetApp().plater()->get_notification_manager();
         m_notification->set_scale(sc);
-        wxGetApp().plater()->get_dailytips()->set_scale(sc);
 
 #endif
         return;
@@ -7036,7 +7035,6 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
-    wxGetApp().plater()->get_dailytips()->set_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);

@@ -25,7 +25,6 @@ public:
     void expand(bool expand = true);
     void collapse();
     bool is_expanded();
-    void set_scale(float scale);
     void on_change_color_mode(bool is_dark);
 
 protected:
@@ -48,7 +47,6 @@ private:
     float m_footer_height;
     int m_uid;
     bool m_first_enter{ false };
-    float m_scale = 1.0f;
     bool m_is_dark{ false };
 };
 
@@ -58,13 +56,11 @@ public:
     void open();
     void close();
     void render();
-    void set_scale(float scale);
     void on_change_color_mode(bool is_dark);
 
 private:
     DailyTipsPanel* m_panel{ nullptr };
     bool m_show{ false };
-    float m_scale = 1.0f;
     bool m_is_dark{ false };
 };
 
