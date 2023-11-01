@@ -153,9 +153,7 @@ namespace ImGui
 //    const wchar_t CustomSupportsMarker     = 0x1D;
 //    const wchar_t CustomSeamMarker         = 0x1E;
 //    const wchar_t MmuSegmentationMarker    = 0x1F;
-    const wchar_t PlugMarker               = 0x1E;
-    const wchar_t DowelMarker              = 0x1F;
-    const wchar_t SnapMarker               = 0x20;
+
     // Do not forget use following letters only in wstring
     //BBS use 08xx to avoid unicode character which may be used
     const wchar_t DocumentationButton      = 0x0800;
@@ -200,7 +198,6 @@ namespace ImGui
     const wchar_t CloseBlockNotifHoverButton = 0x0834;
     const wchar_t BlockNotifErrorIcon        = 0x0835;
     const wchar_t ClipboardBtnDarkIcon       = 0x0836;
-    const wchar_t InfoMarkerSmall          = 0x0837;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }

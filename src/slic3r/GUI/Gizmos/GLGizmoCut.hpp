@@ -145,11 +145,11 @@ class GLGizmoCut3D : public GLGizmoBase
 
     float m_label_width{ 0.f };
     float m_control_width{ 200.f };
+    double m_editing_window_width;
     bool  m_imperial_units{ false };
 
     float m_contour_width{ 0.4f };
     float m_cut_plane_radius_koef{ 1.5f };
-    float m_shortcut_label_width{ -1.f };
 
     mutable std::vector<bool> m_selected; // which pins are currently selected
     int  m_selected_count{ 0 };
@@ -204,8 +204,8 @@ class GLGizmoCut3D : public GLGizmoBase
 
     PartSelection m_part_selection;
 
-    bool                                        m_show_shortcuts{ false };
-    std::vector<std::pair<wxString, wxString>>  m_shortcuts;
+    std::vector<std::pair<wxString, wxString>> m_shortcuts_cut;
+    std::vector<std::pair<wxString, wxString>> m_shortcuts_connector;
 
     enum class CutMode {
         cutPlanar
@@ -288,12 +288,10 @@ protected:
     void               on_render() override;
 
     void render_debug_input_window(float x);
-    void adjust_window_position(float x, float y, float bottom_limit);
     void unselect_all_connectors();
     void select_all_connectors();
-    void render_shortcuts();
     void apply_selected_connectors(std::function<void(size_t idx)> apply_fn);
-    void render_connectors_input_window(CutConnectors &connectors);
+    void render_connectors_input_window(CutConnectors &connectors, float x, float y, float bottom_limit);
     void render_build_size();
     void reset_cut_plane();
     void set_connectors_editing(bool connectors_editing);
@@ -309,7 +307,7 @@ protected:
     void render_groove_angle_input(const std::string &label, float &in_val, const float &init_val, float min_val, float max_val);
     bool render_angle_input(const std::string& label, float& in_val, const float& init_val, float min_val, float max_val);
     void render_snap_specific_input(const std::string& label, const wxString& tooltip, float& in_val, const float& init_val, const float min_val, const float max_val);
-    void render_cut_plane_input_window(CutConnectors &connectors);
+    void render_cut_plane_input_window(CutConnectors &connectors, float x, float y, float bottom_limit);
     void init_input_window_data(CutConnectors &connectors);
     void render_input_window_warning() const;
     bool add_connector(CutConnectors&connectors, const Vec2d&mouse_position);
@@ -327,6 +325,7 @@ protected:
     void update_plane_model();
 
     void on_render_input_window(float x, float y, float bottom_limit) override;
+    void show_tooltip_information(float x, float y);
 
     bool wants_enter_leave_snapshots() const override       { return true; }
     std::string get_gizmo_entering_text() const override    { return _u8L("Entering Cut gizmo"); }
