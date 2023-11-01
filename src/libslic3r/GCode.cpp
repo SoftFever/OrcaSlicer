@@ -3207,6 +3207,7 @@ GCode::LayerResult GCode::process_layer(
                         if (print.config().filament_soluble.get_at(extruder_id))
                             continue;
 
+                        //BBS: now we don't consider interface filament used in other object
                         if (extruder_id == interface_extruder)
                             continue;
 
@@ -3215,7 +3216,7 @@ GCode::LayerResult GCode::process_layer(
                     }
 
                     //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
-                    if (dontcare_extruder == interface_extruder && object.config().support_interface_not_for_body) {
+                    if (dontcare_extruder == interface_extruder && (object.config().support_interface_not_for_body && object.config().support_interface_filament.value!=0)) {
                         // BBS : get a suitable extruder from other layer
                         auto all_extruders = print.extruders();
                         dontcare_extruder = get_next_extruder(dontcare_extruder, all_extruders);

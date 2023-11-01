@@ -3017,7 +3017,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip = L("Don't use support interface filament to print support body");
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("support_line_width", coFloat);
     def->label = L("Support");
