@@ -231,12 +231,6 @@ void AppConfig::set_defaults()
     if (get("stealth_mode").empty()) {
         set_bool("stealth_mode", false);
     }
-
-    // Orca
-    if(get("show_splash_screen").empty()) {
-        set_bool("show_splash_screen", true);
-    }
-
     if (get("show_model_mesh").empty()) {
         set_bool("show_model_mesh", false);
     }

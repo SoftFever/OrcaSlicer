@@ -2427,7 +2427,8 @@ bool GUI_App::on_init_inner()
     }
 
     BBLSplashScreen * scrn = nullptr;
-    if (app_config->get("show_splash_screen") == "true") {
+    const bool show_splash_screen = true;
+    if (show_splash_screen) {
         // make a bitmap with dark grey banner on the left side
         //BBS make BBL splash screen bitmap
         wxBitmap bmp = BBLSplashScreen::MakeBitmap();
