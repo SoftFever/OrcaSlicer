@@ -4402,6 +4402,9 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("before delete action, canceled %1%, delete_current %2%") %canceled %delete_current;
+    bool        delete_third_printer = false;
+    std::vector<Preset> filament_presets;
+    std::vector<Preset> process_presets;
     if (! canceled && delete_current) {
         // Delete the file and select some other reasonable preset.
         // It does not matter which preset will be made active as the preset will be re-selected from the preset_name variable.
@@ -4409,11 +4412,22 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         try {
             //BBS delete preset
             Preset &current_preset = m_presets->get_selected_preset();
+            
+            // Obtain compatible filament and process presets for printers
+            if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
+                delete_third_printer = true;
+                for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
+                    if (preset.is_compatible && preset.is_default) { filament_presets.push_back(preset); }
+                }
+                for (const Preset &preset : m_preset_bundle->prints.get_presets()) {
+                    if (preset.is_compatible && preset.is_default) { process_presets.push_back(preset); }
+                }
+            }
             if (!current_preset.setting_id.empty()) {
-                BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
                 m_presets->set_sync_info_and_save(current_preset.name, current_preset.setting_id, "delete", 0);
                 wxGetApp().delete_preset_from_cloud(current_preset.setting_id);
             }
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << current_preset.name << ", setting_id = " << current_preset.setting_id;
             BOOST_LOG_TRIVIAL(info) << boost::format("will delete current preset...");
             m_presets->delete_current_preset();
         } catch (const std::exception & ex) {
@@ -4487,6 +4501,35 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         apply_config_from_cache();
 
         load_current_preset();
+        
+        if (delete_third_printer) {
+            wxGetApp().CallAfter([filament_presets, process_presets]() {
+                PresetBundle *preset_bundle     = wxGetApp().preset_bundle;
+                std::string   old_filament_name = preset_bundle->filaments.get_edited_preset().name;
+                std::string   old_process_name  = preset_bundle->prints.get_edited_preset().name;
+
+                for (const Preset &preset : filament_presets) {
+                    if (!preset.setting_id.empty()) {
+                        preset_bundle->filaments.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0);
+                        wxGetApp().delete_preset_from_cloud(preset.setting_id);
+                    }
+                    BOOST_LOG_TRIVIAL(info) << "delete filament preset = " << preset.name << ", setting_id = " << preset.setting_id;
+                    preset_bundle->filaments.delete_preset(preset.name);
+                }
+
+                for (const Preset &preset : process_presets) {
+                    if (!preset.setting_id.empty()) {
+                        preset_bundle->prints.set_sync_info_and_save(preset.name, preset.setting_id, "delete", 0);
+                        wxGetApp().delete_preset_from_cloud(preset.setting_id);
+                    }
+                    BOOST_LOG_TRIVIAL(info) << "delete print preset = " << preset.name << ", setting_id = " << preset.setting_id;
+                    preset_bundle->prints.delete_preset(preset.name);
+                }
+                preset_bundle->filaments.select_preset_by_name(old_filament_name, true);
+                preset_bundle->prints.select_preset_by_name(old_process_name, true);
+            });
+        }
+        
     }
 
     if (technology_changed)
@@ -4959,7 +5002,13 @@ void Tab::delete_preset()
     // TRN  remove/delete
     wxString msg;
 
-    if (m_presets->get_preset_base(current_preset) == &current_preset) {
+    if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
+        if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
+            MessageDialog dlg(this, _L("If you want to delete this preset, all compatible filament and process presets will be deleted. \nDo you want to continue?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES_NO | wxYES_DEFAULT);
+            int res = dlg.ShowModal();
+            if (res != wxID_YES) return;
+        }
         int count = 0;
         wxString presets;
         for (auto &preset2 : *m_presets)
