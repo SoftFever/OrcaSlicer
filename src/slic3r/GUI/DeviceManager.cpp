@@ -4609,7 +4609,8 @@ void MachineObject::update_model_task()
         delete rating_info;
         rating_info = nullptr;
     }
-    get_model_task_thread = new boost::thread([this, curr_instance_id]{
+    get_model_task_thread = new boost::thread([this, curr_instance_id, token = std::weak_ptr<int>(m_token)]{
+        if (token.expired()) { return; }
         try {
             std::string  rating_result;
             unsigned int http_code = 404;
@@ -4618,7 +4619,7 @@ void MachineObject::update_model_task()
             res = m_agent->get_model_mall_rating_result(curr_instance_id, rating_result, http_code, http_error);
             request_model_result++;
             BOOST_LOG_TRIVIAL(info) << "request times: " << request_model_result << " http code: " << http_code;
-            rating_info = new RatingInfo();
+            auto rating_info = new RatingInfo();
             rating_info->http_code = http_code;
             if (0 == res && 200 == http_code) {
                 try {
@@ -4632,6 +4633,9 @@ void MachineObject::update_model_task()
                     } else {
                         rating_info->request_successful = false;
                         BOOST_LOG_TRIVIAL(info) << "can not get rating id";
+                        Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
+                            if (!token.expired()) this->rating_info = rating_info;
+                        });
                         return;
                     }
                     if (rating_json.contains("score")) {
@@ -4644,12 +4648,18 @@ void MachineObject::update_model_task()
                     if (rating_json.contains("images")) {
                         rating_info->image_url_paths = rating_json["images"].get<std::vector<std::string>>();
                     }
+                    Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
+                        if (!token.expired()) this->rating_info = rating_info;
+                    });
                 } catch (...) {
                     BOOST_LOG_TRIVIAL(info) << "parse model mall result json failed";
                 }
             }
             else {
                 rating_info->request_successful = false;
+                Slic3r::GUI::wxGetApp().CallAfter([this, token, rating_info]() {
+                    if (!token.expired()) this->rating_info = rating_info;
+                });
                 BOOST_LOG_TRIVIAL(info) << "model mall result request failed, request time: " << request_model_result << " http_code: " << http_code
                                         << " error msg: " << http_error;
                 return;

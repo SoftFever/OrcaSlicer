@@ -312,7 +312,8 @@ struct DisValue {
 class MachineObject
 {
 private:
-    NetworkAgent* m_agent { nullptr };
+    NetworkAgent *       m_agent{nullptr};
+    std::shared_ptr<int> m_token = std::shared_ptr<int>(0);
 
     bool check_valid_ip();
     void _parse_print_option_ack(int option);
