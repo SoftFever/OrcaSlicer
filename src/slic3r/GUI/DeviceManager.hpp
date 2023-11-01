@@ -405,6 +405,7 @@ public:
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
     float       nozzle_diameter { 0.0f };
+    int         subscribe_counter{3};
     std::string nozzle_type;
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }

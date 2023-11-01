@@ -22,6 +22,7 @@ typedef int (*func_set_on_printer_connected_fn)(void *agent, OnPrinterConnectedF
 typedef int (*func_set_on_server_connected_fn)(void *agent, OnServerConnectedFn fn);
 typedef int (*func_set_on_http_error_fn)(void *agent, OnHttpErrorFn fn);
 typedef int (*func_set_get_country_code_fn)(void *agent, GetCountryCodeFn fn);
+typedef int (*func_set_on_subscribe_failure_fn)(void *agent, GetSubscribeFailureFn fn);
 typedef int (*func_set_on_message_fn)(void *agent, OnMessageFn fn);
 typedef int (*func_set_on_local_connect_fn)(void *agent, OnLocalConnectedFn fn);
 typedef int (*func_set_on_local_message_fn)(void *agent, OnMessageFn fn);
@@ -124,6 +125,7 @@ public:
     int set_on_server_connected_fn(OnServerConnectedFn fn);
     int set_on_http_error_fn(OnHttpErrorFn fn);
     int set_get_country_code_fn(GetCountryCodeFn fn);
+    int set_on_subscribe_failure_fn(GetSubscribeFailureFn fn);
     int set_on_message_fn(OnMessageFn fn);
     int set_on_local_connect_fn(OnLocalConnectedFn fn);
     int set_on_local_message_fn(OnMessageFn fn);
@@ -214,6 +216,7 @@ private:
     static func_set_on_server_connected_fn     set_on_server_connected_fn_ptr;
     static func_set_on_http_error_fn           set_on_http_error_fn_ptr;
     static func_set_get_country_code_fn        set_get_country_code_fn_ptr;
+    static func_set_on_subscribe_failure_fn    set_on_subscribe_failure_fn_ptr;
     static func_set_on_message_fn              set_on_message_fn_ptr;
     static func_set_on_local_connect_fn        set_on_local_connect_fn_ptr;
     static func_set_on_local_message_fn        set_on_local_message_fn_ptr;

@@ -42,6 +42,7 @@ func_set_on_printer_connected_fn    NetworkAgent::set_on_printer_connected_fn_pt
 func_set_on_server_connected_fn     NetworkAgent::set_on_server_connected_fn_ptr = nullptr;
 func_set_on_http_error_fn           NetworkAgent::set_on_http_error_fn_ptr = nullptr;
 func_set_get_country_code_fn        NetworkAgent::set_get_country_code_fn_ptr = nullptr;
+func_set_on_subscribe_failure_fn    NetworkAgent::set_on_subscribe_failure_fn_ptr = nullptr;
 func_set_on_message_fn              NetworkAgent::set_on_message_fn_ptr = nullptr;
 func_set_on_local_connect_fn        NetworkAgent::set_on_local_connect_fn_ptr = nullptr;
 func_set_on_local_message_fn        NetworkAgent::set_on_local_message_fn_ptr = nullptr;
@@ -200,6 +201,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     set_on_server_connected_fn_ptr    =  reinterpret_cast<func_set_on_server_connected_fn>(get_network_function("bambu_network_set_on_server_connected_fn"));
     set_on_http_error_fn_ptr          =  reinterpret_cast<func_set_on_http_error_fn>(get_network_function("bambu_network_set_on_http_error_fn"));
     set_get_country_code_fn_ptr       =  reinterpret_cast<func_set_get_country_code_fn>(get_network_function("bambu_network_set_get_country_code_fn"));
+    set_on_subscribe_failure_fn_ptr   =  reinterpret_cast<func_set_on_subscribe_failure_fn>(get_network_function("bambu_network_set_on_subscribe_failure_fn"));
     set_on_message_fn_ptr             =  reinterpret_cast<func_set_on_message_fn>(get_network_function("bambu_network_set_on_message_fn"));
     set_on_local_connect_fn_ptr       =  reinterpret_cast<func_set_on_local_connect_fn>(get_network_function("bambu_network_set_on_local_connect_fn"));
     set_on_local_message_fn_ptr       =  reinterpret_cast<func_set_on_local_message_fn>(get_network_function("bambu_network_set_on_local_message_fn"));
@@ -312,6 +314,7 @@ int NetworkAgent::unload_network_module()
     set_on_server_connected_fn_ptr    =  nullptr;
     set_on_http_error_fn_ptr          =  nullptr;
     set_get_country_code_fn_ptr       =  nullptr;
+    set_on_subscribe_failure_fn_ptr   =  nullptr;
     set_on_message_fn_ptr             =  nullptr;
     set_on_local_connect_fn_ptr       =  nullptr;
     set_on_local_message_fn_ptr       =  nullptr;
@@ -591,6 +594,17 @@ int NetworkAgent::set_get_country_code_fn(GetCountryCodeFn fn)
         ret = set_get_country_code_fn_ptr(network_agent, fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_subscribe_failure_fn(GetSubscribeFailureFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_subscribe_failure_fn_ptr) {
+        ret = set_on_subscribe_failure_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }

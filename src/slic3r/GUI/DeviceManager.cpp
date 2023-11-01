@@ -2468,6 +2468,7 @@ void MachineObject::reset_update_time()
 {
     BOOST_LOG_TRIVIAL(trace) << "reset reset_update_time, dev_id =" << dev_id;
     last_update_time = std::chrono::system_clock::now();
+    subscribe_counter = 3;
 }
 
 void MachineObject::reset()
@@ -2491,6 +2492,7 @@ void MachineObject::reset()
     nozzle_diameter = 0.0f;
     network_wired = false;
     dev_connection_name = "";
+    subscribe_counter = 3;
     job_id_ = "";
 
     // reset print_json
@@ -5201,6 +5203,10 @@ bool DeviceManager::set_selected_machine(std::string dev_id, bool need_disconnec
             if (it->second->connection_type() != "lan") {
                 // only reset update time
                 it->second->reset_update_time();
+
+                // check subscribe state
+                Slic3r::GUI::wxGetApp().on_start_subscribe_again(dev_id);
+
                 return true;
             } else {
                 // lan mode printer reconnect printer

@@ -135,6 +135,7 @@ typedef std::function<void(std::string dev_id, std::string msg)> OnMessageFn;
 // http callbacks
 typedef std::function<void(unsigned http_code, std::string http_body)> OnHttpErrorFn;
 typedef std::function<std::string()>                GetCountryCodeFn;
+typedef std::function<void(std::string topic)>      GetSubscribeFailureFn;
 // print callbacks
 typedef std::function<void(int status, int code, std::string msg)> OnUpdateStatusFn;
 typedef std::function<bool()>                       WasCancelledFn;
