@@ -101,11 +101,6 @@ std::string PrintBase::output_filepath(const std::string &path, const std::strin
     return path;
 }
 
-std::string PrintBase::output_filepath_for_upload() const
-{
-    return this->output_filename("");
-}
-
 //BBS: move set_status from hpp to cpp
 void  PrintBase::set_status(int percent, const std::string &message, unsigned int flags, int warning_step) const
 {

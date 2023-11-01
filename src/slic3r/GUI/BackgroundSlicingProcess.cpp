@@ -192,7 +192,7 @@ std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::f
 
 std::string BackgroundSlicingProcess::output_filepath_for_upload()
 {
-    return m_print->output_filepath_for_upload();
+    return m_print->output_filename();
 }
 
 // This function may one day be merged into the Print, but historically the print was separated
