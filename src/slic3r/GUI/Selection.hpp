@@ -249,6 +249,8 @@ public:
     bool is_single_volume() const { return m_type == SingleVolume; }
     bool is_multiple_volume() const { return m_type == MultipleVolume; }
     bool is_any_volume() const { return is_single_volume() || is_multiple_volume(); }
+    bool is_any_connector() const;
+    bool is_any_cut_volume() const;
     bool is_mixed() const { return m_type == Mixed; }
     bool is_from_single_instance() const { return get_instance_idx() != -1; }
     bool is_from_single_object() const;

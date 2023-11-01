@@ -35,6 +35,8 @@ uniform SlopeDetection slope;
 uniform vec2 z_range;
 // Clipping plane - general orientation. Used by the SLA gizmo.
 uniform vec4 clipping_plane;
+// Color clip plane - general orientation. Used by the cut gizmo.
+uniform vec4 color_clip_plane;
 
 in vec3 v_position;
 in vec3 v_normal;
@@ -43,6 +45,7 @@ in vec3 v_normal;
 out vec2 intensity;
 
 out vec3 clipping_planes_dots;
+out float color_clip_plane_dot;
 
 out vec4 world_pos;
 out float world_normal_z;
@@ -74,4 +77,5 @@ void main()
     gl_Position = projection_matrix * position;
     // Fill in the scalars for fragment shader clipping. Fragments with any of these components lower than zero are discarded.
     clipping_planes_dots = vec3(dot(world_pos, clipping_plane), world_pos.z - z_range.x, z_range.y - world_pos.z);
+    color_clip_plane_dot = dot(world_pos, color_clip_plane);
 }
