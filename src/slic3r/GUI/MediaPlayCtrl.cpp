@@ -9,6 +9,7 @@
 #include "DownloadProgressDialog.hpp"
 
 #include <boost/filesystem/string_file.hpp>
+#include <boost/nowide/utf8_codecvt.hpp>
 #undef pid_t
 #include <boost/process.hpp>
 #ifdef __WIN32__
@@ -631,7 +632,9 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
         if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
             boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
-        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir), boost::process::windows::create_no_window, 
+        static std::locale tmp = std::locale(std::locale(), new boost::nowide::utf8_codecvt<wchar_t>());
+        boost::process::imbue(tmp);
+        boost::process::child process_source(file_source, into_u8(file_url2), boost::process::start_dir(start_dir), boost::process::windows::create_no_window, 
                                              boost::process::std_out > intermediate, boost::process::limit_handles);
         boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::windows::create_no_window, 
                                              boost::process::std_in < intermediate, boost::process::limit_handles);
