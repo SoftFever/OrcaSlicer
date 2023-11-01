@@ -47,8 +47,16 @@
             "sub_path": "process/fdm_process_voron_common.json"
         },
         {
+            "name": "fdm_process_voron_common_0_1_5",
+            "sub_path": "process/fdm_process_voron_common_0_1_5.json"
+        },
+        {
             "name": "fdm_process_voron_common_0_2",
             "sub_path": "process/fdm_process_voron_common_0_2.json"
+        },
+        {
+            "name": "fdm_process_voron_common_0_2_5",
+            "sub_path": "process/fdm_process_voron_common_0_2_5.json"
         },
         {
             "name": "fdm_process_voron_common_0_6",
@@ -59,8 +67,24 @@
             "sub_path": "process/fdm_process_voron_common_0_8.json"
         },
         {
+            "name": "fdm_process_voron_common_1_0",
+            "sub_path": "process/fdm_process_voron_common_1_0.json"
+        },
+        {
+            "name": "0.05mm Fine 0.15 nozzle @Voron",
+            "sub_path": "process/0.05mm Fine 0.15 nozzle @Voron.json"
+        },
+        {
             "name": "0.06mm Fine 0.2 nozzle @Voron",
             "sub_path": "process/0.06mm Fine 0.2 nozzle @Voron.json"
+        },
+        {
+            "name": "0.06mm Fine 0.25 nozzle @Voron",
+            "sub_path": "process/0.06mm Fine 0.25 nozzle @Voron.json"
+        },
+        {
+            "name": "0.07mm Optimal 0.15 nozzle @Voron",
+            "sub_path": "process/0.07mm Optimal 0.15 nozzle @Voron.json"
         },
         {
             "name": "0.08mm Extra Fine @Voron",
@@ -71,20 +95,44 @@
             "sub_path": "process/0.08mm Optimal 0.2 nozzle @Voron.json"
         },
         {
+            "name": "0.08mm Optimal 0.25 nozzle @Voron",
+            "sub_path": "process/0.08mm Optimal 0.25 nozzle @Voron.json"
+        },
+        {
+            "name": "0.09mm Standard 0.15 nozzle @Voron",
+            "sub_path": "process/0.09mm Standard 0.15 nozzle @Voron.json"
+        },
+        {
             "name": "0.10mm Standard 0.2 nozzle @Voron",
             "sub_path": "process/0.10mm Standard 0.2 nozzle @Voron.json"
+        },
+        {
+            "name": "0.10mm Standard 0.25 nozzle @Voron",
+            "sub_path": "process/0.10mm Standard 0.25 nozzle @Voron.json"
         },
         {
             "name": "0.12mm Fine @Voron",
             "sub_path": "process/0.12mm Fine @Voron.json"
         },
         {
+            "name": "0.12mm Draft 0.15 nozzle @Voron",
+            "sub_path": "process/0.12mm Draft 0.15 nozzle @Voron.json"
+        },
+        {
             "name": "0.12mm Draft 0.2 nozzle @Voron",
             "sub_path": "process/0.12mm Draft 0.2 nozzle @Voron.json"
         },
         {
+            "name": "0.12mm Draft 0.25 nozzle @Voron",
+            "sub_path": "process/0.12mm Draft 0.25 nozzle @Voron.json"
+        },
+        {
             "name": "0.14mm Extra Draft 0.2 nozzle @Voron",
             "sub_path": "process/0.14mm Extra Draft 0.2 nozzle @Voron.json"
+        },
+        {
+            "name": "0.14mm Extra Draft 0.25 nozzle @Voron",
+            "sub_path": "process/0.14mm Extra Draft 0.25 nozzle @Voron.json"
         },
         {
             "name": "0.15mm Optimal @Voron",
@@ -119,6 +167,10 @@
             "sub_path": "process/0.30mm Standard 0.6 nozzle @Voron.json"
         },
         {
+            "name": "0.30mm Fine 1.0 nozzle @Voron",
+            "sub_path": "process/0.30mm Fine 1.0 nozzle @Voron.json"
+        },
+        {
             "name": "0.32mm Optimal 0.6 nozzle @Voron",
             "sub_path": "process/0.32mm Optimal 0.6 nozzle @Voron.json"
         },
@@ -139,8 +191,20 @@
             "sub_path": "process/0.48mm Draft 0.8 nozzle @Voron.json"
         },
         {
+            "name": "0.50mm Standard 1.0 nozzle @Voron",
+            "sub_path": "process/0.50mm Standard 1.0 nozzle @Voron.json"
+        },
+        {
             "name": "0.56mm Extra Draft 0.8 nozzle @Voron",
             "sub_path": "process/0.56mm Extra Draft 0.8 nozzle @Voron.json"
+        },
+        {
+            "name": "0.60mm Draft 1.0 nozzle @Voron",
+            "sub_path": "process/0.60mm Draft 1.0 nozzle @Voron.json"
+        },
+        {
+            "name": "0.80mm Extra Draft 1.0 nozzle @Voron",
+            "sub_path": "process/0.80mm Extra Draft 1.0 nozzle @Voron.json"
         }
     ],
     "filament_list": [
@@ -235,8 +299,16 @@
             "sub_path": "machine/Voron 2.4 250 0.4 nozzle.json"
         },
         {
+            "name": "Voron 2.4 250 0.15 nozzle",
+            "sub_path": "machine/Voron 2.4 250 0.15 nozzle.json"
+        },
+        {
             "name": "Voron 2.4 250 0.2 nozzle",
             "sub_path": "machine/Voron 2.4 250 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron 2.4 250 0.25 nozzle",
+            "sub_path": "machine/Voron 2.4 250 0.25 nozzle.json"
         },
         {
             "name": "Voron 2.4 250 0.6 nozzle",
@@ -247,12 +319,24 @@
             "sub_path": "machine/Voron 2.4 250 0.8 nozzle.json"
         },
         {
+            "name": "Voron 2.4 250 1.0 nozzle",
+            "sub_path": "machine/Voron 2.4 250 1.0 nozzle.json"
+        },
+        {
             "name": "Voron 2.4 300 0.4 nozzle",
             "sub_path": "machine/Voron 2.4 300 0.4 nozzle.json"
         },
         {
+            "name": "Voron 2.4 300 0.15 nozzle",
+            "sub_path": "machine/Voron 2.4 300 0.15 nozzle.json"
+        },
+        {
             "name": "Voron 2.4 300 0.2 nozzle",
             "sub_path": "machine/Voron 2.4 300 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron 2.4 300 0.25 nozzle",
+            "sub_path": "machine/Voron 2.4 300 0.25 nozzle.json"
         },
         {
             "name": "Voron 2.4 300 0.6 nozzle",
@@ -263,12 +347,24 @@
             "sub_path": "machine/Voron 2.4 300 0.8 nozzle.json"
         },
         {
+            "name": "Voron 2.4 300 1.0 nozzle",
+            "sub_path": "machine/Voron 2.4 300 1.0 nozzle.json"
+        },
+        {
             "name": "Voron 2.4 350 0.4 nozzle",
             "sub_path": "machine/Voron 2.4 350 0.4 nozzle.json"
         },
         {
+            "name": "Voron 2.4 350 0.15 nozzle",
+            "sub_path": "machine/Voron 2.4 350 0.15 nozzle.json"
+        },
+        {
             "name": "Voron 2.4 350 0.2 nozzle",
             "sub_path": "machine/Voron 2.4 350 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron 2.4 350 0.25 nozzle",
+            "sub_path": "machine/Voron 2.4 350 0.25 nozzle.json"
         },
         {
             "name": "Voron 2.4 350 0.6 nozzle",
@@ -277,6 +373,10 @@
         {
             "name": "Voron 2.4 350 0.8 nozzle",
             "sub_path": "machine/Voron 2.4 350 0.8 nozzle.json"
+        },
+        {
+            "name": "Voron 2.4 350 1.0 nozzle",
+            "sub_path": "machine/Voron 2.4 350 1.0 nozzle.json"
         },
         {
             "name": "Voron Trident 250 0.4 nozzle",

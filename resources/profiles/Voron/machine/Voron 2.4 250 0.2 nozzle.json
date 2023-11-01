@@ -7,10 +7,10 @@
     "inherits": "fdm_klipper_common",
     "printer_model": "Voron 2.4 250",
     "max_layer_height": [
-      "0.32"
+      "0.20"
     ],
     "min_layer_height": [
-      "0.08"
+      "0.06"
     ],
       "nozzle_diameter": [
       "0.2"
