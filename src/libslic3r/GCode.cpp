@@ -2189,6 +2189,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         auto center = bbox_wo_wt.center();
         this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(), center.y()));
     }
+    bool activate_chamber_temp_control = false;
+    auto max_chamber_temp              = 0;
+    for (const auto &extruder : m_writer.extruders()) {
+        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
+        max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
+    }
     float outer_wall_volumetric_speed = 0.0f;
     {
         int curr_bed_type = m_config.curr_bed_type.getInt();
@@ -2202,6 +2208,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
         this->placeholder_parser().set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
         this->placeholder_parser().set("chamber_temperature",new ConfigOptionInts(m_config.chamber_temperature));
+        this->placeholder_parser().set("overall_chamber_temperature", new ConfigOptionInt(max_chamber_temp));
 
         // SoftFever: support variables `first_layer_temperature` and `first_layer_bed_temperature`
         this->placeholder_parser().set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
@@ -2249,13 +2256,6 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     // Orca: set chamber temperature at the beginning of gcode file
-    bool activate_chamber_temp_control = false;
-    auto max_chamber_temp = 0;
-    for (const auto &extruder : m_writer.extruders()) {
-        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
-        max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
-    }
-
     if (activate_chamber_temp_control && max_chamber_temp > 0)
         file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
 
@@ -4215,8 +4215,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     // SoftFever: check loop lenght for small perimeter. 
     double small_peri_speed = -1;
-    if (speed == -1 && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.value))
-        small_peri_speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
+    if (speed == -1 && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.value)) {
+        if(m_config.small_perimeter_speed == 0)
+            small_peri_speed = m_config.outer_wall_speed * 0.5;
+        else
+            small_peri_speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
+    }
 
     // extrude along the path
     std::string gcode;
