@@ -614,7 +614,7 @@ void GLGizmoAdvancedCut::update_plate_center(Axis axis_type, double projection, 
 
 void GLGizmoAdvancedCut::update_plate_normal_boundingbox_clipper(Vec3d rotation)
 {
-    const Transform3d rotation_tmp = m_start_dragging_m * Geometry::rotation_transform(rotation);
+    const Transform3d rotation_tmp = Geometry::rotation_transform(rotation) * m_start_dragging_m;
     const bool        update_tbb   = !m_rotate_matrix.rotation().isApprox(rotation_tmp.rotation());
     m_rotate_matrix                = rotation_tmp;
     if (update_tbb) m_transformed_bounding_box = transformed_bounding_box(m_plane_center, m_rotate_matrix);
@@ -623,7 +623,7 @@ void GLGizmoAdvancedCut::update_plate_normal_boundingbox_clipper(Vec3d rotation)
 
 void GLGizmoAdvancedCut::on_update(const UpdateData& data)
 {
-    if (m_hover_id < 0) 
+    if (m_hover_id < 0)
         return;
     m_is_dragging = true;
     if (m_hover_id <= 2) { // drag rotate
