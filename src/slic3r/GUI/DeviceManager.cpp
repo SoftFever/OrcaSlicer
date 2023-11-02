@@ -1358,6 +1358,11 @@ void MachineObject::parse_status(int flag)
         xcam_filament_tangle_detect = ((flag >> 20) & 0x1) != 0;
     }
 
+    if(!is_support_motor_noise_cali){
+        is_support_motor_noise_cali = ((flag >> 21) & 0x1) != 0;
+    }
+
+
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
 
     network_wired = ((flag >> 18) & 0x1) != 0;
