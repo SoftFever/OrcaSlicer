@@ -283,6 +283,7 @@ private:
     void update_clipper();
     // on render
     void render_cut_plane_and_grabbers();
+    void on_render_rotate_gizmos();
     void render_connectors();
     void render_clipper_cut();
     void render_cut_line();

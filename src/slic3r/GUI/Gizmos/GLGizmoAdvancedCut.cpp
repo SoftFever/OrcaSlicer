@@ -1070,6 +1070,7 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     }
     render_glmodel(m_plane, cp_clr, Geometry::translation_transform(m_plane_center) * m_rotate_matrix);
 
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));
 
@@ -1126,7 +1127,24 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
     }
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     GLGizmoRotate3D::set_center(m_plane_center);
-    GLGizmoRotate3D::on_render();
+    on_render_rotate_gizmos();//replace GLGizmoRotate3D::on_render();
+}
+
+void GLGizmoAdvancedCut::on_render_rotate_gizmos() {
+
+    if (m_is_dragging) {
+        if (m_hover_id == 0)
+            m_gizmos[X].render();
+        if ( m_hover_id == 1)
+            m_gizmos[Y].render();
+        if (m_hover_id == 2)
+            m_gizmos[Z].render();
+    }
+    else {
+        m_gizmos[X].render();
+        m_gizmos[Y].render();
+        m_gizmos[Z].render();
+    }
 }
 
 void GLGizmoAdvancedCut::render_connectors()
