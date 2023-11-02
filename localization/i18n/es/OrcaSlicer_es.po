@@ -9170,7 +9170,10 @@ msgstr ""
 "Ajústelo a 0 para desactivarlo."
 
 msgid "Time cost"
-msgstr "Coste por hora"
+msgstr ""
+"La cantidad de dinero que cuesta la impresión que vamos a realizar por hora. "
+"Podemos calcular el coste dependiendo de la potencia de la impresora, el "
+"coste del filamento, etc."
 
 msgid "The printer cost per hour"
 msgstr "Coste por hora de la impresión"
