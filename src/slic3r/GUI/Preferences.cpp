@@ -979,6 +979,9 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
 
+    std::vector<wxString> DefaultPage = {_L("Home"), _L("Prepare")};
+    auto item_default_page = create_item_combobox(_L("Default Page"), page, _L("Set the page opened on startup."), "default_page", DefaultPage);
+
     auto item_mouse_zoom_settings = create_item_checkbox(_L("Zoom to mouse position"), page, _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
     auto item_use_free_camera_settings = create_item_checkbox(_L("Use free camera"), page, _L("If enabled, use free camera. If not enabled, use constrained camera."), 50, "use_free_camera");
 
@@ -1040,6 +1043,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_default_page, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_use_free_camera_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_splash_screen, 0, wxTOP, FromDIP(3));
