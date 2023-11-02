@@ -1750,7 +1750,8 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
             filament_colors.push_back(filament_color);
             continue;
         }
-        auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
+        auto iter = std::find_if(filaments.begin(), filaments.end(), [this, &filament_id](auto &f) {
+            return f.is_compatible && filaments.get_preset_base(f) == &f && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
             auto filament_type = ams.opt_string("filament_type", 0u);
@@ -1762,7 +1763,9 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
                 });
             }
             if (iter == filaments.end())
-                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system; });
+                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) {
+                        return f.is_compatible && f.is_system;
+                });
             if (iter == filaments.end())
                 continue;
             ++unknowns;
