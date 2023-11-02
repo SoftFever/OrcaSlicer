@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 12:18+0800\n"
+"POT-Creation-Date: 2023-11-02 10:35+0800\n"
 "PO-Revision-Date: 2023-08-11 09:11+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -422,6 +422,9 @@ msgstr "Квадрат"
 msgid "Hexagon"
 msgstr "Шестиугольник"
 
+msgid "Snap global parameters"
+msgstr ""
+
 msgid "Bulge"
 msgstr ""
 
@@ -756,20 +759,16 @@ msgid "Open Project"
 msgstr "Открыть проект"
 
 msgid ""
-"The version of Bambu studio is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"The Bambu Studio version is too old to enable cloud service. Please download "
+"the latest version from Bambu Lab website."
 msgstr ""
-"Версия студии Bambu слишком низкая, ее необходимо обновить до последней "
-"версии, прежде чем ее можно будет использовать в обычном режиме"
 
 msgid "Privacy Policy Update"
 msgstr "Обновление политики конфиденциальности"
 
-#, c-format, boost-format
 msgid ""
-"An error occurred when uploading user presets, affecting the synchronization "
-"of user presets on other devices.\n"
-"Error message: %s"
+"The number of user presets cached in the cloud has exceeded the upper limit, "
+"newly created user presets can only be used locally."
 msgstr ""
 
 msgid "Sync user presets"
@@ -2504,6 +2503,13 @@ msgstr ""
 
 msgid "Choose a file to import bed texture from (PNG/SVG):"
 msgstr "Выберите файл для импорта текстуры кровати (PNG/SVG)"
+
+#, c-format, boost-format
+msgid "The file exceeds %d MB, please import again."
+msgstr ""
+
+msgid "Exception in obtaining file size, please import again."
+msgstr ""
 
 msgid "Choose an STL file to import bed model from:"
 msgstr "Выберите файл STL для импорта модели кровати:"
@@ -4362,6 +4368,9 @@ msgid "Details"
 msgstr "Подробности"
 
 msgid "New printer config available."
+msgstr ""
+
+msgid "Wiki"
 msgstr ""
 
 msgid "Undo integration failed."
@@ -6295,6 +6304,12 @@ msgstr "Firmware Retraction"
 
 msgid "Detached"
 msgstr "Отдельный"
+
+msgid ""
+"If you want to delete this preset, all compatible filament and process "
+"presets will be deleted. \n"
+"Do you want to continue?"
+msgstr ""
 
 msgid "Presets inherited by other presets cannot be deleted"
 msgstr ""
@@ -10014,9 +10029,6 @@ msgstr ""
 msgid "Finish"
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
 msgid "How to use calibration result?"
 msgstr ""
 
@@ -10728,13 +10740,13 @@ msgstr ""
 msgid "Add Filament Preset under this filament"
 msgstr ""
 
-msgid "No vendor I want"
-msgstr ""
-
 msgid "Select Vendor"
 msgstr ""
 
 msgid "Input custom vendor"
+msgstr ""
+
+msgid "Can't find vendor I want"
 msgstr ""
 
 msgid "Select Type"
@@ -10948,9 +10960,6 @@ msgid "Please go to filament setting to edit your presets if you need"
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Export Configs"
@@ -11360,6 +11369,13 @@ msgid ""
 "When printing materials that are prone to warping such as ABS, appropriately "
 "increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""
+
+#~ msgid ""
+#~ "The version of Bambu studio is too low and needs to be updated to the "
+#~ "latest version before it can be used normally"
+#~ msgstr ""
+#~ "Версия студии Bambu слишком низкая, ее необходимо обновить до последней "
+#~ "версии, прежде чем ее можно будет использовать в обычном режиме"
 
 #~ msgid "Please input a valid value (K in 0~0.5)"
 #~ msgstr "Пожалуйста, введите допустимое значение (K в диапазоне 0~0,5)"

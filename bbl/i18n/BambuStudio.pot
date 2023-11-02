@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 12:18+0800\n"
+"POT-Creation-Date: 2023-11-02 10:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -418,6 +418,9 @@ msgstr ""
 msgid "Hexagon"
 msgstr ""
 
+msgid "Snap global parameters"
+msgstr ""
+
 msgid "Bulge"
 msgstr ""
 
@@ -742,18 +745,16 @@ msgid "Open Project"
 msgstr ""
 
 msgid ""
-"The version of Bambu studio is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"The Bambu Studio version is too old to enable cloud service. Please download "
+"the latest version from Bambu Lab website."
 msgstr ""
 
 msgid "Privacy Policy Update"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
 msgid ""
-"An error occurred when uploading user presets, affecting the synchronization "
-"of user presets on other devices.\n"
-"Error message: %s"
+"The number of user presets cached in the cloud has exceeded the upper limit, "
+"newly created user presets can only be used locally."
 msgstr ""
 
 msgid "Sync user presets"
@@ -2359,6 +2360,13 @@ msgid ""
 msgstr ""
 
 msgid "Choose a file to import bed texture from (PNG/SVG):"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The file exceeds %d MB, please import again."
+msgstr ""
+
+msgid "Exception in obtaining file size, please import again."
 msgstr ""
 
 msgid "Choose an STL file to import bed model from:"
@@ -4120,6 +4128,9 @@ msgid "Details"
 msgstr ""
 
 msgid "New printer config available."
+msgstr ""
+
+msgid "Wiki"
 msgstr ""
 
 msgid "Undo integration failed."
@@ -5911,6 +5922,12 @@ msgid "Firmware Retraction"
 msgstr ""
 
 msgid "Detached"
+msgstr ""
+
+msgid ""
+"If you want to delete this preset, all compatible filament and process "
+"presets will be deleted. \n"
+"Do you want to continue?"
 msgstr ""
 
 msgid "Presets inherited by other presets cannot be deleted"
@@ -9202,9 +9219,6 @@ msgstr ""
 msgid "Finish"
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
 msgid "How to use calibration result?"
 msgstr ""
 
@@ -9902,13 +9916,13 @@ msgstr ""
 msgid "Add Filament Preset under this filament"
 msgstr ""
 
-msgid "No vendor I want"
-msgstr ""
-
 msgid "Select Vendor"
 msgstr ""
 
 msgid "Input custom vendor"
+msgstr ""
+
+msgid "Can't find vendor I want"
 msgstr ""
 
 msgid "Select Type"
@@ -10122,9 +10136,6 @@ msgid "Please go to filament setting to edit your presets if you need"
 msgstr ""
 
 msgid "Printer Setting"
-msgstr ""
-
-msgid "Cancle"
 msgstr ""
 
 msgid "Export Configs"

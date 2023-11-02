@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 12:18+0800\n"
+"POT-Creation-Date: 2023-11-02 10:35+0800\n"
 "PO-Revision-Date: 2023-07-07 09:45+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -418,6 +418,9 @@ msgstr "正方形"
 msgid "Hexagon"
 msgstr "六边形"
 
+msgid "Snap global parameters"
+msgstr "按扣全局参数"
+
 msgid "Bulge"
 msgstr "凸度"
 
@@ -749,21 +752,17 @@ msgid "Open Project"
 msgstr "打开项目"
 
 msgid ""
-"The version of Bambu studio is too low and needs to be updated to the latest "
-"version before it can be used normally"
-msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用"
+"The Bambu Studio version is too old to enable cloud service. Please download "
+"the latest version from Bambu Lab website."
+msgstr "当前BambuStudio的版本过低导致云端服务不可用,请从官网更新BambuStudio到最新版本。"
 
 msgid "Privacy Policy Update"
 msgstr "隐私协议更新"
 
-#, c-format, boost-format
 msgid ""
-"An error occurred when uploading user presets, affecting the synchronization "
-"of user presets on other devices.\n"
-"Error message: %s"
-msgstr ""
-"上传用户预设时发生错误，影响了在其他设备上的用户预设同步。\n"
-"错误消息：%s"
+"The number of user presets cached in the cloud has exceeded the upper limit, "
+"newly created user presets can only be used locally."
+msgstr "云端缓存的用户预设数量已超过上限，新创建的用户预设只能在本地使用。"
 
 msgid "Sync user presets"
 msgstr "同步用户预设"
@@ -2404,6 +2403,13 @@ msgstr "所选文件包含多个未连接的区域。不支持这种类型。"
 
 msgid "Choose a file to import bed texture from (PNG/SVG):"
 msgstr "选择 (PNG/SVG) 文件作为热床纹理："
+
+#, c-format, boost-format
+msgid "The file exceeds %d MB, please import again."
+msgstr "文件超过 %d MB，请重新导入。"
+
+msgid "Exception in obtaining file size, please import again."
+msgstr "获取文件大小异常，请重新导入。"
 
 msgid "Choose an STL file to import bed model from:"
 msgstr "选择 STL 文件来导入床模型:"
@@ -4234,6 +4240,9 @@ msgstr "详情"
 
 msgid "New printer config available."
 msgstr "有新的打印机配置可用。"
+
+msgid "Wiki"
+msgstr "Wiki"
 
 msgid "Undo integration failed."
 msgstr "集成取消失败。"
@@ -6091,12 +6100,18 @@ msgstr ""
 msgid "Detached"
 msgstr "分离的"
 
+msgid ""
+"If you want to delete this preset, all compatible filament and process "
+"presets will be deleted. \n"
+"Do you want to continue?"
+msgstr ""
+
 msgid "Presets inherited by other presets cannot be deleted"
-msgstr "被其他预设继承的预设不能被删除"
+msgstr "不能删除被其他预设继承的预设"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] "以下预置继承了该预置。"
+msgstr[0] "以下预设继承此预设。"
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -9565,9 +9580,6 @@ msgstr "校准"
 msgid "Finish"
 msgstr "完成"
 
-msgid "Wiki"
-msgstr "Wiki"
-
 msgid "How to use calibration result?"
 msgstr "如何使用校准结果？"
 
@@ -10331,14 +10343,14 @@ msgstr "基本信息"
 msgid "Add Filament Preset under this filament"
 msgstr ""
 
-msgid "No vendor I want"
-msgstr "没有我想要的供应商"
-
 msgid "Select Vendor"
 msgstr "选择供应商"
 
 msgid "Input custom vendor"
 msgstr "输入自定义供应商"
+
+msgid "Can't find vendor I want"
+msgstr "找不到我想要的供应商"
 
 msgid "Select Type"
 msgstr "选择类型"
@@ -10559,9 +10571,6 @@ msgstr "如有需要，请去材料设置编辑您的预设"
 msgid "Printer Setting"
 msgstr "打印机设置"
 
-msgid "Cancle"
-msgstr "取消"
-
 msgid "Export Configs"
 msgstr "导出预设"
 
@@ -10774,8 +10783,8 @@ msgid ""
 "<b>F</b> key."
 msgstr ""
 "选择底面\n"
-"您知道吗，您可以快速指定模型的底面，使其位于打印床上。选择“选择底面”功能或"
-"按<b>F</b>键。"
+"您知道吗，您可以快速指定模型的底面，使其位于打印床上。选择“选择底面”功能或按"
+"<b>F</b>键。"
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -10847,8 +10856,8 @@ msgid ""
 "the overall look of your model. Check it out!"
 msgstr ""
 "Z接缝位置\n"
-"您知道吗，您可以自定义Z接缝的位置，甚至可以手动绘制在模型的指定位置上，使其位于不太可见"
-"的位置。这样可以改善模型的整体外观。试试看！"
+"您知道吗，您可以自定义Z接缝的位置，甚至可以手动绘制在模型的指定位置上，使其位"
+"于不太可见的位置。这样可以改善模型的整体外观。试试看！"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
@@ -10979,6 +10988,26 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率"
+
+#~ msgid ""
+#~ "The version of Bambu studio is too low and needs to be updated to the "
+#~ "latest version before it can be used normally"
+#~ msgstr "Bambu Studio版本过低，需要更新到最新版本方可正常使用"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "An error occurred when uploading user presets, affecting the "
+#~ "synchronization of user presets on other devices.\n"
+#~ "Error message: %s"
+#~ msgstr ""
+#~ "上传用户预设时发生错误，影响了在其他设备上的用户预设同步。\n"
+#~ "错误消息：%s"
+
+#~ msgid "No vendor I want"
+#~ msgstr "没有我想要的供应商"
+
+#~ msgid "Cancle"
+#~ msgstr "取消"
 
 #~ msgid "Slice ok."
 #~ msgstr "切片完成."
