@@ -3073,20 +3073,6 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtNormal });
 
-    def = this->add("retract_lift_above", coFloats);
-    def->label = L("Only lift Z above");
-    def->tooltip = L("If you set this to a positive value, Z lift will only take place above the specified absolute Z.");
-    def->sidetext = L("mm");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0.});
-
-    def = this->add("retract_lift_below", coFloats);
-    def->label = L("Only lift Z below");
-    def->tooltip = L("If you set this to a positive value, Z lift will only take place below the specified absolute Z.");
-    def->sidetext = L("mm");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0.});
-
     def = this->add("retract_lift_enforce", coEnums);
     def->label = L("On surfaces");
     def->tooltip = L("Enforce Z Hop behavior. This setting is impacted by the above settings (Only lift Z above/below).");
