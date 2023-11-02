@@ -1364,6 +1364,19 @@ int ObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
 	return it - m_objects.begin();
 }
 
+int  ObjectDataViewModel::GetPlateIdByItem(const wxDataViewItem& item) const
+{
+    if (!item.IsOk())
+        return -1;
+
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    auto it = find(m_plates.begin(), m_plates.end(), node);
+    if (it == m_plates.end())
+        return -1;
+
+    return it - m_plates.begin();
+}
+
 int ObjectDataViewModel::GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const
 {
 	wxASSERT(item.IsOk());

@@ -212,10 +212,13 @@ bool ObjectSettings::update_settings_list()
         if (type == itPlate) {
             is_plate_settings = true;
 
+            int plate_id = objects_model->GetPlateIdByItem(item);
+            assert(plate_id >= 0);
+
             static ModelConfig cfg;
-            auto plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-            cfg.assign_config(*plate->config());
-            plate_configs.emplace(plate, &cfg);
+            PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+            cfg.assign_config(*ppl.get_plate(plate_id)->config());
+            plate_configs.emplace(ppl.get_plate(plate_id), &cfg);
         }
         if (type != itObject && type != itVolume && type != itLayerRoot && type != itLayer) {
             continue;
