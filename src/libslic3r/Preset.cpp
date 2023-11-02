@@ -2121,7 +2121,7 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         preset.is_visible = true;
         preset.is_project_embedded = false;
         modifier(preset, m_type);
-        if (find_preset(preset.name)) {
+        if (find_preset(preset.name) && !force_rewritten) {
             failures.push_back(preset.name);
         }
         preset.file                = this->path_for_preset(preset);
@@ -2170,12 +2170,13 @@ bool PresetCollection::create_presets_from_template_for_printer(std::vector<Pres
                                                                 bool                                    force_rewritten)
 {
     return clone_presets(templates, failures, [printer, create_filament_id](Preset &preset, Preset::Type &type) {
-            preset.name = preset.name.substr(0, preset.name.find(" @")) + " @" + printer;
-        auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
-        compatible_printers->values = std::vector<std::string>{ printer };
-        preset.is_visible           = true;
-        if (type == Preset::TYPE_FILAMENT)
-            preset.filament_id      = create_filament_id(preset.name);
+            std::string prefix          = preset.name.substr(0, preset.name.find(" @"));
+            preset.name                 = prefix + " @" + printer;
+            auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
+            compatible_printers->values = std::vector<std::string>{printer};
+            preset.is_visible           = true;
+            if (type == Preset::TYPE_FILAMENT)
+                preset.filament_id = create_filament_id(prefix);
     }, force_rewritten);
 }
 

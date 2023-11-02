@@ -993,9 +993,10 @@ void Sidebar::create_printer_preset()
     int                       res = dlg.ShowModal();
     if (wxID_OK == res) {
         wxGetApp().mainframe->update_side_preset_ui();
+        update_ui_from_settings();
         update_all_preset_comboboxes();
         wxGetApp().load_current_presets();
-        CreatePresetSuccessfulDialog success_dlg(p->m_panel_filament_title, SuccessType::PRINTER);
+        CreatePresetSuccessfulDialog success_dlg(wxGetApp().mainframe, SuccessType::PRINTER);
         int                          res = success_dlg.ShowModal();
         if (res == wxID_OK) {
             p->editing_filament = -1;

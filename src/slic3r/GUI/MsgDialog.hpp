@@ -371,6 +371,19 @@ private:
     wxString msg;
 };
 
+class DeleteConfirmDialog : public DPIDialog
+{
+public:
+    DeleteConfirmDialog(wxWindow *parent, const wxString &title, const wxString &msg);
+    ~DeleteConfirmDialog();
+    virtual void on_dpi_changed(const wxRect &suggested_rect);
+
+private:
+    wxString      msg;
+    Button *      m_del_btn    = nullptr;
+    Button *      m_cancel_btn = nullptr;
+    wxStaticText *m_msg_text   = nullptr;
+};
 
 }
 }

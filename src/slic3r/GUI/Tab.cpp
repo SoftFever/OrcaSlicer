@@ -4525,8 +4525,12 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
                     BOOST_LOG_TRIVIAL(info) << "delete print preset = " << preset.name << ", setting_id = " << preset.setting_id;
                     preset_bundle->prints.delete_preset(preset.name);
                 }
+
+                preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
                 preset_bundle->filaments.select_preset_by_name(old_filament_name, true);
                 preset_bundle->prints.select_preset_by_name(old_process_name, true);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " old filament name is:" << old_filament_name << " old process name is: " << old_process_name;
+
             });
         }
         
@@ -5004,10 +5008,22 @@ void Tab::delete_preset()
 
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
-            MessageDialog dlg(this, _L("If you want to delete this preset, all compatible filament and process presets will be deleted. \nDo you want to continue?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
-                              wxYES_NO | wxYES_DEFAULT);
+            Preset &current_preset = m_presets->get_selected_preset();
+            int filament_preset_num    = 0;
+            int process_preset_num     = 0;
+            for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
+                if (preset.is_compatible && preset.is_default) { filament_preset_num++; }
+            }
+            for (const Preset &preset : m_preset_bundle->prints.get_presets()) {
+                if (preset.is_compatible && preset.is_default) { process_preset_num++; }
+            }
+
+            DeleteConfirmDialog
+                dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
+                    wxString::Format(_L("%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."),
+                                     filament_preset_num, process_preset_num));
             int res = dlg.ShowModal();
-            if (res != wxID_YES) return;
+            if (res != wxID_OK) return;
         }
         int count = 0;
         wxString presets;

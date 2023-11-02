@@ -320,9 +320,7 @@ static std::string calculate_md5(const std::string &input)
 
 static std::string get_filament_id(std::string vendor_typr_serial)
 {
-    std::string   user_filament_id = "P" + calculate_md5(vendor_typr_serial).substr(0, 7);
-
-    std::unordered_map<std::string,std::vector<std::string>> filament_id_to_filament_name;
+    std::unordered_map<std::string, std::set<std::string>> filament_id_to_filament_name;
 
     // temp filament presets
     PresetBundle temp_preset_bundle;
@@ -337,7 +335,15 @@ static std::string get_filament_id(std::string vendor_typr_serial)
 
     for (const Preset &preset : filament_presets) {
         std::string preset_name = preset.name;
-        filament_id_to_filament_name[preset.filament_id].push_back(get_filament_name(preset_name));
+        size_t      index_at    = preset_name.find_first_of('@');
+        if (index_at == std::string::npos) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament preset name has no @ and name is: " << preset_name;
+            continue;
+        }
+        std::string filament_name = preset_name.substr(0, index_at - 1);
+        if (filament_name == vendor_typr_serial)
+            return preset.filament_id;
+        filament_id_to_filament_name[preset.filament_id].insert(filament_name);
     }
     // global filament presets
     PresetBundle *                                     preset_bundle               = wxGetApp().preset_bundle;
@@ -346,9 +352,20 @@ static std::string get_filament_id(std::string vendor_typr_serial)
         if (filament_id_to_presets.first.empty()) continue;
         for (const Preset *preset : filament_id_to_presets.second) {
             std::string preset_name = preset->name;
-            filament_id_to_filament_name[preset->filament_id].push_back(get_filament_name(preset_name));
+            size_t      index_at    = preset_name.find_first_of('@');
+            if (index_at == std::string::npos) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " filament preset name has no @ and name is: " << preset_name;
+                continue;
+            }
+            std::string filament_name = preset_name.substr(0, index_at - 1);
+            if (filament_name == vendor_typr_serial)
+                return preset->filament_id;
+            filament_id_to_filament_name[preset->filament_id].insert(filament_name);
         }
     }
+
+    std::string user_filament_id = "P" + calculate_md5(vendor_typr_serial).substr(0, 7);
+
     while (filament_id_to_filament_name.find(user_filament_id) != filament_id_to_filament_name.end()) {//find same filament id
         bool have_same_filament_name = false;
         for (const std::string &name : filament_id_to_filament_name.find(user_filament_id)->second) {
@@ -2412,8 +2429,8 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         // Confirm if the printer preset has a duplicate name
         if (!rewritten && preset_bundle->printers.find_preset(printer_preset_name)) {
             MessageDialog dlg(this,
-                              _L("The preset you created already has a preset with the same name. Do you want to overwrite it?\n\tYes: Overwrite the printer preset with the "
-                                 "same name, and filament and process presets with the same preset name will not be recreated.\n\tCancel: Do not create a preset, return to the "
+                              _L("The printer preset you created already has a preset with the same name. Do you want to overwrite it?\n\tYes: Overwrite the printer preset with the "
+                                 "same name, and filament and process presets with the same preset name will be recreated \nand filament and process presets without the same preset name will be reserve.\n\tCancel: Do not create a preset, return to the "
                                  "creation interface."),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
             int           res = dlg.ShowModal();
@@ -2759,7 +2776,7 @@ void CreatePrinterPresetDialog::update_presets_list(bool just_template)
     // update filament preset window sizer
     for (const Preset &filament_preset : filament_presets) {
         if (filament_preset.is_compatible) {
-            if (filament_preset.name == "Default Filament") continue;
+            if (filament_preset.is_default) continue;
             Preset *temp_filament = new Preset(filament_preset);
             wxString filament_name = wxString::FromUTF8(temp_filament->name);
             m_filament_preset_template_sizer->Add(create_checkbox(m_filament_preset_panel, temp_filament, filament_name, m_filament_preset), 0,
@@ -2769,7 +2786,7 @@ void CreatePrinterPresetDialog::update_presets_list(bool just_template)
 
     for (const Preset &process_preset : process_presets) {
         if (process_preset.is_compatible) { 
-            if (process_preset.name == "Default Setting") continue;
+            if (process_preset.is_default) continue;
 
             Preset *temp_process = new Preset(process_preset);
             wxString process_name = wxString::FromUTF8(temp_process->name);
@@ -3925,7 +3942,7 @@ void ExportConfigsDialog::data_init()
 
             const std::deque<Preset> &filament_presets = preset_bundle.filaments.get_presets();
             for (const Preset &filament_preset : filament_presets) {
-                if (filament_preset.is_system || "Default Filament" == filament_preset.name) continue;
+                if (filament_preset.is_system || filament_preset.is_default) continue;
                 if (filament_preset.is_compatible) {
                     Preset *new_filament_preset = new Preset(filament_preset);
                     m_filament_presets[preset_name].push_back(new_filament_preset);
@@ -3934,7 +3951,7 @@ void ExportConfigsDialog::data_init()
 
             const std::deque<Preset> &process_presets = preset_bundle.prints.get_presets();
             for (const Preset &process_preset : process_presets) {
-                if (process_preset.is_system || "Default Setting" == process_preset.name) continue;
+                if (process_preset.is_system || process_preset.is_default) continue;
                 if (process_preset.is_compatible) {
                     Preset *new_prpcess_preset = new Preset(process_preset);
                     m_process_presets[preset_name].push_back(new_prpcess_preset);
@@ -3947,7 +3964,7 @@ void ExportConfigsDialog::data_init()
     }
     const std::deque<Preset> &filament_presets = preset_bundle.filaments.get_presets();
     for (const Preset &filament_preset : filament_presets) {
-        if (filament_preset.is_system || "Default Filament" == filament_preset.name) continue;
+        if (filament_preset.is_system || filament_preset.is_default) continue;
         Preset *new_filament_preset = new Preset(filament_preset);
         const Preset *base_filament_preset = preset_bundle.filaments.get_preset_base(*new_filament_preset);
 
