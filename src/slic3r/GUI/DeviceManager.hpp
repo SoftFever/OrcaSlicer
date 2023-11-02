@@ -313,7 +313,7 @@ class MachineObject
 {
 private:
     NetworkAgent *       m_agent{nullptr};
-    std::shared_ptr<int> m_token = std::shared_ptr<int>(0);
+    std::shared_ptr<int> m_token = std::make_shared<int>(1);
 
     bool check_valid_ip();
     void _parse_print_option_ack(int option);
