@@ -3043,21 +3043,6 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
-    def             = this->add("retract_lift_above", coFloats);
-    def->label      = L("Z hop lower boundary");
-    def->tooltip    = L("Z hop will only come into effect when Z is above this value and is below the parameter: \"Z hop upper boundary\"");
-    def->sidetext   = L("mm");
-    def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0.});
-
-    def             = this->add("retract_lift_below", coFloats);
-    def->label      = L("Z hop upper boundary");
-    def->tooltip    = L("If this value is positive, Z hop will only come into effect when Z is above the parameter: \"Z hop lower boundary\" and is below this value");
-    def->sidetext   = L("mm");
-    def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0.});
-
-
     def = this->add("z_hop_types", coEnums);
     def->label = L("Z hop type");
     def->tooltip = L("Z hop type");
