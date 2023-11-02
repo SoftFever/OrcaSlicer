@@ -1,7 +1,7 @@
 {
     "type": "filament",
-    "filament_id": "GFB99",
-    "setting_id": "GFSB99_Qidi_01",
+    "filament_id": "GFB98",
+    "setting_id": "GFSB98_Qidi_01",
     "name": "Generic ASA @Qidi",
     "from": "system",
     "instantiation": "true",
