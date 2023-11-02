@@ -5187,13 +5187,13 @@ msgid "Units"
 msgstr "Einheiten"
 
 msgid "Home"
-msgstr ""
+msgstr "Startseite"
 
 msgid "Default Page"
-msgstr ""
+msgstr "Standardseite"
 
 msgid "Set the page opened on startup."
-msgstr ""
+msgstr "Legen Sie die Seite fest, die beim Start geöffnet wird."
 
 msgid "Zoom to mouse position"
 msgstr "Zum Mausposition zoomen"
@@ -5212,10 +5212,10 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "Wenn aktiviert, wird die freie Kamera verwendet."
 
 msgid "Show splash screen"
-msgstr ""
+msgstr "Splash-Screen anzeigen"
 
 msgid "Show the splash screen during startup."
-msgstr ""
+msgstr "Zeige den Splash-Screen beim Start."
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Benachrichtigung \"Tipp des Tages\" nach dem Start anzeigen"
