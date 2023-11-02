@@ -651,7 +651,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip    = L("Bed temperature of the initial layer. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
     def->sidetext   = L("°C");
-    def->max        = 0;
+    def->min        = 0;
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
