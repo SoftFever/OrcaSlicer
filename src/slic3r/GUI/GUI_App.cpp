@@ -4593,12 +4593,12 @@ void GUI_App::sync_preset(Preset* preset)
 
     if (http_code >= 400 && values_map["code"] == "14") { // Limit
         m_create_preset_blocked[preset->type] = true;
-        plater()->get_notification_manager()->push_notification(NotificationType::BBLUserPresetExceedLimit);
-        static bool dialog_notified = false;
-        if (dialog_notified)
-            return;
-        dialog_notified = true;
         CallAfter([this] {
+            plater()->get_notification_manager()->push_notification(NotificationType::BBLUserPresetExceedLimit);
+            static bool dialog_notified = false;
+            if (dialog_notified)
+                return;
+            dialog_notified = true;
             if (mainframe == nullptr)
                 return;
             auto msg = _L("The number of user presets cached in the cloud has exceeded the upper limit, newly created user presets can only be used locally.");

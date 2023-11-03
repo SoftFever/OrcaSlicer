@@ -417,6 +417,7 @@ void MediaPlayCtrl::ToggleStream()
         file.write(url2.c_str(), url2.size());
         file.close();
         m_streaming = true;
+        return;
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
