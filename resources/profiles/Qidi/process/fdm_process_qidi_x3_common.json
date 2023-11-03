@@ -111,7 +111,7 @@
     "wall_generator": "classic",
     "gcode_label_objects": "0",
     "internal_bridge_speed": "50",
-    "internal_solid_infill_pattern": "zig-zag",
+    "internal_solid_infill_pattern": "monotonic",
     "initial_layer_travel_speed": "50%",
     "notes": "If you want to use Orca's chamber temperature control feature, check that printer.cfg has added the following M191 macro.\nTo add it: go to Fluidd web interface--configuration, copy the following code to the bottom of the printer.cfg document, SAVE&RESATART  \n\n[gcode_macro M191]\ngcode:\n    #Parameters\n    {% set s = params.S|float %}\n    \n    M141 {% for p in params %}{'%s%s' % (p, params[p])}{% endfor %}  ; Set hotend temp\n    {% if s != 0 %}\n        TEMPERATURE_WAIT SENSOR=\"heater_generic hot\" MINIMUM={s} MAXIMUM={s+1}   ; Wait for hotend temp (within 1 degree)\n    {% endif %}"
 }
