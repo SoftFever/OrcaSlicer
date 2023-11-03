@@ -97,7 +97,7 @@ struct SupportParameters {
         }
 
         SupportMaterialPattern  support_pattern = object_config.support_base_pattern;
-        this->with_sheath = object_config.tree_support_wall_count > 0;
+        this->with_sheath = is_tree(object_config.support_type) && object_config.tree_support_wall_count > 0;
         this->base_fill_pattern =
             support_pattern == smpHoneycomb ? ipHoneycomb :
             this->support_density > 0.95 || this->with_sheath ? ipRectilinear : ipSupportBase;
