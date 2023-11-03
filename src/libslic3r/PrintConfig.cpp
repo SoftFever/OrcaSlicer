@@ -2536,7 +2536,7 @@ def = this->add("filament_loading_speed", coFloats);
             (void)L("Maximum jerk of the Y axis");
             (void)L("Maximum jerk of the Z axis");
             (void)L("Maximum jerk of the E axis");
-            def->sidetext = L("mm/s³");
+            def->sidetext = L("mm/s");
             def->min = 0;
             def->mode = comSimple;
             def->set_default_value(new ConfigOptionFloats(axis.max_jerk));
