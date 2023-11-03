@@ -19,7 +19,7 @@ struct DailyTipsData {
 
 class DailyTipsDataRenderer {
 public:
-    DailyTipsDataRenderer() = default;
+    DailyTipsDataRenderer(DailyTipsLayout layout);
     ~DailyTipsDataRenderer();
     void update_data(const DailyTipsData& data);
     void render(const ImVec2& pos, const ImVec2& size) const;
@@ -38,7 +38,13 @@ private:
     GLTexture* m_texture{ nullptr };
     GLTexture* m_placeholder_texture{ nullptr };
     bool m_is_dark{ false };
+    DailyTipsLayout m_layout;
 };
+
+DailyTipsDataRenderer::DailyTipsDataRenderer(DailyTipsLayout layout)
+    : m_layout(layout)
+{
+}
 
 DailyTipsDataRenderer::~DailyTipsDataRenderer() {
     if (m_texture)
@@ -84,13 +90,23 @@ void DailyTipsDataRenderer::render(const ImVec2& pos, const ImVec2& size) const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
     int window_flags = parent_window->Flags;
+    window_flags &= ~ImGuiWindowFlags_NoScrollbar;
+    window_flags &= ~ImGuiWindowFlags_NoScrollWithMouse;
     std::string name = "##DailyTipsDataRenderer" + std::to_string(parent_window->ID);
     ImGui::SetNextWindowPos(pos);
     if (ImGui::BeginChild(name.c_str(), size, false, window_flags)) {
-        ImVec2 img_size = ImVec2(size.x, 9.0f / 16.0f * size.x);
-        render_img({0, 0}, img_size);
-        float img_text_gap = ImGui::CalcTextSize("A").y;
-        render_text({0, img_size.y + img_text_gap }, size);
+        if (m_layout == DailyTipsLayout::Vertical) {
+            ImVec2 img_size = ImVec2(size.x, 9.0f / 16.0f * size.x);
+            render_img({ 0, 0 }, img_size);
+            float img_text_gap = ImGui::CalcTextSize("A").y;
+            render_text({ 0, img_size.y + img_text_gap }, size);
+        }
+        if (m_layout == DailyTipsLayout::Horizontal) {
+            ImVec2 img_size = ImVec2(16.0f / 9.0f * size.y, size.y);
+            render_img({ 0, 0 }, img_size);
+            float img_text_gap = ImGui::CalcTextSize("A").y;
+            render_text({ img_size.x + img_text_gap, 0 }, { size.x - img_size.x - img_text_gap, size.y });
+        }
     }
     ImGui::EndChild();
 }
@@ -129,7 +145,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         content_lines = m_data.main_text.substr(end_pos + 1);
     }
 
-    ImGui::SetCursorPosY(start_pos.y);
+    ImGui::SetCursorPos(start_pos);
     imgui.text(title_line);
     
     bool is_zh = false;
@@ -139,6 +155,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
     }
     if (!is_zh) {
         // problem in Chinese with spaces
+        ImGui::SetCursorPosX(start_pos.x);
         imgui.text_wrapped(content_lines, size.x);
     }
     else {
@@ -148,6 +165,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         wrapped_text->Wrap(size.x + ImGui::CalcTextSize("A").x * 5.0f);
         std::string wrapped_content_lines = wrapped_text->GetLabel().ToUTF8().data();
         wrapped_text->Destroy();
+        ImGui::SetCursorPosX(start_pos.x);
         imgui.text(wrapped_content_lines);
     }
 
@@ -158,10 +176,10 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         std::string first_part_text = tips_line.substr(0, tips_line.find(wiki_part_text));
         ImVec2 wiki_part_size = ImGui::CalcTextSize(wiki_part_text.c_str());
         ImVec2 first_part_size = ImGui::CalcTextSize(first_part_text.c_str());
-        
-        ImVec2 link_start_pos = ImGui::GetCursorScreenPos();
 
         //text
+        ImGui::SetCursorPosX(start_pos.x);
+        ImVec2 link_start_pos = ImGui::GetCursorScreenPos();
         imgui.text(first_part_text);
 
         ImColor HyperColor = ImColor(31, 142, 234).Value;
@@ -190,9 +208,19 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
 
 int DailyTipsPanel::uid = 0;
 
-DailyTipsPanel::DailyTipsPanel(bool can_expand)
-    : DailyTipsPanel(ImVec2(0, 0), ImVec2(0, 0), can_expand)
+DailyTipsPanel::DailyTipsPanel(bool can_expand, DailyTipsLayout layout)
+    : m_pos(ImVec2(0, 0)),
+    m_width(0),
+    m_height(0),
+    m_can_expand(can_expand),
+    m_layout(layout),
+    m_uid(DailyTipsPanel::uid++),
+    m_dailytips_renderer(std::make_unique<DailyTipsDataRenderer>(layout))
 {
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    float scale = imgui.get_font_size() / 15.0f;
+    m_footer_height = 58.0f * scale;
+    m_is_expanded = wxGetApp().app_config->get("show_hints") == "true";
 }
 
 void DailyTipsPanel::set_position(const ImVec2& pos)
@@ -204,6 +232,7 @@ void DailyTipsPanel::set_size(const ImVec2& size)
 {
     m_width = size.x;
     m_height = size.y;
+    m_content_height = m_height - m_footer_height;
 }
 
 void DailyTipsPanel::set_can_expand(bool can_expand)
@@ -216,25 +245,10 @@ ImVec2 DailyTipsPanel::get_size()
     return ImVec2(m_width, m_height);
 }
 
-DailyTipsPanel::DailyTipsPanel(const ImVec2& pos, const ImVec2& size, bool can_expand)
-    : m_pos(pos),
-    m_width(size.x),
-    m_height(size.y),
-    m_can_expand(can_expand)
-{
-    m_dailytips_renderer = std::make_unique<DailyTipsDataRenderer>();
-    m_is_expanded = wxGetApp().app_config->get("show_hints") == "true";
-    m_uid = (DailyTipsPanel::uid++);
-}
-
 void DailyTipsPanel::render()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     float scale = imgui.get_font_size() / 15.0f;
-
-    m_header_height = m_can_expand ? 38.0f * scale : 0;
-    m_footer_height = 38.0f * scale;
-    m_content_height = m_height - m_header_height - m_footer_height;
 
     if (!m_first_enter) {
         retrieve_data_from_hint_database(HintDataNavigation::Curr);
@@ -244,7 +258,7 @@ void DailyTipsPanel::render()
     push_styles();
     if (m_can_expand) {
         if (m_is_expanded) {
-            m_height = m_header_height + m_content_height + m_footer_height;
+            m_height = m_content_height + m_footer_height;
         }
         else {
             m_height = m_footer_height;
@@ -261,13 +275,11 @@ void DailyTipsPanel::render()
     if (ImGui::BeginChild((std::string("##DailyTipsPanel") + std::to_string(m_uid)).c_str(), ImVec2(m_width, m_height), false, window_flags)) {
         if (m_can_expand) {
             if (m_is_expanded) {
-                render_header(m_pos, { m_width, m_header_height });
-                m_dailytips_renderer->render({ m_pos.x, m_pos.y + m_header_height }, { m_width, m_content_height });
+                m_dailytips_renderer->render({ m_pos.x, m_pos.y }, { m_width, m_content_height });
                 render_controller_buttons({ m_pos.x, m_pos.y + m_height - m_footer_height }, { m_width, m_footer_height });
             }
             else {
                 render_controller_buttons({ m_pos.x, m_pos.y + m_height - m_footer_height }, { m_width, m_footer_height });
-
             }
         }
         else {
@@ -330,22 +342,22 @@ void DailyTipsPanel::on_change_color_mode(bool is_dark)
     m_dailytips_renderer->on_change_color_mode(is_dark);
 }
 
-void DailyTipsPanel::render_header(const ImVec2& pos, const ImVec2& size)
-{
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
-    int window_flags = parent_window->Flags;
-    std::string name = "##DailyTipsPanelHeader" + std::to_string(parent_window->ID);
-    ImGui::SetNextWindowPos(pos);
-    if (ImGui::BeginChild(name.c_str(), size, false, window_flags)) {
-        ImVec2 text_pos = pos + ImVec2(0, (size.y - ImGui::CalcTextSize("A").y) / 2);
-        ImGui::SetCursorScreenPos(text_pos);
-        imgui.push_bold_font();
-        imgui.text(_u8L("Daily Tips"));
-        imgui.pop_bold_font();
-    }
-    ImGui::EndChild();
-}
+//void DailyTipsPanel::render_header(const ImVec2& pos, const ImVec2& size)
+//{
+//    ImGuiWrapper& imgui = *wxGetApp().imgui();
+//    ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
+//    int window_flags = parent_window->Flags;
+//    std::string name = "##DailyTipsPanelHeader" + std::to_string(parent_window->ID);
+//    ImGui::SetNextWindowPos(pos);
+//    if (ImGui::BeginChild(name.c_str(), size, false, window_flags)) {
+//        ImVec2 text_pos = pos + ImVec2(0, (size.y - ImGui::CalcTextSize("A").y) / 2);
+//        ImGui::SetCursorScreenPos(text_pos);
+//        imgui.push_bold_font();
+//        imgui.text(_u8L("Daily Tips"));
+//        imgui.pop_bold_font();
+//    }
+//    ImGui::EndChild();
+//}
 
 void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& size)
 {
@@ -356,8 +368,8 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
     std::string name = "##DailyTipsPanelControllers" + std::to_string(parent_window->ID);
     ImGui::SetNextWindowPos(pos);
     if (ImGui::BeginChild(name.c_str(), size, false, window_flags)) {
-        ImVec2 button_size = ImVec2(size.y, size.y);
-        float button_margin_x = 8.0f;
+        ImVec2 button_size = ImVec2(38.0f, 38.0f) * scale;
+        float button_margin_x = 8.0f * scale;
         std::wstring button_text;
 
         // collapse / expand
@@ -371,7 +383,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144).Value);
 
                 button_text = ImGui::CollapseArrowIcon;
-                imgui.button((_u8L("Collapse") + button_text).c_str());
+                imgui.button((_L("Collapse") + button_text));
                 ImVec2 collapse_btn_size = ImGui::CalcTextSize((_u8L("Collapse")).c_str());
                 collapse_btn_size.x += button_size.x / 2.0f;
                 if (ImGui::IsMouseHoveringRect(btn_pos, btn_pos + collapse_btn_size, true))
@@ -398,7 +410,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
 
                 // for bold font text, split text and icon-font button
                 imgui.push_bold_font();
-                imgui.button((_u8L("Daily Tips")).c_str());
+                imgui.button((_L("Daily Tips")));
                 imgui.pop_bold_font();
                 ImVec2 expand_btn_size = ImGui::CalcTextSize((_u8L("Daily Tips")).c_str());
                 ImGui::SetCursorScreenPos(ImVec2(btn_pos.x + expand_btn_size.x + ImGui::CalcTextSize(" ").x, btn_pos.y));
@@ -445,7 +457,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
 
         // prev button
         ImColor button_text_color = m_is_dark ? ImColor(228, 228, 228) : ImColor(38, 46, 48);
-        ImVec2 prev_button_pos = pos + size + ImVec2(-button_margin_x - button_size.x * 2, -size.y);
+        ImVec2 prev_button_pos = pos + size + ImVec2(-button_margin_x - button_size.x * 2, -size.y + (size.y - button_size.y) / 2);
         ImGui::SetCursorScreenPos(prev_button_pos);
         button_text = ImGui::PrevArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(prev_button_pos, prev_button_pos + button_size, true))
@@ -460,7 +472,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
 
         // next button
         button_text_color = m_is_dark ? ImColor(228, 228, 228) : ImColor(38, 46, 48);
-        ImVec2 next_button_pos = pos + size + ImVec2(-button_size.x, -size.y);
+        ImVec2 next_button_pos = pos + size + ImVec2(-button_size.x, -size.y + (size.y - button_size.y) / 2);
         ImGui::SetCursorScreenPos(next_button_pos);
         button_text = ImGui::NextArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(next_button_pos, next_button_pos + button_size, true))
@@ -489,19 +501,25 @@ void DailyTipsPanel::push_styles()
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.0f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * scale);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, m_is_dark ? ImGuiWrapper::COL_WINDOW_BG_DARK : ImGuiWrapper::COL_WINDOW_BG);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
 }
 
 void DailyTipsPanel::pop_styles()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.pop_common_window_style();
-    ImGui::PopStyleVar(5);
+    ImGui::PopStyleVar(6);
+    ImGui::PopStyleColor(4);
 }
 
 
 DailyTipsWindow::DailyTipsWindow()
 {
-    m_panel = new DailyTipsPanel(false);
+    m_panel = new DailyTipsPanel(false, DailyTipsLayout::Vertical);
 }
 
 void DailyTipsWindow::open()

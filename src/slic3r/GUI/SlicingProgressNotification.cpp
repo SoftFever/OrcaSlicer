@@ -239,22 +239,31 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 		m_is_dark ? push_style_color(ImGuiCol_Border, { 62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f }, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
 	}
 	else {
+		// for debug
+		//ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
+		//m_is_dark ? push_style_color(ImGuiCol_Border, { 62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f }, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		push_style_color(ImGuiCol_Border, { 0, 0, 0, 0 }, true, m_current_fade_opacity);
 	}
 
-	const ImVec2 progress_child_window_padding = ImVec2(25.f, 5.f) * scale;
-	const ImVec2 dailytips_child_window_padding = ImVec2(25.f, 2.f) * scale;
-	const ImVec2 bottom_padding = ImVec2(25.f, 20.f) * scale;
-	const float  progress_panel_width = (m_window_width - 2 * progress_child_window_padding.x);
-	const float  progress_panel_height = (78.0f * scale);
-	const float  dailytips_panel_width = (m_window_width - 2 * dailytips_child_window_padding.x);
-	const float  dailytips_panel_height = (395.0f * scale);
-
 	Size cnv_size = canvas.get_canvas_size();
+
+	//m_window_width = 600.f * scale;
+	//if (m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_COMPLETED || m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_CANCELLED)
+	//	m_window_width = m_line_height * 25;
+	const ImVec2 progress_child_window_padding = ImVec2(15.f, 0.f) * scale;
+	const ImVec2 dailytips_child_window_padding = m_dailytips_panel->is_expanded() ? ImVec2(15.f, 10.f) * scale : ImVec2(15.f, 0.f) * scale;
+	const ImVec2 bottom_padding = ImVec2(0.f, 0.f) * scale;
+	const float  progress_panel_width = (m_window_width - 2 * progress_child_window_padding.x);
+	const float  progress_panel_height = (58.0f * scale);
+	const float  dailytips_panel_width = (m_window_width - 2 * dailytips_child_window_padding.x);
+	const float  gcodeviewer_height = wxGetApp().plater()->get_preview_canvas3D()->get_gcode_viewer().get_legend_height();
+	const float  dailytips_panel_height = std::min(380.0f * scale, std::max(90.0f, (cnv_size.get_height() - gcodeviewer_height - progress_panel_height - dailytips_child_window_padding.y - initial_y - m_line_height * 4)));
+
 	float right_gap = right_margin + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
-	ImVec2 window_pos((float)cnv_size.get_width() - right_gap - m_window_width, (float)cnv_size.get_height() - m_top_y);
-	imgui.set_next_window_pos(window_pos.x, window_pos.y, ImGuiCond_Always, 0.0f, 0.0f);
+	m_window_pos = ImVec2((float)cnv_size.get_width() - right_gap - m_window_width, (float)cnv_size.get_height() - m_top_y);
+	imgui.set_next_window_pos(m_window_pos.x, m_window_pos.y, ImGuiCond_Always, 0.0f, 0.0f);
 	// dynamically resize window by progress state
 	if (m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_COMPLETED || m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_CANCELLED)
 		m_window_height = 64.0f * scale;
@@ -282,12 +291,12 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 		if (m_sp_state == SlicingProgressState::SP_CANCELLED || m_sp_state == SlicingProgressState::SP_COMPLETED) {
 			ImVec2 button_size = ImVec2(38.f, 38.f) * scale;
 			float  button_right_margin_x = 3.0f * scale;
-			ImVec2 button_pos = window_pos + ImVec2(m_window_width - button_size.x - button_right_margin_x, (m_window_height - button_size.y) / 2.0f);
+			ImVec2 button_pos = m_window_pos + ImVec2(m_window_width - button_size.x - button_right_margin_x, (m_window_height - button_size.y) / 2.0f);
 			float  text_left_margin_x = 15.0f * scale;
-			ImVec2 text_pos = window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f - m_line_height * 1.2f);
-			ImVec2 view_dailytips_text_pos = window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f + m_line_height * 0.2f);
+			ImVec2 text_pos = m_window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f - m_line_height * 1.2f);
+			ImVec2 view_dailytips_text_pos = m_window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f + m_line_height * 0.2f);
 
-			bbl_render_left_sign(imgui, m_window_width, m_window_height, window_pos.x + m_window_width, window_pos.y);
+			bbl_render_left_sign(imgui, m_window_width, m_window_height, m_window_pos.x + m_window_width, m_window_pos.y);
 			render_text(text_pos);
 			render_close_button(button_pos, button_size);
 			render_show_dailytips(view_dailytips_text_pos);
@@ -320,11 +329,12 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 			ImGui::GetCurrentWindow()->DrawList->AddLine(separator_min, separator_max, ImColor(238, 238, 238));
 
 			child_name = "##DailyTipsPanel" + std::to_string(parent_window->ID);
-			ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos() + dailytips_child_window_padding);
+			ImVec2 dailytips_pos = ImGui::GetCursorScreenPos() + dailytips_child_window_padding;
+			ImVec2 dailytips_size = ImVec2(dailytips_panel_width, dailytips_panel_height);
+			m_dailytips_panel->set_position(dailytips_pos);
+			m_dailytips_panel->set_size(dailytips_size);
+			ImGui::SetNextWindowPos(dailytips_pos);
 			if (ImGui::BeginChild(child_name.c_str(), ImVec2(dailytips_panel_width, dailytips_panel_height), false, child_window_flags)) {
-				ImVec2 child_window_pos = ImGui::GetWindowPos();
-				ImVec2 dailytips_pos = child_window_pos;
-				ImVec2 dailytips_size = ImVec2(dailytips_panel_width, dailytips_panel_height);
 				render_dailytips_panel(dailytips_pos, dailytips_size);
 			}
 			ImGui::EndChild();
@@ -356,7 +366,6 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 		push_style_color(ImGuiCol_TextSelectedBg, ImVec4(0, .75f, .75f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
-		ImVec2 icon_size = ImVec2(38.f, 38.f) * scale;
 		ImGui::SetCursorScreenPos(pos);
 		std::wstring icon_text;
 		icon_text = ImGui::CompleteIcon;
@@ -364,26 +373,37 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 
 		ImGui::PopStyleColor(5);
 
-		// complete text
-		imgui.push_bold_font();
-		ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x, pos.y));
-		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
-		imgui.pop_bold_font();
-
-		// before closing text
-		int64_t now = GLCanvas3D::timestamp_now();
-		int64_t duration_time = now - m_before_complete_start;
-		if (duration_time > BEFORE_COMPLETE_DURATION) {
-			set_progress_state(SlicingProgressState::SP_COMPLETED);
-			return;
+		ImVec2 icon_size = ImVec2(38.f, 38.f) * scale;
+		if (ImGui::IsMouseHoveringRect(m_window_pos, m_window_pos + ImVec2(m_window_width, m_window_height), false)) {
+			// complete text
+			imgui.push_bold_font();
+			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + (icon_size.y - m_line_height) / 2));
+			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+			imgui.pop_bold_font();
+			
+			m_before_complete_start = GLCanvas3D::timestamp_now();
 		}
-		boost::format fmt(_u8L("Closing in %ds"));
-		fmt % (3 - duration_time / 1000);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144).Value);
-		ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x, pos.y + m_line_height + m_line_height / 2));
-		imgui.text(fmt.str());
-		ImGui::PopStyleColor();
+		else {
+			// complete text
+			imgui.push_bold_font();
+			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y));
+			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+			imgui.pop_bold_font();
 
+			// timer to close
+			int64_t now = GLCanvas3D::timestamp_now();
+			int64_t duration_time = now - m_before_complete_start;
+			if (duration_time > BEFORE_COMPLETE_DURATION) {
+				set_progress_state(SlicingProgressState::SP_COMPLETED);
+				return;
+			}
+			boost::format fmt(_u8L("Closing in %ds"));
+			fmt % (3 - duration_time / 1000);
+			ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144).Value);
+			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + m_line_height + m_line_height / 2));
+			imgui.text(fmt.str());
+			ImGui::PopStyleColor();
+		}
 	}
 	else {
 		//one line text
@@ -424,8 +444,6 @@ void NotificationManager::SlicingProgressNotification::render_dailytips_panel(co
 		m_dailytips_panel->set_can_expand(false);
 	else
 		m_dailytips_panel->set_can_expand(true);
-	m_dailytips_panel->set_position(pos);
-	m_dailytips_panel->set_size(size);
 	m_dailytips_panel->render();
 }
 
@@ -444,7 +462,7 @@ void NotificationManager::SlicingProgressNotification::render_show_dailytips(con
 	ImGui::SetCursorScreenPos(pos);
 	std::wstring button_text;
 	button_text = ImGui::OpenArrowIcon;
-	imgui.button((_u8L("View all Daily tips") + " " + button_text).c_str());
+	imgui.button(_L("View all Daily tips") + " " + button_text);
 	//click behavior
 	if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true))
 	{

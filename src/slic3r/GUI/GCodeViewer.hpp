@@ -779,6 +779,7 @@ private:
     std::vector<EMoveType> options_items;
 
     bool m_legend_enabled{ true };
+    float m_legend_height;
     PrintEstimatedStatistics m_print_statistics;
     PrintEstimatedStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedStatistics::ETimeMode::Normal };
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -882,6 +883,7 @@ public:
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
+    float get_legend_height() { return m_legend_height; }
 
     void export_toolpaths_to_obj(const char* filename) const;
 

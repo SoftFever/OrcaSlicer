@@ -10,12 +10,16 @@
 
 namespace Slic3r { namespace GUI {
 
+enum class DailyTipsLayout{
+    Horizontal,
+    Vertical
+};
+
 class DailyTipsDataRenderer;
 class DailyTipsPanel {
     static int uid;
 public:
-    DailyTipsPanel(bool can_expand = true);
-    DailyTipsPanel(const ImVec2& pos, const ImVec2& size, bool can_expand = true);
+    DailyTipsPanel(bool can_expand = true, DailyTipsLayout layout = DailyTipsLayout::Vertical);
     void set_position(const ImVec2& pos);
     void set_size(const ImVec2& size);
     void set_can_expand(bool can_expand);
@@ -28,7 +32,6 @@ public:
     void on_change_color_mode(bool is_dark);
 
 protected:
-    void render_header(const ImVec2& pos, const ImVec2& size);
     void render_controller_buttons(const ImVec2& pos, const ImVec2& size);
     void push_styles();
     void pop_styles();
@@ -42,12 +45,12 @@ private:
     ImVec2 m_pos;
     float m_width;
     float m_height;
-    float m_header_height;
     float m_content_height;
     float m_footer_height;
     int m_uid;
     bool m_first_enter{ false };
     bool m_is_dark{ false };
+    DailyTipsLayout m_layout{ DailyTipsLayout::Vertical };
 };
 
 class DailyTipsWindow {

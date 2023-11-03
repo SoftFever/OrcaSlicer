@@ -1277,14 +1277,14 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     //BBS: always render shells in preview window
     render_shells();
 
+    m_legend_height = 0.0f;
     if (m_roles.empty())
         return;
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     render_toolpaths();
     //render_shells();
-    float legend_height = 0.0f;
-    render_legend(legend_height, canvas_width, canvas_height, right_margin);
+    render_legend(m_legend_height, canvas_width, canvas_height, right_margin);
 
     if (m_user_mode != wxGetApp().get_mode()) {
         update_by_mode(wxGetApp().get_mode());
@@ -1298,7 +1298,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
+        m_sequential_view.render(m_legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -4420,7 +4420,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::SetNextWindowBgAlpha(0.8f);
-    const float max_height = 0.75f * static_cast<float>(cnv_size.get_height());
+    const float max_height = 0.45f * static_cast<float>(cnv_size.get_height());
     const float child_height = 0.3333f * max_height;
     ImGui::SetNextWindowSizeConstraints({ 0.0f, 0.0f }, { -1.0f, max_height });
     imgui.begin(std::string("Legend"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);

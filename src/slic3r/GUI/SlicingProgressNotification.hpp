@@ -23,7 +23,7 @@ public:
     SlicingProgressNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, std::function<bool()> callback)
         : PopNotification(n, id_provider, evt_handler)
         , m_cancel_callback(callback)
-        , m_dailytips_panel(new DailyTipsPanel(true))
+        , m_dailytips_panel(new DailyTipsPanel(true, DailyTipsLayout::Vertical))
     {
         set_progress_state(SlicingProgressState::SP_NO_SLICING);
     }
@@ -65,6 +65,7 @@ protected:
     int		    get_duration() override;
 
 protected:
+    ImVec2                  m_window_pos;
     float                   m_percentage{ 0.0f };
     int64_t                 m_before_complete_start;
     // if returns false, process was already canceled
