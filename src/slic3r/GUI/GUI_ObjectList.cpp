@@ -5584,7 +5584,7 @@ void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
             int plate_idx = node->GetPlateIdx();
             if (plate_idx >= 0) {
                 auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
-                m_objects_model->SetName(plate->get_plate_name(), GetSelection());
+                m_objects_model->SetName(from_u8(plate->get_plate_name()), GetSelection());
             }
         }
     }

@@ -5033,9 +5033,9 @@ void Tab::delete_preset()
                 presets += "\n - " + preset2.name;
             }
         if (count > 0) {
-            msg = _L("Presets inherited by other presets cannot be deleted");
+            msg = _L("Presets inherited by other presets can not be deleted!");
             msg += "\n";
-            msg += _L_PLURAL("The following presets inherits this preset.",
+            msg += _L_PLURAL("The following presets inherit this preset.",
                             "The following preset inherits this preset.", count);
             wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str()); // action + _(L(" Preset"));
             MessageDialog(parent(), msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
