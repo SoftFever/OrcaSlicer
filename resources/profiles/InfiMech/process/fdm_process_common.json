@@ -55,7 +55,6 @@
 	"infill_direction": "45",
 	"infill_jerk": "9",
 	"infill_wall_overlap": "25%",
-	"inherits": "0.20mm Standard @MyKlipper",
 	"initial_layer_acceleration": "500",
 	"initial_layer_infill_speed": "50",
 	"initial_layer_jerk": "9",
