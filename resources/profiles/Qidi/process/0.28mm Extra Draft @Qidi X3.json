@@ -79,7 +79,7 @@
     "initial_layer_travel_speed": "50%",
     "inner_wall_speed": "200",
     "internal_bridge_speed": "50",
-    "internal_solid_infill_pattern": "zig-zag",
+    "internal_solid_infill_pattern": "monotonic",
     "internal_solid_infill_speed": "200",
     "is_custom_defined": "0",
     "layer_height": "0.28",

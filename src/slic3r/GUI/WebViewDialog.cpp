@@ -430,23 +430,23 @@ void WebViewPanel::SendRecentList(int images)
 
 void WebViewPanel::SendDesignStaffpick(bool on)
 {
-    if (on) {
-        get_design_staffpick(0, 60, [this](std::string body) {
-            if (body.empty() || body.front() != '{') {
-                BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
-                return;
-            }
-            CallAfter([this, body] {
-                auto body2 = from_u8(body);
-                body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
-                RunScript(wxString::Format("window.postMessage(%s)", body2));
-            });
-        });
-    } else {
-        std::string body2 = "{\"total\":0, \"hits\":[]}";
-        body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
-        RunScript(wxString::Format("window.postMessage(%s)", body2));
-    }
+    // if (on) {
+    //     get_design_staffpick(0, 60, [this](std::string body) {
+    //         if (body.empty() || body.front() != '{') {
+    //             BOOST_LOG_TRIVIAL(warning) << "get_design_staffpick failed " + body;
+    //             return;
+    //         }
+    //         CallAfter([this, body] {
+    //             auto body2 = from_u8(body);
+    //             body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+    //             RunScript(wxString::Format("window.postMessage(%s)", body2));
+    //         });
+    //     });
+    // } else {
+    //     std::string body2 = "{\"total\":0, \"hits\":[]}";
+    //     body2.insert(1, "\"command\": \"modelmall_model_advise_get\", ");
+    //     RunScript(wxString::Format("window.postMessage(%s)", body2));
+    // }
 }
 
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
@@ -488,17 +488,17 @@ void WebViewPanel::ShowNetpluginTip()
 
 void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
 {
-    auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/design/staffpick");
-    std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
+    // auto host = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), "v1/design-service/design/staffpick");
+    // std::string url = (boost::format("%1%/?offset=%2%&limit=%3%") % host % offset % limit).str();
 
-    Http http = Http::get(url);
-    http.header("accept", "application/json")
-        .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) {
-            callback(body);
-        })
-        .perform();
+    // Http http = Http::get(url);
+    // http.header("accept", "application/json")
+    //     .header("Content-Type", "application/json")
+    //     .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
+    //     .on_error([this, callback](std::string body, std::string error, unsigned status) {
+    //         callback(body);
+    //     })
+    //     .perform();
 }
 
 int WebViewPanel::get_model_mall_detail_url(std::string *url, std::string id)
