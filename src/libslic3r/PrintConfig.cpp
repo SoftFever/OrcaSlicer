@@ -3010,7 +3010,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used");
     def->min = 0;
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_not_for_body",coBool);
     def->label    = L("No interface filament for body");
@@ -3043,7 +3043,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     // BBS
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->set_default_value(new ConfigOptionInt(0));
 
     auto support_interface_top_layers = def = this->add("support_interface_top_layers", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
@@ -3123,7 +3123,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Lightning"));
     def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
+    def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpDefault));
 
     def = this->add("support_interface_pattern", coEnum);
     def->label = L("Interface pattern");
@@ -3143,7 +3143,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Rectilinear Interlaced"));
     def->enum_labels.push_back(L("Grid"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<SupportMaterialInterfacePattern>(smipRectilinear));
+    def->set_default_value(new ConfigOptionEnum<SupportMaterialInterfacePattern>(smipAuto));
 
     def = this->add("support_base_pattern_spacing", coFloat);
     def->label = L("Base pattern spacing");

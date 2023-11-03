@@ -3083,7 +3083,7 @@ static void finalize_interface_and_support_areas(
         [&](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
             // Subtract support lines of the branches from the roof
-            SupportGeneratorLayer *support_roof = top_contacts[layer_idx];
+            SupportGeneratorLayer* support_roof = layer_idx < top_contacts.size() ? top_contacts[layer_idx] : nullptr;
             Polygons               support_roof_polygons;
             if (Polygons &src = support_roof_storage[layer_idx]; ! src.empty()) {
                 if (support_roof != nullptr && ! support_roof->polygons.empty()) {
