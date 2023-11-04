@@ -5425,6 +5425,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"setting1.json;setting2.json\"";
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("uptodate_filaments", coStrings);
+    def->label = "load uptodate filament settings when using uptodate";
+    def->tooltip = "load uptodate filament settings from the specified file when using uptodate";
+    def->cli_params = "\"filament1.json;filament2.json;...\"";
+    def->set_default_value(new ConfigOptionStrings());
+
     /*def = this->add("output", coString);
     def->label = L("Output File");
     def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
@@ -5481,8 +5487,24 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("allow_multicolor_oneplate", coBool);
     def->label = "Allow multiple color on one plate";
-    def->tooltip = "If enabled, the arrange will allow multiple color on one plate ";
+    def->tooltip = "If enabled, the arrange will allow multiple color on one plate";
     def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("allow_rotations", coBool);
+    def->label = "Allow rotatations when arrange";
+    def->tooltip = "If enabled, the arrange will allow rotations when place object";
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("avoid_extrusion_cali_region", coBool);
+    def->label = "Avoid extrusion calibrate region when doing arrange";
+    def->tooltip = "If enabled, the arrange will avoid extrusion calibrate region when place object";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("skip_modified_gcodes", coBool);
+    def->label = "Skip modified gcodes in 3mf";
+    def->tooltip = "Skip the modified gcodes in 3mf from Printer or filament Presets";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
 }
 
 const CLIActionsConfigDef    cli_actions_config_def;

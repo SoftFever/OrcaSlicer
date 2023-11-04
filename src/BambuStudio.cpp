@@ -516,6 +516,67 @@ static int load_key_values_from_json(const std::string &file, std::map<std::stri
     return 0;
 }
 
+static std::set<std::string> gcodes_key_set =  {"filament_end_gcode", "filament_start_gcode", "change_filament_gcode", "layer_change_gcode", "machine_end_gcode", "machine_pause_gcode", "machine_start_gcode",
+            "template_custom_gcode", "printing_by_object_gcode", "before_layer_change_gcode", "time_lapse_gcode"};
+
+static void load_default_gcodes_to_config(DynamicPrintConfig& config, Preset::Type type)
+{
+    if (config.size() == 0) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", empty config, return directly";
+        return;
+    }
+    //add those empty gcodes by default
+    if (type == Preset::TYPE_PRINTER)
+    {
+        std::string change_filament_gcode = config.option<ConfigOptionString>("change_filament_gcode", true)->value;
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", change_filament_gcode: "<< change_filament_gcode;
+
+        ConfigOptionString* layer_change_gcode_opt = config.option<ConfigOptionString>("layer_change_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", layer_change_gcode: "<<layer_change_gcode_opt->value;
+
+        ConfigOptionString* machine_end_gcode_opt = config.option<ConfigOptionString>("machine_end_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", machine_end_gcode: "<<machine_end_gcode_opt->value;
+
+        ConfigOptionString* machine_pause_gcode_opt = config.option<ConfigOptionString>("machine_pause_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", machine_pause_gcode: "<<machine_pause_gcode_opt->value;
+
+        ConfigOptionString* machine_start_gcode_opt = config.option<ConfigOptionString>("machine_start_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", machine_start_gcode: "<<machine_start_gcode_opt->value;
+
+        ConfigOptionString* template_custom_gcode_opt = config.option<ConfigOptionString>("template_custom_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", template_custom_gcode: "<<template_custom_gcode_opt->value;
+
+        ConfigOptionString* printing_by_object_gcode_opt = config.option<ConfigOptionString>("printing_by_object_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", printing_by_object_gcode: "<<printing_by_object_gcode_opt->value;
+
+        ConfigOptionString* before_layer_change_gcode_opt = config.option<ConfigOptionString>("before_layer_change_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", before_layer_change_gcode: "<<before_layer_change_gcode_opt->value;
+
+        ConfigOptionString* timeplase_gcode_opt = config.option<ConfigOptionString>("time_lapse_gcode", true);
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", time_lapse_gcode: "<<timeplase_gcode_opt->value;
+    }
+    else if (type == Preset::TYPE_FILAMENT)
+    {
+        std::vector<std::string>& filament_start_gcodes = config.option<ConfigOptionStrings>("filament_start_gcode", true)->values;
+        if (filament_start_gcodes.empty()) {
+            filament_start_gcodes.resize(1, std::string());
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", set filament_start_gcodes to empty";
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", filament_start_gcodes: "<<filament_start_gcodes[0];
+        }
+
+        std::vector<std::string>& filament_end_gcodes = config.option<ConfigOptionStrings>("filament_end_gcode", true)->values;
+        if (filament_end_gcodes.empty()) {
+            filament_end_gcodes.resize(1, std::string());
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", set filament_end_gcode to empty";
+        }
+        else {
+            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__<< ", filament_end_gcode: "<<filament_end_gcodes[0];
+        }
+    }
+}
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -601,6 +662,7 @@ int CLI::run(int argc, char **argv)
     std::string outfile_dir              =  m_config.opt_string("outputdir", true);
     const std::vector<std::string>              &load_configs               = m_config.option<ConfigOptionStrings>("load_settings", true)->values;
     const std::vector<std::string>              &uptodate_configs          = m_config.option<ConfigOptionStrings>("uptodate_settings", true)->values;
+    const std::vector<std::string>              &uptodate_filaments          = m_config.option<ConfigOptionStrings>("uptodate_filaments", true)->values;
     //BBS: always use ForwardCompatibilitySubstitutionRule::Enable
     //const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = ForwardCompatibilitySubstitutionRule::Enable;
@@ -684,6 +746,7 @@ int CLI::run(int argc, char **argv)
     int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false;
+    bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
     std::vector<Preset*> project_presets;
@@ -720,6 +783,18 @@ int CLI::run(int argc, char **argv)
     if (enable_timelapse_option)
         enable_timelapse = enable_timelapse_option->value;
 
+    ConfigOptionBool* allow_rotations_option = m_config.option<ConfigOptionBool>("allow_rotations");
+    if (allow_rotations_option)
+        allow_rotations = allow_rotations_option->value;
+
+    ConfigOptionBool* skip_modified_gcodes_option = m_config.option<ConfigOptionBool>("skip_modified_gcodes");
+    if (skip_modified_gcodes_option)
+        skip_modified_gcodes = skip_modified_gcodes_option->value;
+
+    ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
+    if (avoid_extrusion_cali_region_option)
+        avoid_extrusion_cali_region = avoid_extrusion_cali_region_option->value;
+
     ConfigOptionString* pipe_option = m_config.option<ConfigOptionString>("pipe");
     if (pipe_option) {
         pipe_name = pipe_option->value;
@@ -753,7 +828,8 @@ int CLI::run(int argc, char **argv)
     const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
     //when load objects from stl/obj, the total used filaments set
     std::set<int> used_filament_set;
-    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, loaded_filament_ids size %2%, clone_objects size %3%")%allow_multicolor_oneplate %loaded_filament_ids.size() %clone_objects.size();
+    BOOST_LOG_TRIVIAL(info) << boost::format("allow_multicolor_oneplate %1%, allow_rotations %2% skip_modified_gcodes %3% avoid_extrusion_cali_region %4% loaded_filament_ids size %5%, clone_objects size %6%")
+        %allow_multicolor_oneplate %allow_rotations %skip_modified_gcodes %avoid_extrusion_cali_region %loaded_filament_ids.size() %clone_objects.size();
     if (clone_objects.size() > 0)
     {
         if (clone_objects.size() != m_input_files.size())
@@ -1517,34 +1593,83 @@ int CLI::run(int argc, char **argv)
                 fetch_compatible_values = true;
         }
 
-        //20230802 lhwei: remove below codes, don't replace filament currently
-        /*if (load_filaments_config.empty() && !current_filaments_system_name.empty()) {
-            for (int index = 0; index < current_filaments_system_name.size(); index++) {
-                std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+current_filaments_system_name[index]+".json";
-                current_index++;
-                if (! boost::filesystem::exists(system_filament_path)) {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_filament_path;
-                    continue;
+        //filament processes
+        if (load_filament_count == 0)
+        {
+            if (uptodate_filaments.size() > 0)
+            {
+                if (uptodate_filaments.size() != filament_count)
+                {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("uptodate_filaments size %1% not equal to filament_count %2% ")%uptodate_filaments.size() %filament_count;
+                    record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                    flush_and_exit(CLI_INVALID_PARAMS);
                 }
-                DynamicPrintConfig  config;
-                std::string config_type, config_name, filament_id, config_from;
-                int ret = load_config_file(system_filament_path, config, config_type, config_name, filament_id, config_from);
-                if (ret) {
-                    record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
-                    flush_and_exit(ret);
-                }
+                for (unsigned int index = 0; index < filament_count; index ++)
+                {
+                    std::string file = uptodate_filaments[index];
+                    DynamicPrintConfig  config;
+                    std::string config_type, config_name, filament_id, config_from;
+                    int ret = load_config_file(file, config, config_type, config_name, filament_id, config_from);
+                    if (ret) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("load uptodate_filaments %1% fail, index %2%!")%file %index;
+                        record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+                        flush_and_exit(ret);
+                    }
 
-                load_filaments_id.push_back(filament_id);
-                load_filaments_name.push_back(config_name);
-                load_filaments_config.push_back(std::move(config));
-                load_filaments_index.push_back(current_index);
-                std::string inherits;
-                if ((config_from == "User")||(config_from == "user")) {
-                    inherits = config.option<ConfigOptionString>("inherits", true)->value;
+                    if (config_type != "filament") {
+                        BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(": unknown config type %1% of file %2% in load-filaments") % config_type % file;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+
+                    if (config_name != current_filaments_system_name[index]) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("wrong filament config file %1% loaded, current filament config name %2%, index %3%")%config_name %current_filaments_system_name[index] %index;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+
+                    load_filaments_id.push_back(filament_id);
+                    load_filaments_name.push_back(config_name);
+                    load_filaments_config.push_back(std::move(config));
+                    load_filaments_index.push_back(index+1);
+                    load_filaments_inherit.push_back(config_name);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("load a filament config %1% from file %2%, using uptodate_filaments index %3%")%config_name %file %index;
                 }
-                load_filaments_inherit.push_back(inherits);
             }
-        }*/
+            else
+            {
+                current_index = 0;
+                for (int index = 0; index < current_filaments_system_name.size(); index++)
+                {
+                    std::string system_filament_path = resources_dir() + "/profiles/BBL/filament_full/"+current_filaments_system_name[index]+".json";
+                    current_index++;
+                    if (! boost::filesystem::exists(system_filament_path)) {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< boost::format(":%1%, can not find system preset file: %2% ")%__LINE__ %system_filament_path;
+                        continue;
+                    }
+                    DynamicPrintConfig  config;
+                    std::string config_type, config_name, filament_id, config_from;
+                    int ret = load_config_file(system_filament_path, config, config_type, config_name, filament_id, config_from);
+                    if (ret) {
+                        record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+                        flush_and_exit(ret);
+                    }
+
+                    if (config_type != "filament") {
+                        BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(": unknown config type %1% of file %2% in load-filaments") % config_type % system_filament_path;
+                        record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+
+                    load_filaments_id.push_back(filament_id);
+                    load_filaments_name.push_back(config_name);
+                    load_filaments_config.push_back(std::move(config));
+                    load_filaments_index.push_back(current_index);
+                    load_filaments_inherit.push_back(config_name);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("LINE %4%: load a filament config %1% from file %2%, index %3%")%config_name %system_filament_path %index %__LINE__;
+                }
+            }
+        }
     }
     else if (is_bbl_3mf){
         fetch_upward_values = true;
@@ -1734,12 +1859,24 @@ int CLI::run(int argc, char **argv)
     }
 
     //update seperate configs into full config
-    auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets, bool update_all = false) {
-        for (const t_config_option_key &opt_key : config.keys()) {
-            if (!update_all && !diff_key_sets.empty() && (diff_key_sets.find(opt_key) != diff_key_sets.end())) {
-                //uptodate, diff keys, continue
-                BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
-                continue;
+    auto update_full_config = [](DynamicPrintConfig& full_config, const DynamicPrintConfig& config, std::set<std::string>& diff_key_sets, bool update_all = false, bool skip_gcodes = false) {
+        const t_config_option_keys& config_keys = config.keys();
+        BOOST_LOG_TRIVIAL(info) << boost::format("update_full_config: config keys count %1%")%config_keys.size();
+        for (const t_config_option_key &opt_key : config_keys) {
+            if (!update_all && !diff_key_sets.empty()) {
+                std::set<std::string>::iterator iter = diff_key_sets.find(opt_key);
+                if ( iter != diff_key_sets.end()) {
+                    if (skip_gcodes && (gcodes_key_set.find(opt_key) != gcodes_key_set.end()))
+                    {
+                        diff_key_sets.erase(iter);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, gcodes %2% modified, reset to default.")%__LINE__ %opt_key;
+                    }
+                    else {
+                        //uptodate, diff keys, continue
+                        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, keep key %2%")%__LINE__ %opt_key;
+                        continue;
+                    }
+                }
             }
             const ConfigOption *source_opt = config.option(opt_key);
             if (source_opt == nullptr) {
@@ -1788,16 +1925,28 @@ int CLI::run(int argc, char **argv)
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
-        BOOST_LOG_TRIVIAL(info) << boost::format("update printer config to newest, different size %1%")%different_keys_set.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("update printer config to newest, different size %1%, different_settings: %2%")%different_keys_set.size() %different_settings[filament_count+1];
 
         int ret;
+
+        load_default_gcodes_to_config(load_machine_config, Preset::TYPE_PRINTER);
         if (new_printer_name.empty()) {
-            ret = update_full_config(m_print_config, load_machine_config, different_keys_set);
-            BOOST_LOG_TRIVIAL(info) << boost::format("no new printer, only update the different key, ret %1%")%ret;
+            int diff_keys_size = different_keys_set.size();
+            ret = update_full_config(m_print_config, load_machine_config, different_keys_set, false, skip_modified_gcodes);
+            if (diff_keys_size != different_keys_set.size()) {
+                //changed
+                BOOST_LOG_TRIVIAL(info) << boost::format("new different key size %1%")%different_keys_set.size();
+                different_keys.clear();
+
+                for (std::set<std::string>::iterator iter=different_keys_set.begin(); iter !=different_keys_set.end(); ++iter)
+                    different_keys.emplace_back(*iter);
+                different_settings[filament_count+1] = Slic3r::escape_strings_cstyle(different_keys);
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("no new printer, only update the different key, new different_settings: %1%")%different_settings[filament_count+1];
         }
         else {
             ret = update_full_config(m_print_config, load_machine_config, different_keys_set, true);
-            BOOST_LOG_TRIVIAL(info) << boost::format("load a new printer, update all the keys, ret %1%")%ret;
+            BOOST_LOG_TRIVIAL(info) << boost::format("load a new printer, update all the keys, different_settings: %1%")%different_settings[filament_count+1];
         }
 
         if (ret) {
@@ -1842,16 +1991,28 @@ int CLI::run(int argc, char **argv)
         }
 
         std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
-        BOOST_LOG_TRIVIAL(info) << boost::format("update process config to newest, different size %1%")%different_keys_set.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("update process config to newest, different size %1%, different_settings: %2%")%different_keys_set.size() %different_settings[0];
 
         int ret;
+
+        load_default_gcodes_to_config(load_machine_config, Preset::TYPE_PRINT);
         if (new_process_name.empty()) {
-            ret = update_full_config(m_print_config, load_process_config, different_keys_set);
-            BOOST_LOG_TRIVIAL(info) << boost::format("no new process, only update the different key, ret %1%")%ret;
+            int diff_keys_size = different_keys_set.size();
+            ret = update_full_config(m_print_config, load_process_config, different_keys_set, false, skip_modified_gcodes);
+            if (diff_keys_size != different_keys_set.size()) {
+                //changed
+                BOOST_LOG_TRIVIAL(info) << boost::format("new different key size %1%")%different_keys_set.size();
+                different_keys.clear();
+
+                for (std::set<std::string>::iterator iter=different_keys_set.begin(); iter !=different_keys_set.end(); ++iter)
+                    different_keys.emplace_back(*iter);
+                different_settings[0] = Slic3r::escape_strings_cstyle(different_keys);
+            }
+            BOOST_LOG_TRIVIAL(info) << boost::format("no new process, only update the different key, new different_settings: %1%")%different_settings[0];
         }
         else {
             ret = update_full_config(m_print_config, load_process_config, different_keys_set, true);
-            BOOST_LOG_TRIVIAL(info) << boost::format("load a new process, update all the keys, ret %1%")%ret;
+            BOOST_LOG_TRIVIAL(info) << boost::format("load a new process, update all the keys, different_settings: %1%")%different_settings[0];
         }
 
         if (ret) {
@@ -1889,6 +2050,8 @@ int CLI::run(int argc, char **argv)
             int filament_index = load_filaments_index[index];
             std::vector<std::string> different_keys;
 
+            load_default_gcodes_to_config(config, Preset::TYPE_FILAMENT);
+
             if (load_filament_count > 0) {
                 ConfigOptionStrings *opt_filament_settings = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_settings_id", true));
                 std::string& filament_name = load_filaments_name[index];
@@ -1921,12 +2084,25 @@ int CLI::run(int argc, char **argv)
             //parse the filament value to index th
             //loop through options and apply them
             std::set<std::string> different_keys_set(different_keys.begin(), different_keys.end());
-            BOOST_LOG_TRIVIAL(info) << boost::format("update filament %1%'s config to newest, different size %2%")%filament_index%different_keys_set.size();
+            int diff_keys_size = different_keys_set.size();
+            BOOST_LOG_TRIVIAL(info) << boost::format("update filament %1%'s config to newest, different size %2%, name %3%, different_settings %4%")
+                %filament_index%different_keys_set.size()%load_filaments_name[index] % different_settings[filament_index];
             for (const t_config_option_key &opt_key : config.keys()) {
-                if ((load_filament_count == 0) && !different_keys_set.empty() && (different_keys_set.find(opt_key) != different_keys_set.end())) {
-                    //uptodate, diff keys, continue
-                    BOOST_LOG_TRIVIAL(info) << boost::format("keep key %1%")%opt_key;
-                    continue;
+                if ((load_filament_count == 0) && !different_keys_set.empty())
+                {
+                    std::set<std::string>::iterator iter = different_keys_set.find(opt_key);
+                    if ( iter != different_keys_set.end()) {
+                        if (skip_modified_gcodes && (gcodes_key_set.find(opt_key) != gcodes_key_set.end()))
+                        {
+                            different_keys_set.erase(iter);
+                            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, filament %2%'s gcodes %3% modified, reset to default.")%__LINE__ %filament_index %opt_key;
+                        }
+                        else {
+                            //uptodate, diff keys, continue
+                            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, keep key %2%")%__LINE__ %opt_key;
+                            continue;
+                        }
+                    }
                 }
                 // Create a new option with default value for the key.
                 // If the key is not in the parameter definition, or this ConfigBase is a static type and it does not support the parameter,
@@ -1976,6 +2152,16 @@ int CLI::run(int argc, char **argv)
                     const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
                     opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
                 }
+            }
+
+            if (diff_keys_size != different_keys_set.size()) {
+                //changed
+                different_keys.clear();
+
+                for (std::set<std::string>::iterator iter=different_keys_set.begin(); iter !=different_keys_set.end(); ++iter)
+                    different_keys.emplace_back(*iter);
+                different_settings[filament_index] = Slic3r::escape_strings_cstyle(different_keys);
+                BOOST_LOG_TRIVIAL(info) << boost::format("filament %1% new different key size %2%, different_settings %3%")%filament_index %different_keys_set.size() %different_settings[filament_index];
             }
         }
     }
@@ -2986,9 +3172,9 @@ int CLI::run(int argc, char **argv)
 
 
                 //Step-2:prepare the arrange params
-                arrange_cfg.allow_rotations  = true;
+                arrange_cfg.allow_rotations  = allow_rotations;
                 arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
-                arrange_cfg.avoid_extrusion_cali_region         = false;
+                arrange_cfg.avoid_extrusion_cali_region         = avoid_extrusion_cali_region;
                 arrange_cfg.clearance_height_to_rod             = height_to_rod;
                 arrange_cfg.clearance_height_to_lid             = height_to_lid;
                 arrange_cfg.cleareance_radius                   = cleareance_radius;
