@@ -145,12 +145,13 @@ bool GLGizmoText::on_init()
     m_scale = m_imgui->get_font_size();
     m_shortcut_key = WXK_CONTROL_T;
 
+    m_grabbers.push_back(Grabber());
+
     reset_text_info();
 
     m_desc["rotate_text_caption"] = _L("Shift + Mouse move up or dowm");
     m_desc["rotate_text"]         = _L("Rotate text");
 
-    m_grabbers.push_back(Grabber());
     return true;
 }
 
@@ -252,13 +253,8 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
         m_mouse_position = mouse_position;
     }
     else if (action == SLAGizmoEventType::LeftDown) {
-        if (!selection.is_empty() && get_hover_id() != -1) {
-            //start_dragging();
-            return true;
-        }
-
         if (m_is_modify)
-            return true;
+            return false;
 
         Plater *plater = wxGetApp().plater();
         if (!plater)
@@ -318,6 +314,40 @@ bool GLGizmoText::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_posit
 
     return true;
 }
+
+bool GLGizmoText::on_mouse(const wxMouseEvent &mouse_event)
+{
+    // wxCoord == int --> wx/types.h
+    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2d mouse_pos = mouse_coord.cast<double>();
+    bool control_down           = mouse_event.CmdDown();
+
+    if (mouse_event.Moving()) {
+        gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), control_down);
+    }
+
+    // when control is down we allow scene pan and rotation even when clicking
+    // over some object
+    bool grabber_contains_mouse = (get_hover_id() != -1);
+
+    if (mouse_event.LeftDown()) {
+        if ((!control_down || grabber_contains_mouse) &&            
+            gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false))
+            // the gizmo got the event and took some action, there is no need
+            // to do anything more
+            return true;
+    }
+
+    return use_grabbers(mouse_event);
+}
+
+void GLGizmoText::on_register_raycasters_for_picking()
+{
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
+}
+
+void GLGizmoText::on_unregister_raycasters_for_picking() { m_parent.set_raycaster_gizmos_on_top(false); }
 
 void GLGizmoText::on_set_state()
 {
@@ -445,13 +475,12 @@ void GLGizmoText::on_render()
 
         m_grabbers[0].center       = m_mouse_position_world;
         m_grabbers[0].enabled      = true;
-        //ColorRGBA color = picking_color_component(0);
-        //m_grabbers[0].color        = color;
 
         GLShaderProgram *shader    = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
-            //m_grabbers[0].render_for_picking(mean_size);
+            shader->set_uniform("emission_factor", 0.1f);
+            render_grabbers(mean_size);
 
             shader->stop_using();
         }
@@ -465,53 +494,6 @@ void GLGizmoText::on_render()
     generate_text_volume();
     plater->update();
 }
-
-/*
-void GLGizmoText::on_render_for_picking()
-{
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    int          obejct_idx, volume_idx;
-    ModelVolume *model_volume = get_selected_single_volume(obejct_idx, volume_idx);
-    if (model_volume && !model_volume->get_text_info().m_text.empty()) {
-        if (m_grabbers.size() == 1) {
-            ModelObject *mo = m_c->selection_info()->model_object();
-            if (m_is_modify) {
-                const Selection &selection = m_parent.get_selection();
-                mo                         = selection.get_model()->objects[m_object_idx];
-            }
-            if (mo == nullptr) return;
-
-            const Selection &    selection = m_parent.get_selection();
-            const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
-
-            // Precalculate transformations of individual meshes.
-            std::vector<Transform3d> trafo_matrices;
-            for (const ModelVolume *mv : mo->volumes) {
-                if (mv->is_model_part()) {
-                    trafo_matrices.emplace_back(mi->get_transformation().get_matrix() * mv->get_matrix());
-                }
-            }
-
-            m_mouse_position_world = trafo_matrices[m_rr.mesh_id] * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
-
-            float mean_size = (float) (GLGizmoBase::Grabber::FixedGrabberSize);
-            m_grabbers[0].center       = m_mouse_position_world;
-            m_grabbers[0].enabled      = true;
-            ColorRGBA color = picking_color_component(0);
-            m_grabbers[0].color        = color;
-
-            GLShaderProgram *shader    = wxGetApp().get_shader("flat");
-            if (shader != nullptr) {
-                shader->start_using();
-                m_grabbers[0].render_for_picking(mean_size);
-
-                shader->stop_using();
-            }
-        }
-    }
-}
-*/
 
 void GLGizmoText::on_dragging(const UpdateData &data)
 {
@@ -943,6 +925,7 @@ void GLGizmoText::reset_text_info()
     m_keep_horizontal = false;
 
     m_is_modify = false;
+    m_grabbers[0].enabled = false;
 }
 
 bool GLGizmoText::update_text_positions(const std::vector<std::string>& texts)
