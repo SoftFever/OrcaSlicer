@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-04 14:18+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5048,6 +5048,15 @@ msgstr "Імперський"
 msgid "Units"
 msgstr "Одиниці"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Наблизити до положення миші"
 
@@ -5061,6 +5070,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5120,12 +5135,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Якщо включено, встановлює OrcaSlicer як програму за замовчуваннямдля "
 "відкриття файлів .step"
-
-msgid "Online Models"
-msgstr ""
-
-msgid "Show online staff-picked models on the home page"
-msgstr ""
 
 msgid "Maximum recent projects"
 msgstr "Максимум останніх проектів"
@@ -9519,22 +9528,6 @@ msgstr ""
 "соплом та об’єктом який друкується. Це запобігає удару сопла об об’єкт при "
 "переміщення. Використання спіралевої лінії підняття по осі Z може "
 "перешкоджати появі висячих ниток"
-
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
 
 msgid "Z hop type"
 msgstr "Тип Z-стрибка"
