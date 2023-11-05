@@ -5005,7 +5005,7 @@ void Tab::delete_preset()
     //std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
     // TRN  remove/delete
     wxString msg;
-
+    bool     confirm_delete_third_party_printer = false;
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
             Preset &current_preset = m_presets->get_selected_preset();
@@ -5024,6 +5024,7 @@ void Tab::delete_preset()
                                      filament_preset_num, process_preset_num));
             int res = dlg.ShowModal();
             if (res != wxID_OK) return;
+            confirm_delete_third_party_printer = true;
         }
         int count = 0;
         wxString presets;
@@ -5091,9 +5092,9 @@ void Tab::delete_preset()
     //action = current_preset.is_external ? _utf8(L("Remove")) : _utf8(L("Delete"));
     // TRN  Remove/Delete
     wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str());  //action + _(L(" Preset"));
-    if (current_preset.is_default ||
+    if (current_preset.is_default || !(confirm_delete_third_party_printer ||
         //wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
-        wxID_YES != MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
+        wxID_YES == MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()))
         return;
 
     // if we just delete preset from the physical printer
