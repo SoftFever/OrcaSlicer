@@ -8290,7 +8290,7 @@ void Plater::calib_pa(const Calib_Params& params)
 
     switch (params.mode) {
         case CalibMode::Calib_PA_Line:
-            add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+            add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl");
             break;
         case CalibMode::Calib_PA_Pattern:
             _calib_pa_pattern(params);
@@ -8404,7 +8404,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {
-    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
+    add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl");
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
