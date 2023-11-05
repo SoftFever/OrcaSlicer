@@ -3456,6 +3456,16 @@ def = this->add("filament_loading_speed", coFloats);
     //Support with too small spacing may touch the object and difficult to remove.
     def->set_default_value(new ConfigOptionFloat(0.35));
 
+    def = this->add("support_object_base_additional_xy_distance", coFloat);
+    def->label = L("Support/object base additional xy distance");
+    def->category = L("Support");
+    def->tooltip = L("Additional XY separation between an object and its base support material");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
     def = this->add("support_angle", coFloat);
     def->label = L("Pattern angle");
     def->category = L("Support");

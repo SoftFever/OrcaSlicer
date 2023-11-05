@@ -378,6 +378,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
         bridge_flow += region.config().bridge_flow;
     }
     m_support_params.gap_xy = m_object_config->support_object_xy_distance.value;
+    m_support_params.base_additional_gap_xy = m_object_config->support_object_base_additional_xy_distance;
     bridge_flow /= object->num_printing_regions();
 
     m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
@@ -3274,7 +3275,8 @@ void PrintObjectSupportMaterial::generate_base_layers(
     ++ iRun;
 #endif /* SLIC3R_DEBUG */
 
-    this->trim_support_layers_by_object(object, intermediate_layers, m_slicing_params.gap_support_object, m_slicing_params.gap_object_support, m_support_params.gap_xy);
+    this->trim_support_layers_by_object(object, intermediate_layers, m_slicing_params.gap_support_object, m_slicing_params.gap_object_support, m_support_params.gap_xy + m_support_params.base_additional_gap_xy);
+
 }
 
 void PrintObjectSupportMaterial::trim_support_layers_by_object(
