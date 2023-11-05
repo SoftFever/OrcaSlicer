@@ -63,8 +63,6 @@ public:
     const ModelObjectPtrs& perform_by_contour(std::vector<Part> parts, int dowels_count);
     const ModelObjectPtrs& perform_with_groove(const Groove& groove, const Transform3d& rotation_m, bool keep_as_parts = false);
 
-    static ModelObjectPtrs cut_horizontal(const ModelObject *object, size_t instance_idx, double z, ModelObjectCutAttributes attributes);
-
 }; // namespace Cut
 
 

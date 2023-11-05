@@ -653,11 +653,5 @@ const ModelObjectPtrs& Cut::perform_with_groove(const Groove& groove, const Tran
     return m_model.objects;
 }
 
-ModelObjectPtrs Cut::cut_horizontal(const ModelObject *object, size_t instance_idx, double z, ModelObjectCutAttributes attributes)
-{
-    Cut cut(object, instance_idx, Geometry::translation_transform(z * Vec3d::UnitZ()), attributes);
-    return cut.perform_with_plane();
-}
-
 } // namespace Slic3r
 

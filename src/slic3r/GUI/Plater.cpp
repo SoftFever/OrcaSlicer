@@ -8426,23 +8426,12 @@ void Plater::cut_horizontal(size_t obj_idx, size_t instance_idx, double z, Model
         return;
 
     wxBusyCursor wait;
-    const auto new_objects = Cut::cut_horizontal(object, instance_idx, z, attributes);
 
-    remove(obj_idx);
-    p->load_model_objects(new_objects);
+    const Vec3d instance_offset = object->instances[instance_idx]->get_offset();
+    Cut         cut(object, instance_idx, Geometry::translation_transform(z * Vec3d::UnitZ() - instance_offset), attributes);
+    const auto  new_objects = cut.perform_with_plane();
 
-    // now process all updates of the 3d scene
-    update();
-
-    // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
-    // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
-    for (size_t idx = 0; idx < p->model.objects.size(); idx++)
-        wxGetApp().obj_list()->update_info_items(idx);
-
-    Selection& selection = p->get_selection();
-    size_t last_id = p->model.objects.size() - 1;
-    for (size_t i = 0; i < new_objects.size(); ++i)
-        selection.add_object((unsigned int)(last_id - i), i == 0);
+    apply_cut_object_to_model(obj_idx, new_objects);
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {

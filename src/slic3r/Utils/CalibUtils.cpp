@@ -143,7 +143,9 @@ static void cut_model(Model &model, double z, ModelObjectCutAttributes attribute
 
     auto* object = model.objects[0];
 
-    const auto new_objects = Cut::cut_horizontal(object, instance_idx, z, attributes);
+    const Vec3d instance_offset = object->instances[instance_idx]->get_offset();
+    Cut         cut(object, instance_idx, Geometry::translation_transform(z * Vec3d::UnitZ() - instance_offset), attributes);
+    const auto  new_objects = cut.perform_with_plane();
     model.delete_object(obj_idx);
 
     for (ModelObject *model_object : new_objects) {
