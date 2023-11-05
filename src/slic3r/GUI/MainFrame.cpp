@@ -64,6 +64,7 @@
 #include <dbt.h>
 #include <shlobj.h>
 #endif // _WIN32
+#include <slic3r/GUI/CreatePresetsDialog.hpp>
 
 
 namespace Slic3r {

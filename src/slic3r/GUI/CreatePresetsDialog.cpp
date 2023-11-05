@@ -3,14 +3,17 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <openssl/md5.h>
+#include <openssl/evp.h>
+#include <wx/dcgraph.h>
 #include "libslic3r/PresetBundle.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
-#include <openssl/md5.h>
-#include <openssl/evp.h>
 #include "FileHelp.hpp"
-#include <wx/dcgraph.h>
+#include "Tab.hpp"
+#include "ParamsDialog.hpp"
+
 #define NAME_OPTION_COMBOBOX_SIZE wxSize(FromDIP(200), FromDIP(24))
 #define FILAMENT_PRESET_COMBOBOX_SIZE wxSize(FromDIP(300), FromDIP(24))
 #define OPTION_SIZE wxSize(FromDIP(100), FromDIP(24))
@@ -101,6 +104,56 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
                         "Zero 120mm3",      "Switchwire"}},
      {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
 
+static bool delete_filament_preset_by_name(std::string delete_preset_name, std::string &selected_preset_name)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select preset, name %1%") % delete_preset_name;
+    if (delete_preset_name.empty()) return false;
+
+    // Find an alternate preset to be selected after the current preset is deleted.
+    PresetCollection &m_presets = wxGetApp().preset_bundle->filaments;
+    if (delete_preset_name == selected_preset_name) {
+        const std::deque<Preset> &presets     = m_presets.get_presets();
+        size_t                    idx_current = m_presets.get_idx_selected();
+
+        // Find the visible preset.
+        size_t idx_new = idx_current;
+        if (idx_current > presets.size()) idx_current = presets.size();
+        if (idx_current < 0) idx_current = 0;
+        if (idx_new < presets.size())
+            for (; idx_new < presets.size() && (presets[idx_new].name == delete_preset_name || !presets[idx_new].is_visible); ++idx_new)
+                ;
+        if (idx_new == presets.size())
+            for (idx_new = idx_current - 1; idx_new > 0 && (presets[idx_new].name == delete_preset_name || !presets[idx_new].is_visible); --idx_new)
+                ;
+        selected_preset_name = presets[idx_new].name;
+        BOOST_LOG_TRIVIAL(info) << boost::format("cause by delete current ,choose the next visible, idx %1%, name %2%") % idx_new % selected_preset_name;
+    }
+
+    try {
+        // BBS delete preset
+        Preset *need_delete_preset = m_presets.find_preset(delete_preset_name);
+        if (!need_delete_preset) BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" can't find delete preset and name: %1%") % delete_preset_name;
+        if (!need_delete_preset->setting_id.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "delete preset = " << need_delete_preset->name << ", setting_id = " << need_delete_preset->setting_id;
+            m_presets.set_sync_info_and_save(need_delete_preset->name, need_delete_preset->setting_id, "delete", 0);
+            wxGetApp().delete_preset_from_cloud(need_delete_preset->setting_id);
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" can't preset setting id is empty and name: %1%") % delete_preset_name;
+        }
+        if (m_presets.get_edited_preset().name == delete_preset_name) {
+            m_presets.discard_current_changes();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("delete preset dirty and cancelled");
+        }
+        m_presets.delete_preset(need_delete_preset->name);
+    } catch (const std::exception &ex) {
+        // FIXME add some error reporting!
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("found exception when delete: %1% and preset name: %%") % ex.what() % delete_preset_name;
+        return false;
+    }
+
+    return true;
+}
+
 static const std::vector<std::string> nozzle_diameter_vec = {"0.2","0.25", "0.3","0.35", "0.4", "0.5", "0.6","0.75", "0.8", "1.0", "1.2"};
 static const std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2 nozzle", 0.2}, {"0.25 nozzle", 0.25}, {"0.3 nozzle", 0.3}, {"0.35 nozzle", 0.35}, {"0.4 nozzle", 0.4}, {"0.5 nozzle", 0.5}, {"0.6 nozzle", 0.6}, {"0.75 nozzle", 0.75}, {"0.8 nozzle", 0.8}, {"1.0 nozzle", 1.0},   {"1.2 nozzle", 1.2}};
 
@@ -136,10 +189,10 @@ static void get_filament_compatible_printer(Preset* preset, vector<std::string>&
     }
 }
 
-static wxBoxSizer* create_checkbox(wxWindow* parent, Preset* preset, wxString& preset_name, std::vector<std::pair<CheckBox*, Preset*>>& preset_checkbox)
+static wxBoxSizer* create_checkbox(wxWindow* parent, Preset* preset, wxString& preset_name, std::vector<std::pair<::CheckBox*, Preset*>>& preset_checkbox)
 {
     wxBoxSizer *sizer    = new wxBoxSizer(wxHORIZONTAL);
-    CheckBox *  checkbox = new CheckBox(parent);
+    ::CheckBox *  checkbox = new ::CheckBox(parent);
     sizer->Add(checkbox, 0, 0, 0);
     preset_checkbox.push_back(std::make_pair(checkbox, preset));
     wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name);
@@ -147,10 +200,10 @@ static wxBoxSizer* create_checkbox(wxWindow* parent, Preset* preset, wxString& p
     return sizer;
 }
 
-static wxBoxSizer *create_checkbox(wxWindow *parent, std::string &compatible_printer, Preset* preset, std::unordered_map<CheckBox *, std::pair<std::string, Preset *>> &ptinter_compatible_filament_preset)
+static wxBoxSizer *create_checkbox(wxWindow *parent, std::string &compatible_printer, Preset* preset, std::unordered_map<::CheckBox *, std::pair<std::string, Preset *>> &ptinter_compatible_filament_preset)
 {
     wxBoxSizer *sizer    = new wxBoxSizer(wxHORIZONTAL);
-    CheckBox *  checkbox = new CheckBox(parent);
+    ::CheckBox *checkbox = new ::CheckBox(parent);
     sizer->Add(checkbox, 0, 0, 0);
     ptinter_compatible_filament_preset[checkbox] = std::make_pair(compatible_printer, preset);
     wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, wxString::FromUTF8(compatible_printer));
@@ -158,10 +211,10 @@ static wxBoxSizer *create_checkbox(wxWindow *parent, std::string &compatible_pri
     return sizer;
 }
 
-static wxBoxSizer *create_checkbox(wxWindow *parent, wxString &preset_name, std::vector<std::pair<CheckBox *, std::string>> &preset_checkbox)
+static wxBoxSizer *create_checkbox(wxWindow *parent, wxString &preset_name, std::vector<std::pair<::CheckBox *, std::string>> &preset_checkbox)
 {
     wxBoxSizer *sizer    = new wxBoxSizer(wxHORIZONTAL);
-    CheckBox *  checkbox = new CheckBox(parent);
+    ::CheckBox *checkbox = new ::CheckBox(parent);
     sizer->Add(checkbox, 0, 0, 0);
     preset_checkbox.push_back(std::make_pair(checkbox, into_u8(preset_name)));
     wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name);
@@ -251,11 +304,11 @@ static std::string get_vendor_name(std::string& preset_name)
 static wxBoxSizer *create_select_filament_preset_checkbox(wxWindow *                                    parent,
                                                           std::string &                                 compatible_printer,
                                                           std::vector<Preset *>                         presets,
-                                                          std::unordered_map<CheckBox *, std::pair<std::string, Preset *>> &machine_filament_preset)
+                                                          std::unordered_map<::CheckBox *, std::pair<std::string, Preset *>> &machine_filament_preset)
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *checkbox_sizer   = new wxBoxSizer(wxVERTICAL);
-    CheckBox *  checkbox         = new CheckBox(parent);
+    ::CheckBox *checkbox         = new ::CheckBox(parent);
     checkbox_sizer->Add(checkbox, 0, wxEXPAND | wxRIGHT, 5);
 
     wxBoxSizer *combobox_sizer = new wxBoxSizer(wxVERTICAL);
@@ -438,56 +491,6 @@ static char* read_json_file(const std::string &preset_path)
     return json_contents;
 }
 
-static bool delete_filament_preset_by_name(std::string delete_preset_name, std::string &selected_preset_name)
-{
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select preset, name %1%") % delete_preset_name;
-    if (delete_preset_name.empty()) return false;
-    
-    // Find an alternate preset to be selected after the current preset is deleted.
-    PresetCollection &m_presets = wxGetApp().preset_bundle->filaments;
-    if (delete_preset_name == selected_preset_name) {
-        const std::deque<Preset> &presets     = m_presets.get_presets();
-        size_t                    idx_current = m_presets.get_idx_selected();
-        
-        // Find the visible preset.
-        size_t idx_new = idx_current;
-        if (idx_current > presets.size()) idx_current = presets.size();
-        if (idx_current < 0) idx_current = 0;
-        if (idx_new < presets.size())
-            for (; idx_new < presets.size() && (presets[idx_new].name == delete_preset_name || !presets[idx_new].is_visible); ++idx_new)
-                ;
-        if (idx_new == presets.size())
-            for (idx_new = idx_current - 1; idx_new > 0 && (presets[idx_new].name == delete_preset_name || !presets[idx_new].is_visible); --idx_new)
-                ;
-        selected_preset_name = presets[idx_new].name;
-        BOOST_LOG_TRIVIAL(info) << boost::format("cause by delete current ,choose the next visible, idx %1%, name %2%") % idx_new % selected_preset_name;
-    }
-
-    try {
-        // BBS delete preset
-        Preset *need_delete_preset = m_presets.find_preset(delete_preset_name);
-        if (!need_delete_preset) BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" can't find delete preset and name: %1%") % delete_preset_name;
-        if (!need_delete_preset->setting_id.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "delete preset = " << need_delete_preset->name << ", setting_id = " << need_delete_preset->setting_id;
-            m_presets.set_sync_info_and_save(need_delete_preset->name, need_delete_preset->setting_id, "delete", 0);
-            wxGetApp().delete_preset_from_cloud(need_delete_preset->setting_id);
-        } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" can't preset setting id is empty and name: %1%") % delete_preset_name;
-        }
-        if (m_presets.get_edited_preset().name == delete_preset_name) {
-            m_presets.discard_current_changes();
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("delete preset dirty and cancelled");
-        }
-        m_presets.delete_preset(need_delete_preset->name);
-    } catch (const std::exception &ex) {
-        // FIXME add some error reporting!
-        BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << boost::format("found exception when delete: %1% and preset name: %%") % ex.what() % delete_preset_name;
-        return false;
-    }
-
-    return true;
-}
-
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
 	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
 {
@@ -565,11 +568,11 @@ void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
 bool CreateFilamentPresetDialog::is_check_box_selected()
 {
-    for (const std::pair<CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+    for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
         if (checkbox_preset.first->GetValue()) { return true; }
     }
 
-    for (const std::pair<CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+    for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
         if (checkbox_preset.first->GetValue()) { return true; }
     }
 
@@ -633,7 +636,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
 
     wxBoxSizer *comboBoxSizer      = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *checkbox_sizer     = new wxBoxSizer(wxHORIZONTAL);
-    m_can_not_find_vendor_checkbox = new CheckBox(this);
+    m_can_not_find_vendor_checkbox = new ::CheckBox(this);
 
     checkbox_sizer->Add(m_can_not_find_vendor_checkbox, 0, wxALIGN_CENTER, 0);
     checkbox_sizer->Add(0, 0, 0, wxEXPAND | wxRIGHT, FromDIP(5));
@@ -928,7 +931,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         PresetBundle *  preset_bundle    = wxGetApp().preset_bundle;
         if (curr_create_type == m_create_type.base_filament) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament  create type  filament ";
-            for (const std::pair<CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+            for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
                 if (checkbox_preset.first->GetValue()) { 
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
@@ -955,7 +958,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             }
         } else if (curr_create_type == m_create_type.base_filament_preset) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament presets  create type  filament preset";
-            for (const std::pair<CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+            for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
                 if (checkbox_preset.first->GetValue()) {
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
@@ -1515,7 +1518,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     vertical_sizer->Add(comboBoxSizer, 0, wxEXPAND, 0);
 
     wxBoxSizer *checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_can_not_find_vendor_combox = new CheckBox(parent);
+    m_can_not_find_vendor_combox = new ::CheckBox(parent);
 
     checkbox_sizer->Add(m_can_not_find_vendor_combox, 0, wxALIGN_CENTER, 0);
     checkbox_sizer->Add(0, 0, 0, wxEXPAND | wxRIGHT, FromDIP(5));
@@ -2456,7 +2459,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         // Confirm if the filament preset is exist
         bool                        filament_preset_is_exist = false;
         std::vector<Preset const *> selected_filament_presets;
-        for (std::pair<CheckBox *, Preset const *> filament_preset : m_filament_preset) {
+        for (std::pair<::CheckBox *, Preset const *> filament_preset : m_filament_preset) {
             if (filament_preset.first->GetValue()) { selected_filament_presets.push_back(filament_preset.second); }
             if (!filament_preset_is_exist && preset_bundle->filaments.find_preset(filament_preset.second->alias + " @ " + printer_preset_name) != nullptr) {
                 filament_preset_is_exist = true;
@@ -2471,7 +2474,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         // Confirm if the process preset is exist
         bool                        process_preset_is_exist = false;
         std::vector<Preset const *> selected_process_presets;
-        for (std::pair<CheckBox *, Preset const *> process_preset : m_process_preset) {
+        for (std::pair<::CheckBox *, Preset const *> process_preset : m_process_preset) {
             if (process_preset.first->GetValue()) { selected_process_presets.push_back(process_preset.second); }
             if (!process_preset_is_exist && preset_bundle->prints.find_preset(process_preset.second->alias + " @" + printer_preset_name) != nullptr) {
                 process_preset_is_exist = true;
@@ -2759,16 +2762,16 @@ wxArrayString CreatePrinterPresetDialog::printer_preset_sort_with_nozzle_diamete
     return printer_preset_model_selection;
 }
 
-void CreatePrinterPresetDialog::select_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates)
+void CreatePrinterPresetDialog::select_all_preset_template(std::vector<std::pair<::CheckBox *, Preset *>> &preset_templates)
 {
-    for (std::pair < CheckBox *, Preset const * > filament_preset : preset_templates) { 
+    for (std::pair<::CheckBox *, Preset const *> filament_preset : preset_templates) { 
         filament_preset.first->SetValue(true);
     }
 }
 
-void CreatePrinterPresetDialog::deselect_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates)
+void CreatePrinterPresetDialog::deselect_all_preset_template(std::vector<std::pair<::CheckBox *, Preset *>> &preset_templates)
 {
-    for (std::pair<CheckBox *, Preset const *> filament_preset : preset_templates) { 
+    for (std::pair<::CheckBox *, Preset const *> filament_preset : preset_templates) { 
         filament_preset.first->SetValue(false); 
     }
 }
@@ -2811,7 +2814,7 @@ void CreatePrinterPresetDialog::update_presets_list(bool just_template)
 
 void CreatePrinterPresetDialog::clear_preset_combobox()
 { 
-    for (std::pair<CheckBox *, Preset *> preset : m_filament_preset) {
+    for (std::pair<::CheckBox *, Preset *> preset : m_filament_preset) {
         if (preset.second) { 
             delete preset.second;
             preset.second = nullptr;
@@ -2820,7 +2823,7 @@ void CreatePrinterPresetDialog::clear_preset_combobox()
     m_filament_preset.clear();
     m_filament_preset_template_sizer->Clear(true);
 
-    for (std::pair<CheckBox *, Preset *> preset : m_process_preset) {
+    for (std::pair<::CheckBox *, Preset *> preset : m_process_preset) {
         if (preset.second) {
             delete preset.second;
             preset.second = nullptr;
@@ -3192,10 +3195,10 @@ void ExportConfigsDialog::show_export_result(const ExportCase &export_case)
 
 bool ExportConfigsDialog::has_check_box_selected()
 {
-    for (std::pair<CheckBox *, Preset *> checkbox_preset : m_preset) {
+    for (std::pair<::CheckBox *, Preset *> checkbox_preset : m_preset) {
         if (checkbox_preset.first->GetValue()) return true;
     }
-    for (std::pair<CheckBox *, std::string> checkbox_filament_name : m_printer_name) {
+    for (std::pair<::CheckBox *, std::string> checkbox_filament_name : m_printer_name) {
         if (checkbox_filament_name.first->GetValue()) return true;
     }
 
@@ -3511,7 +3514,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
     if (export_path.empty() || "initial_failed" == export_path) return ExportCase::EXPORT_CANCEL;
     BOOST_LOG_TRIVIAL(info) << "Export printer preset bundle";
     
-    for (std::pair<CheckBox *, Preset *> checkbox_preset : m_preset) {
+    for (std::pair<::CheckBox *, Preset *> checkbox_preset : m_preset) {
         if (checkbox_preset.first->GetValue()) {
             Preset *printer_preset = checkbox_preset.second;
             std::string printer_preset_name_ = printer_preset->name;
@@ -3635,7 +3638,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
     if (export_path.empty() || "initial_failed" == export_path) return ExportCase::EXPORT_CANCEL;
     BOOST_LOG_TRIVIAL(info) << "Export filament preset bundle";
 
-    for (std::pair<CheckBox *, std::string> checkbox_filament_name : m_printer_name) {
+    for (std::pair<::CheckBox *, std::string> checkbox_filament_name : m_printer_name) {
         if (checkbox_filament_name.first->GetValue()) {
             std::string filament_name = checkbox_filament_name.second;
 
@@ -3738,7 +3741,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_printer_preset_to_f
 
     std::vector<std::pair<std::string, std::string>> config_paths;
 
-    for (std::pair<CheckBox *, Preset *> checkbox_preset : m_preset) {
+    for (std::pair<::CheckBox *, Preset *> checkbox_preset : m_preset) {
         if (checkbox_preset.first->GetValue()) {
             Preset *    printer_preset = checkbox_preset.second;
             std::string preset_path    = boost::filesystem::path(printer_preset->file).make_preferred().string();
@@ -3770,7 +3773,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_preset_to_
     std::vector<std::pair<std::string, std::string>> config_paths;
 
     std::set<std::string> filament_presets;
-    for (std::pair<CheckBox *, std::string> checkbox_preset : m_printer_name) {
+    for (std::pair<::CheckBox *, std::string> checkbox_preset : m_printer_name) {
         if (checkbox_preset.first->GetValue()) {
             std::string filament_name = checkbox_preset.second;
 
@@ -3814,7 +3817,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_process_preset_to_f
     std::vector<std::pair<std::string, std::string>> config_paths;
 
     std::set<std::string> process_presets;
-    for (std::pair<CheckBox *, std::string> checkbox_preset : m_printer_name) {
+    for (std::pair<::CheckBox *, std::string> checkbox_preset : m_printer_name) {
         if (checkbox_preset.first->GetValue()) {
             std::string printer_name = checkbox_preset.second;
             std::unordered_map<std::string, std::vector<Preset *>>::iterator iter = m_process_presets.find(printer_name);
@@ -3993,6 +3996,8 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     , m_filament_type("")
     , m_filament_serial("")
 {
+    m_preset_tree_creater = new PresetTree(this);
+
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(FromDIP(600), -1));
 
@@ -4085,7 +4090,7 @@ void EditFilamentPresetDialog::update_preset_tree()
     this->Freeze();
     m_preset_tree_sizer->Clear(true);
     for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets : m_printer_compatible_presets) {
-        m_preset_tree_sizer->Add(create_preset_tree(m_preset_tree_panel, printer_and_presets),0,wxEXPAND|wxALL,0);
+        m_preset_tree_sizer->Add(m_preset_tree_creater->get_preset_tree(printer_and_presets), 0, wxEXPAND | wxALL, 5);
     }
     m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
     
@@ -4093,6 +4098,108 @@ void EditFilamentPresetDialog::update_preset_tree()
     this->Layout();
     this->Fit();
     this->Refresh();
+}
+
+void EditFilamentPresetDialog::delete_preset()
+{
+    if (m_selected_printer.empty()) return;
+    if (m_need_delete_preset_index < 0) return;
+    std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>>::iterator iter = m_printer_compatible_presets.find(m_selected_printer);
+    if (m_printer_compatible_presets.end() == iter) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " can not find printer and printer name is: " << m_selected_printer;
+        return;
+    }
+    std::vector<std::shared_ptr<Preset>>& filament_presets = iter->second;
+    if (m_need_delete_preset_index >= filament_presets.size()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " index error and selected printer is: " << m_selected_printer << " and index: " << m_need_delete_preset_index;
+        return;
+    }
+    std::shared_ptr<Preset> need_delete_preset = filament_presets[m_need_delete_preset_index];
+
+    // is root preset ?
+    Preset *filament_preset = wxGetApp().preset_bundle->filaments.find_preset(need_delete_preset->name);
+    if (filament_preset && wxGetApp().preset_bundle->filaments.get_preset_base(*filament_preset) == filament_preset) {
+        int      count = 0;
+        wxString presets;
+        for (auto &preset2 : wxGetApp().preset_bundle->filaments)
+            if (preset2.inherits() == filament_preset->name) {
+                ++count;
+                presets += "\n - " + from_u8(preset2.name);
+            }
+        wxString msg;
+        if (count > 0) {
+            msg = _L("Presets inherited by other presets cannot be deleted");
+            msg += "\n";
+            msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
+            wxString title = _L("Delete Preset"); 
+            MessageDialog(this, msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
+            m_selected_printer.clear();
+            m_need_delete_preset_index = -1;
+            return;
+        }
+    }
+
+    // remove preset shared_ptr from m_printer_compatible_presets
+    int                     last_index         = filament_presets.size() - 1;
+    if (m_need_delete_preset_index != last_index) {
+        std::swap(filament_presets[m_need_delete_preset_index], filament_presets[last_index]);
+    }
+    filament_presets.pop_back();
+    if (filament_presets.empty()) m_printer_compatible_presets.erase(iter);
+
+    //delete preset
+    std::string next_selected_preset_name = wxGetApp().preset_bundle->filaments.get_selected_preset().name;
+    bool        delete_result             = delete_filament_preset_by_name(need_delete_preset->name, next_selected_preset_name);
+    BOOST_LOG_TRIVIAL(info) << __LINE__ << " filament preset name: " << need_delete_preset->name << (delete_result ? " delete successful" : " delete failed");
+
+    wxGetApp().preset_bundle->filaments.select_preset_by_name(next_selected_preset_name, true);
+    for (size_t i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); ++i) {
+        auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
+        if (preset == nullptr) wxGetApp().preset_bundle->filament_presets[i] = wxGetApp().preset_bundle->filaments.get_selected_preset_name();
+    }
+
+    update_preset_tree();
+
+    m_selected_printer.clear();
+    m_need_delete_preset_index = -1;
+}
+
+void EditFilamentPresetDialog::edit_preset()
+{
+    if (m_selected_printer.empty()) return;
+    if (m_need_edit_preset_index < 0) return;
+    std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>>::iterator iter = m_printer_compatible_presets.find(m_selected_printer);
+    if (m_printer_compatible_presets.end() == iter) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " can not find printer and printer name is: " << m_selected_printer;
+        return;
+    }
+    std::vector<std::shared_ptr<Preset>> &filament_presets = iter->second;
+    if (m_need_edit_preset_index >= filament_presets.size()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " index error and selected printer is: " << m_selected_printer << " and index: " << m_need_edit_preset_index;
+        return;
+    }
+
+    // edit preset
+    std::shared_ptr<Preset> need_edit_preset = filament_presets[m_need_edit_preset_index];
+    std::string             need_edit_preset_name = need_edit_preset->name;
+    Tab *                   tab                   = wxGetApp().get_tab(need_edit_preset->type);
+    if (tab == nullptr) {
+        m_selected_printer.clear();
+        m_need_edit_preset_index = -1;
+        return;
+    }
+
+    tab->restore_last_select_item();
+
+    wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
+    // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
+    if (!need_edit_preset->is_compatible) wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
+    wxGetApp().params_dialog()->ShowModal();
+    get_same_filament_id_presets(m_filament_id);
+    update_preset_tree();
+
+    m_selected_printer.clear();
+    m_need_edit_preset_index = -1;
 }
 
 wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
@@ -4201,9 +4308,8 @@ wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
     m_preset_tree_sizer = new wxBoxSizer(wxVERTICAL);
     m_preset_tree_panel->SetSizer(m_preset_tree_sizer);
     m_preset_tree_panel->SetMinSize(wxSize(580, -1));
+    m_preset_tree_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
     m_preset_tree_window_sizer = new wxBoxSizer(wxVERTICAL);
-    /*wxStaticText *static_text    = new wxStaticText(m_preset_tree_window, wxID_ANY, _L("There are filament presets compatible printers."));
-    m_preset_tree_window_sizer->Add(static_text, 0, wxEXPAND | wxALL, FromDIP(10));*/
     m_preset_tree_window_sizer->Add(m_preset_tree_panel, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
     m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
     filament_preset_tree_sizer->Add(m_preset_tree_window, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -4488,6 +4594,122 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
     m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
     
     return bSizer_button;
+}
+
+PresetTree::PresetTree(EditFilamentPresetDialog * dialog)
+: m_parent_dialog(dialog)
+{}
+
+wxPanel *PresetTree::get_preset_tree(std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets)
+{
+    wxBoxSizer *sizer           = new wxBoxSizer(wxVERTICAL);
+    wxPanel *   parent          = m_parent_dialog->get_preset_tree_panel();
+    wxPanel *   panel           = new wxPanel(parent);
+    wxColour    backgroundColor = parent->GetBackgroundColour();
+    panel->SetBackgroundColour(backgroundColor);
+    const std::string &printer_name = printer_and_presets.first;
+    sizer->Add(get_root_item(panel, printer_name), 0, wxEXPAND, 0);
+    int child_count = printer_and_presets.second.size();
+    for (int i = 0; i < child_count; i++) {
+        if (i == child_count - 1) {
+            sizer->Add(get_child_item(panel, printer_and_presets.second[i], printer_name, i, true), 0, wxEXPAND, 0);
+        } else {
+            sizer->Add(get_child_item(panel, printer_and_presets.second[i], printer_name, i, false), 0, wxEXPAND, 0);
+        }
+    }
+    panel->SetSizerAndFit(sizer);
+    return panel;
+}
+
+wxPanel *PresetTree::get_root_item(wxPanel *parent, const std::string &printer_name)
+{
+    wxBoxSizer *sizer           = new wxBoxSizer(wxHORIZONTAL);
+    wxPanel *   panel           = new wxPanel(parent);
+    wxColour    backgroundColor = parent->GetBackgroundColour();
+    panel->SetBackgroundColour(backgroundColor);
+    wxStaticText *preset_name = new wxStaticText(panel, wxID_ANY, from_u8(printer_name));
+    preset_name->SetFont(Label::Body_11);
+    preset_name->SetForegroundColour(*wxBLACK);
+    sizer->Add(preset_name, 0, wxEXPAND | wxALL, 5);
+    panel->SetSizer(sizer);
+
+    return panel;
+}
+
+wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> preset, std::string printer_name, int preset_index, bool is_last)
+{
+    wxBoxSizer *sizer           = new wxBoxSizer(wxHORIZONTAL);
+    wxPanel *   panel           = new wxPanel(parent);
+    wxColour    backgroundColor = parent->GetBackgroundColour();
+    panel->SetBackgroundColour(backgroundColor);
+    sizer->Add(0, 0, 0, wxLEFT, 10);
+    wxPanel *line_left = new wxPanel(panel, wxID_ANY, wxDefaultPosition, is_last ? wxSize(1, 12) : wxSize(1, -1));
+    line_left->SetBackgroundColour(*wxBLACK);
+    sizer->Add(line_left, 0, is_last ? wxALL : wxEXPAND | wxALL, 0);
+    wxPanel *line_right = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxSize(10, 1));
+    line_right->SetBackgroundColour(*wxBLACK);
+    sizer->Add(line_right, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
+    sizer->Add(0, 0, 0, wxLEFT, 5);
+    wxStaticText *preset_name = new wxStaticText(panel, wxID_ANY, from_u8(preset->name));
+    preset_name->SetFont(Label::Body_10);
+    preset_name->SetForegroundColour(*wxBLACK);
+    sizer->Add(preset_name, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(0, 0, 1, wxEXPAND, 0);
+
+    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed), std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
+
+    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+
+    Button *edit_preset_btn = new Button(panel, _L("Edit Preset"));
+    edit_preset_btn->SetFont(Label::Body_10);
+    edit_preset_btn->SetPaddingSize(wxSize(8, 3));
+    edit_preset_btn->SetCornerRadius(8);
+    edit_preset_btn->SetBackgroundColor(flush_bg_col);
+    edit_preset_btn->SetBorderColor(flush_bd_col);
+    edit_preset_btn->SetTextColor(flush_fg_col);
+    edit_preset_btn->Hide();
+    sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
+    sizer->Add(0, 0, 0, wxLEFT, 5);
+
+    Button *del_preset_btn = new Button(panel, _L("Delete Preset"));
+    del_preset_btn->SetFont(Label::Body_10);
+    del_preset_btn->SetPaddingSize(wxSize(8, 3));
+    del_preset_btn->SetCornerRadius(8);
+    del_preset_btn->SetBackgroundColor(flush_bg_col);
+    del_preset_btn->SetBorderColor(flush_bd_col);
+    del_preset_btn->SetTextColor(flush_fg_col);
+    del_preset_btn->Hide();
+    sizer->Add(del_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
+
+    edit_preset_btn->Bind(wxEVT_BUTTON, [this, printer_name, preset_index](wxCommandEvent &e) {
+        wxGetApp().CallAfter([this, printer_name, preset_index]() { edit_preset(printer_name, preset_index); });
+    });
+    del_preset_btn->Bind(wxEVT_BUTTON, [this, printer_name, preset_index](wxCommandEvent &e) {
+        wxGetApp().CallAfter([this, printer_name, preset_index]() { delete_preset(printer_name, preset_index); });
+    });
+
+    panel->SetSizer(sizer);
+
+    return panel;
+}
+
+void PresetTree::delete_preset(std::string printer_name, int need_delete_preset_index)
+{
+    m_parent_dialog->set_printer_name(printer_name);
+    m_parent_dialog->set_need_delete_preset_index(need_delete_preset_index);
+    m_parent_dialog->delete_preset();
+}
+
+void PresetTree::edit_preset(std::string printer_name, int need_edit_preset_index)
+{
+    m_parent_dialog->set_printer_name(printer_name);
+    m_parent_dialog->set_need_edit_preset_index(need_edit_preset_index);
+    m_parent_dialog->edit_preset();
 }
 
 } // namespace GUI

@@ -70,8 +70,8 @@ private:
 
 private:
     std::vector<std::pair<RadioBox *, wxString>>                     m_create_type_btns;
-    std::unordered_map<CheckBox *, std::pair<std::string, Preset *>> m_filament_preset;
-    std::unordered_map<CheckBox *, std::pair<std::string, Preset *>> m_machint_filament_preset;
+    std::unordered_map<::CheckBox *, std::pair<std::string, Preset *>> m_filament_preset;
+    std::unordered_map<::CheckBox *, std::pair<std::string, Preset *>> m_machint_filament_preset;
     std::unordered_map<std::string, std::vector<Preset *>>           m_filament_choice_map;
     std::unordered_map<wxString, std::string>                        m_public_name_to_filament_id_map;
     std::unordered_map<std::string, Preset *>                        m_all_presets_map;
@@ -80,7 +80,7 @@ private:
     Button *                                                         m_button_create                = nullptr;
     Button *                                                         m_button_cancel                = nullptr;
     ComboBox *                                                       m_filament_vendor_combobox     = nullptr;
-    CheckBox *                                                       m_can_not_find_vendor_checkbox = nullptr;
+    ::CheckBox *                                                       m_can_not_find_vendor_checkbox = nullptr;
     ComboBox *                                                       m_filament_type_combobox       = nullptr;
     ComboBox *                                                       m_exist_vendor_combobox        = nullptr;
     ComboBox *                                                       m_filament_preset_combobox     = nullptr;
@@ -131,8 +131,8 @@ protected:
     bool          data_init();
     void          set_current_visible_printer();
     void          select_curr_radiobox(std::vector<std::pair<RadioBox *, wxString>> &radiobox_list, int btn_idx);
-    void          select_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates);
-    void          deselect_all_preset_template(std::vector<std::pair<CheckBox *, Preset *>> &preset_templates);
+    void          select_all_preset_template(std::vector<std::pair<::CheckBox *, Preset *>> &preset_templates);
+    void          deselect_all_preset_template(std::vector<std::pair<::CheckBox *, Preset *>> &preset_templates);
     void          update_presets_list(bool jast_template = false);
     void          on_preset_model_value_change(wxCommandEvent &e);
     void          clear_preset_combobox();
@@ -162,8 +162,8 @@ private:
     CreatePrinterType                                  m_create_type;
     std::vector<std::pair<RadioBox *, wxString>>       m_create_type_btns;
     std::vector<std::pair<RadioBox *, wxString>>       m_create_presets_btns;
-    std::vector<std::pair<CheckBox *, Preset *>>       m_filament_preset;
-    std::vector<std::pair<CheckBox *, Preset *>>       m_process_preset;
+    std::vector<std::pair<::CheckBox *, Preset *>>           m_filament_preset;
+    std::vector<std::pair<::CheckBox *, Preset *>>           m_process_preset;
     std::unordered_map<std::string, std::shared_ptr<Preset>> m_printer_name_to_preset;
     VendorProfile                                      m_printer_preset_vendor_selected;
     Slic3r::VendorProfile::PrinterModel                m_printer_preset_model_selected;
@@ -185,7 +185,7 @@ private:
     ComboBox *                                         m_select_vendor                  = nullptr;
     ComboBox *                                         m_select_model                   = nullptr;
     ComboBox *                                         m_select_printer                 = nullptr;
-    CheckBox *                                         m_can_not_find_vendor_combox     = nullptr;
+    ::CheckBox *                                             m_can_not_find_vendor_combox     = nullptr;
     wxStaticText *                                     m_can_not_find_vendor_text       = nullptr;
     wxTextCtrl *                                       m_custom_vendor_text_ctrl        = nullptr;
     wxTextCtrl *                                       m_custom_model_text_ctrl         = nullptr;
@@ -283,8 +283,8 @@ private:
 
 private:
     std::vector<std::pair<RadioBox *, wxString>>           m_export_type_btns;
-    std::vector<std::pair<CheckBox *, Preset *>>           m_preset;//for printer preset bundle,printer preset, process preset export
-    std::vector<std::pair<CheckBox *, std::string>>        m_printer_name;//for filament and peocess preset export, collaborate with m_filament_name_to_presets
+    std::vector<std::pair<::CheckBox *, Preset *>>         m_preset;         // for printer preset bundle,printer preset, process preset export
+    std::vector<std::pair<::CheckBox *, std::string>>      m_printer_name;    // for filament and peocess preset export, collaborate with m_filament_name_to_presets
     std::unordered_map<std::string, Preset *>              m_printer_presets;//first: printer name, second: printer presets have same printer name
     std::unordered_map<std::string, std::vector<Preset *>> m_filament_presets;//first: printer name, second: filament presets have same printer name
     std::unordered_map<std::string, std::vector<Preset *>> m_process_presets;//first: printer name, second: filament presets have same printer name
@@ -326,11 +326,42 @@ private:
 
 };
 
+class EditFilamentPresetDialog;
+
+class PresetTree
+{
+public:
+    PresetTree(EditFilamentPresetDialog *dialog);
+    
+    wxPanel *get_preset_tree(std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets);
+
+private:
+    wxPanel *get_root_item(wxPanel *parent, const std::string &printer_name);
+
+    wxPanel *get_child_item(wxPanel *parent, std::shared_ptr<Preset> preset, std::string printer_name, int preset_index, bool is_last = false);
+
+    void delete_preset(std::string printer_name, int need_delete_preset_index);
+
+    void edit_preset(std::string printer_name, int need_edit_preset_index);
+
+private:
+    EditFilamentPresetDialog *                                   m_parent_dialog = nullptr;
+    std::pair<std::string, std::vector<std::shared_ptr<Preset>>> m_printer_and_presets;
+
+};
+
 class EditFilamentPresetDialog : public DPIDialog
 {
 public:
     EditFilamentPresetDialog(wxWindow *parent, FilamentInfomation *filament_info);
     ~EditFilamentPresetDialog();
+    
+    wxPanel *get_preset_tree_panel() { return m_preset_tree_panel; }
+    void     set_printer_name(const std::string &printer_name) { m_selected_printer = printer_name; }
+    void     set_need_delete_preset_index(int need_delete_preset_index) { m_need_delete_preset_index = need_delete_preset_index; }
+    void     set_need_edit_preset_index(int need_edit_preset_index) { m_need_edit_preset_index = need_edit_preset_index; }
+    void     delete_preset();
+    void     edit_preset();
 
 private:
     void        on_dpi_changed(const wxRect &suggested_rect) override;
@@ -342,18 +373,22 @@ private:
     wxBoxSizer *create_button_sizer();
 
 private:
-    std::string                          m_filament_id;
-    std::string                          m_filament_name;
-    std::string                          m_vendor_name;
-    std::string                          m_filament_type;
-    std::string                          m_filament_serial;
-    Button *                             m_add_filament_btn  = nullptr;
-    Button *                             m_del_filament_btn  = nullptr;
-    Button *                             m_ok_btn            = nullptr;
-    wxBoxSizer *                         m_preset_tree_sizer = nullptr;
-    wxPanel *                            m_preset_tree_panel  = nullptr;
-    wxScrolledWindow *                   m_preset_tree_window = nullptr;
-    wxBoxSizer *                         m_preset_tree_window_sizer = nullptr;
+    PresetTree *                                                          m_preset_tree_creater = nullptr;
+    std::string                                                           m_filament_id;
+    std::string                                                           m_filament_name;
+    std::string                                                           m_vendor_name;
+    std::string                                                           m_filament_type;
+    std::string                                                           m_filament_serial;
+    Button *                                                              m_add_filament_btn         = nullptr;
+    Button *                                                              m_del_filament_btn         = nullptr;
+    Button *                                                              m_ok_btn                   = nullptr;
+    wxBoxSizer *                                                          m_preset_tree_sizer        = nullptr;
+    wxPanel *                                                             m_preset_tree_panel        = nullptr;
+    wxScrolledWindow *                                                    m_preset_tree_window       = nullptr;
+    wxBoxSizer *                                                          m_preset_tree_window_sizer = nullptr;
+    int                                                                   m_need_delete_preset_index = -1;
+    int                                                                   m_need_edit_preset_index   = -1;
+    std::string                                                           m_selected_printer         = "";
     std::unordered_map<std::string, std::vector<std::shared_ptr<Preset>>> m_printer_compatible_presets;
 
 };

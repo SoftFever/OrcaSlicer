@@ -4501,7 +4501,7 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
         apply_config_from_cache();
 
         load_current_preset();
-        
+
         if (delete_third_printer) {
             wxGetApp().CallAfter([filament_presets, process_presets]() {
                 PresetBundle *preset_bundle     = wxGetApp().preset_bundle;

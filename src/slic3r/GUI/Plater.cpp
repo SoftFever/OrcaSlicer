@@ -135,6 +135,7 @@
 #include "PrintHostDialogs.hpp"
 #include "PlateSettingsDialog.hpp"
 #include "DailyTips.hpp"
+#include "CreatePresetsDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
