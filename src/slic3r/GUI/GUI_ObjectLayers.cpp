@@ -215,17 +215,23 @@ void ObjectLayers::update_layers_list()
     m_object = objects_ctrl->object(obj_idx);
     if (!m_object || m_object->layer_config_ranges.empty()) return;
 
-    // Delete all controls from options group
-    m_grid_sizer->Clear(true);
+    auto range = objects_ctrl->GetModel()->GetLayerRangeByItem(item);
 
-    // Add new control according to the selected item  
+    // only call sizer->Clear(true) via CallAfter, otherwise crash happens in Linux when press enter in Height Range
+    // because an element cannot be destroyed while there are pending events for this element.(https://github.com/wxWidgets/Phoenix/issues/1854)
+    wxGetApp().CallAfter([this, type, objects_ctrl, range]() {
+        // Delete all controls from options group
+        m_grid_sizer->Clear(true);
 
-    if (type & itLayerRoot)
-        create_layers_list();
-    else
-        create_layer(objects_ctrl->GetModel()->GetLayerRangeByItem(item), nullptr, nullptr);
+        // Add new control according to the selected item  
 
-    m_parent->Layout();
+        if (type & itLayerRoot)
+            create_layers_list();
+        else
+            create_layer(range, nullptr, nullptr);
+
+        m_parent->Layout();
+        });
 }
 
 void ObjectLayers::update_scene_from_editor_selection() const
