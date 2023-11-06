@@ -5433,6 +5433,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("load_assemble_list", coString);
+    def->label = "Load assemble list";
+    def->tooltip = "Load assemble object list from config file";
+    def->cli_params = "assemble_list.json";
+    def->set_default_value(new ConfigOptionString());
+
     /*def = this->add("output", coString);
     def->label = L("Output File");
     def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");

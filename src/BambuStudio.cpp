@@ -577,6 +577,304 @@ static void load_default_gcodes_to_config(DynamicPrintConfig& config, Preset::Ty
     }
 }
 
+static int load_assemble_plate_list(std::string config_file, std::vector<assemble_plate_info_t> &assemble_plate_info_list)
+{
+    int ret = 0;
+    boost::filesystem::path directory_path(config_file);
+
+    BOOST_LOG_TRIVIAL(info) << boost::format("%1% enter, file %2%")%__FUNCTION__ % config_file;
+    if (!fs::exists(directory_path)) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("directory %1% not exist.")%config_file;
+        return CLI_FILE_NOTFOUND;
+    }
+
+    try {
+        json root_json;
+        boost::nowide::ifstream ifs(config_file);
+        ifs >> root_json;
+        ifs.close();
+
+        int plate_count = root_json[JSON_ASSEMPLE_PLATES].size();
+        if ((plate_count <= 0) || (plate_count > MAX_PLATE_COUNT)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": invalid plate count %1%")%plate_count;
+            return CLI_CONFIG_FILE_ERROR;
+        }
+        assemble_plate_info_list.resize(plate_count);
+
+        for (int plate_index = 0; plate_index < plate_count; plate_index++)
+        {
+            assemble_plate_info_t &assemble_plate = assemble_plate_info_list[plate_index];
+            const json& plate_json = root_json[JSON_ASSEMPLE_PLATES][plate_index];
+            assemble_plate.plate_name = plate_json[JSON_ASSEMPLE_PLATE_NAME];
+            assemble_plate.need_arrange = plate_json[JSON_ASSEMPLE_PLATE_NEED_ARRANGE];
+
+            if (plate_json.contains(JSON_ASSEMPLE_PLATE_PARAMS)) {
+                assemble_plate.plate_params = plate_json[JSON_ASSEMPLE_PLATE_PARAMS].get<std::map<std::string, std::string>>();
+                BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, has %2% plate params") % (plate_index + 1)  % assemble_plate.plate_params.size();
+            }
+
+            int object_count = plate_json[JSON_ASSEMPLE_OBJECTS].size();
+            if (object_count <= 0) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": invalid object count %1% in plate %2%")%object_count %(plate_index+1);
+                return CLI_CONFIG_FILE_ERROR;
+            }
+
+            assemble_plate.assemble_obj_list.resize(object_count);
+            for (int object_index = 0; object_index < object_count; object_index++)
+            {
+                assemble_object_info_t& assemble_object = assemble_plate.assemble_obj_list[object_index];
+                const json& object_json = plate_json[JSON_ASSEMPLE_OBJECTS][object_index];
+
+                assemble_object.path = object_json[JSON_ASSEMPLE_OBJECT_PATH];
+                assemble_object.count = object_json[JSON_ASSEMPLE_OBJECT_COUNT];
+
+                if (assemble_object.count <= 0) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid object clone count %1% in plate %2% Object %3%") % assemble_object.count % (plate_index + 1) % assemble_object.path;
+                    return CLI_CONFIG_FILE_ERROR;
+                }
+
+                assemble_object.filaments = object_json.at(JSON_ASSEMPLE_OBJECT_FILAMENTS).get<std::vector<int>>();
+                if ((assemble_object.filaments.size() > 0) && (assemble_object.filaments.size() != assemble_object.count) && (assemble_object.filaments.size() != 1))
+                {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": object %1%'s filaments count %2% not equal to clone count %3%, also not equal to 1") % assemble_object.path % assemble_object.filaments.size() % assemble_object.count;
+                    return CLI_CONFIG_FILE_ERROR;
+                }
+
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_ASSEMBLE_INDEX)) {
+                    assemble_object.assemble_index = object_json[JSON_ASSEMPLE_OBJECT_ASSEMBLE_INDEX].get<std::vector<int>>();
+                    if ((assemble_object.assemble_index.size() > 0) && (assemble_object.assemble_index.size() != assemble_object.count) && (assemble_object.assemble_index.size() != 1))
+                    {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": object %1%'s assemble_index count %2% not equal to clone count %3%, also not equal to 1") % assemble_object.path % assemble_object.assemble_index.size() % assemble_object.count;
+                        return CLI_CONFIG_FILE_ERROR;
+                    }
+                }
+
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_POS_X)) {
+                    assemble_object.pos_x = object_json[JSON_ASSEMPLE_OBJECT_POS_X].get<std::vector<float>>();
+                    if ((assemble_object.pos_x.size() > 0) && (assemble_object.pos_x.size() != assemble_object.count) && (assemble_object.pos_x.size() != 1))
+                    {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": object %1%'s pos_x count %2% not equal to clone count %3%, also not equal to 1") % assemble_object.path % assemble_object.pos_x.size() % assemble_object.count;
+                        return CLI_CONFIG_FILE_ERROR;
+                    }
+                }
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_POS_Y)) {
+                    assemble_object.pos_y = object_json[JSON_ASSEMPLE_OBJECT_POS_Y].get<std::vector<float>>();
+                    if ((assemble_object.pos_y.size() > 0) && (assemble_object.pos_y.size() != assemble_object.count) && (assemble_object.pos_y.size() != 1))
+                    {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": object %1%'s pos_y count %2% not equal to clone count %3%, also not equal to 1") % assemble_object.path % assemble_object.pos_y.size() % assemble_object.count;
+                        return CLI_CONFIG_FILE_ERROR;
+                    }
+                }
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_POS_Z)) {
+                    assemble_object.pos_z = object_json[JSON_ASSEMPLE_OBJECT_POS_Z].get<std::vector<float>>();
+                    if ((assemble_object.pos_z.size() > 0) && (assemble_object.pos_z.size() != assemble_object.count) && (assemble_object.pos_z.size() != 1))
+                    {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": object %1%'s pos_z count %2% not equal to clone count %3%, also not equal to 1") % assemble_object.path % assemble_object.pos_z.size() % assemble_object.count;
+                        return CLI_CONFIG_FILE_ERROR;
+                    }
+                }
+                if (object_json.contains(JSON_ASSEMPLE_OBJECT_PRINT_PARAMS)) {
+                    assemble_object.print_params = object_json[JSON_ASSEMPLE_OBJECT_PRINT_PARAMS].get<std::map<std::string, std::string>>();
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% has %3% print params") % (plate_index + 1) %assemble_object.path % assemble_object.print_params.size();
+                }
+            }
+        }
+    }
+    catch(std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse file "<<config_file<<" got a generic exception, reason = " << err.what();
+        ret = CLI_CONFIG_FILE_ERROR;
+    }
+
+    return ret;
+}
+
+void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &model, int assemble_index, std::map<int, ModelObject*> &merged_objects, ModelObject *ori_object)
+{
+    if (assemble_index > 0) {
+        auto iter = merged_objects.find(assemble_index);
+        ModelObject* new_object = nullptr;
+        if (iter == merged_objects.end()) {
+            //create the object to merge
+            new_object = model.add_object();
+            new_object->name = "assemble_" + std::to_string(assemble_index);
+            merged_objects[assemble_index] = new_object;
+            assemble_plate_info.loaded_obj_list.emplace_back(new_object);
+    }
+        else
+            new_object = iter->second;
+
+        for (auto volume : ori_object->volumes) {
+            ModelVolume* new_volume = new_object->add_volume(*volume);
+            // set extruder id
+            new_volume->config.set_key_value("extruder", new ConfigOptionInt(ori_object->config.extruder()));
+        }
+        BOOST_LOG_TRIVIAL(debug) << boost::format("assemble_index %1%, name %2%, merged to new model %3%") % assemble_index % ori_object->name % new_object->name;
+    }
+    else {
+        ModelObject* new_object = model.add_object(*ori_object);
+        assemble_plate_info.loaded_obj_list.emplace_back(new_object);
+        BOOST_LOG_TRIVIAL(debug) << boost::format("assemble_index %1%, name %2%, no need to merge, copy to new model") % assemble_index % ori_object->name;
+    }
+}
+
+#ifdef _WIN32
+#define DIR_SEPARATOR '\\'
+#else
+#define DIR_SEPARATOR '/'
+#endif
+static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_plate_info_list, Model &model, PlateDataPtrs &plate_list)
+{
+    int ret = 0;
+    int plate_count = assemble_plate_info_list.size();
+    ConfigSubstitutionContext config_substitutions(ForwardCompatibilitySubstitutionRule::Enable);
+    Model temp_model;
+
+    plate_list.resize(plate_count);
+    for (int index = 0; index < plate_count; index++)
+    {
+        //each plate has its dependent assemble list
+        std::map<int, ModelObject*>  merged_objects;
+        std::set<int> used_filaments;
+        //std::map<ModelObject*, int> to_merge_objects;
+
+        assemble_plate_info_t& assemble_plate_info = assemble_plate_info_list[index];
+
+        int object_count = assemble_plate_info.assemble_obj_list.size();
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": Plate %1%, name %2%, obj count %3%, plate params count %4%") % (index + 1) %assemble_plate_info.plate_name %object_count %assemble_plate_info.plate_params.size();
+        PlateData* plate_data = new PlateData();
+        plate_list[index] = plate_data;
+        plate_data->plate_name = assemble_plate_info.plate_name;
+        plate_data->plate_index = index;
+
+        if (!assemble_plate_info.plate_params.empty())
+        {
+            for (auto plate_iter = assemble_plate_info.plate_params.begin(); plate_iter != assemble_plate_info.plate_params.end(); plate_iter++)
+            {
+                plate_data->config.set_deserialize(plate_iter->first, plate_iter->second, config_substitutions);
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Plate %1%, key %2%, value %3%") % (index + 1) % plate_iter->first % plate_iter->second;
+            }
+        }
+
+        //construct the object list
+        for (size_t obj_index = 0; obj_index < object_count; obj_index++)
+        {
+            assemble_object_info_t& assemble_object = assemble_plate_info.assemble_obj_list[obj_index];
+            std::string object_name;
+            TriangleMesh mesh;
+
+            boost::filesystem::path object_path(assemble_object.path);
+            if (!fs::exists(object_path)) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": directory %1% not exist in plate %2%") % assemble_object.path % (index + 1);
+                return CLI_FILE_NOTFOUND;
+            }
+
+            const char* path_str = assemble_object.path.c_str();
+            const char* last_slash = strrchr(path_str, DIR_SEPARATOR);
+            object_name.assign((last_slash == nullptr) ? path_str : last_slash + 1);
+
+            if (boost::algorithm::iends_with(assemble_object.path, ".stl"))
+            {
+                if (!mesh.ReadSTLFile(path_str, true, nullptr)) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to read stl file from %1%, plate index %2%, object index %3%") % assemble_object.path % (index+1) % (obj_index+1);
+                    return CLI_DATA_FILE_ERROR;
+                }
+                if (mesh.empty()) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": found no mesh data from stl file %1%, plate index %2%, object index %3%") % assemble_object.path % (index + 1) % (obj_index + 1);
+                    return CLI_DATA_FILE_ERROR;
+                }
+                object_name.erase(object_name.end() - 3, object_name.end());
+            }
+            else if (boost::algorithm::iends_with(assemble_object.path, ".obj"))
+            {
+                std::string message;
+                bool result = load_obj(path_str, &mesh, message);
+                if (!result) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": failed to read a valid mesh from obj file %1%, plate index %2%, object index %3%, error %4%") % assemble_object.path % (index + 1) % (obj_index + 1) % message;
+                    return CLI_DATA_FILE_ERROR;
+                }
+                object_name.erase(object_name.end() - 3, object_name.end());
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": unsupported file %1%, plate index %2%, object index %3%") % assemble_object.path % (index + 1) % (obj_index + 1);
+                return CLI_INVALID_PARAMS;
+            }
+
+            std::string object_1_name = object_name + "_1";
+            ModelObject* object = temp_model.add_object(object_1_name.c_str(), path_str, std::move(mesh));
+            if (!object) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": add_object %1% failed, plate index %2%, object index %3%") % object_1_name % (index + 1) % (obj_index + 1);
+                return CLI_DATA_FILE_ERROR;
+            }
+            object->config.set_key_value("extruder", new ConfigOptionInt(assemble_object.filaments[0]));
+            if (!assemble_object.print_params.empty())
+            {
+                for (auto param_iter = assemble_object.print_params.begin(); param_iter != assemble_object.print_params.end(); param_iter++)
+                {
+                    object->config.set_deserialize(param_iter->first, param_iter->second, config_substitutions);
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("Plate %1%, object %2% key %3%, value %4%") % (index + 1) % object_1_name % param_iter->first % param_iter->second;
+                }
+            }
+
+            if (assemble_object.pos_x.empty())
+                assemble_object.pos_x.resize(1, 0.f);
+            if (assemble_object.pos_y.empty())
+                assemble_object.pos_y.resize(1, 0.f);
+            if (assemble_object.pos_z.empty())
+                assemble_object.pos_z.resize(1, 0.f);
+            if (assemble_object.assemble_index.empty())
+                assemble_object.assemble_index.resize(1, 0);
+
+            object->translate(assemble_object.pos_x[0], assemble_object.pos_y[0], assemble_object.pos_z[0]);
+            merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[0], merged_objects, object);
+            used_filaments.emplace(assemble_object.filaments[0]);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%, filament %6%, assemble_index %7%")
+                %obj_index %object->name %assemble_object.pos_x[0] %assemble_object.pos_y[0] %assemble_object.pos_z[0] %assemble_object.filaments[0] %assemble_object.assemble_index[0];
+
+            for (size_t copy_index = 1; copy_index < assemble_object.count; copy_index++)
+            {
+                int array_index = copy_index;
+
+                ModelObject* copy_obj = temp_model.add_object(*object);
+                copy_obj->name = object_name + "_" + std::to_string(copy_index + 1);
+
+                if (copy_index >= assemble_object.pos_x.size())
+                    array_index = 0;
+                copy_obj->translate(assemble_object.pos_x[array_index], assemble_object.pos_y[array_index], assemble_object.pos_z[array_index]);
+
+                if (copy_index < assemble_object.filaments.size())
+                    array_index = copy_index;
+                else
+                    array_index = 0;
+                copy_obj->config.set_key_value("extruder", new ConfigOptionInt(assemble_object.filaments[array_index]));
+                used_filaments.emplace(assemble_object.filaments[array_index]);
+
+                if (copy_index < assemble_object.assemble_index.size())
+                    array_index = copy_index;
+                else
+                    array_index = 0;
+                merge_or_add_object(assemble_plate_info, model, assemble_object.assemble_index[array_index], merged_objects, copy_obj);
+
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": cloned object %1%, name %2%, pos_x %3% pos_y %4%, pos_z %5%")
+                    %copy_index %object->name %assemble_object.pos_x[array_index] %assemble_object.pos_y[array_index] %assemble_object.pos_z[array_index];
+            }
+        }
+
+        assemble_plate_info.filaments_count = used_filaments.size();
+        assemble_plate_info.assemble_obj_list.clear();
+        assemble_plate_info.assemble_obj_list.shrink_to_fit();
+        assemble_plate_info.plate_params.clear();
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": Plate %1%, used filaments %2%") % (index + 1) % assemble_plate_info.filaments_count;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": has objects need to be merged, total plates %1%, total objects %2%") % plate_count % model.objects.size();
+
+    temp_model.clear_objects();
+    temp_model.clear_materials();
+    return ret;
+}
+
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
@@ -614,18 +912,22 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 7;
+    int debug_argc = 14;
     char *debug_argv[] = {
         "F:\work\projects\bambu_debug\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
-        //"--uptodate",
-        //"--load-settings",
-        //"machine.json;process.json",
-        "--repetitions",
-        "3",
+        "--debug=2",
+        "--load-settings",
+        "machine.json;process.json",
+        "--load-filaments",
+        "filament.json;filament.json;filament.json;filament.json;filament.json;filament.json",
         "--export-3mf=output.3mf",
-        "--slice",
-        "1",
-        "test_repetitions.3mf"
+        "--filament-colour",
+        "#FFFFFFFF;#0000FFFF;#00FF00FF;#FF0000FF;#00000000;#FFFF00FF",
+        "--allow-multicolor-oneplate=1",
+        "--allow-rotations=0",
+        "--avoid-extrusion-cali-region=1",
+        "--load-assemble-list",
+        "assemble_list.json"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -823,6 +1125,12 @@ int CLI::run(int argc, char **argv)
     if (custom_gcode_option)
         custom_gcode_file = custom_gcode_option->value;
 
+    std::string load_assemble_list;
+    std::vector<assemble_plate_info_t> assemble_plate_info_list;
+    ConfigOptionString* load_assemble_list_option = m_config.option<ConfigOptionString>("load_assemble_list");
+    if (load_assemble_list_option)
+        load_assemble_list = load_assemble_list_option->value;
+
     bool allow_multicolor_oneplate = m_config.option<ConfigOptionBool>("allow_multicolor_oneplate", true)->value;
     const std::vector<int>  loaded_filament_ids  = m_config.option<ConfigOptionInts>("load_filament_ids", true)->values;
     const std::vector<int>  clone_objects  = m_config.option<ConfigOptionInts>("clone_objects", true)->values;
@@ -869,7 +1177,13 @@ int CLI::run(int argc, char **argv)
         }*/
     BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice=%1%, normative_check=%2%, use_first_fila_as_default=%3%")%plate_to_slice %normative_check %use_first_fila_as_default;
     unsigned int input_index = 0;
-    //if (!start_as_gcodeviewer) {
+    if (!load_assemble_list.empty() && ((m_input_files.size() > 0) || (m_transforms.size() > 0)))
+    {
+        BOOST_LOG_TRIVIAL(error) << boost::format("load_assemble_list should not be used with input model files to load and should not be sued with transforms");
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
+    if (load_assemble_list.empty()) {
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
@@ -1109,7 +1423,32 @@ int CLI::run(int argc, char **argv)
             }
             m_models.push_back(std::move(model));
         }
-    //}
+    }
+    else {
+        //parse the json and assemble object here
+        Model model;
+
+        int ret = load_assemble_plate_list(load_assemble_list, assemble_plate_info_list);
+        if (ret) {
+            record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+            flush_and_exit(ret);
+        }
+
+        try {
+            ret = construct_assemble_list(assemble_plate_info_list, model, plate_data_src);
+            if (ret) {
+                record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
+                flush_and_exit(ret);
+            }
+        }
+        catch (std::exception& e) {
+            boost::nowide::cerr << construct_assemble_list << ": " << e.what() << std::endl;
+            record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
+            flush_and_exit(CLI_DATA_FILE_ERROR);
+        }
+        model.add_default_instances();
+        m_models.push_back(std::move(model));
+    }
 
     //load custom gcode file
     std::map<int, CustomGCode::Info> custom_gcodes_map;
@@ -1406,7 +1745,7 @@ int CLI::run(int argc, char **argv)
     if (filament_count == 0)
         filament_count = load_filament_count;
 
-    if ((load_filament_count > 0) && (load_filaments_set.size() == 1))
+    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1))
     {
         disable_wipe_tower_after_mapping = true;
         BOOST_LOG_TRIVIAL(warning) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
@@ -2167,9 +2506,16 @@ int CLI::run(int argc, char **argv)
     }
 
     //compute the flush volume
-    ConfigOptionStrings* selected_filament_colors_option = m_extra_config.option<ConfigOptionStrings>("filament_colour");
+    ConfigOptionStrings *selected_filament_colors_option = m_extra_config.option<ConfigOptionStrings>("filament_colour");
     ConfigOptionStrings *project_filament_colors_option = m_print_config.option<ConfigOptionStrings>("filament_colour");
-    if (project_filament_colors_option)
+    if ((!project_filament_colors_option || (project_filament_colors_option->values.size() == 0)) && selected_filament_colors_option)
+    {
+        BOOST_LOG_TRIVIAL(info) << boost::format("initial project_filament_colors is null, create it due to filament_colour set in cli");
+        project_filament_colors_option = m_print_config.option<ConfigOptionStrings>("filament_colour", true);
+        std::vector<std::string>& project_filament_colors = project_filament_colors_option->values;
+        project_filament_colors.resize(filament_count, "#FFFFFF");
+    }
+    if (project_filament_colors_option && selected_filament_colors_option)
     {
         std::vector<std::string>  selected_filament_colors;
         if (selected_filament_colors_option) {
@@ -2923,7 +3269,204 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    if (need_arrange)
+    auto get_print_sequence = [](Slic3r::GUI::PartPlate* plate, DynamicPrintConfig& print_config, bool &is_seq_print) {
+        PrintSequence curr_plate_seq = plate->get_print_seq();
+        if (curr_plate_seq == PrintSequence::ByDefault) {
+            auto seq_print = print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+            if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate print by object, set from global");
+                is_seq_print = true;
+            }
+        }
+        else if (curr_plate_seq == PrintSequence::ByObject) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("plate print by object, set from plate self");
+            is_seq_print = true;
+        }
+    };
+
+    if (!assemble_plate_info_list.empty())
+    {
+        //need to arrange for assemble cases
+        int plate_count = assemble_plate_info_list.size();
+        if (plate_count != partplate_list.get_plate_count())
+        {
+            BOOST_LOG_TRIVIAL(error) << boost::format("mismatch plate count, to_assemble %1%, generated %2%") % plate_count % partplate_list.get_plate_count();
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        for (size_t i = 0; i < plate_count; i++)
+        {
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
+            //lock those plates no need to arrange
+            if (!assemble_plate_info_list[i].need_arrange)
+                cur_plate->lock(true);
+        }
+
+        for (size_t i = 0; i < plate_count; i++)
+        {
+            assemble_plate_info_t& assemble_plate = assemble_plate_info_list[i];
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
+            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, need arrange %2%, filaments_count %3%") % (i+1) % assemble_plate.need_arrange % assemble_plate.filaments_count;
+            if (assemble_plate.need_arrange)
+            {
+                //do arrange for plate
+                ArrangePolygons selected, unselected;
+                Model& model = m_models[0];
+                arrange_cfg = ArrangeParams();  // reset all params
+                get_print_sequence(cur_plate, m_print_config, arrange_cfg.is_seq_print);
+
+                //Step-1: prepare the arranged data
+                partplate_list.lock_plate(i, false);
+                partplate_list.select_plate(i);
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected") % i;
+                size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
+                for (size_t oidx = 0; oidx < plate_obj_count; ++oidx)
+                {
+                    ModelObject* mo = assemble_plate.loaded_obj_list[oidx];
+
+                    for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
+                    {
+                        ModelInstance* minst = mo->instances[inst_idx];
+                        ArrangePolygon   ap = get_instance_arrange_poly(minst, m_print_config);
+                        ap.itemid = selected.size();
+                        selected.emplace_back(std::move(ap));
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: add object %2%  object index %3%, into selected") % (i+1) % ap.name %(oidx+1);
+                    }
+                }
+
+                if (!arrange_cfg.is_seq_print && assemble_plate.filaments_count > 1)
+                {
+                    //prepare the wipe tower
+                    int plate_count = partplate_list.get_plate_count();
+
+                    auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+                    // set the default position, the same with print config(left top)
+                    float x = WIPE_TOWER_DEFAULT_X_POS;
+                    float y = WIPE_TOWER_DEFAULT_Y_POS;
+                    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+                        x = I3_WIPE_TOWER_DEFAULT_X_POS;
+                        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
+                    }
+                    ConfigOptionFloat wt_x_opt(x);
+                    ConfigOptionFloat wt_y_opt(y);
+
+                    //create the options using default if neccessary
+                    ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                    ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+                    ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
+                    ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
+                    ConfigOptionFloat* volume_option = m_print_config.option<ConfigOptionFloat>("prime_volume", true);
+
+                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%") % width_option->value % rotation_angle_option->value % volume_option->value;
+
+                    wipe_x_option->set_at(&wt_x_opt, i, 0);
+                    wipe_y_option->set_at(&wt_y_opt, i, 0);
+
+
+                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, assemble_plate.filaments_count, true);
+
+                    wipe_tower_ap.bed_idx = i;
+                    unselected.emplace_back(wipe_tower_ap);
+                }
+
+                // add the virtual object into unselect list if has
+                partplate_list.preprocess_exclude_areas(unselected, i + 1);
+                if (avoid_extrusion_cali_region)
+                    partplate_list.preprocess_nonprefered_areas(unselected, i + 1);
+
+                //Step-2:prepare the arrange params
+                arrange_cfg.allow_rotations = allow_rotations;
+                arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
+                arrange_cfg.avoid_extrusion_cali_region = avoid_extrusion_cali_region;
+                arrange_cfg.clearance_height_to_rod = height_to_rod;
+                arrange_cfg.clearance_height_to_lid = height_to_lid;
+                arrange_cfg.cleareance_radius = cleareance_radius;
+                arrange_cfg.printable_height = print_height;
+                arrange_cfg.min_obj_distance = 0;
+                if (arrange_cfg.is_seq_print) {
+                    arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
+                    arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
+                }
+                if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+                    arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
+                }
+
+                arrangement::update_arrange_params(arrange_cfg, &m_print_config, selected);
+                arrangement::update_selected_items_inflation(selected, &m_print_config, arrange_cfg);
+                arrangement::update_unselected_items_inflation(unselected, &m_print_config, arrange_cfg);
+                arrangement::update_selected_items_axis_align(selected, &m_print_config, arrange_cfg);
+
+                beds = get_shrink_bedpts(&m_print_config, arrange_cfg);
+
+                partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, 1, scale_(1));
+
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
+                    BOOST_LOG_TRIVIAL(info) << "Arrange full params: " << arrange_cfg.to_json();
+                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % selected.size();
+                    for (auto item : selected)
+                        BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx
+                        << ", trans: " << item.translation.transpose();
+                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
+                    for (auto item : unselected)
+                        BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+                }
+                arrange_cfg.progressind = [](unsigned st, std::string str = "") {
+                    //boost::nowide::cout << "st=" << st << ", " << str << std::endl;
+                };
+
+                //Step-3:do the arrange
+                BOOST_LOG_TRIVIAL(info) << boost::format("start plate %1%'s arranging...") % (i + 1);
+                arrangement::arrange(selected, unselected, beds, arrange_cfg);
+                //arrangement::arrange(unprintable, {}, beds, arrange_cfg);
+                BOOST_LOG_TRIVIAL(info) << boost::format("finished plate %1%'s arranging") % (i + 1);
+
+                //step-4: postprocess the bed index and result
+                partplate_list.clear(false, false, true, i);
+
+                for (ArrangePolygon& ap : selected) {
+                    partplate_list.postprocess_bed_index_for_current_plate(ap);
+                    if (ap.bed_idx != i)
+                    {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%") % ap.name % ap.bed_idx % i;
+                        record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
+                        flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                    }
+                }
+
+                // Apply the arrange result to all selected objects
+                for (ArrangePolygon& ap : selected) {
+                    //BBS: partplate postprocess
+                    partplate_list.postprocess_arrange_polygon(ap, true);
+
+                    ap.apply();
+                }
+                partplate_list.rebuild_plates_after_arrangement(false, true, i);
+            }
+            else {
+                size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
+                Vec3d plate_origin = cur_plate->get_origin();
+
+                for (size_t oidx = 0; oidx < plate_obj_count; ++oidx)
+                {
+                    ModelObject* mo = assemble_plate.loaded_obj_list[oidx];
+
+                    mo->translate_instances(plate_origin);
+
+                    BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: no arrange, directly translate object %2%  by {%3%, %4%}") % (i+1) % mo->name %plate_origin(0) %plate_origin(1);
+                }
+            }
+        }
+
+        for (size_t i = 0; i < plate_count; i++)
+        {
+            //unlock all the plates
+            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
+            cur_plate->lock(false);
+        }
+    }
+    else if (need_arrange)
     {
         ArrangePolygons selected, unselected, unprintable, locked_aps;
 
@@ -2974,18 +3517,7 @@ int CLI::run(int argc, char **argv)
                 }
 
                 if (cur_plate) {
-                    PrintSequence curr_plate_seq = cur_plate->get_print_seq();
-                    if (curr_plate_seq == PrintSequence::ByDefault) {
-                        auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-                        if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from global")%plate_to_slice;
-                            arrange_cfg.is_seq_print = true;
-                        }
-                    }
-                    else if (curr_plate_seq == PrintSequence::ByObject) {
-                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%plate_to_slice;
-                        arrange_cfg.is_seq_print = true;
-                    }
+                    get_print_sequence(cur_plate, m_print_config, arrange_cfg.is_seq_print);
                 }
 
                 //Step-1: prepare arrange polygons
@@ -4599,13 +5131,15 @@ int CLI::run(int argc, char **argv)
             record_exit_reson(outfile_dir, CLI_EXPORT_3MF_ERROR, 0, cli_errors[CLI_EXPORT_3MF_ERROR], sliced_info);
             flush_and_exit(CLI_EXPORT_3MF_ERROR);
         }
-        release_PlateData_list(plate_data_list);
+
         for (unsigned int i = 0; i < thumbnails.size(); i++)
             thumbnails[i]->reset();
         for (unsigned int i = 0; i < top_thumbnails.size(); i++)
             top_thumbnails[i]->reset();
         for (unsigned int i = 0; i < pick_thumbnails.size(); i++)
             pick_thumbnails[i]->reset();
+
+        release_PlateData_list(plate_data_list);
 
         for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
             delete calibration_thumbnails[i];
