@@ -179,7 +179,9 @@ private:
     Button *                                           m_button_bed_stl                 = nullptr;
     Button *                                           m_button_bed_svg                 = nullptr;
     wxScrolledWindow *                                 m_page1                          = nullptr;
-    wxScrolledWindow *                                 m_page2                          = nullptr;
+    wxPanel *                                          m_page2                          = nullptr;
+    wxScrolledWindow *                                 m_scrolled_preset_window         = nullptr;
+    wxBoxSizer *                                       m_scrooled_preset_sizer          = nullptr;
     ComboBox *                                         m_select_vendor                  = nullptr;
     ComboBox *                                         m_select_model                   = nullptr;
     ComboBox *                                         m_select_printer                 = nullptr;

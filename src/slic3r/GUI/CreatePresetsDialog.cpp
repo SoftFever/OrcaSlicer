@@ -609,6 +609,10 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_vendor_combobox->SetLabel(_L("Select Vendor"));
     m_filament_vendor_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_filament_vendor_combobox->Set(choices);
+    m_filament_vendor_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
+        m_filament_vendor_combobox->SetLabelColor(*wxBLACK);
+        e.Skip();
+    });
     vendor_sizer->Add(m_filament_vendor_combobox, 0, wxEXPAND | wxALL, 0);
     wxBoxSizer *textInputSizer = new wxBoxSizer(wxVERTICAL);
     m_filament_custom_vendor_input = new TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
@@ -938,7 +942,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                     if (!res) {
                         std::string failure_names;
                         for (std::string &failure : failures) { failure_names += failure + "\n"; }
-                        MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
+                        MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + from_u8(failure_names) + _L("\nDo you want to rewrite it?"),
                                           wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                         if (dlg.ShowModal() == wxID_YES) {
                             res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, dynamic_config,
@@ -965,7 +969,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                     if (!res) {
                         std::string failure_names;
                         for (std::string &failure : failures) { failure_names += failure + "\n"; }
-                        MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
+                        MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + from_u8(failure_names) + _L("\nDo you want to rewrite it?"),
                                           wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                         if (wxID_YES == dlg.ShowModal()) {
                             res = preset_bundle->filaments.clone_presets_for_filament(checked_preset, failures, filament_preset_name, user_filament_id, dynamic_config,
@@ -1295,8 +1299,7 @@ CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)
     m_page1 = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_page1->SetBackgroundColour(*wxWHITE);
     m_page1->SetScrollRate(5, 5);
-    m_page2 = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    m_page2->SetScrollRate(5, 5);
+    m_page2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);\
     m_page2->SetBackgroundColour(*wxWHITE);
 
     create_printer_page1(m_page1);
@@ -2167,15 +2170,14 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
             radiobox_list[i].first->SetValue(false);
         }
     }
+    
+    if (this->GetSize().GetHeight() > 800) {
+        this->SetSize(-1, 800);
+    }
+
     Layout();
-    //m_page1->SetSizerAndFit(m_page1_sizer);
-    //m_page2->SetSizerAndFit(m_page2_sizer);
     Fit();
     Refresh();
-    int screen_height = (int) wxGetDisplaySize().GetHeight() * 4 / 5;
-    if (this->GetSize().GetHeight() > screen_height) {
-        this->SetSize(-1, screen_height);
-    }
 }
 
 void CreatePrinterPresetDialog::create_printer_page2(wxWindow *parent)
@@ -2255,10 +2257,18 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
 {
     wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_preset_template_panel = new wxPanel(parent);
+    m_scrolled_preset_window = new wxScrolledWindow(parent);
+    m_scrolled_preset_window->SetScrollRate(5, 5);
+    m_scrolled_preset_window->SetBackgroundColour(*wxWHITE);
+    m_scrolled_preset_window->SetMinSize(wxSize(FromDIP(900), FromDIP(400)));
+    m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(900), FromDIP(300)));
+    m_scrolled_preset_window->SetSize(wxSize(FromDIP(900), FromDIP(300)));
+    m_scrooled_preset_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_preset_template_panel = new wxPanel(m_scrolled_preset_window);
     m_preset_template_panel->SetSize(wxSize(-1, -1));
     m_preset_template_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
-    //m_filament_preset_panel->SetMinSize(PRESET_TEMPLATE_SIZE);
+    m_preset_template_panel->SetMinSize(wxSize(FromDIP(580), -1));
     wxBoxSizer *  filament_sizer              = new wxBoxSizer(wxVERTICAL);
     wxStaticText *static_filament_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Filament preset template"), wxDefaultPosition, wxDefaultSize);
     filament_sizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
@@ -2322,7 +2332,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     filament_sizer->Add(process_btn_panel, 0, wxEXPAND, 0);
 
     m_preset_template_panel->SetSizer(filament_sizer);
-    vertical_sizer->Add(m_preset_template_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    m_scrooled_preset_sizer->Add(m_preset_template_panel, 0, wxEXPAND | wxALL, 0);
+    m_scrolled_preset_window->SetSizerAndFit(m_scrooled_preset_sizer);
+    vertical_sizer->Add(m_scrolled_preset_window, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     return vertical_sizer;
 }
@@ -2481,7 +2493,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                 if (!create_preset_result) {
                     std::string message;
                     for (const std::string &failure : failures) { message += "\t" + failure + "\n"; }
-                    MessageDialog dlg(this, _L("Create filament presets failed. As follows:\n") + message + _L("\nDo you want to rewrite it?"),
+                    MessageDialog dlg(this, _L("Create filament presets failed. As follows:\n") + from_u8(message) + _L("\nDo you want to rewrite it?"),
                                       wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     int res = dlg.ShowModal();
@@ -2507,7 +2519,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                 if (!create_preset_result) {
                     std::string message;
                     for (const std::string &failure : failures) { message += "\t" + failure + "\n"; }
-                    MessageDialog dlg(this, _L("Create process presets failed. As follows:\n") + message + _L("\nDo you want to rewrite it?"),
+                    MessageDialog dlg(this, _L("Create process presets failed. As follows:\n") + from_u8(message) + _L("\nDo you want to rewrite it?"),
                                       wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     int res = dlg.ShowModal();
@@ -2530,7 +2542,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                     for (const std::string& failure : failures) {
                         message += "\t" + failure + "\n";
                     }
-                    MessageDialog dlg(this, _L("Create filament presets failed. As follows:\n") + message + _L("\nDo you want to rewrite it?"),
+                    MessageDialog dlg(this, _L("Create filament presets failed. As follows:\n") + from_u8(message) + _L("\nDo you want to rewrite it?"),
                                       wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                                       wxYES | wxYES_DEFAULT | wxCENTRE);
                     int           res = dlg.ShowModal();
@@ -2552,7 +2564,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                     for (const std::string& failure : failures) {
                         message += "\t" + failure + "\n";
                     }
-                    MessageDialog dlg(this, _L("Create process presets failed. As follows:\n") + message + _L("\nDo you want to rewrite it?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+                    MessageDialog dlg(this, _L("Create process presets failed. As follows:\n") + from_u8(message) + _L("\nDo you want to rewrite it?"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
                     int           res = dlg.ShowModal();
                     if (wxID_YES == res) {
                         create_preset_result = preset_bundle->prints.clone_presets_for_printer(selected_process_presets, failures, printer_preset_name, true);
@@ -2770,7 +2782,7 @@ void CreatePrinterPresetDialog::update_presets_list(bool just_template)
     const std::deque<Preset> &process_presets  = temp_preset_bundle.prints.get_presets();
 
     // clear filament preset window sizer
-    this->Freeze();
+    m_preset_template_panel->Freeze();
     clear_preset_combobox();
 
     // update filament preset window sizer
@@ -2794,7 +2806,7 @@ void CreatePrinterPresetDialog::update_presets_list(bool just_template)
                                                  FromDIP(5));
         }
     }
-    this->Thaw();
+    m_preset_template_panel->Thaw();
 }
 
 void CreatePrinterPresetDialog::clear_preset_combobox()
@@ -2943,15 +2955,14 @@ void CreatePrinterPresetDialog::on_preset_model_value_change(wxCommandEvent &e)
     }
     rewritten = false;
 
-    this->Freeze();
     m_page2->SetSizerAndFit(m_page2_sizer);
-    Layout();
-    this->Thaw();
-    Fit();
-    int screen_height = (int) wxGetDisplaySize().GetHeight() * 4 / 5;
-    if (this->GetSize().GetHeight() > screen_height) {
-        this->SetSize(-1, screen_height);
+
+    if (this->GetSize().GetHeight() > 800) {
+        this->SetSize(-1, 800);
     }
+
+    Layout();
+    Fit();
 
     e.Skip();
 }
@@ -4451,7 +4462,7 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_button_sizer()
             if (!res) {
                 std::string failure_names;
                 for (std::string &failure : failures) { failure_names += failure + "\n"; }
-                MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + failure_names + _L("\nDo you want to rewrite it?"),
+                MessageDialog dlg(this, _L("Some existing presets have failed to be created, as follows:\n") + from_u8(failure_names) + _L("\nDo you want to rewrite it?"),
                                   wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
                 if (dlg.ShowModal() == wxID_YES) {
                     res = preset_bundle->filaments.clone_presets_for_filament(filament_preset.get(), failures, m_filament_name, m_filament_id, dynamic_config, printer_name, true);
