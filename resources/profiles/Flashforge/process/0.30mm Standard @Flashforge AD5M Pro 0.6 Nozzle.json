@@ -135,7 +135,7 @@
   "slice_closing_radius": "0.049",
   "slicing_mode": "regular",
   "slow_down_layers": "1",
-  "small_perimeter_speed": "0",
+  "small_perimeter_speed": "50%",
   "small_perimeter_threshold": "0",
   "solid_infill_filament": "1",
   "sparse_infill_acceleration": "100%",

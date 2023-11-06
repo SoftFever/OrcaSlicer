@@ -106,7 +106,7 @@
   "exclude_object": "0",
   "wall_generator": "classic",
   "only_one_wall_top": "1",
-  "small_perimeter_speed": "0",
+  "small_perimeter_speed": "50%",
   "overhang_speed_classic": "1",
   "internal_bridge_speed": "50",
   "outer_wall_acceleration": "5000",
