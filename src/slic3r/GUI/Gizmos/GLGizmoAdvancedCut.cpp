@@ -2397,7 +2397,13 @@ bool GLGizmoAdvancedCut::render_slider_double_input_by_format(const std::string 
     ImGui::SameLine(left_width);
     ImGui::PushItemWidth(first_input_width);
     if (ImGui::BBLDragFloat(("##input_" + label).c_str(), &value, 0.05f, value_min, value_max, format.c_str())) {
-        value_in = value * 0.01f; 
+        if (show_type == DoubleShowType::PERCENTAGE) {
+            value_in = value * 0.01f;
+        } else if (show_type == DoubleShowType::DEGREE) {
+            value_in = Geometry::deg2rad(value);
+        } else { //(show_type == DoubleShowType::Normal)
+            value_in = value;
+        }
     }
     return !is_approx(old_val, value_in);
 }
