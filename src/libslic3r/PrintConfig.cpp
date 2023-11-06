@@ -4398,6 +4398,15 @@ def = this->add("filament_loading_speed", coFloats);
         default: assert(false);
         }
     }
+
+    def = this->add("detect_narrow_internal_solid_infill", coBool);
+    def->label = L("Detect narrow internal solid infill");
+    def->category = L("Strength");
+    def->tooltip = L("This option will auto detect narrow internal solid infill area."
+                   " If enabled, concentric pattern will be used for the area to speed printing up."
+                   " Otherwise, rectilinear pattern is used defaultly.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 }
 
 void PrintConfigDef::init_extruder_option_keys()
@@ -5202,7 +5211,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type", "z_lift_type", "bed_temperature_difference",
-        "detect_narrow_internal_solid_infill","extruder_type",
+        "extruder_type",
         "internal_bridge_support_thickness","extruder_clearance_max_radius"
     };
 

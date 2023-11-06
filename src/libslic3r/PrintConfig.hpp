@@ -747,6 +747,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               tree_support_adaptive_layer_height))
     ((ConfigOptionBool,               tree_support_auto_brim))
     ((ConfigOptionFloat,              tree_support_brim_width))
+    ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
     ((ConfigOptionEnum<PerimeterGeneratorType>, wall_generator))
