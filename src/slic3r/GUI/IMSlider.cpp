@@ -1114,9 +1114,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
         }
         const int text_height = 6;
 
-        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height), ImGuiInputTextFlags_CallbackAlways, [](ImGuiInputTextCallbackData* data) { 
-            return data->CursorPos = data->BufTextLen;
-            });
+        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
 
         ImGui::NewLine();
         ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
