@@ -14,6 +14,7 @@
     "bridge_speed": "150",
     "internal_bridge_speed" : "100%",
     "brim_width": "5",
+    "brim_type": "no-brim",
     "brim_object_gap": "0.1",
     "compatible_printers_condition": "",
     "print_sequence": "by layer",
