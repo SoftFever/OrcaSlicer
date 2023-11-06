@@ -1,7 +1,7 @@
 name: Orca bot
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0 0 * * *"
 
 jobs:
   close-issues:
