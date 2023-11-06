@@ -2607,6 +2607,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip    = L("Z hop will only come into effect when Z is above this value and is below the parameter: \"Z hop upper boundary\"");
     def->sidetext   = L("mm");
     def->mode       = comAdvanced;
+    def->min        = 0;
     def->set_default_value(new ConfigOptionFloats{0.});
 
     def             = this->add("retract_lift_below", coFloats);
@@ -2614,6 +2615,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip    = L("If this value is positive, Z hop will only come into effect when Z is above the parameter: \"Z hop lower boundary\" and is below this value");
     def->sidetext   = L("mm");
     def->mode       = comAdvanced;
+    def->min        = 0;
     def->set_default_value(new ConfigOptionFloats{0.});
 
 
