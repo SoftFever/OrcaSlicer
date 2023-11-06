@@ -2518,10 +2518,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         else if (!is_same_nozzle_type(filament_type)){
             has_slice_warnings = true;
             has_update_nozzle = true;
-            nozzle_type = "hardened_steel";
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
 
-                wxString nozzle_in_preset = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, format_steel_name(nozzle_type));
+                wxString nozzle_in_preset = wxString::Format(_L("*Printing %s material with %s may cause nozzle damage"), filament_type, format_steel_name(obj_->nozzle_type));
             confirm_text.push_back(nozzle_in_preset + "\n");
         }
     }
