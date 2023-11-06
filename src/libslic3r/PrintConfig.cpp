@@ -651,7 +651,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip    = L("Bed temperature of the initial layer. "
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
     def->sidetext   = L("°C");
-    def->max        = 0;
+    def->min        = 0;
     def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
@@ -3042,21 +3042,6 @@ def = this->add("filament_loading_speed", coFloats);
     def->sidetext = L("mm");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
-
-    def             = this->add("retract_lift_above", coFloats);
-    def->label      = L("Z hop lower boundary");
-    def->tooltip    = L("Z hop will only come into effect when Z is above this value and is below the parameter: \"Z hop upper boundary\"");
-    def->sidetext   = L("mm");
-    def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0.});
-
-    def             = this->add("retract_lift_below", coFloats);
-    def->label      = L("Z hop upper boundary");
-    def->tooltip    = L("If this value is positive, Z hop will only come into effect when Z is above the parameter: \"Z hop lower boundary\" and is below this value");
-    def->sidetext   = L("mm");
-    def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{0.});
-
 
     def = this->add("z_hop_types", coEnums);
     def->label = L("Z hop type");

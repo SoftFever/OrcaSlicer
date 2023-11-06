@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-04 14:18+0800\n"
 "PO-Revision-Date: 2023-10-26 16:47+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -5000,6 +5000,15 @@ msgstr "야드파운드법"
 msgid "Units"
 msgstr "단위"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "마우스 위치로 확대"
 
@@ -5015,6 +5024,12 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "활성화된 경우 자유로운 카메라 앵글을 사용합니다. 활성화되지 않은 경우 제한된 "
 "카메라 앵글을 사용합니다."
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "시작 후 \"오늘의 팁\" 알림 표시"
@@ -5070,12 +5085,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "활성화된 경우 OrcaSlicer를 기본 응용 프로그램으로 설정하여 .step 파일을 엽니"
 "다"
-
-msgid "Online Models"
-msgstr "온라인 모델"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "홈페이지에서 추천 온라인 모델 보기"
 
 msgid "Maximum recent projects"
 msgstr "최근 프로젝트 최대 표시"
@@ -9507,26 +9516,6 @@ msgstr ""
 "니다. 이동 시 노즐이 출력물에 부딪히는 것을 방지합니다. 나선 라인(Spiral "
 "line)을 사용하여 Z를 올리면 실 발생을 방지할 수 있습니다"
 
-msgid "Z hop lower boundary"
-msgstr "Z 올리기 하한 경계"
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-"Z 올리기는 Z가 이 값보다 크고 \"Z 올리기 상한 경계\" 매개변수 아래인 경우에"
-"만 적용됩니다."
-
-msgid "Z hop upper boundary"
-msgstr "Z 올리기 상한 경계"
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-"이 값이 양수인 경우 Z 올리기는 Z가 매개변수 \"Z 올리기 하한 경계\"보다 높고 "
-"이 값보다 낮을 때만 적용됩니다"
-
 msgid "Z hop type"
 msgstr "Z 올리기 유형"
 
@@ -12098,6 +12087,32 @@ msgstr ""
 "더 높은 내부 온도로 낮은 온도의 필라멘트를 출력할 때 프린터 도어를 열면 압출"
 "기/핫엔드가 막힐 가능성을 줄일 수 있습니다. 이에 대한 자세한 내용은 Wiki에서 "
 "확인하세요."
+
+#~ msgid "Online Models"
+#~ msgstr "온라인 모델"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "홈페이지에서 추천 온라인 모델 보기"
+
+#~ msgid "Z hop lower boundary"
+#~ msgstr "Z 올리기 하한 경계"
+
+#~ msgid ""
+#~ "Z hop will only come into effect when Z is above this value and is below "
+#~ "the parameter: \"Z hop upper boundary\""
+#~ msgstr ""
+#~ "Z 올리기는 Z가 이 값보다 크고 \"Z 올리기 상한 경계\" 매개변수 아래인 경우"
+#~ "에만 적용됩니다."
+
+#~ msgid "Z hop upper boundary"
+#~ msgstr "Z 올리기 상한 경계"
+
+#~ msgid ""
+#~ "If this value is positive, Z hop will only come into effect when Z is "
+#~ "above the parameter: \"Z hop lower boundary\" and is below this value"
+#~ msgstr ""
+#~ "이 값이 양수인 경우 Z 올리기는 Z가 매개변수 \"Z 올리기 하한 경계\"보다 높"
+#~ "고 이 값보다 낮을 때만 적용됩니다"
 
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "\"레이어 냉각 향상을 위한 감속\" 시 최소 출력 속도"
