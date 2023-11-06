@@ -190,6 +190,8 @@ void ObjectDataViewModelNode::set_extruder_icon()
 
 void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
+    if (m_printable == printable)
+        return;
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
                        create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
@@ -197,6 +199,8 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)
 {
+    if (m_action_enable == enable)
+        return;
     m_action_enable = enable;
     auto undo = enable ? "lock_normal" : "dot";
     m_action_icon_name = m_type & itPlate ? undo :
@@ -208,6 +212,8 @@ void ObjectDataViewModelNode::set_action_icon(bool enable)
 // BBS
 void ObjectDataViewModelNode::set_color_icon(bool enable)
 {
+    if (m_color_enable == enable)
+        return;
     m_color_enable = enable;
     if ((m_type & itObject) && enable)
         m_color_icon = create_scaled_bitmap("mmu_segmentation");
@@ -217,6 +223,8 @@ void ObjectDataViewModelNode::set_color_icon(bool enable)
 
 void ObjectDataViewModelNode::set_support_icon(bool enable)
 {
+    if (m_support_enable == enable)
+        return;
     m_support_enable = enable;
     if ((m_type & itObject) && enable)
         m_support_icon = create_scaled_bitmap("toolbar_support");
@@ -226,6 +234,8 @@ void ObjectDataViewModelNode::set_support_icon(bool enable)
 
 void ObjectDataViewModelNode::set_sinking_icon(bool enable)
 {
+    if (m_sink_enable == enable)
+        return;
     m_sink_enable = enable;
     if ((m_type & itObject) && enable)
         m_sinking_icon = create_scaled_bitmap("objlist_sinking");

@@ -316,9 +316,9 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
                                          + (grayscale ? "-gs" : "")
                                          + new_color;
 
-    /*auto it = m_map.find(bitmap_key);
+    auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
-        return it->second;*/
+        return it->second;
 
     // map of color replaces
     std::map<std::string, std::string> replaces;
