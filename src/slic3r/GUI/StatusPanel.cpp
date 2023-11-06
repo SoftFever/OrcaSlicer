@@ -81,6 +81,8 @@ static std::vector<std::string> message_containing_retry{
     "07FF 8011",
     "07FF 8012",
     "07FF 8013",
+    "12FF 8007"
+
 };
 
 static std::vector<std::string> message_containing_done{
