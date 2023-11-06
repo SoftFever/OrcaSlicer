@@ -5,11 +5,11 @@
     "description": "VzBot configurations",
     "machine_model_list": [
         {
-            "name": "VzBot 235 AWD",
+            "name": "Vzbot 235 AWD",
             "sub_path": "machine/Vzbot 235 AWD.json"
         },
         {
-            "name": "VzBot 330 AWD",
+            "name": "Vzbot 330 AWD",
             "sub_path": "machine/Vzbot 330 AWD.json"
         }
     ],

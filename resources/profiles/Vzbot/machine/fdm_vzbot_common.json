@@ -86,7 +86,7 @@
   "change_filament_gcode": "",
   "machine_pause_gcode": "PAUSE\n",
   "default_filament_profile": [
-    "VzBot Generic ABS"
+    "Vzbot Generic ABS"
   ],
   "default_print_profile": "0.20mm Standard @Vzbot",
   "machine_start_gcode": "BED_MESH_PROFILE LOAD=default \nM190 S[bed_temperature_initial_layer_single] ;set bed temp \nG28; \nG1 X2 Y2 Z0 F9000  ; move to corner \nM109 S[nozzle_temperature_initial_layer] ; set nozzle temp \nG1 Z0.2 F300 ; raise nozzle to 0.2\nG92 E0.0 ; reset extruder distance position\nG1 X60.0 E9.0 F1000.0 ; intro line\nG1 X100.0 E21.5 F1000.0 ; intro line\nG0 Z2\n\nG92 E0.0 ; reset extruder distance position",
