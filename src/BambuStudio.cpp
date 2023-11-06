@@ -2311,6 +2311,26 @@ int CLI::run(int argc, char **argv)
         }*/
     }
 
+    if (skip_modified_gcodes)
+    {
+        std::map<int, CustomGCode::Info>::iterator gcodes_iter;
+        for (gcodes_iter = m_models[0].plates_custom_gcodes.begin(); gcodes_iter != m_models[0].plates_custom_gcodes.end(); gcodes_iter++)
+        {
+            CustomGCode::Info &gcode_info = gcodes_iter->second;
+            std::vector<CustomGCode::Item>::iterator item_iter = gcode_info.gcodes.begin();
+
+            while ( item_iter != gcode_info.gcodes.end() )
+            {
+                if (item_iter->type == CustomGCode::Custom) {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("skip_modified_gcodes: remove custom gcodes %1% in plate %2%") %item_iter->extra %gcodes_iter->first;
+                    item_iter = gcode_info.gcodes.erase(item_iter);
+                }
+                else
+                    item_iter++;
+            }
+        }
+    }
+
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
     // (command line options override --load files)
     m_print_config.apply(m_extra_config, true);
