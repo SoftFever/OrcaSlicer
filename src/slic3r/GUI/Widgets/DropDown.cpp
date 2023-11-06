@@ -353,8 +353,10 @@ void DropDown::messureSize()
     rowSize = szContent;
     if (limit_max_content_width) {
         wxSize parent_size = GetParent()->GetSize();
-        if (rowSize.x > parent_size.x * 2)
+        if (rowSize.x > parent_size.x * 2) {
             rowSize.x = 2 * parent_size.x;
+            szContent = rowSize;
+        }
     }
     szContent.y *= std::min((size_t)15, texts.size());
     szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
