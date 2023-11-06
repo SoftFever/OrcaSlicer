@@ -1342,7 +1342,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
 { 
     wxBoxSizer *step_switch_sizer = new wxBoxSizer(wxVERTICAL); 
 
-    std::string      wiki_url             = "https://makerhub-pre.bambu-lab.com";
+    std::string      wiki_url             = "https://wiki.bambulab.com/en/software/bambu-studio/3rd-party-printer-profile";
     wxHyperlinkCtrl *m_download_hyperlink = new wxHyperlinkCtrl(this, wxID_ANY, _L("wiki"), wiki_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     step_switch_sizer->Add(m_download_hyperlink, 0,  wxRIGHT | wxALIGN_RIGHT, FromDIP(5));
 
@@ -1359,7 +1359,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
     horizontal_sizer->Add(divider_line, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
     m_step_2 = new wxStaticBitmap(step_switch_panel, wxID_ANY, create_scaled_bitmap("step_2_ready", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
     horizontal_sizer->Add(m_step_2, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
-    wxStaticText *static_improt_presets_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Improt Presets"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_improt_presets_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Improt Preset"), wxDefaultPosition, wxDefaultSize);
     horizontal_sizer->Add(static_improt_presets_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
     horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
@@ -2261,7 +2261,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     m_scrolled_preset_window->SetScrollRate(5, 5);
     m_scrolled_preset_window->SetBackgroundColour(*wxWHITE);
     m_scrolled_preset_window->SetMinSize(wxSize(FromDIP(900), FromDIP(400)));
-    m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(900), FromDIP(300)));
+    m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(900), FromDIP(500)));
     m_scrolled_preset_window->SetSize(wxSize(FromDIP(900), FromDIP(300)));
     m_scrooled_preset_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -3332,12 +3332,12 @@ wxBoxSizer *ExportConfigsDialog::create_export_config_item(wxWindow *parent)
 
     radioBoxSizer->Add(create_radio_item(m_exprot_type.preset_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxALL, 0);
     radioBoxSizer->Add(0, 0, 0, wxTOP, FromDIP(6));
-    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belongs to the printer. \nCan be share in MakerWorld."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_printer_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("Printer and all the filament&process presets that belongs to the printer. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_printer_preset_bundle_text->SetFont(Label::Body_12);
     static_export_printer_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_printer_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
     radioBoxSizer->Add(create_radio_item(m_exprot_type.filament_bundle, parent, wxEmptyString, m_export_type_btns), 0, wxEXPAND | wxTOP, FromDIP(10));
-    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's fillment preset set. \nCan be share in MakerWorld."), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_export_filament_preset_bundle_text = new wxStaticText(parent, wxID_ANY, _L("User's fillment preset set. \nCan be shared with others."), wxDefaultPosition, wxDefaultSize);
     static_export_filament_preset_bundle_text->SetFont(Label::Body_12);
     static_export_filament_preset_bundle_text->SetForegroundColour(wxColour("#6B6B6B"));
     radioBoxSizer->Add(static_export_filament_preset_bundle_text, 0, wxEXPAND | wxLEFT, FromDIP(22));
@@ -3445,7 +3445,7 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
                     wxString printer_name = wxString::FromUTF8(preset_name);
                     m_preset_sizer->Add(create_checkbox(m_presets_window, preset.second, printer_name, m_preset), 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(5));
                 }
-                m_serial_text->SetLabel(_L("Only display printer names with changes to printer, filament, and process presets for uploading to the model mall."));
+                m_serial_text->SetLabel(_L("Only display printer names with changes to printer, filament, and process presets."));
             }else if (export_type == m_exprot_type.filament_bundle) {
                 for (std::pair<std::string, std::vector<std::pair<std::string, Preset*>>> filament_name_to_preset : m_filament_name_to_presets) {
                     if (filament_name_to_preset.second.empty()) continue;
@@ -3458,7 +3458,7 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
                     wxString filament_name = wxString::FromUTF8(filament_name_to_preset.first);
                     m_preset_sizer->Add(create_checkbox(m_presets_window, filament_name, m_printer_name), 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(5));
                 }
-                m_serial_text->SetLabel(_L("Only display the filament names with changes to filament presets for uploading to the model mall."));
+                m_serial_text->SetLabel(_L("Only display the filament names with changes to filament presets."));
             } else if (export_type == m_exprot_type.printer_preset) {
                 for (std::pair<std::string, Preset *> preset : m_printer_presets) {
                     if (preset.second->is_system) continue;

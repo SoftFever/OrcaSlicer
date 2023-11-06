@@ -1332,6 +1332,7 @@ VendorProfile PresetBundle::get_custom_vendor_models() const
     for (auto &preset : printers.get_presets()) {
         if (preset.is_system) continue;
         if (printers.get_preset_base(preset) != &preset) continue;
+        if (preset.is_default) continue;
         auto model = preset.config.opt_string("printer_model");
         auto variant = preset.config.opt_string("printer_variant");
         auto iter_model = std::find_if(vendor.models.begin(), vendor.models.end(), [model](VendorProfile::PrinterModel &m) {

@@ -4417,10 +4417,10 @@ bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
             if (m_preset_bundle && m_presets->get_preset_base(current_preset) == &current_preset && printer_tab && !current_preset.is_system) {
                 delete_third_printer = true;
                 for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
-                    if (preset.is_compatible && preset.is_default) { filament_presets.push_back(preset); }
+                    if (preset.is_compatible && !preset.is_default) { filament_presets.push_back(preset); }
                 }
                 for (const Preset &preset : m_preset_bundle->prints.get_presets()) {
-                    if (preset.is_compatible && preset.is_default) { process_presets.push_back(preset); }
+                    if (preset.is_compatible && !preset.is_default) { process_presets.push_back(preset); }
                 }
             }
             if (!current_preset.setting_id.empty()) {
@@ -5012,14 +5012,14 @@ void Tab::delete_preset()
             int filament_preset_num    = 0;
             int process_preset_num     = 0;
             for (const Preset &preset : m_preset_bundle->filaments.get_presets()) {
-                if (preset.is_compatible && preset.is_default) { filament_preset_num++; }
+                if (preset.is_compatible && !preset.is_default) { filament_preset_num++; }
             }
             for (const Preset &preset : m_preset_bundle->prints.get_presets()) {
-                if (preset.is_compatible && preset.is_default) { process_preset_num++; }
+                if (preset.is_compatible && !preset.is_default) { process_preset_num++; }
             }
 
             DeleteConfirmDialog
-                dlg(this, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
+                dlg(parent(), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
                     wxString::Format(_L("%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."),
                                      filament_preset_num, process_preset_num));
             int res = dlg.ShowModal();
