@@ -1508,7 +1508,6 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
     if (shader == nullptr)
         return;
 
-    glsafe(::glBindVertexArray(this->m_vertices_VAO_ids[triangle_indices_idx]));
     // the following binding is needed to set the vertex attributes
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
     const GLint position_id = shader->get_attrib_location("v_position");
@@ -1529,7 +1528,6 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
         glsafe(::glDisableVertexAttribArray(position_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-    glsafe(::glBindVertexArray(0));
 }
 
 void TriangleSelectorPatch::release_geometry()
@@ -1541,10 +1539,6 @@ void TriangleSelectorPatch::release_geometry()
     for (auto& vertice_VBO_id : m_vertices_VBO_ids) {
         glsafe(::glDeleteBuffers(1, &vertice_VBO_id));
         vertice_VBO_id = 0;
-    }
-    for (auto &vertice_VAO_id : m_vertices_VAO_ids) {
-        glsafe(::glDeleteVertexArrays(1, &vertice_VAO_id));
-        vertice_VAO_id = 0;
     }
     for (auto& triangle_indices_VBO_id : m_triangle_indices_VBO_ids) {
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
@@ -1570,7 +1564,6 @@ void TriangleSelectorPatch::finalize_vertices()
 void TriangleSelectorPatch::finalize_triangle_indices()
 {
     m_vertices_VBO_ids.resize(m_triangle_patches.size());
-    m_vertices_VAO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_sizes.resize(m_triangle_patches.size());
     assert(std::all_of(m_triangle_indices_VBO_ids.cbegin(), m_triangle_indices_VBO_ids.cend(), [](const auto& ti_VBO_id) { return ti_VBO_id == 0; }));
@@ -1578,9 +1571,6 @@ void TriangleSelectorPatch::finalize_triangle_indices()
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         std::vector<float>& patch_vertices = m_triangle_patches[buffer_idx].patch_vertices;
         if (!patch_vertices.empty()) {
-            glsafe(::glGenVertexArrays(1, &m_vertices_VAO_ids[buffer_idx]));
-            glsafe(::glBindVertexArray(m_vertices_VAO_ids[buffer_idx]));
-
             glsafe(::glGenBuffers(1, &m_vertices_VBO_ids[buffer_idx]));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices_VBO_ids[buffer_idx]));
             glsafe(::glBufferData(GL_ARRAY_BUFFER, patch_vertices.size() * sizeof(float), patch_vertices.data(), GL_STATIC_DRAW));
@@ -1599,7 +1589,6 @@ void TriangleSelectorPatch::finalize_triangle_indices()
             //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: buffer_idx %2%, vertices size %3%, buffer id %4%")%__LINE__%buffer_idx%triangle_indices.size()%m_triangle_indices_VBO_ids[buffer_idx];
             triangle_indices.clear();
         }
-        glsafe(::glBindVertexArray(0));
     }
 }
 
