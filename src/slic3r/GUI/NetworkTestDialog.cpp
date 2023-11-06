@@ -24,6 +24,8 @@ NetworkTestDialog::NetworkTestDialog(wxWindow* parent, wxWindowID id, const wxSt
             wxSize(1000, 700),
             /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER)
 {
+    this->SetBackgroundColour(wxColour(255, 255, 255));
+
 	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
 	wxBoxSizer* main_sizer;
@@ -49,20 +51,26 @@ NetworkTestDialog::NetworkTestDialog(wxWindow* parent, wxWindowID id, const wxSt
 	this->Layout();
 
 	this->Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxBoxSizer* NetworkTestDialog::create_top_sizer(wxWindow* parent)
 {
+    StateColor btn_bg(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
 	auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
-	btn_start = new wxButton(this, wxID_ANY, _L("Start Test Multi-Thread"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_start = new Button(this, _L("Start Test Multi-Thread"));
+    btn_start->SetBackgroundColor(btn_bg);
 	line_sizer->Add(btn_start, 0, wxALL, 5);
 
-	btn_start_sequence = new wxButton(this, wxID_ANY, _L("Start Test Single-Thread"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_start_sequence = new Button(this, _L("Start Test Single-Thread"));
+    btn_start_sequence->SetBackgroundColor(btn_bg);
+
 	line_sizer->Add(btn_start_sequence, 0, wxALL, 5);
 
-	btn_download_log = new wxButton(this, wxID_ANY, _L("Export Log"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_download_log = new Button(this, _L("Export Log"));
+    btn_download_log->SetBackgroundColor(btn_bg);
 	line_sizer->Add(btn_download_log, 0, wxALL, 5);
 	btn_download_log->Hide();
 
@@ -130,7 +138,9 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	grid_sizer->SetFlexibleDirection(wxBOTH);
 	grid_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
-	btn_link = new wxButton(this, wxID_ANY, _L("Test BambuLab"), wxDefaultPosition, wxDefaultSize, 0);
+    StateColor btn_bg(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255,255,255), StateColor::Enabled));
+	btn_link = new Button(this, _L("Test BambuLab"));
+    btn_link->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_link, 0, wxEXPAND | wxALL, 5);
 
 	text_link_title = new wxStaticText(this, wxID_ANY, _L("Test BambuLab:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -141,10 +151,12 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_link_val->Wrap(-1);
 	grid_sizer->Add(text_link_val, 0, wxALL, 5);
 
-	btn_bing = new wxButton(this, wxID_ANY, _L("Test Bing.com"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_bing = new Button(this, _L("Test Bing.com"));
+    btn_bing->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_bing, 0, wxEXPAND | wxALL, 5);
 
-	text_bing_title = new wxStaticText(this, wxID_ANY, _L("Test bing.com:"), wxDefaultPosition, wxDefaultSize, 0);
+    text_bing_title = new wxStaticText(this, wxID_ANY, _L("Test bing.com:"), wxDefaultPosition, wxDefaultSize, 0);
+
 	text_bing_title->Wrap(-1);
 	grid_sizer->Add(text_bing_title, 0, wxALIGN_RIGHT | wxALL, 5);
 
@@ -152,7 +164,8 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_bing_val->Wrap(-1);
 	grid_sizer->Add(text_bing_val, 0, wxALL, 5);
 
-	btn_iot = new wxButton(this, wxID_ANY, _L("Test HTTP"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_iot = new Button(this, _L("Test HTTP"));
+    btn_iot->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_iot, 0, wxEXPAND | wxALL, 5);
 
 	text_iot_title = new wxStaticText(this, wxID_ANY, _L("Test HTTP Service:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -163,7 +176,8 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_iot_value->Wrap(-1);
 	grid_sizer->Add(text_iot_value, 0, wxALL, 5);
 
-	btn_oss = new wxButton(this, wxID_ANY, _L("Test storage"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_oss = new Button(this, _L("Test storage"));
+    btn_oss->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_oss, 0, wxEXPAND | wxALL, 5);
 
 	text_oss_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Upload:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -174,7 +188,8 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_oss_value->Wrap(-1);
 	grid_sizer->Add(text_oss_value, 0, wxALL, 5);
 
-	btn_oss_upgrade = new wxButton(this, wxID_ANY, _L("Test storage upgrade"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_oss_upgrade = new Button(this, _L("Test storage upgrade"));
+    btn_oss_upgrade->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_oss_upgrade, 0, wxEXPAND | wxALL, 5);
 
 	text_oss_upgrade_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Upgrade:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -185,7 +200,8 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_oss_upgrade_value->Wrap(-1);
 	grid_sizer->Add(text_oss_upgrade_value, 0, wxALL, 5);
 
-	btn_oss_download = new wxButton(this, wxID_ANY, _L("Test storage download"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_oss_download = new Button(this, _L("Test storage download"));
+    btn_oss_download->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_oss_download, 0, wxEXPAND | wxALL, 5);
 
 	text_oss_download_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Download:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -196,7 +212,8 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	text_oss_download_value->Wrap(-1);
 	grid_sizer->Add(text_oss_download_value, 0, wxALL, 5);
 
-	btn_network_plugin=new wxButton(this, wxID_ANY, _L("Test plugin download"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_network_plugin=new Button(this, _L("Test plugin download"));
+    btn_network_plugin->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_network_plugin, 0, wxEXPAND | wxALL, 5);
 
 	text_network_plugin_title=new wxStaticText(this, wxID_ANY, _L("Test Plugin Download:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -208,7 +225,8 @@ wxBoxSizer* NetworkTestDialog::create_content_sizer(wxWindow* parent)
 	grid_sizer->Add(text_network_plugin_value, 0, wxALL, 5);
 
 
-	btn_oss_upload = new wxButton(this, wxID_ANY, _L("Test Storage Upload"), wxDefaultPosition, wxDefaultSize, 0);
+	btn_oss_upload = new Button(this, _L("Test Storage Upload"));
+    btn_oss_upload->SetBackgroundColor(btn_bg);
 	grid_sizer->Add(btn_oss_upload, 0, wxEXPAND | wxALL, 5);
 
 	text_oss_upload_title = new wxStaticText(this, wxID_ANY, _L("Test Storage Upload:"), wxDefaultPosition, wxDefaultSize, 0);

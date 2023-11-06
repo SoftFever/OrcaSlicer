@@ -6,6 +6,7 @@
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
+#include <slic3r/GUI/Widgets/Button.hpp>
 #include <wx/artprov.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/button.h>
@@ -48,9 +49,9 @@ enum TestJob {
 class NetworkTestDialog : public DPIDialog
 {
 protected:
-	wxButton* btn_start;
-	wxButton* btn_start_sequence;
-	wxButton* btn_download_log;
+	Button* btn_start;
+	Button* btn_start_sequence;
+	Button* btn_download_log;
 	wxStaticText* text_basic_info;
 	wxStaticText* text_version_title;
 	wxStaticText* text_version_val;
@@ -58,28 +59,28 @@ protected:
 	wxStaticText* txt_sys_info_value;
 	wxStaticText* txt_dns_info_title;
 	wxStaticText* txt_dns_info_value;
-	wxButton*     btn_link;
+	Button*     btn_link;
 	wxStaticText* text_link_title;
 	wxStaticText* text_link_val;
-	wxButton*     btn_bing;
+	Button*     btn_bing;
 	wxStaticText* text_bing_title;
 	wxStaticText* text_bing_val;
-	wxButton*     btn_iot;
+	Button*     btn_iot;
 	wxStaticText* text_iot_title;
 	wxStaticText* text_iot_value;
-	wxButton*     btn_oss;
+	Button*     btn_oss;
 	wxStaticText* text_oss_title;
 	wxStaticText* text_oss_value;
-	wxButton*     btn_oss_upgrade;
+	Button*     btn_oss_upgrade;
 	wxStaticText* text_oss_upgrade_title;
 	wxStaticText* text_oss_upgrade_value;
-	wxButton*     btn_oss_download;
+	Button*     btn_oss_download;
 	wxStaticText* text_oss_download_title;
 	wxStaticText* text_oss_download_value;
-	wxButton*     btn_oss_upload;
+	Button*     btn_oss_upload;
 	wxStaticText* text_oss_upload_title;
 	wxStaticText* text_oss_upload_value;
-	wxButton*     btn_network_plugin;
+	Button*     btn_network_plugin;
 	wxStaticText* text_network_plugin_title;
 	wxStaticText* text_network_plugin_value;
 	wxStaticText* text_ping_title;
