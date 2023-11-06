@@ -289,7 +289,7 @@ private:
     HMSQuery    *hms_query { nullptr };
 
     boost::thread    m_sync_update_thread;
-    bool             enable_sync = false;
+    std::shared_ptr<int> m_user_sync_token;
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};

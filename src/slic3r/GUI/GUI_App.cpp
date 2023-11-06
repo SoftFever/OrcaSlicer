@@ -1016,6 +1016,14 @@ void GUI_App::post_init()
     if (! this->initialized())
         throw Slic3r::RuntimeError("Calling post_init() while not yet initialized");
 
+    if (app_config->get("sync_user_preset") == "true") {
+        // BBS loading user preset
+        // Always async, not such startup step
+        // BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
+        // scrn->SetText(_L("Loading user presets..."));
+        if (m_agent) { start_sync_user_preset(); }
+    }
+
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
 
@@ -2627,16 +2635,6 @@ bool GUI_App::on_init_inner()
             show_error(nullptr, ex.what());
         }
     //}
-
-    if (app_config->get("sync_user_preset") == "true") {
-        //BBS loading user preset
-        // Always async, not such startup step
-        //BOOST_LOG_TRIVIAL(info) << "Loading user presets...";
-        //scrn->SetText(_L("Loading user presets..."));
-        if (m_agent) {
-            start_sync_user_preset();
-        }
-    }
 
 #ifdef WIN32
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
@@ -4628,7 +4626,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     if (!m_agent || !m_agent->is_user_login()) return;
 
     // has already start sync
-    if (enable_sync) return;
+    if (m_user_sync_token) return;
 
     ProgressFn progressFn;
     WasCancelledFn cancelFn;
@@ -4645,10 +4643,10 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         cancelFn = [this, dlg]() {
             return m_is_closing || dlg->WasCanceled();
         };
-        finishFn = [this, userid = m_agent->get_user_id(), dlg](bool ok) {
+        finishFn = [this, userid = m_agent->get_user_id(), dlg, t = std::weak_ptr(m_user_sync_token)](bool ok) {
             CallAfter([=]{
                 dlg->Destroy();
-                if (ok && m_agent && userid == m_agent->get_user_id()) reload_settings();
+                if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
@@ -4662,9 +4660,9 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
     BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     //BBS
-    enable_sync = true;
+    m_user_sync_token.reset(new int(0));
     m_sync_update_thread = Slic3r::create_thread(
-        [this, progressFn, cancelFn, finishFn] {
+        [this, progressFn, cancelFn, finishFn, t = std::weak_ptr(m_user_sync_token)] {
             // get setting list, update setting list
             std::string version = preset_bundle->get_vendor_profile_version(PresetBundle::BBL_BUNDLE).to_string();
             int ret = m_agent->get_setting_list2(version, [this](auto info) {
@@ -4689,7 +4687,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
             int count = 0, sync_count = 0;
             std::vector<Preset> presets_to_sync;
-            while (enable_sync) {
+            while (!t.expired()) {
                 count++;
                 if (count % 20 == 0) {
                     if (m_agent) {
@@ -4760,10 +4758,10 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
 void GUI_App::stop_sync_user_preset()
 {
-    if (!enable_sync)
+    if (!m_user_sync_token)
         return;
 
-    enable_sync = false;
+    m_user_sync_token.reset();
     if (m_sync_update_thread.joinable()) {
         if (m_is_closing)
             m_sync_update_thread.join();
