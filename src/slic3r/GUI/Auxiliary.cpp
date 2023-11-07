@@ -226,7 +226,7 @@ void AuFile::PaintBackground(wxDC &dc)
         dc.SetPen(AUFILE_GREY200);
         dc.SetBrush(AUFILE_GREY200);
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, AUFILE_ROUNDING);
-        dc.DrawBitmap(m_file_bitmap.bmp(), (size.x - m_file_bitmap.GetBmpWidth()) / 2, (size.y - m_file_bitmap.GetBmpHeight()) / 2);
+        dc.DrawBitmap(m_file_bitmap.get_bitmap(), (size.x - m_file_bitmap.GetBmpWidth()) / 2, (size.y - m_file_bitmap.GetBmpHeight()) / 2);
     }
 }
 
@@ -257,7 +257,7 @@ void AuFile::PaintForeground(wxDC &dc)
         }
 
         if (m_type == MODEL_PICTURE) {
-            dc.DrawBitmap(m_file_edit_mask.bmp(), 0, size.y - m_file_edit_mask.GetBmpSize().y); 
+            dc.DrawBitmap(m_file_edit_mask.get_bitmap(), 0, size.y - m_file_edit_mask.GetBmpSize().y);
         }
 
 
@@ -297,7 +297,7 @@ void AuFile::PaintForeground(wxDC &dc)
 
     if (m_cover) {
         dc.SetTextForeground(*wxWHITE);
-        dc.DrawBitmap(m_file_cover.bmp(), size.x - m_file_cover.GetBmpSize().x, 0);
+        dc.DrawBitmap(m_file_cover.get_bitmap(), size.x - m_file_cover.GetBmpSize().x, 0);
         dc.SetFont(Label::Body_12);
         auto sizet = dc.GetTextExtent(cover_text_cover);
         auto pos   = wxPoint(0, 0);
@@ -306,7 +306,7 @@ void AuFile::PaintForeground(wxDC &dc)
         dc.DrawText(cover_text_cover, pos);
     }
 
-    if (m_hover) { dc.DrawBitmap(m_file_delete.bmp(), size.x - m_file_delete.GetBmpSize().x - FromDIP(10), FromDIP(10)); }
+    if (m_hover) { dc.DrawBitmap(m_file_delete.get_bitmap(), size.x - m_file_delete.GetBmpSize().x - FromDIP(10), FromDIP(10)); }
 }
 
 void AuFile::on_mouse_enter(wxMouseEvent &evt)

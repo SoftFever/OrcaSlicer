@@ -209,7 +209,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     if (m_state == PrinterState::IN_LAN) { dwbitmap = m_printer_in_lan; }
 
     // dc.DrawCircle(left, size.y / 2, 3);
-    dc.DrawBitmap(dwbitmap.bmp(), wxPoint(left, (size.y - dwbitmap.GetBmpSize().y) / 2));
+    dc.DrawBitmap(dwbitmap.get_bitmap(), wxPoint(left, (size.y - dwbitmap.GetBmpSize().y) / 2));
 
     left += dwbitmap.GetBmpSize().x + 8;
     dc.SetFont(Label::Body_13);
@@ -259,13 +259,13 @@ void MachineObjectPanel::doRender(wxDC &dc)
         if (m_show_bind) {
             if (m_bind_state == ALLOW_UNBIND) {
                 left = size.x - m_unbind_img.GetBmpSize().x - 6;
-                dc.DrawBitmap(m_unbind_img.bmp(), left, (size.y - m_unbind_img.GetBmpSize().y) / 2);
+                dc.DrawBitmap(m_unbind_img.get_bitmap(), left, (size.y - m_unbind_img.GetBmpSize().y) / 2);
             }
         }
 
         if (m_show_edit) {
             left = size.x - m_unbind_img.GetBmpSize().x - 6 - m_edit_name_img.GetBmpSize().x - 6;
-            dc.DrawBitmap(m_edit_name_img.bmp(), left, (size.y - m_edit_name_img.GetBmpSize().y) / 2);
+            dc.DrawBitmap(m_edit_name_img.get_bitmap(), left, (size.y - m_edit_name_img.GetBmpSize().y) / 2);
         }
     }
 

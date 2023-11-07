@@ -236,7 +236,7 @@ void StepCtrl::doRender(wxDC &dc)
             wxSize sz = dc.GetTextExtent(tips[i]);
             dc.DrawText(tips[i], circleX - sz.x / 2, circleY - 20 - sz.y);
             sz = bmp_thumb.GetBmpSize();
-            dc.DrawBitmap(bmp_thumb.bmp(), circleX - sz.x / 2, circleY - sz.y / 2);
+            dc.DrawBitmap(bmp_thumb.get_bitmap(), circleX - sz.x / 2, circleY - sz.y / 2);
         }
         circleX += itemWidth;
     }
@@ -320,7 +320,7 @@ void StepIndicator::doRender(wxDC &dc)
         // Draw content ( icon or text ) in circle
         if (disabled) {
             wxSize sz = bmp_ok.GetBmpSize();
-            dc.DrawBitmap(bmp_ok.bmp(), circleX - radius, circleY - radius);
+            dc.DrawBitmap(bmp_ok.get_bitmap(), circleX - radius, circleY - radius);
         } else {
             dc.SetFont(font_tip);
             dc.SetTextForeground(clr_tip.colorForStates(states));

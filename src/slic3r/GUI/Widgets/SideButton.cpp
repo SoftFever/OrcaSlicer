@@ -270,7 +270,7 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
         //BBS extra pixels for icon
         pt.x += icon_offset;
         pt.y += (rcContent.height - szIcon.y) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+        dc.DrawBitmap(icon.get_bitmap(), pt);
         //BBS norrow size between text and icon
         pt.x += szIcon.x + 5;
         pt.y = rcContent.y;

@@ -502,7 +502,7 @@ void ImageGrid::render(wxDC& dc)
             auto   si = m_status_icon.GetBmpSize();
             auto   st = dc.GetTextExtent(m_status_msg);
             auto   rect = wxRect{0, 0, max(st.x, si.x), si.y + 26 + st.y}.CenterIn(wxRect({0, 0}, size));
-            dc.DrawBitmap(m_status_icon.bmp(), rect.x + (rect.width - si.x) / 2, rect.y);
+            dc.DrawBitmap(m_status_icon.get_bitmap(), rect.x + (rect.width - si.x) / 2, rect.y);
             dc.SetTextForeground(wxColor(0x909090));
             dc.DrawText(m_status_msg, rect.x + (rect.width - st.x) / 2, rect.GetBottom() - st.y);
         }
@@ -593,7 +593,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
     bool show_download_state_always = true;
     // Draw checked icon
     if (m_selecting && !show_download_state_always)
-        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+        dc.DrawBitmap(selected ? m_checked_icon.get_bitmap() : m_unchecked_icon.get_bitmap(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
     // can't handle alpha
     // dc.GradientFillLinear({pt.x, pt.y, m_border_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
     else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
@@ -644,7 +644,7 @@ void Slic3r::GUI::ImageGrid::renderContent1(wxDC &dc, wxPoint const &pt, int ind
         dc.DrawText(date, pt + wxPoint{24, 16});
     }
     if (m_selecting && show_download_state_always)
-        dc.DrawBitmap(selected ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
+        dc.DrawBitmap(selected ? m_checked_icon.get_bitmap() : m_unchecked_icon.get_bitmap(), pt + wxPoint{10, m_content_rect.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
 }
 
 void Slic3r::GUI::ImageGrid::renderContent2(wxDC &dc, wxPoint const &pt, int index, bool hit)
@@ -736,7 +736,7 @@ void Slic3r::GUI::ImageGrid::renderText2(wxDC &dc, wxString text, wxRect const &
 
 void Slic3r::GUI::ImageGrid::renderIconText(wxDC & dc, ScalableBitmap const & icon, wxString text, wxRect const & rect)
 {
-    dc.DrawBitmap(icon.bmp(), rect.x, rect.y + (rect.height - icon.GetBmpHeight()) / 2);
+    dc.DrawBitmap(icon.get_bitmap(), rect.x, rect.y + (rect.height - icon.GetBmpHeight()) / 2);
     renderText2(dc, text, {rect.x + icon.GetBmpWidth() + 4, rect.y, rect.width - icon.GetBmpWidth() - 4, rect.height});
 }
 

@@ -31,7 +31,7 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
     wxSize size = this->GetSize();
     int logo_w = this->logo.GetBmpWidth();
     int logo_h = this->logo.GetBmpHeight();
-    dc.DrawBitmap(this->logo.bmp(), (size.GetWidth() - logo_w)/2, (size.GetHeight() - logo_h)/2, true);
+    dc.DrawBitmap(this->logo.get_bitmap(), (size.GetWidth() - logo_w)/2, (size.GetHeight() - logo_h)/2, true);
 
     event.Skip();
 }

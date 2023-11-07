@@ -99,7 +99,7 @@ void RecenterDialog::render(wxDC& dc) {
 
     wxPoint pos_bmp = pos_start;
     pos_bmp.x += hint1_size.x;
-    dc.DrawBitmap(m_home_bmp.bmp(), pos_bmp);
+    dc.DrawBitmap(m_home_bmp.get_bitmap(), pos_bmp);
 
     wxSize hint2_size = dc.GetTextExtent(hint2);
     wxPoint pos_hint2 = pos_hint1;

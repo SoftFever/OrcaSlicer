@@ -95,7 +95,7 @@ void StaticLine::render(wxDC& dc)
                 textSize.GetWidth();
     if (vertical) titleRect.Deflate((size.GetWidth() - contentWidth) / 2, 0);
     if (icon.bmp().IsOk()) {
-        dc.DrawBitmap(icon.bmp(), {0, (size.y - icon.GetBmpHeight()) / 2});
+        dc.DrawBitmap(icon.get_bitmap(), {0, (size.y - icon.GetBmpHeight()) / 2});
         titleRect.x += icon.GetBmpWidth() + 5;
     }
     if (!label.IsEmpty()) {

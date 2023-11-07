@@ -381,7 +381,7 @@ void TempInput::render(wxDC &dc)
     if (actice_icon.bmp().IsOk() && actice) {
         wxSize szIcon = actice_icon.GetBmpSize();
         pt.y          = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(actice_icon.bmp(), pt);
+        dc.DrawBitmap(actice_icon.get_bitmap(), pt);
         pt.x += szIcon.x + 9;
     } else {
         actice = false;
@@ -390,7 +390,7 @@ void TempInput::render(wxDC &dc)
     if (normal_icon.bmp().IsOk() && !actice) {
         wxSize szIcon = normal_icon.GetBmpSize();
         pt.y          = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(normal_icon.bmp(), pt);
+        dc.DrawBitmap(normal_icon.get_bitmap(), pt);
         pt.x += szIcon.x + 9;
     }
 
@@ -438,7 +438,7 @@ void TempInput::render(wxDC &dc)
         wxSize szIcon = degree_icon.GetBmpSize();
         pt.y          = (size.y - szIcon.y) / 2;
         pt.x          = pos.x + text_ctrl->GetSize().x;
-        dc.DrawBitmap(degree_icon.bmp(), pt);
+        dc.DrawBitmap(degree_icon.get_bitmap(), pt);
     }
 }
 

@@ -171,7 +171,7 @@ void TabButton::render(wxDC &dc)
     if (icon.bmp().IsOk()) {
         pt.x = size.x - icon.GetBmpWidth() - paddingSize.y;
         pt.y = (size.y - icon.GetBmpHeight()) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+        dc.DrawBitmap(icon.get_bitmap(), pt);
     }
 }
 

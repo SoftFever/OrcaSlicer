@@ -115,7 +115,7 @@ void Fan::doRender(wxDC& dc)
     auto rpm = wxT("rpm");
 
     wxSize size = GetSize();
-    dc.DrawBitmap(m_bitmap_bk.bmp(), wxPoint(0,0));
+    dc.DrawBitmap(m_bitmap_bk.get_bitmap(), wxPoint(0,0));
 
     //fan scale
     /*auto central_point = wxPoint(size.x / 2, size.y / 2 + FromDIP(15));
@@ -134,7 +134,7 @@ void Fan::doRender(wxDC& dc)
     //auto pointer_central_point = wxPoint((size.x - m_img_pointer.GetSize().x) / 2, (size.y - m_img_pointer.GetSize().y) / 2);
     //auto bmp = m_img_pointer.Rotate(m_rotate_offsets[m_current_speeds].rotate, wxPoint(size.x / 2,size.y / 2));
     auto central_point = wxPoint((size.x  - m_bitmap_scales[m_current_speeds].GetBmpSize().x) / 2, (size.y  - m_bitmap_scales[m_current_speeds].GetBmpSize().y) / 2 - FromDIP(4));
-    dc.DrawBitmap(m_bitmap_scales[m_current_speeds].bmp(), central_point.x, central_point.y);
+    dc.DrawBitmap(m_bitmap_scales[m_current_speeds].get_bitmap(), central_point.x, central_point.y);
 
     //fan val
     dc.SetTextForeground(DRAW_TEXT_COLOUR);
@@ -280,8 +280,8 @@ void FanOperate::doRender(wxDC& dc)
     dc.DrawLine(left_fir, FromDIP(4), left_fir, size.y - FromDIP(4));
     dc.DrawLine(left_fir * 2, FromDIP(4), left_fir * 2, size.y - FromDIP(4));
 
-    dc.DrawBitmap(m_bitmap_decrease.bmp(), (left_fir - m_bitmap_decrease.GetBmpSize().x) / 2, (size.y - m_bitmap_decrease.GetBmpSize().y) / 2);
-    dc.DrawBitmap(m_bitmap_add.bmp(), (left_fir * 2 + (left_fir - m_bitmap_decrease.GetBmpSize().x) / 2), (size.y - m_bitmap_add.GetBmpSize().y) / 2);
+    dc.DrawBitmap(m_bitmap_decrease.get_bitmap(), (left_fir - m_bitmap_decrease.GetBmpSize().x) / 2, (size.y - m_bitmap_decrease.GetBmpSize().y) / 2);
+    dc.DrawBitmap(m_bitmap_add.get_bitmap(), (left_fir * 2 + (left_fir - m_bitmap_decrease.GetBmpSize().x) / 2), (size.y - m_bitmap_add.GetBmpSize().y) / 2);
 
     //txt
     dc.SetFont(::Label::Body_12);

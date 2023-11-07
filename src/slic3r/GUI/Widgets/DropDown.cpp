@@ -270,7 +270,7 @@ void DropDown::render(wxDC &dc)
             pt.y += (rcContent.height - szBmp.y) / 2;
             pt.y += rowSize.y * selection;
             if (pt.y + szBmp.y > 0 && pt.y < size.y)
-                dc.DrawBitmap(check_bitmap.bmp(), pt);
+                dc.DrawBitmap(check_bitmap.get_bitmap(), pt);
         }
         rcContent.x += szBmp.x + 5;
         rcContent.width -= szBmp.x + 5;

@@ -196,7 +196,7 @@ void TextInput::render(wxDC& dc)
     if (icon.bmp().IsOk()) {
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+        dc.DrawBitmap(icon.get_bitmap(), pt);
         pt.x += szIcon.x + 0;
     }
     auto text = wxWindow::GetLabel();

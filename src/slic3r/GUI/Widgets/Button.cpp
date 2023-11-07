@@ -206,7 +206,7 @@ void Button::render(wxDC& dc)
     wxPoint pt = rcContent.GetLeftTop();
     if (icon.bmp().IsOk()) {
         pt.y += (rcContent.height - szIcon.y) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+        dc.DrawBitmap(icon.get_bitmap(), pt);
         //BBS norrow size between text and icon
         pt.x += szIcon.x + padding;
         pt.y = rcContent.y;

@@ -114,7 +114,7 @@ void ImageSwitchButton::render(wxDC& dc)
 
 	wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
 	if (icon.bmp().IsOk()) {
-		dc.DrawBitmap(icon.bmp(), pt);
+		dc.DrawBitmap(icon.get_bitmap(), pt);
 		pt.y += m_padding + icon.GetBmpHeight();
 	}
 	pt.x = (size.x - textSize.x) / 2;
@@ -300,7 +300,7 @@ void FanSwitchButton::render(wxDC& dc)
 
     pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, content_height + textSize.y);
     if (icon.bmp().IsOk()) {
-        dc.DrawBitmap(icon.bmp(), pt);
+        dc.DrawBitmap(icon.get_bitmap(), pt);
         pt.y += m_padding + icon.GetBmpHeight();
     }
 
