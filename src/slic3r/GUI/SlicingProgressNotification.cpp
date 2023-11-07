@@ -17,7 +17,7 @@ namespace {
 	}
 }
 
-static constexpr int   BEFORE_COMPLETE_DURATION = 3000; //ms
+static constexpr int   BEFORE_COMPLETE_DURATION = 4000; //ms
 static constexpr int   REFRESH_TIMEOUT = 100;           //ms
 
 void NotificationManager::SlicingProgressNotification::on_change_color_mode(bool is_dark)
@@ -259,7 +259,8 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	const float  progress_panel_height = (58.0f * scale);
 	const float  dailytips_panel_width = (m_window_width - 2 * dailytips_child_window_padding.x);
 	const float  gcodeviewer_height = wxGetApp().plater()->get_preview_canvas3D()->get_gcode_viewer().get_legend_height();
-	const float  dailytips_panel_height = std::min(380.0f * scale, std::max(90.0f, (cnv_size.get_height() - gcodeviewer_height - progress_panel_height - dailytips_child_window_padding.y - initial_y - m_line_height * 4)));
+	//const float  dailytips_panel_height = std::min(380.0f * scale, std::max(90.0f, (cnv_size.get_height() - gcodeviewer_height - progress_panel_height - dailytips_child_window_padding.y - initial_y - m_line_height * 4)));
+	const float  dailytips_panel_height = 380.0f * scale;
 
 	float right_gap = right_margin + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
 	m_window_pos = ImVec2((float)cnv_size.get_width() - right_gap - m_window_width, (float)cnv_size.get_height() - m_top_y);
@@ -384,21 +385,28 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 			m_before_complete_start = GLCanvas3D::timestamp_now();
 		}
 		else {
+			// timer to close
+			int64_t now = GLCanvas3D::timestamp_now();
+			int64_t duration_time = now - m_before_complete_start;
+			if (duration_time < 1000) {
+				imgui.push_bold_font();
+				ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + (icon_size.y - m_line_height) / 2));
+				imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+				imgui.pop_bold_font();
+				return;
+			}
+			if (duration_time > BEFORE_COMPLETE_DURATION) {
+				set_progress_state(SlicingProgressState::SP_COMPLETED);
+				return;
+			}
 			// complete text
 			imgui.push_bold_font();
 			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y));
 			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
 			imgui.pop_bold_font();
-
-			// timer to close
-			int64_t now = GLCanvas3D::timestamp_now();
-			int64_t duration_time = now - m_before_complete_start;
-			if (duration_time > BEFORE_COMPLETE_DURATION) {
-				set_progress_state(SlicingProgressState::SP_COMPLETED);
-				return;
-			}
+			// closing text
 			boost::format fmt(_u8L("Closing in %ds"));
-			fmt % (3 - duration_time / 1000);
+			fmt % (4 - duration_time / 1000);
 			ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144).Value);
 			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + m_line_height + m_line_height / 2));
 			imgui.text(fmt.str());
