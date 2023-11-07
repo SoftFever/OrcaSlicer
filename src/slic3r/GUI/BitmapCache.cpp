@@ -781,7 +781,7 @@ wxBitmapBundle* BitmapCache::mksolid_bndl(size_t width, size_t height, const std
         if (color.empty())
             bndl = new wxBitmapBundle(mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT, size_t(0)));
         else {
-            //TODO: replace with ColorRGB class
+            //OcraftyoneTODO: replace with ColorRGB class
 //            ColorRGB rgb;// [3]
 //            decode_color(color, rgb);
             unsigned char rgb[3];

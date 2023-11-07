@@ -22,7 +22,7 @@
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
-void msw_rescale_menu(wxMenu* menu) //TODO: PS RENAME (sys_color_changed_menu)
+void msw_rescale_menu(wxMenu* menu) //OcraftyoneTODO: PS RENAME (sys_color_changed_menu)
 {
 	struct update_icons {
 		static void run(wxMenuItem* item) {
@@ -829,7 +829,7 @@ void ModeSizer::set_items_border(int border)
 
 void ModeSizer::msw_rescale()
 {
-//    this->SetHGap(std::lround(m_hgap_unscaled * em_unit(m_parent))); //TODO: LEGACY (PS removed)
+//    this->SetHGap(std::lround(m_hgap_unscaled * em_unit(m_parent))); //OcraftyoneTODO: LEGACY (PS removed)
     for (size_t m = 0; m < m_mode_btns.size(); m++)
         m_mode_btns[m]->msw_rescale();
 }
@@ -879,13 +879,13 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
         if (height != GetBmpHeight())
             msw_rescale();
     }
-    //TODO: PS replaces this function body with the following code
+    //OcraftyoneTODO: PS replaces this function body with the following code
 //    m_bmp = *get_bmp_bundle(icon_name, px_cnt);
 //    m_bitmap = m_bmp.GetBitmapFor(parent);
     
 }
 
-//TODO: Remove the following 3 functions when refactor complete
+//OcraftyoneTODO: Remove the following 3 functions when refactor complete
 wxSize ScalableBitmap::GetBmpSize() const
 { return GetSize(); }
 
@@ -900,7 +900,7 @@ void ScalableBitmap::msw_rescale()
 {
     // BBS: support resize by fill border
     m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, std::string(), false, m_resize);
-//    m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt); // TODO: can this impl be used
+//    m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt); // OcraftyoneTODO: can this impl be used
 }
 
 // ----------------------------------------------------------------------------
@@ -914,11 +914,11 @@ ScalableButton::ScalableButton( wxWindow *          parent,
                                 const wxSize&       size /* = wxDefaultSize*/,
                                 const wxPoint&      pos /* = wxDefaultPosition*/,
                                 long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/,
-                                bool                use_default_disabled_bitmap/* = false*/, //TODO: removed by ps
+                                bool                use_default_disabled_bitmap/* = false*/, //OcraftyoneTODO: removed by ps
                                 int                 bmp_px_cnt/* = 16*/) :
     m_parent(parent),
     m_current_icon_name(icon_name),
-    m_use_default_disabled_bitmap (use_default_disabled_bitmap), //TODO: removed by ps
+    m_use_default_disabled_bitmap (use_default_disabled_bitmap), //OcraftyoneTODO: removed by ps
     m_px_cnt(bmp_px_cnt),
     m_has_border(!(style & wxNO_BORDER))
 {
@@ -930,7 +930,7 @@ ScalableButton::ScalableButton( wxWindow *          parent,
         SetBitmap(create_scaled_bitmap(icon_name, parent, m_px_cnt));
         if (m_use_default_disabled_bitmap)
             SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
-        //TODO: replace above 3 lines with following
+        //OcraftyoneTODO: replace above 3 lines with following
 //        SetBitmap(*get_bmp_bundle(icon_name, m_px_cnt));
         if (!label.empty())
             SetBitmapMargins(int(0.5* em_unit(parent)), 0);
@@ -980,7 +980,7 @@ bool ScalableButton::SetBitmap_(const std::string& bmp_name)
     SetBitmapFocus(bmp);
     if (m_use_default_disabled_bitmap)
         SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
-    //TODO: above 2 lines replaced with
+    //OcraftyoneTODO: above 2 lines replaced with
 //    SetBitmapDisabled(bmp);
     return true;
 }
@@ -1000,13 +1000,13 @@ int ScalableButton::GetBitmapHeight()
 #endif
 }
 
-void ScalableButton::UseDefaultBitmapDisabled() //TODO: removed by ps
+void ScalableButton::UseDefaultBitmapDisabled() //OcraftyoneTODO: removed by ps
 {
     m_use_default_disabled_bitmap = true;
     SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
 }
 
-void ScalableButton::msw_rescale() //TODO: renamed to sys_color_changed
+void ScalableButton::msw_rescale() //OcraftyoneTODO: renamed to sys_color_changed
 {
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this, m_has_border);
 
@@ -1032,7 +1032,7 @@ BlinkingBitmap::BlinkingBitmap(wxWindow* parent, const std::string& icon_name) :
     bmp = ScalableBitmap(parent, icon_name);
 }
 
-void BlinkingBitmap::msw_rescale() //TODO: removed by ps
+void BlinkingBitmap::msw_rescale() //OcraftyoneTODO: removed by ps
 {
     bmp.msw_rescale();
     this->SetSize(bmp.GetBmpSize());

@@ -19,9 +19,9 @@
 #include "Widgets/PopupWindow.hpp"
 
 #ifndef __linux__
-void                msw_rescale_menu(wxMenu* menu); //TODO: PS RENAME (sys_color_changed_menu)
+void                msw_rescale_menu(wxMenu* menu); //OcraftyoneTODO: PS RENAME (sys_color_changed_menu)
 #else
-inline void         msw_rescale_menu(wxMenu* /* menu */) {} //TODO: PS RENAME (sys_color_changed_menu)
+inline void         msw_rescale_menu(wxMenu* /* menu */) {} //OcraftyoneTODO: PS RENAME (sys_color_changed_menu)
 #endif // no __linux__
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
@@ -52,7 +52,7 @@ void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<
 int     em_unit(wxWindow* win);
 int     mode_icon_px_size();
 
-wxBitmap create_menu_bitmap(const std::string& bmp_name);  //TODO: LEGACY (PS deleted)
+wxBitmap create_menu_bitmap(const std::string& bmp_name);  //OcraftyoneTODO: LEGACY (PS deleted)
 wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name, int px_cnt = 16);
 wxBitmapBundle* get_empty_bmp_bundle(int width, int height);
 wxBitmapBundle* get_solid_bmp_bundle(int width, int height, const std::string& color);
@@ -171,11 +171,11 @@ public:
 
     ~ScalableBitmap() {}
 
-    wxSize  GetBmpSize() const; // TODO: REPLACE
+    wxSize  GetBmpSize() const; // OcraftyoneTODO: REPLACE
     int     GetBmpWidth() const;
     int     GetBmpHeight() const;
 
-    void                msw_rescale(); //TODO: PS RENAME (sys_color_changed)
+    void                msw_rescale(); //OcraftyoneTODO: PS RENAME (sys_color_changed)
 
     const wxBitmapBundle&     bmp() const { return m_bmp; }
     wxBitmapBundle&           bmp()       { return m_bmp; }
@@ -184,7 +184,7 @@ public:
     const std::string&        name() const{ return m_icon_name; }
     int                       px_cnt() const { return m_px_cnt; }
 
-    wxSize              GetSize()   const { // TODO: REPLACEMENTS
+    wxSize              GetSize()   const { // OcraftyoneTODO: REPLACEMENTS
 #ifdef __APPLE__
         return m_bmp.GetDefaultSize();
 #else
@@ -228,7 +228,7 @@ public:
     void    enable()                        { m_disabled = false; }
     void    disable()                       { m_disabled = true;  }
 
-    void    msw_rescale(); //TODO: PS RENAME (sys_color_changed)
+    void    msw_rescale(); //OcraftyoneTODO: PS RENAME (sys_color_changed)
 
 protected:
     void    update_button_bitmaps();
@@ -260,7 +260,7 @@ public:
         const wxSize&       size = wxDefaultSize,
         const wxPoint&      pos = wxDefaultPosition,
         long                style = wxBU_EXACTFIT | wxNO_BORDER,
-        bool                use_default_disabled_bitmap = false,  //TODO: LEGACY (PS deleted)
+        bool                use_default_disabled_bitmap = false,  //OcraftyoneTODO: LEGACY (PS deleted)
         int                 bmp_px_cnt = 16);
 
     ScalableButton(
@@ -276,7 +276,7 @@ public:
     bool SetBitmap_(const std::string& bmp_name);
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
     int  GetBitmapHeight();
-    void UseDefaultBitmapDisabled(); //TODO: LEGACY (PS deleted)
+    void UseDefaultBitmapDisabled(); //OcraftyoneTODO: LEGACY (PS deleted)
 
     void    msw_rescale();
 
@@ -287,7 +287,7 @@ private:
     int             m_width {-1}; // should be multiplied to em_unit
     int             m_height{-1}; // should be multiplied to em_unit
 
-    bool            m_use_default_disabled_bitmap {false}; //TODO: LEGACY (PS deleted)
+    bool            m_use_default_disabled_bitmap {false}; //OcraftyoneTODO: LEGACY (PS deleted)
 
     // bitmap dimensions 
     int             m_px_cnt{ 16 };
@@ -354,7 +354,7 @@ public:
     void set_items_flag(int flag);
     void set_items_border(int border);
 
-    void msw_rescale(); //TODO: PS RENAME (sys_color_changed)
+    void msw_rescale(); //OcraftyoneTODO: PS RENAME (sys_color_changed)
     const std::vector<ModeButton*>& get_btns() { return m_mode_btns; }
 
 private:
@@ -402,7 +402,7 @@ public:
 
     ~BlinkingBitmap() {}
 
-    void    msw_rescale(); //TODO: LEGACY (PS deleted)
+    void    msw_rescale(); //OcraftyoneTODO: LEGACY (PS deleted)
     void    invalidate();
     void    activate();
     void    blink();
