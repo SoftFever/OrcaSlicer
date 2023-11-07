@@ -29,7 +29,7 @@ BitmapComboBox(wxWindow* parent,
 #ifdef _WIN32
     int Append(const wxString& item);
 #endif
-    int Append(const wxString& item, const wxBitmap& bitmap)
+    int Append(const wxString& item, const wxBitmapBundle& bitmap)
     {
         return wxBitmapComboBox::Append(item, bitmap);
     }
