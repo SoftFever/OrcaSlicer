@@ -3107,6 +3107,7 @@ void TabFilament::toggle_options()
     }
     if (m_active_page->title() == "Filament")
     {
+        toggle_option("filament_type", false);
         //BBS: hide these useless option for bambu printer
         toggle_line("enable_pressure_advance", !is_BBL_printer);
         if (is_BBL_printer)
