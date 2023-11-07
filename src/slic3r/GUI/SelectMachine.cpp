@@ -3850,10 +3850,14 @@ void SelectMachineDialog::set_default_normal()
                 display_materials.push_back(display_filament_type);
                 materials.push_back(filament_type);
                 m_filaments_id.push_back(m_filament_id);
-                if (preset->vendor && !preset->vendor->name.empty())
-                    brands.push_back(preset->vendor->name);
-                else
-                    brands.push_back("");
+
+                std::string m_vendor_name = "";
+                auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
+                if (vendor && (vendor->values.size() > 0)) {
+                    std::string vendor_name = vendor->values[0];
+                    m_vendor_name = vendor_name;
+                }
+                brands.push_back(m_vendor_name);
             }
         }
     }

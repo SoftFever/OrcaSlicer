@@ -4116,7 +4116,7 @@ int MachineObject::parse_json(std::string payload)
                             vt_tray.color = jj["tray_color"].get<std::string>();
                             vt_tray.setting_id = jj["tray_info_idx"].get<std::string>();
                             //vt_tray.type = jj["tray_type"].get<std::string>();
-                            vt_tray.type = setting_id_to_type(vt_tray.setting_id, jj["tray_info_idx"].get<std::string>());
+                            vt_tray.type = setting_id_to_type(vt_tray.setting_id, jj["tray_type"].get<std::string>());
                             // delay update
                             vt_tray.set_hold_count();
                         } else {

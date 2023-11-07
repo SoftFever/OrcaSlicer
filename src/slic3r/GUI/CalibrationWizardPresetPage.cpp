@@ -946,8 +946,10 @@ bool CalibrationPresetPage::is_filament_in_blacklist(Preset* preset, std::string
         std::string filamnt_type;
         preset->get_filament_type(filamnt_type);
 
-        if (preset->vendor) {
-            DeviceManager::check_filaments_in_blacklist(preset->vendor->name, filamnt_type, in_blacklist, action, info);
+        auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
+        if (vendor && (vendor->values.size() > 0)) {
+            std::string vendor_name = vendor->values[0];
+            DeviceManager::check_filaments_in_blacklist(vendor_name, filamnt_type, in_blacklist, action, info);
         }
 
         if (in_blacklist) {
