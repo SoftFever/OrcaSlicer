@@ -645,7 +645,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
     }
 
 	// BBS: detect narrow internal solid infill area and use ipConcentricInternal pattern instead
-	/*if (layer.object()->config().detect_narrow_internal_solid_infill)*/ {
+	if (layer.object()->config().detect_narrow_internal_solid_infill) {
 		size_t surface_fills_size = surface_fills.size();
 		for (size_t i = 0; i < surface_fills_size; i++) {
 			if (surface_fills[i].surface.surface_type != stInternalSolid)

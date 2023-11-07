@@ -187,10 +187,10 @@
     "0"
   ],
   "hot_plate_temp_initial_layer": [
-    "45"
+    "55"
   ],
   "hot_plate_temp": [
-    "45"
+    "50"
   ],
   "nozzle_temperature": [
     "220"

@@ -2187,7 +2187,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
         }
         auto center = bbox_wo_wt.center();
-        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(), center.y()));
+        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats({center.x(), center.y()}));
     }
     bool activate_chamber_temp_control = false;
     auto max_chamber_temp              = 0;
