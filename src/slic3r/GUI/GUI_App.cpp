@@ -4632,6 +4632,9 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     WasCancelledFn cancelFn;
     std::function<void(bool)> finishFn;
 
+    BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
+    // BBS
+    m_user_sync_token.reset(new int(0));
     if (with_progress_dlg) {
         auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
         dlg->Update(0, _L("Loading user preset"));
@@ -4651,16 +4654,13 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
         };
     }
     else {
-        finishFn = [this, userid = m_agent->get_user_id()](bool ok) {
+        finishFn = [this, userid = m_agent->get_user_id(), t = std::weak_ptr(m_user_sync_token)](bool ok) {
             CallAfter([=] {
-                if (ok && m_agent && userid == m_agent->get_user_id()) reload_settings();
+                if (ok && m_agent && t.lock() == m_user_sync_token && userid == m_agent->get_user_id()) reload_settings();
             });
         };
     }
 
-    BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
-    //BBS
-    m_user_sync_token.reset(new int(0));
     m_sync_update_thread = Slic3r::create_thread(
         [this, progressFn, cancelFn, finishFn, t = std::weak_ptr(m_user_sync_token)] {
             // get setting list, update setting list
