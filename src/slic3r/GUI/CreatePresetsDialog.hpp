@@ -143,6 +143,7 @@ protected:
     void          load_model_stl();
     bool          load_system_and_user_presets_with_curr_model(PresetBundle &temp_preset_bundle, bool just_template = false);
     void          generate_process_presets_data(std::vector<Preset const *> presets, std::string nozzle);
+    void          update_preset_list_size();
     wxArrayString printer_preset_sort_with_nozzle_diameter(const VendorProfile &vendor_profile, float nozzle_diameter);
 
     wxBoxSizer *create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list);
@@ -202,6 +203,7 @@ private:
     wxPanel *                                          m_filament_preset_panel          = nullptr;
     wxPanel *                                          m_process_preset_panel           = nullptr;
     wxPanel *                                          m_preset_template_panel          = nullptr;
+    wxBoxSizer *                                       m_filament_sizer                 = nullptr;
     wxPanel *                                          m_printer_info_panel             = nullptr;
     wxBoxSizer *                                       m_page1_sizer                    = nullptr;
     wxBoxSizer *                                       m_printer_info_sizer             = nullptr;

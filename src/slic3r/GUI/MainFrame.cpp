@@ -3205,6 +3205,7 @@ void MainFrame::load_config_file()
         }
     }
     wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
+    update_side_preset_ui();
     MessageDialog dlg2(this, wxString::Format(_L_PLURAL("There is %d config imported. (Only non-system and compatible configs)",
         "There are %d configs imported. (Only non-system and compatible configs)", cfiles.size()), cfiles.size()),
                         _L("Import result"), wxOK);

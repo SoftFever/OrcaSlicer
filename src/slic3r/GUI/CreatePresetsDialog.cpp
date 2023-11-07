@@ -196,6 +196,8 @@ static wxBoxSizer* create_checkbox(wxWindow* parent, Preset* preset, wxString& p
     sizer->Add(checkbox, 0, 0, 0);
     preset_checkbox.push_back(std::make_pair(checkbox, preset));
     wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name);
+    wxToolTip *   toolTip         = new wxToolTip(preset_name);
+    preset_name_str->SetToolTip(toolTip);
     sizer->Add(preset_name_str, 0, wxLEFT, 5);
     return sizer;
 }
@@ -892,6 +894,12 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
                 return;
             } else {
                 vendor_name = into_u8(m_filament_custom_vendor_input->GetTextCtrl()->GetValue());
+                if (vendor_name == "Bambu" || vendor_name == "Generic") {
+                    MessageDialog dlg(this, _L("\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                                      wxYES | wxYES_DEFAULT | wxCENTRE);
+                    dlg.ShowModal();
+                    return;
+                }
             }
         }
 
@@ -2089,6 +2097,23 @@ void CreatePrinterPresetDialog::generate_process_presets_data(std::vector<Preset
     }
 }
 
+void CreatePrinterPresetDialog::update_preset_list_size()
+{
+    m_scrolled_preset_window->Freeze();
+    m_preset_template_panel->SetSizerAndFit(m_filament_sizer);
+    m_preset_template_panel->SetMinSize(wxSize(FromDIP(660), -1));
+    m_preset_template_panel->SetSize(wxSize(FromDIP(660), -1));
+    int whidth = m_preset_template_panel->GetSize().GetWidth();
+    int height = m_preset_template_panel->GetSize().GetHeight();
+    m_scrolled_preset_window->SetMinSize(wxSize(std::min(1500, whidth), std::min(600, height)));
+    m_scrolled_preset_window->SetMaxSize(wxSize(std::min(1500, whidth), std::min(600, height)));
+    m_scrolled_preset_window->SetSize(wxSize(std::min(1500, whidth), std::min(600, height)));
+    m_page2->SetSizerAndFit(m_page2_sizer);
+    Layout();
+    Fit();
+    m_scrolled_preset_window->Thaw();
+}
+
 wxBoxSizer *CreatePrinterPresetDialog::create_radio_item(wxString title, wxWindow *parent, wxString tooltip, std::vector<std::pair<RadioBox *, wxString>> &radiobox_list)
 {
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2174,13 +2199,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
         }
     }
     
-    if (this->GetSize().GetHeight() > 800) {
-        this->SetSize(-1, 800);
-    }
-
-    Layout();
-    Fit();
-    Refresh();
+    update_preset_list_size();
 }
 
 void CreatePrinterPresetDialog::create_printer_page2(wxWindow *parent)
@@ -2263,23 +2282,23 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     m_scrolled_preset_window = new wxScrolledWindow(parent);
     m_scrolled_preset_window->SetScrollRate(5, 5);
     m_scrolled_preset_window->SetBackgroundColour(*wxWHITE);
-    m_scrolled_preset_window->SetMinSize(wxSize(FromDIP(900), FromDIP(400)));
-    m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(900), FromDIP(500)));
-    m_scrolled_preset_window->SetSize(wxSize(FromDIP(900), FromDIP(300)));
+    //m_scrolled_preset_window->SetMinSize(wxSize(FromDIP(1500), FromDIP(-1)));
+    m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(1500), FromDIP(-1)));
+    m_scrolled_preset_window->SetSize(wxSize(FromDIP(1500), FromDIP(-1)));
     m_scrooled_preset_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_preset_template_panel = new wxPanel(m_scrolled_preset_window);
     m_preset_template_panel->SetSize(wxSize(-1, -1));
     m_preset_template_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
-    m_preset_template_panel->SetMinSize(wxSize(FromDIP(580), -1));
-    wxBoxSizer *  filament_sizer              = new wxBoxSizer(wxVERTICAL);
+    m_preset_template_panel->SetMinSize(wxSize(FromDIP(660), -1));
+    m_filament_sizer              = new wxBoxSizer(wxVERTICAL);
     wxStaticText *static_filament_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Filament preset template"), wxDefaultPosition, wxDefaultSize);
-    filament_sizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
+    m_filament_sizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
     m_filament_preset_panel          = new wxPanel(m_preset_template_panel);
     m_filament_preset_template_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
     m_filament_preset_panel->SetSize(PRESET_TEMPLATE_SIZE);
     m_filament_preset_panel->SetSizer(m_filament_preset_template_sizer);
-    filament_sizer->Add(m_filament_preset_panel, 0, wxEXPAND | wxALL, FromDIP(5));
+    m_filament_sizer->Add(m_filament_preset_panel, 0, wxEXPAND | wxALL, FromDIP(5));
     
     wxBoxSizer *hori_filament_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxPanel *   filament_btn_panel      = new wxPanel(m_preset_template_panel);
@@ -2299,19 +2318,19 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     hori_filament_btn_sizer->Add(filament_sel_all_text, 0, wxEXPAND | wxALL, FromDIP(5));
     hori_filament_btn_sizer->Add(filament_desel_all_text, 0, wxEXPAND | wxALL, FromDIP(5));
     filament_btn_panel->SetSizer(hori_filament_btn_sizer);
-    filament_sizer->Add(filament_btn_panel, 0, wxEXPAND, 0);
+    m_filament_sizer->Add(filament_btn_panel, 0, wxEXPAND, 0);
     
     wxPanel *split_panel = new wxPanel(m_preset_template_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(10)));
     split_panel->SetBackgroundColour(wxColour(*wxWHITE));
-    filament_sizer->Add(split_panel, 0, wxEXPAND, 0);
+    m_filament_sizer->Add(split_panel, 0, wxEXPAND, 0);
 
     wxStaticText *static_process_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Process preset template"), wxDefaultPosition, wxDefaultSize);
-    filament_sizer->Add(static_process_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
+    m_filament_sizer->Add(static_process_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
     m_process_preset_panel = new wxPanel(m_preset_template_panel);
     m_process_preset_panel->SetSize(PRESET_TEMPLATE_SIZE);
     m_process_preset_template_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
     m_process_preset_panel->SetSizer(m_process_preset_template_sizer);
-    filament_sizer->Add(m_process_preset_panel, 0, wxEXPAND | wxALL, FromDIP(5));
+    m_filament_sizer->Add(m_process_preset_panel, 0, wxEXPAND | wxALL, FromDIP(5));
     
 
     wxBoxSizer *hori_process_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2332,9 +2351,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     hori_process_btn_sizer->Add(process_sel_all_text, 0, wxEXPAND | wxALL, FromDIP(5));
     hori_process_btn_sizer->Add(process_desel_all_text, 0, wxEXPAND | wxALL, FromDIP(5));
     process_btn_panel->SetSizer(hori_process_btn_sizer);
-    filament_sizer->Add(process_btn_panel, 0, wxEXPAND, 0);
+    m_filament_sizer->Add(process_btn_panel, 0, wxEXPAND, 0);
 
-    m_preset_template_panel->SetSizer(filament_sizer);
+    m_preset_template_panel->SetSizer(m_filament_sizer);
     m_scrooled_preset_sizer->Add(m_preset_template_panel, 0, wxEXPAND | wxALL, 0);
     m_scrolled_preset_window->SetSizerAndFit(m_scrooled_preset_sizer);
     vertical_sizer->Add(m_scrolled_preset_window, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -2683,6 +2702,7 @@ bool CreatePrinterPresetDialog::data_init()
             m_printer_model->SetSelection(0);
             wxCommandEvent e;
             on_preset_model_value_change(e);
+            update_preset_list_size();
         }
         rewritten = false;
         e.Skip();
@@ -2958,14 +2978,7 @@ void CreatePrinterPresetDialog::on_preset_model_value_change(wxCommandEvent &e)
     }
     rewritten = false;
 
-    m_page2->SetSizerAndFit(m_page2_sizer);
-
-    if (this->GetSize().GetHeight() > 800) {
-        this->SetSize(-1, 800);
-    }
-
-    Layout();
-    Fit();
+    update_preset_list_size();
 
     e.Skip();
 }
