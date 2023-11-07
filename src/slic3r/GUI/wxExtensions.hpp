@@ -18,7 +18,7 @@
 
 #include "Widgets/PopupWindow.hpp"
 
-#ifdef __linux__
+#ifndef __linux__
 void                msw_rescale_menu(wxMenu* menu); //TODO: PS RENAME (sys_color_changed_menu)
 #else
 inline void         msw_rescale_menu(wxMenu* /* menu */) {} //TODO: PS RENAME (sys_color_changed_menu)
