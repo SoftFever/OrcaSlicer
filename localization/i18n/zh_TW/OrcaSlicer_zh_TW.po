@@ -12493,7 +12493,7 @@ msgstr ""
 
 #~ msgid "Orient the model"
 #~ msgstr "旋轉模型"
-=======
+
 msgid "The minimum printing speed when slow down for cooling"
 msgstr "自動冷卻降速的最小列印速度"
 
