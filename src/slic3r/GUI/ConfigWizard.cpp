@@ -1498,7 +1498,7 @@ ConfigWizardIndex::ConfigWizardIndex(wxWindow *parent)
 #ifndef __WXOSX__ 
     SetDoubleBuffered(true);// SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
 #endif //__WXOSX__
-    SetMinSize(bg.bmp().GetSize());
+    SetMinSize(bg.GetSize());
 
     const wxSize size = GetTextExtent("m");
     em_w = size.x;
