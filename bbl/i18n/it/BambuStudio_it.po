@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-03 16:06+0800\n"
+"POT-Creation-Date: 2023-11-07 16:44+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5852,6 +5852,16 @@ msgstr "La stampante deve essere sulla stessa LAN di Bambu Studio."
 msgid "The printer does not support sending to printer SD card."
 msgstr "La stampante non supporta l'invio alla scheda microSD della stampante."
 
+msgid "Slice ok."
+msgstr "Slice completo"
+
+#, c-format, boost-format
+msgid "Closing in %ds"
+msgstr ""
+
+msgid "View all Daily tips"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr "Impossibile creare il socket"
 
@@ -6343,10 +6353,10 @@ msgid ""
 "presets would be deleted if the printer is deleted."
 msgstr ""
 
-msgid "Presets inherited by other presets cannot be deleted"
+msgid "Presets inherited by other presets can not be deleted!"
 msgstr ""
 
-msgid "The following presets inherits this preset."
+msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
 msgstr[0] ""
 msgstr[1] ""
@@ -10932,7 +10942,7 @@ msgstr ""
 msgid "wiki"
 msgstr ""
 
-msgid "Improt Presets"
+msgid "Improt Preset"
 msgstr ""
 
 msgid "Create Type"
@@ -11124,22 +11134,20 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in MakerWorld."
+"Can be shared with others."
 msgstr ""
 
 msgid ""
 "User's fillment preset set. \n"
-"Can be share in MakerWorld."
+"Can be shared with others."
 msgstr ""
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
-"presets for uploading to the model mall."
+"presets."
 msgstr ""
 
-msgid ""
-"Only display the filament names with changes to filament presets for "
-"uploading to the model mall."
+msgid "Only display the filament names with changes to filament presets."
 msgstr ""
 
 msgid ""
@@ -11171,6 +11179,17 @@ msgstr ""
 msgid "Filament presets under this filament"
 msgstr ""
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Delete Preset"
+msgstr ""
+
 msgid "+ Add Preset"
 msgstr ""
 
@@ -11197,13 +11216,19 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "Edit Preset"
+msgstr ""
+
 msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Collapse"
 msgstr ""
 
 msgid "Daily Tips"
 msgstr ""
 
-msgid "Collapse"
+msgid "Need select printer"
 msgstr ""
 
 msgid "The start, end or step is not valid value."
@@ -11214,14 +11239,11 @@ msgid ""
 "large, or the step is too small"
 msgstr ""
 
-msgid "Need select printer"
-msgstr ""
-
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
-"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
-"operations."
+"Did you know that Bambu Studio offers a wide range of keyboard shortcuts and "
+"3D scene operations."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Cut Tool]
@@ -11484,16 +11506,17 @@ msgstr ""
 #: opened]
 msgid ""
 "When need to print with the printer door opened\n"
-"Opening the printer door can reduce the probability of extruder/hotend "
-"clogging when printing lower temperature filament with a higher enclosure "
-"temperature. More info about this in the Wiki."
+"Did you know that opening the printer door can reduce the probability of "
+"extruder/hotend clogging when printing lower temperature filament with a "
+"higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
 "Avoid warping\n"
-"When printing materials that are prone to warping such as ABS, appropriately "
-"increasing the heatbed temperature can reduce the probability of warping."
+"Did you know that when printing materials that are prone to warping such as "
+"ABS, appropriately increasing the heatbed temperature can reduce the "
+"probability of warping."
 msgstr ""
 
 #~ msgid ""
@@ -11508,9 +11531,6 @@ msgstr ""
 
 #~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 #~ msgstr "Inserisci un valore valido (K in 0~0.5, N in 0.6~2.0)"
-
-#~ msgid "Slice ok."
-#~ msgstr "Slice completo"
 
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "Mostra \"Suggerimento del giorno\" dopo l'avvio"

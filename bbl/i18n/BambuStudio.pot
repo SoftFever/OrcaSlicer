@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-03 16:06+0800\n"
+"POT-Creation-Date: 2023-11-07 16:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5508,6 +5508,16 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
+msgid "Slice ok."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Closing in %ds"
+msgstr ""
+
+msgid "View all Daily tips"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr ""
 
@@ -5929,10 +5939,10 @@ msgid ""
 "presets would be deleted if the printer is deleted."
 msgstr ""
 
-msgid "Presets inherited by other presets cannot be deleted"
+msgid "Presets inherited by other presets can not be deleted!"
 msgstr ""
 
-msgid "The following presets inherits this preset."
+msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
 msgstr[0] ""
 msgstr[1] ""
@@ -9993,7 +10003,7 @@ msgstr ""
 msgid "wiki"
 msgstr ""
 
-msgid "Improt Presets"
+msgid "Improt Preset"
 msgstr ""
 
 msgid "Create Type"
@@ -10185,22 +10195,20 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in MakerWorld."
+"Can be shared with others."
 msgstr ""
 
 msgid ""
 "User's fillment preset set. \n"
-"Can be share in MakerWorld."
+"Can be shared with others."
 msgstr ""
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
-"presets for uploading to the model mall."
+"presets."
 msgstr ""
 
-msgid ""
-"Only display the filament names with changes to filament presets for "
-"uploading to the model mall."
+msgid "Only display the filament names with changes to filament presets."
 msgstr ""
 
 msgid ""
@@ -10232,6 +10240,17 @@ msgstr ""
 msgid "Filament presets under this filament"
 msgstr ""
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Delete Preset"
+msgstr ""
+
 msgid "+ Add Preset"
 msgstr ""
 
@@ -10258,13 +10277,19 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "Edit Preset"
+msgstr ""
+
 msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Collapse"
 msgstr ""
 
 msgid "Daily Tips"
 msgstr ""
 
-msgid "Collapse"
+msgid "Need select printer"
 msgstr ""
 
 msgid "The start, end or step is not valid value."
@@ -10275,11 +10300,8 @@ msgid ""
 "large, or the step is too small"
 msgstr ""
 
-msgid "Need select printer"
-msgstr ""
-
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
-msgid "How to use keyboard shortcuts\nBambuStudio offers a wide range of keyboard shortcuts and 3D scene operations."
+msgid "How to use keyboard shortcuts\nDid you know that Bambu Studio offers a wide range of keyboard shortcuts and 3D scene operations."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Cut Tool]
@@ -10379,9 +10401,9 @@ msgid "Improve strength\nDid you know that you can use more wall loops and highe
 msgstr ""
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door opened]
-msgid "When need to print with the printer door opened\nOpening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
+msgid "When need to print with the printer door opened\nDid you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Avoid warping]
-msgid "Avoid warping\nWhen printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
+msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
 msgstr ""

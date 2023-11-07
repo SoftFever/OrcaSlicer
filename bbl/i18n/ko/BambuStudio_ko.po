@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-03 16:06+0800\n"
+"POT-Creation-Date: 2023-11-07 16:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5732,6 +5732,16 @@ msgstr "프린터는 Bambu Studio와 동일한 LAN에 있어야 합니다."
 msgid "The printer does not support sending to printer SD card."
 msgstr "프린터는 프린터 microSD 카드로 전송을 지원하지 않습니다."
 
+msgid "Slice ok."
+msgstr "슬라이스 완료"
+
+#, c-format, boost-format
+msgid "Closing in %ds"
+msgstr ""
+
+msgid "View all Daily tips"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr "소켓 생성 실패"
 
@@ -6201,10 +6211,10 @@ msgid ""
 "presets would be deleted if the printer is deleted."
 msgstr ""
 
-msgid "Presets inherited by other presets cannot be deleted"
+msgid "Presets inherited by other presets can not be deleted!"
 msgstr ""
 
-msgid "The following presets inherits this preset."
+msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
 msgstr[0] ""
 
@@ -10592,7 +10602,7 @@ msgstr ""
 msgid "wiki"
 msgstr ""
 
-msgid "Improt Presets"
+msgid "Improt Preset"
 msgstr ""
 
 msgid "Create Type"
@@ -10784,22 +10794,20 @@ msgstr ""
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
-"Can be share in MakerWorld."
+"Can be shared with others."
 msgstr ""
 
 msgid ""
 "User's fillment preset set. \n"
-"Can be share in MakerWorld."
+"Can be shared with others."
 msgstr ""
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
-"presets for uploading to the model mall."
+"presets."
 msgstr ""
 
-msgid ""
-"Only display the filament names with changes to filament presets for "
-"uploading to the model mall."
+msgid "Only display the filament names with changes to filament presets."
 msgstr ""
 
 msgid ""
@@ -10831,6 +10839,16 @@ msgstr ""
 msgid "Filament presets under this filament"
 msgstr ""
 
+msgid "Presets inherited by other presets cannot be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+
+msgid "Delete Preset"
+msgstr ""
+
 msgid "+ Add Preset"
 msgstr ""
 
@@ -10857,13 +10875,19 @@ msgstr ""
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
 
+msgid "Edit Preset"
+msgstr ""
+
 msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Collapse"
 msgstr ""
 
 msgid "Daily Tips"
 msgstr ""
 
-msgid "Collapse"
+msgid "Need select printer"
 msgstr ""
 
 msgid "The start, end or step is not valid value."
@@ -10874,14 +10898,11 @@ msgid ""
 "large, or the step is too small"
 msgstr ""
 
-msgid "Need select printer"
-msgstr ""
-
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
-"BambuStudio offers a wide range of keyboard shortcuts and 3D scene "
-"operations."
+"Did you know that Bambu Studio offers a wide range of keyboard shortcuts and "
+"3D scene operations."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Cut Tool]
@@ -11139,16 +11160,17 @@ msgstr ""
 #: opened]
 msgid ""
 "When need to print with the printer door opened\n"
-"Opening the printer door can reduce the probability of extruder/hotend "
-"clogging when printing lower temperature filament with a higher enclosure "
-"temperature. More info about this in the Wiki."
+"Did you know that opening the printer door can reduce the probability of "
+"extruder/hotend clogging when printing lower temperature filament with a "
+"higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
 "Avoid warping\n"
-"When printing materials that are prone to warping such as ABS, appropriately "
-"increasing the heatbed temperature can reduce the probability of warping."
+"Did you know that when printing materials that are prone to warping such as "
+"ABS, appropriately increasing the heatbed temperature can reduce the "
+"probability of warping."
 msgstr ""
 
 #~ msgid ""
@@ -11163,9 +11185,6 @@ msgstr ""
 
 #~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
 #~ msgstr "유효한 값을 입력하십시오 (0~0.5의 경우 K, 0.6~2.0의 경우 N)"
-
-#~ msgid "Slice ok."
-#~ msgstr "슬라이스 완료"
 
 #~ msgid "Show \"Tip of the day\" notification after start"
 #~ msgstr "시작 후 “오늘의 팁” 알림 표시"
