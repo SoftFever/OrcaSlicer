@@ -88,9 +88,6 @@
     "retract_when_changing_layer": [
         "0"
     ],
-    "retraction_length": [
-        "1.5"
-    ],
     "retract_length_toolchange": [
         "2"
     ],
