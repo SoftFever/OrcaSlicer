@@ -1295,8 +1295,6 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         {
             key_values[iter->first] = iter->second->serialize();
         }
-        if (!preset.filament_id.empty())
-            key_values[BBL_JSON_KEY_BASE_ID] = preset.filament_id;
     }
 
     //add other values

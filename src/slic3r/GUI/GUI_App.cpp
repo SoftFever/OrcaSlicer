@@ -4559,8 +4559,8 @@ void GUI_App::sync_preset(Preset* preset)
         if (!setting_id.empty()) {
             int ret = preset_bundle->get_differed_values_to_update(*preset, values_map);
             if (!ret) {
-                if (values_map[BBL_JSON_KEY_BASE_ID] == setting_id) {
-                    //clear the setting_id in this case
+                if (auto iter = values_map.find(BBL_JSON_KEY_BASE_ID); iter != values_map.end() && iter->second == setting_id) {
+                    //clear the setting_id in this case ???
                     setting_id.clear();
                     result = 0;
                 }
