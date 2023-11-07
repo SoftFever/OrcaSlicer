@@ -453,8 +453,17 @@ void WebViewPanel::SendDesignStaffpick(bool on)
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
 {
     std::string url;
-    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0)
-        wxLaunchDefaultBrowser(url);
+    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0) 
+    {
+        if (url.find("?") != std::string::npos) 
+        { 
+            url += "&from=bambustudio";
+        } else {
+            url += "?from=bambustudio";
+        }
+        
+        wxLaunchDefaultBrowser(url); 
+    }
 }
 
 void WebViewPanel::SendLoginInfo()
