@@ -186,7 +186,6 @@ private:
 
     wxDataViewItem m_last_selected_item {nullptr};
 
-    wxDataViewItemArray m_found_list;
 #ifdef __WXMSW__
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
     int 	    m_last_selected_column = -1;
@@ -217,8 +216,7 @@ public:
     std::vector<ModelObject*>*  objects() const     { return m_objects; }
 
     ModelObject*                object(const int obj_idx) const ;
-    wxDataViewItemArray         get_found_list() const { return m_found_list; }
-    
+
 
     void                create_objects_ctrl();
     // BBS
@@ -460,7 +458,6 @@ public:
 
     // search objectlist
     void search_object_list();
-    void append_found_list(wxString current_search_text, wxDataViewItem item);
     void set_found_list(wxString current_search_text);
     void set_cur_pos(int value);
     void searchbar_kill_focus();

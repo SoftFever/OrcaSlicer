@@ -213,10 +213,15 @@ bool ObjectSettings::update_settings_list()
             is_plate_settings = true;
 
             int plate_id = objects_model->GetPlateIdByItem(item);
-            assert(plate_id >= 0);
 
             static ModelConfig cfg;
             PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+
+            if (plate_id < 0 || plate_id >= ppl.get_plate_count()) {
+                plate_id = ppl.get_curr_plate_index();
+            }
+            assert(plate_id >= 0 && plate_id < ppl.get_plate_count());
+
             cfg.assign_config(*ppl.get_plate(plate_id)->config());
             plate_configs.emplace(ppl.get_plate(plate_id), &cfg);
         }

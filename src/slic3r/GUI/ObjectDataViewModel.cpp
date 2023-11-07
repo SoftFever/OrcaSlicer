@@ -469,7 +469,7 @@ wxBitmap& ObjectDataViewModel::GetWarningBitmap(const std::string& warning_icon_
 wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString name, bool refresh)
 {
     int  plate_idx  = part_plate ? part_plate->get_index() : -1;
-    wxString plate_name;
+    wxString plate_name = name;
     if (name.empty()) {
         plate_name = _L("Plate");
         plate_name += wxString::Format(" %d", plate_idx + 1);
@@ -1490,6 +1490,29 @@ void ObjectDataViewModel::UpdateItemNames()
     }
 
     ItemsChanged(changed_items);
+}
+
+void ObjectDataViewModel::append_found_list(wxString current_search_text)
+{
+    found_list.clear();
+    for (int i = 0; i < m_plates.size(); ++i) {
+        append_found(current_search_text, m_plates[i]);
+    }
+}
+
+void ObjectDataViewModel::append_found(wxString current_search_text, ObjectDataViewModelNode* item)
+{
+    wxString item_name = item->GetName();
+    item_name = item_name.MakeLower();
+
+    if (item_name.find(current_search_text) != wxString::npos) {
+        if(item != m_plate_outside)
+            found_list.Add(wxDataViewItem(item));
+    }
+
+    for (size_t i = 0; i < item->GetChildCount(); ++i) {
+        append_found(current_search_text, item->GetNthChild(i));
+    }
 }
 
 // BBS: add use_obj_extruder

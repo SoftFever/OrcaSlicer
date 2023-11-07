@@ -781,14 +781,15 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
 
 void ObjectList::search_object_list() {
 
-    auto found_size = m_found_list.size();
+    auto found_list = m_objects_model->get_search_list();
+    auto found_size = found_list.size();
 
     if (cur_pos >= found_size) {
         cur_pos = 0;
     }
 
     if (cur_pos < found_size) {
-        wxDataViewItem cur_item = m_found_list.Item(cur_pos);
+        wxDataViewItem cur_item = found_list.Item(cur_pos);
         select_item(cur_item);
         cur_pos++;
         ensure_current_item_visible();
@@ -796,31 +797,13 @@ void ObjectList::search_object_list() {
     }
 }
 
-void ObjectList::append_found_list(wxString current_search_text, wxDataViewItem item) {
-
-    wxString item_name = m_objects_model->GetName(item);
-    item_name = item_name.MakeLower();
-
-    if (item_name.find(current_search_text) != wxString::npos) {
-        m_found_list.Add(item);
-    }
-
-    ObjectDataViewModelNode* root = static_cast<ObjectDataViewModelNode*>(item.GetID());
-    size_t child_count = root->GetChildCount();
-    for (size_t i = 0; i < child_count; ++i) {
-        append_found_list(current_search_text, wxDataViewItem(root->GetNthChild(i)));
-    }
-}
-
 void ObjectList::set_found_list(wxString current_search_text) {
 
-    m_found_list.clear();
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
     current_search_text = current_search_text.MakeLower();
-    for (int i = 0; i < ppl.get_plate_count(); ++i) {
-        wxDataViewItem plate_item = m_objects_model->GetItemByPlateId(i);
-        append_found_list(current_search_text, plate_item);
-    }
+
+    m_objects_model->append_found_list(current_search_text);
+
     if (current_search_text.empty()) {
         if (ppl.get_plate_count() > 0) {
             wxDataViewItem item = m_objects_model->GetItemByPlateId(0);
@@ -832,8 +815,9 @@ void ObjectList::set_found_list(wxString current_search_text) {
         column->SetTitle(_L("Name"));
     }
     else {
+        auto found_list = m_objects_model->get_search_list();
         auto column = GetColumn(colName);
-        wxString match_num = wxString::Format("%d", m_found_list.size());
+        wxString match_num = wxString::Format("%d", found_list.size());
         wxString match_message = " (" + match_num + _L(" search results") + ")";
         wxString column_name = _L("Name") + match_message;
         column->SetTitle(column_name);
