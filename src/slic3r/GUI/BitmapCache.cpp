@@ -58,7 +58,164 @@ static wxBitmap wxImage_to_wxBitmap_with_alpha(wxImage &&image, float scale = 1.
 #endif
 }
 
-wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_t height)
+wxBitmapBundle* BitmapCache::insert_bndl(const std::string& name, const std::vector<wxBitmapBundle*>& bmps)
+{
+    wxVector<wxBitmap> bitmaps;
+
+    std::set<double> scales = {1.0};
+#ifdef __APPLE__
+    scales.emplace(m_scale);
+#else
+    size_t disp_cnt = wxDisplay::GetCount();
+    for (size_t disp = 0; disp < disp_cnt; ++disp)
+        scales.emplace(wxDisplay(disp).GetScaleFactor());
+#endif
+
+    for (double scale : scales) {
+        size_t width = 0;
+        size_t height = 0;
+        for (const wxBitmapBundle* bmp_bndl : bmps) {
+#ifdef __APPLE__
+            wxSize size = bmp_bndl->GetPreferredBitmapSizeAtScale(1.0);
+#else
+            wxSize size = bmp_bndl->GetPreferredBitmapSizeAtScale(scale);
+#endif
+            width += size.GetWidth();
+            height = std::max<size_t>(height, size.GetHeight());
+        }
+
+        std::string bitmap_key = name + "," +float_to_string_decimal_point(scale);
+
+#ifdef __WXGTK2__
+        // Broken alpha workaround
+        wxImage image(width, height);
+        image.InitAlpha();
+        // Fill in with a white color.
+        memset(image.GetData(), 0x0ff, width * height * 3);
+        // Fill in with full transparency.
+        memset(image.GetAlpha(), 0, width * height);
+        size_t x = 0;
+        for (const wxBitmapBundle* bmp_bndl : bmps) {
+            wxBitmap bmp = bmp_bndl->GetBitmap(bmp_bndl->GetPreferredBitmapSizeAtScale(scale));
+            if (bmp.GetWidth() > 0) {
+                if (bmp.GetDepth() == 32) {
+                    wxAlphaPixelData data(bmp);
+                    //FIXME The following method is missing from wxWidgets 3.1.1.
+                    // It looks like the wxWidgets 3.0.3 called the wrapped bitmap's UseAlpha().
+                    //data.UseAlpha();
+                    if (data) {
+                        for (int r = 0; r < bmp.GetHeight(); ++r) {
+                            wxAlphaPixelData::Iterator src(data);
+                            src.Offset(data, 0, r);
+                            unsigned char* dst_pixels = image.GetData() + (x + r * width) * 3;
+                            unsigned char* dst_alpha = image.GetAlpha() + x + r * width;
+                            for (int c = 0; c < bmp.GetWidth(); ++c, ++src) {
+                                *dst_pixels++ = src.Red();
+                                *dst_pixels++ = src.Green();
+                                *dst_pixels++ = src.Blue();
+                                *dst_alpha++ = src.Alpha();
+                            }
+                        }
+                    }
+                }
+                else if (bmp.GetDepth() == 24) {
+                    wxNativePixelData data(bmp);
+                    if (data) {
+                        for (int r = 0; r < bmp.GetHeight(); ++r) {
+                            wxNativePixelData::Iterator src(data);
+                            src.Offset(data, 0, r);
+                            unsigned char* dst_pixels = image.GetData() + (x + r * width) * 3;
+                            unsigned char* dst_alpha = image.GetAlpha() + x + r * width;
+                            for (int c = 0; c < bmp.GetWidth(); ++c, ++src) {
+                                *dst_pixels++ = src.Red();
+                                *dst_pixels++ = src.Green();
+                                *dst_pixels++ = src.Blue();
+                                *dst_alpha++ = wxALPHA_OPAQUE;
+                            }
+                        }
+                    }
+                }
+            }
+            x += bmp.GetWidth();
+        }
+
+        bitmaps.push_back(* this->insert(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image))));
+
+#else
+
+        wxBitmap* bitmap = this->insert(bitmap_key, width, height, scale);
+        wxMemoryDC memDC;
+        memDC.SelectObject(*bitmap);
+        memDC.SetBackground(*wxTRANSPARENT_BRUSH);
+        memDC.Clear();
+        size_t x = 0;
+        for (const wxBitmapBundle* bmp_bndl : bmps) {
+            wxBitmap bmp = bmp_bndl->GetBitmap(bmp_bndl->GetPreferredBitmapSizeAtScale(scale));
+
+            if (bmp.GetWidth() > 0)
+                memDC.DrawBitmap(bmp, x, 0, true);
+#ifdef __APPLE__
+            // we should "move" with step equal to non-scaled width
+            x += bmp.GetScaledWidth();
+#else
+            x += bmp.GetWidth();
+#endif
+        }
+        memDC.SelectObject(wxNullBitmap);
+        bitmaps.push_back(*bitmap);
+
+#endif
+    }
+
+    return insert_bndl(name, bitmaps);
+}
+
+wxBitmapBundle* BitmapCache::insert_bndl(const std::string &bitmap_key, const char* data, size_t width, size_t height)
+{
+    wxBitmapBundle* bndl = nullptr;
+    auto it = m_bndl_map.find(bitmap_key);
+    if (it == m_bndl_map.end()) {
+        bndl = new wxBitmapBundle(wxBitmapBundle::FromSVG(data, wxSize(width, height)));
+        m_bndl_map[bitmap_key] = bndl;
+    }
+    else {
+        bndl = it->second;
+        *bndl = wxBitmapBundle::FromSVG(data, wxSize(width, height));
+    }
+    return bndl;
+}
+
+wxBitmapBundle* BitmapCache::insert_bndl(const std::string& bitmap_key, const wxBitmapBundle& bmp)
+{
+    wxBitmapBundle* bndl = nullptr;
+    auto it = m_bndl_map.find(bitmap_key);
+    if (it == m_bndl_map.end()) {
+        bndl = new wxBitmapBundle(bmp);
+        m_bndl_map[bitmap_key] = bndl;
+    }
+    else {
+        bndl = it->second;
+        *bndl = wxBitmapBundle(bmp);
+    }
+    return bndl;
+}
+
+wxBitmapBundle* BitmapCache::insert_bndl(const std::string& bitmap_key, const wxVector<wxBitmap>& bmps)
+{
+    wxBitmapBundle* bndl = nullptr;
+    auto it = m_bndl_map.find(bitmap_key);
+    if (it == m_bndl_map.end()) {
+        bndl = new wxBitmapBundle(wxBitmapBundle::FromBitmaps(bmps));
+        m_bndl_map[bitmap_key] = bndl;
+    }
+    else {
+        bndl = it->second;
+        *bndl = wxBitmapBundle::FromBitmaps(bmps);
+    }
+    return bndl;
+}
+
+wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_t height, double scale/* = -1.0*/)
 {
     wxBitmap *bitmap = nullptr;
     auto      it     = m_map.find(bitmap_key);
@@ -74,7 +231,7 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, size_t width, size_
         // So, We need to let the Mac OS wxBitmap implementation
         // know that the image may already be scaled appropriately for Retina,
         // and thereby that it's not supposed to upscale it.
-        bitmap->CreateScaled(width, height, -1, m_scale);
+        bitmap->CreateScaled(width, height, -1, scale < 0.0 ? m_scale : scale);
 #endif
         m_map[bitmap_key] = bitmap;
     } else {
@@ -303,7 +460,94 @@ error:
     return NULL;
 }
 
-wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
+void BitmapCache::nsvgGetDataFromFileWithReplace(const char* filename, std::string& data_str, const std::map<std::string, std::string>& replaces)
+{
+    FILE* fp = NULL;
+    size_t size;
+    char* data = NULL;
+
+    fp = boost::nowide::fopen(filename, "rb");
+    if (!fp) goto error;
+    fseek(fp, 0, SEEK_END);
+    size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    data = (char*)malloc(size + 1);
+    if (data == NULL) goto error;
+    if (fread(data, 1, size, fp) != size) goto error;
+    data[size] = '\0';	// Must be null terminated.
+    fclose(fp);
+
+    data_str.assign(data);
+    for (auto val : replaces)
+        boost::replace_all(data_str, val.first, val.second);
+
+    free(data);
+    return;
+
+error:
+    if (fp) fclose(fp);
+    if (data) free(data);
+    return;
+}
+
+wxBitmapBundle* BitmapCache::from_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height,
+                                      const bool dark_mode, const std::string& new_color /*= ""*/)
+{
+    if (target_width == 0)
+        target_width = target_height;
+    std::string bitmap_key = bitmap_name + (target_height != 0 ?
+        "-h" + std::to_string(target_height) :
+        "-w" + std::to_string(target_width))
+//        + (m_scale != 1.0f ? "-s" + float_to_string_decimal_point(m_scale) : "")
+        + (dark_mode ? "-dm" : "")
+        + new_color;
+
+    auto it = m_bndl_map.find(bitmap_key);
+    if (it != m_bndl_map.end())
+        return it->second;
+
+    // map of color replaces
+    std::map<std::string, std::string> replaces;
+    if (dark_mode)
+        replaces["\"#808080\""] = "\"#FFFFFF\"";
+    if (!new_color.empty())
+        replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
+
+    std::string str;
+    nsvgGetDataFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), str, replaces);
+    if (str.empty())
+        return nullptr;
+
+    return insert_bndl(bitmap_key, str.data(), target_width, target_height);
+}
+
+wxBitmapBundle* BitmapCache::from_png(const std::string& bitmap_name, unsigned width, unsigned height)
+{
+    std::string bitmap_key = bitmap_name + (height != 0 ?
+        "-h" + std::to_string(height) :
+        "-w" + std::to_string(width));
+
+    auto it = m_bndl_map.find(bitmap_key);
+    if (it != m_bndl_map.end())
+        return it->second;
+
+    wxImage image;
+    if (!image.LoadFile(Slic3r::GUI::from_u8(Slic3r::var(bitmap_name + ".png")), wxBITMAP_TYPE_PNG) ||
+        image.GetWidth() == 0 || image.GetHeight() == 0)
+        return nullptr;
+
+    if (height != 0 && unsigned(image.GetHeight()) != height)
+        width = unsigned(0.5f + float(image.GetWidth()) * height / image.GetHeight());
+    else if (width != 0 && unsigned(image.GetWidth()) != width)
+        height = unsigned(0.5f + float(image.GetHeight()) * width / image.GetWidth());
+
+    if (height != 0 && width != 0)
+        image.Rescale(width, height, wxIMAGE_QUALITY_BILINEAR);
+
+    return this->insert_bndl(bitmap_key, wxImage_to_wxBitmap_with_alpha(std::move(image)));
+}
+
+wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height,
     const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/, const float scale_in_center/* = 0*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
@@ -468,6 +712,89 @@ bool BitmapCache::parse_color4(const std::string& scolor, unsigned char* rgba_ou
         rgba_out[i] = (unsigned char)(digit1 * 16 + digit2);
     }
     return true;
+}
+
+//we make scaled solid bitmaps only for the cases, when its will be used with scaled SVG icon in one output bitmap
+wxBitmapBundle BitmapCache::mksolid(size_t width_in, size_t height_in, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, size_t border_width /*= 0*/, bool dark_mode/* = false*/)
+{
+    wxVector<wxBitmap> bitmaps;
+
+    std::set<double> scales = { 1.0 };
+#ifdef __APPLE__
+    scales.emplace(m_scale);
+#else
+    size_t disp_cnt = wxDisplay::GetCount();
+    for (size_t disp = 0; disp < disp_cnt; ++disp)
+        scales.emplace(wxDisplay(disp).GetScaleFactor());
+#endif
+
+    for (double scale : scales) {
+        size_t width = width_in * scale;
+        size_t height = height_in * scale;
+
+        wxImage image(width, height);
+        image.InitAlpha();
+        unsigned char* imgdata = image.GetData();
+        unsigned char* imgalpha = image.GetAlpha();
+        for (size_t i = 0; i < width * height; ++i) {
+            *imgdata++ = r;
+            *imgdata++ = g;
+            *imgdata++ = b;
+            *imgalpha++ = transparency;
+        }
+
+        // Add border, make white/light spools easier to see
+        if (border_width > 0) {
+
+            // Restrict to width of image
+            if (border_width > height) border_width = height - 1;
+            if (border_width > width) border_width = width - 1;
+
+            auto px_data = (uint8_t*)image.GetData();
+            auto a_data = (uint8_t*)image.GetAlpha();
+
+            for (size_t x = 0; x < width; ++x) {
+                for (size_t y = 0; y < height; ++y) {
+                    if (x < border_width || y < border_width ||
+                        x >= (width - border_width) || y >= (height - border_width)) {
+                        const size_t idx = (x + y * width);
+                        const size_t idx_rgb = (x + y * width) * 3;
+                        px_data[idx_rgb] = px_data[idx_rgb + 1] = px_data[idx_rgb + 2] = dark_mode ? 245u : 110u;
+                        a_data[idx] = 255u;
+                    }
+                }
+            }
+        }
+
+        bitmaps.push_back(wxImage_to_wxBitmap_with_alpha(std::move(image), scale));
+    }
+    return wxBitmapBundle::FromBitmaps(bitmaps);
+}
+
+wxBitmapBundle* BitmapCache::mksolid_bndl(size_t width, size_t height, const std::string& color, size_t border_width, bool dark_mode)
+{
+    std::string bitmap_key = (color.empty() ? "empty-w" : color) + "-h" + std::to_string(height) + "-w" + std::to_string(width) + (dark_mode ? "-dm" : "");
+
+    wxBitmapBundle* bndl = nullptr;
+    auto it = m_bndl_map.find(bitmap_key);
+    if (it == m_bndl_map.end()) {
+        if (color.empty())
+            bndl = new wxBitmapBundle(mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT, size_t(0)));
+        else {
+            //TODO: replace with ColorRGB class
+//            ColorRGB rgb;// [3]
+//            decode_color(color, rgb);
+            unsigned char rgb[3];
+            parse_color(into_u8(color), rgb);
+//            bndl = new wxBitmapBundle(mksolid(width, height, rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar(), wxALPHA_OPAQUE, border_width, dark_mode));
+            bndl = new wxBitmapBundle(mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE, border_width, dark_mode));
+        }
+        m_bndl_map[bitmap_key] = bndl;
+    }
+    else
+        return it->second;
+
+    return bndl;
 }
 
 } // namespace GUI
