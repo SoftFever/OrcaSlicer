@@ -2154,7 +2154,9 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
 bool PresetCollection::clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten)
 {
     return clone_presets(presets, failures, [printer](Preset &preset, Preset::Type &type) {
-        preset.name = preset.name.substr(0, preset.name.find(" @")) + " @" + printer;
+        std::string prefix = preset.name.substr(0, preset.name.find(" @"));
+        std::replace(prefix.begin(), prefix.end(), '/', '-');
+        preset.name = prefix + " @" + printer;
         //preset.alias                = "";
         auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
         compatible_printers->values = std::vector<std::string>{ printer };
@@ -2169,6 +2171,7 @@ bool PresetCollection::create_presets_from_template_for_printer(std::vector<Pres
 {
     return clone_presets(templates, failures, [printer, create_filament_id](Preset &preset, Preset::Type &type) {
             std::string prefix          = preset.name.substr(0, preset.name.find(" @"));
+            std::replace(prefix.begin(), prefix.end(), '/', '-');
             preset.name                 = prefix + " @" + printer;
             auto *compatible_printers   = dynamic_cast<ConfigOptionStrings *>(preset.config.option("compatible_printers"));
             compatible_printers->values = std::vector<std::string>{printer};

@@ -1,6 +1,7 @@
 #include "CreatePresetsDialog.hpp"
 #include <regex>
 #include <vector>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <openssl/md5.h>
@@ -55,28 +56,25 @@ static const std::unordered_map<std::string, std::string> system_filament_types_
                                                                                        {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
                                                                                        {"PVA", "PVA"}};*/
 
-static const std::vector<std::string> printer_vendors = {"AnkerMake", "Anycubic",  "Artillery", "BIBO",        "BIQU",    "Creality ENDER", "Creality CR", "Creality SERMOON",
-                                                         "Elegoo",    "FLSun",     "gCreate",   "Geeetech",    "INAT",    "Infinity3D",     "Jubilee",     "LNL3D",
+static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",        "BIQU",    "Creality ENDER", "Creality CR", "Creality SERMOON",
+                                                         "FLSun",     "gCreate",   "Geeetech",    "INAT",    "Infinity3D",     "Jubilee",     "LNL3D",
                                                          "LulzBot",   "MakerGear", "Papapiu",   "Print4Taste", "RatRig",  "Rigid3D",        "Snapmaker",   "Sovol",
                                                          "TriLAB",    "Trimaker",  "Ultimaker", "Voron",       "Zonestar"};
 
 static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
-    {{"AnkerMake",      {"M5"}},
-     {"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "i3 Mega S", "4Max Pro 2.0", "Predator"}},
+    {{"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
      {"Artillery",      {"sidewinder X1",   "Genius", "Hornet"}},
      {"BIBO",           {"BIBO2 Touch"}},
      {"BIQU",           {"BX"}},
-     {"Creality ENDER", {"Ender-3",         "Ender-3 BLTouch",  "Ender-3 Pro",      "Ender-3 Neo",      "Ender-3 V2",
-                        "Ender-3 V2 Neo",   "Ender-3 S1",       "Ender-3 S1 Pro",   "Ender-3 S1 Plus",  "Ender-3 Max", "Ender-3 Max Neo",
-                        "Ender-4",          "Ender-5",          "Ender-5 Pro",      "Ender-5 Pro",      "Ender-5 S1",  "Ender-6",
+     {"Creality ENDER", {"Ender-3",         "Ender-3 BLTouch",  "Ender-3 Pro",      "Ender-3 Neo",      
+                        "Ender-3 V2 Neo",   "Ender-3 S1 Plus",  "Ender-3 Max", "Ender-3 Max Neo",
+                        "Ender-4",          "Ender-5 Pro",      "Ender-5 Pro",      
                         "Ender-7",          "Ender-2",          "Ender-2 Pro"}},
-     {"Creality CR",    {"CR-5 Pro",        "CR-5 Pro H",       "CR-6 SE",          "CR-6 Max",         "CR-10 SMART", "CR-10 SMART Pro",   "CR-10 Mini",
-                        "CR-10 Max",        "CR-10",            "CR-10 v2",         "CR-10 v3",         "CR-10 S",     "CR-10 v2",          "CR-10 v2",
+     {"Creality CR",    {"CR-5 Pro",        "CR-5 Pro H",       "CR-10 SMART", "CR-10 SMART Pro",   "CR-10 Mini",
+                        "CR-10",            "CR-10 v3",         "CR-10 S",     "CR-10 v2",          "CR-10 v2",
                         "CR-10 S Pro",      "CR-10 S Pro v2",   "CR-10 S4",         "CR-10 S5",         "CR-20",       "CR-20 Pro",         "CR-200B",
                         "CR-8"}},
      {"Creality SERMOON",{"Sermoon-D1",     "Sermoon-V1",       "Sermoon-V1 Pro"}},
-     {"Elegoo",         {"Neptune-1",       "Neptune-2",        "Neptune-2D",       "Neptune-2s",       "Neptune-3",    "Neptune-3 Max",    "Neptune-3 Plus",
-                        "Neptune-3 Pro",    "Neptune-x"}},
      {"FLSun",          {"FLSun QQs Pro",   "FLSun Q5"}},
      {"gCreate",        {"gMax 1.5XT Plus", "gMax 2",           "gMax 2 Pro",       "gMax 2 Dual 2in1", "gMax 2 Dual Chimera"}},
      {"Geeetech",       {"Thunder",         "Thunder Pro",      "Mizar s",          "Mizar Pro",        "Mizar",        "Mizar Max",
@@ -100,9 +98,24 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
                         "DeltiQ 2 Plus + FlexPrint",            "DeltiQ M",         "DeltiQ L",         "DeltiQ XL"}},
      {"Trimaker",       {"Nebula cloud",    "Nebula",           "Cosmos ll"}},
      {"Ultimaker",      {"Ultimaker 2"}},
-     {"Voron",          {"v2 250mm3",       "v2 300mm3",        "v2 350mm3",        "v2 250mm3",        "v2 300mm3",        "v2 350mm3",        "v1 250mm3",        "v1 300mm3", "v1 350mm3",
+     {"Voron",          {"v2 250mm3",        "v2 300mm3",        "v2 350mm3",        "v1 250mm3",        "v1 300mm3", "v1 350mm3",
                         "Zero 120mm3",      "Switchwire"}},
      {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
+
+static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 43, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
+
+static std::set<char> special_key = {'\n', '\t', '\r', '\v', '@', ';'};
+
+static std::string remove_special_key(const std::string &str)
+{
+    std::string res_str;
+    for (char c : str) {
+        if (special_key.find(c) == special_key.end()) {
+            res_str.push_back(c);
+        }
+    }
+    return res_str;
+}
 
 static bool delete_filament_preset_by_name(std::string delete_preset_name, std::string &selected_preset_name)
 {
@@ -627,7 +640,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input custom vendor"));
     m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
-        if (key == 64 || key == 59) { //@ ;
+        if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
             return;
         }
@@ -739,7 +752,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
     m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
-        if (key == 64) {
+        if (cannot_input_key.find(key) != cannot_input_key.end()) {
             event.Skip(false);
             return;
         }
@@ -923,6 +936,29 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             return;
         } else {
             serial_name = into_u8(serial_str);
+        }
+        vendor_name = remove_special_key(vendor_name);
+        serial_name = remove_special_key(serial_name);
+        
+        if (vendor_name.empty() || serial_name.empty()) {
+            MessageDialog dlg(this, _L("There may be escape characters in the vendor or serial input of filament. Please delete and re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return;
+        }
+        boost::algorithm::trim(vendor_name);
+        boost::algorithm::trim(serial_name);
+        if (vendor_name.empty() || serial_name.empty()) {
+            MessageDialog dlg(this, _L("All inputs in the custom vendor or serial are spaces. Please re-enter."),
+                              wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return;
+        }
+        if (m_can_not_find_vendor_checkbox->GetValue() && vendor_name[0] >= '0' && vendor_name[0] <= '9') {
+            MessageDialog dlg(this, _L("The beginning of the vendor can not be a number. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return;
         }
 
         if (!is_check_box_selected()) {
@@ -1502,7 +1538,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_vendor_text_ctrl->SetHint(_L("Input custom vendor"));
     m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
-        if (key == 64) { // "@" can not be inputed
+        if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
             return;
         }
@@ -1514,7 +1550,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_model_text_ctrl->SetHint(_L("Input custom model"));
     m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
-        if (key == 64) { // "@" can not be inputed
+        if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
             return;
         }
@@ -2111,6 +2147,7 @@ void CreatePrinterPresetDialog::update_preset_list_size()
     m_page2->SetSizerAndFit(m_page2_sizer);
     Layout();
     Fit();
+    Refresh();
     m_scrolled_preset_window->Thaw();
 }
 
@@ -2431,6 +2468,11 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                     show_page1();
                     return;
                 }
+                custom_vendor = remove_special_key(custom_vendor);
+                custom_model  = remove_special_key(custom_model);
+                boost::algorithm::trim(custom_vendor);
+                boost::algorithm::trim(custom_model);
+
                 printer_preset_name = custom_vendor + " " + custom_model + " " + nozzle_diameter;
                 printer_model_name  = custom_vendor + " " + custom_model;
             } else {
@@ -2933,7 +2975,8 @@ bool CreatePrinterPresetDialog::validate_input_valid()
         std::string vendor_name, model_name;
         if (m_can_not_find_vendor_combox->GetValue()) {
             vendor_name = into_u8(m_custom_vendor_text_ctrl->GetValue());
-            model_name  = into_u8(m_custom_vendor_text_ctrl->GetValue());
+            model_name  = into_u8(m_custom_model_text_ctrl->GetValue());
+
         } else {
             vendor_name = into_u8(m_select_vendor->GetStringSelection());
             model_name  = into_u8(m_select_model->GetStringSelection());
@@ -2944,6 +2987,24 @@ bool CreatePrinterPresetDialog::validate_input_valid()
             dlg.ShowModal();
             return false;
         }
+
+        vendor_name = remove_special_key(vendor_name);
+        model_name  = remove_special_key(model_name);
+        if (vendor_name.empty() || model_name.empty()) {
+            MessageDialog dlg(this, _L("There may be escape characters in the custom printer or model. Please delete and re-enter."),
+                              wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return false;
+        }
+        boost::algorithm::trim(vendor_name);
+        boost::algorithm::trim(model_name);
+        if (vendor_name.empty() || model_name.empty()) {
+            MessageDialog dlg(this, _L("All inputs in the custom printer or model are spaces. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+                              wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return false;
+        }
+
         if (check_printable_area() == false) {
             MessageDialog dlg(this, _L("Please check bed shape input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
@@ -3040,7 +3101,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         break;
     }
     success_text->SetFont(Label::Head_18);
-    next_step_text->SetFont(Label::Body_16);
+    //next_step_text->SetFont(Label::Body_14);
     success_text_sizer->Add(success_text, 0, wxEXPAND, 0);
     success_text_sizer->Add(next_step_text, 0, wxEXPAND | wxTOP, FromDIP(5));
     horizontal_sizer->Add(success_text_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
@@ -4107,10 +4168,11 @@ void EditFilamentPresetDialog::update_preset_tree()
     }
     m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
     
-    this->Thaw();
     this->Layout();
     this->Fit();
     this->Refresh();
+    wxGetApp().UpdateDlgDarkUI(this);
+    this->Thaw();
 }
 
 void EditFilamentPresetDialog::delete_preset()
@@ -4141,7 +4203,7 @@ void EditFilamentPresetDialog::delete_preset()
             }
         wxString msg;
         if (count > 0) {
-            msg = _L("Presets inherited by other presets cannot be deleted");
+            msg = _L("Presets inherited by other presets can not be deleted");
             msg += "\n";
             msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
             wxString title = _L("Delete Preset"); 
