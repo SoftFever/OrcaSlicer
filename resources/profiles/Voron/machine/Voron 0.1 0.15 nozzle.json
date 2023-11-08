@@ -1,0 +1,27 @@
+{
+  "type": "machine",
+  "setting_id": "GM002",
+  "name": "Voron 0.1 0.15 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "Voron 0.1",
+  "max_layer_height": [
+    "0.12"
+  ],
+  "min_layer_height": [
+    "0.04"
+  ],
+  "nozzle_diameter": [
+    "0.15"
+  ],
+  "printable_area": [
+    "0x0",
+    "120x0",
+    "120x120",
+    "0x120"
+  ],
+  "printable_height": "120",
+  "nozzle_type": "undefine",
+  "auxiliary_fan": "0"
+}

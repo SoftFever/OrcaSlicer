@@ -14,8 +14,14 @@
     "support_line_width": "0.22",
     "top_surface_line_width": "0.22",
     "compatible_printers": [
+      "Voron 0.1 0.2 nozzle",
       "Voron 2.4 250 0.2 nozzle",
       "Voron 2.4 300 0.2 nozzle",
-      "Voron 2.4 350 0.2 nozzle"
+      "Voron 2.4 350 0.2 nozzle",
+      "Voron Trident 250 0.2 nozzle",
+      "Voron Trident 300 0.2 nozzle",
+      "Voron Trident 350 0.2 nozzle",
+      "Voron Switchwire 250 0.2 nozzle"
+
     ]
 }
