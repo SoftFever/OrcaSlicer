@@ -194,7 +194,7 @@ void TextInput::render(wxDC& dc)
     // start draw
     wxPoint pt = {5, 0};
     if (icon.bmp().IsOk()) {
-        wxSize szIcon = icon.GetSize();
+        wxSize szIcon = get_preferred_size(icon.bmp(), m_parent);
         pt.y = (size.y - szIcon.y) / 2;
         dc.DrawBitmap(icon.get_bitmap(), pt);
         pt.x += szIcon.x + 0;
