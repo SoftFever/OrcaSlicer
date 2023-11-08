@@ -471,6 +471,10 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
 
         // Just add Upper and Lower objects to cut_object_ptrs
         post_process(upper, lower, cut_object_ptrs);
+        // Now merge all model parts together:
+        merge_solid_parts_inside_object(cut_object_ptrs);
+
+        finalize(cut_object_ptrs);
     } else if (volumes.size() > cut_parts_cnt) {
         // Means that object is cut with connectors
 
@@ -493,16 +497,15 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
         // Add Upper and Lower objects to cut_object_ptrs
         post_process(upper, lower, cut_object_ptrs);
 
+        // Now merge all model parts together:
+        merge_solid_parts_inside_object(cut_object_ptrs);
+
+        finalize(cut_object_ptrs);
         // Add Dowel-connectors as separate objects to cut_object_ptrs
         if (cut_connectors_obj.size() >= 3)
-            for (size_t id = 2; id < cut_connectors_obj.size(); id++) cut_object_ptrs.push_back(cut_connectors_obj[id]);
+            for (size_t id = 2; id < cut_connectors_obj.size(); id++)
+                m_model.add_object(*cut_connectors_obj[id]);
     }
-
-    // Now merge all model parts together:
-    merge_solid_parts_inside_object(cut_object_ptrs);
-
-    finalize(cut_object_ptrs);
-
     return m_model.objects;
 }
 

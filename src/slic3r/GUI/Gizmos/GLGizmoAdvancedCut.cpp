@@ -888,7 +888,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         const bool has_connectors = !mo->cut_connectors.empty();
         // update connectors pos as offset of its center before cut performing
         apply_connectors_in_model(cut_mo, dowels_count);
-        if (dowels_count > 0) { cut_by_contour = false; }
+
         wxBusyCursor wait;
 
         ModelObjectCutAttributes attributes = only_if(has_connectors ? true : m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
