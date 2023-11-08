@@ -58,6 +58,7 @@ public:
 	// resets m_initiailized to false and writes used if was initialized
 	// used when reloading in runtime - like change language
 	void    uninit();
+	void	reinit();
 private:
 	void	init();
 	void	init_random_hint_id();

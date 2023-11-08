@@ -303,6 +303,12 @@ void HintDatabase::uninit()
 	m_used_ids.clear();
 	m_used_ids_loaded = false;
 }
+void HintDatabase::reinit()
+{
+	if (m_initialized)
+		uninit();
+	init();
+}
 void HintDatabase::init()
 {
 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
