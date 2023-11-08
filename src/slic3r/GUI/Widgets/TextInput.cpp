@@ -94,10 +94,10 @@ void TextInput::SetLabel(const wxString& label)
     Refresh();
 }
 
-void TextInput::SetIcon(const wxBitmap &icon)
+void TextInput::SetIcon(const wxBitmapBundle &icon_in)
 {
     this->icon = ScalableBitmap();
-    this->icon.bmp() = icon;
+    this->icon.bmp() = icon_in;
     Rescale();
 }
 
@@ -153,7 +153,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxSize size = GetSize();
     wxPoint textPos = {5, 0};
     if (this->icon.bmp().IsOk()) {
-        wxSize szIcon = this->icon.GetBmpSize();
+        wxSize szIcon = this->icon.GetSize();
         textPos.x += szIcon.x;
     }
     bool align_right = GetWindowStyle() & wxRIGHT;
@@ -194,7 +194,7 @@ void TextInput::render(wxDC& dc)
     // start draw
     wxPoint pt = {5, 0};
     if (icon.bmp().IsOk()) {
-        wxSize szIcon = icon.GetBmpSize();
+        wxSize szIcon = icon.GetSize();
         pt.y = (size.y - szIcon.y) / 2;
         dc.DrawBitmap(icon.get_bitmap(), pt);
         pt.x += szIcon.x + 0;

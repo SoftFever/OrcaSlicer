@@ -85,7 +85,7 @@ void ComboBox::SetSelection(int n)
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        SetIcon(icons[drop.selection].GetBitmapFor(m_parent));//OcraftyoneTODO: dirty conversion
+        SetIcon(icons[drop.selection]);
 }
 void ComboBox::SelectAndNotify(int n) { 
     SetSelection(n);
@@ -108,7 +108,7 @@ void ComboBox::SetValue(const wxString &value)
     drop.SetValue(value);
     SetLabel(value);
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        SetIcon(icons[drop.selection].GetBitmapFor(m_parent));//OcraftyoneTODO: dirty conversion
+        SetIcon(icons[drop.selection]);
 }
 
 void ComboBox::SetLabel(const wxString &value)
