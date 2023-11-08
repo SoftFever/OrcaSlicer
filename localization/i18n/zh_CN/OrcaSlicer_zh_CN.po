@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-04 14:18+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -7636,6 +7636,14 @@ msgstr "所有打印结束时的结尾G-code"
 msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
 
+msgid "Ensure vertical shell thickness"
+msgstr "确保垂直外壳厚度"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
+
 msgid "Top surface pattern"
 msgstr "顶面图案"
 
@@ -10141,6 +10149,17 @@ msgstr ""
 "用于替换模型细小特征（根据最小特征尺寸）的墙线宽。如果墙最小线宽小于最小特征"
 "的厚度，则墙将变得和特征本身一样厚。参数值表示为相对喷嘴直径的百分比"
 
+msgid "Detect narrow internal solid infill"
+msgstr "识别狭窄内部实心填充"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充加"
+"快打印速度。否则使用默认的直线填充。"
+
 msgid "invalid value "
 msgstr "非法的值 "
 
@@ -11567,14 +11586,6 @@ msgstr ""
 #~ msgid "Activate for better air filtration"
 #~ msgstr "激活以获得更好的空气过滤"
 
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "确保垂直外壳厚度"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
-
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "软化温度"
 
@@ -11600,17 +11611,6 @@ msgstr ""
 #~ msgstr ""
 #~ "辅助部件冷却风扇的转速。辅助部件冷却风扇将一直运行在该速度，除了设置的无需"
 #~ "冷却的前若干层"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "识别狭窄内部实心填充"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充"
-#~ "加快打印速度。否则使用默认的直线填充。"
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "

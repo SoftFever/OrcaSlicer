@@ -2477,7 +2477,6 @@ bool GUI_App::on_init_inner()
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
-#if orca_todo
         Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
@@ -2566,7 +2565,6 @@ bool GUI_App::on_init_inner()
             });
             dlg.ShowModal();
         });
-#endif
     }
     else {
 #ifdef __WXMSW__
@@ -4266,7 +4264,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                                              error);
         })
         .timeout_connect(1)
-        .on_complete([&](std::string body, unsigned http_status) {
+        .on_complete([this,by_user](std::string body, unsigned http_status) {
           // Http response OK
           if (http_status != 200)
             return;
@@ -4292,30 +4290,28 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             std::string best_release_content;
             std::string best_pre_content;
             const std::regex reg_num("([0-9]+)");
-            for (auto json_version : root) {
-              std::string tag = json_version.second.get<std::string>("tag_name");
-              if (tag[0] == 'v')
-                tag.erase(0, 1);
-              for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num);
-                   it != std::sregex_iterator(); ++it) {
-              }
-              Semver tag_version = get_version(tag, matcher);
-              if (current_version == tag_version)
-                i_am_pre = json_version.second.get<bool>("prerelease");
-              if (json_version.second.get<bool>("prerelease")) {
-                if (best_pre < tag_version) {
-                  best_pre = tag_version;
-                  best_pre_url = json_version.second.get<std::string>("html_url");
-                  best_pre_content = json_version.second.get<std::string>("body");
-                  best_pre.set_prerelease("Preview");
-                }
-              } else {
-                if (best_release < tag_version) {
-                  best_release = tag_version;
-                  best_release_url = json_version.second.get<std::string>("html_url");
-                  best_release_content = json_version.second.get<std::string>("body");
-                }
-              }
+            std::string tag = root.get<std::string>("tag_name");
+            if (tag[0] == 'v')
+            tag.erase(0, 1);
+            for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num);
+                it != std::sregex_iterator(); ++it) {
+            }
+            Semver tag_version = get_version(tag, matcher);
+            if (current_version == tag_version)
+            i_am_pre = root.get<bool>("prerelease");
+            if (root.get<bool>("prerelease")) {
+            if (best_pre < tag_version) {
+                best_pre = tag_version;
+                best_pre_url = root.get<std::string>("html_url");
+                best_pre_content = root.get<std::string>("body");
+                best_pre.set_prerelease("Preview");
+            }
+            } else {
+            if (best_release < tag_version) {
+                best_release = tag_version;
+                best_release_url = root.get<std::string>("html_url");
+                best_release_content = root.get<std::string>("body");
+            }
             }
 
             // if release is more recent than beta, use release anyway
@@ -4325,8 +4321,11 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
               best_pre_content = best_release_content;
             }
             // if we're the most recent, don't do anything
-            if ((i_am_pre ? best_pre : best_release) <= current_version)
+            if ((i_am_pre ? best_pre : best_release) <= current_version) {
+              if (by_user != 0)
+                this->no_new_version();
               return;
+            }
 
             // BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...",
             // SLIC3R_APP_NAME, i_am_pre ? best_pre.to_string(): best_release.to_string());
