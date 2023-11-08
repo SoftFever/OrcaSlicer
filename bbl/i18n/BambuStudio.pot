@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 16:44+0800\n"
+"POT-Creation-Date: 2023-11-08 19:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5451,8 +5451,8 @@ msgid "nozzle memorized: %.1f %s"
 msgstr ""
 
 msgid ""
-"Your nozzle type in preset is not consistent with memorized nozzle.Did you "
-"change your nozzle lately ? "
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -9959,6 +9959,10 @@ msgid "Vendor is not selected, please reselect vendor."
 msgstr ""
 
 msgid "Custom vendor is not input, please input custom vendor."
+msgstr ""
+
+msgid ""
+"\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
 msgstr ""
 
 msgid "Filament type is not selected, please reselect type."

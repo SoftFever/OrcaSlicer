@@ -2510,7 +2510,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, format_steel_name(nozzle_type));
             wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, format_steel_name(obj_->nozzle_type));
 
-            confirm_text.push_back(_L("Your nozzle type in preset is not consistent with memorized nozzle.Did you change your nozzle lately ? ") 
+            confirm_text.push_back(_L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") 
                 + "\n    " + nozzle_in_preset 
                 + "\n    " + nozzle_in_printer
                 + "\n");

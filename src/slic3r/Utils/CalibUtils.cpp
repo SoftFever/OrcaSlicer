@@ -86,7 +86,7 @@ static bool is_same_nozzle_diameters(const DynamicPrintConfig &full_config, cons
                 wxString nozzle_in_preset  = wxString::Format(_L("nozzle in preset: %s %s"), wxString::Format("%.1f", preset_nozzle_diameter).ToStdString(), to_wstring_name(nozzle_type));
                 wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj->nozzle_diameter, to_wstring_name(obj->nozzle_type));
 
-                error_msg = _L("Your nozzle type in preset is not consistent with memorized nozzle.Did you change your nozzle lately ? ") + "\n    " + nozzle_in_preset +
+                error_msg = _L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") + "\n    " + nozzle_in_preset +
                             "\n    " + nozzle_in_printer + "\n";
                 return false;
             } 
