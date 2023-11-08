@@ -459,7 +459,7 @@ void PartPlate::calc_vertex_for_icons(int index, GeometryBuffer &buffer)
 	ExPolygon poly;
 	auto bed_ext = get_extents(m_shape);
     Vec2d p = bed_ext[2];
-    if (m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
+    if (m_plater && m_plater->get_build_volume_type() == BuildVolume_Type::Circle)
         p[1] -= std::max(
             0.0, (bed_ext.size()(1) - 5 * PARTPLATE_ICON_SIZE - 4 * PARTPLATE_ICON_GAP_Y - PARTPLATE_ICON_GAP_TOP) / 2);
 
