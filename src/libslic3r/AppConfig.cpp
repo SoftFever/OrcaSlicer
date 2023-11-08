@@ -312,9 +312,9 @@ void AppConfig::set_defaults()
         set("max_recent_count", "18");
     }
 
-    if (get("staff_pick_switch").empty()) {
-        set_bool("staff_pick_switch", true);
-    }
+    // if (get("staff_pick_switch").empty()) {
+    //     set_bool("staff_pick_switch", false);
+    // }
 
     if (get("sync_system_preset").empty()) {
         set_bool("sync_system_preset", true);

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-04 14:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -5138,6 +5138,15 @@ msgstr "Impérial"
 msgid "Units"
 msgstr "Unités"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom à la position de la souris"
 
@@ -5155,6 +5164,12 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "Si cette option est activée, la caméra libre est utilisée. Si cette option "
 "n'est pas activée, la caméra contrainte est utilisée."
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Afficher la notification \"Astuce du jour\" au démarrage"
@@ -5214,13 +5229,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers .step/.stp"
-
-msgid "Online Models"
-msgstr "Modèles en ligne"
-
-msgid "Show online staff-picked models on the home page"
-msgstr ""
-"Afficher les modèles en ligne sélectionnés par le staff sur la page d'accueil"
 
 msgid "Maximum recent projects"
 msgstr "Projets récents maximum"
@@ -9793,22 +9801,6 @@ msgstr ""
 "buse de toucher l'impression lors du déplacement. L'utilisation d'une ligne "
 "en spirale pour soulever l’axe Z peut empêcher le stringing"
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr "Type de décalage en Z"
 
@@ -12310,6 +12302,14 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Online Models"
+#~ msgstr "Modèles en ligne"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr ""
+#~ "Afficher les modèles en ligne sélectionnés par le staff sur la page "
+#~ "d'accueil"
 
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr ""
