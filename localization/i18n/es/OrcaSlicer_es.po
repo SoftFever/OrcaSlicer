@@ -4317,7 +4317,7 @@ msgid "Please select a file"
 msgstr "Por favor, seleccione un archivo"
 
 msgid "Do you want to replace it"
-msgstr "¿Quiere reemplazarlo?"
+msgstr "¿Desea reemplazarlo?"
 
 msgid "Message"
 msgstr "Mensaje"
