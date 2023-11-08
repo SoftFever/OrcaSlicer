@@ -6820,7 +6820,7 @@ void GLCanvas3D::_render_background()
     GLShaderProgram* shader = wxGetApp().get_shader("background");
     if (shader != nullptr) {
         shader->start_using();
-        shader->set_uniform("top_color", use_error_color ? ERROR_BG_LIGHT_COLOR : DEFAULT_BG_LIGHT_COLOR);
+        shader->set_uniform("top_color", bottom_color);
         shader->set_uniform("bottom_color", bottom_color);
         m_background.render();
         shader->stop_using();
