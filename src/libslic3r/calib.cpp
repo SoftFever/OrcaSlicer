@@ -528,14 +528,14 @@ CalibPressureAdvancePattern::CalibPressureAdvancePattern(
 };
 
 void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfig &config,
-                                                         bool                      is_bbl_machine,
+                                                                                                                  bool                      is_bbl_machine,
                                                          Model                    &model,
                                                          const Vec3d              &origin)
 {
     std::stringstream gcode;
     gcode << "; start pressure advance pattern for layer\n";
 
-    refresh_setup(config, is_bbl_machine, model, origin);
+        refresh_setup(config, is_bbl_machine, model, origin);
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), m_writer, "Move to start XY position");
     gcode << m_writer.travel_to_z(height_first_layer(), "Move to start Z position");
@@ -686,8 +686,6 @@ void CalibPressureAdvancePattern::refresh_setup(const DynamicPrintConfig &config
     m_config.apply(model.objects.front()->config.get(), true);
     m_config.apply(model.objects.front()->volumes.front()->config.get(), true);
 
-    m_is_delta = (m_config.option<ConfigOptionPoints>("printable_area")->values.size() > 4);
-
     _refresh_starting_point(model);
     _refresh_writer(is_bbl_machine, model, origin);
 }
@@ -702,11 +700,6 @@ void CalibPressureAdvancePattern::_refresh_starting_point(const Model &model)
 
     m_starting_point = Vec3d(bbox.min.x(), bbox.max.y(), 0);
     m_starting_point.y() += m_handle_spacing;
-
-    if (m_is_delta) {
-        m_starting_point.x() *= -1;
-        m_starting_point.y() -= (frame_size_y() / 2);
-    }
 }
 
 void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin)

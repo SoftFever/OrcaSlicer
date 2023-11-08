@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4898,6 +4898,15 @@ msgstr "インチ"
 msgid "Units"
 msgstr "単位"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom to mouse position"
 
@@ -4912,6 +4921,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -4964,12 +4979,6 @@ msgstr ".step/.stpファイルをOrca Slicerに関連付けます。"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "デフォルトで.step/.stpファイルをOrca Slicerで開く"
-
-msgid "Online Models"
-msgstr "Online Models"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Show online staff-picked models on the home page"
 
 msgid "Maximum recent projects"
 msgstr "Maximum recent projects"
@@ -7693,6 +7702,14 @@ msgstr "造形完了時のG-codeを追加"
 msgid "End G-code when finish the printing of this filament"
 msgstr "このフィラメントを使用終わった時のG-codeを追加"
 
+msgid "Ensure vertical shell thickness"
+msgstr "壁の厚さを確保"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr "傾斜面にソリッドインフィルを追加"
+
 msgid "Top surface pattern"
 msgstr "トップ面パターン"
 
@@ -9120,22 +9137,6 @@ msgstr ""
 "リトラクション時に、ノズルを少し上げてから移動します。この動作でモデルとの衝"
 "突を回避できます。"
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -10159,6 +10160,18 @@ msgstr ""
 "feature size) of the model. If the Minimum wall width is thinner than the "
 "thickness of the feature, the wall will become as thick as the feature "
 "itself. It's expressed as a percentage over nozzle diameter"
+
+msgid "Detect narrow internal solid infill"
+msgstr "薄いソリッド インフィル検出"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"ソリッド インフィル領域に狭い部分があるか検出します。その設定を有効にする場"
+"合、狭い領域は同心パターンを使用し、それ以外の領域は、直線パターンを使用しま"
+"す。"
 
 msgid "invalid value "
 msgstr "invalid value "
@@ -11468,6 +11481,12 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "Online Models"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Show online staff-picked models on the home page"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "冷却のために速度を落とした時の最低造形速度。"
 
@@ -11477,14 +11496,6 @@ msgstr ""
 #~ msgstr ""
 #~ "ベッド温度がフィラメントの軟化温度より高いです、ノズル詰まりが発生する可能"
 #~ "性があります。ベッド温度を下げるか、プリンタのドアを開けてください。"
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "壁の厚さを確保"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr "傾斜面にソリッドインフィルを追加"
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "軟化温度"
@@ -11504,18 +11515,6 @@ msgstr ""
 #~ "during printing except the first several layers which is defined by no "
 #~ "cooling layers"
 #~ msgstr "補助パーツ冷却ファンの回転速度です。"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "薄いソリッド インフィル検出"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "ソリッド インフィル領域に狭い部分があるか検出します。その設定を有効にする"
-#~ "場合、狭い領域は同心パターンを使用し、それ以外の領域は、直線パターンを使用"
-#~ "します。"
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "底面との隙間があります、レイヤーを入れ替えました"

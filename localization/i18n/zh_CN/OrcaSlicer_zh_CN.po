@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "PO-Revision-Date: 2023-04-01 13:21+0800\n"
 "Last-Translator: SoftFever <softfeverever@gmail.com>\n"
 "Language-Team: \n"
@@ -4865,6 +4865,15 @@ msgstr "英制"
 msgid "Units"
 msgstr "单位"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
 
@@ -4878,6 +4887,12 @@ msgstr "使用自由视角"
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr "如果启用，使用自由视角。如果未启用，使用约束视角。"
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "启动后显示“每日小贴士”通知"
@@ -4929,12 +4944,6 @@ msgstr "使用逆戟鲸打开.step/.stp文件"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "开启后，将缺省使用逆戟鲸打开.step文件"
-
-msgid "Online Models"
-msgstr "在线模型"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "在主页上显示工作人员挑选的在线模型"
 
 msgid "Maximum recent projects"
 msgstr "近期项目的最大数量"
@@ -7627,6 +7636,14 @@ msgstr "所有打印结束时的结尾G-code"
 msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
 
+msgid "Ensure vertical shell thickness"
+msgstr "确保垂直外壳厚度"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
+
 msgid "Top surface pattern"
 msgstr "顶面图案"
 
@@ -9095,22 +9112,6 @@ msgstr ""
 "回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免空驶时喷嘴和"
 "打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝。"
 
-msgid "Z hop lower boundary"
-msgstr "Z抬升下边界"
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr "只有当Z高于此值且低于参数(Z抬升上边界)时，Z抬升才会生效"
-
-msgid "Z hop upper boundary"
-msgstr "Z抬升上边界"
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr "如果该值为正，则Z抬升仅在Z高于参数(Z抬升下边界)且低于该值时才会生效"
-
 msgid "Z hop type"
 msgstr "抬Z类型"
 
@@ -10147,6 +10148,17 @@ msgid ""
 msgstr ""
 "用于替换模型细小特征（根据最小特征尺寸）的墙线宽。如果墙最小线宽小于最小特征"
 "的厚度，则墙将变得和特征本身一样厚。参数值表示为相对喷嘴直径的百分比"
+
+msgid "Detect narrow internal solid infill"
+msgstr "识别狭窄内部实心填充"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充加"
+"快打印速度。否则使用默认的直线填充。"
 
 msgid "invalid value "
 msgstr "非法的值 "
@@ -11529,6 +11541,28 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "在线模型"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "在主页上显示工作人员挑选的在线模型"
+
+#~ msgid "Z hop lower boundary"
+#~ msgstr "Z抬升下边界"
+
+#~ msgid ""
+#~ "Z hop will only come into effect when Z is above this value and is below "
+#~ "the parameter: \"Z hop upper boundary\""
+#~ msgstr "只有当Z高于此值且低于参数(Z抬升上边界)时，Z抬升才会生效"
+
+#~ msgid "Z hop upper boundary"
+#~ msgstr "Z抬升上边界"
+
+#~ msgid ""
+#~ "If this value is positive, Z hop will only come into effect when Z is "
+#~ "above the parameter: \"Z hop lower boundary\" and is below this value"
+#~ msgstr "如果该值为正，则Z抬升仅在Z高于参数(Z抬升下边界)且低于该值时才会生效"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "自动冷却降速的最小打印速度"
 
@@ -11551,14 +11585,6 @@ msgstr ""
 
 #~ msgid "Activate for better air filtration"
 #~ msgstr "激活以获得更好的空气过滤"
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "确保垂直外壳厚度"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "软化温度"
@@ -11585,17 +11611,6 @@ msgstr ""
 #~ msgstr ""
 #~ "辅助部件冷却风扇的转速。辅助部件冷却风扇将一直运行在该速度，除了设置的无需"
 #~ "冷却的前若干层"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "识别狭窄内部实心填充"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充"
-#~ "加快打印速度。否则使用默认的直线填充。"
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "

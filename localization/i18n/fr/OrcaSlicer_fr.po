@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -5138,6 +5138,15 @@ msgstr "Impérial"
 msgid "Units"
 msgstr "Unités"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom à la position de la souris"
 
@@ -5155,6 +5164,12 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "Si cette option est activée, la caméra libre est utilisée. Si cette option "
 "n'est pas activée, la caméra contrainte est utilisée."
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Afficher la notification \"Astuce du jour\" au démarrage"
@@ -5214,13 +5229,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Si activé, définit Orca Slicer comme application par défaut pour ouvrir les "
 "fichiers .step/.stp"
-
-msgid "Online Models"
-msgstr "Modèles en ligne"
-
-msgid "Show online staff-picked models on the home page"
-msgstr ""
-"Afficher les modèles en ligne sélectionnés par le staff sur la page d'accueil"
 
 msgid "Maximum recent projects"
 msgstr "Projets récents maximum"
@@ -8179,6 +8187,16 @@ msgstr "G-code lorsque l'ensemble de l'impression est terminée"
 msgid "End G-code when finish the printing of this filament"
 msgstr "G-code lorsque l'impression de ce filament est terminée"
 
+msgid "Ensure vertical shell thickness"
+msgstr "Veiller à l'épaisseur verticale de la coque"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Ajouter un remplissage solide près des surfaces en pente pour garantir "
+"l'épaisseur verticale de la coque (couches solides supérieures + inférieures)"
+
 msgid "Top surface pattern"
 msgstr "Motif des surfaces supérieures"
 
@@ -9793,22 +9811,6 @@ msgstr ""
 "buse de toucher l'impression lors du déplacement. L'utilisation d'une ligne "
 "en spirale pour soulever l’axe Z peut empêcher le stringing"
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr "Type de décalage en Z"
 
@@ -10939,6 +10941,18 @@ msgstr ""
 "est plus fine que l'épaisseur de la paroi du modèle, la paroi deviendra "
 "aussi épaisse que celle du modèle. Elle est exprimée en pourcentage sur le "
 "diamètre de la buse"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Détecter un remplissage solide étroit"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Cette option détectera automatiquement les zones de remplissage solides "
+"étroits. Si activé, un motif concentrique sera utilisé pour les zones afin "
+"d'accélérer l'impression. Sinon, le motif rectiligne est utilisé par défaut."
 
 msgid "invalid value "
 msgstr "valeur invalide "
@@ -12311,6 +12325,14 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "Modèles en ligne"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr ""
+#~ "Afficher les modèles en ligne sélectionnés par le staff sur la page "
+#~ "d'accueil"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr ""
 #~ "Vitesse d'impression minimale lors du ralentissement de l’impression"
@@ -12337,17 +12359,6 @@ msgstr ""
 #~ "filament. Veuillez ouvrir la porte avant de l'imprimante avant d'imprimer "
 #~ "pour éviter que la buse ne se bouche."
 
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Veiller à l'épaisseur verticale de la coque"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Ajouter un remplissage solide près des surfaces en pente pour garantir "
-#~ "l'épaisseur verticale de la coque (couches solides supérieures + "
-#~ "inférieures)"
-
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Température de vitrification"
 
@@ -12371,19 +12382,6 @@ msgstr ""
 #~ "Vitesse du ventilateur de refroidissement auxiliaire. Le ventilateur "
 #~ "auxiliaire fonctionnera à cette vitesse pendant l'impression, à "
 #~ "l'exception des premières couches définies sans refroidissement"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Détecter un remplissage solide étroit"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Cette option détectera automatiquement les zones de remplissage solides "
-#~ "étroits. Si activé, un motif concentrique sera utilisé pour les zones "
-#~ "afin d'accélérer l'impression. Sinon, le motif rectiligne est utilisé par "
-#~ "défaut."
 
 #~ msgid ""
 #~ "Bed temperature for layers except the initial one. Value 0 means the "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4990,6 +4990,15 @@ msgstr "Brittisk standard"
 msgid "Units"
 msgstr "Enheter"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zooma till musens position"
 
@@ -5004,6 +5013,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5058,12 +5073,6 @@ msgstr "Associera .step/.stp-filer till OrcaSlicer"
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr "Om aktiverad, väljs Orca Slicer som standard att öppna .step filer"
-
-msgid "Online Models"
-msgstr "Online modeller"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Visa personalens utvalda modeller online på startsidan"
 
 msgid "Maximum recent projects"
 msgstr "Maximalt antal nyligen genomförda projekt"
@@ -7886,6 +7895,16 @@ msgstr "Lägg till slut G-kod när utskriften har avslutas"
 msgid "End G-code when finish the printing of this filament"
 msgstr "Lägg till slut G-kod när utskriften har avslutas med detta filament"
 
+msgid "Ensure vertical shell thickness"
+msgstr "Säkerställ vertikal skaltjocklek"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Lägg till massiv fyllning nära sluttande ytor för att garantera den "
+"vertikala skal tjockleken (topp+bottenfasta lager)."
+
 msgid "Top surface pattern"
 msgstr "Topp ytans mönster"
 
@@ -9366,22 +9385,6 @@ msgstr ""
 "den förflyttas. Att använda spirallinjer för att lyfta z kan förhindra "
 "strängning"
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -10453,6 +10456,19 @@ msgstr ""
 "element) i modellen. Om den minsta väggbredden är tunnare än tjockleken på "
 "elementet blir väggen lika tjock som själva elementet. Den uttrycks i "
 "procent av nozzel diametern."
+
+msgid "Detect narrow internal solid infill"
+msgstr "Upptäck tight inre solid ifyllnad"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Detta val kommer att auto upptäcka tight inre solid ifyllnads område. Om "
+"aktiverat kommer det koncentriska mönstret att användas för området för att "
+"påskynda utskriften. Annars kommer mönstret med räta linjer att användas som "
+"standard."
 
 msgid "invalid value "
 msgstr "ogiltigt värde "
@@ -11788,6 +11804,12 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "Online modeller"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Visa personalens utvalda modeller online på startsidan"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "Min utskrifts hastighet vid nedsänkning för kylning"
 
@@ -11798,16 +11820,6 @@ msgstr ""
 #~ "Byggplattans temperatur överskrider filamentens förglasningstemperatur. "
 #~ "Öppna skrivarens främre dörr innan du skriver ut för att undvika att "
 #~ "nozzeln täpps till."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Säkerställ vertikal skaltjocklek"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Lägg till massiv fyllning nära sluttande ytor för att garantera den "
-#~ "vertikala skal tjockleken (topp+bottenfasta lager)."
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Kristalliserings temperatur"
@@ -11830,19 +11842,6 @@ msgstr ""
 #~ "Hastigheten på extra del kylfläkten. Extra fläkten kommer att köras med "
 #~ "denna hastighet under utskrift förutom de lager som definieras som inga "
 #~ "kyl lager"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Upptäck tight inre solid ifyllnad"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Detta val kommer att auto upptäcka tight inre solid ifyllnads område. Om "
-#~ "aktiverat kommer det koncentriska mönstret att användas för området för "
-#~ "att påskynda utskriften. Annars kommer mönstret med räta linjer att "
-#~ "användas som standard."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Tomma lager runt botten ersätts med närmast normala lager."

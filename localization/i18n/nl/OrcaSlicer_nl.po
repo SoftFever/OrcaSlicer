@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5064,6 +5064,15 @@ msgstr "Imperiaal"
 msgid "Units"
 msgstr "Eenheden"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom to mouse position"
 
@@ -5078,6 +5087,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5139,12 +5154,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Indien ingeschakeld, wordt Orca Slicer ingesteld als de standaardtoepassing "
 "om .step-bestanden te openen"
-
-msgid "Online Models"
-msgstr "Online Models"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Show online staff-picked models on the home page"
 
 msgid "Maximum recent projects"
 msgstr "Maximum recent projects"
@@ -8036,6 +8045,16 @@ msgid "End G-code when finish the printing of this filament"
 msgstr ""
 "Voeg een eind G-code toe bij het afronden van het printen van dit filament."
 
+msgid "Ensure vertical shell thickness"
+msgstr "Zorg voor een verticale schaaldikte"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Voeg dichte vulling toe in de buurt van hellende oppervlakken om de "
+"verticale schaaldikte te garanderen (boven+onder vaste lagen)."
+
 msgid "Top surface pattern"
 msgstr "Patroon bovenvlak"
 
@@ -9542,22 +9561,6 @@ msgstr ""
 "de nozzle de print raakt bij veplaatsen. Het gebruik van spiraallijnen om Z "
 "op te tillen kan stringing voorkomen."
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -10651,6 +10654,19 @@ msgstr ""
 "het model zal vervangen. Als de minimale wandbreedte dunner is dan de dikte "
 "van het element, wordt de muur net zo dik als het object zelf. Dit wordt "
 "uitgedrukt als een percentage ten opzichte van de diameter van de nozzle"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Detecteer dichte interne solide vulling (infill)"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Deze optie detecteert automatisch smalle interne solide opvul (infill) "
+"gebieden. Indien ingeschakeld, wordt het concentrische patroon gebruikt voor "
+"het gebied om het afdrukken te versnellen. Anders wordt standaard het "
+"rechtlijnige patroon gebruikt."
 
 msgid "invalid value "
 msgstr "invalid value "
@@ -11984,6 +12000,12 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "Online Models"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Show online staff-picked models on the home page"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "De minimale printsnelheid indien er afgeremd wordt om af te koelen"
 
@@ -11994,16 +12016,6 @@ msgstr ""
 #~ "De bedtemperatuur overschrijdt de vitrificatietemperatuur van het "
 #~ "filament. Open de voorkdeur van de printer voor het printen om "
 #~ "verstopping van de nozzles te voorkomen."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Zorg voor een verticale schaaldikte"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Voeg dichte vulling toe in de buurt van hellende oppervlakken om de "
-#~ "verticale schaaldikte te garanderen (boven+onder vaste lagen)."
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Temperatuur van verglazing"
@@ -12028,19 +12040,6 @@ msgstr ""
 #~ "Snelheid van de auxiliary part ventilator. De auxiliary ventilator draait "
 #~ "op deze snelheid tijdens het afdrukken, behalve de eerste paar lagen, die "
 #~ "worden gedefinieerd door geen koellagen"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Detecteer dichte interne solide vulling (infill)"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Deze optie detecteert automatisch smalle interne solide opvul (infill) "
-#~ "gebieden. Indien ingeschakeld, wordt het concentrische patroon gebruikt "
-#~ "voor het gebied om het afdrukken te versnellen. Anders wordt standaard "
-#~ "het rechtlijnige patroon gebruikt."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr ""

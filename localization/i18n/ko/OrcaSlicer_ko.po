@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "PO-Revision-Date: 2023-10-26 16:47+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -5000,6 +5000,15 @@ msgstr "야드파운드법"
 msgid "Units"
 msgstr "단위"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "마우스 위치로 확대"
 
@@ -5015,6 +5024,12 @@ msgid "If enabled, use free camera. If not enabled, use constrained camera."
 msgstr ""
 "활성화된 경우 자유로운 카메라 앵글을 사용합니다. 활성화되지 않은 경우 제한된 "
 "카메라 앵글을 사용합니다."
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "시작 후 \"오늘의 팁\" 알림 표시"
@@ -5070,12 +5085,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "활성화된 경우 OrcaSlicer를 기본 응용 프로그램으로 설정하여 .step 파일을 엽니"
 "다"
-
-msgid "Online Models"
-msgstr "온라인 모델"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "홈페이지에서 추천 온라인 모델 보기"
 
 msgid "Maximum recent projects"
 msgstr "최근 프로젝트 최대 표시"
@@ -7907,6 +7916,16 @@ msgstr "전체 출력이 끝날때의 End G-code"
 msgid "End G-code when finish the printing of this filament"
 msgstr "이 필라멘트의 출력이 끝날때의 End G-code"
 
+msgid "Ensure vertical shell thickness"
+msgstr "수직 쉘 두께 확보"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"경사진 표면 근처에 꽉찬 내부 채움을 추가하여 수직 쉘 두께를 보장합니다(상단"
+"+하단 꽉찬 레이어)"
+
 msgid "Top surface pattern"
 msgstr "상단 표면 패턴"
 
@@ -9507,26 +9526,6 @@ msgstr ""
 "니다. 이동 시 노즐이 출력물에 부딪히는 것을 방지합니다. 나선 라인(Spiral "
 "line)을 사용하여 Z를 올리면 실 발생을 방지할 수 있습니다"
 
-msgid "Z hop lower boundary"
-msgstr "Z 올리기 하한 경계"
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-"Z 올리기는 Z가 이 값보다 크고 \"Z 올리기 상한 경계\" 매개변수 아래인 경우에"
-"만 적용됩니다."
-
-msgid "Z hop upper boundary"
-msgstr "Z 올리기 상한 경계"
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-"이 값이 양수인 경우 Z 올리기는 Z가 매개변수 \"Z 올리기 하한 경계\"보다 높고 "
-"이 값보다 낮을 때만 적용됩니다"
-
 msgid "Z hop type"
 msgstr "Z 올리기 유형"
 
@@ -10656,6 +10655,18 @@ msgstr ""
 "모델의 얇은 형상(최소 형상 크기에 따름)을 대체할 벽의 너비입니다. 최소 벽 너"
 "비가 형상의 두께보다 얇은 경우 벽은 형상 자체만큼 두꺼워집니다. 노즐 직경에 "
 "대한 백분율로 표시됩니다"
+
+msgid "Detect narrow internal solid infill"
+msgstr "좁은 내부 꽉찬 내부 채움 감지"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"이 옵션은 좁은 내부 꽉찬 내부 채움 영역을 자동으로 감지합니다. 활성화하면 출"
+"력 속도를 높이기 위해 해당 영역에 동심 패턴이 사용됩니다. 그렇지 않으면 직선 "
+"패턴이 기본적으로 사용됩니다."
 
 msgid "invalid value "
 msgstr "잘못된 값 "
@@ -12099,6 +12110,32 @@ msgstr ""
 "기/핫엔드가 막힐 가능성을 줄일 수 있습니다. 이에 대한 자세한 내용은 Wiki에서 "
 "확인하세요."
 
+#~ msgid "Online Models"
+#~ msgstr "온라인 모델"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "홈페이지에서 추천 온라인 모델 보기"
+
+#~ msgid "Z hop lower boundary"
+#~ msgstr "Z 올리기 하한 경계"
+
+#~ msgid ""
+#~ "Z hop will only come into effect when Z is above this value and is below "
+#~ "the parameter: \"Z hop upper boundary\""
+#~ msgstr ""
+#~ "Z 올리기는 Z가 이 값보다 크고 \"Z 올리기 상한 경계\" 매개변수 아래인 경우"
+#~ "에만 적용됩니다."
+
+#~ msgid "Z hop upper boundary"
+#~ msgstr "Z 올리기 상한 경계"
+
+#~ msgid ""
+#~ "If this value is positive, Z hop will only come into effect when Z is "
+#~ "above the parameter: \"Z hop lower boundary\" and is below this value"
+#~ msgstr ""
+#~ "이 값이 양수인 경우 Z 올리기는 Z가 매개변수 \"Z 올리기 하한 경계\"보다 높"
+#~ "고 이 값보다 낮을 때만 적용됩니다"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "\"레이어 냉각 향상을 위한 감속\" 시 최소 출력 속도"
 
@@ -12124,16 +12161,6 @@ msgstr ""
 
 #~ msgid "Activate for better air filtration"
 #~ msgstr "더 나은 공기 여과를 위해 활성화하세요"
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "수직 쉘 두께 확보"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "경사진 표면 근처에 꽉찬 내부 채움을 추가하여 수직 쉘 두께를 보장합니다(상"
-#~ "단+하단 꽉찬 레이어)"
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "유리 전이 온도"
@@ -12162,18 +12189,6 @@ msgstr ""
 #~ msgstr ""
 #~ "보조 출력 냉각 팬의 속도입니다. 냉각 중지 레이어로 정의된 처음 몇 개의 레"
 #~ "이어를 제외하고 출력 중에 보조 팬이 이 속도로 작동됩니다"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "좁은 내부 꽉찬 내부 채움 감지"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "이 옵션은 좁은 내부 꽉찬 내부 채움 영역을 자동으로 감지합니다. 활성화하면 "
-#~ "출력 속도를 높이기 위해 해당 영역에 동심 패턴이 사용됩니다. 그렇지 않으면 "
-#~ "직선 패턴이 기본적으로 사용됩니다."
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "

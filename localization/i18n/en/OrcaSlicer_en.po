@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4976,6 +4976,15 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Units"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom to mouse position"
 
@@ -4990,6 +4999,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5048,12 +5063,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "If enabled, this sets Orca Slicer as the default application to open .step "
 "files."
-
-msgid "Online Models"
-msgstr "Online Models"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Show online staff-picked models on the home page"
 
 msgid "Maximum recent projects"
 msgstr "Maximum recent projects"
@@ -7873,6 +7882,16 @@ msgstr "Add end G-Code when finishing the entire print."
 msgid "End G-code when finish the printing of this filament"
 msgstr "Add end G-code when finishing the printing of this filament."
 
+msgid "Ensure vertical shell thickness"
+msgstr "Ensure vertical shell thickness"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)."
+
 msgid "Top surface pattern"
 msgstr "Top surface pattern"
 
@@ -9352,22 +9371,6 @@ msgstr ""
 "hitting the print when traveling more. Using spiral lines to lift z can "
 "prevent stringing."
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -10438,6 +10441,18 @@ msgstr ""
 "feature size) of the model. If the Minimum wall width is thinner than the "
 "thickness of the feature, the wall will become as thick as the feature "
 "itself. It's expressed as a percentage over nozzle diameter"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Detect narrow internal solid infill"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"This option will auto-detect narrow internal solid infill areas. If enabled, "
+"the concentric pattern will be used for the area to speed up printing. "
+"Otherwise, the rectilinear pattern will be used by default."
 
 msgid "invalid value "
 msgstr "invalid value "
@@ -11698,6 +11713,12 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "Online Models"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Show online staff-picked models on the home page"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "The minimum printing speed when slowing down for cooling."
 
@@ -11707,16 +11728,6 @@ msgstr ""
 #~ msgstr ""
 #~ "The bed temperature exceeds filament's vitrification temperature. Please "
 #~ "open the front door of printer before printing to avoid nozzle clogs."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Ensure vertical shell thickness"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)."
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Temperature of vitrification"
@@ -11739,18 +11750,6 @@ msgstr ""
 #~ "This is the speed of auxiliary part cooling fan. The auxiliary fan will "
 #~ "run at this speed during printing except for during the first several "
 #~ "layers which may be set to have no part cooling."
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Detect narrow internal solid infill"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "This option will auto-detect narrow internal solid infill areas. If "
-#~ "enabled, the concentric pattern will be used for the area to speed up "
-#~ "printing. Otherwise, the rectilinear pattern will be used by default."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Empty layers around bottom are replaced by nearest normal layers."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-07 21:36+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5007,6 +5007,15 @@ msgstr "Angolszász"
 msgid "Units"
 msgstr "Mértékegység"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom to mouse position"
 
@@ -5021,6 +5030,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5081,12 +5096,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Ha engedélyezve van, a OrcaSlicer-t állítja be alapértelmezett "
 "alkalmazásként a .step fájlok megnyitásához"
-
-msgid "Online Models"
-msgstr "Online Models"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Show online staff-picked models on the home page"
 
 msgid "Maximum recent projects"
 msgstr "Maximum recent projects"
@@ -7944,6 +7953,16 @@ msgstr "Befejező G-kód az egész nyomtatás befejezésekor"
 msgid "End G-code when finish the printing of this filament"
 msgstr "Befejező G-kód a filament nyomtatásának befejezésekor"
 
+msgid "Ensure vertical shell thickness"
+msgstr "Függőleges héjvastagság biztosítása"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"A függőleges héjvastagság biztosítása érdekében szilárd kitöltést alkalmaz a "
+"lejtős felületek közelében."
+
 msgid "Top surface pattern"
 msgstr "Felső felület mintázata"
 
@@ -9431,22 +9450,6 @@ msgstr ""
 "nagyobb mozgás közben a tárgynak ütközzön. A Z tengely emelésekor használt "
 "körkörös mozgás megelőzheti a szálazást."
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -10530,6 +10533,19 @@ msgstr ""
 "méretben megadott érték szerint). Ha a minimális falszélesség vékonyabb, "
 "mint a nyomtatandó elem vastagsága, akkor a fal olyan vastag lesz, mint maga "
 "a nyomtatott elem. A fúvóka átmérőjének százalékában van kifejezve"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Keskeny belső szilárd kitöltés felismerése"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Ez a beállítás automatikusan felismeri a keskeny belső tömör kitöltési "
+"területeket. Ha engedélyezve van, a nyomtatás felgyorsítása érdekében ezen a "
+"területen a koncentrikus mintát fogja használni. Ellenkező esetben "
+"alapértelmezés szerint az egyenes vonalú mintát használja."
 
 msgid "invalid value "
 msgstr "invalid value "
@@ -11863,6 +11879,12 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Online Models"
+#~ msgstr "Online Models"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Show online staff-picked models on the home page"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "A minimum nyomtatási sebesség hűtés miatti lassításkor."
 
@@ -11873,16 +11895,6 @@ msgstr ""
 #~ "Az asztalhőmérséklet magasabb, mint a filament üvegesedési hőmérséklete. "
 #~ "Kérjük, hogy a nyomtatás során tartsd nyitva a nyomtatót, vagy csökkentsd "
 #~ "az asztalhőmérsékletet."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Függőleges héjvastagság biztosítása"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "A függőleges héjvastagság biztosítása érdekében szilárd kitöltést "
-#~ "alkalmaz a lejtős felületek közelében."
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Üvegesedési hőmérséklet"
@@ -11907,19 +11919,6 @@ msgstr ""
 #~ "A kiegészítő tárgyhűtő ventilátor fordulatszáma. A kiegészítő ventilátor "
 #~ "ezen a fordulatszámon fog működni a nyomtatás során, kivéve az első "
 #~ "néhány réteget, amelynél kikapcsolt hűtés van megadva"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Keskeny belső szilárd kitöltés felismerése"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Ez a beállítás automatikusan felismeri a keskeny belső tömör kitöltési "
-#~ "területeket. Ha engedélyezve van, a nyomtatás felgyorsítása érdekében "
-#~ "ezen a területen a koncentrikus mintát fogja használni. Ellenkező esetben "
-#~ "alapértelmezés szerint az egyenes vonalú mintát használja."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Az alsó üres rétegeket a legközelebbi normál rétegek váltják fel."
