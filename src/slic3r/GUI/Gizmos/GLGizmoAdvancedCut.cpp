@@ -590,6 +590,7 @@ void GLGizmoAdvancedCut::on_stop_dragging()
     m_is_dragging = false;
     if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
+        m_start_dragging_m = m_rotate_matrix; // for takeshot
     } else if (m_hover_id == c_cube_z_move_id || m_hover_id == c_cube_x_move_id || m_hover_id == c_plate_move_id) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move cut plane"); // todo
         m_ar_plane_center = m_plane_center;
