@@ -903,7 +903,7 @@ void ScalableBitmap::msw_rescale()
 {
     // BBS: support resize by fill border
     m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, std::string(), false, m_resize);
-//    m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt); // OcraftyoneTODO: can this impl be used
+//    m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt); // OcraftyoneTODO: enabling this causes issues with advanced toggle
 }
 
 // ----------------------------------------------------------------------------
