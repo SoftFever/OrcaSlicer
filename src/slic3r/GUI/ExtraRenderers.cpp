@@ -304,7 +304,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     if (can_create_editor_ctrl && !can_create_editor_ctrl())
         return nullptr;
 
-    std::vector<wxBitmap*> icons = get_extruder_color_icons();
+    std::vector<wxBitmapBundle*> icons = get_extruder_color_icons();
     if (icons.empty())
         return nullptr;
 
@@ -320,7 +320,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         c_editor->Append(_L("default"), *get_default_extruder_color_icon());
 
     for (size_t i = 0; i < icons.size(); i++)
-        c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
+        c_editor->Append(wxString::Format("%d", i+1), icons[i]->GetBitmapFor(parent)); //OcraftyoneTODO: quick n dirty conversion
 
     if (has_default_extruder && has_default_extruder())
         c_editor->SetSelection(atoi(data.GetText().c_str()));

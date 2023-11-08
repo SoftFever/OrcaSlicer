@@ -85,7 +85,7 @@ void ComboBox::SetSelection(int n)
     drop.SetSelection(n);
     SetLabel(drop.GetValue());
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        SetIcon(icons[drop.selection]);
+        SetIcon(icons[drop.selection].GetBitmapFor(m_parent));//OcraftyoneTODO: dirty conversion
 }
 void ComboBox::SelectAndNotify(int n) { 
     SetSelection(n);
@@ -108,7 +108,7 @@ void ComboBox::SetValue(const wxString &value)
     drop.SetValue(value);
     SetLabel(value);
     if (drop.selection >= 0 && drop.iconSize.y > 0)
-        SetIcon(icons[drop.selection]);
+        SetIcon(icons[drop.selection].GetBitmapFor(m_parent));//OcraftyoneTODO: dirty conversion
 }
 
 void ComboBox::SetLabel(const wxString &value)
@@ -145,13 +145,13 @@ bool ComboBox::SetFont(wxFont const& font)
         return TextInput::SetFont(font);
 }
 
-int ComboBox::Append(const wxString &item, const wxBitmap &bitmap)
+int ComboBox::Append(const wxString &item, const wxBitmapBundle &bitmap)
 {
     return Append(item, bitmap, nullptr);
 }
 
 int ComboBox::Append(const wxString &item,
-                     const wxBitmap &bitmap,
+                     const wxBitmapBundle &bitmap,
                      void *          clientData)
 {
     texts.push_back(item);
@@ -196,9 +196,9 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
     if (n == drop.GetSelection()) SetLabel(value);
 }
 
-wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
+wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n].GetBitmapFor(m_parent); }
 
-void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
+void ComboBox::SetItemBitmap(unsigned int n, wxBitmapBundle const &bitmap)
 {
     if (n >= texts.size()) return;
     icons[n] = bitmap;

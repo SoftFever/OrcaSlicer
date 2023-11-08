@@ -261,13 +261,12 @@ std::map<std::string, std::string> SettingsFactory::CATEGORY_ICON =
     // BBS: remove SLA categories
 };
 
-wxBitmap SettingsFactory::get_category_bitmap(const std::string& category_name, bool menu_bmp)
+wxBitmapBundle* SettingsFactory::get_category_bitmap(const std::string& category_name)
 {
     if (CATEGORY_ICON.find(category_name) == CATEGORY_ICON.end())
-        return wxNullBitmap;
-    return create_scaled_bitmap(CATEGORY_ICON.at(category_name));
+        return get_bmp_bundle("empty");
+    return get_bmp_bundle(CATEGORY_ICON.at(category_name));
 }
-
 
 //-------------------------------------
 //            MenuFactory
@@ -425,13 +424,14 @@ static void create_freq_settings_popupmenu(wxMenu* menu, const bool is_object_se
     }
 }
 
-std::vector<wxBitmap> MenuFactory::get_volume_bitmaps()
+std::vector<wxBitmapBundle*> MenuFactory::get_volume_bitmaps()
 {
-    std::vector<wxBitmap> volume_bmps;
+    std::vector<wxBitmapBundle*> volume_bmps;
     volume_bmps.reserve(ADD_VOLUME_MENU_ITEMS.size());
     for (auto item : ADD_VOLUME_MENU_ITEMS){
         if(!item.second.empty()){
-            volume_bmps.push_back(create_scaled_bitmap(item.second));
+            //volume_bmps.push_back(create_menu_bitmap(item.second));
+            volume_bmps.push_back(get_bmp_bundle(item.second));
         }
     }
     return volume_bmps;
@@ -619,7 +619,7 @@ wxMenuItem* MenuFactory::append_menu_item_settings(wxMenu* menu_)
 
     // Add full settings list
     auto  menu_item = new wxMenuItem(menu, wxID_ANY, menu_name);
-    menu_item->SetBitmap(create_scaled_bitmap("cog"));
+    menu_item->SetBitmap(*get_bmp_bundle("cog"));
     menu_item->SetSubMenu(create_settings_popupmenu(menu, is_object_settings, item));
 
     return menu->Append(menu_item);
@@ -760,7 +760,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
     if (sels.IsEmpty())
         return;
 
-    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    std::vector<wxBitmapBundle*> icons = get_extruder_color_icons(true);
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];
 
@@ -781,7 +781,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
         if (icon_idx >= 0 && icon_idx < icons.size()) {
             append_menu_item(
-                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, icons[icon_idx], menu,
                 [is_active_extruder]() { return !is_active_extruder; }, m_parent);
         } else {
             append_menu_item(
@@ -1580,7 +1580,7 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
             return;
     }
 
-    std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    std::vector<wxBitmapBundle*> icons = get_extruder_color_icons(true);
     if (icons.size() < filaments_cnt) {
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;
         if (icons.size() <= 1)
@@ -1620,8 +1620,9 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
         const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
             (is_active_extruder ? " (" + _L("current") + ")" : "");
 
+        //OcraftyoneTODO: determine if nullptr in place of icon causes issues
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
+            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? nullptr : icons[i - 1], menu,
             [is_active_extruder]() { return !is_active_extruder; }, m_parent);
     }
     menu->Append(wxID_ANY, name, extruder_selection_menu, _L("Change Filament"));

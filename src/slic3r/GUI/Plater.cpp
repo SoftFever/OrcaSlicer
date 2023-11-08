@@ -478,7 +478,8 @@ static struct DynamicFilamentList : DynamicList
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
-            items.push_back({str, icons[i]});
+            wxBitmap bmp = icons[i]->GetBitmapFor(wxGetApp().mainframe); //OcraftyoneTODO: using conversion rather than changing type of items vector
+            items.push_back({str, &bmp});
         }
         DynamicList::update();
     }

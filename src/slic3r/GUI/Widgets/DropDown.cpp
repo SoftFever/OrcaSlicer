@@ -29,7 +29,7 @@ END_EVENT_TABLE()
  */
 
 DropDown::DropDown(std::vector<wxString> &texts,
-                   std::vector<wxBitmap> &icons)
+                   std::vector<wxBitmapBundle> &icons)
     : texts(texts)
     , icons(icons)
     , state_handler(this)
@@ -44,7 +44,7 @@ DropDown::DropDown(std::vector<wxString> &texts,
 
 DropDown::DropDown(wxWindow *             parent,
                    std::vector<wxString> &texts,
-                   std::vector<wxBitmap> &icons,
+                   std::vector<wxBitmapBundle> &icons,
                    long           style)
     : DropDown(texts, icons)
 {
@@ -285,17 +285,17 @@ void DropDown::render(wxDC &dc)
         if (rcContent.y > size.y) break;
         wxPoint pt   = rcContent.GetLeftTop();
         auto & icon = icons[i];
-        auto size2 = GetBmpSize(icon);
+        auto size2 = get_preferred_size(icon, m_parent);
         if (iconSize.x > 0) {
             if (icon.IsOk()) {
                 pt.y += (rcContent.height - size2.y) / 2;
-                dc.DrawBitmap(icon, pt);
+                dc.DrawBitmap(icon.GetBitmapFor(m_parent), pt);
             }
             pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
         } else if (icon.IsOk()) {
             pt.y += (rcContent.height - size2.y) / 2;
-            dc.DrawBitmap(icon, pt);
+            dc.DrawBitmap(icon.GetBitmapFor(m_parent), pt);
             pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
@@ -325,7 +325,7 @@ void DropDown::messureSize()
     for (size_t i = 0; i < texts.size(); ++i) {
         wxSize size1 = text_off ? wxSize() : dc.GetMultiLineTextExtent(texts[i]);
         if (icons[i].IsOk()) {
-            wxSize size2 = GetBmpSize(icons[i]);
+            wxSize size2 = get_preferred_size(icons[i], m_parent);
             if (size2.x > iconSize.x) iconSize = size2;
             if (!align_icon) {
                 size1.x += size2.x + (text_off ? 0 : 5);
