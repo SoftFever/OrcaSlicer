@@ -2961,6 +2961,12 @@ int MachineObject::parse_json(std::string payload)
                 }
             }
 
+            if (jj.contains("support_user_preset")) {
+                if (jj["support_user_preset"].is_boolean()) {
+                    is_support_user_preset = jj["support_user_preset"].get<bool>();
+                }
+            }
+
             if (jj.contains("nozzle_max_temperature")) {
                 if (jj["nozzle_max_temperature"].is_number_integer()) {
                     nozzle_max_temperature = jj["nozzle_max_temperature"].get<int>();

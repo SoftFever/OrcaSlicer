@@ -33,6 +33,7 @@
             "support_first_layer_inspect":false,
             "support_chamber_temp_edit":false,
             "support_extrusion_cali":true,
+            "support_user_preset":false,
             "bed_temperature_limit": 100
         },
         "model_id": "C11",

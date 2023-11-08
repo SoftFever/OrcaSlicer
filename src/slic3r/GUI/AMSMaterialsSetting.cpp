@@ -762,6 +762,7 @@ bool AMSMaterialsSetting::Show(bool show)
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
 {
+    if (!obj) return;
     update_widgets();
     // set default value
     if (k.IsEmpty())
@@ -784,7 +785,10 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
             //filter by system preset
             Preset& preset = *filament_it;
-            if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset) {
+            /*The situation where the user preset is not displayed is as follows:
+                1. Not a root preset
+                2. Not system preset and the printer firmware does not support user preset */
+            if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
                 continue;
             }
 
@@ -794,7 +798,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                 // get printer_model
                 ConfigOption* printer_model_opt = printer_it->config.option("printer_model");
                 ConfigOptionString* printer_model_str = dynamic_cast<ConfigOptionString*>(printer_model_opt);
-                if (!printer_model_str || !obj)
+                if (!printer_model_str )
                     continue;
 
                 // use printer_model as printer type
