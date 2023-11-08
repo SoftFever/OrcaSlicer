@@ -178,9 +178,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
 wxDEFINE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
-
 wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
-
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -1183,7 +1181,11 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.set_filament_preset(p->editing_filament, name);
         } else if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-            preset_bundle.set_filament_preset(0, name);
+            Preset *preset = preset_bundle.filaments.find_preset(name, false);
+            if (preset) {
+                if (preset->is_compatible) preset_bundle.set_filament_preset(0, name);
+            }
+            
         }
 
         for (size_t i = 0; i < filament_cnt; i++)
@@ -1847,7 +1849,6 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id) {
     wxGetApp().plater()->update_project_dirty_from_presets();
     wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
 }
-
 
 // Plater::DropTarget
 
@@ -7540,7 +7541,6 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
     FilamentInfomation *       filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
     EditFilamentPresetDialog dlg(wxGetApp().mainframe, filament_info);
     int                        res = dlg.ShowModal();
-
     wxGetApp().mainframe->update_side_preset_ui();
     update_ui_from_settings();
     sidebar->update_all_preset_comboboxes();

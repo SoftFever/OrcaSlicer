@@ -14,6 +14,7 @@
 #include "FileHelp.hpp"
 #include "Tab.hpp"
 #include "ParamsDialog.hpp"
+#include "MainFrame.hpp"
 
 #define NAME_OPTION_COMBOBOX_SIZE wxSize(FromDIP(200), FromDIP(24))
 #define FILAMENT_PRESET_COMBOBOX_SIZE wxSize(FromDIP(300), FromDIP(24))
@@ -4227,7 +4228,7 @@ void EditFilamentPresetDialog::update_preset_tree()
     this->Freeze();
     m_preset_tree_sizer->Clear(true);
     for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets : m_printer_compatible_presets) {
-        m_preset_tree_sizer->Add(m_preset_tree_creater->get_preset_tree(printer_and_presets), 0, wxEXPAND | wxALL, 5);
+        m_preset_tree_sizer->Add(m_preset_tree_creater->get_preset_tree(printer_and_presets), 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 5);
     }
 
     m_preset_tree_panel->SetSizerAndFit(m_preset_tree_sizer);
@@ -4260,27 +4261,48 @@ void EditFilamentPresetDialog::delete_preset()
         return;
     }
     std::shared_ptr<Preset> need_delete_preset = filament_presets[m_need_delete_preset_index];
+    // is selecetd filament preset
+    if (need_delete_preset->name == wxGetApp().preset_bundle->filaments.get_selected_preset_name()) {
+        wxGetApp().get_tab(need_delete_preset->type)->delete_preset();
+    } else {
+        Preset *filament_preset = wxGetApp().preset_bundle->filaments.find_preset(need_delete_preset->name);
 
-    // is root preset ?
-    Preset *filament_preset = wxGetApp().preset_bundle->filaments.find_preset(need_delete_preset->name);
-    if (filament_preset && wxGetApp().preset_bundle->filaments.get_preset_base(*filament_preset) == filament_preset) {
-        int      count = 0;
-        wxString presets;
-        for (auto &preset2 : wxGetApp().preset_bundle->filaments)
-            if (preset2.inherits() == filament_preset->name) {
-                ++count;
-                presets += "\n - " + from_u8(preset2.name);
+        // is root preset ?
+        if (filament_preset && wxGetApp().preset_bundle->filaments.get_preset_base(*filament_preset) == filament_preset) {
+            int      count = 0;
+            wxString presets;
+            for (auto &preset2 : wxGetApp().preset_bundle->filaments)
+                if (preset2.inherits() == filament_preset->name) {
+                    ++count;
+                    presets += "\n - " + from_u8(preset2.name);
+                }
+            wxString msg;
+            if (count > 0) {
+                msg = _L("Presets inherited by other presets can not be deleted");
+                msg += "\n";
+                msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
+                wxString title = _L("Delete Preset");
+                MessageDialog(this, msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
+                m_selected_printer.clear();
+                m_need_delete_preset_index = -1;
+                return;
             }
-        wxString msg;
-        if (count > 0) {
-            msg = _L("Presets inherited by other presets can not be deleted");
-            msg += "\n";
-            msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
-            wxString title = _L("Delete Preset"); 
-            MessageDialog(this, msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
+        }
+        if (wxID_YES != MessageDialog(this, _L("Are you sure to delete the selected preset?"), _L("Delete preset"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()) {
             m_selected_printer.clear();
             m_need_delete_preset_index = -1;
             return;
+        }
+
+        // delete preset
+        std::string next_selected_preset_name = wxGetApp().preset_bundle->filaments.get_selected_preset().name;
+        bool        delete_result             = delete_filament_preset_by_name(need_delete_preset->name, next_selected_preset_name);
+        BOOST_LOG_TRIVIAL(info) << __LINE__ << " filament preset name: " << need_delete_preset->name << (delete_result ? " delete successful" : " delete failed");
+
+        wxGetApp().preset_bundle->filaments.select_preset_by_name(next_selected_preset_name, true);
+        for (size_t i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); ++i) {
+            auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
+            if (preset == nullptr) wxGetApp().preset_bundle->filament_presets[i] = wxGetApp().preset_bundle->filaments.get_selected_preset_name();
         }
     }
 
@@ -4291,17 +4313,6 @@ void EditFilamentPresetDialog::delete_preset()
     }
     filament_presets.pop_back();
     if (filament_presets.empty()) m_printer_compatible_presets.erase(iter);
-
-    //delete preset
-    std::string next_selected_preset_name = wxGetApp().preset_bundle->filaments.get_selected_preset().name;
-    bool        delete_result             = delete_filament_preset_by_name(need_delete_preset->name, next_selected_preset_name);
-    BOOST_LOG_TRIVIAL(info) << __LINE__ << " filament preset name: " << need_delete_preset->name << (delete_result ? " delete successful" : " delete failed");
-
-    wxGetApp().preset_bundle->filaments.select_preset_by_name(next_selected_preset_name, true);
-    for (size_t i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); ++i) {
-        auto preset = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
-        if (preset == nullptr) wxGetApp().preset_bundle->filament_presets[i] = wxGetApp().preset_bundle->filaments.get_selected_preset_name();
-    }
 
     update_preset_tree();
 
@@ -4818,7 +4829,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     edit_preset_btn->SetBackgroundColor(flush_bg_col);
     edit_preset_btn->SetBorderColor(flush_bd_col);
     edit_preset_btn->SetTextColor(flush_fg_col);
-    edit_preset_btn->Hide();
+    //edit_preset_btn->Hide();
     sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
 
@@ -4829,7 +4840,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     del_preset_btn->SetBackgroundColor(flush_bg_col);
     del_preset_btn->SetBorderColor(flush_bd_col);
     del_preset_btn->SetTextColor(flush_fg_col);
-    del_preset_btn->Hide();
+    //del_preset_btn->Hide();
     sizer->Add(del_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
 
     edit_preset_btn->Bind(wxEVT_BUTTON, [this, printer_name, preset_index](wxCommandEvent &e) {
