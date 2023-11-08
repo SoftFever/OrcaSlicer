@@ -528,8 +528,10 @@ std::vector<wxBitmapBundle*> get_extruder_color_icons(bool thin_icon/* = false*/
         return bmps;
 
     int index = 0;
-    for (const std::string &color : colors)
-        bmps.emplace_back(get_solid_bmp_bundle(thin_icon ? 16 : 36, 16, color));
+    for (const std::string &color : colors) {
+        auto label = std::to_string(++index);
+        bmps.emplace_back(get_extruder_color_icon(color, label, thin_icon ? 16 : 36, 16));
+    }
 
     return bmps;
 }
@@ -580,6 +582,7 @@ wxBitmapBundle *get_extruder_color_icon(std::string color, std::string label, in
         dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
         dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
         dc.SelectObject(wxNullBitmap);
+        bmpbndl = bmp_cache.insert_bndl(bitmap_key, bmp);
     }
     return bmpbndl;
 }
