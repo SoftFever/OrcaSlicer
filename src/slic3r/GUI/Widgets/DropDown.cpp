@@ -187,15 +187,6 @@ void DropDown::paintNow()
     Refresh();
 }
 
-static wxSize GetBmpSize(wxBitmap & bmp)
-{
-#ifdef __APPLE__
-    return bmp.GetScaledSize();
-#else
-    return bmp.GetSize();
-#endif
-}
-
 /*
  * Here we do the actual rendering. I put it in a separate
  * method so that it can work no matter what type of DC
@@ -337,7 +328,7 @@ void DropDown::messureSize()
     wxSize szContent = textSize;
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
-        auto szBmp = check_bitmap.GetBmpSize();
+        auto szBmp = check_bitmap.GetSize();
         szContent.x += szBmp.x + 5;
     }
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);
