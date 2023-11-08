@@ -1465,7 +1465,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 #else
     static const wxString ctrl = _L("Ctrl+");
 #endif
-    append_menu_item(menu, wxID_ANY, _L("Clone") + "\t" + ctrl + "Q", "",
+    append_menu_item(menu, wxID_ANY, _L("Clone") + "\t" + ctrl + "K", "",
         [this](wxCommandEvent&) {
             plater()->clone_selection();
         }, "", nullptr,

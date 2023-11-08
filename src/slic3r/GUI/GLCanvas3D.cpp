@@ -3097,7 +3097,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
             break;
-        case WXK_CONTROL_Q:
+        case WXK_CONTROL_K:
             post_event(SimpleEvent(EVT_GLTOOLBAR_CLONE));
             break;
         default:            evt.Skip();
