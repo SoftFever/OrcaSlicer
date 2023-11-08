@@ -18,9 +18,14 @@
 
 
 namespace Slic3r { namespace GUI {
+MeshClipper::~MeshClipper() {
+    reset();
+}
+
 void MeshClipper::set_behaviour(bool fill_cut, double contour_width)
 {
-    if (fill_cut != m_fill_cut || !is_approx(contour_width, m_contour_width)) m_result.reset();
+    if (fill_cut != m_fill_cut || !is_approx(contour_width, m_contour_width))
+        reset();
     m_fill_cut      = fill_cut;
     m_contour_width = contour_width;
 }
@@ -29,7 +34,7 @@ void MeshClipper::set_plane(const ClippingPlane &plane)
 {
     if (m_plane != plane) {
         m_plane = plane;
-        m_result.reset();
+        reset();
     }
 }
 
@@ -37,7 +42,7 @@ void MeshClipper::set_limiting_plane(const ClippingPlane& plane)
 {
     if (m_limiting_plane != plane) {
         m_limiting_plane = plane;
-        m_result.reset();
+        reset();
     }
 }
 
@@ -45,7 +50,7 @@ void MeshClipper::set_mesh(const TriangleMesh& mesh)
 {
     if (m_mesh != &mesh) {
         m_mesh = &mesh;
-        m_result.reset();
+        reset();
     }
 }
 
@@ -53,7 +58,7 @@ void MeshClipper::set_negative_mesh(const TriangleMesh& mesh)
 {
     if (m_negative_mesh != &mesh) {
         m_negative_mesh = &mesh;
-        m_result.reset();
+        reset();
     }
 }
 
@@ -63,7 +68,7 @@ void MeshClipper::set_transformation(const Geometry::Transformation& trafo)
 {
     if (! m_trafo.get_matrix().isApprox(trafo.get_matrix())) {
         m_trafo = trafo;
-        m_result.reset();
+        reset();
     }
 }
 
@@ -81,10 +86,10 @@ void MeshClipper::render_cut(const ColorRGBA &color, const std::vector<size_t> *
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         for (size_t i = 0; i < m_result->cut_islands.size(); ++i) {
             if (ignore_idxs && std::binary_search(ignore_idxs->begin(), ignore_idxs->end(), i)) continue;
-            CutIsland &isl = m_result->cut_islands[i];
+            auto isl = m_result->cut_islands[i];
             ColorRGBA  gray{0.5f, 0.5f, 0.5f, 1.f};
-            isl.model.set_color(-1, isl.disabled ? gray : color);
-            isl.model.render();
+            isl->model.set_color(-1, isl->disabled ? gray : color);
+            isl->model.render();
         }
         shader->stop_using();
     }
@@ -107,15 +112,15 @@ void MeshClipper::render_contour(const ColorRGBA &color, const std::vector<size_
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
         for (size_t i = 0; i < m_result->cut_islands.size(); ++i) {
             if (ignore_idxs && std::binary_search(ignore_idxs->begin(), ignore_idxs->end(), i)) continue;
-            CutIsland &isl = m_result->cut_islands[i];
+            auto isl = m_result->cut_islands[i];
             ColorRGBA  red{1.0f, 0.f, 0.f, 1.f};
-            isl.model_expanded.set_color(-1, isl.disabled ? red : color);
-            isl.model_expanded.render();
+            isl->model_expanded.set_color(-1, isl->disabled ? red : color);
+            isl->model_expanded.render();
         }
         shader->stop_using();
     }
 
-    if (curr_shader != nullptr) 
+    if (curr_shader != nullptr)
         curr_shader->start_using();
 }
 
@@ -127,8 +132,8 @@ int MeshClipper::is_projection_inside_cut(const Vec3d &point_in) const
     Point pt_2d = Point::new_scale(Vec2d(point.x(), point.y()));
 
     for (int i = 0; i < int(m_result->cut_islands.size()); ++i) {
-        const CutIsland &isl = m_result->cut_islands[i];
-        if (isl.expoly_bb.contains(pt_2d) && isl.expoly.contains(pt_2d))
+        auto isl = m_result->cut_islands[i];
+        if (isl->expoly_bb.contains(pt_2d) && isl->expoly.contains(pt_2d))
             return i; // TODO: handle intersecting contours
     }
     return -1;
@@ -136,7 +141,7 @@ int MeshClipper::is_projection_inside_cut(const Vec3d &point_in) const
 
 bool MeshClipper::has_valid_contour() const
 {
-    return m_result && std::any_of(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](const CutIsland &isl) { return !isl.expoly.empty(); });
+    return m_result && std::any_of(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](CutIsland *isl) { return isl &&!isl->expoly.empty(); });
 }
 
 std::vector<Vec3d> MeshClipper::point_per_contour() const {
@@ -145,7 +150,7 @@ std::vector<Vec3d> MeshClipper::point_per_contour() const {
         return out;
     }
     assert(m_result);
-    for (const CutIsland &isl : m_result->cut_islands) {
+    for (auto isl : m_result->cut_islands) {
         assert(isl.expoly.contour.size() > 2);
         // Now return a point lying inside the contour but not in a hole.
         // We do this by taking a point lying close to the edge, repeating
@@ -154,27 +159,27 @@ std::vector<Vec3d> MeshClipper::point_per_contour() const {
         bool   done = false;
         Vec2d  p;
         size_t i = 1;
-        while (i < isl.expoly.contour.size()) {
-            const Vec2d &a = unscale(isl.expoly.contour.points[i - 1]);
-            const Vec2d &b = unscale(isl.expoly.contour.points[i]);
+        while (i < isl->expoly.contour.size()) {
+            const Vec2d &a = unscale(isl->expoly.contour.points[i - 1]);
+            const Vec2d &b = unscale(isl->expoly.contour.points[i]);
             Vec2d        n = (b - a).normalized();
             std::swap(n.x(), n.y());
             n.x()    = -1 * n.x();
             double f = 10.;
             while (f > 0.05) {
                 p = (0.5 * (b + a)) + f * n;
-                if (isl.expoly.contains(Point::new_scale(p))) {
+                if (isl->expoly.contains(Point::new_scale(p))) {
                     done = true;
                     break;
                 }
                 f = f / 10.;
             }
             if (done) break;
-            i += std::max(size_t(2), isl.expoly.contour.size() / 5);
+            i += std::max(size_t(2), isl->expoly.contour.size() / 5);
         }
         // If the above failed, just return the centroid, regardless of whether
         // it is inside the contour or in a hole (we must return something).
-        Vec2d c = done ? p : unscale(isl.expoly.contour.centroid());
+        Vec2d c = done ? p : unscale(isl->expoly.contour.centroid());
         out.emplace_back(m_result->trafo * Vec3d(c.x(), c.y(), 0.));
     }
     return out;
@@ -268,12 +273,15 @@ void MeshClipper::recalculate_triangles()
 
     std::vector<Vec2f> triangles2d;
 
+    m_result->cut_islands.resize(expolys.size());
+    int isl_index = 0;
     for (const ExPolygon &exp : expolys) {
         triangles2d.clear();
-
-        m_result->cut_islands.push_back(CutIsland());
-        CutIsland &isl = m_result->cut_islands.back();
-
+        if (!m_result->cut_islands[isl_index]) {
+            m_result->cut_islands[isl_index] = new CutIsland();
+        }
+        CutIsland* isl = m_result->cut_islands[isl_index];
+        isl_index++;
         if (m_fill_cut) {
             triangles2d = triangulate_expolygon_2f(exp, m_trafo.get_matrix().matrix().determinant() < 0.);
             GLModel::InitializationData init_data; // GLModel::Geometry init_data;
@@ -309,7 +317,10 @@ void MeshClipper::recalculate_triangles()
                 init_data.entities.back().indices.push_back((unsigned int) idx + 2);
             }
 
-            if (init_data.entities.back().indices.size() != 0) isl.model.init_from(std::move(init_data));
+            if (init_data.entities.back().indices.size() != 0) {
+                isl->model.reset();
+                isl->model.init_from(std::move(init_data));
+            }
         }
 
         if (m_contour_width != 0. && !exp.contour.empty()) {
@@ -373,23 +384,36 @@ void MeshClipper::recalculate_triangles()
                 init_data.entities.back().indices.push_back((unsigned int) idx + 2);
             }
 
-            if (init_data.entities.back().indices.size() != 0) isl.model_expanded.init_from(std::move(init_data));
+            if (init_data.entities.back().indices.size() != 0) { 
+                isl->model_expanded.reset();
+                isl->model_expanded.init_from(std::move(init_data));
+            }
         }
 
-        isl.expoly    = std::move(exp);
-        isl.expoly_bb = get_extents(isl.expoly);
+        isl->expoly   = std::move(exp);
+        isl->expoly_bb = get_extents(isl->expoly);
 
-        Point centroid_scaled = isl.expoly.contour.centroid();
+        Point centroid_scaled = isl->expoly.contour.centroid();
         Vec3d centroid_world  = m_result->trafo * Vec3d(unscale(centroid_scaled).x(), unscale(centroid_scaled).y(), 0.);
-        isl.hash              = isl.expoly.contour.size() + size_t(std::abs(100. * centroid_world.x())) + size_t(std::abs(100. * centroid_world.y())) +
+        isl->hash             = isl->expoly.contour.size() + size_t(std::abs(100. * centroid_world.x())) + size_t(std::abs(100. * centroid_world.y())) +
                    size_t(std::abs(100. * centroid_world.z()));
     }
 
     // Now sort the islands so they are in defined order. This is a hack needed by cut gizmo, which sometimes
     // flips the normal of the cut, in which case the contours stay the same but their order may change.
-    std::sort(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](const CutIsland &a, const CutIsland &b) { return a.hash < b.hash; });
+    std::sort(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](CutIsland *a, CutIsland *b) { return a && b && a->hash < b->hash; });
 }
 
+void MeshClipper::reset()
+{
+    if (m_result) {
+        for (auto it = m_result->cut_islands.begin(); it != m_result->cut_islands.end(); ++it) { 
+            delete *it;
+        }
+        std::vector<CutIsland *>().swap(m_result->cut_islands);
+    }
+    m_result.reset();
+}
 
 Vec3f MeshRaycaster::get_triangle_normal(size_t facet_idx) const
 {

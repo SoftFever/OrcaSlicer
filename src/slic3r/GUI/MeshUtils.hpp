@@ -77,6 +77,7 @@ public:
 // MeshClipper class cuts a mesh and is able to return a triangulated cut.
 class MeshClipper {
 public:
+    ~MeshClipper();
     // Set whether the cut should be triangulated and whether a cut
     // contour should be calculated and shown.
     void set_behaviour(bool fill_cut, double contour_width);
@@ -111,7 +112,7 @@ public:
 
 private:
     void recalculate_triangles();
-
+    void reset();
     Geometry::Transformation  m_trafo;
     const TriangleMesh *      m_mesh          = nullptr;
     const TriangleMesh *      m_negative_mesh = nullptr;
@@ -133,7 +134,7 @@ private:
     };
     struct ClipResult
     {
-        std::vector<CutIsland> cut_islands;
+        std::vector<CutIsland*> cut_islands;
         Transform3d            trafo; // this rotates the cut into world coords
     };
     std::optional<ClipResult> m_result; // the cut plane
