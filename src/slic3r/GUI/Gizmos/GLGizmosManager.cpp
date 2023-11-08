@@ -338,6 +338,11 @@ void GLGizmosManager::reset_all_states()
     if (! m_enabled || m_serializing)
         return;
 
+    const EType current = get_current_type();
+    if (current != Undefined)
+        // close any open gizmo
+        open_gizmo(current);
+
     activate_gizmo(Undefined);
     m_hover = Undefined;
 }
