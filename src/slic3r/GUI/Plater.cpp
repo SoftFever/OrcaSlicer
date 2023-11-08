@@ -439,7 +439,7 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 
 static struct DynamicFilamentList : DynamicList
 {
-    std::vector<std::pair<wxString, wxBitmap *>> items;
+    std::vector<std::pair<wxString, wxBitmapBundle *>> items;
 
     void apply_on(Choice *c) override
     {
@@ -478,8 +478,8 @@ static struct DynamicFilamentList : DynamicList
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
-            wxBitmap bmp = icons[i]->GetBitmapFor(wxGetApp().mainframe); //OcraftyoneTODO: using conversion rather than changing type of items vector
-            items.push_back({str, &bmp});
+            wxBitmapBundle* bmp = icons[i];
+            items.push_back({str, bmp});
         }
         DynamicList::update();
     }
