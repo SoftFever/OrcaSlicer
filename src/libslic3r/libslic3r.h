@@ -278,6 +278,12 @@ constexpr inline T sqr(T x)
     return x * x;
 }
 
+template<typename Number> constexpr 
+inline bool is_zero(Number value)
+{
+    return std::fabs(double(value)) < 1e-6;
+}
+
 template <typename T, typename Number>
 constexpr inline T lerp(const T& a, const T& b, Number t)
 {

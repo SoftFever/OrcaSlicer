@@ -148,7 +148,7 @@ msgid "Bucket fill"
 msgstr "Flächenfüllung"
 
 msgid "Height range"
-msgstr "Höhenreichweite"
+msgstr "Höhenbereich"
 
 msgid "Ctrl + Shift + Enter"
 msgstr "Strg + Umschalt + Eingabetaste"
@@ -163,7 +163,7 @@ msgid "Triangle"
 msgstr "Dreieck"
 
 msgid "Height Range"
-msgstr "Höhenreichweite"
+msgstr "Höhenbereich"
 
 msgid "Vertical"
 msgstr "Vertikal"

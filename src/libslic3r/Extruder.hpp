@@ -22,9 +22,8 @@ public:
         } else {
             m_E             = 0;
             m_retracted     = 0;
-            m_restart_extra = 0;
         }
-
+        m_restart_extra = 0;
         m_absolute_E    = 0;
     }
 
@@ -34,7 +33,7 @@ public:
     double retract(double length, double restart_extra);
     double unretract();
     double E() const { return m_share_extruder ? m_share_E : m_E; }
-    void   reset_E() { m_E = 0.; m_share_E = 0.; }
+    void   reset_E() { reset(); }
     double e_per_mm(double mm3_per_mm) const { return mm3_per_mm * m_e_per_mm3; }
     double e_per_mm3() const { return m_e_per_mm3; }
     // Used filament volume in mm^3.
