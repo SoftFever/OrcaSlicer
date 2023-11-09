@@ -1772,15 +1772,15 @@ Transform3d GLGizmoAdvancedCut::get_cut_matrix(const Selection &selection)
     return Geometry::translation_transform(cut_center_offset) * m_rotate_matrix;
 }
 
-bool GLGizmoAdvancedCut::render_cut_mode_combo(double label_width)
+bool GLGizmoAdvancedCut::render_cut_mode_combo(double label_width, float item_width)
 {
     ImGui::AlignTextToFramePadding();
     size_t                   selection_idx = int(m_cut_mode);
     std::vector<std::string> modes         = {_u8L("Planar"), _u8L("Dovetail")};
     bool                     is_changed    = false;
-    float                    combo_width   = 220;
+
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
-    if (render_combo(_u8L("Mode"), modes, selection_idx, label_width, combo_width)) {
+    if (render_combo(_u8L("Mode"), modes, selection_idx, label_width, item_width)) {
         is_changed = true;
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Change cut mode");
         switch_to_mode((CutMode) selection_idx);
@@ -1796,7 +1796,7 @@ void GLGizmoAdvancedCut::render_color_marker(float size, const ColorRGBA &color)
     ImGui::SameLine();
     const float radius = 0.5f * size;
     ImVec2      pos    = ImGui::GetCurrentWindow()->DC.CursorPos;
-    pos.y += 1.7f * radius;
+    pos.y += 1.25f * radius;
     ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, to_ImU32(color), 6);
 }
 
@@ -1806,7 +1806,8 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     float        space_size        = m_imgui->get_style_scaling() * 8;
     float        movement_cap      = m_imgui->calc_text_size(_L("Movement:")).x;
     float        rotate_cap        = m_imgui->calc_text_size(_L("Rotate")).x;
-    float        caption_size      = std::max(movement_cap, rotate_cap) + 2 * space_size;
+    float        groove_angle_size = m_imgui->calc_text_size(_L("Groove Angle")).x;
+    float        caption_size      = std::max(movement_cap, groove_angle_size) + 2 * space_size;
     m_imperial_units               = wxGetApp().app_config->get("use_inches") == "1";
 
     m_buffered_rotation = {Geometry::rad2deg(m_rotation(0)), Geometry::rad2deg(m_rotation(1)), Geometry::rad2deg(m_rotation(2))};
@@ -1830,7 +1831,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     const bool     has_connectors = !connectors.empty();
 
     m_imgui->disabled_begin(has_connectors);
-    if (render_cut_mode_combo(caption_size + 1 * space_size)) {
+    if (render_cut_mode_combo(caption_size + 1 * space_size, 4 * unit_size + 0.5 * space_size)) {
         ;
     }
     ImGui::Separator();
@@ -1919,8 +1920,12 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     } else if (m_cut_mode == CutMode::cutTongueAndGroove) {
         m_is_slider_editing_done = false;
         m_imgui->text(_L("Groove") + ": "); // ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, m_labels_map["Groove"] + ": ");
-        m_label_width          = 100;
-        m_editing_window_width = 200;
+        m_label_width          = caption_size + 1 * space_size;
+#ifdef __APPLE__
+        m_editing_window_width = 400;
+#else
+        m_editing_window_width = 240;
+#endif
         bool is_changed{false};
         is_changed |= render_slider_double_input(_u8L("Depth"), m_groove.depth, m_groove.depth_tolerance);
         is_changed |= render_slider_double_input(_u8L("Width"), m_groove.width, m_groove.width_tolerance);
@@ -1939,24 +1944,27 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     }
     ImGui::Separator();
 
-    float label_width = 0;
-    for (const wxString& label : {_L("Upper part"), _L("Lower part")}) {
-        const float width = m_imgui->calc_text_size(label).x + m_imgui->scaled(1.5f);
-        if (label_width < width)
-            label_width = width;
-    }
-
-    auto render_part_action_line = [this, label_width,has_connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
+    auto render_part_action_line = [this, space_size,has_connectors](const wxString &label, const wxString &suffix, bool &keep_part, bool &place_on_cut_part, bool &rotate_part) {
         bool keep = true;
         m_imgui->disabled_begin(has_connectors || m_cut_to_parts);
         ImGui::AlignTextToFramePadding();
-        m_imgui->bbl_checkbox(m_cut_to_parts ? _L("Part") : _L("Object") + label, has_connectors ? keep : keep_part);
+        auto text = m_cut_to_parts ? _L("Part") : _L("Object") + label;
+        m_imgui->bbl_checkbox(text, has_connectors ? keep : keep_part);
 
-        float marker_size = 12;
+        float marker_size = m_imgui->calc_text_size(text).y;
         render_color_marker(marker_size, suffix == "##upper" ? UPPER_PART_COLOR : LOWER_PART_COLOR);
         m_imgui->disabled_end();
         m_imgui->disabled_begin(!keep_part || m_cut_to_parts);
-        float new_label_width = label_width + (m_cut_to_parts ? 10.0f : 20.0f);
+
+        float text_size = m_imgui->calc_text_size(text).x;
+#ifdef __APPLE__
+        text_size += m_imgui->scaled(2.0f);
+#else
+        text_size += m_imgui->scaled(2.5f);
+ #endif
+        float checkbox_size   = 15;
+
+        float new_label_width = checkbox_size + text_size +2* space_size;
         ImGui::SameLine(new_label_width);
         bool is_keep = !place_on_cut_part && !rotate_part;
         if (m_imgui->bbl_checkbox(_L("Keep orientation") + suffix, is_keep)){
@@ -2300,7 +2308,7 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     // slider_with + item_in_gap + first_input_width + item_out_gap + slider_with + item_in_gap + second_input_width
     double slider_with          = 0.24 * m_editing_window_width; // m_control_width * 0.35;
     double item_in_gap          = 0.01 * m_editing_window_width;
-    double item_out_gap         = 0.01 * m_editing_window_width;
+    double item_out_gap         = 0.04 * m_editing_window_width;
     double first_input_width    = 0.29  * m_editing_window_width;
     double second_input_width   = 0.29  * m_editing_window_width;
 

@@ -321,7 +321,7 @@ private:
     void rotate_vec3d_around_plane_center(Vec3d &vec, const Transform3d &rotate_matrix, const Vec3d &center);
     Transform3d get_cut_matrix(const Selection &selection);
     // render input window
-    bool render_cut_mode_combo(double label_width);
+    bool render_cut_mode_combo(double label_width,float item_width);
     void render_color_marker(float size, const ColorRGBA &color);
     void render_cut_plane_input_window(float x, float y, float bottom_limit);
     void init_connectors_input_window_data();
