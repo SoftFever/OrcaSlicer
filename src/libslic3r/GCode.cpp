@@ -4642,10 +4642,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         travel_bbox.inflated(1);
         travel_bbox.defined = true;
 
-        const float protect_z_scaled = scale_(0.4);
+        // do not scale for z
+        const float protect_z = 0.4;
         std::pair<float, float> z_range;
         z_range.second = m_layer ? m_layer->print_z : 0.f;
-        z_range.first = std::max(0.f, z_range.second - protect_z_scaled);
+        z_range.first = std::max(0.f, z_range.second - protect_z);
         std::vector<LayerPtrs> layers_of_objects;
         std::vector<BoundingBox> boundingBox_for_objects;
         std::vector<Points> objects_instances_shift;
