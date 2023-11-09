@@ -2511,6 +2511,7 @@ void MachineObject::reset()
     dev_connection_name = "";
     subscribe_counter = 3;
     job_id_ = "";
+    m_plate_index = -1;
 
     // reset print_json
     json empty_j;
@@ -3179,6 +3180,7 @@ int MachineObject::parse_json(std::string payload)
                                 if (idx_start > 0 && idx_end > idx_start) {
                                     try {
                                         plate_index = atoi(m_gcode_file.substr(idx_start, idx_end - idx_start).c_str());
+                                        this->m_plate_index = plate_index;
                                     }
                                     catch (...) {
                                         ;
@@ -4724,7 +4726,6 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 plate_index = plate_idx;
             }
             else {
-
                 std::string subtask_json;
                 unsigned http_code = 0;
                 std::string http_body;
@@ -4785,36 +4786,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                     BOOST_LOG_TRIVIAL(error) << "task_info: get subtask id failed!";
                 }
             }
-            //if (plate_index >= 0) {
-            //    std::string slice_json;
-            //    m_agent->get_slice_info(project_id, profile_id, plate_index, &slice_json);
-            //    if (slice_json.empty()) return;
-            //    //parse json
-            //    try {
-            //        json j = json::parse(slice_json);
-            //        if (!j["prediction"].is_null())
-            //            slice_info->prediction = j["prediction"].get<int>();
-            //        if (!j["weight"].is_null())
-            //            slice_info->weight = j["weight"].get<float>();
-            //        if (!j["thumbnail"].is_null()) {
-            //            //slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
-            //            BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
-            //        }
-            //        if (!j["filaments"].is_null()) {
-            //            for (auto filament : j["filaments"]) {
-            //                FilamentInfo f;
-            //                f.color = filament["color"].get<std::string>();
-            //                f.type = filament["type"].get<std::string>();
-            //                f.used_g = stof(filament["used_g"].get<std::string>());
-            //                f.used_m = stof(filament["used_m"].get<std::string>());
-            //                slice_info->filaments_info.push_back(f);
-            //            }
-            //        }
-            //    } catch(...) {
-            //        ;
-            //    }
-            //}
 
+            this->m_plate_index = plate_index;
             });
     }
 }

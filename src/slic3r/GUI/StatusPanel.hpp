@@ -160,6 +160,7 @@ public:
 private:
     MachineObject*  m_obj;
     ScalableBitmap  m_thumbnail_placeholder;
+    wxBitmap        m_thumbnail_bmp_display;
     ScalableBitmap  m_bitmap_use_time;
     ScalableBitmap  m_bitmap_use_weight;
 
@@ -181,6 +182,7 @@ private:
     wxStaticText *  m_has_rated_prompt;
     wxStaticText *  m_request_failed_info;
     wxStaticBitmap* m_bitmap_thumbnail;
+    int             m_plate_index { -1 };
     wxStaticBitmap* m_bitmap_static_use_time;
     wxStaticBitmap* m_bitmap_static_use_weight;
     ScalableButton* m_button_pause_resume;
@@ -219,6 +221,8 @@ public:
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
     void show_profile_info(bool show, wxString profile = wxEmptyString);
+    void set_thumbnail_img(const wxBitmap& bmp);
+    void set_plate_index(int plate_idx = -1);
     void market_scoring_show();
     void market_scoring_hide();
     
@@ -236,6 +240,7 @@ public:
     bool get_star_count_dirty() { return m_star_count_dirty; }
     void set_star_count_dirty(bool dirty) { m_star_count_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
+    void paint(wxPaintEvent&);
 
 };
 

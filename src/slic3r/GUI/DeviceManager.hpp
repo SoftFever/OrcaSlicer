@@ -768,7 +768,7 @@ public:
     bool is_makeworld_subtask();
 
 
-    int plate_index { -1 };
+    int m_plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
     BBLSubTask* subtask_;
