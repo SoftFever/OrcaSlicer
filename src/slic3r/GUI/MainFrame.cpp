@@ -505,6 +505,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Flatten), value);
                 j["flatten"] = value;
                 value = "";
+                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Cut), value);
+                j["cut"] = value;
+                value = "";
+                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::MeshBoolean), value);
+                j["meshboolean"] = value;
+                value = "";
                 agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::FdmSupports), value);
                 j["custom_support"] = value;
                 value = "";
@@ -514,8 +520,13 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::Text), value);
                 j["text_shape"] = value;
                 value = "";
-                agent->track_get_property("custom_painting", value);
-                j["custom_painting"] = value;
+                agent->track_get_property(get_name_from_gizmo_etype(GLGizmosManager::EType::MmuSegmentation), value);
+                j["color_painting"] = value;
+                value = "";
+
+                agent->track_get_property("assembly_view", value);
+                j["assembly_view"] = value;
+
                 agent->track_event("key_func", j.dump());
             }
 

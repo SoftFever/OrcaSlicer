@@ -633,7 +633,7 @@ private:
     int split_to_objects_count = 0;
     int split_to_part_count = 0;
     int custom_height_count = 0;
-    int custom_painting_count = 0;
+    int assembly_view_count = 0;
 
 public:
     OrientSettings& get_orient_settings()

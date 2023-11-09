@@ -6314,7 +6314,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
         if (m_canvas != nullptr) {
             wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_ASSEMBLE)); m_gizmos.reset_all_states(); wxGetApp().plater()->get_assmeble_canvas3D()->get_gizmos_manager().reset_all_states();
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
-            if (agent) agent->track_update_property("custom_painting", std::to_string(++custom_painting_count));
+            if (agent) agent->track_update_property("assembly_view", std::to_string(++assembly_view_count));
         }
     };
     item.left.render_callback = GLToolbarItem::Default_Render_Callback;

@@ -1700,12 +1700,18 @@ std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
         return "Scale";
     case GLGizmosManager::EType::Flatten:
         return "Flatten";
+    case GLGizmosManager::EType::Cut:
+        return "Cut";
+    case GLGizmosManager::EType::MeshBoolean:
+        return "MeshBoolean";
     case GLGizmosManager::EType::FdmSupports:
         return "FdmSupports";
     case GLGizmosManager::EType::Seam:
         return "Seam";
     case GLGizmosManager::EType::Text:
         return "Text";
+    case GLGizmosManager::EType::MmuSegmentation:
+        return "Color Painting";
     default:
         return "";
     }
