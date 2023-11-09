@@ -320,7 +320,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         c_editor->Append(_L("default"), *get_default_extruder_color_icon());
 
     for (size_t i = 0; i < icons.size(); i++)
-        c_editor->Append(wxString::Format("%d", i+1), icons[i]->GetBitmapFor(parent)); //OcraftyoneTODO: quick n dirty conversion
+        c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
 
     if (has_default_extruder && has_default_extruder())
         c_editor->SetSelection(atoi(data.GetText().c_str()));
