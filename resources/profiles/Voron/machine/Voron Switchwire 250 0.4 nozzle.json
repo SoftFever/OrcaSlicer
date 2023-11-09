@@ -6,6 +6,7 @@
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
   "printer_model": "Voron Switchwire 250",
+  "default_print_profile": "0.20mm Standard @Voron",
   "nozzle_diameter": [
     "0.4"
   ],
