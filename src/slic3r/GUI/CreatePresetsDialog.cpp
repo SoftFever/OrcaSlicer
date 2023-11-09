@@ -2991,7 +2991,7 @@ bool CreatePrinterPresetDialog::validate_input_valid()
         vendor_name = remove_special_key(vendor_name);
         model_name  = remove_special_key(model_name);
         if (vendor_name.empty() || model_name.empty()) {
-            MessageDialog dlg(this, _L("There may be escape characters in the custom printer or model. Please delete and re-enter."),
+            MessageDialog dlg(this, _L("There may be escape characters in the custom printer vendor or model. Please delete and re-enter."),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
@@ -2999,7 +2999,7 @@ bool CreatePrinterPresetDialog::validate_input_valid()
         boost::algorithm::trim(vendor_name);
         boost::algorithm::trim(model_name);
         if (vendor_name.empty() || model_name.empty()) {
-            MessageDialog dlg(this, _L("All inputs in the custom printer or model are spaces. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+            MessageDialog dlg(this, _L("All inputs in the custom printer vendor or model are spaces. Please re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-08 19:50+0800\n"
+"POT-Creation-Date: 2023-11-09 09:10+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -10726,6 +10726,17 @@ msgid "Filament serial is not inputed, please input serial."
 msgstr ""
 
 msgid ""
+"There may be escape characters in the vendor or serial input of filament. "
+"Please delete and re-enter."
+msgstr ""
+
+msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
+msgstr ""
+
+msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgstr ""
+
+msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
 
@@ -10879,6 +10890,15 @@ msgid ""
 "model."
 msgstr ""
 
+msgid ""
+"There may be escape characters in the custom printer vendor or model. Please "
+"delete and re-enter."
+msgstr ""
+
+msgid ""
+"All inputs in the custom printer vendor or model are spaces. Please re-enter."
+msgstr ""
+
 msgid "Please check bed shape input."
 msgstr ""
 
@@ -10998,7 +11018,7 @@ msgstr ""
 msgid "Filament presets under this filament"
 msgstr ""
 
-msgid "Presets inherited by other presets cannot be deleted"
+msgid "Presets inherited by other presets can not be deleted"
 msgstr ""
 
 msgid "The following presets inherits this preset."
