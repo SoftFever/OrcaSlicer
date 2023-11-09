@@ -3196,7 +3196,7 @@ ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
@@ -3534,6 +3534,7 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
             m_printer_name.clear();
             m_preset.clear();
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+            this->Freeze();
             if (export_type == m_exprot_type.preset_bundle) {
                 for (std::pair<std::string, Preset *> preset : m_printer_presets) {
                     std::string preset_name = preset.first;
@@ -3594,8 +3595,19 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
                 }
                 m_serial_text->SetLabel(_L("Only printer names with changed process presets will be displayed, \nand all user process presets in each printer name you select will be exported as a zip."));
             }
+            //m_presets_window->SetSizerAndFit(m_preset_sizer);
+            m_presets_window->Layout();
+            m_presets_window->Fit();
+            int whidth = m_presets_window->GetSize().GetWidth();
+            int height = m_presets_window->GetSize().GetHeight();
+            m_scrolled_preset_window->SetMinSize(wxSize(std::min(1200, whidth), std::min(600, height)));
+            m_scrolled_preset_window->SetMaxSize(wxSize(std::min(1200, whidth), std::min(600, height)));
+            m_scrolled_preset_window->SetSize(wxSize(std::min(1200, whidth), std::min(600, height)));
+            this->SetSizerAndFit(m_main_sizer);
             Layout();
             Fit();
+            Refresh();
+            this->Thaw();
         } else {
             radiobox_list[i].first->SetValue(false);
         }
@@ -4022,16 +4034,24 @@ wxBoxSizer *ExportConfigsDialog::create_select_printer(wxWindow *parent)
     optionSizer->Add(m_serial_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    m_scrolled_preset_window = new wxScrolledWindow(parent);
+    m_scrolled_preset_window->SetScrollRate(5, 5);
+    m_scrolled_preset_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
+    m_scrolled_preset_window->SetMaxSize(wxSize(FromDIP(660), FromDIP(400)));
+    m_scrolled_preset_window->SetSize(wxSize(FromDIP(660), FromDIP(400)));
+    wxBoxSizer *scrolled_window = new wxBoxSizer(wxHORIZONTAL);
 
-    m_presets_window = new wxWindow(parent, wxID_ANY);
+    m_presets_window = new wxPanel(m_scrolled_preset_window, wxID_ANY);
     m_presets_window->SetBackgroundColour(PRINTER_LIST_COLOUR);
     wxBoxSizer *select_printer_sizer  = new wxBoxSizer(wxVERTICAL);
 
     m_preset_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
     select_printer_sizer->Add(m_preset_sizer, 0, wxEXPAND, FromDIP(5));
     m_presets_window->SetSizer(select_printer_sizer);
+    scrolled_window->Add(m_presets_window, 0, wxEXPAND, 0);
+    m_scrolled_preset_window->SetSizerAndFit(scrolled_window);
 
-    horizontal_sizer->Add(m_presets_window, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    horizontal_sizer->Add(m_scrolled_preset_window, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
 
     return horizontal_sizer;
 }

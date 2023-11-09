@@ -292,8 +292,10 @@ private:
     std::unordered_map<std::string, std::vector<Preset *>> m_process_presets;//first: printer name, second: filament presets have same printer name
     std::unordered_map<std::string, std::vector<std::pair<std::string, Preset *>>> m_filament_name_to_presets;//first: filament name, second presets have same filament name and printer name in vector
     ExportType                                             m_exprot_type;
+    wxBoxSizer *                                           m_main_sizer             = nullptr;
+    wxScrolledWindow *                                     m_scrolled_preset_window = nullptr;
     wxGridSizer *                                          m_preset_sizer   = nullptr;
-    wxWindow *                                             m_presets_window = nullptr;
+    wxPanel *                                              m_presets_window = nullptr;
     Button *                                               m_button_ok      = nullptr;
     Button *                                               m_button_cancel  = nullptr;
     wxStaticText *                                         m_serial_text    = nullptr;
