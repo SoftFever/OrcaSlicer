@@ -2122,16 +2122,15 @@ void GUI_App::init_app_config()
         app_config = new AppConfig();
         //app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
 
+    m_config_corrupted = false;
 	// load settings
 	m_app_conf_exists = app_config->exists();
 	if (m_app_conf_exists) {
         std::string error = app_config->load();
         if (!error.empty()) {
-            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            throw Slic3r::RuntimeError(
-                _u8L("OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-                     "Please delete the file and try again.") +
-                "\n\n" + app_config->config_path() + "\n\n" + error);
+            // Orca: if the config file is corrupted, we will show a error dialog and create a default config file.
+            m_config_corrupted = true;
+
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
@@ -2748,6 +2747,7 @@ bool GUI_App::on_init_inner()
 
         if (m_post_initialized && app_config->dirty())
             app_config->save();
+
     });
 
     m_initialized = true;
@@ -2755,6 +2755,13 @@ bool GUI_App::on_init_inner()
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
+    if (m_config_corrupted) {
+        m_config_corrupted = false;
+        show_error(nullptr,
+                   _u8L(
+                       "The OrcaSlicer configuration file may be corrupted and cannot be parsed.\nOrcaSlicer has attempted to recreate the "
+                       "configuration file.\nPlease note, application settings will be lost, but printer profiles will not be affected."));
+    }
     //BBS: delete splash screen
     delete scrn;
     return true;
