@@ -387,7 +387,7 @@ private:
     wxBoxSizer *                                                          m_preset_tree_sizer        = nullptr;
     wxPanel *                                                             m_preset_tree_panel        = nullptr;
     wxScrolledWindow *                                                    m_preset_tree_window       = nullptr;
-    wxBoxSizer *                                                          m_preset_tree_window_sizer = nullptr;
+    wxBoxSizer *                                                          m_main_sizer               = nullptr;
     int                                                                   m_need_delete_preset_index = -1;
     int                                                                   m_need_edit_preset_index   = -1;
     std::string                                                           m_selected_printer         = "";

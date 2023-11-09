@@ -3658,7 +3658,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_preset_bundle_to_fi
                         return ExportCase::ADD_FILE_FAIL;
                     }
                     filament_configs.push_back(filament_config_file_name);
-                    BOOST_LOG_TRIVIAL(info) << "Filament preset json add successful: ";
+                    BOOST_LOG_TRIVIAL(info) << "Filament preset json add successful.";
                 }
             }
 
@@ -4078,17 +4078,17 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+    m_main_sizer = new wxBoxSizer(wxVERTICAL);
     // top line
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
-    main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
+    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
     wxStaticText* basic_infomation = new wxStaticText(this, wxID_ANY, _L("Basic Information")); 
     basic_infomation->SetFont(Label::Head_16);
     
-    main_sizer->Add(basic_infomation, 0, wxALL, FromDIP(10));
+    m_main_sizer->Add(basic_infomation, 0, wxALL, FromDIP(10));
     m_filament_id = filament_info->filament_id;
     //std::string filament_name = filament_info->filament_name;
     bool get_filament_presets = get_same_filament_id_presets(m_filament_id);
@@ -4109,25 +4109,25 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
         }
     }
 
-    main_sizer->Add(create_filament_basic_info(), 0, wxEXPAND | wxALL, 0);
+    m_main_sizer->Add(create_filament_basic_info(), 0, wxEXPAND | wxALL, 0);
 
     // divider line
     auto line_divider = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line_divider->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
-    main_sizer->Add(line_divider, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_main_sizer->Add(line_divider, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
+    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
     wxStaticText *presets_infomation = new wxStaticText(this, wxID_ANY, _L("Filament presets under this filament"));
     presets_infomation->SetFont(Label::Head_16);
-    main_sizer->Add(presets_infomation, 0, wxLEFT | wxRIGHT, FromDIP(10));
+    m_main_sizer->Add(presets_infomation, 0, wxLEFT | wxRIGHT, FromDIP(10));
 
-    main_sizer->Add(create_add_filament_btn(), 0, wxEXPAND | wxALL, 0);
-    main_sizer->Add(create_preset_tree_sizer(), 0, wxEXPAND | wxALL, 0);
-    main_sizer->Add(create_button_sizer(), 0, wxEXPAND | wxALL, 0);
+    m_main_sizer->Add(create_add_filament_btn(), 0, wxEXPAND | wxALL, 0);
+    m_main_sizer->Add(create_preset_tree_sizer(), 0, wxEXPAND | wxALL, 0);
+    m_main_sizer->Add(create_button_sizer(), 0, wxEXPAND | wxALL, 0);
 
     update_preset_tree();
 
-    this->SetSizer(main_sizer);
+    this->SetSizer(m_main_sizer);
     this->Layout();
     this->Fit();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -4166,7 +4166,14 @@ void EditFilamentPresetDialog::update_preset_tree()
     for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets : m_printer_compatible_presets) {
         m_preset_tree_sizer->Add(m_preset_tree_creater->get_preset_tree(printer_and_presets), 0, wxEXPAND | wxALL, 5);
     }
-    m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
+
+    m_preset_tree_panel->SetSizerAndFit(m_preset_tree_sizer);
+    int whidth = m_preset_tree_panel->GetSize().GetWidth();
+    int height = m_preset_tree_panel->GetSize().GetHeight();
+    m_preset_tree_window->SetMinSize(wxSize(std::min(1000, whidth), std::min(600, height)));
+    m_preset_tree_window->SetMaxSize(wxSize(std::min(1000, whidth), std::min(600, height)));
+    m_preset_tree_window->SetSize(wxSize(std::min(1000, whidth), std::min(600, height)));
+    this->SetSizerAndFit(m_main_sizer);
     
     this->Layout();
     this->Fit();
@@ -4384,7 +4391,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
     m_preset_tree_panel->SetSizer(m_preset_tree_sizer);
     m_preset_tree_panel->SetMinSize(wxSize(580, -1));
     m_preset_tree_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
-    m_preset_tree_window_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* m_preset_tree_window_sizer = new wxBoxSizer(wxVERTICAL);
     m_preset_tree_window_sizer->Add(m_preset_tree_panel, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
     m_preset_tree_window->SetSizerAndFit(m_preset_tree_window_sizer);
     filament_preset_tree_sizer->Add(m_preset_tree_window, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
