@@ -596,7 +596,9 @@ void GLGizmoAdvancedCut::on_stop_dragging()
         m_ar_plane_center = m_plane_center;
     }
     m_plane_center_drag_start = m_plane_center;
-    reset_cut_by_contours();
+    if (!m_connectors_editing) {
+        reset_cut_by_contours();
+    }
     m_movement     = 0.0;
     m_rotation.setZero();
 }
@@ -1601,7 +1603,7 @@ void GLGizmoAdvancedCut::process_contours()
 
 void GLGizmoAdvancedCut::toggle_model_objects_visibility(bool show_in_3d)
 {
-    if (m_part_selection && m_part_selection->valid() && show_in_3d == false && m_is_dragging == false) // BBL
+    if (m_part_selection && m_part_selection->valid() && show_in_3d == false && (m_is_dragging == false || m_connectors_editing)) // BBL
         m_parent.toggle_model_objects_visibility(false);
     else // if (!m_part_selection.valid())
     {
