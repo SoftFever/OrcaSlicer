@@ -1645,6 +1645,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     // base_id
     if (preset_values.find(BBL_JSON_KEY_BASE_ID) == preset_values.end()) {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("can not find base_id, not loading for user preset %1%") % name;
+        unlock();
         return false;
     }
     std::string cloud_base_id = preset_values[BBL_JSON_KEY_BASE_ID];
