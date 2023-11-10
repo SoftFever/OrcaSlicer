@@ -148,7 +148,6 @@ PartPlate::PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int
 
 PartPlate::~PartPlate()
 {
-    unregister_raycasters_for_picking();
 	clear();
 	//if (m_quadric != nullptr)
 	//	::gluDeleteQuadric(m_quadric);
@@ -996,13 +995,6 @@ void PartPlate::render_only_numbers(bool bottom)
     }
 }
 
-void PartPlate::register_rectangle_for_picking(PickingModel &model, int id)
-{
-    wxGetApp().plater()->canvas3D()->add_raycaster_for_picking(SceneRaycaster::EType::Bed, id, *model.mesh_raycaster, Transform3d::Identity());
-
-	picking_ids.emplace_back(id);
-}
-
 /*
 void PartPlate::render_label(GLCanvas3D& canvas) const {
 	std::string label = (boost::format("Plate %1%") % (m_plate_index + 1)).str();
@@ -1221,25 +1213,20 @@ void PartPlate::render_right_arrow(const ColorRGBA render_color, bool use_lighti
 }
 */
 
-void PartPlate::register_raycasters_for_picking()
+static void register_model_for_picking(GLCanvas3D &canvas, PickingModel &model, int id)
 {
-    unregister_raycasters_for_picking();
-
-	picking_ids.reserve(6);
-    register_rectangle_for_picking(m_triangles, picking_id_component(0));
-    register_rectangle_for_picking(m_del_icon, picking_id_component(1));
-    register_rectangle_for_picking(m_orient_icon, picking_id_component(2));
-    register_rectangle_for_picking(m_arrange_icon, picking_id_component(3));
-    register_rectangle_for_picking(m_lock_icon, picking_id_component(4));
-    if (m_partplate_list->render_plate_settings)
-        register_rectangle_for_picking(m_plate_settings_icon, picking_id_component(5));
+    canvas.add_raycaster_for_picking(SceneRaycaster::EType::Bed, id, *model.mesh_raycaster, Transform3d::Identity());
 }
 
-void PartPlate::unregister_raycasters_for_picking() {
-    for (int picking_id : picking_ids) {
-        wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed, picking_id);
-    }
-    picking_ids.clear();
+void PartPlate::register_raycasters_for_picking(GLCanvas3D &canvas)
+{
+    register_model_for_picking(canvas, m_triangles, picking_id_component(0));
+    register_model_for_picking(canvas, m_del_icon, picking_id_component(1));
+    register_model_for_picking(canvas, m_orient_icon, picking_id_component(2));
+    register_model_for_picking(canvas, m_arrange_icon, picking_id_component(3));
+    register_model_for_picking(canvas, m_lock_icon, picking_id_component(4));
+    if (m_partplate_list->render_plate_settings)
+        register_model_for_picking(canvas, m_plate_settings_icon, picking_id_component(5));
 }
 
 int PartPlate::picking_id_component(int idx) const
@@ -2448,8 +2435,6 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 		// calc vertex for plate name
 		generate_plate_name_texture();
-
-		register_raycasters_for_picking();
 	}
 
 	calc_height_limit();
@@ -3360,8 +3345,6 @@ int PartPlateList::delete_plate(int index)
 		BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate %1%, has an invalid index %2%") % index % plate->get_index();
 		return -1;
 	}
-
-	plate->unregister_raycasters_for_picking();
 
 	if (m_plater) {
 		// In GUI mode

@@ -131,7 +131,6 @@ private:
     PickingModel m_plate_settings_icon;
     GLModel m_plate_idx_icon;
     GLTexture m_texture;
-    std::vector<int> picking_ids;
 
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
@@ -181,9 +180,7 @@ private:
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
     void render_only_numbers(bool bottom);
     void render_plate_name_texture();
-    void register_rectangle_for_picking(PickingModel &model, int id);
-    void register_raycasters_for_picking();
-    void unregister_raycasters_for_picking();
+    void register_raycasters_for_picking(GLCanvas3D& canvas);
     int picking_id_component(int idx) const;
 
 public:
@@ -744,6 +741,11 @@ public:
     void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
     void set_render_option(bool bedtype_texture, bool plate_settings);
     void set_render_cali(bool value = true) { render_cali_logo = value; }
+    void register_raycasters_for_picking(GLCanvas3D& canvas)
+    {
+        for (auto plate : m_plate_list)
+            plate->register_raycasters_for_picking(canvas);
+    }
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);

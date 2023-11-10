@@ -2672,6 +2672,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         m_selection.volumes_changed(map_glvolume_old_to_new);
 
     // @Enrico suggest this solution to preven accessing pointer on caster without data
+    m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Bed);
     m_scene_raycaster.remove_raycasters(SceneRaycaster::EType::Volume);
     m_gizmos.update_data();
     m_gizmos.update_assemble_view_data();
@@ -2723,6 +2724,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         if (manip != nullptr)
             manip->set_dirty();
 #endif
+    }
+
+    // refresh bed raycasters for picking
+    if (m_canvas_type == ECanvasType::CanvasView3D) {
+        wxGetApp().plater()->get_partplate_list().register_raycasters_for_picking(*this);
     }
 
     // refresh volume raycasters for picking
