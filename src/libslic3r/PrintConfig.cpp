@@ -3501,6 +3501,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("support_top_z_distance", coFloat);
     //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Top Z distance");
+    def->min = 0;
     def->category = L("Support");
     def->tooltip = L("The z gap between the top support interface and object");
     def->sidetext = L("mm");
@@ -3516,12 +3517,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
-    // BBS:MusangKing
     def = this->add("support_bottom_z_distance", coFloat);
     def->label = L("Bottom Z distance");
     def->category = L("Support");
     def->tooltip = L("The z gap between the bottom support interface and object");
     def->sidetext = L("mm");
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
