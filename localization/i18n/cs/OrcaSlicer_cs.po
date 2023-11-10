@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 09:22+0100\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -497,26 +497,11 @@ msgstr "Malování pozice švu"
 msgid "Remove selection"
 msgstr "Odebrat výběr"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + pohyb myši nahoru nebo dolů"
-
-msgid "Rotate text"
-msgstr "Otočit text"
-
-msgid "Text shape"
-msgstr "Tvar textu"
-
 msgid "Font"
 msgstr "Písmo"
 
 msgid "Thickness"
 msgstr "Tloušťka"
-
-msgid "Input text"
-msgstr "Vložit text"
-
-msgid "Embeded"
-msgstr "Vloženo"
 
 msgid "Text Gap"
 msgstr "Mezera v textu"
@@ -531,11 +516,23 @@ msgstr ""
 "Vloženo\n"
 "hloubka"
 
+msgid "Input text"
+msgstr "Vložit text"
+
 msgid "Surface"
 msgstr "Povrch"
 
 msgid "Horizontal text"
 msgstr "Vodorovný text"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + pohyb myši nahoru nebo dolů"
+
+msgid "Rotate text"
+msgstr "Otočit text"
+
+msgid "Text shape"
+msgstr "Tvar textu"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -628,13 +625,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"Konfigurační soubor OrcaSlicer může být poškozen a nelze jej analyzovat."
-"Smažte soubor a zkuste to znovu."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -661,6 +651,13 @@ msgstr "Toto je nejnovější verze."
 
 msgid "Info"
 msgstr "Info"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Obnovit"
@@ -3151,7 +3148,7 @@ msgstr "Objem:"
 msgid "Size:"
 msgstr "Velikost:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5918,8 +5915,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Při nahrávání časosběru bez nástrojové hlavy se doporučuje přidat  "
 "\"Timelapse Wipe Tower\" \n"
@@ -6203,6 +6200,9 @@ msgstr "Časosběrný G-kód"
 
 msgid "Change filament G-code"
 msgstr "G-kód Změny filamentu"
+
+msgid "Change extrusion role G-code"
+msgstr ""
 
 msgid "Pause G-code"
 msgstr "G-kód Pauzy"
@@ -8786,10 +8786,10 @@ msgstr "Maximální otáčky ventilátoru ve vrstvě"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "Otáčky ventilátoru se lineárně zvýší z nuly ve vrstvě "
 "\"close_fan_first_layers\" na maximum ve vrstvě \"full_fan_speed_layer\". "
@@ -10504,6 +10504,9 @@ msgstr ""
 "Tento gkód se vloží při výměně filamentu, včetně příkazu T ke spuštění "
 "výměny nástroje"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12152,8 +12155,8 @@ msgid ""
 msgstr ""
 "Plochou na podložku\n"
 "Věděli jste, že můžete rychle nastavit orientaci modelu tak, aby jedna z "
-"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na podložku"
-"\" nebo stiskněte klávesu <b>F</b>."
+"jeho stěn spočívala na tiskovém podloží? Vyberte funkci \"Plochou na "
+"podložku\" nebo stiskněte klávesu <b>F</b>."
 
 #: resources/data/hints.ini: [hint:Object List]
 msgid ""
@@ -12367,6 +12370,16 @@ msgstr ""
 "Otevření dveří tiskárny může snížit pravděpodobnost ucpaní extruderu/hotendu "
 "při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného prostoru. "
 "Další informace naleznete ve Wiki."
+
+#~ msgid "Embeded"
+#~ msgstr "Vloženo"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Konfigurační soubor OrcaSlicer může být poškozen a nelze jej analyzovat."
+#~ "Smažte soubor a zkuste to znovu."
 
 #~ msgid "Online Models"
 #~ msgstr "Online modely"

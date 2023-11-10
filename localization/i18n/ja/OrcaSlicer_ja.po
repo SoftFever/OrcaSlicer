@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 09:22+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -489,26 +489,11 @@ msgstr "継ぎ目ペイント"
 msgid "Remove selection"
 msgstr "選択を削除"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
-
-msgid "Rotate text"
-msgstr "Rotate text"
-
-msgid "Text shape"
-msgstr "文字形状"
-
 msgid "Font"
 msgstr "フォント"
 
 msgid "Thickness"
 msgstr "太さ"
-
-msgid "Input text"
-msgstr "テキスト"
-
-msgid "Embeded"
-msgstr "Embedded"
 
 msgid "Text Gap"
 msgstr "Text Gap"
@@ -521,11 +506,23 @@ msgid ""
 "depth"
 msgstr "Embedded depth"
 
+msgid "Input text"
+msgstr "テキスト"
+
 msgid "Surface"
 msgstr "Surface"
 
 msgid "Horizontal text"
 msgstr "Horizontal text"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Mouse move up or dowm"
+
+msgid "Rotate text"
+msgstr "Rotate text"
+
+msgid "Text shape"
+msgstr "文字形状"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -608,11 +605,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -639,6 +631,13 @@ msgstr "最新バージョンです。"
 
 msgid "Info"
 msgstr "情報"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "再構築"
@@ -3039,7 +3038,7 @@ msgstr "ボリューム"
 msgid "Size:"
 msgstr "サイズ:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5706,8 +5705,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "ヘッド無しのタイムラプスビデオを録画する時に、「タイムラプスプライムタワー」"
 "を追加してください。プレートで右クリックして、「プリミティブを追加」→「タイム"
@@ -5974,6 +5973,9 @@ msgstr ""
 
 msgid "Change filament G-code"
 msgstr "フィラメント変更G-code"
+
+msgid "Change extrusion role G-code"
+msgstr ""
 
 msgid "Pause G-code"
 msgstr "G-codeを一時停止"
@@ -8336,10 +8338,10 @@ msgstr "最大回転速度の積層"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 
 msgid "Support interface fan speed"
@@ -9822,6 +9824,9 @@ msgid ""
 "This gcode is inserted when change filament, including T command to trigger "
 "tool change"
 msgstr "フィラメントを切り替える直後に実行するG-codeです。"
+
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
 
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
@@ -11480,6 +11485,9 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Embeded"
+#~ msgstr "Embedded"
 
 #~ msgid "Online Models"
 #~ msgstr "Online Models"
