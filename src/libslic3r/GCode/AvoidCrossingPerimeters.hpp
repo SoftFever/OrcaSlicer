@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2022 Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_AvoidCrossingPerimeters_hpp_
 #define slic3r_AvoidCrossingPerimeters_hpp_
 
@@ -58,8 +62,11 @@ private:
     // we enable it by default for the first travel move in print
     bool           m_disabled_once { true };
 
+    // Lslices offseted by half an external perimeter width. Used for detection if line or polyline is inside of any polygon.
+    ExPolygons               m_lslices_offset;
+    std::vector<BoundingBox> m_lslices_offset_bboxes;
     // Used for detection of line or polyline is inside of any polygon.
-    EdgeGrid::Grid m_grid_lslice;
+    EdgeGrid::Grid           m_grid_lslices_offset;
     // Store all needed data for travels inside object
     Boundary m_internal;
     // Store all needed data for travels outside object
