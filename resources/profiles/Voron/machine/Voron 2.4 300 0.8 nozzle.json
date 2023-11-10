@@ -6,6 +6,7 @@
     "instantiation": "true",
     "inherits": "fdm_klipper_common",
     "printer_model": "Voron 2.4 300",
+    "default_print_profile": "0.40mm Standard 0.8 nozzle @Voron",
     "max_layer_height": [
       "0.6"
     ],
