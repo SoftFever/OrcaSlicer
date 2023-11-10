@@ -10112,10 +10112,6 @@ msgstr "Cuando es necesario imprimir con la puerta de la impresora abierta\n"
 #~ msgstr ""
 #~ "Paso 1: confirme que Bambu Studio y su impresora estén en la misma LAN."
 
-#~ msgid "The minimum printing speed when slow down for cooling"
-#~ msgstr ""
-#~ "La velocidad mínima de impresión cuando se ralentiza para el refrigeración"
-
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr ""
 #~ "Las capas vacías del fondo se sustituyen por las capas normales más "
