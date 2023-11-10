@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-04 14:18+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-08-10 20:25-0400\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -495,26 +495,11 @@ msgstr "Малювання шва"
 msgid "Remove selection"
 msgstr "Видалити виділення"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + переміщення миші вгору або вниз"
-
-msgid "Rotate text"
-msgstr "Повернути текст"
-
-msgid "Text shape"
-msgstr "Форма тексту"
-
 msgid "Font"
 msgstr "Шрифт"
 
 msgid "Thickness"
 msgstr "Товщина"
-
-msgid "Input text"
-msgstr "Введення тексту"
-
-msgid "Embeded"
-msgstr "Вбудовано"
 
 msgid "Text Gap"
 msgstr "Пробіл у тексті"
@@ -527,11 +512,23 @@ msgid ""
 "depth"
 msgstr "Вбудована глибина"
 
+msgid "Input text"
+msgstr "Введення тексту"
+
 msgid "Surface"
 msgstr "Поверхня"
 
 msgid "Horizontal text"
 msgstr "Горизонтальний текст"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + переміщення миші вгору або вниз"
+
+msgid "Rotate text"
+msgstr "Повернути текст"
+
+msgid "Text shape"
+msgstr "Форма тексту"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -621,13 +618,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"Файл конфігурації OrcaSlicer може бути пошкоджений і не підлягає розбору. "
-"Видаліть файл і спробуйте ще раз."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -652,6 +642,13 @@ msgstr "Це найновіша версія."
 
 msgid "Info"
 msgstr "Інформація"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Відновити"
@@ -6153,6 +6150,9 @@ msgstr ""
 msgid "Change filament G-code"
 msgstr "G-code Зміни філаменту"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "G-code Паузи"
 
@@ -7963,6 +7963,16 @@ msgstr "Завершальний G-code, коли закінчити весь д
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Завершальний G-code, коли закінчите друк цієї нитки"
+
+msgid "Ensure vertical shell thickness"
+msgstr "Забезпечення вертикальної товщини оболонки"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
+"товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
 msgid "Top surface pattern"
 msgstr "Малюнок верхньої поверхні"
@@ -10269,6 +10279,9 @@ msgstr ""
 "Цей gcode вставляється при зміні філаменту, включаючи команду T для запуску "
 "зміни інструменту"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -10620,6 +10633,19 @@ msgstr ""
 "розміром елемента) моделі. Якщо мінімальна ширина периметра менше товщини "
 "елемента, то товщина периметра дорівнюватиме товщині самого елемента. Він "
 "виражається у відсотках від діаметра сопла"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Виявлення вузького внутрішнього заповнення твердим тілом"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Ця опція автоматично визначає вузьку внутрішню область заповненнятвердого "
+"тіла. Якщо цей параметр увімкнено, для прискорення друку області "
+"використовуватиметься концентричний візерунок. Інакше за умовчанням "
+"Використовується прямолінійний малюнок."
 
 msgid "invalid value "
 msgstr "неправильне значення "
@@ -11970,6 +11996,16 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Embeded"
+#~ msgstr "Вбудовано"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Файл конфігурації OrcaSlicer може бути пошкоджений і не підлягає розбору. "
+#~ "Видаліть файл і спробуйте ще раз."
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "Мінімальна швидкість друку при уповільненні для охолодження"
 
@@ -11980,16 +12016,6 @@ msgstr ""
 #~ "Температура шару перевищує температуру скловання нитки. Будь ласка\n"
 #~ "відчиняйте передні дверцята принтера перед печаткою, щоб уникнути "
 #~ "засмічення сопла."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Забезпечення вертикальної товщини оболонки"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії "
-#~ "товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Температура склування"
@@ -12014,19 +12040,6 @@ msgstr ""
 #~ "Швидкість вентилятора охолодження допоміжної частини. "
 #~ "ДопоміжнийВентилятор буде працювати з такою швидкістю під час друку, за "
 #~ "винятком перших кількох шарів, які не визначаються шарами охолодження"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Виявлення вузького внутрішнього заповнення твердим тілом"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Ця опція автоматично визначає вузьку внутрішню область заповненнятвердого "
-#~ "тіла. Якщо цей параметр увімкнено, для прискорення друку області "
-#~ "використовуватиметься концентричний візерунок. Інакше за умовчанням "
-#~ "Використовується прямолінійний малюнок."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr ""

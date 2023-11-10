@@ -1057,6 +1057,13 @@ void Sidebar::update_all_preset_comboboxes()
             m_bed_type_list->SelectAndNotify((int)bed_type - 1);
         }
         m_bed_type_list->Enable();
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
+        if(!str_bed_type.empty()){
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if(bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        }
     } else {
         connection_btn->Show();
         ams_btn->Hide();

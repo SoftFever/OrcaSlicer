@@ -320,7 +320,7 @@ std::string GCodeWriter::reset_e(bool force)
         return "";
     
     if (m_extruder != nullptr) {
-        if (m_extruder->E() == 0. && ! force)
+        if (is_zero(m_extruder->E()) && ! force)
             return "";
         m_extruder->reset_E();
     }
@@ -709,7 +709,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
         length = 1;
 
     std::string gcode;
-    if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
+    if (double dE = m_extruder->retract(length, restart_extra);  !is_zero(dE)) {
         if (this->config.use_firmware_retraction) {
             gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
         }
@@ -737,7 +737,7 @@ std::string GCodeWriter::unretract()
     if (FLAVOR_IS(gcfMakerWare))
         gcode = "M101 ; extruder on\n";
     
-    if (double dE = m_extruder->unretract(); dE != 0) {
+    if (double dE = m_extruder->unretract(); !is_zero(dE)) {
         if (this->config.use_firmware_retraction) {
             gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
             gcode += this->reset_e();

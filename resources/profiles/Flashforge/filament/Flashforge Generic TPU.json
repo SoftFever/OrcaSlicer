@@ -71,13 +71,13 @@
     "; filament end gcode \n"
   ],
   "filament_flow_ratio": [
-    "0.95"
+    "1"
   ],
   "filament_is_support": [
     "0"
   ],
   "filament_max_volumetric_speed": [
-    "5"
+    "3.5"
   ],
   "filament_minimal_purge_on_wipe_tower": [
     "15"
@@ -92,7 +92,7 @@
     "nil"
   ],
   "filament_retraction_length": [
-    "0.4"
+    "1.2"
   ],
   "filament_retraction_minimum_travel": [
     "nil"
@@ -140,7 +140,7 @@
     "45"
   ],
   "nozzle_temperature": [
-    "230"
+    "235"
   ],
   "nozzle_temperature_initial_layer": [
     "235"
@@ -158,7 +158,7 @@
     "50%"
   ],
   "pressure_advance": [
-    "0.025"
+    "0.035"
   ],
   "reduce_fan_stop_start_freq": [
     "1"
@@ -173,7 +173,7 @@
     "8"
   ],
   "slow_down_min_speed": [
-    "15"
+    "20"
   ],
   "support_material_interface_fan_speed": [
     "100"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-04 14:18+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -489,26 +489,11 @@ msgstr "Målning av sömmar"
 msgid "Remove selection"
 msgstr "Ta bort val"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mus flytta uppåt eller nedåt"
-
-msgid "Rotate text"
-msgstr "Rotera text"
-
-msgid "Text shape"
-msgstr "Text form"
-
 msgid "Font"
 msgstr "Typsnitt"
 
 msgid "Thickness"
 msgstr "Tjocklek"
-
-msgid "Input text"
-msgstr "Skriv in text"
-
-msgid "Embeded"
-msgstr "Inbäddad"
 
 msgid "Text Gap"
 msgstr "Text mellanrum"
@@ -521,11 +506,23 @@ msgid ""
 "depth"
 msgstr "Inbäddat djup"
 
+msgid "Input text"
+msgstr "Skriv in text"
+
 msgid "Surface"
 msgstr "Yta"
 
 msgid "Horizontal text"
 msgstr "Vågrät text"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Mus flytta uppåt eller nedåt"
+
+msgid "Rotate text"
+msgstr "Rotera text"
+
+msgid "Text shape"
+msgstr "Text form"
 
 msgid "Ctrl+"
 msgstr "Ctrl +"
@@ -609,11 +606,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -640,6 +632,13 @@ msgstr "Det är den senaste versionen."
 
 msgid "Info"
 msgstr "Info"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Återskapa"
@@ -6110,6 +6109,9 @@ msgstr ""
 msgid "Change filament G-code"
 msgstr "Byta filament G-kod"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "Paus G-kod"
 
@@ -7894,6 +7896,16 @@ msgstr "Lägg till slut G-kod när utskriften har avslutas"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Lägg till slut G-kod när utskriften har avslutas med detta filament"
+
+msgid "Ensure vertical shell thickness"
+msgstr "Säkerställ vertikal skaltjocklek"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Lägg till massiv fyllning nära sluttande ytor för att garantera den "
+"vertikala skal tjockleken (topp+bottenfasta lager)."
 
 msgid "Top surface pattern"
 msgstr "Topp ytans mönster"
@@ -10087,6 +10099,9 @@ msgstr ""
 "G-koden sätts in vid filament byte, inklusive T kommando som aktiverar "
 "verktygs byte"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -10446,6 +10461,19 @@ msgstr ""
 "element) i modellen. Om den minsta väggbredden är tunnare än tjockleken på "
 "elementet blir väggen lika tjock som själva elementet. Den uttrycks i "
 "procent av nozzel diametern."
+
+msgid "Detect narrow internal solid infill"
+msgstr "Upptäck tight inre solid ifyllnad"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Detta val kommer att auto upptäcka tight inre solid ifyllnads område. Om "
+"aktiverat kommer det koncentriska mönstret att användas för området för att "
+"påskynda utskriften. Annars kommer mönstret med räta linjer att användas som "
+"standard."
 
 msgid "invalid value "
 msgstr "ogiltigt värde "
@@ -11781,6 +11809,9 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Embeded"
+#~ msgstr "Inbäddad"
+
 #~ msgid "Online Models"
 #~ msgstr "Online modeller"
 
@@ -11797,16 +11828,6 @@ msgstr ""
 #~ "Byggplattans temperatur överskrider filamentens förglasningstemperatur. "
 #~ "Öppna skrivarens främre dörr innan du skriver ut för att undvika att "
 #~ "nozzeln täpps till."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Säkerställ vertikal skaltjocklek"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Lägg till massiv fyllning nära sluttande ytor för att garantera den "
-#~ "vertikala skal tjockleken (topp+bottenfasta lager)."
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Kristalliserings temperatur"
@@ -11829,19 +11850,6 @@ msgstr ""
 #~ "Hastigheten på extra del kylfläkten. Extra fläkten kommer att köras med "
 #~ "denna hastighet under utskrift förutom de lager som definieras som inga "
 #~ "kyl lager"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Upptäck tight inre solid ifyllnad"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Detta val kommer att auto upptäcka tight inre solid ifyllnads område. Om "
-#~ "aktiverat kommer det koncentriska mönstret att användas för området för "
-#~ "att påskynda utskriften. Annars kommer mönstret med räta linjer att "
-#~ "användas som standard."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Tomma lager runt botten ersätts med närmast normala lager."

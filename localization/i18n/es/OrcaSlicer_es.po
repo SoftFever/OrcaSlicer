@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-04 14:18+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -480,26 +480,11 @@ msgstr "Pintar costura"
 msgid "Remove selection"
 msgstr "Borrar selección"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mover ratón arriba u abajo"
-
-msgid "Rotate text"
-msgstr "Rotar texto"
-
-msgid "Text shape"
-msgstr "Forma de texto"
-
 msgid "Font"
 msgstr "Fuente"
 
 msgid "Thickness"
 msgstr "Grosor"
-
-msgid "Input text"
-msgstr "Texto de entrada"
-
-msgid "Embeded"
-msgstr "Integrado"
 
 msgid "Text Gap"
 msgstr "Espacio de texto"
@@ -512,11 +497,23 @@ msgid "Embeded\n"
 msgstr "Profundidad\n"
 "Integrada"
 
+msgid "Input text"
+msgstr "Texto de entrada"
+
 msgid "Surface"
 msgstr "Superficie"
 
 msgid "Horizontal text"
 msgstr "Texto horizontal"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Mover ratón arriba u abajo"
+
+msgid "Rotate text"
+msgstr "Rotar texto"
+
+msgid "Text shape"
+msgstr "Forma de texto"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -599,9 +596,6 @@ msgstr "Orca Slicer requiere el tiempo de ejecución de Microsoft WebView2 para 
 msgid "WebView2 Runtime"
 msgstr "Tiempo de ejecución de WebView2"
 
-msgid "OrcaSlicer configuration file may be corrupted and is not abled to be parsed.Please delete the file and try again."
-msgstr "El archivo de configuración de OrcaSlicer puede estar dañado y no puede ser procesado. Por favor borre el archivo e inténtelo otra vez."
-
 # msgid "OrcaSlicer configuration file may be corrupted and is not abled to be parsed.Please delete the file and try again."
 # msgstr "Es posible que el archivo de configuración de OrcaSlicer esté dañado y no pueda ser procesado. Por favor, borre el archivo e inténtelo de nuevo."
 #, c-format, boost-format
@@ -628,6 +622,13 @@ msgstr "Esta es la versión más reciente."
 
 msgid "Info"
 msgstr "Información"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Reconstruir"
@@ -5541,6 +5542,9 @@ msgstr "Timelapse G-code"
 msgid "Change filament G-code"
 msgstr "G-Code para el cambio de filamento"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "G-Code de pausa"
 
@@ -6996,6 +7000,16 @@ msgstr "Finalizar el G-Code cuando termine la impresión completa"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Terminar el G-Code cuando se termine de imprimir este filamento"
+
+msgid "Ensure vertical shell thickness"
+msgstr "Detección de paredes delgadas"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Añadir relleno sólido al lado de capas inclinadas para garantizar el grosor "
+"de carcasa vertical (capas sólidas superior+inferior)"
 
 msgid "Top surface pattern"
 msgstr "Patrón de relleno superior"
@@ -8675,8 +8689,15 @@ msgstr "Detección de perímetros delgados"
 msgid "Detect thin wall which can't contain two line width. And use single line to print. Maybe printed not very well, because it's not closed loop"
 msgstr "Detectar los perímetros delgados que no puede contener dos líneas de ancho. Y utilizar una sola línea para imprimir. Tal vez no se imprime muy bien, porque no es de bucle cerrado"
 
-msgid "This gcode is inserted when change filament, including T command to trigger tool change"
-msgstr "Este G-Code se inserta cuando se cambia de filamento, incluyendo el comando T para activar el cambio de herramienta"
+msgid ""
+"This gcode is inserted when change filament, including T command to trigger "
+"tool change"
+msgstr ""
+"Este G-Code se inserta cuando se cambia de filamento, incluyendo el comando "
+"T para activar el cambio de herramienta"
+
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
 
 msgid "Line width for top surfaces. If expressed as a %, it will be computed over the nozzle diameter."
 msgstr "Ancho de extrusión de las capas superiores. Si se expresa cómo %, se calculará sobre el diámetro de la boquilla."
@@ -8886,8 +8907,30 @@ msgstr "Se recomienda que el ancho mínimo del perímetro que se debe utilizar p
 msgid "Minimum wall width"
 msgstr "Ancho mínimo del perímetro"
 
-msgid "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
-msgstr "Anchura del perímetro que sustituirá a los elementos finos (según el tamaño mínimo del elemento) del modelo. Si la anchura mínima del perímetro es menor que el grosor de la característica, el perímetro será tan grueso como la propia característica. Se expresa en porcentaje sobre el diámetro de la boquilla"
+msgid ""
+"Width of the wall that will replace thin features (according to the Minimum "
+"feature size) of the model. If the Minimum wall width is thinner than the "
+"thickness of the feature, the wall will become as thick as the feature "
+"itself. It's expressed as a percentage over nozzle diameter"
+msgstr ""
+"Anchura del perímetro que sustituirá a los elementos finos (según el tamaño "
+"mínimo del elemento) del modelo. Si la anchura mínima del perímetro es menor "
+"que el grosor de la característica, el perímetro será tan grueso como la "
+"propia característica. Se expresa en porcentaje sobre el diámetro de la "
+"boquilla"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Detección de pequeños rellenos sólidos"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Esta opción detectará automáticamente el área de relleno sólido interno "
+"estrecho. Si se activa, se utilizará un patrón concéntrico para el área para "
+"acelerar la impresión. De lo contrario, se utilizará por defecto un patrón "
+"rectilíneo."
 
 msgid "invalid value "
 msgstr "valor inválido "
@@ -10051,10 +10094,26 @@ msgstr "Mejorar la resistencia\n"
 
 #: resources/data/hints.ini: [hint:When need to print with the printer door
 #: opened]
-msgid "When need to print with the printer door opened\n"
-"Opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
-msgstr "Cuando es necesario imprimir con la puerta de la impresora abierta\n"
-"Abrir la puerta de la impresora puede reducir la probabilidad de atasco del extrusor/hotend al imprimir filamento de baja temperatura con una temperatura de carcasa más alta. Más información sobre esto en la Wiki."
+msgid ""
+"When need to print with the printer door opened\n"
+"Opening the printer door can reduce the probability of extruder/hotend "
+"clogging when printing lower temperature filament with a higher enclosure "
+"temperature. More info about this in the Wiki."
+msgstr ""
+"Cuando es necesario imprimir con la puerta de la impresora abierta\n"
+"Abrir la puerta de la impresora puede reducir la probabilidad de atasco del "
+"extrusor/hotend al imprimir filamento de baja temperatura con una "
+"temperatura de carcasa más alta. Más información sobre esto en la Wiki."
+
+#~ msgid "Embeded"
+#~ msgstr "Integrado"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "El archivo de configuración de OrcaSlicer puede estar dañado y no puede "
+#~ "ser procesado. Por favor borre el archivo e inténtelo otra vez."
 
 #~ msgid "Online Models"
 #~ msgstr "Modelos En Línea"
@@ -10142,16 +10201,6 @@ msgstr "Cuando es necesario imprimir con la puerta de la impresora abierta\n"
 #~ "filamento. Por favor, abra la puerta frontal de la impresora antes de "
 #~ "imprimir para evitar atascos en la boquilla."
 
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Detección de paredes delgadas"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Añadir relleno sólido al lado de capas inclinadas para garantizar el "
-#~ "grosor de carcasa vertical (capas sólidas superior+inferior)"
-
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Temperatura de vitrificación"
 
@@ -10175,19 +10224,6 @@ msgstr "Cuando es necesario imprimir con la puerta de la impresora abierta\n"
 #~ "Velocidad del ventilador de la parte auxiliar. El ventilador auxiliar "
 #~ "funcionará a esta velocidad durante la impresión, excepto en las primeras "
 #~ "capas, que se define por la ausencia de capas de refrigeración"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Detección de pequeños rellenos sólidos"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Esta opción detectará automáticamente el área de relleno sólido interno "
-#~ "estrecho. Si se activa, se utilizará un patrón concéntrico para el área "
-#~ "para acelerar la impresión. De lo contrario, se utilizará por defecto un "
-#~ "patrón rectilíneo."
 
 #~ msgid "Cali"
 #~ msgstr "Cali"
