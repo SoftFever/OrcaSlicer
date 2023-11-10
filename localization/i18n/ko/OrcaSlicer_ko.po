@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-10-26 16:47+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -495,26 +495,11 @@ msgstr "솔기 칠하기"
 msgid "Remove selection"
 msgstr "선택 삭제"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + 마우스 위 or 아래"
-
-msgid "Rotate text"
-msgstr "텍스트 회전"
-
-msgid "Text shape"
-msgstr "텍스트 모양"
-
 msgid "Font"
 msgstr "글꼴"
 
 msgid "Thickness"
 msgstr "두께"
-
-msgid "Input text"
-msgstr "텍스트 입력"
-
-msgid "Embeded"
-msgstr "매입"
 
 msgid "Text Gap"
 msgstr "글자 간격"
@@ -529,11 +514,23 @@ msgstr ""
 "내장\n"
 "깊이"
 
+msgid "Input text"
+msgstr "텍스트 입력"
+
 msgid "Surface"
 msgstr "표면"
 
 msgid "Horizontal text"
 msgstr "가로 텍스트"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + 마우스 위 or 아래"
+
+msgid "Rotate text"
+msgstr "텍스트 회전"
+
+msgid "Text shape"
+msgstr "텍스트 모양"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -623,13 +620,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 런타임"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"OrcaSlicer 구성 파일이 손상되어 구문 분석할 수 없습니다. 파일을 삭제하고 다"
-"시 시도하십시오."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -656,6 +646,13 @@ msgstr "최신 버전입니다."
 
 msgid "Info"
 msgstr "정보"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "재빌드"
@@ -6096,6 +6093,9 @@ msgstr "타임랩스 G코드"
 msgid "Change filament G-code"
 msgstr "필라멘트 교체 G코드"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "일시정지 G코드"
 
@@ -10287,6 +10287,9 @@ msgstr ""
 "이 G코드는 도구 변경을 유발하는 T 명령을 포함하여 필라멘트를 변경할 때 삽입됩"
 "니다"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12109,6 +12112,16 @@ msgstr ""
 "더 높은 내부 온도로 낮은 온도의 필라멘트를 출력할 때 프린터 도어를 열면 압출"
 "기/핫엔드가 막힐 가능성을 줄일 수 있습니다. 이에 대한 자세한 내용은 Wiki에서 "
 "확인하세요."
+
+#~ msgid "Embeded"
+#~ msgstr "매입"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "OrcaSlicer 구성 파일이 손상되어 구문 분석할 수 없습니다. 파일을 삭제하고 "
+#~ "다시 시도하십시오."
 
 #~ msgid "Online Models"
 #~ msgstr "온라인 모델"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Carlos Fco. Caruncho Serrano <puzzlero@gmail.com>\n"
 "Language-Team: \n"
@@ -494,26 +494,11 @@ msgstr "Pintar costura"
 msgid "Remove selection"
 msgstr "Borrar selección"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mover ratón arriba u abajo"
-
-msgid "Rotate text"
-msgstr "Rotar texto"
-
-msgid "Text shape"
-msgstr "Forma de texto"
-
 msgid "Font"
 msgstr "Fuente"
 
 msgid "Thickness"
 msgstr "Grosor"
-
-msgid "Input text"
-msgstr "Texto de entrada"
-
-msgid "Embeded"
-msgstr "Integrado"
 
 msgid "Text Gap"
 msgstr "Espacio de texto"
@@ -528,11 +513,23 @@ msgstr ""
 "Profundidad\n"
 "Integrada"
 
+msgid "Input text"
+msgstr "Texto de entrada"
+
 msgid "Surface"
 msgstr "Superficie"
 
 msgid "Horizontal text"
 msgstr "Texto horizontal"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Mover ratón arriba u abajo"
+
+msgid "Rotate text"
+msgstr "Rotar texto"
+
+msgid "Text shape"
+msgstr "Forma de texto"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -634,13 +631,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "Tiempo de ejecución de WebView2"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"El archivo de configuración de OrcaSlicer puede estar dañado y no puede ser "
-"procesado. Por favor borre el archivo e inténtelo otra vez."
-
 # msgid "OrcaSlicer configuration file may be corrupted and is not abled to be parsed.Please delete the file and try again."
 # msgstr "Es posible que el archivo de configuración de OrcaSlicer esté dañado y no pueda ser procesado. Por favor, borre el archivo e inténtelo de nuevo."
 #, c-format, boost-format
@@ -670,6 +660,13 @@ msgstr "Esta es la versión más reciente."
 
 msgid "Info"
 msgstr "Información"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Reconstruir"
@@ -6300,6 +6297,9 @@ msgstr "Timelapse G-code"
 msgid "Change filament G-code"
 msgstr "G-Code para el cambio de filamento"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "G-Code de pausa"
 
@@ -10745,6 +10745,9 @@ msgstr ""
 "Este G-Code se inserta cuando se cambia de filamento, incluyendo el comando "
 "T para activar el cambio de herramienta"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12657,6 +12660,16 @@ msgstr ""
 "Abrir la puerta de la impresora puede reducir la probabilidad de atasco del "
 "extrusor/hotend al imprimir filamento de baja temperatura con una "
 "temperatura de carcasa más alta. Más información sobre esto en la Wiki."
+
+#~ msgid "Embeded"
+#~ msgstr "Integrado"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "El archivo de configuración de OrcaSlicer puede estar dañado y no puede "
+#~ "ser procesado. Por favor borre el archivo e inténtelo otra vez."
 
 #~ msgid "Online Models"
 #~ msgstr "Modelos En Línea"

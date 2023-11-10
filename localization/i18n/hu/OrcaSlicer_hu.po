@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -490,26 +490,11 @@ msgstr "Varratfestés"
 msgid "Remove selection"
 msgstr "Kijelölés törlése"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Mouse move up or dowm"
-
-msgid "Rotate text"
-msgstr "Rotate text"
-
-msgid "Text shape"
-msgstr "Szöveg alakja"
-
 msgid "Font"
 msgstr "Betűtípus"
 
 msgid "Thickness"
 msgstr "Vastagság"
-
-msgid "Input text"
-msgstr "Szöveg"
-
-msgid "Embeded"
-msgstr "Embedded"
 
 msgid "Text Gap"
 msgstr "Text Gap"
@@ -522,11 +507,23 @@ msgid ""
 "depth"
 msgstr "Embedded depth"
 
+msgid "Input text"
+msgstr "Szöveg"
+
 msgid "Surface"
 msgstr "Surface"
 
 msgid "Horizontal text"
 msgstr "Horizontal text"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Mouse move up or dowm"
+
+msgid "Rotate text"
+msgstr "Rotate text"
+
+msgid "Text shape"
+msgstr "Szöveg alakja"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -613,11 +610,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -644,6 +636,13 @@ msgstr "Ez a legújabb verzió."
 
 msgid "Info"
 msgstr "Infó"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Újraindítás"
@@ -6134,6 +6133,9 @@ msgstr ""
 msgid "Change filament G-code"
 msgstr "Filament csere G-kód"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "Szünet G-kód"
 
@@ -10172,6 +10174,9 @@ msgstr ""
 "Ez a G-kód kerül beillesztésre, amikor a filament csere történik, beleértve "
 "a szerszámváltást indító T parancsokat is."
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -11878,6 +11883,9 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Embeded"
+#~ msgstr "Embedded"
 
 #~ msgid "Online Models"
 #~ msgstr "Online Models"

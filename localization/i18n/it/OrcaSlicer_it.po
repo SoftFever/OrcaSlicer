@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -489,26 +489,11 @@ msgstr "Pittura giunzione"
 msgid "Remove selection"
 msgstr "Rimuovi selezione"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Sposta il mouse verso l'alto o il basso"
-
-msgid "Rotate text"
-msgstr "Ruota testo"
-
-msgid "Text shape"
-msgstr "Formato testo"
-
 msgid "Font"
 msgstr "Font"
 
 msgid "Thickness"
 msgstr "Spessore"
-
-msgid "Input text"
-msgstr "Inserisci testo"
-
-msgid "Embeded"
-msgstr "Integrato"
 
 msgid "Text Gap"
 msgstr "Gap testo"
@@ -521,11 +506,23 @@ msgid ""
 "depth"
 msgstr "Profondità integrata"
 
+msgid "Input text"
+msgstr "Inserisci testo"
+
 msgid "Surface"
 msgstr "Superficie"
 
 msgid "Horizontal text"
 msgstr "Testo orizzontale"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Sposta il mouse verso l'alto o il basso"
+
+msgid "Rotate text"
+msgstr "Ruota testo"
+
+msgid "Text shape"
+msgstr "Formato testo"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -610,11 +607,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -641,6 +633,13 @@ msgstr "This is the newest version."
 
 msgid "Info"
 msgstr "Info"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Rebuild"
@@ -6125,6 +6124,9 @@ msgstr ""
 msgid "Change filament G-code"
 msgstr "Change filament G-code"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "Pause G-code"
 
@@ -10142,6 +10144,9 @@ msgstr ""
 "This G-code is inserted when filament is changed, including T commands to "
 "trigger tool change."
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -11859,6 +11864,9 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Embeded"
+#~ msgstr "Integrato"
 
 #~ msgid "Online Models"
 #~ msgstr "Modelli Online"

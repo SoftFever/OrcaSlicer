@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-11-06 14:37+0800\n"
 "Last-Translator: ablegods <ablegods@gmail.com>\n"
 "Language-Team: \n"
@@ -517,27 +517,11 @@ msgstr "自訂Z縫"
 msgid "Remove selection"
 msgstr "移除繪製"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + 滑鼠上移或下移"
-
-msgid "Rotate text"
-msgstr "旋轉文字"
-
-#, fuzzy
-msgid "Text shape"
-msgstr "新增文字"
-
 msgid "Font"
 msgstr "字體"
 
 msgid "Thickness"
 msgstr "厚度"
-
-msgid "Input text"
-msgstr "輸入文字"
-
-msgid "Embeded"
-msgstr "嵌入的"
 
 msgid "Text Gap"
 msgstr "文字間距"
@@ -550,11 +534,24 @@ msgid ""
 "depth"
 msgstr "內嵌深度"
 
+msgid "Input text"
+msgstr "輸入文字"
+
 msgid "Surface"
 msgstr "附著於曲面"
 
 msgid "Horizontal text"
 msgstr "水平文字"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + 滑鼠上移或下移"
+
+msgid "Rotate text"
+msgstr "旋轉文字"
+
+#, fuzzy
+msgid "Text shape"
+msgstr "新增文字"
 
 msgid "Ctrl+"
 msgstr ""
@@ -648,11 +645,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, fuzzy, c-format, boost-format
 msgid ""
 "%s\n"
@@ -681,6 +673,13 @@ msgstr "已經是最新版本。"
 
 msgid "Info"
 msgstr "資訊"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "重新建構"
@@ -6307,6 +6306,9 @@ msgstr "縮時錄影 G-code"
 msgid "Change filament G-code"
 msgstr "線材更換 G-code"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "暫停 G-code"
 
@@ -10437,6 +10439,9 @@ msgid ""
 "tool change"
 msgstr "換料時插入的G-code，包括T命令。"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12276,6 +12281,9 @@ msgstr ""
 "當需要打開印表機門進行列印時\n"
 "當列印較低溫度的耗材時，打開印表機門可以減少擠出機或熱端堵塞的可能性。 有關此"
 "內容的更多信息，請參見 Wiki。"
+
+#~ msgid "Embeded"
+#~ msgstr "嵌入的"
 
 #~ msgid ""
 #~ "Orca Slicer configuration file may be corrupted and is not abled to be "

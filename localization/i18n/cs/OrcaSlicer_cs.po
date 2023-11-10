@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-09-30 15:15+0200\n"
 "Last-Translator: René Mošner <Renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -497,26 +497,11 @@ msgstr "Malování pozice švu"
 msgid "Remove selection"
 msgstr "Odebrat výběr"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + pohyb myši nahoru nebo dolů"
-
-msgid "Rotate text"
-msgstr "Otočit text"
-
-msgid "Text shape"
-msgstr "Tvar textu"
-
 msgid "Font"
 msgstr "Písmo"
 
 msgid "Thickness"
 msgstr "Tloušťka"
-
-msgid "Input text"
-msgstr "Vložit text"
-
-msgid "Embeded"
-msgstr "Vloženo"
 
 msgid "Text Gap"
 msgstr "Mezera v textu"
@@ -531,11 +516,23 @@ msgstr ""
 "Vloženo\n"
 "hloubka"
 
+msgid "Input text"
+msgstr "Vložit text"
+
 msgid "Surface"
 msgstr "Povrch"
 
 msgid "Horizontal text"
 msgstr "Vodorovný text"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + pohyb myši nahoru nebo dolů"
+
+msgid "Rotate text"
+msgstr "Otočit text"
+
+msgid "Text shape"
+msgstr "Tvar textu"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -628,13 +625,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"Konfigurační soubor OrcaSlicer může být poškozen a nelze jej analyzovat."
-"Smažte soubor a zkuste to znovu."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -661,6 +651,13 @@ msgstr "Toto je nejnovější verze."
 
 msgid "Info"
 msgstr "Info"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Obnovit"
@@ -6204,6 +6201,9 @@ msgstr "Časosběrný G-kód"
 msgid "Change filament G-code"
 msgstr "G-kód Změny filamentu"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "G-kód Pauzy"
 
@@ -10504,6 +10504,9 @@ msgstr ""
 "Tento gkód se vloží při výměně filamentu, včetně příkazu T ke spuštění "
 "výměny nástroje"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12367,6 +12370,16 @@ msgstr ""
 "Otevření dveří tiskárny může snížit pravděpodobnost ucpaní extruderu/hotendu "
 "při tisku filamentu s nižší teplotou a vyšší teplotě uzavřeného prostoru. "
 "Další informace naleznete ve Wiki."
+
+#~ msgid "Embeded"
+#~ msgstr "Vloženo"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Konfigurační soubor OrcaSlicer může být poškozen a nelze jej analyzovat."
+#~ "Smažte soubor a zkuste to znovu."
 
 #~ msgid "Online Models"
 #~ msgstr "Online modely"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-10-07 12:57+0300\n"
 "Last-Translator: Sadri Ercan\n"
 "Language-Team: Türkçe\n"
@@ -497,26 +497,11 @@ msgstr "Dikiş boyama"
 msgid "Remove selection"
 msgstr "Seçimi kaldır"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
-
-msgid "Rotate text"
-msgstr "Metni döndür"
-
-msgid "Text shape"
-msgstr "Metin şekli"
-
 msgid "Font"
 msgstr "Yazı tipi"
 
 msgid "Thickness"
 msgstr "Kalınlık"
-
-msgid "Input text"
-msgstr "Giriş metni"
-
-msgid "Embeded"
-msgstr "Gömülü"
 
 msgid "Text Gap"
 msgstr "Metin Boşluğu"
@@ -531,11 +516,23 @@ msgstr ""
 "Gömülü\n"
 "derinlik"
 
+msgid "Input text"
+msgstr "Giriş metni"
+
 msgid "Surface"
 msgstr "Yüzey"
 
 msgid "Horizontal text"
 msgstr "Yatay metin"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
+
+msgid "Rotate text"
+msgstr "Metni döndür"
+
+msgid "Text shape"
+msgstr "Metin şekli"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -626,13 +623,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Çalışma Zamanı"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"OrcaSlicer yapılandırma dosyası bozulmuş olabilir ve ayrıştırılması mümkün "
-"olmayabilir. Lütfen dosyayı silin ve tekrar deneyin."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -659,6 +649,13 @@ msgstr "Bu en yeni versiyondur."
 
 msgid "Info"
 msgstr "Bilgi"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Yeniden yükleniyor"
@@ -6190,6 +6187,9 @@ msgstr "Time lapse G-code"
 msgid "Change filament G-code"
 msgstr "Filament değişimi G-kod"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "Duraklatma G-Kod"
 
@@ -10475,6 +10475,9 @@ msgstr ""
 "Bu gcode, takım değişimini tetiklemek için T komutu da dahil olmak üzere "
 "filament değiştirildiğinde eklenir"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12329,6 +12332,16 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#~ msgid "Embeded"
+#~ msgstr "Gömülü"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "OrcaSlicer yapılandırma dosyası bozulmuş olabilir ve ayrıştırılması "
+#~ "mümkün olmayabilir. Lütfen dosyayı silin ve tekrar deneyin."
 
 #~ msgid "Online Models"
 #~ msgstr "Çevrimiçi Modeller"
