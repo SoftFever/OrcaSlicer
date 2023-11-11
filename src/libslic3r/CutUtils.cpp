@@ -395,6 +395,9 @@ static void distribute_modifiers_from_object(ModelObject* from_obj, const int in
 
     for (ModelVolume* vol : from_obj->volumes)
         if (!vol->is_model_part()) {
+            // Don't add modifiers which are processed connectors
+            if (vol->cut_info.is_connector && !vol->cut_info.is_processed)
+                continue;
             auto bb = vol->mesh().transformed_bounding_box(inst_matrix * vol->get_matrix());
             // Don't add modifiers which are not intersecting with solid parts
             if (obj1_bb.intersects(bb))
@@ -425,6 +428,8 @@ static void merge_solid_parts_inside_object(ModelObjectPtrs& objects)
                 if (mv->is_model_part() && !mv->is_cut_connector())
                     mo->delete_volume(i);
             }
+            // Ensuring that volumes start with solid parts for proper slicing
+            mo->sort_volumes(true);
         }
     }
 }

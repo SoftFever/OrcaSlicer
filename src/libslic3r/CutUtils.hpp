@@ -65,8 +65,6 @@ public:
 
 }; // namespace Cut
 
-
-
 } // namespace Slic3r
 
 #endif /* slic3r_CutUtils_hpp_ */

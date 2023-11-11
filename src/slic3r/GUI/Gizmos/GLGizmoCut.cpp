@@ -3290,6 +3290,32 @@ void update_object_cut_id(CutObjectBase& cut_id, ModelObjectCutAttributes attrib
     }
 }
 
+static void check_objects_after_cut(const ModelObjectPtrs& objects)
+{
+    std::vector<std::string> err_objects_names;
+    for (const ModelObject* object : objects) {
+        std::vector<std::string> connectors_names;
+        connectors_names.reserve(object->volumes.size());
+        for (const ModelVolume* vol : object->volumes)
+            if (vol->cut_info.is_connector)
+                connectors_names.push_back(vol->name);
+        const size_t connectors_count = connectors_names.size();
+        sort_remove_duplicates(connectors_names);
+        if (connectors_count != connectors_names.size())
+            err_objects_names.push_back(object->name);
+    }
+    if (err_objects_names.empty())
+        return;
+
+    wxString names = from_u8(err_objects_names[0]);
+    for (size_t i = 1; i < err_objects_names.size(); i++)
+        names += ", " + from_u8(err_objects_names[i]);
+    WarningDialog(wxGetApp().plater(), format_wxstr("Objects(%1%) have duplicated connectors. "
+                                "Some connectors may be missing in slicing result.\n"
+                                "Please report to PrusaSlicer team in which scenario this issue happened.\n"
+                                "Thank you.", names)).ShowModal();
+}
+
 void synchronize_model_after_cut(Model& model, const CutObjectBase& cut_id)
 {
     for (ModelObject* obj : model.objects)
@@ -3354,6 +3380,9 @@ void GLGizmoCut3D::perform_cut(const Selection& selection)
         const ModelObjectPtrs& new_objects = cut_by_contour    ? cut.perform_by_contour(m_part_selection.get_cut_parts(), dowels_count):
                                              cut_with_groove   ? cut.perform_with_groove(m_groove, m_rotation_m) :
                                                                  cut.perform_with_plane();
+
+        check_objects_after_cut(new_objects);
+
         // save cut_id to post update synchronization
         const CutObjectBase cut_id = cut_mo->cut_id;
 
