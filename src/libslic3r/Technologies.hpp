@@ -60,7 +60,7 @@
 // Enable fit print volume command for circular printbeds
 #define ENABLE_ENHANCED_PRINT_VOLUME_FIT (1 && ENABLE_2_4_0_BETA2)
 // Enable picking using raytracing
-#define ENABLE_RAYCAST_PICKING_DEBUG (1)
+#define ENABLE_RAYCAST_PICKING_DEBUG 0
 
 
 #endif // _prusaslicer_technologies_h_
