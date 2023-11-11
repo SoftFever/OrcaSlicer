@@ -151,7 +151,7 @@ std::vector<Vec3d> MeshClipper::point_per_contour() const {
     }
     assert(m_result);
     for (auto isl : m_result->cut_islands) {
-        assert(isl.expoly.contour.size() > 2);
+        assert(isl->expoly.contour.size() > 2);
         // Now return a point lying inside the contour but not in a hole.
         // We do this by taking a point lying close to the edge, repeating
         // this several times for different edges and distances from them.

@@ -1192,6 +1192,7 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
     
     std::unordered_map<std::string, float>                 nozzle_diameter = nozzle_diameter_map;
     std::unordered_map<std::string, std::vector<Preset *>> machine_name_to_presets;
+    PresetBundle *                                         preset_bundle = wxGetApp().preset_bundle;
     for (std::pair<std::string, Preset*> filament_preset : m_all_presets_map) {
         Preset *    preset      = filament_preset.second;
         auto    compatible_printers = preset->config.option<ConfigOptionStrings>("compatible_printers", true);
@@ -1200,8 +1201,29 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
             continue;
         }
         for (std::string &compatible_printer_name : compatible_printers->values) {
-            if (m_visible_printers.find(compatible_printer_name) == m_visible_printers.end()) continue;
-            if (preset->name.find(type_name) == std::string::npos) continue;
+            if (m_visible_printers.find(compatible_printer_name) == m_visible_printers.end()) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatable printer is not visible and preset name is: " << preset->name;
+                continue;
+            }
+            Preset *             inherit_preset = nullptr;
+            auto inherit = dynamic_cast<ConfigOptionString*>(preset->config.option(BBL_JSON_KEY_INHERITS,false));
+            if (inherit && !inherit->value.empty()) {
+                std::string inherits_value = inherit->value;
+                inherit_preset             = preset_bundle->filaments.find_preset(inherits_value, false, true);
+            }
+            ConfigOptionStrings *filament_types;
+            if (!inherit_preset) {
+                filament_types = dynamic_cast<ConfigOptionStrings *>(preset->config.option("filament_type"));
+            } else {
+                filament_types = dynamic_cast<ConfigOptionStrings *>(inherit_preset->config.option("filament_type"));
+            }
+
+            if (filament_types && filament_types->values.empty()) continue;
+            const std::string filament_type = filament_types->values[0];
+            if (filament_type != type_name) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset type is not selected type and preset name is: " << preset->name;
+                continue;
+            }
             size_t index = compatible_printer_name.find("nozzle");
             if (index < 4) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
@@ -1247,17 +1269,15 @@ void CreateFilamentPresetDialog::get_all_filament_presets()
         m_all_presets_map[filament_preset_name] = filament_preset;
     }
     // global filament presets
-    PresetBundle *                                     preset_bundle               = wxGetApp().preset_bundle;
-    std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets = preset_bundle->filaments.get_filament_presets();
-    for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
-        if (filament_id_to_presets.first.empty()) continue;
-        for (const Preset *preset : filament_id_to_presets.second) {
-            if (preset->filament_id.empty() || "null" == preset->filament_id) continue;
-            std::string filament_preset_name = preset->name;
-            if (!preset->is_visible) continue;
-            Preset *filament_preset = new Preset(*preset);
-            m_all_presets_map[filament_preset_name] = filament_preset;
-        }
+    PresetBundle * preset_bundle = wxGetApp().preset_bundle;
+    const std::deque<Preset> &temp_filament_presets = preset_bundle->filaments.get_presets();
+    for (const Preset& preset : temp_filament_presets) {
+        if (preset.filament_id.empty() || "null" == preset.filament_id) continue;
+        std::string filament_preset_name = preset.name;
+        if (!preset.is_visible) continue;
+        Preset *filament_preset                 = new Preset(preset);
+        m_all_presets_map[filament_preset_name] = filament_preset;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " loaded preset name is: " << filament_preset->name;
     }
 }
 
@@ -3006,7 +3026,7 @@ bool CreatePrinterPresetDialog::validate_input_valid()
         }
 
         if (check_printable_area() == false) {
-            MessageDialog dlg(this, _L("Please check bed shape input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            MessageDialog dlg(this, _L("Please check bed printable shape and origin input."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return false;
         }
@@ -3097,7 +3117,7 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
         break;
     case FILAMENT: 
         success_text = new wxStaticText(this, wxID_ANY, _L("Filament Created")); 
-        next_step_text = new wxStaticText(this, wxID_ANY, _L("Please go to filament setting to edit your presets if you need")); 
+        next_step_text = new wxStaticText(this, wxID_ANY, _L("Please go to filament setting to edit your presets if you need.\nPlease note that nozzle temperature, hot bed temperature, and maximum volumetric speed have a significant impact on printing quality. Please set them carefully.")); 
         break;
     }
     success_text->SetFont(Label::Head_18);
@@ -4522,7 +4542,7 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
     for (const Preset &printer_preset : printer_presets) {
         if (printer_preset.is_visible) {
             if (m_preset_bundle->printers.get_preset_base(printer_preset) != &printer_preset) continue;
-            if (m_preset_bundle->printers.select_preset_by_name(printer_preset.name, false)) {
+            if (m_preset_bundle->printers.select_preset_by_name(printer_preset.name, true)) {
                 m_preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
                 const std::deque<Preset> &filament_presets = m_preset_bundle->filaments.get_presets();
                 for (const Preset &filament_preset : filament_presets) {
@@ -4564,6 +4584,7 @@ wxBoxSizer *CreatePresetForPrinterDialog::create_selected_printer_preset_sizer()
         }
         wxString printer_name              = from_u8(compatible_printer_name);
         printer_choices.push_back(printer_name);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and visible printer is: " << compatible_printer_name;
     }
     m_selected_printer->Set(printer_choices);
 
