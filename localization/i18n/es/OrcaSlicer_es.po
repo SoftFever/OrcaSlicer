@@ -254,7 +254,7 @@ msgid "%"
 msgstr "%"
 
 msgid "uniform scale"
-msgstr "escala uniforme"
+msgstr "Escala uniforme"
 
 msgid "Left click"
 msgstr "Click izquierdo"
@@ -842,10 +842,10 @@ msgid "Add modifier"
 msgstr "Añadir modificador"
 
 msgid "Add support blocker"
-msgstr "Añadir bloqueo soportes"
+msgstr "Añadir bloqueo de soportes"
 
 msgid "Add support enforcer"
-msgstr "Añadir forzado de soportes"
+msgstr "Añadir refuerzo de soportes"
 
 msgid "Select settings"
 msgstr "Seleccione los ajustes"
@@ -905,10 +905,10 @@ msgid "Set as individual objects"
 msgstr "Ajustar como objetos individuales"
 
 msgid "Fill bed with copies"
-msgstr "Fill bed with copies"
+msgstr "Llenar la cama de copias"
 
 msgid "Fill the remaining area of bed with copies of the selected object"
-msgstr "Fill the remaining area of bed with copies of the selected object"
+msgstr "Llena el resto del área de la cama con copias del objeto seleccionado"
 
 msgid "Printable"
 msgstr "Imprimible"
@@ -966,7 +966,7 @@ msgid "Flush into objects' support"
 msgstr "Purgar en los soportes de objetos"
 
 msgid "Edit in Parameter Table"
-msgstr "Editar en la Tabla de Parámetro"
+msgstr "Editar en la Tabla de Parámetros"
 
 msgid "Convert from inch"
 msgstr "Convertir desde pulgadas"
@@ -9191,13 +9191,13 @@ msgstr ""
 "Ajústelo a 0 para desactivarlo."
 
 msgid "Time cost"
+msgstr "Coste dinerario por hora"
+
+msgid "The printer cost per hour"
 msgstr ""
 "La cantidad de dinero que cuesta la impresión que vamos a realizar por hora. "
 "Podemos calcular el coste dependiendo de la potencia de la impresora, el "
 "coste del filamento, etc."
-
-msgid "The printer cost per hour"
-msgstr "Coste por hora de la impresión"
 
 msgid "money/h"
 msgstr "dinero/hora"
