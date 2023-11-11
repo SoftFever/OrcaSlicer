@@ -545,7 +545,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     }
     this->update_warning_texts();
 
-    m_page_advanced->Hide(); 
+//    m_page_advanced->Hide();
 
     // Now the same for simple mode:
     gridsizer_simple->Add(new wxStaticText(m_page_simple, wxID_ANY, wxString("")), 0, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL);
