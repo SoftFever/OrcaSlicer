@@ -1,0 +1,29 @@
+{
+
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.24mm Draft @FlyingBear Reborn3",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_process_common",
+    "bottom_shell_layers": "3",
+
+    "brim_width": "3",
+    "gap_infill_speed": "230",
+    "inner_wall_speed": "230",
+    "internal_solid_infill_speed": "230",
+    "layer_height": "0.24",
+    "overhang_1_4_speed": "0",
+    "overhang_2_4_speed": "50",
+    "overhang_3_4_speed": "30",
+    "print_settings_id": "0.24mm Draft @FlyingBear Reborn3",
+    "sparse_infill_speed": "230",
+    "top_shell_layers": "3",
+    "top_shell_thickness": "0.6",
+    "top_surface_line_width": "0.45",
+    "tree_support_wall_count": "1",
+    "wipe_on_loops": "0",
+    "compatible_printers": [
+        "FlyingBear Reborn3 0.4 nozzle"
+    ]
+}
