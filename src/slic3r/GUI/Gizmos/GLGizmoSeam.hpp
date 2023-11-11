@@ -41,6 +41,8 @@ protected:
     std::string get_action_snapshot_name() const override { return _u8L("Paint-on seam editing"); }
     static const constexpr float      CursorRadiusMin = 0.05f; // cannot be zero
 
+    const float get_cursor_radius_min() const override { return CursorRadiusMin; }
+
 private:
     bool on_init() override;
 
