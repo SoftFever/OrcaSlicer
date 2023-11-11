@@ -19,6 +19,11 @@
 <div id="Title">
 	<div class="trans" tid="t10">Printer Selection</div>
 </div>
+<div class="wrap">
+	<div class="search">
+		<input type="text" class="searchTerm" placeholder="Device keyword" oninput="textInput(this)">
+	</div>
+</div>
 <div id="Content"  class="ZScrol">
 
 <!--<div class="OneVendorBlock" Vendor="BBL">	
@@ -112,4 +117,19 @@
 	
 	
 </body>
+<script>
+	document.onkeydown = function (event) {
+		var e = event || window.event || arguments.callee.caller.arguments[0];
+
+		if (window.event) {
+			try { e.keyCode = 0; } catch (e) { }
+			e.returnValue = true;
+		}
+	};
+	let pModel = {};
+	let ModelNozzleSelected = {};
+	function textInput(obj) {
+		FilterModelList(obj.value);
+	}
+</script>
 </html>
