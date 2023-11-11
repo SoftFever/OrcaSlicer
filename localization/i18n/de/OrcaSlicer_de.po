@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-10 11:25+0100\n"
+"POT-Creation-Date: 2023-11-11 10:01+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -102,6 +102,9 @@ msgstr "Kein automatischer Support"
 msgid "Support Generated"
 msgstr "Support generiert"
 
+msgid "Gizmo-Place on Face"
+msgstr "Gizmo Platz auf das Gesicht legen"
+
 msgid "Lay on face"
 msgstr "Auf Fläche legen"
 
@@ -181,8 +184,14 @@ msgstr "Gemalt mit: Filament %1%"
 msgid "Move"
 msgstr "Bewegen"
 
+msgid "Gizmo-Move"
+msgstr "Gizmo-Bewegen"
+
 msgid "Rotate"
 msgstr "Drehen"
+
+msgid "Gizmo-Rotate"
+msgstr "Gizmo-Drehen"
 
 msgid "Optimize orientation"
 msgstr "Optimiere Ausrichtung"
@@ -193,11 +202,11 @@ msgstr "Anwenden"
 msgid "Scale"
 msgstr "Skalieren"
 
+msgid "Gizmo-Scale"
+msgstr "Gizmo-Skalieren"
+
 msgid "Error: Please close all toolbar menus first"
 msgstr "Fehler: Bitte schließen sie zuerst alle Werkzeugleistenmenüs"
-
-msgid "Tool-Lay on Face"
-msgstr "Werkzeug-lege auf Fläche"
 
 msgid "in"
 msgstr "in"
@@ -493,6 +502,15 @@ msgstr "Naht aufmalen"
 
 msgid "Remove selection"
 msgstr "Auswahl entfernen"
+
+msgid "Entering Seam painting"
+msgstr "Naht aufmalen starten"
+
+msgid "Leaving Seam painting"
+msgstr "Naht aufmalen beenden"
+
+msgid "Paint-on seam editing"
+msgstr "Naht aufmalen bearbeiten"
 
 msgid "Font"
 msgstr "Schiftart"
@@ -12729,6 +12747,9 @@ msgstr ""
 "Extruders/Hotends beim Drucken von Filamenten mit niedrigerer Temperatur bei "
 "höherer Gehäusetemperatur verringern. Weitere Informationen dazu finden Sie "
 "in der Wiki."
+
+#~ msgid "Tool-Lay on Face"
+#~ msgstr "Werkzeug-lege auf Fläche"
 
 #~ msgid "Embeded"
 #~ msgstr "Eingebettet"

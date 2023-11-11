@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-10 14:54+0800\n"
+"POT-Creation-Date: 2023-11-11 10:01+0100\n"
 "PO-Revision-Date: 2023-10-26 16:47+0900\n"
 "Last-Translator: Hotsolidinfill\n"
 "Language-Team: \n"
@@ -106,6 +106,9 @@ msgstr "자동 지지대 비활성"
 msgid "Support Generated"
 msgstr "지지대 생성됨"
 
+msgid "Gizmo-Place on Face"
+msgstr ""
+
 msgid "Lay on face"
 msgstr "바닥면 선택"
 
@@ -184,8 +187,14 @@ msgstr "칠하기에 사용한 필라멘트 %1%"
 msgid "Move"
 msgstr "이동"
 
+msgid "Gizmo-Move"
+msgstr ""
+
 msgid "Rotate"
 msgstr "회전"
+
+msgid "Gizmo-Rotate"
+msgstr ""
 
 msgid "Optimize orientation"
 msgstr "방향 최적화"
@@ -196,11 +205,11 @@ msgstr "적용"
 msgid "Scale"
 msgstr "배율"
 
+msgid "Gizmo-Scale"
+msgstr ""
+
 msgid "Error: Please close all toolbar menus first"
 msgstr "오류: 먼저 모든 도구 모음 메뉴를 닫으십시오."
-
-msgid "Tool-Lay on Face"
-msgstr "바닥면 선택 도구"
 
 msgid "in"
 msgstr "in"
@@ -494,6 +503,15 @@ msgstr "솔기 칠하기"
 
 msgid "Remove selection"
 msgstr "선택 삭제"
+
+msgid "Entering Seam painting"
+msgstr ""
+
+msgid "Leaving Seam painting"
+msgstr ""
+
+msgid "Paint-on seam editing"
+msgstr ""
 
 msgid "Font"
 msgstr "글꼴"
@@ -3100,7 +3118,7 @@ msgstr "용량:"
 msgid "Size:"
 msgstr "크기:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -5819,8 +5837,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"타임랩스 닦기 타워\"를 추가하는 것이 좋"
 "습니다\n"
@@ -8615,10 +8633,10 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
@@ -12112,6 +12130,9 @@ msgstr ""
 "더 높은 내부 온도로 낮은 온도의 필라멘트를 출력할 때 프린터 도어를 열면 압출"
 "기/핫엔드가 막힐 가능성을 줄일 수 있습니다. 이에 대한 자세한 내용은 Wiki에서 "
 "확인하세요."
+
+#~ msgid "Tool-Lay on Face"
+#~ msgstr "바닥면 선택 도구"
 
 #~ msgid "Embeded"
 #~ msgstr "매입"
