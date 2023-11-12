@@ -713,10 +713,14 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
     }
 }
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const
+void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type)
 {
-if (has_render_path)
-    marker.render(canvas_width, canvas_height, view_type);
+    if (has_render_path && m_show_marker) {
+        marker.set_world_position(current_position);
+        marker.set_world_offset(current_offset);
+
+        marker.render(canvas_width, canvas_height, view_type);
+    }
 
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
@@ -1013,7 +1017,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     m_settings_ids = gcode_result.settings_ids;
     m_filament_diameters = gcode_result.filament_diameters;
     m_filament_densities = gcode_result.filament_densities;
-m_sequential_view.m_show_gcode_window = false;
+    m_sequential_view.m_show_marker = false;
 
     //BBS: always load shell at preview
     /*if (wxGetApp().is_editor())
@@ -1295,15 +1299,9 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
 
     //BBS fixed bottom_margin for space to render horiz slider
     int bottom_margin = SLIDER_BOTTOM_MARGIN * GCODE_VIEWER_SLIDER_SCALE;
-    m_sequential_view.m_show_gcode_window =
-        m_sequential_view.m_show_gcode_window ||
-        (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path);
-    if (m_sequential_view.m_show_gcode_window) {
-        m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
-        m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
-        //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(!m_no_render_path, legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
-    }
+    m_sequential_view.m_show_marker = m_sequential_view.m_show_marker || (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path);
+    // BBS fixed buttom margin. m_moves_slider.pos_y
+    m_sequential_view.render(!m_no_render_path, legend_height, canvas_width, canvas_height - bottom_margin * m_scale, right_margin * m_scale, m_view_type);
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
