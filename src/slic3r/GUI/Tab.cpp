@@ -1911,6 +1911,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("max_travel_detour_distance");
         optgroup->append_single_option_line("extra_perimeters_on_overhangs");
         optgroup->append_single_option_line("overhang_reverse");
+        optgroup->append_single_option_line("overhang_reverse_internal_only");
         optgroup->append_single_option_line("overhang_reverse_threshold");
 
     page = add_options_page(L("Strength"), "empty");
