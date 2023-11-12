@@ -1412,7 +1412,8 @@ static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_
                 ExtrusionLoop *eloop = static_cast<ExtrusionLoop *>(entity);
                 // Only reverse when needed
                 bool need_reverse = ((eloop->loop_role() & elrHole) == elrHole) ? steep_overhang_hole : steep_overhang_contour;
-                if (need_reverse) {
+                
+                if (need_reverse && eloop[0].role()!=erExternalPerimeter) {
                     eloop->make_clockwise();
                 }
             }
