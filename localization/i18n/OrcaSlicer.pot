@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -489,25 +489,10 @@ msgstr ""
 msgid "Remove selection"
 msgstr ""
 
-msgid "Shift + Mouse move up or dowm"
-msgstr ""
-
-msgid "Rotate text"
-msgstr ""
-
-msgid "Text shape"
-msgstr ""
-
 msgid "Font"
 msgstr ""
 
 msgid "Thickness"
-msgstr ""
-
-msgid "Input text"
-msgstr ""
-
-msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
@@ -521,10 +506,22 @@ msgid ""
 "depth"
 msgstr ""
 
+msgid "Input text"
+msgstr ""
+
 msgid "Surface"
 msgstr ""
 
 msgid "Horizontal text"
+msgstr ""
+
+msgid "Shift + Mouse move up or dowm"
+msgstr ""
+
+msgid "Rotate text"
+msgstr ""
+
+msgid "Text shape"
 msgstr ""
 
 msgid "Ctrl+"
@@ -608,11 +605,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid ""
 "%s\n"
@@ -636,6 +628,13 @@ msgid "This is the newest version."
 msgstr ""
 
 msgid "Info"
+msgstr ""
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
 msgstr ""
 
 msgid "Rebuild"
@@ -5769,6 +5768,9 @@ msgstr ""
 msgid "Change filament G-code"
 msgstr ""
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr ""
 
@@ -9438,6 +9440,9 @@ msgstr ""
 msgid ""
 "This gcode is inserted when change filament, including T command to trigger "
 "tool change"
+msgstr ""
+
+msgid "This gcode is inserted when the extrusion role is changed"
 msgstr ""
 
 msgid ""

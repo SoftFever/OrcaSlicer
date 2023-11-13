@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V1.8.0 beta1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-10-31 14:13+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -498,26 +498,11 @@ msgstr "Рисование шва"
 msgid "Remove selection"
 msgstr "Удаление выделенного"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Мышь вверх или вниз"
-
-msgid "Rotate text"
-msgstr "Поворот текста"
-
-msgid "Text shape"
-msgstr "Форма текста"
-
 msgid "Font"
 msgstr "Шрифт"
 
 msgid "Thickness"
 msgstr "Толщина"
-
-msgid "Input text"
-msgstr "Введите текст"
-
-msgid "Embeded"
-msgstr "Проникновение"
 
 msgid "Text Gap"
 msgstr ""
@@ -534,11 +519,23 @@ msgstr ""
 "Глубина\n"
 "проникновения"
 
+msgid "Input text"
+msgstr "Введите текст"
+
 msgid "Surface"
 msgstr "На поверхности"
 
 msgid "Horizontal text"
 msgstr "Горизонтальный текст"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Мышь вверх или вниз"
+
+msgid "Rotate text"
+msgstr "Поворот текста"
+
+msgid "Text shape"
+msgstr "Форма текста"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -630,13 +627,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"Возможно, файл конфигурации OrcaSlicer повреждён и не может быть обработан. "
-"Пожалуйста, удалите файл и повторите попытку."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -664,6 +654,13 @@ msgstr "У вас стоит самая последняя версия."
 
 msgid "Info"
 msgstr "Информация"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Пересоздание"
@@ -6313,6 +6310,9 @@ msgstr "G-код таймлапса"
 msgid "Change filament G-code"
 msgstr "G-код выполняемый при смене прутка"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "G-код паузы печати"
 
@@ -10757,6 +10757,9 @@ msgstr ""
 "Этот G-код вставляется при смене материала, включая команду T для запуска "
 "смены инструмента."
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -12669,6 +12672,16 @@ msgstr ""
 "При печати низкотемпературным материалом при более высокой температуре в "
 "камере, открытие дверцы принтера снижает вероятность засорения экструдера/"
 "хотэнда. Более подробную информацию читайте на вики-сайте."
+
+#~ msgid "Embeded"
+#~ msgstr "Проникновение"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "Возможно, файл конфигурации OrcaSlicer повреждён и не может быть "
+#~ "обработан. Пожалуйста, удалите файл и повторите попытку."
 
 #~ msgid "AMS %s"
 #~ msgstr "АСПП №%s"

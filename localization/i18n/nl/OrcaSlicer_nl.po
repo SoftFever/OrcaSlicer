@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-07 21:36+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -492,27 +492,11 @@ msgstr "Naad schilderen"
 msgid "Remove selection"
 msgstr "Selectie verwijderen"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Muis op of neer"
-
-msgid "Rotate text"
-msgstr "Draai tekst"
-
-msgid "Text shape"
-msgstr "Tekstvorm"
-
 msgid "Font"
 msgstr "Lettertype"
 
 msgid "Thickness"
 msgstr "Dikte"
-
-msgid "Input text"
-msgstr "Tekst invoeren"
-
-# Source and destination string both English but don't match!
-msgid "Embeded"
-msgstr "Embedded"
 
 msgid "Text Gap"
 msgstr "Tekstruimte"
@@ -525,11 +509,23 @@ msgid ""
 "depth"
 msgstr "Embedded depth"
 
+msgid "Input text"
+msgstr "Tekst invoeren"
+
 msgid "Surface"
 msgstr "Oppervlak"
 
 msgid "Horizontal text"
 msgstr "Horizontale tekst"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Muis op of neer"
+
+msgid "Rotate text"
+msgstr "Draai tekst"
+
+msgid "Text shape"
+msgstr "Tekstvorm"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -623,13 +619,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"OrcaSlicer configuratiebestand is mogelijks corrupt, en kan niet verwerkt "
-"worden.Verwijder het configuratiebestand en probeer het opnieuw."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -657,6 +646,13 @@ msgstr "Dit is de nieuwste versie."
 
 msgid "Info"
 msgstr "Informatie"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Herbouwen"
@@ -6207,6 +6203,9 @@ msgstr ""
 msgid "Change filament G-code"
 msgstr "Filament G-code aanpassen"
 
+msgid "Change extrusion role G-code"
+msgstr ""
+
 msgid "Pause G-code"
 msgstr "Pauzeer G-code"
 
@@ -10286,6 +10285,9 @@ msgstr ""
 "Deze G-code wordt ingevoegd wanneer filament wordt vervangen, inclusief T-"
 "commando's om gereedschapswissel te activeren."
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -11999,6 +12001,17 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+# Source and destination string both English but don't match!
+#~ msgid "Embeded"
+#~ msgstr "Embedded"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "OrcaSlicer configuratiebestand is mogelijks corrupt, en kan niet verwerkt "
+#~ "worden.Verwijder het configuratiebestand en probeer het opnieuw."
 
 #~ msgid "Online Models"
 #~ msgstr "Online Models"
