@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2022 Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "../Layer.hpp"
 #include "../GCode.hpp"
 #include "../EdgeGrid.hpp"
@@ -13,6 +17,8 @@
 #include <unordered_set>
 #include <boost/range/adaptor/reversed.hpp>
 
+//#define AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
+
 namespace Slic3r {
 
 struct TravelPoint
@@ -20,6 +26,8 @@ struct TravelPoint
     Point point;
     // Index of the polygon containing this point. A negative value indicates that the point is not on any border.
     int   border_idx;
+    // simplify_travel() doesn't remove this point.
+    bool  do_not_remove = false;
 };
 
 struct Intersection
@@ -32,6 +40,8 @@ struct Intersection
     Point  point;
     // Distance from the first point in the corresponding boundary
     float  distance;
+    // simplify_travel() doesn't remove this point.
+    bool   do_not_remove = false;
 };
 
 struct ClosestLine
@@ -207,8 +217,8 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
             const ClosestLine &cl_start = start_lines[cl_indices.first];
             const ClosestLine &cl_end   = end_lines[cl_indices.second];
             std::vector<Intersection> new_intersections;
-            new_intersections.push_back({cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)});
-            new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)});
+            new_intersections.push_back({cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start), true});
+            new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end), true});
             return new_intersections;
         }
     }
@@ -259,7 +269,7 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
         if (cl_start_idx != std::numeric_limits<size_t>::max()) {
             // If there is any ClosestLine around the start point closer to the Intersection, then replace this Intersection with ClosestLine.
             const ClosestLine &cl_start = start_lines[cl_start_idx];
-            new_intersections.front()   = {cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)};
+            new_intersections.front()   = {cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start), true};
         } else {
             // Check if there is any ClosestLine with the same boundary_idx as any Intersection. If this ClosestLine exists, then add it to the
             // vector of intersections. This allows in some cases when it is more than one around ClosestLine start point chose that one which
@@ -267,7 +277,7 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
             // use the first one, which is the closest one to the start point.
             size_t             start_closest_lines_idx = find_closest_line_with_same_boundary_idx(start_lines, new_intersections, true);
             const ClosestLine &cl_start                = (start_closest_lines_idx != std::numeric_limits<size_t>::max()) ? start_lines[start_closest_lines_idx] : start_lines.front();
-            new_intersections.insert(new_intersections.begin(),{cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)});
+            new_intersections.insert(new_intersections.begin(),{cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start), true});
         }
     }
 
@@ -276,7 +286,7 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
         if (cl_end_idx != std::numeric_limits<size_t>::max()) {
             // If there is any ClosestLine around the end point closer to the Intersection, then replace this Intersection with ClosestLine.
             const ClosestLine &cl_end = end_lines[cl_end_idx];
-            new_intersections.back()  = {cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)};
+            new_intersections.back()  = {cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end), true};
         } else {
             // Check if there is any ClosestLine with the same boundary_idx as any Intersection. If this ClosestLine exists, then add it to the
             // vector of intersections. This allows in some cases when it is more than one around ClosestLine end point chose that one which
@@ -284,7 +294,7 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
             // use the first one, which is the closest one to the end point.
             size_t             end_closest_lines_idx = find_closest_line_with_same_boundary_idx(end_lines, new_intersections, false);
             const ClosestLine &cl_end                = (end_closest_lines_idx != std::numeric_limits<size_t>::max()) ? end_lines[end_closest_lines_idx] : end_lines.front();
-            new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)});
+            new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end), true});
         }
     }
     return new_intersections;
@@ -350,8 +360,6 @@ static Polyline to_polyline(const std::vector<TravelPoint> &travel)
     return result;
 }
 
-// #define AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
-
 #ifdef AVOID_CROSSING_PERIMETERS_DEBUG_OUTPUT
 static void export_travel_to_svg(const Polygons                  &boundary,
                                  const Line                      &original_travel,
@@ -359,16 +367,17 @@ static void export_travel_to_svg(const Polygons                  &boundary,
                                  const std::vector<Intersection> &intersections,
                                  const std::string               &path)
 {
-    BoundingBox   bbox = get_extents(boundary);
+    coordf_t      stroke_width = scale_(0.05);
+    BoundingBox   bbox         = get_extents(boundary);
     ::Slic3r::SVG svg(path, bbox);
-    svg.draw_outline(boundary, "green");
-    svg.draw(original_travel, "blue");
-    svg.draw(result_travel, "red");
-    svg.draw(original_travel.a, "black");
-    svg.draw(original_travel.b, "grey");
+    svg.draw_outline(boundary, "green", stroke_width);
+    svg.draw(original_travel, "blue", stroke_width);
+    svg.draw(result_travel, "red", stroke_width);
+    svg.draw(original_travel.a, "black", stroke_width);
+    svg.draw(original_travel.b, "grey", stroke_width);
 
     for (const Intersection &intersection : intersections)
-        svg.draw(intersection.point, "lightseagreen");
+        svg.draw(intersection.point, "lightseagreen", stroke_width);
 }
 
 static void export_travel_to_svg(const Polygons                  &boundary,
@@ -433,21 +442,30 @@ static std::vector<TravelPoint> simplify_travel(const AvoidCrossingPerimeters::B
 
         visitor.pt_current = &current_point;
 
-        for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
-            if (travel[point_idx_2].point == current_point) {
-                next      = travel[point_idx_2];
-                point_idx = point_idx_2;
-                continue;
-            }
+        if (!next.do_not_remove)
+            for (size_t point_idx_2 = point_idx + 1; point_idx_2 < travel.size(); ++point_idx_2) {
+                // Workaround for some issue in MSVC 19.29.30037 32-bit compiler.
+#if defined(_WIN32) && !defined(_WIN64)
+                if (bool volatile do_not_remove = travel[point_idx_2].do_not_remove; do_not_remove)
+                    break;
+#else
+                if (travel[point_idx_2].do_not_remove)
+                    break;
+#endif
+                if (travel[point_idx_2].point == current_point) {
+                    next      = travel[point_idx_2];
+                    point_idx = point_idx_2;
+                    continue;
+                }
 
-            visitor.pt_next = &travel[point_idx_2].point;
-            boundary.grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
-            // Check if deleting point causes crossing a boundary
-            if (!visitor.intersect) {
-                next      = travel[point_idx_2];
-                point_idx = point_idx_2;
+                visitor.pt_next = &travel[point_idx_2].point;
+                boundary.grid.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+                // Check if deleting point causes crossing a boundary
+                if (!visitor.intersect) {
+                    next      = travel[point_idx_2];
+                    point_idx = point_idx_2;
+                }
             }
-        }
 
         simplified_path.emplace_back(next);
     }
@@ -473,7 +491,7 @@ static float get_perimeter_spacing(const Layer &layer)
     size_t regions_count     = 0;
     float  perimeter_spacing = 0.f;
     for (const LayerRegion *layer_region : layer.regions())
-        if (layer_region != nullptr && !layer_region->slices.empty()) {
+        if (layer_region != nullptr && ! layer_region->slices.empty()) {
             perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
             ++regions_count;
         }
@@ -494,7 +512,7 @@ static float get_perimeter_spacing_external(const Layer &layer)
     for (const PrintObject *object : layer.object()->print()->objects())
         if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
             for (const LayerRegion *layer_region : l->regions())
-                if (layer_region != nullptr && !layer_region->slices.empty()) {
+                if (layer_region != nullptr && ! layer_region->slices.empty()) {
                     perimeter_spacing += layer_region->flow(frPerimeter).scaled_spacing();
                     ++ regions_count;
                 }
@@ -505,6 +523,25 @@ static float get_perimeter_spacing_external(const Layer &layer)
     else
         perimeter_spacing = get_default_perimeter_spacing(*layer.object());
     return perimeter_spacing;
+}
+
+// Returns average perimeter width calculated from all LayerRegion within the layer.
+static float get_external_perimeter_width(const Layer &layer)
+{
+    size_t regions_count     = 0;
+    float  perimeter_width   = 0.f;
+    for (const LayerRegion *layer_region : layer.regions())
+        if (layer_region != nullptr && ! layer_region->slices.empty()) {
+            perimeter_width += float(layer_region->flow(frExternalPerimeter).scaled_width());
+            ++regions_count;
+        }
+
+    assert(perimeter_width >= 0.f);
+    if (regions_count != 0)
+        perimeter_width /= float(regions_count);
+    else
+        perimeter_width = get_default_perimeter_spacing(*layer.object());
+    return perimeter_width;
 }
 
 // Called by avoid_perimeters() and by simplify_travel_heuristics().
@@ -566,7 +603,7 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
         // Offset of the polygon's point using get_middle_point_offset is used to simplify the calculation of intersection between the
         // boundary and the travel. The appended point is translated in the direction of inward normal. This translation ensures that the
         // appended point will be inside the polygon and not on the polygon border.
-        result.push_back({get_middle_point_offset(boundaries[intersection_first.border_idx], left_idx, right_idx, intersection_first.point, coord_t(SCALED_EPSILON)), int(intersection_first.border_idx)});
+        result.push_back({get_middle_point_offset(boundaries[intersection_first.border_idx], left_idx, right_idx, intersection_first.point, coord_t(SCALED_EPSILON)), int(intersection_first.border_idx), intersection_first.do_not_remove});
 
         // Check if intersection line also exit the boundary polygon
         if (it_second_r != it_last_item) {
@@ -590,7 +627,7 @@ static size_t avoid_perimeters_inner(const AvoidCrossingPerimeters::Boundary &bo
             // Append the farthest intersection into the path
             left_idx  = intersection_second.line_idx;
             right_idx = (intersection_second.line_idx >= (boundaries[intersection_second.border_idx].points.size() - 1)) ? 0 : (intersection_second.line_idx + 1);
-            result.push_back({get_middle_point_offset(boundaries[intersection_second.border_idx], left_idx, right_idx, intersection_second.point, coord_t(SCALED_EPSILON)), int(intersection_second.border_idx)});
+            result.push_back({get_middle_point_offset(boundaries[intersection_second.border_idx], left_idx, right_idx, intersection_second.point, coord_t(SCALED_EPSILON)), int(intersection_second.border_idx), intersection_second.do_not_remove});
             // Skip intersections in between
             it_first = it_second;
         }
@@ -645,22 +682,22 @@ static size_t avoid_perimeters(const AvoidCrossingPerimeters::Boundary &boundary
 // Check if anyone of ExPolygons contains whole travel.
 // called by need_wipe() and AvoidCrossingPerimeters::travel_to()
 // FIXME Lukas H.: Maybe similar approach could also be used for ExPolygon::contains()
-static bool any_expolygon_contains(const ExPolygons               &ex_polygons,
-                                   const std::vector<BoundingBox> &ex_polygons_bboxes,
-                                   const EdgeGrid::Grid            &grid_lslice,
+static bool any_expolygon_contains(const ExPolygons               &lslices_offset,
+                                   const std::vector<BoundingBox> &lslices_offset_bboxes,
+                                   const EdgeGrid::Grid            &grid_lslices_offset,
                                    const Line                      &travel)
 {
-    assert(ex_polygons.size() == ex_polygons_bboxes.size());
-    if(!grid_lslice.bbox().contains(travel.a) || !grid_lslice.bbox().contains(travel.b))
+    assert(lslices_offset.size() == lslices_offset_bboxes.size());
+    if(!grid_lslices_offset.bbox().contains(travel.a) || !grid_lslices_offset.bbox().contains(travel.b))
         return false;
 
-    FirstIntersectionVisitor visitor(grid_lslice);
+    FirstIntersectionVisitor visitor(grid_lslices_offset);
     visitor.pt_current = &travel.a;
     visitor.pt_next    = &travel.b;
-    grid_lslice.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+    grid_lslices_offset.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
     if (!visitor.intersect) {
-        for (const ExPolygon &ex_polygon : ex_polygons) {
-            const BoundingBox &bbox = ex_polygons_bboxes[&ex_polygon - &ex_polygons.front()];
+        for (const ExPolygon &ex_polygon : lslices_offset) {
+            const BoundingBox &bbox = lslices_offset_bboxes[&ex_polygon - &lslices_offset.front()];
             if (bbox.contains(travel.a) && bbox.contains(travel.b) && ex_polygon.contains(travel.a))
                 return true;
         }
@@ -670,18 +707,18 @@ static bool any_expolygon_contains(const ExPolygons               &ex_polygons,
 
 // Check if anyone of ExPolygons contains whole travel.
 // called by need_wipe()
-static bool any_expolygon_contains(const ExPolygons &ex_polygons, const std::vector<BoundingBox> &ex_polygons_bboxes, const EdgeGrid::Grid &grid_lslice, const Polyline &travel)
+static bool any_expolygon_contains(const ExPolygons &ex_polygons, const std::vector<BoundingBox> &ex_polygons_bboxes, const EdgeGrid::Grid &grid_lslice_offset, const Polyline &travel)
 {
     assert(ex_polygons.size() == ex_polygons_bboxes.size());
-    if(std::any_of(travel.points.begin(), travel.points.end(), [&grid_lslice](const Point &point) { return !grid_lslice.bbox().contains(point); }))
+    if(std::any_of(travel.points.begin(), travel.points.end(), [&grid_lslice_offset](const Point &point) { return !grid_lslice_offset.bbox().contains(point); }))
         return false;
 
-    FirstIntersectionVisitor visitor(grid_lslice);
+    FirstIntersectionVisitor visitor(grid_lslice_offset);
     bool any_intersection = false;
     for (size_t line_idx = 1; line_idx < travel.size(); ++line_idx) {
         visitor.pt_current = &travel.points[line_idx - 1];
         visitor.pt_next    = &travel.points[line_idx];
-        grid_lslice.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
+        grid_lslice_offset.visit_cells_intersecting_line(*visitor.pt_current, *visitor.pt_next, visitor);
         any_intersection = visitor.intersect;
         if (any_intersection) break;
     }
@@ -698,13 +735,13 @@ static bool any_expolygon_contains(const ExPolygons &ex_polygons, const std::vec
 }
 
 static bool need_wipe(const GCode          &gcodegen,
-                      const EdgeGrid::Grid &grid_lslice,
-                      const Line           &original_travel,
-                      const Polyline       &result_travel,
-                      const size_t          intersection_count)
+                      const ExPolygons               &lslices_offset,
+                      const std::vector<BoundingBox> &lslices_offset_bboxes,
+                      const EdgeGrid::Grid           &grid_lslices_offset,
+                      const Line                     &original_travel,
+                      const Polyline                 &result_travel,
+                      const size_t                    intersection_count)
 {
-    const ExPolygons               &lslices        = gcodegen.layer()->lslices;
-    const std::vector<BoundingBox> &lslices_bboxes = gcodegen.layer()->lslices_bboxes;
     bool z_lift_enabled = gcodegen.config().z_hop.get_at(gcodegen.writer().extruder()->id()) > 0.;
     bool wipe_needed    = false;
 
@@ -714,16 +751,16 @@ static bool need_wipe(const GCode          &gcodegen,
         // The original layer is intersected with defined boundaries. Then it is necessary to make a detailed test.
         // If the z-lift is enabled, then a wipe is needed when the original travel leads above the holes.
         if (z_lift_enabled) {
-            if (any_expolygon_contains(lslices, lslices_bboxes, grid_lslice, original_travel)) {
+            if (any_expolygon_contains(lslices_offset, lslices_offset_bboxes, grid_lslices_offset, original_travel)) {
                 // Check if original_travel and result_travel are not same.
                 // If both are the same, then it is possible to skip testing of result_travel
                 wipe_needed = !(result_travel.size() > 2 && result_travel.first_point() == original_travel.a && result_travel.last_point() == original_travel.b) &&
-                              !any_expolygon_contains(lslices, lslices_bboxes, grid_lslice, result_travel);
+                              !any_expolygon_contains(lslices_offset, lslices_offset_bboxes, grid_lslices_offset, result_travel);
             } else {
                 wipe_needed = true;
             }
         } else {
-            wipe_needed = !any_expolygon_contains(lslices, lslices_bboxes, grid_lslice, result_travel);
+            wipe_needed = !any_expolygon_contains(lslices_offset, lslices_offset_bboxes, grid_lslices_offset, result_travel);
         }
     }
 
@@ -945,55 +982,71 @@ static std::vector<float> contour_distance(const EdgeGrid::Grid     &grid,
 // ExPolygons are handled one by one so returned ExPolygons could intersect.
 static ExPolygons inner_offset(const ExPolygons &ex_polygons, double offset)
 {
-    double     min_contour_width = 2. * offset + SCALED_EPSILON;
-    double     search_radius     = 2. * (offset + min_contour_width);
-    ExPolygons ex_poly_result    = ex_polygons;
+    const std::vector<double> min_contour_width_values = {offset / 2., offset, 2. * offset + SCALED_EPSILON};
+    ExPolygons                ex_poly_result           = ex_polygons;
     resample_expolygons(ex_poly_result, offset / 2, scaled<double>(0.5));
 
     for (ExPolygon &ex_poly : ex_poly_result) {
         BoundingBox bbox(get_extents(ex_poly));
         bbox.offset(SCALED_EPSILON);
-        EdgeGrid::Grid grid;
-        grid.set_bbox(bbox);
-        grid.create(ex_poly, coord_t(0.7 * search_radius));
 
-        std::vector<std::vector<float>> ex_poly_distances;
-        precompute_expolygon_distances(ex_poly, ex_poly_distances);
+        // Filter out expolygons smaller than 0.1mm^2
+        if (Vec2d bbox_size = bbox.size().cast<double>(); bbox_size.x() * bbox_size.y() < Slic3r::sqr(scale_(0.1f)))
+            continue;
 
-        std::vector<std::vector<float>> offsets;
-        offsets.reserve(ex_poly.holes.size() + 1);
-        for (size_t idx_contour = 0; idx_contour <= ex_poly.holes.size(); ++idx_contour) {
-            const Polygon &poly = (idx_contour == 0) ? ex_poly.contour : ex_poly.holes[idx_contour - 1];
-            assert(poly.is_counter_clockwise() == (idx_contour == 0));
-            std::vector<float> distances = contour_distance(grid, ex_poly_distances[idx_contour], idx_contour, poly, offset, search_radius);
-            for (float &distance : distances) {
-                if (distance < min_contour_width)
-                    distance = 0.f;
-                else if (distance > min_contour_width + 2. * offset)
-                    distance = - float(offset);
-                else
-                    distance = - (distance - float(min_contour_width)) / 2.f;
-            }
-            offsets.emplace_back(distances);
-        }
+        for (const double &min_contour_width : min_contour_width_values) {
+            const size_t min_contour_width_idx = &min_contour_width - &min_contour_width_values.front();
+            const double search_radius         = 2. * (offset + min_contour_width);
 
-        ExPolygons offset_ex_poly = variable_offset_inner_ex(ex_poly, offsets);
-        // If variable_offset_inner_ex produces empty result, then original ex_polygon is used
-        if (offset_ex_poly.size() == 1) {
-            ex_poly = std::move(offset_ex_poly.front());
-        } else if (offset_ex_poly.size() > 1) {
-            // fix_after_inner_offset called inside variable_offset_inner_ex sometimes produces
-            // tiny artefacts polygons, so these artefacts are removed.
-            double max_area     = offset_ex_poly.front().area();
-            size_t max_area_idx = 0;
-            for (size_t poly_idx = 1; poly_idx < offset_ex_poly.size(); ++poly_idx) {
-                double area = offset_ex_poly[poly_idx].area();
-                if (max_area < area) {
-                    max_area     = area;
-                    max_area_idx = poly_idx;
+            EdgeGrid::Grid grid;
+            grid.set_bbox(bbox);
+            grid.create(ex_poly, coord_t(0.7 * search_radius));
+
+            std::vector<std::vector<float>> ex_poly_distances;
+            precompute_expolygon_distances(ex_poly, ex_poly_distances);
+
+            std::vector<std::vector<float>> offsets;
+            offsets.reserve(ex_poly.holes.size() + 1);
+            for (size_t idx_contour = 0; idx_contour <= ex_poly.holes.size(); ++idx_contour) {
+                const Polygon &poly = (idx_contour == 0) ? ex_poly.contour : ex_poly.holes[idx_contour - 1];
+                assert(poly.is_counter_clockwise() == (idx_contour == 0));
+                std::vector<float> distances = contour_distance(grid, ex_poly_distances[idx_contour], idx_contour, poly, offset, search_radius);
+                for (float &distance : distances) {
+                    if (distance < min_contour_width)
+                        distance = 0.f;
+                    else if (distance > min_contour_width + 2. * offset)
+                        distance = -float(offset);
+                    else
+                        distance = -(distance - float(min_contour_width)) / 2.f;
                 }
+                offsets.emplace_back(distances);
             }
-            ex_poly = std::move(offset_ex_poly[max_area_idx]);
+
+            ExPolygons offset_ex_poly = variable_offset_inner_ex(ex_poly, offsets);
+            // If variable_offset_inner_ex produces empty result, then original ex_polygon is used
+            if (offset_ex_poly.size() == 1 && offset_ex_poly.front().holes.size() == ex_poly.holes.size()) {
+                ex_poly = std::move(offset_ex_poly.front());
+                break;
+            } else if ((min_contour_width_idx + 1) < min_contour_width_values.size()) {
+                continue; // Try the next round with bigger min_contour_width.
+            } else if (offset_ex_poly.size() == 1) {
+                ex_poly = std::move(offset_ex_poly.front());
+                break;
+            } else if (offset_ex_poly.size() > 1) {
+                // fix_after_inner_offset called inside variable_offset_inner_ex sometimes produces
+                // tiny artefacts polygons, so these artefacts are removed.
+                double max_area     = offset_ex_poly.front().area();
+                size_t max_area_idx = 0;
+                for (size_t poly_idx = 1; poly_idx < offset_ex_poly.size(); ++poly_idx) {
+                    double area = offset_ex_poly[poly_idx].area();
+                    if (max_area < area) {
+                        max_area     = area;
+                        max_area_idx = poly_idx;
+                    }
+                }
+                ex_poly = std::move(offset_ex_poly[max_area_idx]);
+                break;
+            }
         }
     }
     return ex_poly_result;
@@ -1133,10 +1186,8 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     Vec2d startf = start.cast<double>();
     Vec2d endf   = end  .cast<double>();
 
-    const ExPolygons               &lslices          = gcodegen.layer()->lslices;
-    const std::vector<BoundingBox> &lslices_bboxes   = gcodegen.layer()->lslices_bboxes;
-    bool                            is_support_layer = (dynamic_cast<const SupportLayer *>(gcodegen.layer()) != nullptr);
-    if (!use_external && (is_support_layer || (!lslices.empty() && !any_expolygon_contains(lslices, lslices_bboxes, m_grid_lslice, travel)))) {
+    bool is_support_layer = dynamic_cast<const SupportLayer *>(gcodegen.layer()) != nullptr;
+    if (!use_external && (is_support_layer || (!m_lslices_offset.empty() && !any_expolygon_contains(m_lslices_offset, m_lslices_offset_bboxes, m_grid_lslices_offset, travel)))) {
         // Initialize m_internal only when it is necessary.
         if (m_internal.boundaries.empty())
             init_boundary(&m_internal, to_polygons(get_boundary(*gcodegen.layer())));
@@ -1186,7 +1237,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     } else if (max_detour_length_exceeded) {
         *could_be_wipe_disabled = false;
     } else
-        *could_be_wipe_disabled = !need_wipe(gcodegen, m_grid_lslice, travel, result_pl, travel_intersection_count);
+        *could_be_wipe_disabled = !need_wipe(gcodegen, m_lslices_offset, m_lslices_offset_bboxes, m_grid_lslices_offset, travel, result_pl, travel_intersection_count);
 
     return result_pl;
 }
@@ -1197,13 +1248,21 @@ void AvoidCrossingPerimeters::init_layer(const Layer &layer)
 {
     m_internal.clear();
     m_external.clear();
+    m_lslices_offset.clear();
+    m_lslices_offset_bboxes.clear();
+
+    float perimeter_offset = -get_external_perimeter_width(layer) / float(2.);
+    m_lslices_offset        = offset_ex(layer.lslices, perimeter_offset);
+
+    m_lslices_offset_bboxes.reserve(m_lslices_offset.size());
+    for (const ExPolygon &ex_poly : m_lslices_offset)
+        m_lslices_offset_bboxes.emplace_back(get_extents(ex_poly));
 
     BoundingBox bbox_slice(get_extents(layer.lslices));
     bbox_slice.offset(SCALED_EPSILON);
 
-    m_grid_lslice.set_bbox(bbox_slice);
-    //FIXME 1mm grid?
-    m_grid_lslice.create(layer.lslices, coord_t(scale_(1.)));
+    m_grid_lslices_offset.set_bbox(bbox_slice);
+    m_grid_lslices_offset.create(m_lslices_offset, coord_t(scale_(1.)));
 }
 
 #if 0

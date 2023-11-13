@@ -710,7 +710,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             if (is_ramming)
                 gcodegen.m_wipe.reset_path();                                           // We don't want wiping on the ramming lines.
             toolchange_gcode_str = gcodegen.set_extruder(new_extruder_id, tcr.print_z); // TODO: toolchange_z vs print_z
-            if (gcodegen.config().has_prime_tower)
+            if (gcodegen.config().enable_prime_tower)
                 deretraction_str = gcodegen.unretract();
         }
 
@@ -925,7 +925,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size())
             return gcode;
-        if (gcodegen.config().purge_in_prime_tower) {
+        if (!gcodegen.is_BBL_Printer()) {
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (m_layer_idx < (int) m_tool_changes.size()) {
                     if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
@@ -1206,8 +1206,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
             || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double top_cd = object.config().support_top_z_distance;
-            //double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
-            double bottom_cd = top_cd;
+            double bottom_cd = object.config().support_bottom_z_distance;
 
             double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
@@ -1402,6 +1401,8 @@ namespace DoExport {
         //BBS
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
+        //Orca
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Change extrusion role G-code")), config.change_extrusion_role_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.machine_pause_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
@@ -2187,7 +2188,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
         }
         auto center = bbox_wo_wt.center();
-        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(), center.y()));
+        this->placeholder_parser().set("first_layer_center_no_wipe_tower", new ConfigOptionFloats({center.x(), center.y()}));
+    }
+    bool activate_chamber_temp_control = false;
+    auto max_chamber_temp              = 0;
+    for (const auto &extruder : m_writer.extruders()) {
+        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
+        max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
     }
     float outer_wall_volumetric_speed = 0.0f;
     {
@@ -2202,6 +2209,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
         this->placeholder_parser().set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
         this->placeholder_parser().set("chamber_temperature",new ConfigOptionInts(m_config.chamber_temperature));
+        this->placeholder_parser().set("overall_chamber_temperature", new ConfigOptionInt(max_chamber_temp));
 
         // SoftFever: support variables `first_layer_temperature` and `first_layer_bed_temperature`
         this->placeholder_parser().set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
@@ -2249,13 +2257,6 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     // Orca: set chamber temperature at the beginning of gcode file
-    bool activate_chamber_temp_control = false;
-    auto max_chamber_temp = 0;
-    for (const auto &extruder : m_writer.extruders()) {
-        activate_chamber_temp_control |= m_config.activate_chamber_temp_control.get_at(extruder.id());
-        max_chamber_temp = std::max(max_chamber_temp, m_config.chamber_temperature.get_at(extruder.id()));
-    }
-
     if (activate_chamber_temp_control && max_chamber_temp > 0)
         file.write(m_writer.set_chamber_temperature(max_chamber_temp, true)); // set chamber_temperature
 
@@ -4215,8 +4216,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
 
     // SoftFever: check loop lenght for small perimeter. 
     double small_peri_speed = -1;
-    if (speed == -1 && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.value))
-        small_peri_speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
+    if (speed == -1 && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.value)) {
+        if(m_config.small_perimeter_speed == 0)
+            small_peri_speed = m_config.outer_wall_speed * 0.5;
+        else
+            small_peri_speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
+    }
 
     // extrude along the path
     std::string gcode;
@@ -4751,6 +4756,18 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     double F = speed * 60;  // convert mm/sec to mm/min
 
+    //Orca: process custom gcode for extrusion role change
+    if (path.role() != m_last_extrusion_role && !m_config.change_extrusion_role_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("extrusion_role", new ConfigOptionString(extrusion_role_to_string_for_parser(path.role())));
+            config.set_key_value("last_extrusion_role", new ConfigOptionString(extrusion_role_to_string_for_parser(m_last_extrusion_role)));
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index + 1));
+            config.set_key_value("layer_z", new ConfigOptionFloat(m_layer == nullptr ? m_last_height : m_layer->print_z));
+            gcode += this->placeholder_parser_process("change_extrusion_role_gcode",
+                                                      m_config.change_extrusion_role_gcode.value, m_writer.extruder()->id(), &config)
+                     + "\n";
+    }
+
     // extrude arc or line
     if (m_enable_extrusion_role_markers) {
         if (path.role() != m_last_extrusion_role) {
@@ -4996,6 +5013,35 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     this->set_last_pos(path.last_point());
     return gcode;
+}
+
+//Orca: get string name of extrusion role. used for change_extruder_role_gcode
+std::string GCode::extrusion_role_to_string_for_parser(const ExtrusionRole & role)
+{
+    switch (role) {
+        case erPerimeter: return "Perimeter";
+        case erExternalPerimeter: return "ExternalPerimeter";
+        case erOverhangPerimeter: return "OverhangPerimeter";
+        case erInternalInfill: return "InternalInfill";
+        case erSolidInfill: return "SolidInfill";
+        case erTopSolidInfill: return "TopSolidInfill";
+        case erBottomSurface: return "BottomSurface";
+        case erBridgeInfill:
+        case erInternalBridgeInfill: return "BridgeInfill";
+        case erGapFill: return "GapFill";
+        case erIroning: return "Ironing";
+        case erSkirt: return "Skirt";
+        case erBrim: return "Brim";
+        case erSupportMaterial: return "SupportMaterial";
+        case erSupportMaterialInterface: return "SupportMaterialInterface";
+        case erSupportTransition: return "SupportTransition";
+        case erWipeTower: return "WipeTower";
+        case erCustom:
+        case erMixed:
+        case erCount:
+        case erNone:
+        default: return "Mixed";
+    }
 }
 
 std::string encodeBase64(uint64_t value)

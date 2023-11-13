@@ -24,6 +24,6 @@
     "gap_infill_speed": "100",
     "travel_speed": "350",
     "compatible_printers": [
-      "RatRig V-Core 3 500 0.4 nozzle",
+      "RatRig V-Core 3 500 0.4 nozzle"
     ]
 }

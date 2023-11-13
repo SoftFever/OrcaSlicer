@@ -1057,6 +1057,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
             || opt_key == "infill_direction"
+            || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle"
             //BBS
             || opt_key == "bridge_density") {
@@ -1520,6 +1521,18 @@ void PrintObject::discover_vertical_shells()
     if (top_bottom_surfaces_all_regions) {
         // This is a multi-material print and interface_shells are disabled, meaning that the vertical shell thickness
         // is calculated over all materials.
+        // Is the "ensure vertical wall thickness" applicable to any region?
+        bool has_extra_layers = false;
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            const PrintRegionConfig &config = this->printing_region(region_id).config();
+            if (config.ensure_vertical_shell_thickness.value) {
+                has_extra_layers = true;
+                break;
+            }
+        }
+        if (! has_extra_layers)
+            // The "ensure vertical wall thickness" feature is not applicable to any of the regions. Quit.
+            return;
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - start : cache top / bottom";
         //FIXME Improve the heuristics for a grain size.
         size_t grain_size = std::max(num_layers / 16, size_t(1));
@@ -1589,6 +1602,11 @@ void PrintObject::discover_vertical_shells()
     }
 
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+        const PrintRegion &region = this->printing_region(region_id);
+        if (! region.config().ensure_vertical_shell_thickness.value)
+            // This region will be handled by discover_horizontal_shells().
+            continue;
+
         //FIXME Improve the heuristics for a grain size.
         size_t grain_size = std::max(num_layers / 16, size_t(1));
 
@@ -3109,7 +3127,166 @@ void PrintObject::discover_horizontal_shells()
                         surface.surface_type = type;
             }
 #endif
-            // The rest has already been performed by discover_vertical_shells().
+
+            // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
+            if (region_config.ensure_vertical_shell_thickness.value)
+                continue;
+
+            coordf_t print_z  = layer->print_z;
+            coordf_t bottom_z = layer->bottom_z();
+            for (size_t idx_surface_type = 0; idx_surface_type < 3; ++ idx_surface_type) {
+                m_print->throw_if_canceled();
+                SurfaceType type = (idx_surface_type == 0) ? stTop : (idx_surface_type == 1) ? stBottom : stBottomBridge;
+                int num_solid_layers = (type == stTop) ? region_config.top_shell_layers.value : region_config.bottom_shell_layers.value;
+                if (num_solid_layers == 0)
+                	continue;
+                // Find slices of current type for current layer.
+                // Use slices instead of fill_surfaces, because they also include the perimeter area,
+                // which needs to be propagated in shells; we need to grow slices like we did for
+                // fill_surfaces though. Using both ungrown slices and grown fill_surfaces will
+                // not work in some situations, as there won't be any grown region in the perimeter
+                // area (this was seen in a model where the top layer had one extra perimeter, thus
+                // its fill_surfaces were thinner than the lower layer's infill), however it's the best
+                // solution so far. Growing the external slices by EXTERNAL_INFILL_MARGIN will put
+                // too much solid infill inside nearly-vertical slopes.
+
+                // Surfaces including the area of perimeters. Everything, that is visible from the top / bottom
+                // (not covered by a layer above / below).
+                // This does not contain the areas covered by perimeters!
+                Polygons solid;
+                for (const Surface &surface : layerm->slices.surfaces)
+                    if (surface.surface_type == type)
+                        polygons_append(solid, to_polygons(surface.expolygon));
+                // Infill areas (slices without the perimeters).
+                for (const Surface &surface : layerm->fill_surfaces.surfaces)
+                    if (surface.surface_type == type)
+                        polygons_append(solid, to_polygons(surface.expolygon));
+                if (solid.empty())
+                    continue;
+//                Slic3r::debugf "Layer %d has %s surfaces\n", $i, ($type == stTop) ? 'top' : 'bottom';
+
+                // Scatter top / bottom regions to other layers. Scattering process is inherently serial, it is difficult to parallelize without locking.
+                for (int n = (type == stTop) ? int(i) - 1 : int(i) + 1;
+                	(type == stTop) ?
+                		(n >= 0                   && (int(i) - n < num_solid_layers ||
+                								 	  print_z - m_layers[n]->print_z < region_config.top_shell_thickness.value - EPSILON)) :
+                		(n < int(m_layers.size()) && (n - int(i) < num_solid_layers ||
+                									  m_layers[n]->bottom_z() - bottom_z < region_config.bottom_shell_thickness.value - EPSILON));
+                	(type == stTop) ? -- n : ++ n)
+                {
+//                    Slic3r::debugf "  looking for neighbors on layer %d...\n", $n;
+                    // Reference to the lower layer of a TOP surface, or an upper layer of a BOTTOM surface.
+                    LayerRegion *neighbor_layerm = m_layers[n]->regions()[region_id];
+
+                    // find intersection between neighbor and current layer's surfaces
+                    // intersections have contours and holes
+                    // we update $solid so that we limit the next neighbor layer to the areas that were
+                    // found on this one - in other words, solid shells on one layer (for a given external surface)
+                    // are always a subset of the shells found on the previous shell layer
+                    // this approach allows for DWIM in hollow sloping vases, where we want bottom
+                    // shells to be generated in the base but not in the walls (where there are many
+                    // narrow bottom surfaces): reassigning $solid will consider the 'shadow' of the
+                    // upper perimeter as an obstacle and shell will not be propagated to more upper layers
+                    //FIXME How does it work for stInternalBRIDGE? This is set for sparse infill. Likely this does not work.
+                    Polygons new_internal_solid;
+                    {
+                        Polygons internal;
+                        for (const Surface &surface : neighbor_layerm->fill_surfaces.surfaces)
+                            if (surface.surface_type == stInternal || surface.surface_type == stInternalSolid)
+                                polygons_append(internal, to_polygons(surface.expolygon));
+                        new_internal_solid = intersection(solid, internal, ApplySafetyOffset::Yes);
+                    }
+                    if (new_internal_solid.empty()) {
+                        // No internal solid needed on this layer. In order to decide whether to continue
+                        // searching on the next neighbor (thus enforcing the configured number of solid
+                        // layers, use different strategies according to configured infill density:
+                        if (region_config.sparse_infill_density.value == 0) {
+                            // If user expects the object to be void (for example a hollow sloping vase),
+                            // don't continue the search. In this case, we only generate the external solid
+                            // shell if the object would otherwise show a hole (gap between perimeters of
+                            // the two layers), and internal solid shells are a subset of the shells found
+                            // on each previous layer.
+                            goto EXTERNAL;
+                        } else {
+                            // If we have internal infill, we can generate internal solid shells freely.
+                            continue;
+                        }
+                    }
+
+                    if (region_config.sparse_infill_density.value == 0) {
+                        // if we're printing a hollow object we discard any solid shell thinner
+                        // than a perimeter width, since it's probably just crossing a sloping wall
+                        // and it's not wanted in a hollow print even if it would make sense when
+                        // obeying the solid shell count option strictly (DWIM!)
+                        float margin = float(neighbor_layerm->flow(frExternalPerimeter).scaled_width());
+                        Polygons too_narrow = diff(
+                            new_internal_solid,
+                            opening(new_internal_solid, margin, margin + ClipperSafetyOffset, jtMiter, 5));
+                        // Trim the regularized region by the original region.
+                        if (! too_narrow.empty())
+                            new_internal_solid = solid = diff(new_internal_solid, too_narrow);
+                    }
+
+                    // make sure the new internal solid is wide enough, as it might get collapsed
+                    // when spacing is added in Fill.pm
+                    {
+                        //FIXME Vojtech: Disable this and you will be sorry.
+                        float margin = 3.f * layerm->flow(frSolidInfill).scaled_width(); // require at least this size
+                        // we use a higher miterLimit here to handle areas with acute angles
+                        // in those cases, the default miterLimit would cut the corner and we'd
+                        // get a triangle in $too_narrow; if we grow it below then the shell
+                        // would have a different shape from the external surface and we'd still
+                        // have the same angle, so the next shell would be grown even more and so on.
+                        Polygons too_narrow = diff(
+                            new_internal_solid,
+                            opening(new_internal_solid, margin, margin + ClipperSafetyOffset, ClipperLib::jtMiter, 5));
+                        if (! too_narrow.empty()) {
+                            // grow the collapsing parts and add the extra area to  the neighbor layer
+                            // as well as to our original surfaces so that we support this
+                            // additional area in the next shell too
+                            // make sure our grown surfaces don't exceed the fill area
+                            Polygons internal;
+                            for (const Surface &surface : neighbor_layerm->fill_surfaces.surfaces)
+                                if (surface.is_internal() && !surface.is_bridge())
+                                    polygons_append(internal, to_polygons(surface.expolygon));
+                            polygons_append(new_internal_solid,
+                                intersection(
+                                    expand(too_narrow, +margin),
+                                    // Discard bridges as they are grown for anchoring and we can't
+                                    // remove such anchors. (This may happen when a bridge is being
+                                    // anchored onto a wall where little space remains after the bridge
+                                    // is grown, and that little space is an internal solid shell so
+                                    // it triggers this too_narrow logic.)
+                                    internal));
+                            // solid = new_internal_solid;
+                        }
+                    }
+
+                    // internal-solid are the union of the existing internal-solid surfaces
+                    // and new ones
+                    SurfaceCollection backup = std::move(neighbor_layerm->fill_surfaces);
+                    polygons_append(new_internal_solid, to_polygons(backup.filter_by_type(stInternalSolid)));
+                    ExPolygons internal_solid = union_ex(new_internal_solid);
+                    // assign new internal-solid surfaces to layer
+                    neighbor_layerm->fill_surfaces.set(internal_solid, stInternalSolid);
+                    // subtract intersections from layer surfaces to get resulting internal surfaces
+                    Polygons polygons_internal = to_polygons(std::move(internal_solid));
+                    ExPolygons internal = diff_ex(backup.filter_by_type(stInternal), polygons_internal, ApplySafetyOffset::Yes);
+                    // assign resulting internal surfaces to layer
+                    neighbor_layerm->fill_surfaces.append(internal, stInternal);
+                    polygons_append(polygons_internal, to_polygons(std::move(internal)));
+                    // assign top and bottom surfaces to layer
+                    backup.keep_types({ stTop, stBottom, stBottomBridge });
+                    std::vector<SurfacesPtr> top_bottom_groups;
+                    backup.group(&top_bottom_groups);
+                    for (SurfacesPtr &group : top_bottom_groups)
+                        neighbor_layerm->fill_surfaces.append(
+                            diff_ex(group, polygons_internal),
+                            // Use an existing surface as a template, it carries the bridge angle etc.
+                            *group.front());
+                }
+		EXTERNAL:;
+            } // foreach type (stTop, stBottom, stBottomBridge)
         } // for each layer
     }     // for each region
 

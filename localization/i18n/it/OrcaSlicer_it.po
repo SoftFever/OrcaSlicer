@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -489,26 +489,11 @@ msgstr "Pittura giunzione"
 msgid "Remove selection"
 msgstr "Rimuovi selezione"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Sposta il mouse verso l'alto o il basso"
-
-msgid "Rotate text"
-msgstr "Ruota testo"
-
-msgid "Text shape"
-msgstr "Formato testo"
-
 msgid "Font"
 msgstr "Font"
 
 msgid "Thickness"
 msgstr "Spessore"
-
-msgid "Input text"
-msgstr "Inserisci testo"
-
-msgid "Embeded"
-msgstr "Integrato"
 
 msgid "Text Gap"
 msgstr "Gap testo"
@@ -521,11 +506,23 @@ msgid ""
 "depth"
 msgstr "Profondità integrata"
 
+msgid "Input text"
+msgstr "Inserisci testo"
+
 msgid "Surface"
 msgstr "Superficie"
 
 msgid "Horizontal text"
 msgstr "Testo orizzontale"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Sposta il mouse verso l'alto o il basso"
+
+msgid "Rotate text"
+msgstr "Ruota testo"
+
+msgid "Text shape"
+msgstr "Formato testo"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -610,11 +607,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -641,6 +633,13 @@ msgstr "This is the newest version."
 
 msgid "Info"
 msgstr "Info"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Rebuild"
@@ -5001,6 +5000,15 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Units"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom posizione del mouse"
 
@@ -5015,6 +5023,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5073,12 +5087,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "If enabled, this sets Orca Slicer as the default application to open .step "
 "files."
-
-msgid "Online Models"
-msgstr "Modelli Online"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Mostra i modelli online selezionati dallo staff  nella home page"
 
 msgid "Maximum recent projects"
 msgstr "Numero massimo di progetti recenti"
@@ -6115,6 +6123,9 @@ msgstr ""
 
 msgid "Change filament G-code"
 msgstr "Change filament G-code"
+
+msgid "Change extrusion role G-code"
+msgstr ""
 
 msgid "Pause G-code"
 msgstr "Pause G-code"
@@ -7922,6 +7933,17 @@ msgstr "Add end G-Code when finishing the entire print."
 msgid "End G-code when finish the printing of this filament"
 msgstr "Add end G-code when finishing the printing of this filament."
 
+msgid "Ensure vertical shell thickness"
+msgstr "Garantisci spessore verticale del guscio"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Aggiunge un riempimento solido in prossimità delle superfici inclinate per "
+"garantire lo spessore verticale del guscio (layers solidi superiori e "
+"inferiori)."
+
 msgid "Top surface pattern"
 msgstr "Top surface pattern"
 
@@ -9405,22 +9427,6 @@ msgstr ""
 "hitting the print when traveling more. Using spiral lines to lift z can "
 "prevent stringing."
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -10138,6 +10144,9 @@ msgstr ""
 "This G-code is inserted when filament is changed, including T commands to "
 "trigger tool change."
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -10505,6 +10514,18 @@ msgstr ""
 "parete è più sottile dello spessore dell'elemento, la parete diventerà "
 "spessa quanto l'elemento stesso. È espresso in percentuale rispetto al "
 "diametro del nozzle"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Detect narrow internal solid infill"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"This option will auto-detect narrow internal solid infill areas. If enabled, "
+"the concentric pattern will be used for the area to speed up printing. "
+"Otherwise, the rectilinear pattern will be used by default."
 
 msgid "invalid value "
 msgstr "Valore non valido"
@@ -11844,6 +11865,15 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Embeded"
+#~ msgstr "Integrato"
+
+#~ msgid "Online Models"
+#~ msgstr "Modelli Online"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Mostra i modelli online selezionati dallo staff  nella home page"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "The minimum printing speed when slowing down for cooling."
 
@@ -11854,17 +11884,6 @@ msgstr ""
 #~ "La temperatura del piano supera la temperatura di vetrificazione del "
 #~ "filamento. Aprire lo sportello anteriore della stampante prima di "
 #~ "stampare per evitare l'intasamento del nozzle."
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Garantisci spessore verticale del guscio"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Aggiunge un riempimento solido in prossimità delle superfici inclinate "
-#~ "per garantire lo spessore verticale del guscio (layers solidi superiori e "
-#~ "inferiori)."
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Temperature of vitrification"
@@ -11887,18 +11906,6 @@ msgstr ""
 #~ "This is the speed of auxiliary part cooling fan. The auxiliary fan will "
 #~ "run at this speed during printing except for during the first several "
 #~ "layers which may be set to have no part cooling."
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Detect narrow internal solid infill"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "This option will auto-detect narrow internal solid infill areas. If "
-#~ "enabled, the concentric pattern will be used for the area to speed up "
-#~ "printing. Otherwise, the rectilinear pattern will be used by default."
 
 #~ msgid "Empty layers around bottom are replaced by nearest normal layers."
 #~ msgstr "Empty layers around bottom are replaced by nearest normal layers."

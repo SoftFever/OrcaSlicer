@@ -149,6 +149,9 @@ void AppConfig::set_defaults()
 
         if (get("use_inches").empty())
             set("use_inches", "0");
+
+        if (get("default_page").empty())
+            set("default_page", "0");
     }
     else {
 #ifdef _WIN32
@@ -231,6 +234,12 @@ void AppConfig::set_defaults()
     if (get("stealth_mode").empty()) {
         set_bool("stealth_mode", false);
     }
+
+    // Orca
+    if(get("show_splash_screen").empty()) {
+        set_bool("show_splash_screen", true);
+    }
+
     if (get("show_model_mesh").empty()) {
         set_bool("show_model_mesh", false);
     }
@@ -303,9 +312,9 @@ void AppConfig::set_defaults()
         set("max_recent_count", "18");
     }
 
-    if (get("staff_pick_switch").empty()) {
-        set_bool("staff_pick_switch", true);
-    }
+    // if (get("staff_pick_switch").empty()) {
+    //     set_bool("staff_pick_switch", false);
+    // }
 
     if (get("sync_system_preset").empty()) {
         set_bool("sync_system_preset", true);

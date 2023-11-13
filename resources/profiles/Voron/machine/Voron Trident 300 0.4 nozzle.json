@@ -6,6 +6,13 @@
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
   "printer_model": "Voron Trident 300",
+  "default_print_profile": "0.20mm Standard @Voron",
+  "max_layer_height": [
+    "0.32"
+  ],
+  "min_layer_height": [
+    "0.10"
+  ],
   "nozzle_diameter": [
     "0.4"
   ],

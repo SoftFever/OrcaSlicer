@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: 2023-10-07 12:57+0300\n"
 "Last-Translator: Sadri Ercan\n"
 "Language-Team: Türkçe\n"
@@ -497,26 +497,11 @@ msgstr "Dikiş boyama"
 msgid "Remove selection"
 msgstr "Seçimi kaldır"
 
-msgid "Shift + Mouse move up or dowm"
-msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
-
-msgid "Rotate text"
-msgstr "Metni döndür"
-
-msgid "Text shape"
-msgstr "Metin şekli"
-
 msgid "Font"
 msgstr "Yazı tipi"
 
 msgid "Thickness"
 msgstr "Kalınlık"
-
-msgid "Input text"
-msgstr "Giriş metni"
-
-msgid "Embeded"
-msgstr "Gömülü"
 
 msgid "Text Gap"
 msgstr "Metin Boşluğu"
@@ -531,11 +516,23 @@ msgstr ""
 "Gömülü\n"
 "derinlik"
 
+msgid "Input text"
+msgstr "Giriş metni"
+
 msgid "Surface"
 msgstr "Yüzey"
 
 msgid "Horizontal text"
 msgstr "Yatay metin"
+
+msgid "Shift + Mouse move up or dowm"
+msgstr "Shift + Fare yukarı veya aşağı hareket ettirir"
+
+msgid "Rotate text"
+msgstr "Metni döndür"
+
+msgid "Text shape"
+msgstr "Metin şekli"
 
 msgid "Ctrl+"
 msgstr "Ctrl+"
@@ -626,13 +623,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Çalışma Zamanı"
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-"OrcaSlicer yapılandırma dosyası bozulmuş olabilir ve ayrıştırılması mümkün "
-"olmayabilir. Lütfen dosyayı silin ve tekrar deneyin."
-
 #, c-format, boost-format
 msgid ""
 "%s\n"
@@ -659,6 +649,13 @@ msgstr "Bu en yeni versiyondur."
 
 msgid "Info"
 msgstr "Bilgi"
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
+msgstr ""
 
 msgid "Rebuild"
 msgstr "Yeniden yükleniyor"
@@ -5065,6 +5062,15 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Birimler"
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Fare konumuna yakınlaştır"
 
@@ -5079,6 +5085,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -5137,12 +5149,6 @@ msgid "If enabled, sets OrcaSlicer as default application to open .step files"
 msgstr ""
 "Etkinleştirilirse, OrcaSlicer'ı .step dosyalarını açmak için varsayılan "
 "uygulama olarak ayarlar"
-
-msgid "Online Models"
-msgstr "Çevrimiçi Modeller"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Personelin çevrimiçi olarak seçtiği modelleri ana sayfada göster"
 
 msgid "Maximum recent projects"
 msgstr "Maksimum yeni proje"
@@ -6180,6 +6186,9 @@ msgstr "Time lapse G-code"
 
 msgid "Change filament G-code"
 msgstr "Filament değişimi G-kod"
+
+msgid "Change extrusion role G-code"
+msgstr ""
 
 msgid "Pause G-code"
 msgstr "Duraklatma G-Kod"
@@ -8038,6 +8047,16 @@ msgstr "Tüm yazdırmayı tamamladığında çalışacak olan G Kodu"
 msgid "End G-code when finish the printing of this filament"
 msgstr "Bu filament ile baskı bittiğinde çalışacak G kodu"
 
+msgid "Ensure vertical shell thickness"
+msgstr "Dikey kabuk kalınlığını onayla"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Dikey kabuk kalınlığını garanti etmek için eğimli yüzeylerin yakınına katı "
+"dolgu ekleyin (üst + alt katı katmanlar)"
+
 msgid "Top surface pattern"
 msgstr "Üst katman deseni"
 
@@ -9685,27 +9704,6 @@ msgstr ""
 "çarpmasını önler. Z'yi kaldırmak için spiral çizgi kullanmak çekmeyi "
 "önleyebilir"
 
-msgid "Z hop lower boundary"
-msgstr "Z sıçrama alt sınırı"
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-"Z sıçraması yalnızca Z bu değerin üzerinde ve parametrenin altında olduğunda "
-"devreye girer: \"Z sıçraması üst sınırı\""
-
-msgid "Z hop upper boundary"
-msgstr "Z sıçrama üst sınırı"
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-"Bu değer pozitifse, Z sıçraması yalnızca Z parametresinin üzerinde olduğunda "
-"etkinleşir: \"Z sıçrama alt sınırı\" parametresinin üzerinde ve bu değerin "
-"altında olduğunda"
-
 msgid "Z hop type"
 msgstr "Z sıçraması türü"
 
@@ -10477,6 +10475,9 @@ msgstr ""
 "Bu gcode, takım değişimini tetiklemek için T komutu da dahil olmak üzere "
 "filament değiştirildiğinde eklenir"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -10859,6 +10860,18 @@ msgstr ""
 "boyutuna göre). Minimum duvar genişliği özelliğin kalınlığından daha inceyse "
 "duvar, özelliğin kendisi kadar kalın olacaktır. Nozul çapına göre yüzde "
 "olarak ifade edilir"
+
+msgid "Detect narrow internal solid infill"
+msgstr "Dar iç katı dolguyu tespit et"
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
+msgstr ""
+"Bu seçenek dar dahili katı dolgu alanını otomatik olarak algılayacaktır. "
+"Etkinleştirilirse, yazdırmayı hızlandırmak amacıyla alanda eşmerkezli desen "
+"kullanılacaktır. Aksi takdirde varsayılan olarak doğrusal desen kullanılır."
 
 msgid "invalid value "
 msgstr "geçersiz değer "
@@ -12320,6 +12333,43 @@ msgid ""
 "temperature. More info about this in the Wiki."
 msgstr ""
 
+#~ msgid "Embeded"
+#~ msgstr "Gömülü"
+
+#~ msgid ""
+#~ "OrcaSlicer configuration file may be corrupted and is not abled to be "
+#~ "parsed.Please delete the file and try again."
+#~ msgstr ""
+#~ "OrcaSlicer yapılandırma dosyası bozulmuş olabilir ve ayrıştırılması "
+#~ "mümkün olmayabilir. Lütfen dosyayı silin ve tekrar deneyin."
+
+#~ msgid "Online Models"
+#~ msgstr "Çevrimiçi Modeller"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Personelin çevrimiçi olarak seçtiği modelleri ana sayfada göster"
+
+#~ msgid "Z hop lower boundary"
+#~ msgstr "Z sıçrama alt sınırı"
+
+#~ msgid ""
+#~ "Z hop will only come into effect when Z is above this value and is below "
+#~ "the parameter: \"Z hop upper boundary\""
+#~ msgstr ""
+#~ "Z sıçraması yalnızca Z bu değerin üzerinde ve parametrenin altında "
+#~ "olduğunda devreye girer: \"Z sıçraması üst sınırı\""
+
+#~ msgid "Z hop upper boundary"
+#~ msgstr "Z sıçrama üst sınırı"
+
+#~ msgid ""
+#~ "If this value is positive, Z hop will only come into effect when Z is "
+#~ "above the parameter: \"Z hop lower boundary\" and is below this value"
+#~ msgstr ""
+#~ "Bu değer pozitifse, Z sıçraması yalnızca Z parametresinin üzerinde "
+#~ "olduğunda etkinleşir: \"Z sıçrama alt sınırı\" parametresinin üzerinde ve "
+#~ "bu değerin altında olduğunda"
+
 #~ msgid "The minimum printing speed when slow down for cooling"
 #~ msgstr "Soğutma için yavaşlama durumunda minimum yazdırma hızı"
 
@@ -12347,16 +12397,6 @@ msgstr ""
 
 #~ msgid "Activate for better air filtration"
 #~ msgstr "Daha iyi hava filtrelemesi için etkinleştirin"
-
-#~ msgid "Ensure vertical shell thickness"
-#~ msgstr "Dikey kabuk kalınlığını onayla"
-
-#~ msgid ""
-#~ "Add solid infill near sloping surfaces to guarantee the vertical shell "
-#~ "thickness (top+bottom solid layers)"
-#~ msgstr ""
-#~ "Dikey kabuk kalınlığını garanti etmek için eğimli yüzeylerin yakınına "
-#~ "katı dolgu ekleyin (üst + alt katı katmanlar)"
 
 #~ msgid "Temperature of vitrificaiton"
 #~ msgstr "Yumuşama sıcaklığı"
@@ -12389,19 +12429,6 @@ msgstr ""
 #~ "Yardımcı parça soğutma fanının hızı. Yardımcı fan, soğutma katmanlarının "
 #~ "bulunmadığı ilk birkaç katman dışında, yazdırma sırasında bu hızda "
 #~ "çalışacaktır"
-
-#~ msgid "Detect narrow internal solid infill"
-#~ msgstr "Dar iç katı dolguyu tespit et"
-
-#~ msgid ""
-#~ "This option will auto detect narrow internal solid infill area. If "
-#~ "enabled, concentric pattern will be used for the area to speed printing "
-#~ "up. Otherwise, rectilinear pattern is used defaultly."
-#~ msgstr ""
-#~ "Bu seçenek dar dahili katı dolgu alanını otomatik olarak algılayacaktır. "
-#~ "Etkinleştirilirse, yazdırmayı hızlandırmak amacıyla alanda eşmerkezli "
-#~ "desen kullanılacaktır. Aksi takdirde varsayılan olarak doğrusal desen "
-#~ "kullanılır."
 
 #~ msgid ""
 #~ "Filter out gaps smaller than the threshold specified. This setting won't "
