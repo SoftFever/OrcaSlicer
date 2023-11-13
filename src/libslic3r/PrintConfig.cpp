@@ -848,7 +848,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse only internal perimeters");
     def->full_label = L("Reverse only internal perimeters");
     def->category = L("Quality");
-    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. This reduces the effectiveness of the setting somewhat; however it prevents artefacts on the external walls caused by inaccuracies in the motion system.\nIt may also help to reduce part warping due to lower part stresses.");
+    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. This greatly reduces the effectiveness of the setting, however it reduces artefacts on the external walls caused by inaccuracies in the printer motion system.\nIt also greatly reduces part stresses, which should reduce warping. \nTo reduce part warping, it is recomended to set the Reverse Threshold to 0, so that all internal walls print direction alternates on odd layers irrespective of the overhang degree.\nTo minimize external wall artefacts it is recomended to print with inner-outer-inner/infill mode or with outer/inner/infill mode.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
