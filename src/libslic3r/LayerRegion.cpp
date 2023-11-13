@@ -808,6 +808,13 @@ void LayerRegion::prepare_fill_surfaces()
                 surface.surface_type = stInternal;
     }
 
+    if (!spiral_mode && fabs(this->region().config().sparse_infill_density.value - 100.) < EPSILON) {
+        // Turn all internal sparse infill into solid infill, if sparse_infill_density is 100%
+        for (Surface &surface : this->fill_surfaces.surfaces)
+            if (surface.surface_type == stInternal)
+                surface.surface_type = stInternalSolid;
+    }
+
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_slices_to_svg_debug("2_prepare_fill_surfaces-final");
     export_region_fill_surfaces_to_svg_debug("2_prepare_fill_surfaces-final");

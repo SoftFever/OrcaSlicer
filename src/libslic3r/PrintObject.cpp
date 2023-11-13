@@ -3304,6 +3304,7 @@ void PrintObject::discover_horizontal_shells()
 // combine fill surfaces across layers to honor the "infill every N layers" option
 // Idempotence of this method is guaranteed by the fact that we don't remove things from
 // fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
+// TODO: support internal solid infill when sparse_infill_density is 100%
 void PrintObject::combine_infill()
 {
     // Work on each region separately.
