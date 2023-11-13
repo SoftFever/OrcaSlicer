@@ -28,7 +28,7 @@ float string_to_float(const std::string& str_value) {
     return value;
 }
 
-const int PRINTING_STAGE_COUNT = 32;
+const int PRINTING_STAGE_COUNT = 36;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "printing",
     "bed_leveling",
@@ -61,7 +61,11 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "chamber_temperature_control_error_pause",
     "chamber_cooling",
     "user_insert_gcode_pause",
-    "motor_noise_showoff"
+    "motor_noise_showoff",
+    "nozzle_filament_covered_detected_pause",
+    "cutter_error_pause",
+    "first_layer_error_pause",
+    "nozzle_clog_pause"
     };
 
 
@@ -136,6 +140,14 @@ wxString get_stage_string(int stage)
         return _L("Paused by the Gcode inserted by user");
     case 31:
         return _L("Motor noise showoff");
+    case 32:
+        return _L("Nozzle filament covered detected pause");
+    case 33:
+        return _L("Cutter error pause");
+    case 34:
+        return _L("First layer error pause");
+    case 35:
+        return _L("Nozzle clog pause");
     default:
         ;
     }
