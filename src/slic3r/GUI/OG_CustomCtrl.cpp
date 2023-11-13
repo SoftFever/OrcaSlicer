@@ -748,7 +748,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         if (field && field->undo_bitmap())
         //if (field)
             // BBS: new layout
-            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->get_bitmap(), field->undo_bitmap()->get_bitmap(), field->blink()); //OcraftyoneTODO: conversion rather than rewrite
+            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->get_bitmap(), field->undo_bitmap()->get_bitmap(), field->blink());
         return;
     }
 

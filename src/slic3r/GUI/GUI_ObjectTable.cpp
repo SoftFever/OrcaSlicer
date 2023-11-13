@@ -77,9 +77,9 @@ void GridCellIconRenderer::Draw(wxGrid& grid,
             table->m_icon_row_height = grid.GetRowSize(row);
             table->m_icon_col_width = grid.GetColSize(col);
         //}
-        wxBitmapBundle& bitmap = table->get_undo_bitmap();
-        int bitmap_width = bitmap.GetBitmapFor(dc.GetWindow()).GetWidth();
-        int bitmap_height = bitmap.GetBitmapFor(dc.GetWindow()).GetHeight();
+        wxBitmap bitmap = table->get_undo_bitmap().GetBitmapFor(dc.GetWindow());
+        int bitmap_width = bitmap.GetWidth();
+        int bitmap_height = bitmap.GetHeight();
         int offset_x = (table->m_icon_col_width - bitmap_width)/2;
         int offset_y = (table->m_icon_row_height - bitmap_height)/2;
         
@@ -91,7 +91,7 @@ void GridCellIconRenderer::Draw(wxGrid& grid,
         lock_pos.y += top;
         dc.DrawBitmap(bitmap, lock_pos);
     #else
-        dc.DrawBitmap(bitmap.GetBitmapFor(dc.GetWindow()), wxPoint(rect.x + offset_x, rect.y + offset_y));//OcraftyoneTODO: determine if this way of getting bitmap works well
+        dc.DrawBitmap(bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
     #endif
 
         //dc.SetPen(*wxGREEN_PEN);

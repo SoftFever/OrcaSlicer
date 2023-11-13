@@ -397,9 +397,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             const_cast<Preset&>(*iter).is_visible = true;
             auto color = tray.opt_string("filament_colour", 0u);
             auto name = tray.opt_string("tray_name", 0u);
-//            wxBitmap bmp(get_extruder_color_icon(color, name, 24, 16)->GetBitmapFor(m_parent)); //OcraftyoneTODO: conversion rather than updating correctly
             int item_id = Append(get_preset_name(*iter), *get_extruder_color_icon(color, name, 24, 16), &m_first_ams_filament + entry.first);
-            //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
     }
