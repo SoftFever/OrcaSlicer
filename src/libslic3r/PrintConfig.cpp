@@ -840,7 +840,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse on odd");
     def->full_label = L("Overhang reversal");
     def->category = L("Quality");
-    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhang.");
+    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
     
@@ -848,7 +848,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse only internal perimeters");
     def->full_label = L("Reverse only internal perimeters");
     def->category = L("Quality");
-    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. This greatly reduces the effectiveness of the setting, however it reduces artefacts on the external walls caused by inaccuracies in the printer motion system.\n\nThis setting also greatly reduces part stresses, which should reduce warping, while maintaining external wall quality. \n\nTo use this setting to reduce part warping, it is recomended to set the Reverse Threshold to 0, so that all internal walls print direction alternates on odd layers irrespective of the overhang degree.\n\nTo minimize external wall artefacts it is recomended to print with inner-outer-inner/infill mode or with outer/inner/infill mode.");
+    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduce part stresses as they are now distributed in alternating directions, which should reduce warping, while maintaining external wall quality. This can be very useful for warp prone material, like ABS/ASA and also for elastic filaments like TPU and Silk PLA. \n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0, so that all internal walls print direction alternates on odd layers irrespective of the overhang degree.\n\nTo minimize potential external wall artefacts it is recomended to print with inner-outer-inner/infill mode or with outer/inner/infill mode.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
