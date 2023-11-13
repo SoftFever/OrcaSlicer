@@ -763,9 +763,7 @@ Sidebar::Sidebar(Plater *parent)
 
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
-                std::vector<float> extruders = dlg.get_extruders();
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
