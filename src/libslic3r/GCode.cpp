@@ -2578,6 +2578,7 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
+    print.m_print_statistics.initial_tool = initial_extruder_id;
     if (!is_bbl_printers) {
         file.write_format("; total filament used [g] = %.2lf\n",
             print.m_print_statistics.total_weight);
