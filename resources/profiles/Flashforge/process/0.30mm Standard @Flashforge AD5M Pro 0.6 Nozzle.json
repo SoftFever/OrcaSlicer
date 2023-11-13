@@ -41,7 +41,7 @@
   "ensure_vertical_shell_thickness": "1",
   "exclude_object": "0",
   "extra_perimeters_on_overhangs": "0",
-  "filename_format": "{input_filename_base}_{filament_type[0]}_{print_time}.gcode",
+  "filename_format": "{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode",
   "filter_out_gap_fill": "0.5",
   "flush_into_infill": "0",
   "flush_into_objects": "0",
