@@ -558,6 +558,10 @@
             "sub_path": "filament/P1P/Generic TPU @BBL P1P.json"
         },
         {
+            "name": "Bambu TPU 95A HF @base",
+            "sub_path": "filament/Bambu TPU 95A HF @base.json"
+        },
+        {
             "name": "Bambu PETG Basic @base",
             "sub_path": "filament/Bambu PETG Basic @base.json"
         },
@@ -1140,6 +1144,30 @@
         {
             "name": "Generic TPU @BBL A1M",
             "sub_path": "filament/Generic TPU @BBL A1M.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL X1C",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL X1C.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL X1",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL X1.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL P1P",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL P1P.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL P1S",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL P1S.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL X1E",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL X1E.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL A1M",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL A1M.json"
         },
         {
             "name": "Bambu PETG Basic @BBL X1C",
