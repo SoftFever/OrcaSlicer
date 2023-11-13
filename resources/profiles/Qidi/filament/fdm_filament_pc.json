@@ -8,25 +8,25 @@
         "0"
     ],
     "eng_plate_temp" : [
-        "110"
+        "100"
     ],
     "hot_plate_temp" : [
-        "110"
+        "100"
     ],
     "textured_plate_temp" : [
-        "110"
+        "100"
     ],
     "cool_plate_temp_initial_layer" : [
         "0"
     ],
     "eng_plate_temp_initial_layer" : [
-        "110"
+        "100"
     ],
     "hot_plate_temp_initial_layer" : [
-        "110"
+        "100"
     ],
     "textured_plate_temp_initial_layer" : [
-        "110"
+        "100"
     ],
     "slow_down_for_layer_cooling": [
         "1"
@@ -50,7 +50,7 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "270"
+        "250"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -65,10 +65,10 @@
         "25%"
     ],
     "overhang_fan_speed": [
-        "60"
+        "80"
     ],
     "nozzle_temperature": [
-        "280"
+        "250"
     ],
     "temperature_vitrification": [
         "120"

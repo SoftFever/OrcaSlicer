@@ -1376,7 +1376,7 @@ std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_extra_perimeters_over
 
 void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
 {
-    if (this->lower_slices != nullptr && this->config->detect_overhang_wall && this->config->extra_perimeters_on_overhangs &&
+    if (!m_spiral_vase && this->lower_slices != nullptr && this->config->detect_overhang_wall && this->config->extra_perimeters_on_overhangs &&
         this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
         // Generate extra perimeters on overhang areas, and cut them to these parts only, to save print time and material
         auto [extra_perimeters, filled_area] = generate_extra_perimeters_over_overhangs(infill_area, this->lower_slices_polygons(),
@@ -1641,7 +1641,7 @@ void PerimeterGenerator::process_classic()
 
                 //BBS: refer to superslicer
                 //store surface for top infill if only_one_wall_top
-                if (i == 0 && i!=loop_number && config->only_one_wall_top && this->upper_slices != NULL) {
+                if (i == 0 && i!=loop_number && config->only_one_wall_top && !surface.is_bridge() && this->upper_slices != NULL) {
                     this->split_top_surfaces(last, top_fills, last, fill_clip);
                 }
 
@@ -1912,7 +1912,7 @@ void PerimeterGenerator::process_arachne()
         std::vector<Arachne::VariableWidthLines> out_shell;
         ExPolygons top_fills;
         ExPolygons fill_clip;
-        if (loop_number > 0 && config->only_one_wall_top && this->upper_slices != nullptr) {
+        if (loop_number > 0 && config->only_one_wall_top && !surface.is_bridge() && this->upper_slices != nullptr) {
             // Check if current layer has surfaces that are not covered by upper layer (i.e., top surfaces)
             ExPolygons non_top_polygons;
             this->split_top_surfaces(last, top_fills, non_top_polygons, fill_clip);

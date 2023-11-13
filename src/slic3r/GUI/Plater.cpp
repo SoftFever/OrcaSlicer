@@ -1057,6 +1057,13 @@ void Sidebar::update_all_preset_comboboxes()
             m_bed_type_list->SelectAndNotify((int)bed_type - 1);
         }
         m_bed_type_list->Enable();
+        auto str_bed_type = wxGetApp().app_config->get_printer_setting(wxGetApp().preset_bundle->printers.get_selected_preset_name(), "curr_bed_type");
+        if(!str_bed_type.empty()){
+            int bed_type_value = atoi(str_bed_type.c_str());
+            if(bed_type_value == 0)
+                bed_type_value = 1;
+            m_bed_type_list->SelectAndNotify(bed_type_value - 1);
+        }
     } else {
         connection_btn->Show();
         ams_btn->Hide();
@@ -8290,7 +8297,7 @@ void Plater::calib_pa(const Calib_Params& params)
 
     switch (params.mode) {
         case CalibMode::Calib_PA_Line:
-            add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
+            add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl");
             break;
         case CalibMode::Calib_PA_Pattern:
             _calib_pa_pattern(params);
@@ -8404,7 +8411,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 }
 
 void Plater::_calib_pa_tower(const Calib_Params& params) {
-    add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
+    add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl");
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -8638,7 +8645,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     print_config->set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
     print_config->set_key_value("wall_loops", new ConfigOptionInt(1));
     print_config->set_key_value("top_shell_layers", new ConfigOptionInt(0));
-    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+    print_config->set_key_value("bottom_shell_layers", new ConfigOptionInt(0));
     print_config->set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
     print_config->set_key_value("overhang_reverse", new ConfigOptionBool(false));
     print_config->set_key_value("spiral_mode", new ConfigOptionBool(true));
@@ -8646,7 +8653,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("brim_type", new ConfigOptionEnum<BrimType>(btOuterAndInner));
-    obj->config.set_key_value("brim_width", new ConfigOptionFloat(3.0));
+    obj->config.set_key_value("brim_width", new ConfigOptionFloat(5.0));
     obj->config.set_key_value("brim_object_gap", new ConfigOptionFloat(0.0));
 
     changed_objects({ 0 });

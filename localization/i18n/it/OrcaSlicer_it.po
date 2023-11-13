@@ -3,9 +3,6 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-11-12 15:54+0800\n"
-"PO-Revision-Date: \n"
-"Last-Translator:Fabio Forcina \n"
-"Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5136,6 +5133,15 @@ msgstr "Pagina predefinita"
 msgid "Set the page opened on startup."
 msgstr "Imposta la pagina aperta all'avvio."
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Zoom posizione del mouse"
 
@@ -5158,6 +5164,12 @@ msgstr "Mostra splash screen"
 
 msgid "Show the splash screen during startup."
 msgstr "Mostra la schermata iniziale durante l'avvio."
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
+msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
 msgstr "Mostra \"Suggerimento del giorno\" dopo l'avvio"
@@ -5219,6 +5231,7 @@ msgstr ""
 "Se abilitata, imposta OrcaSlicer come applicazione predefinita per aprire "
 "\"\n"
 "\"i file .step."
+
 
 msgid "Maximum recent projects"
 msgstr "Numero massimo di progetti recenti"
@@ -6278,6 +6291,9 @@ msgstr "G-code cambio filamento"
 
 msgid "Change extrusion role G-code"
 msgstr "Modificare il codice G del ruolo di estrusione"
+
+msgid "Change extrusion role G-code"
+msgstr ""
 
 msgid "Pause G-code"
 msgstr "Pause G-code"
@@ -8199,6 +8215,17 @@ msgstr "Aggiungi G-code quando si termina l'intera stampa."
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Aggiungi G-code quando si termina la stampa di questo filamento."
+
+msgid "Ensure vertical shell thickness"
+msgstr "Garantisci spessore verticale del guscio"
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+"Aggiunge un riempimento solido in prossimità delle superfici inclinate per "
+"garantire lo spessore verticale del guscio (layers solidi superiori e "
+"inferiori)."
 
 msgid "Ensure vertical shell thickness"
 msgstr "Garantisci spessore verticale del guscio"
@@ -10755,6 +10782,9 @@ msgid "This gcode is inserted when the extrusion role is changed"
 msgstr ""
 "Questo gcode viene inserito quando viene modificato il ruolo di estrusione"
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -11161,6 +11191,7 @@ msgstr ""
 msgid "Detect narrow internal solid infill"
 msgstr "Rileva riempimento solido interno stretto"
 
+
 msgid ""
 "This option will auto detect narrow internal solid infill area. If enabled, "
 "concentric pattern will be used for the area to speed printing up. "
@@ -11170,6 +11201,7 @@ msgstr ""
 "Se abilitato, la trama concentrica verrà utilizzato per l'area per "
 "velocizzare la stampa. Altrimenti, la trama rettilinea verrà utilizzata per "
 "impostazione predefinita."
+
 
 msgid "invalid value "
 msgstr "Valore non valido"
@@ -12669,6 +12701,15 @@ msgstr ""
 "intasamento dell'estrusore/hotend quando si stampa un filamento a "
 "temperatura inferiore con una temperatura dell'involucro più elevata. "
 "Maggiori informazioni su questo nel Wiki."
+
+#~ msgid "Embeded"
+#~ msgstr "Integrato"
+
+#~ msgid "Online Models"
+#~ msgstr "Modelli Online"
+
+#~ msgid "Show online staff-picked models on the home page"
+#~ msgstr "Mostra i modelli online selezionati dallo staff  nella home page"
 
 #~ msgid "Embeded"
 #~ msgstr "Integrato"

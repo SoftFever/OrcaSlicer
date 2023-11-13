@@ -575,8 +575,11 @@
         {
             "name": "Qidi Generic TPU",
             "sub_path": "filament/Qidi Generic TPU.json"
+        },
+        {
+            "name": "QIDI ABS-GF10",
+            "sub_path": "filament/QIDI ABS-GF10.json"
         }
-
     ],
     "machine_list": [
         {
