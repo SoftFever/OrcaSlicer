@@ -287,6 +287,7 @@ void FillBedJob::finalize()
         auto obj_list = m_plater->sidebar().obj_list();
         for (size_t i = oldSize; i < newSize; i++) {
             obj_list->add_object_to_list(i, true, true, false);
+            obj_list->update_printable_state(i, 0);
         }
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": paste_objects_into_list";
