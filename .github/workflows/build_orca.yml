@@ -1,7 +1,25 @@
 name: Build OrcaSlicer
 
 on: 
-    workflow_dispatch:
+    push:
+      branches: 
+       - main
+      paths:
+       - 'src/**'
+       - '**/CMakeLists.txt'
+       - 'version.inc'
+       - 'localization/**'
+       - 'resources/**'
+       - ".github/workflows/build_orca.yml"
+
+    pull_request:
+      branches: 
+       - main 
+      paths:
+       - 'src/**'
+       - '**/CMakeLists.txt'
+       - 'version.inc'
+       - ".github/workflows/build_orca.yml"
  
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -13,6 +31,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - os: ubuntu-20.04
+          - os: windows-latest
+          - os: macos-12
+            arch: x86_64
           - os: macos-12
             arch: arm64
     runs-on: ${{ matrix.os }}
@@ -85,9 +107,34 @@ jobs:
           ./build_release_macos.sh -s -n -a ${{matrix.arch}}
 
  # Thanks to RaySajuuk, it's working now
+      - name: Sign app and notary
+        if: github.ref == 'refs/heads/main' && matrix.os == 'macos-12'
+        working-directory: ${{ github.workspace }}
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          CERTIFICATE_ID: ${{ secrets.MACOS_CERTIFICATE_ID }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $CERTIFICATE_PATH
+          security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_PATH
+          security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/OrcaSlicer.app
+          ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
+          xcrun notarytool submit "OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
 
       - name: Create DMG without notary
-        if: matrix.os == 'macos-12'
+        if: github.ref != 'refs/heads/main' && matrix.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
           ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
