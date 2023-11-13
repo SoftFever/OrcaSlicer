@@ -890,7 +890,7 @@ static std::vector<std::string> s_Preset_printer_options {
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
-    "best_object_pos",
+    "best_object_pos","head_wrap_detect_zone",
     //OrcaSlicer
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",

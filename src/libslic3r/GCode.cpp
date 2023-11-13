@@ -1929,11 +1929,17 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             pts->values.emplace_back(unscale(pt));
 
         BoundingBoxf bbox = first_layer_projection(print);
+        BoundingBoxf bbox_without_plate_offset{
+            {bbox.min.x() - plate_offset.x(),bbox.min.y() - plate_offset.y()},
+            {bbox.max.x() - plate_offset.x(),bbox.max.y() - plate_offset.y()}
+        };
+        BoundingBoxf bbox_head_wrap_zone (print.config().head_wrap_detect_zone.values);
 
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
-        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({bbox.min.x() - plate_offset.x(), bbox.min.y() - plate_offset.y()}));
-        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({bbox.max.x() - plate_offset.x(), bbox.max.y() - plate_offset.y()}));
+        m_placeholder_parser.set("first_layer_print_min", new ConfigOptionFloats({ bbox_without_plate_offset.min.x(),bbox_without_plate_offset.min.y() }));
+        m_placeholder_parser.set("first_layer_print_max", new ConfigOptionFloats({ bbox_without_plate_offset.max.x(),bbox_without_plate_offset.max.y() }));
         m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
+        m_placeholder_parser.set("in_head_wrap_detect_zone",bbox_head_wrap_zone.overlap(bbox_without_plate_offset));
         // get center without wipe tower
         BoundingBoxf bbox_wo_wt;// bounding box without wipe tower
         for (auto& objPtr : print.objects()) {
