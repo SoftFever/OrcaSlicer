@@ -1183,6 +1183,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
+    def = this->add("ensure_vertical_shell_thickness", coBool);
+    def->label = L("Ensure vertical shell thickness");
+    def->category = L("Strength");
+    def->tooltip = L("Add solid infill near sloping surfaces to guarantee the vertical shell thickness "
+        "(top+bottom solid layers)");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");
@@ -3493,6 +3501,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("support_top_z_distance", coFloat);
     //def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->label = L("Top Z distance");
+    def->min = 0;
     def->category = L("Support");
     def->tooltip = L("The z gap between the top support interface and object");
     def->sidetext = L("mm");
@@ -3508,12 +3517,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
-    // BBS:MusangKing
     def = this->add("support_bottom_z_distance", coFloat);
     def->label = L("Bottom Z distance");
     def->category = L("Support");
     def->tooltip = L("The z gap between the bottom support interface and object");
     def->sidetext = L("mm");
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
@@ -3962,6 +3971,15 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("change_extrusion_role_gcode", coString);
+    def->label = L("Change extrusion role G-code");
+    def->tooltip = L("This gcode is inserted when the extrusion role is changed");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 5;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("top_surface_line_width", coFloatOrPercent);
     def->label = L("Top surface");
     def->category = L("Quality");
@@ -4390,6 +4408,15 @@ def = this->add("filament_loading_speed", coFloats);
         default: assert(false);
         }
     }
+
+    def = this->add("detect_narrow_internal_solid_infill", coBool);
+    def->label = L("Detect narrow internal solid infill");
+    def->category = L("Strength");
+    def->tooltip = L("This option will auto detect narrow internal solid infill area."
+                   " If enabled, concentric pattern will be used for the area to speed printing up."
+                   " Otherwise, rectilinear pattern is used defaultly.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
 }
 
 void PrintConfigDef::init_extruder_option_keys()
@@ -5194,8 +5221,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type", "z_lift_type", "bed_temperature_difference",
-        "detect_narrow_internal_solid_infill", "ensure_vertical_shell_thickness","extruder_type",
-        "internal_bridge_support_thickness","ensure_vertical_shell_thickness","extruder_clearance_max_radius"
+        "extruder_type",
+        "internal_bridge_support_thickness","extruder_clearance_max_radius"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

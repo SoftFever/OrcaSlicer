@@ -119,8 +119,6 @@ SlicingParameters SlicingParameters::create_from_config(
         //BBS
         params.gap_object_support = object_config.support_bottom_z_distance.value; 
         params.gap_support_object = object_config.support_top_z_distance.value;
-        if (params.gap_object_support <= 0)
-            params.gap_object_support = params.gap_support_object;
 
         if (!print_config.independent_support_layer_height) {
             params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;

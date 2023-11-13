@@ -1038,8 +1038,7 @@ void WipeTower2::toolchange_Change(
     // The toolchange Tn command will be inserted later, only in case that the user does
     // not provide a custom toolchange gcode.
 	writer.set_tool(new_tool); // This outputs nothing, the writer just needs to know the tool has changed.
-    //writer.append("[start_filament_gcode]\n");
-    writer.append("[filament_start_gcode]\n");
+    // writer.append("[filament_start_gcode]\n");
 
 
 	writer.flush_planner_queue();

@@ -1,6 +1,6 @@
 {
     "name": "Voron",
-    "version": "01.06.05.02",
+    "version": "01.06.05.03",
     "force_update": "0",
     "description": "Voron configurations",
     "machine_model_list": [
@@ -383,20 +383,140 @@
             "sub_path": "machine/Voron Trident 250 0.4 nozzle.json"
         },
         {
+            "name": "Voron Trident 250 0.15 nozzle",
+            "sub_path": "machine/Voron Trident 250 0.15 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 250 0.2 nozzle",
+            "sub_path": "machine/Voron Trident 250 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 250 0.25 nozzle",
+            "sub_path": "machine/Voron Trident 250 0.25 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 250 0.6 nozzle",
+            "sub_path": "machine/Voron Trident 250 0.6 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 250 0.8 nozzle",
+            "sub_path": "machine/Voron Trident 250 0.8 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 250 1.0 nozzle",
+            "sub_path": "machine/Voron Trident 250 1.0 nozzle.json"
+        },
+        {
             "name": "Voron Trident 300 0.4 nozzle",
             "sub_path": "machine/Voron Trident 300 0.4 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 0.15 nozzle",
+            "sub_path": "machine/Voron Trident 300 0.15 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 0.2 nozzle",
+            "sub_path": "machine/Voron Trident 300 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 0.25 nozzle",
+            "sub_path": "machine/Voron Trident 300 0.25 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 0.6 nozzle",
+            "sub_path": "machine/Voron Trident 300 0.6 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 0.8 nozzle",
+            "sub_path": "machine/Voron Trident 300 0.8 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 1.0 nozzle",
+            "sub_path": "machine/Voron Trident 300 1.0 nozzle.json"
         },
         {
             "name": "Voron Trident 350 0.4 nozzle",
             "sub_path": "machine/Voron Trident 350 0.4 nozzle.json"
         },
         {
+            "name": "Voron Trident 350 0.15 nozzle",
+            "sub_path": "machine/Voron Trident 350 0.15 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 350 0.2 nozzle",
+            "sub_path": "machine/Voron Trident 350 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 350 0.25 nozzle",
+            "sub_path": "machine/Voron Trident 350 0.25 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 350 0.6 nozzle",
+            "sub_path": "machine/Voron Trident 350 0.6 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 350 0.8 nozzle",
+            "sub_path": "machine/Voron Trident 350 0.8 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 350 1.0 nozzle",
+            "sub_path": "machine/Voron Trident 350 1.0 nozzle.json"
+        },
+        {
             "name": "Voron 0.1 0.4 nozzle",
             "sub_path": "machine/Voron 0.1 0.4 nozzle.json"
         },
         {
+            "name": "Voron 0.1 0.15 nozzle",
+            "sub_path": "machine/Voron 0.1 0.15 nozzle.json"
+        },
+        {
+            "name": "Voron 0.1 0.2 nozzle",
+            "sub_path": "machine/Voron 0.1 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron 0.1 0.25 nozzle",
+            "sub_path": "machine/Voron 0.1 0.25 nozzle.json"
+        },
+        {
+            "name": "Voron 0.1 0.6 nozzle",
+            "sub_path": "machine/Voron 0.1 0.6 nozzle.json"
+        },
+        {
+            "name": "Voron 0.1 0.8 nozzle",
+            "sub_path": "machine/Voron 0.1 0.8 nozzle.json"
+        },
+        {
+            "name": "Voron 0.1 1.0 nozzle",
+            "sub_path": "machine/Voron 0.1 1.0 nozzle.json"
+        },
+        {
             "name": "Voron Switchwire 250 0.4 nozzle",
             "sub_path": "machine/Voron Switchwire 250 0.4 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 0.15 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 0.15 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 0.2 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 0.2 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 0.25 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 0.25 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 0.6 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 0.6 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 0.8 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 0.8 nozzle.json"
+        },
+        {
+            "name": "Voron Switchwire 250 1.0 nozzle",
+            "sub_path": "machine/Voron Switchwire 250 1.0 nozzle.json"
         }
     ]
 }
