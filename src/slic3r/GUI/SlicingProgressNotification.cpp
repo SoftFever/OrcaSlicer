@@ -17,9 +17,6 @@ namespace {
 	}
 }
 
-static constexpr int   BEFORE_COMPLETE_DURATION = 4000; //ms
-static constexpr int   REFRESH_TIMEOUT = 100;           //ms
-
 void NotificationManager::SlicingProgressNotification::on_change_color_mode(bool is_dark)
 {
 	PopNotification::on_change_color_mode(is_dark);
@@ -58,11 +55,7 @@ bool NotificationManager::SlicingProgressNotification::set_progress_state(float 
 	if (percent < 0.f)
 		return true;//set_progress_state(SlicingProgressState::SP_CANCELLED);
 	else if (percent >= 1.f) {
-		if (m_dailytips_panel->is_expanded()) {
 			m_before_complete_start = GLCanvas3D::timestamp_now();
-			return set_progress_state(SlicingProgressState::SP_BEFORE_COMPLETED);
-		}
-		else
 			return set_progress_state(SlicingProgressState::SP_COMPLETED);
 	}
 	else
@@ -105,16 +98,8 @@ bool NotificationManager::SlicingProgressNotification::set_progress_state(Notifi
 		set_export_possible(false);
 		m_sp_state = state;
 		return true;
-	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_BEFORE_COMPLETED:
-		if (m_sp_state != SlicingProgressState::SP_BEGAN && m_sp_state != SlicingProgressState::SP_PROGRESS)
-			return false;
-		m_has_print_info = false;
-		// m_export_possible is important only for SP_PROGRESS state, thus we can reset it here
-		set_export_possible(false);
-		m_sp_state = state;
-		return true;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_COMPLETED:
-		if (m_sp_state != SlicingProgressState::SP_BEGAN && m_sp_state != SlicingProgressState::SP_PROGRESS && m_sp_state != SlicingProgressState::SP_BEFORE_COMPLETED)
+		if (m_sp_state != SlicingProgressState::SP_BEGAN && m_sp_state != SlicingProgressState::SP_PROGRESS)
 			return false;
 		set_percentage(1);
 		m_has_print_info = false;
@@ -145,13 +130,6 @@ void NotificationManager::SlicingProgressNotification::set_status_text(const std
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_CANCELLED:
 	{
 		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0, text };
-		update(data);
-		m_state = EState::Shown;
-	}
-		break;
-	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_BEFORE_COMPLETED:
-	{
-		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0,  _u8L("Slice ok.") };
 		update(data);
 		m_state = EState::Shown;
 	}
@@ -198,8 +176,8 @@ int NotificationManager::SlicingProgressNotification::get_duration()
 {
 	if (m_sp_state == SlicingProgressState::SP_CANCELLED)
 		return 3;
-	else if (m_sp_state == SlicingProgressState::SP_COMPLETED && !m_sidebar_collapsed)
-		return 5;
+	else if (m_sp_state == SlicingProgressState::SP_COMPLETED)
+		return 3;
 	else
 		return 0;
 }
@@ -207,7 +185,7 @@ int NotificationManager::SlicingProgressNotification::get_duration()
 bool  NotificationManager::SlicingProgressNotification::update_state(bool paused, const int64_t delta)
 {
 	bool ret = PopNotification::update_state(paused, delta);
-	if (m_sp_state == SlicingProgressState::SP_BEFORE_COMPLETED || m_sp_state == SlicingProgressState::SP_COMPLETED)
+	if (m_sp_state == SlicingProgressState::SP_COMPLETED)
 		ret = true;
 
 	// sets Estate to hidden
@@ -233,19 +211,11 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	}
 	use_bbl_theme();
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8 * scale, 0));
-	if (m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_COMPLETED || m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_CANCELLED)
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize,m_WindowRadius / 4);
-		m_is_dark ? push_style_color(ImGuiCol_Border, { 62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f }, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
-	}
-	else {
-		// for debug
-		//ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
-		//m_is_dark ? push_style_color(ImGuiCol_Border, { 62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f }, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		push_style_color(ImGuiCol_Border, { 0, 0, 0, 0 }, true, m_current_fade_opacity);
-	}
+	// for debug
+	//ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
+	//m_is_dark ? push_style_color(ImGuiCol_Border, { 62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f }, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	push_style_color(ImGuiCol_Border, { 0, 0, 0, 0 }, true, m_current_fade_opacity);
 
 	Size cnv_size = canvas.get_canvas_size();
 
@@ -265,11 +235,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	float right_gap = right_margin + (move_from_overlay ? overlay_width + m_line_height * 5 : 0);
 	m_window_pos = ImVec2((float)cnv_size.get_width() - right_gap - m_window_width, (float)cnv_size.get_height() - m_top_y);
 	imgui.set_next_window_pos(m_window_pos.x, m_window_pos.y, ImGuiCond_Always, 0.0f, 0.0f);
-	// dynamically resize window by progress state
-	if (m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_COMPLETED || m_sp_state == SlicingProgressNotification::SlicingProgressState::SP_CANCELLED)
-		m_window_height = 64.0f * scale;
-	else
-		m_window_height = progress_panel_height + m_dailytips_panel->get_size().y + progress_child_window_padding.y + dailytips_child_window_padding.y + bottom_padding.y;
+	m_window_height = progress_panel_height + m_dailytips_panel->get_size().y + progress_child_window_padding.y + dailytips_child_window_padding.y + bottom_padding.y;
 	m_top_y = initial_y + m_window_height;
 	ImGui::SetNextWindowSizeConstraints(ImVec2(m_window_width, m_window_height), ImVec2(m_window_width, m_window_height));
 
@@ -289,21 +255,21 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 	if (imgui.begin(name, window_flags)) {
 		ImGuiWindow* parent_window = ImGui::GetCurrentWindow();
 
-		if (m_sp_state == SlicingProgressState::SP_CANCELLED || m_sp_state == SlicingProgressState::SP_COMPLETED) {
-			ImVec2 button_size = ImVec2(38.f, 38.f) * scale;
-			float  button_right_margin_x = 3.0f * scale;
-			ImVec2 button_pos = m_window_pos + ImVec2(m_window_width - button_size.x - button_right_margin_x, (m_window_height - button_size.y) / 2.0f);
-			float  text_left_margin_x = 15.0f * scale;
-			ImVec2 text_pos = m_window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f - m_line_height * 1.2f);
-			ImVec2 view_dailytips_text_pos = m_window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f + m_line_height * 0.2f);
+		//if (m_sp_state == SlicingProgressState::SP_CANCELLED || m_sp_state == SlicingProgressState::SP_COMPLETED) {
+		//	ImVec2 button_size = ImVec2(38.f, 38.f) * scale;
+		//	float  button_right_margin_x = 3.0f * scale;
+		//	ImVec2 button_pos = m_window_pos + ImVec2(m_window_width - button_size.x - button_right_margin_x, (m_window_height - button_size.y) / 2.0f);
+		//	float  text_left_margin_x = 15.0f * scale;
+		//	ImVec2 text_pos = m_window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f - m_line_height * 1.2f);
+		//	ImVec2 view_dailytips_text_pos = m_window_pos + ImVec2(text_left_margin_x, m_window_height / 2.0f + m_line_height * 0.2f);
 
-			bbl_render_left_sign(imgui, m_window_width, m_window_height, m_window_pos.x + m_window_width, m_window_pos.y);
-			render_text(text_pos);
-			render_close_button(button_pos, button_size);
-			render_show_dailytips(view_dailytips_text_pos);
-		}
+		//	bbl_render_left_sign(imgui, m_window_width, m_window_height, m_window_pos.x + m_window_width, m_window_pos.y);
+		//	render_text(text_pos);
+		//	render_close_button(button_pos, button_size);
+		//	render_show_dailytips(view_dailytips_text_pos);
+		//}
 
-		if (m_sp_state == SlicingProgressState::SP_PROGRESS || m_sp_state == SlicingProgressState::SP_BEFORE_COMPLETED) {
+		if (m_sp_state == SlicingProgressState::SP_CANCELLED || m_sp_state == SlicingProgressState::SP_PROGRESS ||  m_sp_state == SlicingProgressState::SP_COMPLETED) {
 			std::string child_name = "##SlicingProgressPanel" + std::to_string(parent_window->ID);
 
 			ImGui::SetNextWindowPos(parent_window->Pos + progress_child_window_padding);
@@ -317,6 +283,7 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 				ImVec2 text_pos = ImVec2(progress_bar_pos.x, progress_bar_pos.y - m_line_height * 1.2f);
 
 				render_text(text_pos);
+				render_close_button(button_pos, button_size);
 				if (m_sp_state == SlicingProgressState::SP_PROGRESS) {
 					render_bar(progress_bar_pos, progress_bar_size);
 					render_cancel_button(button_pos, button_size);
@@ -327,13 +294,14 @@ void NotificationManager::SlicingProgressNotification::render(GLCanvas3D& canvas
 			// Separator Line
 			ImVec2 separator_min = ImVec2(ImGui::GetCursorScreenPos().x + progress_child_window_padding.x, ImGui::GetCursorScreenPos().y);
 			ImVec2 separator_max = ImVec2(ImGui::GetCursorScreenPos().x + progress_child_window_padding.x + progress_panel_width, ImGui::GetCursorScreenPos().y);
-			ImGui::GetCurrentWindow()->DrawList->AddLine(separator_min, separator_max, ImColor(238, 238, 238));
+			ImGui::GetCurrentWindow()->DrawList->AddLine(separator_min, separator_max, ImColor(238, 238, 238, (int)(255 * m_current_fade_opacity)));
 
 			child_name = "##DailyTipsPanel" + std::to_string(parent_window->ID);
 			ImVec2 dailytips_pos = ImGui::GetCursorScreenPos() + dailytips_child_window_padding;
 			ImVec2 dailytips_size = ImVec2(dailytips_panel_width, dailytips_panel_height);
 			m_dailytips_panel->set_position(dailytips_pos);
 			m_dailytips_panel->set_size(dailytips_size);
+			m_dailytips_panel->set_fade_opacity(m_current_fade_opacity);
 			ImGui::SetNextWindowPos(dailytips_pos);
 			if (ImGui::BeginChild(child_name.c_str(), ImVec2(dailytips_panel_width, dailytips_panel_height), false, child_window_flags)) {
 				render_dailytips_panel(dailytips_pos, dailytips_size);
@@ -359,7 +327,8 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 {
 	ImGuiWrapper& imgui = *wxGetApp().imgui();
 	float scale = imgui.get_font_size() / 15.0f;
-	if (m_sp_state == SlicingProgressState::SP_BEFORE_COMPLETED) {
+	ImVec2 icon_size = ImVec2(38.f, 38.f) * scale;
+	if (m_sp_state == SlicingProgressState::SP_COMPLETED) {
 		// complete icon
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
@@ -374,46 +343,20 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_text(
 
 		ImGui::PopStyleColor(5);
 
-		ImVec2 icon_size = ImVec2(38.f, 38.f) * scale;
-		if (ImGui::IsMouseHoveringRect(m_window_pos, m_window_pos + ImVec2(m_window_width, m_window_height), false)) {
-			// complete text
-			imgui.push_bold_font();
-			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + (icon_size.y - m_line_height) / 2));
-			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
-			imgui.pop_bold_font();
-			
-			m_before_complete_start = GLCanvas3D::timestamp_now();
-		}
-		else {
-			// timer to close
-			int64_t now = GLCanvas3D::timestamp_now();
-			int64_t duration_time = now - m_before_complete_start;
-			if (duration_time < 1000) {
-				imgui.push_bold_font();
-				ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + (icon_size.y - m_line_height) / 2));
-				imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
-				imgui.pop_bold_font();
-				return;
-			}
-			if (duration_time > BEFORE_COMPLETE_DURATION) {
-				set_progress_state(SlicingProgressState::SP_COMPLETED);
-				return;
-			}
-			// complete text
-			imgui.push_bold_font();
-			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y));
-			imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
-			imgui.pop_bold_font();
-			// closing text
-			boost::format fmt(_u8L("Closing in %ds"));
-			fmt % (4 - duration_time / 1000);
-			ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144).Value);
-			ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + m_line_height + m_line_height / 2));
-			imgui.text(fmt.str());
-			ImGui::PopStyleColor();
-		}
+		// complete text
+		imgui.push_bold_font();
+		ImGui::SetCursorScreenPos(ImVec2(pos.x + icon_size.x + ImGui::CalcTextSize(" ").x, pos.y + (icon_size.y - m_line_height) / 2));
+		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+		imgui.pop_bold_font();
+		return;
 	}
-	else {
+	if (m_sp_state == SlicingProgressState::SP_CANCELLED) {
+		imgui.push_bold_font();
+		ImGui::SetCursorScreenPos(ImVec2(pos.x + ImGui::CalcTextSize(" ").x, pos.y + (icon_size.y - m_line_height) / 2));
+		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
+		imgui.pop_bold_font();
+	}
+	if(m_sp_state == SlicingProgressState::SP_PROGRESS)	{
 		//one line text
 		ImGui::SetCursorScreenPos(pos);
 		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
@@ -448,10 +391,6 @@ void Slic3r::GUI::NotificationManager::SlicingProgressNotification::render_bar(c
 
 void NotificationManager::SlicingProgressNotification::render_dailytips_panel(const ImVec2& pos, const ImVec2& size)
 {
-	if (m_sp_state == SlicingProgressState::SP_BEFORE_COMPLETED)
-		m_dailytips_panel->set_can_expand(false);
-	else
-		m_dailytips_panel->set_can_expand(true);
 	m_dailytips_panel->render();
 }
 

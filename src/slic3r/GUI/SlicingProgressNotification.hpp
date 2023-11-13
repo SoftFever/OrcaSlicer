@@ -17,7 +17,7 @@ public:
         SP_BEGAN,             // still hidden but allows to go to SP_PROGRESS state. This prevents showing progress after slicing was canceled.
         SP_PROGRESS,          // never fades outs, no close button, has cancel button
         SP_CANCELLED,         // fades after 10 seconds, simple message
-        SP_BEFORE_COMPLETED,  // to keep displaying DailyTips for 3 seconds 
+        //SP_BEFORE_COMPLETED,  // to keep displaying DailyTips for 3 seconds 
         SP_COMPLETED          // Has export hyperlink and print info, fades after 20 sec if sidebar is shown, otherwise no fade out
     };
     SlicingProgressNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, std::function<bool()> callback)

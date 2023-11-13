@@ -25,6 +25,7 @@ public:
     void render(const ImVec2& pos, const ImVec2& size) const;
     bool has_image() const;
     void on_change_color_mode(bool is_dark);
+    void set_fade_opacity(float opacity);
 
 protected:
     void load_texture_from_img_url(const std::string url);
@@ -39,6 +40,7 @@ private:
     GLTexture* m_placeholder_texture{ nullptr };
     bool m_is_dark{ false };
     DailyTipsLayout m_layout;
+    float m_fade_opacity{ 1.0f };
 };
 
 DailyTipsDataRenderer::DailyTipsDataRenderer(DailyTipsLayout layout)
@@ -121,12 +123,17 @@ void DailyTipsDataRenderer::on_change_color_mode(bool is_dark)
     m_is_dark = is_dark;
 }
 
+void DailyTipsDataRenderer::set_fade_opacity(float opacity)
+{
+    m_fade_opacity = opacity;
+}
+
 void DailyTipsDataRenderer::render_img(const ImVec2& start_pos, const ImVec2& size) const
 {
     if (has_image())
-        ImGui::Image((ImTextureID)(intptr_t)m_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, 1) : ImVec4(1, 1, 1, 1));
+        ImGui::Image((ImTextureID)(intptr_t)m_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
     else {
-        ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, 1) : ImVec4(1, 1, 1, 1));
+        ImGui::Image((ImTextureID)(intptr_t)m_placeholder_texture->get_id(), size, ImVec2(0, 0), ImVec2(1, 1), m_is_dark ? ImVec4(0.8, 0.8, 0.8, m_fade_opacity) : ImVec4(1, 1, 1, m_fade_opacity));
     }
 }
 
@@ -134,6 +141,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(1.0f, 1.0f, 1.0f, 0.88f * m_fade_opacity) : ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, m_fade_opacity));
     // main text
     // first line is headline (for hint notification it must be divided by \n)
     std::string title_line;
@@ -182,7 +190,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
         ImVec2 link_start_pos = ImGui::GetCursorScreenPos();
         imgui.text(first_part_text);
 
-        ImColor HyperColor = ImColor(31, 142, 234).Value;
+        ImColor HyperColor = ImColor(31, 142, 234, (int)(255 * m_fade_opacity)).Value;
         ImVec2 wiki_part_rect_min = ImVec2(link_start_pos.x + first_part_size.x, link_start_pos.y);
         ImVec2 wiki_part_rect_max = wiki_part_rect_min + wiki_part_size;
         ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
@@ -204,6 +212,7 @@ void DailyTipsDataRenderer::render_text(const ImVec2& start_pos, const ImVec2& s
                 open_wiki();
         }
     }
+    ImGui::PopStyleColor();
 }
 
 int DailyTipsPanel::uid = 0;
@@ -342,6 +351,12 @@ void DailyTipsPanel::on_change_color_mode(bool is_dark)
     m_dailytips_renderer->on_change_color_mode(is_dark);
 }
 
+void DailyTipsPanel::set_fade_opacity(float opacity)
+{
+    m_fade_opacity = opacity;
+    m_dailytips_renderer->set_fade_opacity(opacity);
+}
+
 //void DailyTipsPanel::render_header(const ImVec2& pos, const ImVec2& size)
 //{
 //    ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -380,7 +395,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
-                ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144).Value);
+                ImGui::PushStyleColor(ImGuiCol_Text, ImColor(144, 144, 144, (int)(255 * m_fade_opacity)).Value);
 
                 button_text = ImGui::CollapseArrowIcon;
                 imgui.button((_L("Collapse") + button_text));
@@ -406,7 +421,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
-                ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImColor(230, 230, 230).Value : ImColor(38, 46, 48).Value);
+                ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImColor(230, 230, 230, (int)(255 * m_fade_opacity)).Value : ImColor(38, 46, 48, (int)(255 * m_fade_opacity)).Value);
 
                 // for bold font text, split text and icon-font button
                 imgui.push_bold_font();
@@ -425,7 +440,7 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
                     lineEnd.y -= 2;
                     ImVec2 lineStart = lineEnd;
                     lineStart.x = ImGui::GetItemRectMin().x - expand_btn_size.x;
-                    ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, m_is_dark ? ImColor(230, 230, 230) : ImColor(38, 46, 48));
+                    ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, m_is_dark ? ImColor(230, 230, 230, (int)(255 * m_fade_opacity)) : ImColor(38, 46, 48, (int)(255 * m_fade_opacity)));
 
                     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                         expand();
@@ -447,7 +462,9 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         float text_pos_x = (pos + size).x - button_margin_x * 2 - button_size.x * 2 - text_item_width;
         float text_pos_y = pos.y + (size.y - ImGui::CalcTextSize("A").y) / 2;
         ImGui::SetCursorScreenPos(ImVec2(text_pos_x, text_pos_y));
+        ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImColor(230, 230, 230, (int)(255 * m_fade_opacity)).Value : ImColor(38, 46, 48, (int)(255 * m_fade_opacity)).Value);
         imgui.text(text_str);
+        ImGui::PopStyleColor();
         ImGui::PopItemWidth();
         
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -456,13 +473,13 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(.0f, .0f, .0f, .0f));
 
         // prev button
-        ImColor button_text_color = m_is_dark ? ImColor(228, 228, 228) : ImColor(38, 46, 48);
+        ImColor button_text_color = m_is_dark ? ImColor(228, 228, 228, (int)(255 * m_fade_opacity)) : ImColor(38, 46, 48, (int)(255 * m_fade_opacity));
         ImVec2 prev_button_pos = pos + size + ImVec2(-button_margin_x - button_size.x * 2, -size.y + (size.y - button_size.y) / 2);
         ImGui::SetCursorScreenPos(prev_button_pos);
         button_text = ImGui::PrevArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(prev_button_pos, prev_button_pos + button_size, true))
         {
-            button_text_color = ImColor(0, 174, 66);
+            button_text_color = ImColor(0, 174, 66, (int)(255 * m_fade_opacity));
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 retrieve_data_from_hint_database(HintDataNavigation::Prev);
         }
@@ -471,13 +488,13 @@ void DailyTipsPanel::render_controller_buttons(const ImVec2& pos, const ImVec2& 
         ImGui::PopStyleColor();
 
         // next button
-        button_text_color = m_is_dark ? ImColor(228, 228, 228) : ImColor(38, 46, 48);
+        button_text_color = m_is_dark ? ImColor(228, 228, 228, (int)(255 * m_fade_opacity)) : ImColor(38, 46, 48, (int)(255 * m_fade_opacity));
         ImVec2 next_button_pos = pos + size + ImVec2(-button_size.x, -size.y + (size.y - button_size.y) / 2);
         ImGui::SetCursorScreenPos(next_button_pos);
         button_text = ImGui::NextArrowBtnIcon;
         if (ImGui::IsMouseHoveringRect(next_button_pos, next_button_pos + button_size, true))
         {
-            button_text_color = ImColor(0, 174, 66);
+            button_text_color = ImColor(0, 174, 66, (int)(255 * m_fade_opacity));
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
                 retrieve_data_from_hint_database(HintDataNavigation::Next);
         }
