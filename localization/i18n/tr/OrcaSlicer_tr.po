@@ -808,7 +808,7 @@ msgid "Fuzzy Skin"
 msgstr "Bulanık Kaplama"
 
 msgid "Extruders"
-msgstr "ekstruderler"
+msgstr "Ekstruderler"
 
 msgid "Extrusion Width"
 msgstr "Ekstrüzyon Genişliği"
