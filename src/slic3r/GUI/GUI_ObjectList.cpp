@@ -5542,8 +5542,10 @@ void ObjectList::msw_rescale()
 void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-
+    
     msw_rescale();
+
+    if (m_objects_model) { m_objects_model->sys_color_changed(); }
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)

@@ -166,7 +166,13 @@ bool ObjectDataViewModelNode::valid()
 	assert(m_idx >= -1);
 	return m_idx >= -1;
 }
+
 #endif /* NDEBUG */
+
+void ObjectDataViewModelNode::sys_color_changed()
+{
+    m_printable_icon = m_printable == piUndef ? m_empty_bmp : create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
+}
 
 void ObjectDataViewModelNode::set_icons()
 {
@@ -1512,6 +1518,14 @@ void ObjectDataViewModel::append_found(wxString current_search_text, ObjectDataV
 
     for (size_t i = 0; i < item->GetChildCount(); ++i) {
         append_found(current_search_text, item->GetNthChild(i));
+    }
+}
+
+void ObjectDataViewModel::sys_color_changed()
+{
+    for (ObjectDataViewModelNode *item : m_objects) {
+        item->sys_color_changed();
+        ItemChanged(wxDataViewItem((void *) item));
     }
 }
 

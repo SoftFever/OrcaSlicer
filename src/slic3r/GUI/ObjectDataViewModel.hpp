@@ -302,6 +302,7 @@ public:
     bool        has_warning_icon() const { return !m_warning_icon_name.empty(); }
     std::string warning_icon_name() const { return m_warning_icon_name; }
     bool        has_lock() const { return m_has_lock; }
+    void        sys_color_changed();
 
 private:
     friend class ObjectDataViewModel;
@@ -488,6 +489,8 @@ public:
     void        append_found_list(wxString current_search_text);
     void        append_found(wxString current_search_text, ObjectDataViewModelNode* item);
     wxDataViewItemArray        get_search_list() { return found_list; }
+    void                sys_color_changed();
+
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
     wxDataViewItem  AddInstanceRoot(const wxDataViewItem& parent_item);
