@@ -823,6 +823,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                                 size_t pos = filament_it->name.find(target);
                                 if (pos != std::string::npos) {
                                     std::string user_preset_alias = filament_it->name.substr(0, pos-1);
+                                    wxString  wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
+                                    user_preset_alias = wx_user_preset_alias.ToStdString();
+
                                     filament_items.push_back(user_preset_alias);
                                     map_filament_items[user_preset_alias] = filament_it->filament_id;
                                 }
