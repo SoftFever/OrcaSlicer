@@ -44,7 +44,7 @@
         "60"
     ],
     "nozzle_temperature_initial_layer": [
-        "195"
+        "210"
     ],
     "reduce_fan_stop_start_freq": [
         "1"
@@ -68,7 +68,7 @@
         "1"
     ],
     "nozzle_temperature": [
-        "195"
+        "210"
     ],
     "temperature_vitrification": [
         "60"
