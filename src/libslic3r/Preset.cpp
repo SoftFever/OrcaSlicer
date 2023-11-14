@@ -1491,6 +1491,7 @@ int PresetCollection::get_user_presets(PresetBundle *preset_bundle, std::vector<
         if (get_preset_base(preset) != &preset && preset.base_id.empty()) continue;
         if (!preset.setting_id.empty() && preset.sync_info.empty()) continue;
         //if (!preset.is_bbl_vendor_preset(preset_bundle)) continue;
+        if (preset.sync_info == "hold") continue;
 
         result_presets.push_back(preset);
         count++;
