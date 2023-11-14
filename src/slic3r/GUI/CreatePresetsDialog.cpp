@@ -1762,7 +1762,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_stl_item(wxWindow *parent)
     StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
 
-    m_button_bed_stl = new Button(parent, _L("Upload"));
+    m_button_bed_stl = new Button(parent, _L("Load"));
     m_button_bed_stl->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_model_stl(); }));
     m_button_bed_stl->SetFont(Label::Body_10);
 
@@ -1799,7 +1799,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_hot_bed_svg_item(wxWindow *parent)
     StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
 
-    m_button_bed_svg = new Button(parent, _L("Upload"));
+    m_button_bed_svg = new Button(parent, _L("Load"));
     m_button_bed_svg->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) { load_texture(); }));
     m_button_bed_svg->SetFont(Label::Body_10);
 
@@ -2168,6 +2168,29 @@ void CreatePrinterPresetDialog::update_preset_list_size()
     Layout();
     Fit();
     Refresh();
+    wxSize screen_size = wxGetDisplaySize();
+    int    pos_x, pos_y, size_x, size_y, screen_width, screen_height, dialog_x, dialog_y;
+    pos_x         = GetPosition().x;
+    pos_y         = GetPosition().y;
+    size_x        = GetSize().x;
+    size_y        = GetSize().y;
+    screen_width  = screen_size.GetWidth();
+    screen_height = screen_size.GetHeight();
+    dialog_x      = pos_x;
+    dialog_y      = pos_y;
+    if (pos_x + size_x > screen_width) { 
+        int exceed_x = pos_x + size_x - screen_width;
+        dialog_x -= exceed_x;
+        
+    }
+    if (pos_y + size_y > screen_height - FromDIP(50)) { // FromDIP(50) task bar
+        int exceed_y = pos_y + size_y - screen_height + FromDIP(50); 
+        dialog_y -= exceed_y;
+    }
+    if (pos_x != dialog_x || pos_y != dialog_y) {
+        SetPosition(wxPoint(dialog_x, dialog_y));
+    }
+    
     m_scrolled_preset_window->Thaw();
 }
 
