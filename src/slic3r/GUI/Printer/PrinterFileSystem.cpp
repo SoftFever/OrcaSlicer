@@ -994,7 +994,7 @@ void PrinterFileSystem::FileRemoved(std::pair<FileType, std::string> type, size_
                 m_group_flags.erase(m_group_flags.begin() + index2);
         }
     }
-    m_file_list.erase(m_file_list.begin() + index);
+    m_file_list.erase(file_index.first.begin() + index);
 }
 
 struct CallbackEvent : wxCommandEvent
