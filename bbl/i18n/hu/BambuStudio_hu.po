@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-09 09:10+0800\n"
+"POT-Creation-Date: 2023-11-14 11:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -322,6 +322,9 @@ msgstr ""
 msgid "Movement:"
 msgstr "Mozgatás:"
 
+msgid "Groove Angle"
+msgstr ""
+
 msgid "Movement"
 msgstr "Mozgás"
 
@@ -345,15 +348,6 @@ msgstr "Szélesség"
 
 msgid "Flap Angle"
 msgstr ""
-
-msgid "Groove Angle"
-msgstr ""
-
-msgid "Upper part"
-msgstr "Upper part"
-
-msgid "Lower part"
-msgstr "Lower part"
 
 msgid "Keep orientation"
 msgstr ""
@@ -2776,6 +2770,18 @@ msgid "Paused by the Gcode inserted by user"
 msgstr ""
 
 msgid "Motor noise showoff"
+msgstr ""
+
+msgid "Nozzle filament covered detected pause"
+msgstr ""
+
+msgid "Cutter error pause"
+msgstr ""
+
+msgid "First layer error pause"
+msgstr ""
+
+msgid "Nozzle clog pause"
 msgstr ""
 
 msgid "MC"
@@ -11014,7 +11020,7 @@ msgid ""
 "All inputs in the custom printer vendor or model are spaces. Please re-enter."
 msgstr ""
 
-msgid "Please check bed shape input."
+msgid "Please check bed printable shape and origin input."
 msgstr ""
 
 msgid ""
@@ -11036,7 +11042,11 @@ msgstr ""
 msgid "Filament Created"
 msgstr ""
 
-msgid "Please go to filament setting to edit your presets if you need"
+msgid ""
+"Please go to filament setting to edit your presets if you need.\n"
+"Please note that nozzle temperature, hot bed temperature, and maximum "
+"volumetric speed have a significant impact on printing quality. Please set "
+"them carefully."
 msgstr ""
 
 msgid "Printer Setting"
@@ -11471,6 +11481,12 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Upper part"
+#~ msgstr "Upper part"
+
+#~ msgid "Lower part"
+#~ msgstr "Lower part"
 
 #~ msgid ""
 #~ "The version of Bambu studio is too low and needs to be updated to the "
