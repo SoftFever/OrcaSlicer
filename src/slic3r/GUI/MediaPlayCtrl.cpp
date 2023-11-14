@@ -30,6 +30,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     : wxPanel(parent, wxID_ANY, pos, size)
     , m_media_ctrl(media_ctrl)
 {
+    SetLabel("MediaPlayCtrl");
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
 
@@ -152,6 +153,11 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
+}
+
+void MediaPlayCtrl::SetAutoRetry(bool b)
+{
+    m_auto_retry = b;
 }
 
 wxString hide_passwd(wxString url, std::vector<wxString> const &passwords)
@@ -288,7 +294,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
             SetStatus(_L("Stopped [%d]!"), true);
         else
             SetStatus(_L("Stopped."), false);
-        if (m_failed_code >= 100) // not keep retry on local error
+        if (!m_auto_retry || m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
     } else if (!msg.IsEmpty()) {
         SetStatus(msg, false);
