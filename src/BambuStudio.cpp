@@ -4287,32 +4287,37 @@ int CLI::run(int argc, char **argv)
                         StringObjectException warning;
                         auto err = print->validate(&warning);
                         if (!err.string.empty()) {
-                            BOOST_LOG_TRIVIAL(error) << "got error when validate: "<< err.string << std::endl;
-                            boost::nowide::cerr << err.string << std::endl;
-                            int validate_error;
-                            switch (err.type)
-                            {
-                                case STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE:
-                                    validate_error = CLI_FILAMENT_NOT_MATCH_BED_TYPE;
-                                    break;
-                                case STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP:
-                                    validate_error = CLI_FILAMENTS_DIFFERENT_TEMP;
-                                    break;
-                                case STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT:
-                                    validate_error = CLI_OBJECT_COLLISION_IN_SEQ_PRINT;
-                                    break;
-                                case STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT:
-                                    validate_error = CLI_OBJECT_COLLISION_IN_LAYER_PRINT;
-                                    break;
-                                default:
-                                    validate_error = CLI_VALIDATE_ERROR;
-                                    break;
+                            if ((STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT == err.type) && no_check) {
+                                BOOST_LOG_TRIVIAL(warning) << "got warnings: "<< err.string << std::endl;
                             }
-                            if (no_check)
-                                record_exit_reson(outfile_dir, validate_error, index+1, err.string, sliced_info);
-                            else
-                                record_exit_reson(outfile_dir, validate_error, index+1, cli_errors[validate_error], sliced_info);
-                            flush_and_exit(validate_error);
+                            else {
+                                BOOST_LOG_TRIVIAL(error) << "got error when validate: "<< err.string << std::endl;
+                                boost::nowide::cerr << err.string << std::endl;
+                                int validate_error;
+                                switch (err.type)
+                                {
+                                    case STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE:
+                                        validate_error = CLI_FILAMENT_NOT_MATCH_BED_TYPE;
+                                        break;
+                                    case STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP:
+                                        validate_error = CLI_FILAMENTS_DIFFERENT_TEMP;
+                                        break;
+                                    case STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT:
+                                        validate_error = CLI_OBJECT_COLLISION_IN_SEQ_PRINT;
+                                        break;
+                                    case STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT:
+                                        validate_error = CLI_OBJECT_COLLISION_IN_LAYER_PRINT;
+                                        break;
+                                    default:
+                                        validate_error = CLI_VALIDATE_ERROR;
+                                        break;
+                                }
+                                if (no_check)
+                                    record_exit_reson(outfile_dir, validate_error, index+1, err.string, sliced_info);
+                                else
+                                    record_exit_reson(outfile_dir, validate_error, index+1, cli_errors[validate_error], sliced_info);
+                                flush_and_exit(validate_error);
+                            }
                         }
                         else if (!warning.string.empty()) {
                             BOOST_LOG_TRIVIAL(warning) << "got warnings: "<< warning.string << std::endl;
