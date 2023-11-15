@@ -4697,8 +4697,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     float max_z_hop = 0.f;
     for (int i = 0; i < m_config.z_hop.size(); i++)
         max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
-    float travel_len_thresh = max_z_hop / tan(GCodeWriter::slope_threshold);
-
+    float travel_len_thresh = scale_(max_z_hop / tan(GCodeWriter::slope_threshold));
     float accum_len = 0.f;
     Polyline clipped_travel;
 
