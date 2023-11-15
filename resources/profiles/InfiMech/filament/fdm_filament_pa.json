@@ -38,7 +38,7 @@
         "5"
     ],
     "filament_max_volumetric_speed": [
-        "8"
+        "6"
     ],
     "filament_type": [
         "PA"
@@ -50,7 +50,7 @@
         "20"
     ],
     "nozzle_temperature_initial_layer": [
-        "290"
+        "280"
     ],
     "reduce_fan_stop_start_freq": [
         "0"
@@ -78,6 +78,15 @@
     ],
     "slow_down_min_speed": [
         "20"
+    ],
+    "filament_flow_ratio": [
+        "0.98"
+    ],
+    "overhang_fan_threshold": [
+        "0%"
+    ],
+    "filament_retraction_length": [
+        "0.8"
     ],
     "slow_down_layer_time": [
         "2"
