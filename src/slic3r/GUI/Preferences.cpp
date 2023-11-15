@@ -476,6 +476,8 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->GetTextCtrl()->SetValidator(validator);
 
 
     auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
@@ -496,23 +498,22 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         e.Skip();
     });
 
-    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input](wxCommandEvent &e) {
+    std::function<void()> backup_interval = [this, param, input]() {
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
         long backup_interval = 0;
         m_backup_interval_time.ToLong(&backup_interval);
         Slic3r::set_backup_interval(backup_interval);
+    };
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [backup_interval](wxCommandEvent &e) {
+        backup_interval();
         e.Skip();
     });
 
-     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input](wxFocusEvent &e) {
-        m_backup_interval_time = input->GetTextCtrl()->GetValue();
-        app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
-        app_config->save();
-        long backup_interval = 0;
-        m_backup_interval_time.ToLong(&backup_interval);
-        Slic3r::set_backup_interval(backup_interval);
+     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [backup_interval](wxFocusEvent &e) {
+        backup_interval();
         e.Skip();
     });
 

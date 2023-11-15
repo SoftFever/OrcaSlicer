@@ -7715,10 +7715,12 @@ public:
 
     void set_interval(long n) {
         boost::lock_guard lock(m_mutex);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and last interval is: " << m_interval;
         m_next_backup -= boost::posix_time::seconds(m_interval);
         m_interval = n;
         m_next_backup += boost::posix_time::seconds(m_interval);
         m_cond.notify_all();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " exit, and new interval is: " << m_interval;
     }
 
     void put_other_changes()
@@ -7796,6 +7798,7 @@ private:
     };
 private:
     _BBS_Backup_Manager() {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inital and interval = " << m_interval;
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
         boost::unique_lock lock(m_mutex);
         m_thread = std::move(boost::thread(boost::ref(*this)));
@@ -7824,7 +7827,7 @@ private:
     }
 
     void process_ui_task(Task& t, bool canceled = false) {
-        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string();
+        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup: {
                 if (canceled)
@@ -7868,7 +7871,7 @@ private:
     }
 
     void process_task(Task& t) {
-        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
+        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup:
                 // do it in response

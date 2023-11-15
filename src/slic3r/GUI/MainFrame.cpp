@@ -573,7 +573,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         // BBS: backup project
         if (wxGetApp().app_config->get("backup_switch") == "true") {
             std::string backup_interval;
-            if (!wxGetApp().app_config->get("", "backup_interval", backup_interval))
+            if (!wxGetApp().app_config->get("app", "backup_interval", backup_interval))
                 backup_interval = "10";
             Slic3r::set_backup_interval(boost::lexical_cast<long>(backup_interval));
         } else {
