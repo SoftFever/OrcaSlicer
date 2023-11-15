@@ -224,6 +224,13 @@ jobs:
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
+
+      - name: Upload artifacts Win PDB
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: OrcaSlicer_Windows_V${{ env.ver }}_pdb
+          path: ${{ github.workspace }}/build/src/Release/*.pdb
 # Ubuntu
 
       - name: Install dependencies
