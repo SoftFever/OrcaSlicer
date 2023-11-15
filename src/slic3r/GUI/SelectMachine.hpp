@@ -514,6 +514,9 @@ public:
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
     void set_thumbnail(wxImage img);
+    void paint(wxPaintEvent& evt);
+private:
+    ScalableBitmap m_background_bitmap;
     
 };
 

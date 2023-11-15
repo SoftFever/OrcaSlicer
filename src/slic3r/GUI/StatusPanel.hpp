@@ -163,6 +163,7 @@ private:
     wxBitmap        m_thumbnail_bmp_display;
     ScalableBitmap  m_bitmap_use_time;
     ScalableBitmap  m_bitmap_use_weight;
+    ScalableBitmap  m_bitmap_background;
 
     wxPanel *       m_panel_printing_title;
     wxPanel*        m_staticline;

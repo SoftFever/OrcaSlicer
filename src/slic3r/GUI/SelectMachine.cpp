@@ -4427,7 +4427,9 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetBackgroundStyle(wxBG_STYLE_CUSTOM);
      wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
      m_staticbitmap    = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
+     m_background_bitmap = ScalableBitmap(this,"thumbnail_grid",256);
      sizer->Add(m_staticbitmap, 1, wxEXPAND, 0);
+     Bind(wxEVT_PAINT, &ThumbnailPanel::paint,this);
      SetSizer(sizer);
      Layout();
      Fit();
@@ -4437,6 +4439,13 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
  {
      wxBitmap bitmap(img);
      m_staticbitmap->SetBitmap(bitmap);
+ }
+
+ void ThumbnailPanel::paint(wxPaintEvent& evt) {
+     wxPaintDC dc(this);
+     if (wxGetApp().dark_mode())
+         dc.DrawBitmap(m_background_bitmap.bmp(), 0, 0);
+     dc.DrawBitmap(m_staticbitmap->GetBitmap(),0,0);
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}

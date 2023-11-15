@@ -147,6 +147,7 @@ PrintingTaskPanel::PrintingTaskPanel(wxWindow* parent, PrintingTaskType type)
     m_type = type;
     create_panel(this);
     SetBackgroundColour(*wxWHITE);
+    m_bitmap_background = ScalableBitmap(this, "thumbnail_grid", m_bitmap_thumbnail->GetSize().y);
 
     m_bitmap_thumbnail->Bind(wxEVT_PAINT, &PrintingTaskPanel::paint, this);
 }
@@ -544,6 +545,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 void PrintingTaskPanel::paint(wxPaintEvent&)
 {
     wxPaintDC dc(m_bitmap_thumbnail);
+    if (wxGetApp().dark_mode())
+        dc.DrawBitmap(m_bitmap_background.bmp(), 0, 0);
     dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
     dc.SetTextForeground(*wxBLACK);
     dc.SetFont(Label::Body_12);
