@@ -82,6 +82,9 @@
     "nozzle_temperature_range_high": [
         "250"
     ],
+    "filament_flow_ratio": [
+        "0.98"
+    ],
     "filament_start_gcode": [
         "; filament start gcode\n"
     ]
