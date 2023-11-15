@@ -84,5 +84,8 @@
     ],
     "slow_down_layer_time": [
         "3"
+    ],
+    "filament_retraction_length": [
+        "0.8"
     ]
 }
