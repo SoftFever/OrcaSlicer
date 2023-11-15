@@ -435,7 +435,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     rename_sizer_v = new wxBoxSizer(wxVERTICAL);
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
-    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
+    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     m_rename_text->SetForegroundColour(*wxBLACK);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
