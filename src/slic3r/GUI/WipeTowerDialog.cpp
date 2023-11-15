@@ -204,8 +204,6 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    SetBackgroundColour(*wxWHITE);
-
     auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
@@ -315,6 +313,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_page_advanced			= new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_page_simple->SetSizer(m_sizer_simple);
     m_page_advanced->SetSizer(m_sizer_advanced);
+    m_page_advanced->SetBackgroundColour(*wxWHITE);
 
     update_ui(m_page_simple);
     update_ui(m_page_advanced);
