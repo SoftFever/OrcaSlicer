@@ -779,58 +779,20 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     wxGetApp().plater()->update();
 }
 
-void ObjectList::search_object_list() {
-
-    auto found_list = m_objects_model->get_search_list();
-    auto found_size = found_list.size();
-
-    if (cur_pos >= found_size) {
-        cur_pos = 0;
-    }
-
-    if (cur_pos < found_size) {
-        wxDataViewItem cur_item = found_list.Item(cur_pos);
-        select_item(cur_item);
-        cur_pos++;
-        ensure_current_item_visible();
-        selection_changed();
-    }
+void ObjectList::assembly_plate_object_name()
+{
+    m_objects_model->assembly_name();
 }
 
-void ObjectList::set_found_list(wxString current_search_text) {
-
-    PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
-    current_search_text = current_search_text.MakeLower();
-
-    m_objects_model->append_found_list(current_search_text);
-
-    if (current_search_text.empty()) {
-        if (ppl.get_plate_count() > 0) {
-            wxDataViewItem item = m_objects_model->GetItemByPlateId(0);
-            select_item(item);
-            ensure_current_item_visible();
-            selection_changed();
-        }
-        auto column = GetColumn(colName);
-        column->SetTitle(_L("Name"));
+void ObjectList::selected_object(ObjectDataViewModelNode* item)
+{
+    if (!item) {
+        return;
     }
-    else {
-        auto found_list = m_objects_model->get_search_list();
-        auto column = GetColumn(colName);
-        wxString match_num = wxString::Format("%d", found_list.size());
-        wxString match_message = " (" + match_num + _L(" search results") + ")";
-        wxString column_name = _L("Name") + match_message;
-        column->SetTitle(column_name);
-    }
-}
-
-void ObjectList::set_cur_pos(int value) {
-    cur_pos = value;
-}
-
-void ObjectList::searchbar_kill_focus() {
-    auto column = GetColumn(colName);
-    column->SetTitle(_L("Name"));
+    this->SetFocus();
+    select_item(wxDataViewItem(item));
+    ensure_current_item_visible();
+    selection_changed();
 }
 
 void ObjectList::update_objects_list_filament_column(size_t filaments_count)

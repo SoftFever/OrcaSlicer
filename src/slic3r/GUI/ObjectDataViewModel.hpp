@@ -330,7 +330,9 @@ class ObjectDataViewModel :public wxDataViewModel
     ObjectDataViewModelNode*                    m_plate_outside;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
-    wxDataViewItemArray                         found_list;
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> assembly_name_list;
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> search_found_list;
+
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
@@ -486,10 +488,13 @@ public:
     // BBS
     void        UpdateItemNames();
 
-    void        append_found_list(wxString current_search_text);
-    void        append_found(wxString current_search_text, ObjectDataViewModelNode* item);
-    wxDataViewItemArray        get_search_list() { return found_list; }
-    void                sys_color_changed();
+    void        assembly_name(ObjectDataViewModelNode* item, wxString name);
+    void        assembly_name();
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_assembly_name_list() { return assembly_name_list; }
+    void        search_object(wxString search_text);
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_found_list() { return search_found_list; }
+
+    void        sys_color_changed();
 
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);

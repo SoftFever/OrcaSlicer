@@ -1498,26 +1498,53 @@ void ObjectDataViewModel::UpdateItemNames()
     ItemsChanged(changed_items);
 }
 
-void ObjectDataViewModel::append_found_list(wxString current_search_text)
+void ObjectDataViewModel::assembly_name()
 {
-    found_list.clear();
+    assembly_name_list.clear();
     for (int i = 0; i < m_plates.size(); ++i) {
-        append_found(current_search_text, m_plates[i]);
+        assembly_name(m_plates[i], m_plates[i]->GetName());
+    }
+    search_found_list = assembly_name_list;
+}
+
+void ObjectDataViewModel::assembly_name(ObjectDataViewModelNode* item, wxString name)
+{
+    auto type = this->GetItemType(wxDataViewItem(item));
+    if (type != itPlate) {
+        wxString str = name + ":" + item->GetName();
+        assembly_name_list.push_back(std::make_pair(item, str));
+    }
+    for (size_t i = 0; i < item->GetChildCount(); ++i) {
+        wxString str_name = name + ":" + item->GetName();
+        if (type == itPlate) {
+            str_name = name;
+        }
+        assembly_name(item->GetNthChild(i), str_name);
     }
 }
 
-void ObjectDataViewModel::append_found(wxString current_search_text, ObjectDataViewModelNode* item)
+void ObjectDataViewModel::search_object(wxString search_text)
 {
-    wxString item_name = item->GetName();
-    item_name = item_name.MakeLower();
-
-    if (item_name.find(current_search_text) != wxString::npos) {
-        if(item != m_plate_outside)
-            found_list.Add(wxDataViewItem(item));
+    if (search_text.empty()) {
+        search_found_list = assembly_name_list;
     }
+    else {
+        search_found_list.clear();
+        search_text = search_text.MakeLower();
 
-    for (size_t i = 0; i < item->GetChildCount(); ++i) {
-        append_found(current_search_text, item->GetNthChild(i));
+        for (auto pair : assembly_name_list) {
+            wxString need_str = pair.second.AfterFirst(':');
+            need_str = need_str.MakeLower();
+            size_t pos = need_str.find(search_text);
+            if ( pos != wxString::npos) {
+                size_t len = search_text.length();
+                size_t before_size = pair.second.BeforeFirst(':').length();
+                wxString new_search_str = "<b>" + pair.second.Mid(before_size + pos + 1, len) + "</b>";
+                wxString new_str = pair.second.Mid(0, before_size + pos + 1) + new_search_str + pair.second.Mid(before_size + pos + len + 1, wxString::npos);
+
+                search_found_list.push_back(std::make_pair(pair.first, new_str));
+            }
+        }
     }
 }
 

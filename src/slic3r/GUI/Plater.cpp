@@ -329,6 +329,7 @@ struct Sidebar::priv
     ScalableButton* m_filament_icon = nullptr;
     Button * m_flushing_volume_btn = nullptr;
     wxSearchCtrl* m_search_bar = nullptr;
+    Search::SearchObjectDialog* dia = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -355,9 +356,10 @@ struct Sidebar::priv
     ~priv();
 
     void show_preset_comboboxes();
-    void on_search_enter();
     void on_search_update();
-    void on_kill_focus();
+    void jump_to_object(ObjectDataViewModelNode* item);
+    void can_search();
+
 #ifdef _WIN32
     wxString btn_reslice_tip;
     void show_rich_tip(const wxString& tooltip, wxButton* btn);
@@ -397,21 +399,25 @@ void Sidebar::priv::show_preset_comboboxes()
     scrolled->Refresh();
 }
 
-void  Sidebar::priv::on_search_enter() {
-
-    m_object_list->search_object_list();
-
-}
-
-void Sidebar::priv::on_search_update() {
-
+void Sidebar::priv::on_search_update()
+{
+    m_object_list->assembly_plate_object_name();
+    
     wxString search_text = m_search_bar->GetValue();
-    m_object_list->set_found_list(search_text);
-
+    m_object_list->GetModel()->search_object(search_text);
+    dia->update_list();
 }
 
-void Sidebar::priv::on_kill_focus() {
-    m_object_list->searchbar_kill_focus();
+void Sidebar::priv::jump_to_object(ObjectDataViewModelNode* item)
+{
+    m_object_list->selected_object(item);
+}
+
+void Sidebar::priv::can_search()
+{
+    if (m_search_bar->IsShown()) {
+        m_search_bar->SetFocus();
+    }
 }
 
 #ifdef _WIN32
@@ -943,17 +949,21 @@ Sidebar::Sidebar(Plater *parent)
     p->m_search_bar->ShowSearchButton(true);
     p->m_search_bar->ShowCancelButton(true);
     p->m_search_bar->SetDescriptiveText(_L("Search plate, object and part."));
+
     p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
-        this->p->on_search_update();});
+        this->p->on_search_update();
+        wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
+        pos.y += this->p->m_search_bar->GetRect().height;
+        p->dia->SetPosition(pos);
+        p->dia->Popup();
+        });
     p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
-        this->p->m_object_list->set_cur_pos(0);
         this->p->on_search_update();
         });
     p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
-        this->p->on_kill_focus();
+        p->dia->Dismiss();
         e.Skip();
         });
-    p->m_search_bar->Bind(wxEVT_SEARCH, [this](wxCommandEvent&) {this->p->on_search_enter();});
 
     p->m_object_list = new ObjectList(p->scrolled);
 
@@ -964,6 +974,8 @@ Sidebar::Sidebar(Plater *parent)
     p->m_search_bar->Hide();
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
+
+    p->dia = new Search::SearchObjectDialog(p->m_object_list, p->m_search_bar);
 #if !NEW_OBJECT_SETTING
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5 * em / 10);
@@ -1852,7 +1864,15 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id) {
     wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
 }
 
-// Plater::DropTarget
+void Sidebar::jump_to_object(ObjectDataViewModelNode* item)
+{
+    p->jump_to_object(item);
+}
+
+void Sidebar::can_search()
+{
+    p->can_search();
+}
 
 class PlaterDropTarget : public wxFileDropTarget
 {
@@ -2588,6 +2608,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
         // jump to found option from SearchDialog
         q->Bind(wxCUSTOMEVT_JUMP_TO_OPTION, [this](wxCommandEvent& evt) { sidebar->jump_to_option(evt.GetInt()); });
+        q->Bind(wxCUSTOMEVT_JUMP_TO_OBJECT, [this](wxCommandEvent& evt) {
+            auto client_data = evt.GetClientData();
+            ObjectDataViewModelNode* data = static_cast<ObjectDataViewModelNode*>(client_data);
+            sidebar->jump_to_object(data);
+            }
+        );
     }
 
     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
@@ -2761,11 +2787,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
-        q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent &evt) { q->print_job_finished(evt); });
+        q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent& evt) { q->print_job_finished(evt); });
         q->Bind(EVT_SEND_CALIBRATION_FINISHED, [q](wxCommandEvent& evt) { q->send_calibration_job_finished(evt); });
-        q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent &evt) { q->send_job_finished(evt); });
-        q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent &evt) { q->publish_job_finished(evt);});
-        q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent &evt) { q->open_platesettings_dialog(evt);});
+        q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent& evt) { q->send_job_finished(evt); });
+        q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent& evt) { q->publish_job_finished(evt);});
+        q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent& evt) { q->open_platesettings_dialog(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 

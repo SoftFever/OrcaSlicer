@@ -163,6 +163,8 @@ public:
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
     void                    auto_calc_flushing_volumes(const int modify_id);
+    void                    jump_to_object(ObjectDataViewModelNode* item);
+    void                    can_search();
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);
 #endif
