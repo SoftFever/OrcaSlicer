@@ -38,7 +38,7 @@
     "only_one_wall_top": "1",
     "seam_position": "aligned",
     "skirt_height": "1",
-    "skirt_loops": "1",
+    "skirt_loops": "2",
     "brim_type": "no_brim",
     "exclude_object": "0",
     "wall_generator": "classic",
