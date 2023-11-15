@@ -6078,7 +6078,7 @@ msgstr ""
 "Mühendislik Plakasına yazdırmayı desteklemediği anlamına gelir"
 
 msgid "Smooth PEI Plate / High Temp Plate"
-msgstr "Düz PEI Plakası / Yüksek Sıcaklık Plakası""
+msgstr "Düz PEI Plakası / Yüksek Sıcaklık Plakası"
 
 msgid ""
 "Bed temperature when Smooth PEI Plate/High temperature plate is installed. "
