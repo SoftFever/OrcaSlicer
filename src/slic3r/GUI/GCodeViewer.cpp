@@ -5475,7 +5475,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::SameLine(max_len * 1.5);
             
             std::vector<float> layer_times = m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
-            float custom_gcode_time = layer_times[layer];
+            float custom_gcode_time = 0;
             if (layer > 0)
             {
                 for (int i = 0; i < layer-1; i++) {
