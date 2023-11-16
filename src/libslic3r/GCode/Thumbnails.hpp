@@ -57,15 +57,17 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                         std::string encoded;
                         encoded.resize(boost::beast::detail::base64::encoded_size(compressed->size));
                         encoded.resize(boost::beast::detail::base64::encode((void *) encoded.data(), (const void *) compressed->data,
-                                                                            compressed->size));
-                        output((boost::format("; thumbnail begin %dx%d %d\n") % data.width % data.height % encoded.size()).str().c_str());
+                                                                            compressed->size));                        
+                        output((boost::format("\n;\n; %s begin %dx%d %d\n") % compressed->tag() % data.width % data.height % encoded.size())
+                                   .str()
+                                   .c_str());                        
                         while (encoded.size() > max_row_length) {
                             output((boost::format("; %s\n") % encoded.substr(0, max_row_length)).str().c_str());
                             encoded = encoded.substr(max_row_length);
                         }
 
                         if (encoded.size() > 0)
-                            output((boost::format("; %s\n") % encoded).str().c_str());
+                            output((boost::format("; %s end\n;\n") % compressed->tag()).str().c_str());
 
                         output("; thumbnail end\n");
                     }
