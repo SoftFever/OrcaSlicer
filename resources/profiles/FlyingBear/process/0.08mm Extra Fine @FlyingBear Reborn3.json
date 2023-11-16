@@ -1,0 +1,24 @@
+{
+	"type": "process",
+    "setting_id": "GP004",
+    "name": "0.08mm Extra Fine @FlyingBear Reborn3",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_process_common",
+
+    "bottom_shell_layers": "7",
+    "inner_wall_speed": "350",
+    "internal_solid_infill_speed": "350",
+
+    "overhang_1_4_speed": "60",
+    "overhang_2_4_speed": "30",
+    "overhang_3_4_speed": "10",
+    "print_settings_id": "0.08mm Standard @FlyingBear Reborn3",
+    "sparse_infill_speed": "450",
+    "top_shell_layers": "9",
+    "top_shell_thickness": "0.8",
+    "tree_support_wall_count": "1",
+	"compatible_printers": [
+        "FlyingBear Reborn3 0.4 nozzle"
+    ]
+}

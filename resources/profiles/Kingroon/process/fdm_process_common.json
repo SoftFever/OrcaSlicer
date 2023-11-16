@@ -96,7 +96,6 @@
   "prime_tower_brim_width": "3",
   "prime_tower_width": "60",
   "prime_volume": "45",
-  "print_flow_ratio": "1",
   "print_sequence": "by layer",
   "print_settings_id": "",
   "raft_contact_distance": "0.1",
