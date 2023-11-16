@@ -2,7 +2,7 @@
     "type": "machine_model",
     "name": "Snapmaker J1",
     "model_id": "SnapmakerJ1",
-    "nozzle_diameter": "0.4;0,6",
+    "nozzle_diameter": "0.4;0.6",
     "machine_tech": "FFF",
     "family": "Snapmaker",
     "bed_model": "",
