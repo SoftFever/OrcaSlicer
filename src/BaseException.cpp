@@ -91,8 +91,26 @@ void CBaseException::ShowLoadModules()
 
 void CBaseException::ShowCallstack(HANDLE hThread, const CONTEXT* context)
 {
-	OutputString(_T("Show CallStack:\r\n"));
-	LPSTACKINFO phead = StackWalker(hThread, context);
+	OutputString(_T("Show CallStack:\n"));
+    LPSTACKINFO phead = StackWalker(hThread, context);
+
+	// Show RVA of each call stack, so we can locate the symbol using pdb file
+	// To show the symbol, load the <szFaultingModule> in WinDBG with pdb file, then type the following commands:
+	// > lm                                                                   which gives you the start address of each module, as well as module names
+	// > !dh <module name>                                                    list all module headers. Find the <virtual address> of the section given by
+	//                                                                        the <section> output in the crash log
+	// > ln <module start address> + <section virtual address> + <offset>     reveals the debug symbol
+    OutputString(_T("\nLogical Address:\n"));
+    TCHAR szFaultingModule[MAX_PATH];
+    DWORD section, offset;
+    for (LPSTACKINFO ps = phead; ps != nullptr; ps = ps->pNext) {
+        if (GetLogicalAddress((PVOID) ps->szFncAddr, szFaultingModule, sizeof(szFaultingModule), section, offset)) {
+            OutputString(_T("0x%X 0x%X:0x%X %s\n"), ps->szFncAddr, section, offset, szFaultingModule);
+        } else {
+            OutputString(_T("0x%X Unknown\n"), ps->szFncAddr);
+        }
+    }
+
 	FreeStackInformations(phead);
 }
 

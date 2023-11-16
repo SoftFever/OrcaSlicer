@@ -742,6 +742,7 @@ struct PrintStatistics
     double                          total_weight;
     double                          total_wipe_tower_cost;
     double                          total_wipe_tower_filament;
+    unsigned int                    initial_tool;
     std::map<size_t, double>        filament_stats;
 
     // Config with the filled in print statistics.
@@ -759,6 +760,7 @@ struct PrintStatistics
         total_weight           = 0.;
         total_wipe_tower_cost  = 0.;
         total_wipe_tower_filament = 0.;
+        initial_tool           = 0;
         filament_stats.clear();
     }
 };
