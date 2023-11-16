@@ -2846,9 +2846,12 @@ int CLI::run(int argc, char **argv)
             BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
         }*/
 
+    auto timelapse_type_opt = m_print_config.option("timelapse_type");
+    bool is_smooth_timelapse = false;
+    if (enable_timelapse && timelapse_type_opt && (timelapse_type_opt->getInt() == TimelapseType::tlSmooth))
+        is_smooth_timelapse = true;
     if (disable_wipe_tower_after_mapping) {
-        auto timelapse_type_opt = m_print_config.option("timelapse_type");
-        if (enable_timelapse && timelapse_type_opt && (timelapse_type_opt->getInt() == TimelapseType::tlSmooth))
+        if (is_smooth_timelapse)
         {
             disable_wipe_tower_after_mapping = false;
             BOOST_LOG_TRIVIAL(warning) << boost::format("%1%: disable_wipe_tower_after_mapping: set back to false due to smooth timelapse!")%__LINE__;
@@ -3644,7 +3647,7 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": found single object mode");
                     }
 
-                    if (!arrange_cfg.is_seq_print && m_print_config.has("wipe_tower_x")) {
+                    if (m_print_config.has("wipe_tower_x") && (is_smooth_timelapse || !arrange_cfg.is_seq_print || (selected.size() <= 1))) {
                         float x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice-1);
                         float y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice-1);
                         float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
@@ -3659,7 +3662,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange: slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
                         }
 
-                        if (filaments_cnt <= 1)
+                        if ((filaments_cnt <= 1) && !is_smooth_timelapse)
                         {
                             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("arrange: not a multi-color object anymore, drop the wipe tower before arrange.");
                         }
