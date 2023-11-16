@@ -16,6 +16,7 @@ jobs:
           days-before-issue-close: 14
           operations-per-run: 1000
           stale-issue-label: "stale"
+          ascending: true
           stale-issue-message: "GitHub bot: this issue is stale because it has been open for 90 days with no activity."
           close-issue-message: "GitHub bot: This issue was closed because it has been inactive for 14 days since being marked as stale."
           days-before-pr-stale: -1
