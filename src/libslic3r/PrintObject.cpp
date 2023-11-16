@@ -3306,6 +3306,13 @@ void PrintObject::discover_horizontal_shells()
 // fill_surfaces but we only turn them into VOID surfaces, thus preserving the boundaries.
 void PrintObject::combine_infill()
 {
+    auto max_layer_height = [this](int idx_nozzle) {
+        auto    &print_config = this->print()->config();
+        coordf_t mh           = print_config.max_layer_height.get_at(idx_nozzle - 1);
+        coordf_t nozzle_dmr   = print_config.nozzle_diameter.get_at(idx_nozzle - 1);
+
+        return mh > 0 ? mh : nozzle_dmr;
+    };
     // Work on each region separately.
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
@@ -3314,10 +3321,8 @@ void PrintObject::combine_infill()
         if (enable_combine_infill == false || region.config().sparse_infill_density == 0.)
             continue;
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
-        //FIXME limit the layer height to max_layer_height
-        double nozzle_diameter = std::min(
-            this->print()->config().nozzle_diameter.get_at(region.config().sparse_infill_filament.value - 1),
-            this->print()->config().nozzle_diameter.get_at(region.config().solid_infill_filament.value - 1));
+        double nozzle_diameter = std::min(max_layer_height(region.config().sparse_infill_filament.value - 1),
+                                          max_layer_height(region.config().solid_infill_filament.value - 1));
         // define the combinations
         std::vector<size_t> combine(m_layers.size(), 0);
         {
