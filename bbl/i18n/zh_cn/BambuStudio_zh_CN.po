@@ -9114,11 +9114,11 @@ msgstr "树状支撑分支直径"
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "此设置确定了树状支撑节点的初始直径。"
 
-msgid "Tree support wall loops"
-msgstr "树状支撑外墙层数"
+msgid "Support wall loops"
+msgstr "支撑外墙层数"
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "树状支撑外墙层数"
+msgid "This setting specify the count of walls around support"
+msgstr "此设置指定了支撑的外墙层数"
 
 msgid "Tree support brim width"
 msgstr "树状支撑裙边宽度"

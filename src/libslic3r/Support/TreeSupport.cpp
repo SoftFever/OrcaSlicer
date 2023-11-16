@@ -19,11 +19,6 @@
 #include "BuildVolume.hpp"
 #include "ClipperUtils.hpp"
 
-#define _L(s) Slic3r::I18N::translate(s)
-
-#define USE_PLAN_LAYER_HEIGHTS 1
-#define HEIGHT_TO_SWITCH_INFILL_DIRECTION 30 // change infill direction every 20mm
-
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif
@@ -173,7 +168,7 @@ Lines spanning_tree_to_lines(const std::vector<MinimumSpanningTree>& spanning_tr
 
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag = "bbl_ts")
+static  std::string get_svg_filename(const std::string& tag = "bbl_ts", const std::string& layer_nr_or_z="")
 {
     static bool rand_init = false;
 
@@ -183,10 +178,13 @@ static  std::string get_svg_filename(std::string layer_nr_or_z, std::string tag 
     }
 
     int rand_num = rand() % 1000000;
-    //makedir("./SVG");
-    std::string prefix = "./SVG/";
+    std::string prefix = "C:/Users/arthur.tang/AppData/Roaming/BambuStudioInternal/SVG/";
+    //makedir(prefix);
     std::string suffix = ".svg";
-    return prefix + tag + "_" + layer_nr_or_z /*+ "_" + std::to_string(rand_num)*/ + suffix;
+    std::string name = prefix + tag;
+    if(!layer_nr_or_z.empty())
+        name+= "_" + layer_nr_or_z;
+    return name + suffix;
 }
 
 static void draw_contours_and_nodes_to_svg
@@ -214,10 +212,7 @@ static void draw_contours_and_nodes_to_svg
     bbox.max.y() = std::max(bbox.max.y(), (coord_t)scale_(10));
 
     SVG svg;
-    if(!layer_nr_or_z.empty())
-        svg.open(get_svg_filename(layer_nr_or_z, name_prefix), bbox);
-    else
-        svg.open(name_prefix, bbox);
+    svg.open(get_svg_filename(name_prefix, layer_nr_or_z), bbox);
     if (!svg.is_opened())        return;
 
     // draw grid
@@ -273,7 +268,7 @@ static void draw_layer_mst
         bbox.merge(bb);
     }
 
-    SVG svg(get_svg_filename(layer_nr_or_z, "mstree").c_str(), bbox);
+    SVG svg(get_svg_filename("mstree",layer_nr_or_z).c_str(), bbox);
     if (!svg.is_opened())        return;
 
     svg.draw(lines, "blue", coord_t(scale_(0.05)));
@@ -290,7 +285,7 @@ static void draw_two_overhangs_to_svg(SupportLayer* ts_layer, const ExPolygons& 
     BoundingBox bbox2 = get_extents(overhangs2);
     bbox1.merge(bbox2);
 
-    SVG svg(get_svg_filename(std::to_string(ts_layer->print_z), "two_overhangs"), bbox1);
+    SVG svg(get_svg_filename("two_overhangs", std::to_string(ts_layer->print_z)), bbox1);
     if (!svg.is_opened())        return;
 
     svg.draw(union_ex(overhangs1), "blue");
@@ -303,7 +298,7 @@ static void draw_polylines(SupportLayer* ts_layer, Polylines& polylines)
         return;
     BoundingBox bbox = get_extents(polylines);
 
-    SVG svg(get_svg_filename(std::to_string(ts_layer->print_z), "lightnings"), bbox);
+    SVG svg(get_svg_filename("lightnings", std::to_string(ts_layer->print_z)), bbox);
     if (!svg.is_opened())        return;
 
     int id = 0;
@@ -707,7 +702,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_support_params.independent_layer_height = false; // do not use independent layer height for 3D tree support
 #endif
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-    SVG svg("SVG/machine_boarder.svg", m_object->bounding_box());
+    SVG svg(get_svg_filename("machine_boarder"), m_object->bounding_box());
     if (svg.is_opened()) svg.draw(m_machine_border, "yellow");
 #endif
 }
@@ -903,7 +898,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                             if (!overhang.empty()) {
                                 has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                                SVG svg(format("SVG/sharp_tail_orig_%.02f.svg", layer->print_z), m_object->bounding_box());
+                                SVG svg(get_svg_filename(format("sharp_tail_orig_%.02f", layer->print_z)), m_object->bounding_box());
                                 if (svg.is_opened()) svg.draw(overhang, "red");
 #endif
                             }
@@ -1020,7 +1015,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
                     if (!overhang.empty())
                         has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                    SVG svg(format("SVG/sharp_tail_%.02f.svg",layer->print_z), m_object->bounding_box());
+                    SVG svg(get_svg_filename(format("sharp_tail_%.02f",layer->print_z)), m_object->bounding_box());
                     if (svg.is_opened()) svg.draw(overhang, "red");
 #endif
                 }
@@ -1032,6 +1027,8 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
     // group overhang clusters
     for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         if (m_object->print()->canceled())
+            break;
+        if(layer_nr+m_raft_layers>=m_object->support_layer_count())
             break;
         SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
         Layer* layer = m_object->get_layer(layer_nr);
@@ -1073,9 +1070,9 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
             const Layer* layer1 = m_object->get_layer(cluster.min_layer);
             BoundingBox bbox = cluster.merged_bbox;
             bbox.merge(get_extents(layer1->lslices));
-            SVG svg(format("SVG/overhangCluster_%s-%s_%s-%s_tail=%s_cantilever=%s_small=%s.svg",
+            SVG svg(get_svg_filename(format("overhangCluster_%s-%s_%s-%s_tail=%s_cantilever=%s_small=%s",
                 cluster.min_layer, cluster.max_layer, layer1->print_z, m_object->get_layer(cluster.max_layer)->print_z,
-                cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang), bbox);
+                cluster.is_sharp_tail, cluster.is_cantilever, cluster.is_small_overhang)), bbox);
             if (svg.is_opened()) {
                 svg.draw(layer1->lslices, "red");
                 svg.draw(cluster.merged_poly, "blue");
@@ -1121,8 +1118,9 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         }
 
         if (max_bridge_length > 0 && ts_layer->overhang_areas.size() > 0 && lower_layer) {
-            // do not break bridge for normal part in TreeHybrid
-            bool break_bridge = !(support_style == smsTreeHybrid && area(ts_layer->overhang_areas) > m_support_params.thresh_big_overhang);
+            // do not break bridge for normal part in TreeHybrid, nor Tree Strong
+            bool break_bridge = !(support_style == smsTreeHybrid && area(ts_layer->overhang_areas) > m_support_params.thresh_big_overhang)
+                && !(support_style==smsTreeStrong);
             m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &ts_layer->overhang_areas, max_bridge_length, break_bridge);
         }
 
@@ -1156,7 +1154,7 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
         if (layer->overhang_areas.empty() && (blockers.size()<=layer->id() || blockers[layer->id()].empty()))
             continue;
 
-        SVG svg(format("SVG/overhang_areas_%s.svg", layer->print_z), m_object->bounding_box());
+        SVG svg(get_svg_filename("overhang_areas", std::to_string(layer->print_z)), m_object->bounding_box());
         if (svg.is_opened()) {
             svg.draw_outline(m_object->get_layer(layer->id())->lslices, "yellow");
             svg.draw(layer->overhang_areas, "orange");
@@ -1183,40 +1181,48 @@ void TreeSupport::detect_overhangs(bool detect_first_sharp_tail_only)
 
 void TreeSupport::create_tree_support_layers()
 {
+    int layer_id = 0;
     { //create raft layers
-        int layer_id = 0;
         coordf_t raft_print_z = 0.f;
         coordf_t raft_slice_z = 0.f;
-        // Insert the base layers.
-        for (size_t i = 0; i < m_slicing_params.base_raft_layers; i++, layer_id++) {
-            // 1st layer should use first_print_layer_height
-            coordf_t height = i == 0 ? m_slicing_params.first_print_layer_height : m_slicing_params.base_raft_layer_height;
+        {
+            // Do not add the raft contact layer, 1st layer should use first_print_layer_height
+            coordf_t height = m_slicing_params.first_print_layer_height;
             raft_print_z += height;
             raft_slice_z = raft_print_z - height / 2;
-            m_object->add_tree_support_layer(layer_id, height, raft_print_z, raft_slice_z);
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        }
+        // Insert the base layers.
+        for (size_t i = 1; i < m_slicing_params.base_raft_layers; i++) {
+            coordf_t height = m_slicing_params.base_raft_layer_height;
+            raft_print_z += height;
+            raft_slice_z = raft_print_z - height / 2;
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
         }
         // Insert the interface layers.
-        for (size_t i = 0; i < m_slicing_params.interface_raft_layers; i++, layer_id++) {
+        for (size_t i = 0; i < m_slicing_params.interface_raft_layers; i++) {
             coordf_t height = m_slicing_params.interface_raft_layer_height;
             raft_print_z += height;
             raft_slice_z = raft_print_z - height / 2;
-            m_object->add_tree_support_layer(layer_id, height, raft_print_z, raft_slice_z);
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
         }
     }
 
     for (Layer *layer : m_object->layers()) {
-        SupportLayer* ts_layer = m_object->add_tree_support_layer(layer->id(), layer->height, layer->print_z, layer->slice_z);
+        SupportLayer* ts_layer = m_object->add_tree_support_layer(layer_id++, layer->height, layer->print_z, layer->slice_z);
         if (ts_layer->id() > m_raft_layers) {
             SupportLayer* lower_layer = m_object->get_support_layer(ts_layer->id() - 1);
-            lower_layer->upper_layer = ts_layer;
-            ts_layer->lower_layer = lower_layer;
+            if (lower_layer) {
+                lower_layer->upper_layer = ts_layer;
+                ts_layer->lower_layer = lower_layer;
+            }
         }
     }
 }
 
 static inline BoundingBox fill_expolygon_generate_paths(
     ExtrusionEntitiesPtr    &dst,
-    ExPolygon              &&expolygon,
+    ExPolygon               &expolygon,
     Fill                    *filler,
     const FillParams        &fill_params,
     ExtrusionRole            role,
@@ -1243,7 +1249,7 @@ static inline BoundingBox fill_expolygon_generate_paths(
 
 static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
     ExtrusionEntitiesPtr   &dst,
-    ExPolygons            &&expolygons,
+    ExPolygons             &expolygons,
     Fill                   *filler,
     const FillParams       &fill_params,
     ExtrusionRole           role,
@@ -1405,16 +1411,9 @@ void TreeSupport::generate_toolpaths()
     // generate raft tool path
     if (m_raft_layers > 0)
     {
-        ExtrusionRole raft_contour_er = m_slicing_params.base_raft_layers > 0 ? erSupportMaterial : erSupportMaterialInterface;
         SupportLayer *ts_layer = m_object->support_layers().front();
         Flow flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-
-        Polygons loops;
-        for (const ExPolygon& expoly : raft_areas) {
-            loops.push_back(expoly.contour);
-            loops.insert(loops.end(), expoly.holes.begin(), expoly.holes.end());
-        }
-        extrusion_entities_append_loops(ts_layer->support_fills.entities, std::move(loops), raft_contour_er,
+        extrusion_entities_append_loops(ts_layer->support_fills.entities, to_polygons(raft_areas), erSupportMaterial,
             float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
         raft_areas = offset_ex(raft_areas, -flow.scaled_spacing() / 2.);
     }
@@ -1422,6 +1421,7 @@ void TreeSupport::generate_toolpaths()
     for (size_t layer_nr = 0; layer_nr < m_slicing_params.base_raft_layers; layer_nr++) {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
         coordf_t expand_offset = (layer_nr == 0 ? 0. : -1.);
+        raft_areas = offset_ex(raft_areas, scale_(expand_offset));
 
         Flow support_flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
@@ -1432,16 +1432,25 @@ void TreeSupport::generate_toolpaths()
         fill_params.density     = object_config.raft_first_layer_density * 0.01;
         fill_params.dont_adjust = true;
 
-        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(offset_ex(raft_areas, scale_(expand_offset))),
+        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas,
             filler_interface, fill_params, erSupportMaterial, support_flow);
     }
+
+    // subtract the non-raft support bases, otherwise we'll get support base on top of raft interfaces which is not stable
+    SupportLayer* first_non_raft_layer = m_object->get_support_layer(m_raft_layers);
+    ExPolygons first_non_raft_base;
+    for (auto& area_group : first_non_raft_layer->area_groups) {
+        if (area_group.type == SupportLayer::BaseType)
+            first_non_raft_base.emplace_back(*area_group.area);
+    }
+    ExPolygons raft_base_areas = intersection_ex(raft_areas, first_non_raft_base);
+    ExPolygons raft_interface_areas = diff_ex(raft_areas, raft_base_areas);
 
     for (size_t layer_nr = m_slicing_params.base_raft_layers;
          layer_nr < m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers;
          layer_nr++)
     {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
-        coordf_t expand_offset = (layer_nr == 0 ? 0. : -1.);
 
         Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
         Fill* filler_interface = Fill::new_from_type(ipRectilinear);
@@ -1452,8 +1461,12 @@ void TreeSupport::generate_toolpaths()
         fill_params.density = interface_density;
         fill_params.dont_adjust = true;
 
-        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(offset_ex(raft_areas, scale_(expand_offset))),
+        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_interface_areas,
             filler_interface, fill_params, erSupportMaterialInterface, support_flow);
+
+        fill_params.density = object_config.raft_first_layer_density * 0.01;
+        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_base_areas,
+            filler_interface, fill_params, erSupportMaterial, support_flow);
     }
 
     BoundingBox bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
@@ -1474,7 +1487,7 @@ void TreeSupport::generate_toolpaths()
                 if (m_object->print()->canceled())
                     break;
 
-                m_object->print()->set_status(70, (boost::format(_L("Support: generate toolpath at layer %d")) % layer_id).str());
+                m_object->print()->set_status(70, (boost::format(_u8L("Support: generate toolpath at layer %d")) % layer_id).str());
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
@@ -1542,9 +1555,6 @@ void TreeSupport::generate_toolpaths()
                         bool need_infill = with_infill;
                         if(m_object_config->support_base_pattern==smpDefault)
                             need_infill &= area_group.need_infill;
-                        size_t walls = wall_count;
-                        if (layer_id == 0) walls = std::numeric_limits<size_t>::max();
-                        else if (area_group.need_extra_wall && walls < 2) walls += 1;
 
                         std::shared_ptr<Fill> filler_support = std::shared_ptr<Fill>(Fill::new_from_type(layer_id == 0 ? ipConcentric : m_support_params.base_fill_pattern));
                         filler_support->set_bounding_box(bbox_object);
@@ -1560,11 +1570,14 @@ void TreeSupport::generate_toolpaths()
                             if (need_infill && m_support_params.base_fill_pattern != ipLightning) {
                                 // allow infill-only mode if support is thick enough (so min_wall_count is 0);
                                 // otherwise must draw 1 wall
+                                // Don't need extra walls if we have infill. Extra walls may overlap with the infills.
                                 size_t min_wall_count = offset(poly, -scale_(support_spacing * 1.5)).empty() ? 1 : 0;
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(min_wall_count, walls), flow,
+                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(min_wall_count, wall_count), flow,
                                     erSupportMaterial, filler_support.get(), support_density);
                             }
-                            else {                                
+                            else {
+                                size_t walls = wall_count;
+                                if (area_group.need_extra_wall && walls < 2) walls += 1;
                                 for (size_t i = 1; i < walls; i++) {
                                     Polygons contour_new = offset(poly.contour, -(i - 0.5f) * flow.scaled_spacing(), jtSquare);
                                     loops.insert(loops.end(), contour_new.begin(), contour_new.end());
@@ -1616,7 +1629,7 @@ void TreeSupport::generate_toolpaths()
                             float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                        std::string name = "./SVG/trees_polyline_" + std::to_string(ts_layer->print_z) /*+ "_" + std::to_string(rand_num)*/ + ".svg";
+                        std::string name = get_svg_filename("trees_polyline", std::to_string(ts_layer->print_z));
                         BoundingBox bbox = get_extents(ts_layer->base_areas);
                         SVG svg(name, bbox);
                         if (svg.is_opened()) {
@@ -1870,7 +1883,7 @@ void TreeSupport::generate()
 
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
-    m_object->print()->set_status(55, _L("Support: detect overhangs"));
+    m_object->print()->set_status(55, _u8L("Support: detect overhangs"));
     detect_overhangs();
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
 
@@ -1883,7 +1896,7 @@ void TreeSupport::generate()
     std::vector<TreeSupport3D::SupportElements> move_bounds(m_highest_overhang_layer + 1);
     profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);
 #if USE_SUPPORT_3D
-    m_object->print()->set_status(56, _L("Support: precalculate avoidance"));
+    m_object->print()->set_status(56, _u8L("Support: precalculate avoidance"));
 
     Points bedpts = m_machine_border.contour.points;
     BuildVolume build_volume{ Pointfs{ unscaled(bedpts[0]), unscaled(bedpts[1]),unscaled(bedpts[2]),unscaled(bedpts[3])}, m_print_config->printable_height };
@@ -1904,7 +1917,7 @@ void TreeSupport::generate()
     SupportGeneratorLayerStorage layer_storage;
     std::vector<Polygons>        overhangs;
 
-    m_object->print()->set_status(57, _L("Support: generate contact points"));
+    m_object->print()->set_status(57, _u8L("Support: generate contact points"));
     if (support_style != smsTreeHybrid) {
         overhangs.resize(m_object->support_layer_count());
         for (size_t i = 0; i < overhangs.size(); i++) {
@@ -1920,7 +1933,7 @@ void TreeSupport::generate()
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
-    m_object->print()->set_status(60, _L("Support: propagate branches"));
+    m_object->print()->set_status(60, _u8L("Support: propagate branches"));
     drop_nodes(contact_nodes);
     profiler.stage_finish(STAGE_DROP_DOWN_NODES);
 
@@ -1928,14 +1941,14 @@ void TreeSupport::generate()
 
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);
-    m_object->print()->set_status(65, _L("Support: draw polygons"));
+    m_object->print()->set_status(65, _u8L("Support: draw polygons"));
     draw_circles(contact_nodes);
     profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
     clear_contact_nodes(contact_nodes);
     
     profiler.stage_start(STAGE_GENERATE_TOOLPATHS);
-    m_object->print()->set_status(69, _L("Support: generate toolpath"));
+    m_object->print()->set_status(69, _u8L("Support: generate toolpath"));
     generate_toolpaths();
     profiler.stage_finish(STAGE_GENERATE_TOOLPATHS);
 
@@ -2316,7 +2329,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 }
 
-                m_object->print()->set_status(65, (boost::format( _L("Support: generate polygons at layer %d")) % layer_nr).str());
+                m_object->print()->set_status(65, (boost::format( _u8L("Support: generate polygons at layer %d")) % layer_nr).str());
 
                 // join roof segments
                 double contact_dist_scaled = scale_(0.5);// scale_(m_slicing_params.gap_support_object);
@@ -2523,7 +2536,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             std::map<const Polygon*, std::tuple<int, Point, Point>> holePropagationInfos;
             for (int layer_nr = m_object->layer_count() - 1; layer_nr > 0; layer_nr--) {
                 if (print->canceled()) break;
-                m_object->print()->set_status(66, (boost::format(_L("Support: fix holes at layer %d")) % layer_nr).str());
+                m_object->print()->set_status(66, (boost::format(_u8L("Support: fix holes at layer %d")) % layer_nr).str());
 
                 const std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
@@ -2620,8 +2633,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
         ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
         ExPolygons roofs = roof_areas; append(roofs, roof_1st_layer);
         if (base_areas.empty() && roof_areas.empty() && roof_1st_layer.empty()) continue;
-        char fname[10]; sprintf(fname, "%d_%.2f", layer_nr, ts_layer->print_z);
-        draw_contours_and_nodes_to_svg("", base_areas, roofs, ts_layer->lslices, {}, {}, get_svg_filename(fname, "circles"), { "base", "roof", "lslices" }, { "blue","red","black" });
+        draw_contours_and_nodes_to_svg(format("%d_%.2f", layer_nr, ts_layer->print_z), base_areas, roofs, ts_layer->lslices, {}, {}, "circles", {"base", "roof", "lslices"}, {"blue","red","black"});
     }
 #endif  // SUPPORT_TREE_DEBUG_TO_SVG
 
@@ -2697,7 +2709,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         std::deque<std::pair<size_t, Node*>> unsupported_branch_leaves; // All nodes that are leaves on this layer that would result in unsupported ('mid-air') branches.
         const Layer* ts_layer = m_object->get_support_layer(layer_nr);
 
-        m_object->print()->set_status(60, (boost::format(_L("Support: propagate branches at layer %d")) % layer_nr).str());
+        m_object->print()->set_status(60, (boost::format(_u8L("Support: propagate branches at layer %d")) % layer_nr).str());
 
         Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
         //std::unordered_map<Line, bool, LineHash>& mst_line_x_layer_contour_cache = m_mst_line_x_layer_contour_caches[layer_nr];
@@ -3357,7 +3369,7 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::ve
     std::vector<LayerHeightData> layer_heights(contact_nodes.size());
     std::vector<int> bounds;
 
-    if (!USE_PLAN_LAYER_HEIGHTS || layer_height == max_layer_height || !m_support_params.independent_layer_height) {
+    if (layer_height == max_layer_height || !m_support_params.independent_layer_height) {
         for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
             layer_heights[layer_nr] = {m_object->get_layer(layer_nr)->print_z, m_object->get_layer(layer_nr)->height, layer_nr > 0 ? size_t(layer_nr - 1) : 0};
         }

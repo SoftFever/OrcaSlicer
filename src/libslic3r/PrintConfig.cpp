@@ -3272,11 +3272,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(5.));
 
     def = this->add("tree_support_wall_count", coInt);
-    def->label = L("Tree support wall loops");
+    def->label = L("Support wall loops");
     def->category = L("Support");
-    def->tooltip = L("This setting specify the count of walls around tree support");
+    def->tooltip = L("This setting specify the count of walls around support");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(1));
 
     def = this->add("tree_support_brim_width", coFloat);
