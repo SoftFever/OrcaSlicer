@@ -1453,10 +1453,12 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     {
         PlaterPresetComboBox* choice/*{ nullptr }*/;
         init_filament_combo(&choice, i);
+        int last_selection = choices.back()->GetSelection();
         choices.push_back(choice);
 
         // initialize selection
         choice->update();
+        choice->SetSelection(last_selection);
         ++i;
     }
 
