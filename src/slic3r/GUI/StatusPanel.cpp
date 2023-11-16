@@ -4327,10 +4327,8 @@ wxBoxSizer* ScoreDialog::get_comment_text_sizer() {
 
 void ScoreDialog::create_comment_text(const wxString& comment) {
     m_comment_text = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(492), FromDIP(104)), wxTE_MULTILINE);
-    if (wxGetApp().dark_mode()) {
-        m_comment_text->SetForegroundColour(wxColor(*wxWHITE));
-    } else
-        m_comment_text->SetForegroundColour(wxColor(*wxBLACK));
+    m_comment_text->SetBackgroundColour(wxColor(*wxWHITE));
+
     if (!comment.empty()) {
         m_comment_text->SetValue(comment);
     }
