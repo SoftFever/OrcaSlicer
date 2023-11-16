@@ -2768,11 +2768,11 @@ void SelectMachineDialog::on_send_print()
         if (input_str_arr.size() <= 1) {
             input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".3mf");
             if (input_str_arr.size() > 1) {
-                m_print_job->set_project_name(wxString(input_str_arr[0]).utf8_string());
+                m_print_job->set_project_name(input_str_arr[0]);
             }
         }
         else {
-            m_print_job->set_project_name(wxString(input_str_arr[0]).utf8_string());
+            m_print_job->set_project_name(input_str_arr[0]);
         }
     }
 
