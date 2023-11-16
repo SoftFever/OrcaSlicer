@@ -96,10 +96,10 @@ struct SupportParameters {
             // No interface layers allowed, print everything with the base support pattern.
             this->interface_density = this->support_density;
         }
-        
+
         SupportMaterialPattern  support_pattern = object_config.support_base_pattern;
-        this->with_sheath            = false;//object_config.support_material_with_sheath;
-        this->base_fill_pattern      = 
+        this->with_sheath = /*is_tree(object_config.support_type) &&*/ object_config.tree_support_wall_count > 0;
+        this->base_fill_pattern =
             support_pattern == smpHoneycomb ? ipHoneycomb :
             this->support_density > 0.95 || this->with_sheath ? ipRectilinear : ipSupportBase;
         this->interface_fill_pattern = (this->interface_density > 0.95 ? ipRectilinear : ipSupportBase);
