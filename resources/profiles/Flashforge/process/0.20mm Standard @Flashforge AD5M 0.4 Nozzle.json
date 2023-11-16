@@ -106,7 +106,6 @@
   "gcode_label_objects": "0",
   "exclude_object": "0",
   "wall_generator": "classic",
-  "print_flow_ratio": "0.98",
   "only_one_wall_top": "1",
   "slow_down_layers": "1",
   "small_perimeter_speed": "50%",
