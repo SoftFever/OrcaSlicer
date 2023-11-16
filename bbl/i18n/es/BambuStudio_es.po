@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 11:18+0800\n"
+"POT-Creation-Date: 2023-11-16 12:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3400,7 +3400,7 @@ msgstr "No"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "will be closed before creating a new model. Do you want to continue?"
 
-msgid "Upload"
+msgid "Share"
 msgstr ""
 
 msgid "Slice plate"
@@ -10697,6 +10697,9 @@ msgstr ""
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr ""
 
+msgid "Upload"
+msgstr ""
+
 msgid "Simulate"
 msgstr ""
 
@@ -10995,6 +10998,9 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr ""
 
+msgid "Load"
+msgstr ""
+
 msgid "Hot Bed SVG"
 msgstr ""
 
@@ -11220,6 +11226,12 @@ msgstr[1] ""
 msgid "Delete Preset"
 msgstr ""
 
+msgid "Are you sure to delete the selected preset?"
+msgstr ""
+
+msgid "Delete preset"
+msgstr ""
+
 msgid "+ Add Preset"
 msgstr ""
 
@@ -11267,6 +11279,144 @@ msgstr ""
 msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
 "large, or the step is too small"
+msgstr ""
+
+msgid "Physical Printer"
+msgstr ""
+
+msgid "Print Host upload"
+msgstr ""
+
+msgid "Could not get a valid Printer Host reference"
+msgstr ""
+
+msgid "Success!"
+msgstr ""
+
+msgid "Refresh Printers"
+msgstr ""
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Mismatched type of print host: %s"
+msgstr ""
+
+msgid "Connection to AstroBox works correctly."
+msgstr ""
+
+msgid "Could not connect to AstroBox"
+msgstr ""
+
+msgid "Note: AstroBox version at least 1.1.0 is required."
+msgstr ""
+
+msgid "Connection to Duet works correctly."
+msgstr ""
+
+msgid "Could not connect to Duet"
+msgstr ""
+
+msgid "Unknown error occured"
+msgstr ""
+
+msgid "Wrong password"
+msgstr ""
+
+msgid "Could not get resources to create a new connection"
+msgstr ""
+
+msgid "Upload not enabled on FlashAir card."
+msgstr ""
+
+msgid "Connection to FlashAir works correctly and upload is enabled."
+msgstr ""
+
+msgid "Could not connect to FlashAir"
+msgstr ""
+
+msgid ""
+"Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
+"is required."
+msgstr ""
+
+msgid "Connection to MKS works correctly."
+msgstr ""
+
+msgid "Could not connect to MKS"
+msgstr ""
+
+msgid "Connection to OctoPrint works correctly."
+msgstr ""
+
+msgid "Could not connect to OctoPrint"
+msgstr ""
+
+msgid "Note: OctoPrint version at least 1.1.0 is required."
+msgstr ""
+
+msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgstr ""
+
+msgid "Could not connect to Prusa SLA"
+msgstr ""
+
+msgid "Connection to PrusaLink works correctly."
+msgstr ""
+
+msgid "Could not connect to PrusaLink"
+msgstr ""
+
+msgid "Connection to Repetier works correctly."
+msgstr ""
+
+msgid "Could not connect to Repetier"
+msgstr ""
+
+msgid "Note: Repetier version at least 0.90.0 is required."
+msgstr ""
+
+#, boost-format
+msgid ""
+"HTTP status: %1%\n"
+"Message body: \"%2%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Parsing of host response failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Enumeration of host printers failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

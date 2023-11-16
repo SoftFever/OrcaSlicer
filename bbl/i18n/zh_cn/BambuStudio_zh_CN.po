@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-14 11:18+0800\n"
+"POT-Creation-Date: 2023-11-16 12:12+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3269,8 +3269,8 @@ msgstr "否"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "将会被关闭以创建新模型，是否继续?"
 
-msgid "Upload"
-msgstr "上传"
+msgid "Share"
+msgstr "分享"
 
 msgid "Slice plate"
 msgstr "切片单盘"
@@ -10193,6 +10193,9 @@ msgstr "如有需要，请使用正斜杠（/）作为目录分隔符。"
 msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
 msgstr "上传的文件名不以 \"%s\" 结尾。您是否希望继续？"
 
+msgid "Upload"
+msgstr "上传"
+
 msgid "Simulate"
 msgstr ""
 
@@ -10495,6 +10498,9 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr "热床STL模型"
 
+msgid "Load"
+msgstr "加载"
+
 msgid "Hot Bed SVG"
 msgstr "热床SVG图片"
 
@@ -10737,6 +10743,12 @@ msgstr[0] "以下预设继承此预设。"
 msgid "Delete Preset"
 msgstr "删除预设"
 
+msgid "Are you sure to delete the selected preset?"
+msgstr "你确定要删除所选预设？"
+
+msgid "Delete preset"
+msgstr "删除预设"
+
 msgid "+ Add Preset"
 msgstr "+ 添加预设"
 
@@ -10787,6 +10799,148 @@ msgid ""
 "Unable to calibrate: maybe because the set calibration value range is too "
 "large, or the step is too small"
 msgstr "无法标定：可能是标定值范围过大，或者是补偿过小"
+
+msgid "Physical Printer"
+msgstr "物理打印机"
+
+msgid "Print Host upload"
+msgstr "打印主机上传"
+
+msgid "Could not get a valid Printer Host reference"
+msgstr "无法获取有效的打印机主机引用"
+
+msgid "Success!"
+msgstr "成功！"
+
+msgid "Refresh Printers"
+msgstr "刷新打印机"
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr "HTTPS CA文件是可选的。只有在使用自签名证书进行HTTPS连接时才需要。"
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr ""
+
+msgid "Open CA certificate file"
+msgstr "打开CA证书文件"
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr "在此系统上，%s 使用来自系统证书存储或密钥链的HTTPS证书。"
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr "要使用自定义 CA 文件，请将您的 CA 文件导入到证书存储 / 密钥链中。"
+
+msgid "Connection to printers connected via the print host failed."
+msgstr "连接到通过打印主机连接的打印机失败。"
+
+#, c-format, boost-format
+msgid "Mismatched type of print host: %s"
+msgstr "打印主机的类型不匹配：%s"
+
+msgid "Connection to AstroBox works correctly."
+msgstr "与 AstroBox 的连接正常。"
+
+msgid "Could not connect to AstroBox"
+msgstr "无法连接到 AstroBox。"
+
+msgid "Note: AstroBox version at least 1.1.0 is required."
+msgstr "请注意，需要至少 AstroBox 版本 1.1.0。"
+
+msgid "Connection to Duet works correctly."
+msgstr "成功连接到 Duet 控制器。"
+
+msgid "Could not connect to Duet"
+msgstr "无法连接到 Duet 控制器。"
+
+msgid "Unknown error occured"
+msgstr "发生了未知错误。"
+
+msgid "Wrong password"
+msgstr "密码错误。"
+
+msgid "Could not get resources to create a new connection"
+msgstr "无法获取资源以创建新连接。"
+
+msgid "Upload not enabled on FlashAir card."
+msgstr "FlashAir卡未启用上传。"
+
+msgid "Connection to FlashAir works correctly and upload is enabled."
+msgstr "FlashAir连接正常，并启用了上传。"
+
+msgid "Could not connect to FlashAir"
+msgstr "FlashAir 连接失败。"
+
+msgid ""
+"Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
+"is required."
+msgstr "需要 FlashAir 固件版本为 2.00.02 或更高，并激活上传功能。"
+
+msgid "Connection to MKS works correctly."
+msgstr "MKS的连接正常。"
+
+msgid "Could not connect to MKS"
+msgstr "无法连接到MKS。"
+
+msgid "Connection to OctoPrint works correctly."
+msgstr "成功连接到 OctoPrint。"
+
+msgid "Could not connect to OctoPrint"
+msgstr "无法连接到OctoPrint"
+
+msgid "Note: OctoPrint version at least 1.1.0 is required."
+msgstr "注意：至少需要 OctoPrint 版本 1.1.0。"
+
+msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgstr "与 Prusa SL1 / SL1S 的连接正常。"
+
+msgid "Could not connect to Prusa SLA"
+msgstr "无法连接到 Prusa SLA。"
+
+msgid "Connection to PrusaLink works correctly."
+msgstr "连接到 PrusaLink 的连接正常。"
+
+msgid "Could not connect to PrusaLink"
+msgstr "无法连接到 PrusaLink。"
+
+msgid "Connection to Repetier works correctly."
+msgstr "与 Repetier 的连接正常。"
+
+msgid "Could not connect to Repetier"
+msgstr "无法连接到Repetier"
+
+msgid "Note: Repetier version at least 0.90.0 is required."
+msgstr "注意：需要 Repetier 版本至少为 0.90.0。"
+
+#, boost-format
+msgid ""
+"HTTP status: %1%\n"
+"Message body: \"%2%\""
+msgstr ""
+"HTTP状态：%1%\n"
+"消息体：\"%2%\""
+
+#, boost-format
+msgid ""
+"Parsing of host response failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr ""
+"主机响应解析失败。\n"
+"消息体：\"%1%\"错误：\"%2%\""
+
+#, boost-format
+msgid ""
+"Enumeration of host printers failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr "主机打印机的枚举失败。消息体：\"%1%\"错误：\"%2%\""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -13366,9 +13520,6 @@ msgstr ""
 #~ "centigrade"
 #~ msgstr "该类型材料的建议喷嘴温度是[%d, %d]摄氏度"
 
-#~ msgid "Load"
-#~ msgstr "上料"
-
 #~ msgid "Recommanded temperature range"
 #~ msgstr "建议温度范围"
 
@@ -15323,9 +15474,6 @@ msgstr ""
 
 #~ msgid "Do you want to proceed?"
 #~ msgstr "是否继续？"
-
-#~ msgid "Physical Printer"
-#~ msgstr "物理打印机"
 
 #~ msgid "Convert from imperial units"
 #~ msgstr "从英制转换"
