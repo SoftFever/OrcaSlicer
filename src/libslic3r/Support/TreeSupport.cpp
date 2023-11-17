@@ -1257,7 +1257,7 @@ static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
 {
     std::vector<BoundingBox> fill_boxes;
     for (ExPolygon& expoly : expolygons) {
-        auto box = fill_expolygon_generate_paths(dst, std::move(expoly), filler, fill_params, role, flow);
+        auto box = fill_expolygon_generate_paths(dst, expoly, filler, fill_params, role, flow);
         fill_boxes.emplace_back(box);
     }
     return fill_boxes;
@@ -1315,7 +1315,7 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
     fill_params.density = support_density;
     fill_params.dont_adjust = true;
     ExPolygons to_infill = support_area_new;
-    std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, std::move(to_infill), filler_support, fill_params, role, flow);
+    std::vector<BoundingBox> fill_boxes = fill_expolygons_generate_paths(dst, to_infill, filler_support, fill_params, role, flow);
 
     // allow wall_count to be zero, which means only draw infill
     if (wall_count == 0) {
@@ -1534,7 +1534,7 @@ void TreeSupport::generate_toolpaths()
                         // floor_areas
                         fill_params.density = bottom_interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
-                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys,
                             filler_interface.get(), fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
                     } else if (area_group.type == SupportLayer::RoofType) {
                         // roof_areas
@@ -1546,7 +1546,7 @@ void TreeSupport::generate_toolpaths()
                         }
                         if (m_object_config->support_interface_pattern == smipRectilinearInterlaced)
                             filler_interface->layer_id = round(area_group.dist_to_top / ts_layer->height);
-                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterialInterface,
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys, filler_interface.get(), fill_params, erSupportMaterialInterface,
                                                        m_support_material_interface_flow);
                     }
                     else {
