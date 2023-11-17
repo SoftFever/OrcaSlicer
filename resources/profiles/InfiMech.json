@@ -1,0 +1,102 @@
+{
+    "name": "InfiMech",
+    "version": "01.08.00.00",
+    "force_update": "1",
+    "description": "InfiMech configurations",
+    "machine_model_list": [
+        {
+            "name": "InfiMech TX",
+            "sub_path": "machine/InfiMech TX.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "0.08mm Extra Fine @InfiMech TX",
+            "sub_path": "process/0.08mm Extra Fine @InfiMech TX.json"
+        },
+        {
+            "name": "0.12mm Fine @InfiMech TX",
+            "sub_path": "process/0.12mm Fine @InfiMech TX.json"
+        },
+        {
+            "name": "0.20mm Standard @InfiMech TX",
+            "sub_path": "process/0.20mm Standard @InfiMech TX.json"
+        },
+        {
+            "name": "0.24mm Draft @InfiMech TX",
+            "sub_path": "process/0.24mm Draft @InfiMech TX.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+		        {
+            "name": "InfiMech Generic PLA",
+            "sub_path": "filament/InfiMech Generic PLA.json"
+        },
+        {
+            "name": "InfiMech Generic PETG",
+            "sub_path": "filament/InfiMech Generic PETG.json"
+        },
+        {
+            "name": "InfiMech Generic ABS",
+            "sub_path": "filament/InfiMech Generic ABS.json"
+        },
+        {
+            "name": "InfiMech Generic TPU",
+            "sub_path": "filament/InfiMech Generic TPU.json"
+        },
+        {
+            "name": "InfiMech Generic PC",
+            "sub_path": "filament/InfiMech Generic PC.json"
+        },
+        {
+            "name": "InfiMech Generic PA-CF",
+            "sub_path": "filament/InfiMech Generic PA-CF.json"
+        }
+    ],
+    "machine_list": [
+	    {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+		{
+            "name": "fdm_klipper_common",
+            "sub_path": "machine/fdm_klipper_common.json"
+        },
+        {
+            "name": "InfiMech TX 0.4 nozzle",
+            "sub_path": "machine/InfiMech TX 0.4 nozzle.json"
+        }
+    ]
+}

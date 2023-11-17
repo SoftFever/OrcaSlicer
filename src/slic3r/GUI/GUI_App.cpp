@@ -1107,6 +1107,8 @@ void GUI_App::post_init()
 //#endif
         if (is_editor())
             mainframe->select_tab(size_t(0));
+        if (app_config->get("default_page") == "1")
+            mainframe->select_tab(size_t(1));
         mainframe->Thaw();
         plater_->trigger_restore_project(1);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources";
@@ -1734,9 +1736,9 @@ void GUI_App::restart_networking()
         if (app_config->get("sync_user_preset") == "true") {
             start_sync_user_preset();
         }
-        if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
-            if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(has_model_mall()); }
-        }
+        // if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
+        //     if (mainframe->m_webview) { mainframe->m_webview->SendDesignStaffpick(has_model_mall()); }
+        // }
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
 }
@@ -2120,16 +2122,15 @@ void GUI_App::init_app_config()
         app_config = new AppConfig();
         //app_config = new AppConfig(is_editor() ? AppConfig::EAppMode::Editor : AppConfig::EAppMode::GCodeViewer);
 
+    m_config_corrupted = false;
 	// load settings
 	m_app_conf_exists = app_config->exists();
 	if (m_app_conf_exists) {
         std::string error = app_config->load();
         if (!error.empty()) {
-            // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
-            throw Slic3r::RuntimeError(
-                _u8L("OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-                     "Please delete the file and try again.") +
-                "\n\n" + app_config->config_path() + "\n\n" + error);
+            // Orca: if the config file is corrupted, we will show a error dialog and create a default config file.
+            m_config_corrupted = true;
+
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
@@ -2427,8 +2428,7 @@ bool GUI_App::on_init_inner()
     }
 
     BBLSplashScreen * scrn = nullptr;
-    const bool show_splash_screen = true;
-    if (show_splash_screen) {
+    if (app_config->get("show_splash_screen") == "true") {
         // make a bitmap with dark grey banner on the left side
         //BBS make BBL splash screen bitmap
         wxBitmap bmp = BBLSplashScreen::MakeBitmap();
@@ -2476,7 +2476,6 @@ bool GUI_App::on_init_inner()
 #endif // __WXMSW__
 
         preset_updater = new PresetUpdater();
-#if orca_todo
         Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             if (this->plater_ != nullptr) {
                 // this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
@@ -2565,7 +2564,6 @@ bool GUI_App::on_init_inner()
             });
             dlg.ShowModal();
         });
-#endif
     }
     else {
 #ifdef __WXMSW__
@@ -2749,6 +2747,7 @@ bool GUI_App::on_init_inner()
 
         if (m_post_initialized && app_config->dirty())
             app_config->save();
+
     });
 
     m_initialized = true;
@@ -2756,6 +2755,13 @@ bool GUI_App::on_init_inner()
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
+    if (m_config_corrupted) {
+        m_config_corrupted = false;
+        show_error(nullptr,
+                   _u8L(
+                       "The OrcaSlicer configuration file may be corrupted and cannot be parsed.\nOrcaSlicer has attempted to recreate the "
+                       "configuration file.\nPlease note, application settings will be lost, but printer profiles will not be affected."));
+    }
     //BBS: delete splash screen
     delete scrn;
     return true;
@@ -2988,10 +2994,10 @@ void GUI_App::update_label_colours_from_appconfig()
 
 void GUI_App::update_publish_status()
 {
-    mainframe->show_publish_button(has_model_mall());
-    if (app_config->get("staff_pick_switch") == "true") {
-        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
-    }
+    // mainframe->show_publish_button(has_model_mall());
+    // if (app_config->get("staff_pick_switch") == "true") {
+    //     mainframe->m_webview->SendDesignStaffpick(has_model_mall());
+    // }
 }
 
 bool GUI_App::has_model_mall()
@@ -3817,22 +3823,22 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
-            else if (command_str.compare("modelmall_model_advise_get") == 0) {
-                if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
-                    if (mainframe->m_webview) {
-                        mainframe->m_webview->SendDesignStaffpick(has_model_mall());
-                    }
-                }
-            }
-            else if (command_str.compare("modelmall_model_open") == 0) {
-                if (root.get_child_optional("data") != boost::none) {
-                    pt::ptree data_node = root.get_child("data");
-                    boost::optional<std::string> id = data_node.get_optional<std::string>("id");
-                    if (id.has_value() && mainframe->m_webview) {
-                        mainframe->m_webview->OpenModelDetail(id.value(), m_agent);
-                    }
-                }
-            }
+            // else if (command_str.compare("modelmall_model_advise_get") == 0) {
+            //     if (mainframe && this->app_config->get("staff_pick_switch") == "true") {
+            //         if (mainframe->m_webview) {
+            //             mainframe->m_webview->SendDesignStaffpick(has_model_mall());
+            //         }
+            //     }
+            // }
+            // else if (command_str.compare("modelmall_model_open") == 0) {
+            //     if (root.get_child_optional("data") != boost::none) {
+            //         pt::ptree data_node = root.get_child("data");
+            //         boost::optional<std::string> id = data_node.get_optional<std::string>("id");
+            //         if (id.has_value() && mainframe->m_webview) {
+            //             mainframe->m_webview->OpenModelDetail(id.value(), m_agent);
+            //         }
+            //     }
+            // }
             else if (command_str.compare("homepage_open_recentfile") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
@@ -4265,7 +4271,7 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
                                              error);
         })
         .timeout_connect(1)
-        .on_complete([&](std::string body, unsigned http_status) {
+        .on_complete([this,by_user](std::string body, unsigned http_status) {
           // Http response OK
           if (http_status != 200)
             return;
@@ -4291,30 +4297,28 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
             std::string best_release_content;
             std::string best_pre_content;
             const std::regex reg_num("([0-9]+)");
-            for (auto json_version : root) {
-              std::string tag = json_version.second.get<std::string>("tag_name");
-              if (tag[0] == 'v')
-                tag.erase(0, 1);
-              for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num);
-                   it != std::sregex_iterator(); ++it) {
-              }
-              Semver tag_version = get_version(tag, matcher);
-              if (current_version == tag_version)
-                i_am_pre = json_version.second.get<bool>("prerelease");
-              if (json_version.second.get<bool>("prerelease")) {
-                if (best_pre < tag_version) {
-                  best_pre = tag_version;
-                  best_pre_url = json_version.second.get<std::string>("html_url");
-                  best_pre_content = json_version.second.get<std::string>("body");
-                  best_pre.set_prerelease("Preview");
-                }
-              } else {
-                if (best_release < tag_version) {
-                  best_release = tag_version;
-                  best_release_url = json_version.second.get<std::string>("html_url");
-                  best_release_content = json_version.second.get<std::string>("body");
-                }
-              }
+            std::string tag = root.get<std::string>("tag_name");
+            if (tag[0] == 'v')
+            tag.erase(0, 1);
+            for (std::regex_iterator it = std::sregex_iterator(tag.begin(), tag.end(), reg_num);
+                it != std::sregex_iterator(); ++it) {
+            }
+            Semver tag_version = get_version(tag, matcher);
+            if (current_version == tag_version)
+            i_am_pre = root.get<bool>("prerelease");
+            if (root.get<bool>("prerelease")) {
+            if (best_pre < tag_version) {
+                best_pre = tag_version;
+                best_pre_url = root.get<std::string>("html_url");
+                best_pre_content = root.get<std::string>("body");
+                best_pre.set_prerelease("Preview");
+            }
+            } else {
+            if (best_release < tag_version) {
+                best_release = tag_version;
+                best_release_url = root.get<std::string>("html_url");
+                best_release_content = root.get<std::string>("body");
+            }
             }
 
             // if release is more recent than beta, use release anyway
@@ -4324,8 +4328,11 @@ void GUI_App::check_new_version_sf(bool show_tips, int by_user)
               best_pre_content = best_release_content;
             }
             // if we're the most recent, don't do anything
-            if ((i_am_pre ? best_pre : best_release) <= current_version)
+            if ((i_am_pre ? best_pre : best_release) <= current_version) {
+              if (by_user != 0)
+                this->no_new_version();
               return;
+            }
 
             // BOOST_LOG_TRIVIAL(info) << format("Got %1% online version: `%2%`. Sending to GUI thread...",
             // SLIC3R_APP_NAME, i_am_pre ? best_pre.to_string(): best_release.to_string());

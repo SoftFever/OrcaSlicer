@@ -1,0 +1,26 @@
+name: Orca bot
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  close-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v5
+        with:
+          days-before-issue-stale: 90
+          days-before-issue-close: 14
+          operations-per-run: 1000
+          stale-issue-label: "stale"
+          ascending: true
+          stale-issue-message: "GitHub bot: this issue is stale because it has been open for 90 days with no activity."
+          close-issue-message: "GitHub bot: This issue was closed because it has been inactive for 14 days since being marked as stale."
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          remove-issue-stale-when-updated: true
+          remove-pr-stale-when-updated: true 
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

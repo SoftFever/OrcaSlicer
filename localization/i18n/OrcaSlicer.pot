@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-29 10:45+0800\n"
+"POT-Creation-Date: 2023-11-10 14:54+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -489,25 +489,10 @@ msgstr ""
 msgid "Remove selection"
 msgstr ""
 
-msgid "Shift + Mouse move up or dowm"
-msgstr ""
-
-msgid "Rotate text"
-msgstr ""
-
-msgid "Text shape"
-msgstr ""
-
 msgid "Font"
 msgstr ""
 
 msgid "Thickness"
-msgstr ""
-
-msgid "Input text"
-msgstr ""
-
-msgid "Embeded"
 msgstr ""
 
 msgid "Text Gap"
@@ -521,10 +506,22 @@ msgid ""
 "depth"
 msgstr ""
 
+msgid "Input text"
+msgstr ""
+
 msgid "Surface"
 msgstr ""
 
 msgid "Horizontal text"
+msgstr ""
+
+msgid "Shift + Mouse move up or dowm"
+msgstr ""
+
+msgid "Rotate text"
+msgstr ""
+
+msgid "Text shape"
 msgstr ""
 
 msgid "Ctrl+"
@@ -608,11 +605,6 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr ""
 
-msgid ""
-"OrcaSlicer configuration file may be corrupted and is not abled to be parsed."
-"Please delete the file and try again."
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid ""
 "%s\n"
@@ -636,6 +628,13 @@ msgid "This is the newest version."
 msgstr ""
 
 msgid "Info"
+msgstr ""
+
+msgid ""
+"The OrcaSlicer configuration file may be corrupted and cannot be parsed.\n"
+"OrcaSlicer has attempted to recreate the configuration file.\n"
+"Please note, application settings will be lost, but printer profiles will "
+"not be affected."
 msgstr ""
 
 msgid "Rebuild"
@@ -4750,6 +4749,15 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
+msgid "Home"
+msgstr ""
+
+msgid "Default Page"
+msgstr ""
+
+msgid "Set the page opened on startup."
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr ""
 
@@ -4762,6 +4770,12 @@ msgid "Use free camera"
 msgstr ""
 
 msgid "If enabled, use free camera. If not enabled, use constrained camera."
+msgstr ""
+
+msgid "Show splash screen"
+msgstr ""
+
+msgid "Show the splash screen during startup."
 msgstr ""
 
 msgid "Show \"Tip of the day\" notification after start"
@@ -4813,12 +4827,6 @@ msgid "Associate .step/.stp files to OrcaSlicer"
 msgstr ""
 
 msgid "If enabled, sets OrcaSlicer as default application to open .step files"
-msgstr ""
-
-msgid "Online Models"
-msgstr ""
-
-msgid "Show online staff-picked models on the home page"
 msgstr ""
 
 msgid "Maximum recent projects"
@@ -5758,6 +5766,9 @@ msgid "Time lapse G-code"
 msgstr ""
 
 msgid "Change filament G-code"
+msgstr ""
+
+msgid "Change extrusion role G-code"
 msgstr ""
 
 msgid "Pause G-code"
@@ -7399,6 +7410,14 @@ msgstr ""
 msgid "End G-code when finish the printing of this filament"
 msgstr ""
 
+msgid "Ensure vertical shell thickness"
+msgstr ""
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+
 msgid "Top surface pattern"
 msgstr ""
 
@@ -8769,22 +8788,6 @@ msgid ""
 "print when travel move. Using spiral line to lift z can prevent stringing"
 msgstr ""
 
-msgid "Z hop lower boundary"
-msgstr ""
-
-msgid ""
-"Z hop will only come into effect when Z is above this value and is below the "
-"parameter: \"Z hop upper boundary\""
-msgstr ""
-
-msgid "Z hop upper boundary"
-msgstr ""
-
-msgid ""
-"If this value is positive, Z hop will only come into effect when Z is above "
-"the parameter: \"Z hop lower boundary\" and is below this value"
-msgstr ""
-
 msgid "Z hop type"
 msgstr ""
 
@@ -9439,6 +9442,9 @@ msgid ""
 "tool change"
 msgstr ""
 
+msgid "This gcode is inserted when the extrusion role is changed"
+msgstr ""
+
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
 "the nozzle diameter."
@@ -9732,6 +9738,15 @@ msgid ""
 "feature size) of the model. If the Minimum wall width is thinner than the "
 "thickness of the feature, the wall will become as thick as the feature "
 "itself. It's expressed as a percentage over nozzle diameter"
+msgstr ""
+
+msgid "Detect narrow internal solid infill"
+msgstr ""
+
+msgid ""
+"This option will auto detect narrow internal solid infill area. If enabled, "
+"concentric pattern will be used for the area to speed printing up. "
+"Otherwise, rectilinear pattern is used defaultly."
 msgstr ""
 
 msgid "invalid value "

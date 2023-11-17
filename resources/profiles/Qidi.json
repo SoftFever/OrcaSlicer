@@ -1,6 +1,6 @@
 {
     "name": "Qidi",
-    "version": "01.07.00.00",
+    "version": "01.08.00.00",
     "force_update": "0",
     "description": "Qidi configurations",
     "machine_model_list": [
@@ -575,8 +575,11 @@
         {
             "name": "Qidi Generic TPU",
             "sub_path": "filament/Qidi Generic TPU.json"
+        },
+        {
+            "name": "QIDI ABS-GF10",
+            "sub_path": "filament/QIDI ABS-GF10.json"
         }
-
     ],
     "machine_list": [
         {

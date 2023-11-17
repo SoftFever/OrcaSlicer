@@ -656,6 +656,7 @@ private:
     bool                    m_datadir_redefined { false };
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
+    bool                    m_config_corrupted { false };
 };
 
 DECLARE_APP(GUI_App)
