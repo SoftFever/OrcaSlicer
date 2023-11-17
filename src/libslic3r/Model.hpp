@@ -523,6 +523,8 @@ public:
     // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined)
     int         get_repaired_errors_count(const int vol_idx = -1) const;
 
+    // Detect if object has at least one solid mash
+    bool has_solid_mesh() const;
     bool is_cut() const { return cut_id.id().valid(); }
     bool has_connectors() const;
 private:

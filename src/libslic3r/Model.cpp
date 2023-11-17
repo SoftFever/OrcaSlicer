@@ -2289,6 +2289,14 @@ int ModelObject::get_repaired_errors_count(const int vol_idx /*= -1*/) const
             stats.facets_reversed + stats.backwards_edges;
 }
 
+bool ModelObject::has_solid_mesh() const
+{
+    for (const ModelVolume* volume : volumes)
+        if (volume->is_model_part())
+            return true;
+    return false;
+}
+
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
