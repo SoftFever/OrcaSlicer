@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -8260,6 +8260,26 @@ msgstr ""
 "Скорость печати внешнего периметра (видимого). Для улучшения качества, эту "
 "скорость делают ниже скорости внутренних периметров."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimter threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of walls"
 msgstr "Порядок печати периметров"
 
@@ -9884,13 +9904,11 @@ msgstr ""
 "Этот параметр определяет начальный диаметр ветвей, т.е. их диаметр в месте "
 "контакта с моделью."
 
-msgid "Tree support wall loops"
-msgstr "Периметров древовидной поддержки"
-
-msgid "This setting specify the count of walls around tree support"
+msgid "Support wall loops"
 msgstr ""
-"Этот параметр определяет количество периметров у печатаемой древовидной "
-"поддержки."
+
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support brim width"
 msgstr "Ширина каймы древовидной поддержки"
@@ -12145,6 +12163,14 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Периметров древовидной поддержки"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr ""
+#~ "Этот параметр определяет количество периметров у печатаемой древовидной "
+#~ "поддержки."
 
 #~ msgid "Ctrl + Shift + Enter"
 #~ msgstr "Ctrl + Shift + Enter"

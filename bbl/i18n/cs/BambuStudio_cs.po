@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -7996,6 +7996,26 @@ msgstr ""
 "Rychlost vnější stěny, která je nejkrajnější a viditelná. Pro lepší kvalitu "
 "bývala nižší než rychlost vnitřní stěny."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimter threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of walls"
 msgstr ""
 
@@ -9529,11 +9549,11 @@ msgstr "Průměr větve podpěr stromů"
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Toto nastavení určuje počáteční průměr uzlů poděry."
 
-msgid "Tree support wall loops"
-msgstr "Stěnové smyčky na podpěry stromů"
+msgid "Support wall loops"
+msgstr ""
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "Toto nastavení určuje počet stěn kolem podpěry stromu"
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support brim width"
 msgstr "Šířka Limce podpěr stromů"
@@ -11670,6 +11690,12 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Stěnové smyčky na podpěry stromů"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr "Toto nastavení určuje počet stěn kolem podpěry stromu"
 
 #~ msgid "Upper part"
 #~ msgstr "Horní část"

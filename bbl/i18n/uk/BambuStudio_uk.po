@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -8044,6 +8044,26 @@ msgstr ""
 "раніше було повільніше, ніж швидкість внутрішнього периметра, щоботримати "
 "кращу якість."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimter threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of walls"
 msgstr ""
 
@@ -9609,11 +9629,11 @@ msgstr "Діаметр гілки деревоподібної підтримк�
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Цей параметр визначає початковий діаметр опорних вузлів."
 
-msgid "Tree support wall loops"
-msgstr "Контури опорної стінки дерева"
+msgid "Support wall loops"
+msgstr ""
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "Цей параметр визначає кількість периметрів навколо опори дерева"
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support brim width"
 msgstr "Підтримка дерева із заповненням"
@@ -11760,6 +11780,12 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Контури опорної стінки дерева"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr "Цей параметр визначає кількість периметрів навколо опори дерева"
 
 #~ msgid "Upper part"
 #~ msgstr "Верхня частина"

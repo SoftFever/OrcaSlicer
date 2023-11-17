@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8028,6 +8028,26 @@ msgstr ""
 "A legkülső látható fal sebessége. A jobb minőség érdekében ez lassabb, mint "
 "a belső fal sebessége."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimter threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of walls"
 msgstr ""
 
@@ -9584,11 +9604,11 @@ msgstr "Fa támasz ágának átmérője"
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Ez a beállítás határozza meg a támasz csomópontok kezdeti átmérőjét."
 
-msgid "Tree support wall loops"
-msgstr "Fa támasz falak száma"
+msgid "Support wall loops"
+msgstr ""
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "Ez a beállítás határozza meg a falak számát a fa támasz körül."
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support brim width"
 msgstr "Tree support brim width"
@@ -11631,6 +11651,12 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Fa támasz falak száma"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr "Ez a beállítás határozza meg a falak számát a fa támasz körül."
 
 #~ msgid "Upper part"
 #~ msgstr "Upper part"

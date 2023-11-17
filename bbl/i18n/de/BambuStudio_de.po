@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8132,6 +8132,26 @@ msgstr ""
 "Regel langsamer als die Innenwände gedruckt, um eine bessere Qualität zu "
 "erzielen."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimter threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of walls"
 msgstr ""
 
@@ -9701,11 +9721,11 @@ msgstr "Durchmesser des Stützastes eines Baumes"
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "Diese Einstellung bestimmt den Anfangsdurchmesser der Stützknoten."
 
-msgid "Tree support wall loops"
-msgstr "Wandlinien für Baumstützen"
+msgid "Support wall loops"
+msgstr ""
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "Diese Einstellung gibt die Anzahl der Wände um die Baumstütze an."
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support brim width"
 msgstr "Umrandungsbreite der Baumstütze"
@@ -11766,6 +11786,12 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Wandlinien für Baumstützen"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr "Diese Einstellung gibt die Anzahl der Wände um die Baumstütze an."
 
 #~ msgid "Upper part"
 #~ msgstr "Oberer Teil"

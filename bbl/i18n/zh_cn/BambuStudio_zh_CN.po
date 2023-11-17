@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7694,6 +7694,26 @@ msgid ""
 "than inner wall speed to get better quality."
 msgstr "外墙的打印速度。它通常使用比内壁速度慢的速度，以获得更好的质量。"
 
+msgid "Small perimeters"
+msgstr "小轮廓"
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr "这个设置将影响半径小于等于小轮廓阈值的轮廓（通常是孔）的速度。如果以百分比形式表示（例如：80%），则将根据外墙速度进行计算。设置为0代表自动调速。"
+
+msgid "mm/s or %"
+msgstr "mm/s 或 %"
+
+msgid "Small perimter threshold"
+msgstr "小轮廓阈值"
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr "这设置了小轮廓长度的阈值。默认阈值为0毫米。"
+
 msgid "Order of walls"
 msgstr "墙顺序"
 
@@ -14411,9 +14431,6 @@ msgstr ""
 
 #~ msgid "Small walls"
 #~ msgstr "细小外墙"
-
-#~ msgid "mm/s or %"
-#~ msgstr "mm/s 或 %"
 
 #~ msgid "Wall around the support"
 #~ msgstr "支撑外壁"

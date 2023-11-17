@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-16 12:12+0800\n"
+"POT-Creation-Date: 2023-11-17 11:07+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7943,6 +7943,26 @@ msgstr ""
 "This is the printing speed for the outer walls of parts. These are generally "
 "printed slower than inner walls for higher quality."
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of perimeters having radius <= small "
+"perimeter threshold(usually holes). If expressed as percentage (for example: "
+"80%) it will be calculated onthe outer wall speed setting above. Set to zero "
+"for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimter threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 0mm"
+msgstr ""
+
 msgid "Order of walls"
 msgstr ""
 
@@ -9472,11 +9492,11 @@ msgstr "Tree support branch diameter"
 msgid "This setting determines the initial diameter of support nodes."
 msgstr "This setting determines the initial diameter of support nodes."
 
-msgid "Tree support wall loops"
-msgstr "Tree support wall loops"
+msgid "Support wall loops"
+msgstr ""
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "This setting specifies the wall count around tree support."
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support brim width"
 msgstr "Tree support brim width"
@@ -11515,6 +11535,12 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Tree support wall loops"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr "This setting specifies the wall count around tree support."
 
 #~ msgid "Upper part"
 #~ msgstr "Upper part"
