@@ -31,6 +31,10 @@
             "sub_path": "process/process_common_mk3.json"
         },
         {
+            "name": "0.20mm Standard @MINI",
+            "sub_path": "process/0.20mm Standard @MINI.json"
+        },
+        {
             "name": "0.05mm UltraDetail @MK3S",
             "sub_path": "process/0.05mm UltraDetail @MK3S.json"
         },
