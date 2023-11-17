@@ -1296,6 +1296,7 @@ void GLGizmoAdvancedCut::apply_selected_connectors(std::function<void(size_t idx
     for (size_t idx = 0; idx < m_selected.size(); idx++)
         if (m_selected[idx])
             apply_fn(idx);
+    check_and_update_connectors_state();
 }
 
 void GLGizmoAdvancedCut::select_all_connectors()
@@ -1927,7 +1928,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
 #ifdef __APPLE__
         m_editing_window_width = 400;
 #else
-        m_editing_window_width = 240;
+        m_editing_window_width = 270;
 #endif
         bool is_changed{false};
         is_changed |= render_slider_double_input(_u8L("Depth"), m_groove.depth, m_groove.depth_tolerance);
