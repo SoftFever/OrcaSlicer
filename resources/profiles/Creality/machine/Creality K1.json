@@ -8,5 +8,5 @@
     "bed_model": "creality_k1_buildplate_model.stl",
     "bed_texture": "creality_k1_buildplate_texture.png",
     "hotend_model": "",
-    "default_materials": "Creality Generic PLA @0.4 nozzle;Creality HF Generic PLA @0.4 nozzle;Creality HF Generic Speed PLA @0.4 nozzle;Creality Generic PETG @0.4 nozzle;Creality Generic TPU @0.4 nozzle;Creality Generic ABS @0.4 nozzle;Creality Generic PLA @0.6 nozzle;Creality HF Generic PLA @0.6 nozzle;Creality HF Generic Speed PLA @0.6 nozzle;Creality Generic PETG @0.6 nozzle;Creality Generic TPU @0.6 nozzle;Creality Generic ABS @0.6 nozzle;Creality Generic PLA @0.8 nozzle;Creality HF Generic PLA @0.8 nozzle;Creality HF Generic Speed PLA @0.8 nozzle;Creality Generic PETG @0.8 nozzle;Creality Generic TPU @0.8 nozzle;Creality Generic ABS @0.8 nozzle"
+    "default_materials": "Creality Generic PLA;Creality HF Generic PLA;Creality HF Generic Speed PLA;Creality Generic PETG;Creality Generic TPU;Creality Generic ABS"
 }

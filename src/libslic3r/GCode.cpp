@@ -710,7 +710,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             if (is_ramming)
                 gcodegen.m_wipe.reset_path();                                           // We don't want wiping on the ramming lines.
             toolchange_gcode_str = gcodegen.set_extruder(new_extruder_id, tcr.print_z); // TODO: toolchange_z vs print_z
-            if (gcodegen.config().has_prime_tower)
+            if (gcodegen.config().enable_prime_tower)
                 deretraction_str = gcodegen.unretract();
         }
 
@@ -925,7 +925,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size())
             return gcode;
-        if (gcodegen.config().purge_in_prime_tower) {
+        if (!gcodegen.is_BBL_Printer()) {
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (m_layer_idx < (int) m_tool_changes.size()) {
                     if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
@@ -2578,6 +2578,7 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
+    print.m_print_statistics.initial_tool = initial_extruder_id;
     if (!is_bbl_printers) {
         file.write_format("; total filament used [g] = %.2lf\n",
             print.m_print_statistics.total_weight);
@@ -5448,8 +5449,12 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
-        wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
-        wipe_volume *= m_config.flush_multiplier;
+        if (m_config.purge_in_prime_tower) {
+            wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
+            wipe_volume *= m_config.flush_multiplier;
+        } else {
+            wipe_volume = m_config.prime_volume;
+        }
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
         //BBS: must clean m_start_gcode_filament

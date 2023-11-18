@@ -1454,7 +1454,6 @@ void PrintConfigDef::init_fff_params()
                      "Can't be zero");
     def->sidetext = L("mm³/s");
     def->min = 0;
-    def->max = 200;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 2. });
 
@@ -2817,7 +2816,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("User can self-define the project file name when export");
     def->full_width = true;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[0]}_{print_time}.gcode"));
+    def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode"));
 
     def = this->add("make_overhang_printable", coBool);
     def->label = L("Make overhang printable");

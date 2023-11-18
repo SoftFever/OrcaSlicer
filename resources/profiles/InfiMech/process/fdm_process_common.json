@@ -35,7 +35,7 @@
 	"ensure_vertical_shell_thickness": "1",
 	"exclude_object": "0",
 	"extra_perimeters_on_overhangs": "0",
-	"filename_format": "{input_filename_base}_{filament_type[0]}_{print_time}.gcode",
+	"filename_format": "{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode",
 	"filter_out_gap_fill": "0",
 	"flush_into_infill": "0",
 	"flush_into_objects": "0",
@@ -104,7 +104,6 @@
 	"prime_tower_brim_width": "3",
 	"prime_tower_width": "35",
 	"prime_volume": "45",
-	"print_flow_ratio": "0.95",
 	"print_sequence": "by layer",
 
 	"raft_contact_distance": "0.1",
