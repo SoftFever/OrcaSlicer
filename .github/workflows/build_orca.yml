@@ -133,11 +133,13 @@ jobs:
       - name: Pack app
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build
+        shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_V${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
 
       - name: Pack PDB
         if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build/src/Release
+        shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_V${{ env.ver }}_for_developers_only.7z  *.pdb'
           
       - name: Upload artifacts Win zip
