@@ -5419,6 +5419,74 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
         }
     }
+    // Custom g-code overview
+    std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ?
+                                                                  wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
+                                                                  m_custom_gcode_per_print_z;
+    if (custom_gcode_per_print_z.size() != 0) {
+        float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
+        ImGui::Spacing();
+        // Title Line
+        std::string cgcode_title_str       = _u8L("Custom g-code");
+        std::string cgcode_layer_str       = _u8L("Layer");
+        std::string cgcode_time_str        =  _u8L("Time");
+        // Types of custom gcode
+        std::string cgcode_pause_str = _u8L("Pause");
+        std::string cgcode_template_str= _u8L("Template");
+        std::string cgcode_toolchange_str = _u8L("ToolChange");
+        std::string cgcode_custom_str = _u8L("Custom");
+        std::string cgcode_unknown_str = _u8L("Unknown");
+
+        // Get longest String
+        max_len += std::max(ImGui::CalcTextSize(cgcode_title_str.c_str()).x,
+                                              std::max(ImGui::CalcTextSize(cgcode_pause_str.c_str()).x,
+                                                       std::max(ImGui::CalcTextSize(cgcode_template_str.c_str()).x,
+                                                                std::max(ImGui::CalcTextSize(cgcode_toolchange_str.c_str()).x,
+                                                                         std::max(ImGui::CalcTextSize(cgcode_custom_str.c_str()).x,
+                                                                                  ImGui::CalcTextSize(cgcode_unknown_str.c_str()).x))))
+
+        );
+       
+        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+        ImGui::Dummy({window_padding, window_padding});
+        ImGui::SameLine();
+        imgui.title(cgcode_title_str,true);
+        ImGui::SameLine(max_len);
+        imgui.title(cgcode_layer_str, true);
+        ImGui::SameLine(max_len*1.5);
+        imgui.title(cgcode_time_str, false);
+
+        for (Slic3r::CustomGCode::Item custom_gcode : custom_gcode_per_print_z) {
+            ImGui::Dummy({window_padding, window_padding});
+            ImGui::SameLine();
+
+            switch (custom_gcode.type) {
+            case PausePrint: imgui.text(cgcode_pause_str); break;
+            case Template: imgui.text(cgcode_template_str); break;
+            case ToolChange: imgui.text(cgcode_toolchange_str); break;
+            case Custom: imgui.text(cgcode_custom_str); break;
+            default: imgui.text(cgcode_unknown_str); break;
+            }
+            ImGui::SameLine(max_len);
+            char buf[64];
+            int  layer = m_layers.get_l_at(custom_gcode.print_z);
+            ::sprintf(buf, "%d",layer );
+            imgui.text(buf);
+            ImGui::SameLine(max_len * 1.5);
+            
+            std::vector<float> layer_times = m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
+            float custom_gcode_time = 0;
+            if (layer > 0)
+            {
+                for (int i = 0; i < layer-1; i++) {
+                    custom_gcode_time += layer_times[i];
+                }
+            }
+            imgui.text(short_time(get_time_dhms(custom_gcode_time)));
+
+        }
+    }
+
 
     // total estimated printing time section
     if (show_estimated) {
@@ -5496,10 +5564,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             imgui.text(buf);
         }
 
-        auto role_time = [time_mode](ExtrusionRole role) {
+            auto role_time = [time_mode](ExtrusionRole role) {
             auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
-            return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
-        };
+                return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
+            };
         //BBS: start gcode is mostly same with prepeare time
         if (time_mode.prepare_time != 0.0f) {
             ImGui::Dummy({ window_padding, window_padding });

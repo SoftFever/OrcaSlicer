@@ -157,6 +157,7 @@ public:
                      bool                          is_localized);
     void bold_text(const std::string &str);
     void title(const std::string& str);
+    void title(const std::string &str, bool suppress_seperator);
 
     // set font
     const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }

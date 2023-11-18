@@ -1735,6 +1735,20 @@ void ImGuiWrapper::title(const std::string& str)
     ImGui::Separator();
 }
 
+void ImGuiWrapper::title(const std::string &str, bool suppress_seperator)
+{
+    if (bold_font) {
+        ImGui::PushFont(bold_font);
+        text(str);
+        ImGui::PopFont();
+    } else {
+        text(str);
+    }
+    if (!suppress_seperator)    {
+      ImGui::Separator();
+    }
+}
+
 void ImGuiWrapper::disabled_begin(bool disabled)
 {
     wxCHECK_RET(!m_disabled, "ImGUI: Unbalanced disabled_begin() call");
