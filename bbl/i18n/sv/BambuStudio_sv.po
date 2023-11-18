@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 11:07+0800\n"
+"POT-Creation-Date: 2023-11-18 11:37+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1212,9 +1212,6 @@ msgstr "Klicka på ikonen för att redigera färgläggningen av objektet"
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "Klicka på ikonen för att flytta detta föremål till byggplattan"
-
-msgid " search results"
-msgstr ""
 
 msgid "Loading file"
 msgstr "Laddar fil"
@@ -5806,10 +5803,6 @@ msgstr "Skrivaren har inte stöd för att skicka till skrivarens MicroSD kort."
 
 msgid "Slice ok."
 msgstr "Beredning klar."
-
-#, c-format, boost-format
-msgid "Closing in %ds"
-msgstr ""
 
 msgid "View all Daily tips"
 msgstr ""
@@ -10861,10 +10854,13 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr ""
 
-msgid "Load"
+msgid "Load stl"
 msgstr ""
 
 msgid "Hot Bed SVG"
+msgstr ""
+
+msgid "Load svg"
 msgstr ""
 
 msgid "Max print height"

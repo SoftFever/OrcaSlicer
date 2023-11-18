@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 11:07+0800\n"
+"POT-Creation-Date: 2023-11-18 11:37+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1225,9 +1225,6 @@ msgstr "Kliknutím na ikonu upravíte barevnou malbu objektu"
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "Klikněte na ikonu pro přesunutí tohoto objektu na podložku"
-
-msgid " search results"
-msgstr ""
 
 msgid "Loading file"
 msgstr "Načítání souboru"
@@ -5834,10 +5831,6 @@ msgstr "Tiskárna nepodporuje odesílání na SD kartu tiskárny."
 
 msgid "Slice ok."
 msgstr "Slicování Dokončeno."
-
-#, c-format, boost-format
-msgid "Closing in %ds"
-msgstr ""
 
 msgid "View all Daily tips"
 msgstr ""
@@ -10989,10 +10982,13 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr ""
 
-msgid "Load"
+msgid "Load stl"
 msgstr ""
 
 msgid "Hot Bed SVG"
+msgstr ""
+
+msgid "Load svg"
 msgstr ""
 
 msgid "Max print height"

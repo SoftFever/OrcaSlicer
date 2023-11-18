@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 11:07+0800\n"
+"POT-Creation-Date: 2023-11-18 11:37+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1198,9 +1198,6 @@ msgid "Click the icon to edit color painting of the object"
 msgstr ""
 
 msgid "Click the icon to shift this object to the bed"
-msgstr ""
-
-msgid " search results"
 msgstr ""
 
 msgid "Loading file"
@@ -5515,10 +5512,6 @@ msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
 msgid "Slice ok."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Closing in %ds"
 msgstr ""
 
 msgid "View all Daily tips"
@@ -10083,10 +10076,13 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr ""
 
-msgid "Load"
+msgid "Load stl"
 msgstr ""
 
 msgid "Hot Bed SVG"
+msgstr ""
+
+msgid "Load svg"
 msgstr ""
 
 msgid "Max print height"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 11:07+0800\n"
+"POT-Creation-Date: 2023-11-18 11:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1215,9 +1215,6 @@ msgstr "Клацніть значок, щоб відредагувати кол�
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "Клацніть значок, щоб перемістити цей об'єкт на столі"
-
-msgid " search results"
-msgstr ""
 
 msgid "Loading file"
 msgstr "Завантаження файлу"
@@ -5863,10 +5860,6 @@ msgstr "Принтер не підтримує можливість відпра
 
 msgid "Slice ok."
 msgstr "Нарізка прибл."
-
-#, c-format, boost-format
-msgid "Closing in %ds"
-msgstr ""
 
 msgid "View all Daily tips"
 msgstr ""
@@ -11078,10 +11071,13 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr ""
 
-msgid "Load"
+msgid "Load stl"
 msgstr ""
 
 msgid "Hot Bed SVG"
+msgstr ""
+
+msgid "Load svg"
 msgstr ""
 
 msgid "Max print height"

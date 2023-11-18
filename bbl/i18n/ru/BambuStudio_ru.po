@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 11:07+0800\n"
+"POT-Creation-Date: 2023-11-18 11:37+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -1241,9 +1241,6 @@ msgstr "Нажмите на значок, чтобы изменить цвет �
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "Нажмите на значок, чтобы переместить эту модель на стол"
-
-msgid " search results"
-msgstr " результаты поиска"
 
 msgid "Loading file"
 msgstr "Загрузка файла"
@@ -6018,10 +6015,6 @@ msgstr "Принтер не поддерживает отправку на SD-к
 
 msgid "Slice ok."
 msgstr "Нарезка завершена."
-
-#, c-format, boost-format
-msgid "Closing in %ds"
-msgstr "Закрытие через %d с."
 
 msgid "View all Daily tips"
 msgstr "Посмотреть все советы"
@@ -11406,11 +11399,14 @@ msgstr "Y"
 msgid "Hot Bed STL"
 msgstr "Модель стола"
 
-msgid "Load"
+msgid "Load stl"
 msgstr ""
 
 msgid "Hot Bed SVG"
 msgstr "Текстура стола"
+
+msgid "Load svg"
+msgstr ""
 
 msgid "Max print height"
 msgstr "Максимальная высота печати"
@@ -12163,6 +12159,13 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid " search results"
+#~ msgstr " результаты поиска"
+
+#, c-format, boost-format
+#~ msgid "Closing in %ds"
+#~ msgstr "Закрытие через %d с."
 
 #~ msgid "Tree support wall loops"
 #~ msgstr "Периметров древовидной поддержки"

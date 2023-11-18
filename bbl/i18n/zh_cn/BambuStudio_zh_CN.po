@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-17 11:07+0800\n"
+"POT-Creation-Date: 2023-11-18 11:37+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -628,7 +628,7 @@ msgid "Internal Version"
 msgstr "内部版本"
 
 msgid "Beta Version"
-msgstr ""
+msgstr "Beta 版本"
 
 msgid "V"
 msgstr "V"
@@ -1205,9 +1205,6 @@ msgstr "点击此图标可编辑这个对象的颜色绘制"
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "点击这个图标可将对象移动到热床上"
-
-msgid " search results"
-msgstr " 搜索结果"
 
 msgid "Loading file"
 msgstr "载入文件中"
@@ -5665,10 +5662,6 @@ msgstr "该打印机不支持发送到打印机SD卡。"
 msgid "Slice ok."
 msgstr "切片完成"
 
-#, c-format, boost-format
-msgid "Closing in %ds"
-msgstr "%d秒内关闭"
-
 msgid "View all Daily tips"
 msgstr "查看所有每日贴士"
 
@@ -7702,7 +7695,9 @@ msgid ""
 "perimeter threshold(usually holes). If expressed as percentage (for example: "
 "80%) it will be calculated onthe outer wall speed setting above. Set to zero "
 "for auto."
-msgstr "这个设置将影响半径小于等于小轮廓阈值的轮廓（通常是孔）的速度。如果以百分比形式表示（例如：80%），则将根据外墙速度进行计算。设置为0代表自动调速。"
+msgstr ""
+"这个设置将影响半径小于等于小轮廓阈值的轮廓（通常是孔）的速度。如果以百分比形"
+"式表示（例如：80%），则将根据外墙速度进行计算。设置为0代表自动调速。"
 
 msgid "mm/s or %"
 msgstr "mm/s 或 %"
@@ -10518,11 +10513,14 @@ msgstr ""
 msgid "Hot Bed STL"
 msgstr "热床STL模型"
 
-msgid "Load"
-msgstr "加载"
+msgid "Load stl"
+msgstr "加载stl"
 
 msgid "Hot Bed SVG"
 msgstr "热床SVG图片"
+
+msgid "Load svg"
+msgstr "加载svg"
 
 msgid "Max print height"
 msgstr "最大打印高度"
@@ -11228,6 +11226,16 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid " search results"
+#~ msgstr " 搜索结果"
+
+#, c-format, boost-format
+#~ msgid "Closing in %ds"
+#~ msgstr "%d秒内关闭"
+
+#~ msgid "Load"
+#~ msgstr "加载"
 
 #~ msgid "Upper part"
 #~ msgstr "上半部分"
