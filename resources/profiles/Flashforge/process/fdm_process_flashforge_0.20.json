@@ -10,7 +10,6 @@
   "internal_solid_infill_speed": "250",
   "gap_infill_speed": "200",
   "sparse_infill_speed": "270",
-  "print_flow_ratio": "0.98",
   "small_perimeter_speed": "50%",
   "overhang_speed_classic": "0",
   "internal_bridge_speed": "50",
