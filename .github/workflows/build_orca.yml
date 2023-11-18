@@ -130,12 +130,22 @@ jobs:
         run: |
           cpack -G NSIS
 
+      - name: Pack app
+        if: inputs.os == 'windows-latest'
+        working-directory: ${{ github.workspace }}/build
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_V${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
+
+      - name: Pack PDB
+        if: inputs.os == 'windows-latest'
+        working-directory: ${{ github.workspace }}/build/src/Release
+        run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_V${{ env.ver }}_for_developers_only.7z  *.pdb'
+          
       - name: Upload artifacts Win zip
         if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}_portable
-          path: ${{ github.workspace }}/build/OrcaSlicer
+          path: ${{ github.workspace }}/build/OrcaSlicer_Windows_V${{ env.ver }}_portable.zip
 
       - name: Upload artifacts Win installer
         if: inputs.os == 'windows-latest'
@@ -144,12 +154,12 @@ jobs:
           name: OrcaSlicer_Windows_V${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
 
-#       - name: Upload artifacts Win PDB
-#         if: matrix.os == 'windows-latest'
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: OrcaSlicer_Windows_V${{ env.ver }}_pdb
-#           path: ${{ github.workspace }}/build/src/Release/*.pdb
+      - name: Upload artifacts Win PDB
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: PDB
+          path: ${{ github.workspace }}/build/src/Release/Debug_PDB_V${{ env.ver }}_for_developers_only.7z
 
 # Ubuntu
       - name: Install dependencies
