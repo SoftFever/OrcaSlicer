@@ -1891,6 +1891,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_min_bead_width");
         optgroup->append_single_option_line("min_bead_width");
         optgroup->append_single_option_line("min_feature_size");
+        optgroup->append_single_option_line("min_length_factor");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("wall_infill_order");

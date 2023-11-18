@@ -4351,6 +4351,17 @@ def = this->add("filament_loading_speed", coFloats);
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(25));
 
+    def = this->add("min_length_factor", coFloat);
+    def->label = L("Minimum wall length");
+    def->category = L("Quality");
+    def->tooltip = L("Adjust this value to prevent small walls from being printed, which could increase print time."
+    " Higher values remove more and longer individual (unclosed) walls.");
+    def->sidetext = L("");
+    def->mode = comAdvanced;
+    def->min = 0.0;
+    def->max = 10.0;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+
     def = this->add("initial_layer_min_bead_width", coPercent);
     def->label = L("First layer minimum wall width");
     def->category = L("Quality");

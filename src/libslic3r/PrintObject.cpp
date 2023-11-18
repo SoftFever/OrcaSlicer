@@ -1120,6 +1120,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "wall_transition_angle"
             || opt_key == "wall_distribution_count"
             || opt_key == "min_feature_size"
+            || opt_key == "min_length_factor"
             || opt_key == "min_bead_width") {
             steps.emplace_back(posSlice);
         } else if (

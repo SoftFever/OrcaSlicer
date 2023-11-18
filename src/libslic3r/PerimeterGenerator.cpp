@@ -1896,14 +1896,15 @@ void PerimeterGenerator::process_arachne()
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
         if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
             loop_number = 0;
+
         // BBS: set the topmost layer to be one wall
-        if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
-            loop_number = 0;
+        const bool is_topmost_layer = (loop_number > 0 && this->upper_slices == nullptr) ? true : false;
+        if (is_topmost_layer && config->only_one_wall_top) loop_number = 0;
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
                       config->precise_outer_wall ? -float(ext_perimeter_width / 2. - bead_width_0 / 2.)
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         
-        Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config);
+        Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config, is_topmost_layer);
         coord_t wall_0_inset = 0;
         //if (config->precise_outer_wall)
         //    wall_0_inset = 0.5 * (ext_perimeter_width + this->perimeter_flow.scaled_width() - ext_perimeter_spacing -

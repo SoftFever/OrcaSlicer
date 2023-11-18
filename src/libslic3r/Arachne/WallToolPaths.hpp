@@ -25,13 +25,15 @@ class WallToolPathsParams
 public:
     float   min_bead_width;
     float   min_feature_size;
+    float   min_length_factor;
     float   wall_transition_length;
     float   wall_transition_angle;
     float   wall_transition_filter_deviation;
     int     wall_distribution_count;
+    bool    is_topmost_layer;
 };
 
-WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config);
+WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config, const bool is_topmost_layer = false);
 
 class WallToolPaths
 {
@@ -107,7 +109,7 @@ protected:
     /*!
      * Remove polylines shorter than half the smallest line width along that polyline.
      */
-    static void removeSmallLines(std::vector<VariableWidthLines> &toolpaths);
+    void removeSmallLines(std::vector<VariableWidthLines> &toolpaths);
 
     /*!
      * Simplifies the variable-width toolpaths by calling the simplify on every line in the toolpath using the provided
