@@ -103,6 +103,11 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
                         "Zero 120mm3",      "Switchwire"}},
      {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
 
+static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2"};
+static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2 mm", 0.2}, {"0.25 mm", 0.25}, {"0.3 mm", 0.3}, {"0.35 mm", 0.35},
+                                                                     {"0.4 mm", 0.4}, {"0.5 mm", 0.5},   {"0.6 mm", 0.6}, {"0.75 mm", 0.75},
+                                                                     {"0.8 mm", 0.8}, {"1.0 mm", 1.0},   {"1.2 mm", 1.2}};
+
 static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 43, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
 
 static std::set<char> special_key = {'\n', '\t', '\r', '\v', '@', ';'};
@@ -167,9 +172,6 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
 
     return true;
 }
-
-static const std::vector<std::string> nozzle_diameter_vec = {"0.2","0.25", "0.3","0.35", "0.4", "0.5", "0.6","0.75", "0.8", "1.0", "1.2"};
-static const std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2 nozzle", 0.2}, {"0.25 nozzle", 0.25}, {"0.3 nozzle", 0.3}, {"0.35 nozzle", 0.35}, {"0.4 nozzle", 0.4}, {"0.5 nozzle", 0.5}, {"0.6 nozzle", 0.6}, {"0.75 nozzle", 0.75}, {"0.8 nozzle", 0.8}, {"1.0 nozzle", 1.0},   {"1.2 nozzle", 1.2}};
 
 static std::string get_curr_time()
 {
@@ -1636,10 +1638,10 @@ wxBoxSizer *CreatePrinterPresetDialog::create_nozzle_diameter_item(wxWindow *par
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxVERTICAL);
-    m_nozzle_diameter         = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_nozzle_diameter         = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, OPTION_SIZE, 0, nullptr, wxCB_READONLY);
     wxArrayString nozzle_diameters;
     for (const std::string nozzle : nozzle_diameter_vec) { 
-        nozzle_diameters.Add(nozzle + " nozzle");
+        nozzle_diameters.Add(nozzle + " mm");
     }
     m_nozzle_diameter->Set(nozzle_diameters);
     m_nozzle_diameter->SetSelection(0);
@@ -2501,6 +2503,10 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
         std::string printer_model_name;
         std::string printer_nozzle_name;
         std::string nozzle_diameter = into_u8(m_nozzle_diameter->GetStringSelection());
+        size_t      index_mm        = nozzle_diameter.find("mm");
+        if (std::string::npos != index_mm) {
+            nozzle_diameter.replace(index_mm, 2, "nozzle");
+        }
         if (curr_selected_printer_type == m_create_type.create_printer) {
             if (m_can_not_find_vendor_combox->GetValue()) {
                 std::string custom_vendor = into_u8(m_custom_vendor_text_ctrl->GetValue());
@@ -2544,7 +2550,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " don't get printer preset, and the name is: " << selected_printer_preset_name;
             }
         }
-        printer_nozzle_name = nozzle_diameter.substr(0, nozzle_diameter.find("nozzle") - 1);
+        printer_nozzle_name = nozzle_diameter.substr(0, nozzle_diameter.find(" nozzle"));
 
         // Confirm if the printer preset has a duplicate name
         if (!rewritten && preset_bundle->printers.find_preset(printer_preset_name)) {
@@ -2621,7 +2627,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             /******************************   clone process preset    ********************************/
             failures.clear();
             if (!selected_process_presets.empty()) {
-                generate_process_presets_data(selected_process_presets, nozzle_diameter);
+                generate_process_presets_data(selected_process_presets, printer_nozzle_name + " mm");
                 bool create_preset_result = preset_bundle->prints.create_presets_from_template_for_printer(selected_process_presets, failures, printer_preset_name,
                                                                                                            get_filament_id, rewritten);
                 if (!create_preset_result) {
@@ -2700,7 +2706,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
 
             auto nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter", true));
             if (nozzle_diameter) {
-                std::unordered_map<std::string, float>::const_iterator iter = nozzle_diameter_map.find(printer_nozzle_name + " nozzle");
+                std::unordered_map<std::string, float>::const_iterator iter = nozzle_diameter_map.find(printer_nozzle_name + " mm");
                 if (nozzle_diameter_map.end() != iter) {
                     nozzle_diameter->values = {iter->second};
                 }
@@ -2754,9 +2760,8 @@ void CreatePrinterPresetDialog::show_page2()
 bool CreatePrinterPresetDialog::data_init()
 { 
     std::string nozzle_type  = into_u8(m_nozzle_diameter->GetStringSelection());
-    size_t      index_nozzle = nozzle_type.find(" nozzle");
-    nozzle_type              = nozzle_type.substr(0, index_nozzle);
-    float nozzle             = std::stof(nozzle_type);
+    float nozzle             = nozzle_diameter_map[nozzle_type];
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry and nozzle type is: " << nozzle_type << " and nozzle is: " << nozzle;
 
     VendorMap vendors;
     wxArrayString exist_vendor_choice = get_exist_vendor_choices(vendors);
@@ -2823,6 +2828,7 @@ wxArrayString CreatePrinterPresetDialog::printer_preset_sort_with_nozzle_diamete
             try {
                 float variant_diameter = std::stof(variant.name);
                 preset_sort.push_back(std::make_pair(variant_diameter, model_name + " @ " + variant.name + " nozzle"));
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "nozzle: " << variant_diameter << "model: " << preset_sort.back().second;
             }
             catch (...) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " prase varient fialed and the model_name is: " << model_name;
