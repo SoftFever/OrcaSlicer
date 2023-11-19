@@ -55,3 +55,4 @@ jobs:
       os: ${{ inputs.os }}
       arch: ${{ inputs.arch }}
       build-deps-only: ${{ inputs.build-deps-only }}
+    secrets: inherit
