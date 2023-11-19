@@ -159,7 +159,8 @@ void GridCellFilamentsEditor::Create(wxWindow* parent,
     if ( !m_allowOthers )
         style |= wxCB_READONLY;
     ::ComboBox *bitmap_combo = new ComboBox(parent, id, wxEmptyString,
-                               wxDefaultPosition, wxSize(((*m_icons)[0])->GetDefaultSize().GetWidth() + 10, -1), 0, nullptr, CB_NO_DROP_ICON | CB_NO_TEXT | wxCB_READONLY); //OcraftyoneTODO: is this a good way of getting the size?
+                               wxDefaultPosition, wxSize(get_preferred_size(*((*m_icons)[0]), wxGetApp().mainframe).GetWidth() + 10, -1),
+                                0, nullptr, CB_NO_DROP_ICON | CB_NO_TEXT | wxCB_READONLY); //Unsure
     if (m_icons) {
         int array_count = m_choices.GetCount();
         int icon_count = m_icons->size();
