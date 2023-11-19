@@ -32,7 +32,6 @@ public:
 
     virtual bool SetFont(wxFont const & font) override;
 
-public:
     int Append(const wxString &item, const wxBitmapBundle &bitmap = wxNullBitmap);
 
     int Append(const wxString &item, const wxBitmapBundle &bitmap, void *clientData);
@@ -61,6 +60,8 @@ public:
 
     wxBitmap GetItemBitmap(unsigned int n);
     void     SetItemBitmap(unsigned int n, wxBitmapBundle const &bitmap);
+
+    void ToggleDropDown();
 
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,

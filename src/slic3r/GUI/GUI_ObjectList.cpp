@@ -5485,6 +5485,10 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
+    if (event.GetColumn() == colFilament) {
+        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
+        c->ToggleDropDown();
+    }
 #ifdef __WXMSW__
 	m_last_selected_column = -1;
 #else
