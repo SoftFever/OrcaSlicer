@@ -8,6 +8,8 @@
 
 #include "3DScene.hpp"
 #include "OpenGLManager.hpp"
+#include "GUI_App.hpp"
+#include "GLModel.hpp"
 
 #include <GL/glew.h>
 
@@ -125,11 +127,7 @@ void GLTexture::Compressor::compress()
 GLTexture::Quad_UVs GLTexture::FullTextureUVs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
 
 GLTexture::GLTexture()
-    : m_id(0)
-    , m_width(0)
-    , m_height(0)
-    , m_source("")
-    , m_compressor(*this)
+    : m_compressor(*this)
 {
 }
 
@@ -422,9 +420,9 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 
@@ -664,12 +662,32 @@ void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right,
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id));
 
-    ::glBegin(GL_QUADS);
-    ::glTexCoord2f(uvs.left_bottom.u, uvs.left_bottom.v); ::glVertex2f(left, bottom);
-    ::glTexCoord2f(uvs.right_bottom.u, uvs.right_bottom.v); ::glVertex2f(right, bottom);
-    ::glTexCoord2f(uvs.right_top.u, uvs.right_top.v); ::glVertex2f(right, top);
-    ::glTexCoord2f(uvs.left_top.u, uvs.left_top.v); ::glVertex2f(left, top);
-    glsafe(::glEnd());
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P2T2 };
+    init_data.reserve_vertices(4);
+    init_data.reserve_indices(6);
+
+    // vertices
+    init_data.add_vertex(Vec2f(left, bottom),  Vec2f(uvs.left_bottom.u, uvs.left_bottom.v));
+    init_data.add_vertex(Vec2f(right, bottom), Vec2f(uvs.right_bottom.u, uvs.right_bottom.v));
+    init_data.add_vertex(Vec2f(right, top),    Vec2f(uvs.right_top.u, uvs.right_top.v));
+    init_data.add_vertex(Vec2f(left, top),     Vec2f(uvs.left_top.u, uvs.left_top.v));
+
+    // indices
+    init_data.add_triangle(0, 1, 2);
+    init_data.add_triangle(2, 3, 0);
+
+    GLModel model;
+    model.init_from(std::move(init_data));
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat_texture");
+    if (shader != nullptr) {
+        shader->start_using();
+        shader->set_uniform("view_model_matrix", Transform3d::Identity());
+        shader->set_uniform("projection_matrix", Transform3d::Identity());
+        model.render();
+        shader->stop_using();
+    }
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 

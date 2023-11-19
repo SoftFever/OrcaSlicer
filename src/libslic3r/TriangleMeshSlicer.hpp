@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 - 2022 Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_TriangleMeshSlicer_hpp_
 #define slic3r_TriangleMeshSlicer_hpp_
 
@@ -130,14 +134,6 @@ void cut_mesh(
     indexed_triangle_set            *lower,
     bool                             triangulate_caps = true);
 
-// BBS
-void cut_mesh(
-    const indexed_triangle_set      &mesh,
-    std::array<Vec3d, 4>            plane_points,
-    indexed_triangle_set            *upper,
-    indexed_triangle_set            *lower,
-    bool                             triangulate_caps = true);
-
-}
+} // namespace Slic3r
 
 #endif // slic3r_TriangleMeshSlicer_hpp_

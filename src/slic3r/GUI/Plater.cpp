@@ -1,3 +1,22 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Vojtěch Bubník @bubnikv, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Král @vojtechkral
+///|/ Copyright (c) 2022 Michael Kirsch
+///|/ Copyright (c) 2021 Boleslaw Ciesielski
+///|/ Copyright (c) 2019 John Drake @foxox
+///|/
+///|/ ported from lib/Slic3r/GUI/Plater.pm:
+///|/ Copyright (c) Prusa Research 2016 - 2019 Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral, Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros
+///|/ Copyright (c) 2018 Martin Loidl @LoidlM
+///|/ Copyright (c) 2017 Matthias Gazzari @qtux
+///|/ Copyright (c) Slic3r 2012 - 2016 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2017 Joseph Lenox @lordofhyphens
+///|/ Copyright (c) 2015 Daren Schwenke
+///|/ Copyright (c) 2014 Mark Hindess
+///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
+///|/ Copyright (c) 2012 Henrik Brix Andersen @henrikbrixandersen
+///|/ Copyright (c) 2012 Sam Wong
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "Plater.hpp"
 #include "libslic3r/Config.hpp"
 
@@ -128,6 +147,7 @@
 #include "Gizmos/GLGizmosManager.hpp"
 #endif // __APPLE__
 
+#include <libslic3r/CutUtils.hpp>
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
 
@@ -4040,7 +4060,7 @@ int Plater::priv::get_selected_volume_idx() const
     int idx = selection.get_object_idx();
     if ((0 > idx) || (idx > 1000))
         return-1;
-    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    const GLVolume* v = selection.get_first_volume();
     if (model.objects[idx]->volumes.size() > 1)
         return v->volume_idx();
     return -1;
@@ -4851,7 +4871,7 @@ void Plater::priv::replace_with_stl()
     if (selection.is_wipe_tower() || get_selection().get_volume_idxs().size() != 1)
         return;
 
-    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    const GLVolume* v = selection.get_first_volume();
     int object_idx = v->object_idx();
     int volume_idx = v->volume_idx();
 
@@ -7161,7 +7181,7 @@ bool Plater::priv::can_edit_text() const
         return true;
 
     if (selection.is_single_volume()) {
-        const GLVolume *gl_volume      = selection.get_volume(*selection.get_volume_idxs().begin());
+        const GLVolume *gl_volume      = selection.get_first_volume();
         int             out_object_idx = gl_volume->object_idx();
         ModelObject *   model_object   = selection.get_model()->objects[out_object_idx];
         int             out_volume_idx = gl_volume->volume_idx();
@@ -8280,14 +8300,6 @@ void Plater::add_model(bool imperial_units, std::string fname)
         wxGetApp().mainframe->update_title();
     }
 }
-std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3& bbox, const double& cut_height) {
-    std::array<Vec3d, 4> plane_pts;
-    plane_pts[0] = Vec3d(bbox.min(0), bbox.min(1), cut_height);
-    plane_pts[1] = Vec3d(bbox.max(0), bbox.min(1), cut_height);
-    plane_pts[2] = Vec3d(bbox.max(0), bbox.max(1), cut_height);
-    plane_pts[3] = Vec3d(bbox.min(0), bbox.max(1), cut_height);
-    return plane_pts;
-}
 
 void Plater::calib_pa(const Calib_Params& params)
 {
@@ -8410,6 +8422,25 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     changed_objects({ 0 });
 }
 
+void Plater::cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes)
+{
+    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
+    auto *object = p->model.objects[obj_idx];
+
+    wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
+
+    if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
+        return;
+
+    wxBusyCursor wait;
+
+    const Vec3d instance_offset = object->instances[instance_idx]->get_offset();
+    Cut         cut(object, instance_idx, Geometry::translation_transform(z * Vec3d::UnitZ() - instance_offset), attributes);
+    const auto  new_objects = cut.perform_with_plane();
+
+    apply_cut_object_to_model(obj_idx, new_objects);
+}
+
 void Plater::_calib_pa_tower(const Calib_Params& params) {
     add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl");
 
@@ -8446,8 +8477,7 @@ void Plater::_calib_pa_tower(const Calib_Params& params) {
     auto new_height = std::ceil((params.end - params.start) / params.step) + 1;
     auto obj_bb = model().objects[0]->bounding_box();
     if (new_height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
-        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_horizontal(0, 0, new_height, ModelObjectCutAttribute::KeepLower);
     }
 
     _calib_pa_select_added_objects();
@@ -8588,8 +8618,7 @@ void Plater::calib_temp(const Calib_Params& params) {
         // add EPSILON offset to avoid cutting at the exact location where the flat surface is
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
-            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+            cut_horizontal(0, 0, new_height, ModelObjectCutAttribute::KeepLower);
         }
     }
     
@@ -8599,8 +8628,7 @@ void Plater::calib_temp(const Calib_Params& params) {
     if(block_count > 0){
         auto new_height = block_count * 10.0 + EPSILON;
         if (new_height < obj_bb.size().z()) {
-            std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, new_height);
-            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepUpper);
+            cut_horizontal(0, 0, new_height, ModelObjectCutAttribute::KeepUpper);
         }
     }
     
@@ -8668,8 +8696,7 @@ void Plater::calib_max_vol_speed(const Calib_Params& params)
     auto obj_bb = obj->bounding_box();
     auto height = (params.end - params.start + 1) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
-        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
     }
 
     auto new_params = params;
@@ -8717,8 +8744,7 @@ void Plater::calib_retraction(const Calib_Params& params)
     auto obj_bb = obj->bounding_box();
     auto height = 1.0 + 0.4 + ((params.end - params.start)) / params.step;
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
-        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
     }
 
     p->background_process.fff_print()->set_calib_params(params);
@@ -8759,8 +8785,7 @@ void Plater::calib_VFA(const Calib_Params& params)
     auto obj_bb = model().objects[0]->bounding_box();
     auto height = 5 * ((params.end - params.start) / params.step + 1);
     if (height < obj_bb.size().z()) {
-        std::array<Vec3d, 4> plane_pts = get_cut_plane(obj_bb, height);
-        cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        cut_horizontal(0, 0, height, ModelObjectCutAttribute::KeepLower);
     }
 
     p->background_process.fff_print()->set_calib_params(params);
@@ -9865,27 +9890,16 @@ void Plater::convert_unit(ConversionType conv_type)
     }
 }
 
-// BBS: replace z with plane_points
-void Plater::cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes)
+void Plater::apply_cut_object_to_model(size_t obj_idx, const ModelObjectPtrs& new_objects)
 {
-    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
-    auto *object = p->model.objects[obj_idx];
+    model().delete_object(obj_idx);
+    sidebar().obj_list()->delete_object_from_list(obj_idx);
 
-    wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
-
-    if (! attributes.has(ModelObjectCutAttribute::KeepUpper) && ! attributes.has(ModelObjectCutAttribute::KeepLower))
-        return;
-
-    wxBusyCursor wait;
-    // BBS: replace z with plane_points
-    const auto new_objects = object->cut(instance_idx, plane_points, attributes);
-
-    remove(obj_idx);
-    p->load_model_objects(new_objects);
+    // suppress to call selection update for Object List to avoid call of early Gizmos on/off update
+    p->load_model_objects(new_objects, false, false);
 
     // now process all updates of the 3d scene
     update();
-
     // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
     // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
     for (size_t idx = 0; idx < p->model.objects.size(); idx++)
@@ -9895,62 +9909,10 @@ void Plater::cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane
     size_t last_id = p->model.objects.size() - 1;
     for (size_t i = 0; i < new_objects.size(); ++i)
         selection.add_object((unsigned int)(last_id - i), i == 0);
-}
 
-// BBS
-void Plater::segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha, int segment_number)
-{
-    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
-    auto* object = p->model.objects[obj_idx];
-
-    wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
-
-    Plater::TakeSnapshot snapshot(this, "Segment");
-
-    wxBusyCursor wait;
-    // real process
-    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
-    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
-    const size_t filament_cnt = print_tech != ptFFF ? 1 : preset_bundle.filament_presets.size();
-    const auto new_objects = object->segment(instance_idx, filament_cnt, smoothing_alpha, segment_number);
-
-    remove(obj_idx);
-    p->load_model_objects(new_objects);
-
-    Selection& selection = p->get_selection();
-    size_t last_id = p->model.objects.size() - 1;
-    for (size_t i = 0; i < new_objects.size(); ++i)
-    {
-        selection.add_object((unsigned int)(last_id - i), i == 0);
-    }
-}
-
-// BBS
-void Plater::merge(size_t obj_idx, std::vector<int>& vol_indeces)
-{
-    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
-    auto* object = p->model.objects[obj_idx];
-
-    Plater::TakeSnapshot snapshot(this, "Merge");
-
-    wxBusyCursor wait;
-    // real process
-    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
-    const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
-    // BBS
-    const size_t filament_cnt = print_tech != ptFFF ? 1 : preset_bundle.filament_presets.size();
-
-    const auto new_objects = object->merge_volumes(vol_indeces);
-
-    remove(obj_idx);
-    p->load_model_objects(new_objects);
-
-    Selection& selection = p->get_selection();
-    size_t last_id = p->model.objects.size() - 1;
-    for (size_t i = 0; i < new_objects.size(); ++i)
-    {
-        selection.add_object((unsigned int)(last_id - i), i == 0);
-    }
+    // UIThreadWorker w;
+    // arrange(w, true);
+    // w.wait_for_idle();
 }
 
 void Plater::export_gcode(bool prefer_removable)
@@ -10341,7 +10303,7 @@ void Plater::export_stl(bool extended, bool selection_only)
             if (selection.get_mode() == Selection::Instance)
                 mesh = mesh_to_export(*model_object, (model_object->instances.size() > 1) ? -1 : selection.get_instance_idx());
             else {
-                const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+                const GLVolume* volume = selection.get_first_volume();
                 mesh = model_object->volumes[volume->volume_idx()]->mesh();
                 mesh.transform(volume->get_volume_transformation().get_matrix(), true);
             }

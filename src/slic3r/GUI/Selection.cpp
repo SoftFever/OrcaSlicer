@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "libslic3r/libslic3r.h"
 #include "Selection.hpp"
 
@@ -23,7 +27,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/log/trivial.hpp>
 
-static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f, 1.0f };
+static const Slic3r::ColorRGBA UNIFORM_SCALE_COLOR     = Slic3r::ColorRGBA::ORANGE();
+static const Slic3r::ColorRGBA SOLID_PLANE_COLOR       = {0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f};
+static const Slic3r::ColorRGBA TRANSPARENT_PLANE_COLOR = { 0.8f, 0.8f, 0.8f, 0.5f };
 
 namespace Slic3r {
 namespace GUI {
@@ -115,7 +121,6 @@ Selection::Selection()
     , m_type(Empty)
     , m_valid(false)
     , m_scale_factor(1.0f)
-    , m_dragging(false)
 {
     this->set_bounding_boxes_dirty();
 }
@@ -132,9 +137,8 @@ bool Selection::init()
 {
     m_arrow.init_from(straight_arrow(10.0f, 5.0f, 5.0f, 10.0f, 1.0f));
     m_curved_arrow.init_from(circular_arrow(16, 10.0f, 5.0f, 10.0f, 5.0f, 1.0f));
-
 #if ENABLE_RENDER_SELECTION_CENTER
-    m_vbo_sphere.init_from(make_sphere(0.75, 2*PI/24));
+    m_vbo_sphere.init_from(its_make_sphere(0.75, PI / 12.0));
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
     return true;
@@ -572,11 +576,11 @@ void Selection::clear()
     for (unsigned int i : m_list) {
         GLVolume& volume = *(*m_volumes)[i];
         volume.selected = false;
-        bool transparent = volume.color[3] < 1.0f;
-        if (transparent)
+        bool is_transparent = volume.color.is_transparent();
+        if (is_transparent)
             volume.force_transparent = true;
         volume.set_render_color();
-        if (transparent)
+        if (is_transparent)
             volume.force_transparent = false;
     }
 #else
@@ -638,6 +642,28 @@ void Selection::volumes_changed(const std::vector<size_t> &map_volume_old_to_new
     m_list = std::move(list_new);
     update_type();
     this->set_bounding_boxes_dirty();
+}
+
+bool Selection::is_any_connector() const
+{
+    const int obj_idx = get_object_idx();
+
+    if ((is_any_volume() || is_any_modifier() || is_mixed()) && // some solid_part AND/OR modifier is selected 
+        obj_idx >= 0 && m_model->objects[obj_idx]->is_cut()) {
+        const ModelVolumePtrs& obj_volumes = m_model->objects[obj_idx]->volumes;
+        for (size_t vol_idx = 0; vol_idx < obj_volumes.size(); vol_idx++)
+            if (obj_volumes[vol_idx]->is_cut_connector())
+                for (const GLVolume* v  : *m_volumes)
+                    if (v->object_idx() == obj_idx && v->volume_idx() == (int)vol_idx && v->selected)
+                        return true;
+    }
+    return false;
+}
+
+bool Selection::is_any_cut_volume() const
+{
+    const int obj_idx = get_object_idx();
+    return is_any_volume() && obj_idx >= 0 && m_model->objects[obj_idx]->is_cut();
 }
 
 bool Selection::is_single_full_instance() const
@@ -707,6 +733,17 @@ bool Selection::contains_any_volume(const std::vector<unsigned int>& volume_idxs
             return true;
     }
 
+    return false;
+}
+
+bool Selection::contains_sinking_volumes(bool ignore_modifiers) const
+{
+    for (const GLVolume* v : *m_volumes) {
+        if (!ignore_modifiers || !v->is_modifier) {
+            if (v->is_sinking())
+                return true;
+        }
+    }
     return false;
 }
 
@@ -811,12 +848,11 @@ const BoundingBoxf3& Selection::get_scaled_instance_bounding_box() const
     return *m_scaled_instance_bounding_box;
 }
 
-void Selection::start_dragging()
+void Selection::setup_cache()
 {
     if (!m_valid)
         return;
 
-    m_dragging = true;
     set_caches();
 }
 
@@ -1165,12 +1201,12 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         type.set_joint();
 
         // apply scale
-        start_dragging();
+        setup_cache();
         scale(s * Vec3d::Ones(), type);
         wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
 
         // center selection on print bed
-        start_dragging();
+        setup_cache();
         offset.z() = -get_bounding_box().min.z();
         translate(offset);
         wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
@@ -1552,66 +1588,69 @@ void Selection::erase()
     }
 }
 
-void Selection::render(float scale_factor) const
+void Selection::render(float scale_factor)
 {
     if (!m_valid || is_empty())
         return;
 
-    *const_cast<float*>(&m_scale_factor) = scale_factor;
-
+    m_scale_factor = scale_factor;
     // render cumulative bounding box of selected volumes
-    render_selected_volumes();
+    render_bounding_box(get_bounding_box(), ColorRGB::WHITE());
     render_synchronized_volumes();
 }
 
 #if ENABLE_RENDER_SELECTION_CENTER
-void Selection::render_center(bool gizmo_is_dragging) const
+void Selection::render_center(bool gizmo_is_dragging)
 {
     if (!m_valid || is_empty())
         return;
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
+
+    shader->start_using();
 
     const Vec3d center = gizmo_is_dragging ? m_cache.dragging_center : get_bounding_box().center();
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    glsafe(::glColor3f(1.0f, 1.0f, 1.0f));
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(center(0), center(1), center(2)));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    Transform3d view_model_matrix = camera.get_view_matrix() * Geometry::assemble_transform(center);
+
+    shader->set_uniform("view_model_matrix", view_model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+	
+    m_vbo_sphere.set_color(ColorRGBA::WHITE());
     m_vbo_sphere.render();
-    glsafe(::glPopMatrix());
+
+    shader->stop_using();
 }
 #endif // ENABLE_RENDER_SELECTION_CENTER
 
 //BBS: GUI refactor, add uniform scale from gizmo
-void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale) const
-//void Selection::render_sidebar_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_hints(const std::string& sidebar_field, bool uniform_scale)
+//void Selection::render_sidebar_hints(const std::string& sidebar_field)
 {
     if (sidebar_field.empty())
         return;
 
-    GLShaderProgram* shader = nullptr;
+    GLShaderProgram* shader = wxGetApp().get_shader(boost::starts_with(sidebar_field, "layer") ? "flat" : "gouraud_light");
+    if (shader == nullptr)
+        return;
 
-    if (!boost::starts_with(sidebar_field, "layer")) {
-        shader = wxGetApp().get_shader("gouraud_light");
-        if (shader == nullptr)
-            return;
-
-        shader->start_using();
-        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    }
+    shader->start_using();
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    glsafe(::glPushMatrix());
+    const Transform3d base_matrix = Geometry::assemble_transform(get_bounding_box().center());
+    Transform3d orient_matrix = Transform3d::Identity();
 
     if (!boost::starts_with(sidebar_field, "layer")) {
-        const Vec3d& center = get_bounding_box().center();
-
+        shader->set_uniform("emission_factor", 0.05f);
         // BBS
         if (is_single_full_instance()/* && !wxGetApp().obj_manipul()->get_world_coordinates()*/) {
-            glsafe(::glTranslated(center(0), center(1), center(2)));
             if (!boost::starts_with(sidebar_field, "position")) {
-                Transform3d orient_matrix = Transform3d::Identity();
                 if (boost::starts_with(sidebar_field, "scale"))
                     orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                 else if (boost::starts_with(sidebar_field, "rotation")) {
@@ -1619,50 +1658,45 @@ void Selection::render_sidebar_hints(const std::string& sidebar_field, bool unif
                         orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                     else if (boost::ends_with(sidebar_field, "y")) {
                         const Vec3d& rotation = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_rotation();
-                        if (rotation(0) == 0.0)
+                        if (rotation.x() == 0.0)
                             orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
                         else
-                            orient_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+                            orient_matrix.rotate(Eigen::AngleAxisd(rotation.z(), Vec3d::UnitZ()));
                     }
                 }
-
-                glsafe(::glMultMatrixd(orient_matrix.data()));
             }
-        } else if (is_single_volume() || is_single_modifier()) {
-            glsafe(::glTranslated(center(0), center(1), center(2)));
-            Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
+        }
+        else if (is_single_volume() || is_single_modifier()) {
+            orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
             if (!boost::starts_with(sidebar_field, "position"))
                 orient_matrix = orient_matrix * (*m_volumes)[*m_list.begin()]->get_volume_transformation().get_matrix(true, false, true, true);
 
-            glsafe(::glMultMatrixd(orient_matrix.data()));
-        } else {
-            glsafe(::glTranslated(center(0), center(1), center(2)));
-            if (requires_local_axes()) {
-                const Transform3d orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
-                glsafe(::glMultMatrixd(orient_matrix.data()));
-            }
+        }
+        else {
+            if (requires_local_axes())
+                orient_matrix = (*m_volumes)[*m_list.begin()]->get_instance_transformation().get_matrix(true, false, true, true);
         }
     }
 
+    if (!boost::starts_with(sidebar_field, "layer"))
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     if (boost::starts_with(sidebar_field, "position"))
-        render_sidebar_position_hints(sidebar_field);
+        render_sidebar_position_hints(sidebar_field, *shader, base_matrix * orient_matrix);
     else if (boost::starts_with(sidebar_field, "rotation"))
-        render_sidebar_rotation_hints(sidebar_field);
+        render_sidebar_rotation_hints(sidebar_field, *shader, base_matrix * orient_matrix);
     else if (boost::starts_with(sidebar_field, "scale") || boost::starts_with(sidebar_field, "size"))
         //BBS: GUI refactor: add uniform_scale from gizmo
-        render_sidebar_scale_hints(sidebar_field, uniform_scale);
+        render_sidebar_scale_hints(sidebar_field, uniform_scale, *shader, base_matrix * orient_matrix);
     else if (boost::starts_with(sidebar_field, "layer"))
-        render_sidebar_layers_hints(sidebar_field);
+        render_sidebar_layers_hints(sidebar_field, *shader);
 
-    glsafe(::glPopMatrix());
 
-    if (!boost::starts_with(sidebar_field, "layer"))
-        shader->stop_using();
+    shader->stop_using();
 }
 
 bool Selection::requires_local_axes() const
 {
-    return (m_mode == Volume) && is_from_single_instance();
+    return m_mode == Volume && is_from_single_instance();
 }
 
 void Selection::cut_to_clipboard()
@@ -1678,8 +1712,7 @@ void Selection::copy_to_clipboard()
 
     m_clipboard.reset();
 
-    for (const ObjectIdxsToInstanceIdxsMap::value_type& object : m_cache.content)
-    {
+    for (const ObjectIdxsToInstanceIdxsMap::value_type& object : m_cache.content) {
         ModelObject* src_object = m_model->objects[object.first];
         ModelObject* dst_object = m_clipboard.add_object();
         dst_object->name                 = src_object->name;
@@ -1692,26 +1725,22 @@ void Selection::copy_to_clipboard()
         dst_object->layer_height_profile.assign(src_object->layer_height_profile);
         dst_object->origin_translation   = src_object->origin_translation;
 
-        for (int i : object.second)
-        {
+        for (int i : object.second) {
             dst_object->add_instance(*src_object->instances[i]);
         }
 
-        for (unsigned int i : m_list)
-        {
+        for (unsigned int i : m_list) {
             // Copy the ModelVolumes only for the selected GLVolumes of the 1st selected instance.
             const GLVolume* volume = (*m_volumes)[i];
-            if ((volume->object_idx() == object.first) && (volume->instance_idx() == *object.second.begin()))
-            {
+            if (volume->object_idx() == object.first && volume->instance_idx() == *object.second.begin()) {
                 int volume_idx = volume->volume_idx();
-                if ((0 <= volume_idx) && (volume_idx < (int)src_object->volumes.size()))
-                {
+                if (0 <= volume_idx && volume_idx < (int)src_object->volumes.size()) {
                     ModelVolume* src_volume = src_object->volumes[volume_idx];
                     ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
                     dst_volume->set_new_unique_id();
-                } else {
-                    assert(false);
                 }
+                else
+                    assert(false);
             }
         }
     }
@@ -2131,182 +2160,234 @@ void Selection::do_remove_object(unsigned int object_idx)
     }
 }
 
-void Selection::render_selected_volumes() const
-{
-    float color[3] = { 1.0f, 1.0f, 1.0f };
-    render_bounding_box(get_bounding_box(), color);
-}
-
-void Selection::render_synchronized_volumes() const
+void Selection::render_synchronized_volumes()
 {
     if (m_mode == Instance)
         return;
 
-    float color[3] = { 1.0f, 1.0f, 0.0f };
-
     for (unsigned int i : m_list) {
-        const GLVolume* volume = (*m_volumes)[i];
-        int object_idx = volume->object_idx();
-        int volume_idx = volume->volume_idx();
+        const GLVolume& volume = *(*m_volumes)[i];
+        int object_idx = volume.object_idx();
+        int volume_idx = volume.volume_idx();
         for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
             if (i == j)
                 continue;
 
-            const GLVolume* v = (*m_volumes)[j];
-            if (v->object_idx() != object_idx || v->volume_idx() != volume_idx)
+            const GLVolume& v = *(*m_volumes)[j];
+            if (v.object_idx() != object_idx || v.volume_idx() != volume_idx)
                 continue;
 
-            render_bounding_box(v->transformed_convex_hull_bounding_box(), color);
+            render_bounding_box(v.transformed_convex_hull_bounding_box(), ColorRGB::YELLOW());
         }
     }
 }
 
-void Selection::render_bounding_box(const BoundingBoxf3& box, float* color) const
+void Selection::render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color)
 {
-    if (color == nullptr)
-        return;
+    const BoundingBoxf3& curr_box = m_box.get_bounding_box();
+    if (!m_box.is_initialized() || !is_approx(box.min, curr_box.min) || !is_approx(box.max, curr_box.max)) {
+        m_box.reset();
 
-    Vec3f b_min = box.min.cast<float>();
-    Vec3f b_max = box.max.cast<float>();
-    Vec3f size = 0.2f * box.size().cast<float>();
+        const Vec3f b_min = box.min.cast<float>();
+        const Vec3f b_max = box.max.cast<float>();
+        const Vec3f size = 0.2f * box.size().cast<float>();
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(48);
+        init_data.reserve_indices(48);
+
+        // vertices
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y() + size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_min.z() + size.z()));
+
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y() + size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_min.z() + size.z()));
+
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y() - size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_min.z() + size.z()));
+
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y() - size.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_min.z() + size.z()));
+
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y() + size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_min.y(), b_max.z() - size.z()));
+
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y() + size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_min.y(), b_max.z() - size.z()));
+
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x() - size.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y() - size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_max.x(), b_max.y(), b_max.z() - size.z()));
+
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x() + size.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y() - size.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z()));
+        init_data.add_vertex(Vec3f(b_min.x(), b_max.y(), b_max.z() - size.z()));
+
+        // indices
+        for (unsigned short i = 0; i < 48; ++i) {
+            init_data.add_index(i);
+        }
+
+        m_box.init_from(std::move(init_data));
+    }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    glsafe(::glColor3fv(color));
     glsafe(::glLineWidth(2.0f * m_scale_factor));
 
-    ::glBegin(GL_LINES);
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader == nullptr)
+        return;
 
-    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0) + size(0), b_min(1), b_min(2));
-    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0), b_min(1) + size(1), b_min(2));
-    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0), b_min(1), b_min(2) + size(2));
-
-    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0) - size(0), b_min(1), b_min(2));
-    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0), b_min(1) + size(1), b_min(2));
-    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0), b_min(1), b_min(2) + size(2));
-
-    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0) - size(0), b_max(1), b_min(2));
-    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0), b_max(1) - size(1), b_min(2));
-    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0), b_max(1), b_min(2) + size(2));
-
-    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0) + size(0), b_max(1), b_min(2));
-    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0), b_max(1) - size(1), b_min(2));
-    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0), b_max(1), b_min(2) + size(2));
-
-    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0) + size(0), b_min(1), b_max(2));
-    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0), b_min(1) + size(1), b_max(2));
-    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0), b_min(1), b_max(2) - size(2));
-
-    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0) - size(0), b_min(1), b_max(2));
-    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0), b_min(1) + size(1), b_max(2));
-    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0), b_min(1), b_max(2) - size(2));
-
-    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0) - size(0), b_max(1), b_max(2));
-    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0), b_max(1) - size(1), b_max(2));
-    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0), b_max(1), b_max(2) - size(2));
-
-    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0) + size(0), b_max(1), b_max(2));
-    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1) - size(1), b_max(2));
-    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1), b_max(2) - size(2));
-
-    glsafe(::glEnd());
+    shader->start_using();
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    m_box.set_color(to_rgba(color));
+    m_box.render();
+    shader->stop_using();
 }
 
-static std::array<float, 4> get_color(Axis axis)
+static ColorRGBA get_color(Axis axis)
 {
-    return { GLGizmoBase::AXES_COLOR[axis][0],
-            GLGizmoBase::AXES_COLOR[axis][1],
-            GLGizmoBase::AXES_COLOR[axis][2],
-            GLGizmoBase::AXES_COLOR[axis][3] };
-};
+    return GLGizmoBase::AXES_COLOR[axis];
+}
 
-void Selection::render_sidebar_position_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix)
 {
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
     if (boost::ends_with(sidebar_field, "x")) {
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(X));
+        const Transform3d model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
+        m_arrow.set_color(get_color(X));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Y));
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        shader.set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
+        m_arrow.set_color(get_color(Y));
         m_arrow.render();
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, get_color(Z));
+        const Transform3d model_matrix = matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX());
+        shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
+        m_arrow.set_color(get_color(Z));
         m_arrow.render();
     }
 }
 
-void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix)
 {
-    auto render_sidebar_rotation_hint = [this]() {
+    auto render_sidebar_rotation_hint = [this](GLShaderProgram& shader, const Transform3d& view_matrix, const Transform3d& model_matrix) {
+        shader.set_uniform("view_model_matrix", view_matrix * model_matrix);
+        Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_curved_arrow.render();
-        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        const Transform3d matrix = model_matrix * Geometry::assemble_transform(Vec3d::Zero(), PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_curved_arrow.render();
     };
 
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
     if (boost::ends_with(sidebar_field, "x")) {
-        glsafe(::glRotated(90.0, 0.0, 1.0, 0.0));
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(X));
-        render_sidebar_rotation_hint();
+        m_curved_arrow.set_color(get_color(X));
+        render_sidebar_rotation_hint(shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()));
     }
     else if (boost::ends_with(sidebar_field, "y")) {
-        glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Y));
-        render_sidebar_rotation_hint();
+        m_curved_arrow.set_color(get_color(Y));
+        render_sidebar_rotation_hint(shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitX()));
     }
     else if (boost::ends_with(sidebar_field, "z")) {
-        const_cast<GLModel*>(&m_curved_arrow)->set_color(-1, get_color(Z));
-        render_sidebar_rotation_hint();
+        m_curved_arrow.set_color(get_color(Z));
+        render_sidebar_rotation_hint(shader, view_matrix, matrix);
     }
 }
 
 //BBS: GUI refactor: add gizmo uniform_scale
-void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale) const
+void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, bool gizmo_uniform_scale, GLShaderProgram& shader, const Transform3d& matrix)
 {
     // BBS
     //bool uniform_scale = requires_uniform_scale() || wxGetApp().obj_manipul()->get_uniform_scaling();
     bool uniform_scale = requires_uniform_scale() || gizmo_uniform_scale;
 
-    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis) {
-        const_cast<GLModel*>(&m_arrow)->set_color(-1, uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
-        GLShaderProgram* shader = wxGetApp().get_current_shader();
-        if (shader != nullptr)
-            shader->set_uniform("emission_factor", 0.0f);
-
-        glsafe(::glTranslated(0.0, 5.0, 0.0));
+    auto render_sidebar_scale_hint = [this, uniform_scale](Axis axis, GLShaderProgram& shader, const Transform3d& view_matrix, const Transform3d& model_matrix) {
+        m_arrow.set_color(uniform_scale ? UNIFORM_SCALE_COLOR : get_color(axis));
+        Transform3d matrix = model_matrix * Geometry::assemble_transform(5.0 * Vec3d::UnitY());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
 
-        glsafe(::glTranslated(0.0, -10.0, 0.0));
-        glsafe(::glRotated(180.0, 0.0, 0.0, 1.0));
+        matrix = model_matrix * Geometry::assemble_transform(-5.0 * Vec3d::UnitY(), PI * Vec3d::UnitZ());
+        shader.set_uniform("view_model_matrix", view_matrix * matrix);
+        view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader.set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
     };
 
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
     if (boost::ends_with(sidebar_field, "x") || uniform_scale) {
-        glsafe(::glPushMatrix());
-        glsafe(::glRotated(-90.0, 0.0, 0.0, 1.0));
-        render_sidebar_scale_hint(X);
-        glsafe(::glPopMatrix());
+        render_sidebar_scale_hint(X, shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()));
     }
 
     if (boost::ends_with(sidebar_field, "y") || uniform_scale) {
-        glsafe(::glPushMatrix());
-        render_sidebar_scale_hint(Y);
-        glsafe(::glPopMatrix());
+        render_sidebar_scale_hint(Y, shader, view_matrix, matrix);
     }
 
     if (boost::ends_with(sidebar_field, "z") || uniform_scale) {
-        glsafe(::glPushMatrix());
-        glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-        render_sidebar_scale_hint(Z);
-        glsafe(::glPopMatrix());
+        render_sidebar_scale_hint(Z, shader, view_matrix, matrix * Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitX()));
     }
 }
 
-void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) const
+void Selection::render_sidebar_layers_hints(const std::string& sidebar_field, GLShaderProgram& shader)
 {
-    static const double Margin = 10.0;
+    static const float Margin = 10.0f;
 
     std::string field = sidebar_field;
 
@@ -2315,7 +2396,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    double max_z = string_to_double_decimal_point(field.substr(pos + 1));
+    const float max_z = float(string_to_double_decimal_point(field.substr(pos + 1)));
 
     // extract min_z
     field = field.substr(0, pos);
@@ -2323,7 +2404,7 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
     if (pos == std::string::npos)
         return;
 
-    const double min_z = string_to_double_decimal_point(field.substr(pos + 1));
+    const float min_z = float(string_to_double_decimal_point(field.substr(pos + 1)));
 
     // extract type
     field = field.substr(0, pos);
@@ -2335,42 +2416,71 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field) co
 
     const BoundingBoxf3& box = get_bounding_box();
 
-    const float min_x = box.min(0) - Margin;
-    const float max_x = box.max(0) + Margin;
-    const float min_y = box.min(1) - Margin;
-    const float max_y = box.max(1) + Margin;
-
     // view dependend order of rendering to keep correct transparency
-    bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
+    const bool camera_on_top = wxGetApp().plater()->get_camera().is_looking_downward();
     const float z1 = camera_on_top ? min_z : max_z;
     const float z2 = camera_on_top ? max_z : min_z;
+
+    const Vec3f p1 = { float(box.min.x()) - Margin, float(box.min.y()) - Margin, z1 };
+    const Vec3f p2 = { float(box.max.x()) + Margin, float(box.max.y()) + Margin, z2 };
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-    ::glBegin(GL_QUADS);
-    if ((camera_on_top && type == 1) || (!camera_on_top && type == 2))
-        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
-    else
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, z1);
-    ::glVertex3f(max_x, min_y, z1);
-    ::glVertex3f(max_x, max_y, z1);
-    ::glVertex3f(min_x, max_y, z1);
-    glsafe(::glEnd());
+    if (!m_planes.models[0].is_initialized() || !is_approx(m_planes.check_points[0], p1)) {
+        m_planes.check_points[0] = p1;
+        m_planes.models[0].reset();
 
-    ::glBegin(GL_QUADS);
-    if ((camera_on_top && type == 2) || (!camera_on_top && type == 1))
-        ::glColor4f(0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f);
-    else
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    ::glVertex3f(min_x, min_y, z2);
-    ::glVertex3f(max_x, min_y, z2);
-    ::glVertex3f(max_x, max_y, z2);
-    ::glVertex3f(min_x, max_y, z2);
-    glsafe(::glEnd());
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
+
+        // vertices
+        init_data.add_vertex(Vec3f(p1.x(), p1.y(), z1));
+        init_data.add_vertex(Vec3f(p2.x(), p1.y(), z1));
+        init_data.add_vertex(Vec3f(p2.x(), p2.y(), z1));
+        init_data.add_vertex(Vec3f(p1.x(), p2.y(), z1));
+
+        // indices
+        init_data.add_triangle(0, 1, 2);
+        init_data.add_triangle(2, 3, 0);
+
+        m_planes.models[0].init_from(std::move(init_data));
+    }
+
+    if (!m_planes.models[1].is_initialized() || !is_approx(m_planes.check_points[1], p2)) {
+        m_planes.check_points[1] = p2;
+        m_planes.models[1].reset();
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(4);
+        init_data.reserve_indices(6);
+
+        // vertices
+        init_data.add_vertex(Vec3f(p1.x(), p1.y(), z2));
+        init_data.add_vertex(Vec3f(p2.x(), p1.y(), z2));
+        init_data.add_vertex(Vec3f(p2.x(), p2.y(), z2));
+        init_data.add_vertex(Vec3f(p1.x(), p2.y(), z2));
+
+        // indices
+        init_data.add_triangle(0, 1, 2);
+        init_data.add_triangle(2, 3, 0);
+
+        m_planes.models[1].init_from(std::move(init_data));
+    }
+
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    shader.set_uniform("view_model_matrix", camera.get_view_matrix());
+    shader.set_uniform("projection_matrix", camera.get_projection_matrix());
+
+    m_planes.models[0].set_color((camera_on_top && type == 1) || (!camera_on_top && type == 2) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
+    m_planes.models[0].render();
+    m_planes.models[1].set_color((camera_on_top && type == 2) || (!camera_on_top && type == 1) ? SOLID_PLANE_COLOR : TRANSPARENT_PLANE_COLOR);
+    m_planes.models[1].render();
 
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glDisable(GL_BLEND));

@@ -12,6 +12,8 @@
 #include "GUI_App.hpp"
 #include "GUI_Colors.hpp"
 #include "GLCanvas3D.hpp"
+#include "Plater.hpp"
+#include "Camera.hpp"
 
 #include <GL/glew.h>
 
@@ -26,13 +28,58 @@
 #endif
 
 static const float GROUND_Z = -0.04f;
-static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.3255f, 0.337f, 0.337f, 1.0f };
-static const std::array<float, 4> DEFAULT_MODEL_COLOR_DARK = { 0.255f, 0.255f, 0.283f, 1.0f };
-static const std::array<float, 4> PICKING_MODEL_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
+static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR             = { 0.3255f, 0.337f, 0.337f, 1.0f };
+static const Slic3r::ColorRGBA DEFAULT_MODEL_COLOR_DARK        = { 0.255f, 0.255f, 0.283f, 1.0f };
+static const Slic3r::ColorRGBA DEFAULT_SOLID_GRID_COLOR        = { 0.9f, 0.9f, 0.9f, 1.0f };
+static const Slic3r::ColorRGBA DEFAULT_TRANSPARENT_GRID_COLOR  = { 0.9f, 0.9f, 0.9f, 0.6f };
 
 namespace Slic3r {
 namespace GUI {
 
+bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z)
+{
+    if (poly.empty())
+        return false;
+
+    const std::vector<Vec2f> triangles = triangulate_expolygon_2f(poly, NORMALS_UP);
+    if (triangles.empty() || triangles.size() % 3 != 0)
+        return false;
+
+    GLModel::Geometry init_data;
+    init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3T2 };
+    init_data.reserve_vertices(triangles.size());
+    init_data.reserve_indices(triangles.size() / 3);
+
+    Vec2f min = triangles.front();
+    Vec2f max = min;
+    for (const Vec2f &v : triangles) {
+        min = min.cwiseMin(v).eval();
+        max = max.cwiseMax(v).eval();
+    }
+
+    const Vec2f size = max - min;
+    if (size.x() <= 0.0f || size.y() <= 0.0f)
+        return false;
+
+    Vec2f inv_size = size.cwiseInverse();
+    inv_size.y() *= -1.0f;
+
+    // vertices + indices
+    unsigned int vertices_counter = 0;
+    for (const Vec2f &v : triangles) {
+        const Vec3f p = {v.x(), v.y(), z};
+        init_data.add_vertex(p, (Vec2f)(v - min).cwiseProduct(inv_size).eval());
+        ++vertices_counter;
+        if (vertices_counter % 3 == 0)
+            init_data.add_triangle(vertices_counter - 3, vertices_counter - 2, vertices_counter - 1);
+    }
+
+    model.init_from(std::move(init_data));
+
+    return true;
+}
+
+/*
 bool GeometryBuffer::set_from_triangles(const std::vector<Vec2f> &triangles, float z)
 {
     if (triangles.empty()) {
@@ -131,41 +178,45 @@ const float* GeometryBuffer::get_vertices_data() const
 {
     return (m_vertices.size() > 0) ? (const float*)m_vertices.data() : nullptr;
 }
+*/
 
 const float Bed3D::Axes::DefaultStemRadius = 0.5f;
 const float Bed3D::Axes::DefaultStemLength = 25.0f;
 const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadius;
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
-std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#FF0000");
-std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#00FF00");
-std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0000FF");
+ColorRGBA Bed3D::AXIS_X_COLOR = ColorRGBA::X();
+ColorRGBA Bed3D::AXIS_Y_COLOR = ColorRGBA::Y();
+ColorRGBA Bed3D::AXIS_Z_COLOR = ColorRGBA::Z();
 
 void Bed3D::update_render_colors()
 {
-    Bed3D::AXIS_X_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_X]);
-    Bed3D::AXIS_Y_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_Y]);
-    Bed3D::AXIS_Z_COLOR = GLColor(RenderColor::colors[RenderCol_Axis_Z]);
+    Bed3D::AXIS_X_COLOR = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Axis_X]);
+    Bed3D::AXIS_Y_COLOR = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Axis_Y]);
+    Bed3D::AXIS_Z_COLOR = ImGuiWrapper::from_ImVec4(RenderColor::colors[RenderCol_Axis_Z]);
 }
 
 void Bed3D::load_render_colors()
 {
-    RenderColor::colors[RenderCol_Axis_X] = IMColor(Bed3D::AXIS_X_COLOR);
-    RenderColor::colors[RenderCol_Axis_Y] = IMColor(Bed3D::AXIS_Y_COLOR);
-    RenderColor::colors[RenderCol_Axis_Z] = IMColor(Bed3D::AXIS_Z_COLOR);
+    RenderColor::colors[RenderCol_Axis_X] = ImGuiWrapper::to_ImVec4(Bed3D::AXIS_X_COLOR);
+    RenderColor::colors[RenderCol_Axis_Y] = ImGuiWrapper::to_ImVec4(Bed3D::AXIS_Y_COLOR);
+    RenderColor::colors[RenderCol_Axis_Z] = ImGuiWrapper::to_ImVec4(Bed3D::AXIS_Z_COLOR);
 }
 
-void Bed3D::Axes::render() const
+void Bed3D::Axes::render()
 {
-    auto render_axis = [this](const Transform3f& transform) {
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixf(transform.data()));
+    auto render_axis = [this](GLShaderProgram* shader, const Transform3d& transform) {
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * transform);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * transform.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
         m_arrow.render();
-        glsafe(::glPopMatrix());
     };
 
     if (!m_arrow.is_initialized())
-        const_cast<GLModel*>(&m_arrow)->init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
+        m_arrow.init_from(stilized_arrow(16, DefaultTipRadius, DefaultTipLength, DefaultStemRadius, m_stem_length));
 
     GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr)
@@ -177,16 +228,16 @@ void Bed3D::Axes::render() const
     shader->set_uniform("emission_factor", 0.0f);
 
     // x axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_X_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }).cast<float>());
+    m_arrow.set_color(AXIS_X_COLOR);
+    render_axis(shader, Geometry::assemble_transform(m_origin, { 0.0, 0.5 * M_PI, 0.0 }));
 
     // y axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Y_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }).cast<float>());
+    m_arrow.set_color(AXIS_Y_COLOR);
+    render_axis(shader, Geometry::assemble_transform(m_origin, { -0.5 * M_PI, 0.0, 0.0 }));
 
     // z axis
-    const_cast<GLModel*>(&m_arrow)->set_color(-1, AXIS_Z_COLOR);
-    render_axis(Geometry::assemble_transform(m_origin).cast<float>());
+    m_arrow.set_color(AXIS_Z_COLOR);
+    render_axis(shader, Geometry::assemble_transform(m_origin));
 
     shader->stop_using();
 
@@ -259,25 +310,9 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     //BBS: add part plate logic
 
     //BBS add default bed
-#if 1
-    ExPolygon poly{ Polygon::new_scale(printable_area) };
-#else
-    ExPolygon poly;
-    for (const Vec2d& p : printable_area) {
-        poly.contour.append(Point(scale_(p(0) + m_position.x()), scale_(p(1) + m_position.y())));
-    }
-#endif
-
-    calc_triangles(poly);
-
-    //no need gridline for 3dbed
-    //const BoundingBox& bed_bbox = poly.contour.bounding_box();
-    //calc_gridlines(poly, bed_bbox);
-
-    //m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
+    m_triangles.reset();
 
     if (with_reset) {
-        this->release_VBOs();
         //m_texture.reset();
         m_model.reset();
     }
@@ -289,6 +324,10 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     // Set the origin and size for rendering the coordinate system axes.
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
     m_axes.set_stem_length(0.1f * static_cast<float>(m_build_volume.bounding_volume().max_size()));
+
+    // unregister from picking
+    // BBS: remove the bed picking logic
+    // wxGetApp().plater()->canvas3D()->remove_raycasters_for_picking(SceneRaycaster::EType::Bed);
 
     // Let the calee to update the UI.
     return true;
@@ -325,33 +364,28 @@ void Bed3D::on_change_color_mode(bool is_dark)
     m_is_dark = is_dark;
 }
 
-void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes)
+void Bed3D::render(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor, bool show_axes)
 {
-    render_internal(canvas, bottom, scale_factor, show_axes);
+    render_internal(canvas, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
-/*void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor)
-{
-    render_internal(canvas, bottom, scale_factor, false, false, true);
-}*/
-
-void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
+void Bed3D::render_internal(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor,
     bool show_axes)
 {
-    float* factor = const_cast<float*>(&m_scale_factor);
-    *factor = scale_factor;
+    m_scale_factor = scale_factor;
 
     if (show_axes)
         render_axes();
+
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_model.set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
+    m_model.set_color(m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
     switch (m_type)
     {
-    case Type::System: { render_system(canvas, bottom); break; }
+    case Type::System: { render_system(canvas, view_matrix, projection_matrix, bottom); break; }
     default:
-    case Type::Custom: { render_custom(canvas, bottom); break; }
+    case Type::Custom: { render_custom(canvas, view_matrix, projection_matrix, bottom); break; }
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
@@ -388,39 +422,6 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) cons
     return out;
 }
 
-void Bed3D::calc_triangles(const ExPolygon& poly)
-{
-    if (! m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
-        BOOST_LOG_TRIVIAL(error) << "Unable to create bed triangles";
-}
-
-void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
-{
-    /*Polylines axes_lines;
-    for (coord_t x = bed_bbox.min.x(); x <= bed_bbox.max.x(); x += scale_(10.0)) {
-        Polyline line;
-        line.append(Point(x, bed_bbox.min.y()));
-        line.append(Point(x, bed_bbox.max.y()));
-        axes_lines.push_back(line);
-    }
-    for (coord_t y = bed_bbox.min.y(); y <= bed_bbox.max.y(); y += scale_(10.0)) {
-        Polyline line;
-        line.append(Point(bed_bbox.min.x(), y));
-        line.append(Point(bed_bbox.max.x(), y));
-        axes_lines.push_back(line);
-    }
-
-    // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
-
-    // append bed contours
-    Lines contour_lines = to_lines(poly);
-    std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
-
-    if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
-        BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";*/
-}
-
 // Try to match the print bed shape with the shape of an active profile. If such a match exists,
 // return the print bed model.
 std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Pointfs& shape)
@@ -454,22 +455,22 @@ std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Point
     return { Type::Custom, {}, {} };
 }
 
-void Bed3D::render_axes() const
+void Bed3D::render_axes()
 {
     if (m_build_volume.valid())
         m_axes.render();
 }
 
-void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
 {
     if (!bottom)
-        render_model();
+        render_model(view_matrix, projection_matrix);
 
     /*if (show_texture)
         render_texture(bottom, canvas);*/
 }
 
-/*void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas) const
+/*void Bed3D::render_texture(bool bottom, GLCanvas3D& canvas)
 {
     GLTexture* texture = const_cast<GLTexture*>(&m_texture);
     GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
@@ -537,6 +538,9 @@ void Bed3D::render_system(GLCanvas3D& canvas, bool bottom) const
         GLShaderProgram* shader = wxGetApp().get_shader("printbed");
         if (shader != nullptr) {
             shader->start_using();
+            const Camera& camera = wxGetApp().plater()->get_camera();
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
             shader->set_uniform("transparent_background", bottom);
             shader->set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 
@@ -624,9 +628,10 @@ void Bed3D::update_model_offset() const
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
 }
 
-GeometryBuffer Bed3D::update_bed_triangles() const
+void Bed3D::update_bed_triangles()
 {
-    GeometryBuffer new_triangles;
+    m_triangles.reset();
+
     Vec3d shift = m_extended_bounding_box.center();
     shift(2) = -0.03;
     Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
@@ -634,7 +639,7 @@ GeometryBuffer Bed3D::update_bed_triangles() const
     //BBS: TODO: hack for default bed
     BoundingBoxf3 build_volume;
 
-    if (!m_build_volume.valid()) return new_triangles;
+    if (!m_build_volume.valid()) return;
     auto bed_ext = get_extents(m_bed_shape);
     (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x() - bed_ext.min.x();
     (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y() - bed_ext.min.y();
@@ -646,105 +651,115 @@ GeometryBuffer Bed3D::update_bed_triangles() const
         new_bed_shape.push_back(new_point);
     }
     ExPolygon poly{ Polygon::new_scale(new_bed_shape) };
-    if (!new_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z)) {
-        ;
+    if (!init_model_from_poly(m_triangles, poly, GROUND_Z)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to update plate triangles\n";
     }
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
-    return new_triangles;
 }
 
-void Bed3D::render_model() const
+void Bed3D::render_model(const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
     if (m_model_filename.empty())
         return;
 
-    GLModel* model = const_cast<GLModel*>(&m_model);
-
-    if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
-        model->set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
+    if (m_model.get_filename() != m_model_filename && m_model.init_from_file(m_model_filename)) {
+        m_model.set_color(m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
         update_model_offset();
+		
+        // BBS: remove the bed picking logic
+        //register_raycasters_for_picking(m_model.model.get_geometry(), Geometry::assemble_transform(m_model_offset));
     }
 
-    if (!model->get_filename().empty()) {
+    if (!m_model.get_filename().empty()) {
         GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
         if (shader != nullptr) {
             shader->start_using();
             shader->set_uniform("emission_factor", 0.0f);
-            glsafe(::glPushMatrix());
-            glsafe(::glTranslated(m_model_offset.x(), m_model_offset.y(), m_model_offset.z()));
-            model->render();
-            glsafe(::glPopMatrix());
+            const Transform3d model_matrix = Geometry::assemble_transform(m_model_offset);
+            shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+            shader->set_uniform("projection_matrix", projection_matrix);
+            const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+            shader->set_uniform("view_normal_matrix", view_normal_matrix);
+            m_model.render();
             shader->stop_using();
         }
     }
 }
 
-void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
+void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom)
 {
     if (m_model_filename.empty()) {
-        render_default(bottom);
+        render_default(bottom, view_matrix, projection_matrix);
         return;
     }
 
     if (!bottom)
-        render_model();
+        render_model(view_matrix, projection_matrix);
 
     /*if (show_texture)
         render_texture(bottom, canvas);*/
 }
 
-void Bed3D::render_default(bool bottom) const
+void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
-    bool picking = false;
-    const_cast<GLTexture*>(&m_texture)->reset();
+    m_texture.reset();
 
-    unsigned int triangles_vcount = m_triangles.get_vertices_count();
-    GeometryBuffer default_triangles = update_bed_triangles();
-    if (triangles_vcount > 0) {
-        bool has_model = !m_model.get_filename().empty();
+    update_bed_triangles();
+
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+
+        shader->set_uniform("view_model_matrix", view_matrix);
+        shader->set_uniform("projection_matrix", projection_matrix);
 
         glsafe(::glEnable(GL_DEPTH_TEST));
         glsafe(::glEnable(GL_BLEND));
         glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-
-        if (!has_model && !bottom) {
+        if (m_model.get_filename().empty() && !bottom) {
             // draw background
             glsafe(::glDepthMask(GL_FALSE));
-            glsafe(::glColor4fv(picking ? PICKING_MODEL_COLOR.data() : DEFAULT_MODEL_COLOR.data()));
-            glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-            glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)default_triangles.get_vertices_data()));
-            glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
+            m_triangles.set_color(DEFAULT_MODEL_COLOR);
+            m_triangles.render();
             glsafe(::glDepthMask(GL_TRUE));
         }
 
         /*if (!picking) {
             // draw grid
             glsafe(::glLineWidth(1.5f * m_scale_factor));
-            if (has_model && !bottom)
-                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
-            else
-                glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
-            glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
-            glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
+            m_gridlines.set_color(picking ? DEFAULT_SOLID_GRID_COLOR : DEFAULT_TRANSPARENT_GRID_COLOR);
+            m_gridlines.render();
         }*/
 
-        glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-
         glsafe(::glDisable(GL_BLEND));
+
+        shader->stop_using();
     }
 }
 
-void Bed3D::release_VBOs()
+// BBS: remove the bed picking logic
+/*
+void Bed3D::register_raycasters_for_picking(const GLModel::Geometry& geometry, const Transform3d& trafo)
 {
-    if (m_vbo_id > 0) {
-        glsafe(::glDeleteBuffers(1, &m_vbo_id));
-        m_vbo_id = 0;
-    }
-}
+    assert(m_model.mesh_raycaster == nullptr);
 
+    indexed_triangle_set its;
+    its.vertices.reserve(geometry.vertices_count());
+    for (size_t i = 0; i < geometry.vertices_count(); ++i) {
+        its.vertices.emplace_back(geometry.extract_position_3(i));
+    }
+    its.indices.reserve(geometry.indices_count() / 3);
+    for (size_t i = 0; i < geometry.indices_count() / 3; ++i) {
+        const size_t tri_id = i * 3;
+        its.indices.emplace_back(geometry.extract_index(tri_id), geometry.extract_index(tri_id + 1), geometry.extract_index(tri_id + 2));
+    }
+
+    m_model.mesh_raycaster = std::make_unique<MeshRaycaster>(std::make_shared<const TriangleMesh>(std::move(its)));
+    wxGetApp().plater()->canvas3D()->add_raycaster_for_picking(SceneRaycaster::EType::Bed, 0, *m_model.mesh_raycaster, trafo);
+}
+*/
 } // GUI
 } // Slic3r

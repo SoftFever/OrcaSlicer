@@ -1,16 +1,22 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GUI_GLGizmosCommon_hpp_
 #define slic3r_GUI_GLGizmosCommon_hpp_
 
 #include <memory>
 #include <map>
 
+#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/MeshUtils.hpp"
-#include "libslic3r/SLA/Hollowing.hpp"
 
 namespace Slic3r {
 
 class ModelObject;
-
+class ModelInstance;
+class SLAPrintObject;
+class ModelVolume;
 
 namespace GUI {
 
@@ -24,8 +30,12 @@ enum class SLAGizmoEventType : unsigned char {
     Dragging,
     Delete,
     SelectAll,
+    CtrlDown,
+    CtrlUp,
+    ShiftDown,
     ShiftUp,
     AltUp,
+    Escape,
     ApplyChanges,
     DiscardChanges,
     AutomaticGeneration,
@@ -66,10 +76,8 @@ enum class CommonGizmosDataID {
     None                 = 0,
     SelectionInfo        = 1 << 0,
     InstancesHider       = 1 << 1,
-    HollowedMesh         = 1 << 2,
     Raycaster            = 1 << 3,
     ObjectClipper        = 1 << 4,
-    SupportsClipper      = 1 << 5,
 
 };
 
@@ -79,7 +87,7 @@ enum class CommonGizmosDataID {
 // by GLGizmoManager, the gizmos keep a pointer to it.
 class CommonGizmosDataPool {
 public:
-    CommonGizmosDataPool(GLCanvas3D* canvas);
+    explicit CommonGizmosDataPool(GLCanvas3D* canvas);
 
     // Update all resources and release what is not used.
     // Accepts a bitmask of currently required resources.
@@ -88,10 +96,10 @@ public:
     // Getters for the data that need to be accessed from the gizmos directly.
     CommonGizmosDataObjects::SelectionInfo* selection_info() const;
     CommonGizmosDataObjects::InstancesHider* instances_hider() const;
-    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
+//    CommonGizmosDataObjects::HollowedMesh* hollowed_mesh() const;
     CommonGizmosDataObjects::Raycaster* raycaster() const;
     CommonGizmosDataObjects::ObjectClipper* object_clipper() const;
-    CommonGizmosDataObjects::SupportsClipper* supports_clipper() const;
+    // CommonGizmosDataObjects::SupportsClipper* supports_clipper() const;
 
 
     GLCanvas3D* get_canvas() const { return m_canvas; }
@@ -140,7 +148,6 @@ protected:
     virtual void on_update() = 0;
     CommonGizmosDataPool* get_pool() const { return m_common; }
 
-
 private:
     bool m_is_valid = false;
     CommonGizmosDataPool* m_common = nullptr;
@@ -184,8 +191,6 @@ public:
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
 
-    void show_supports(bool show);
-    bool are_supports_shown() const { return m_show_supports; }
     void render_cut() const;
 
 protected:
@@ -193,38 +198,8 @@ protected:
     void on_release() override;
 
 private:
-    bool m_show_supports = false;
     std::vector<const TriangleMesh*> m_old_meshes;
     std::vector<std::unique_ptr<MeshClipper>> m_clippers;
-};
-
-
-
-class HollowedMesh : public CommonGizmosDataBase
-{
-public:
-    explicit HollowedMesh(CommonGizmosDataPool* cgdp)
-        : CommonGizmosDataBase(cgdp) {}
-#ifndef NDEBUG
-    CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
-#endif // NDEBUG
-
-    const sla::DrainHoles &get_drainholes() const { return m_drainholes; }
-
-    const TriangleMesh* get_hollowed_mesh() const;
-    const TriangleMesh* get_hollowed_interior() const;
-
-protected:
-    void on_update() override;
-    void on_release() override;
-
-private:
-    std::unique_ptr<TriangleMesh> m_hollowed_mesh_transformed;
-    std::unique_ptr<TriangleMesh> m_hollowed_interior_transformed;
-    size_t m_old_hollowing_timestamp = 0;
-    int m_print_object_idx = -1;
-    int m_print_objects_count = 0;
-    sla::DrainHoles m_drainholes;
 };
 
 
@@ -260,16 +235,19 @@ public:
 #ifndef NDEBUG
     CommonGizmosDataID get_dependencies() const override { return CommonGizmosDataID::SelectionInfo; }
 #endif // NDEBUG
-
-    void set_position(double pos, bool keep_normal);
     double get_position() const { return m_clp_ratio; }
-    ClippingPlane* get_clipping_plane() const { return m_clp.get(); }
-    void render_cut() const;
+    const ClippingPlane* get_clipping_plane(bool ignore_hide_clipped = false) const;
+    void render_cut(const std::vector<size_t>* ignore_idxs = nullptr) const;
+    void set_position_by_ratio(double pos, bool keep_normal);
+    void set_range_and_pos(const Vec3d& cpl_normal, double cpl_offset, double pos);
+    void set_behavior(bool hide_clipped, bool fill_cut, double contour_width);
+    
+    int get_number_of_contours() const;
+    std::vector<Vec3d> point_per_contour() const;
 
-    void set_range_and_pos(const Vec3d &cpl_normal, double cpl_offset, double pos);
-
-    bool is_projection_inside_cut(const Vec3d &point_in) const;
+    int is_projection_inside_cut(const Vec3d& point_in) const;
     bool has_valid_contour() const;
+
 
 protected:
     void on_update() override;
@@ -277,40 +255,11 @@ protected:
 
 private:
     std::vector<const TriangleMesh*> m_old_meshes;
-    std::vector<std::unique_ptr<MeshClipper>> m_clippers;
+    std::vector<std::pair<std::unique_ptr<MeshClipper>, Geometry::Transformation>> m_clippers;
     std::unique_ptr<ClippingPlane> m_clp;
     double m_clp_ratio = 0.;
     double m_active_inst_bb_radius = 0.;
-};
-
-
-
-class SupportsClipper : public CommonGizmosDataBase
-{
-public:
-    explicit SupportsClipper(CommonGizmosDataPool* cgdp)
-        : CommonGizmosDataBase(cgdp) {}
-#ifndef NDEBUG
-    CommonGizmosDataID get_dependencies() const override {
-        return CommonGizmosDataID(
-                    int(CommonGizmosDataID::SelectionInfo)
-                  | int(CommonGizmosDataID::ObjectClipper)
-               );
-    }
-#endif // NDEBUG
-
-    void render_cut() const;
-
-
-protected:
-    void on_update() override;
-    void on_release() override;
-
-private:
-    size_t m_old_timestamp = 0;
-    int m_print_object_idx = -1;
-    int m_print_objects_count = 0;
-    std::unique_ptr<MeshClipper> m_clipper;
+    bool m_hide_clipped = true;
 };
 
 } // namespace CommonGizmosDataObjects

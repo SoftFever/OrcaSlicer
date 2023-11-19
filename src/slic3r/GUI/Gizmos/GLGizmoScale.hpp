@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Filip Sykala @Jony01
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLGizmoScale_hpp_
 #define slic3r_GLGizmoScale_hpp_
 
@@ -28,14 +32,27 @@ class GLGizmoScale3D : public GLGizmoBase
         StartingData() : scale(Vec3d::Ones()), drag_position(Vec3d::Zero()), ctrl_down(false) { for (int i = 0; i < 5; ++i) { pivots[i] = Vec3d::Zero(); } }
     };
 
-    mutable BoundingBoxf3 m_box;
-    mutable Transform3d m_transform;
+    BoundingBoxf3 m_box;
+    Transform3d m_transform;
     // Transforms grabbers offsets to the proper reference system (world for instances, instance for volumes)
-    mutable Transform3d m_offsets_transform;
-    Vec3d m_scale;
-    Vec3d m_offset;
-    double m_snap_step;
+    Transform3d m_offsets_transform;
+    Vec3d m_scale{ Vec3d::Ones() };
+    Vec3d m_offset{ Vec3d::Zero() };
+    double m_snap_step{ 0.05 };
     StartingData m_starting;
+
+    ColorRGBA m_base_color;
+    ColorRGBA m_drag_color;
+    ColorRGBA m_highlight_color;
+
+    struct GrabberConnection
+    {
+        GLModel model;
+        std::pair<unsigned int, unsigned int> grabber_indices;
+        Vec3d old_v1{ Vec3d::Zero() };
+        Vec3d old_v2{ Vec3d::Zero() };
+    };
+    std::array<GrabberConnection, 7> m_grabber_connections;
 
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
@@ -51,24 +68,32 @@ public:
     const Vec3d& get_scale() const { return m_scale; }
     void set_scale(const Vec3d& scale) { m_starting.scale = scale; m_scale = scale; }
 
-    const Vec3d& get_offset() const { return m_offset; }
-
     std::string get_tooltip() const override;
 
+    /// <summary>
+    /// Postpone to Grabber for scale
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+
+    void data_changed(bool is_serializing) override;
     void enable_ununiversal_scale(bool enable);
 protected:
     virtual bool on_init() override;
     virtual std::string on_get_name() const override;
     virtual bool on_is_activable() const override;
     virtual void on_start_dragging() override;
-    virtual void on_update(const UpdateData& data) override;
+    virtual void on_stop_dragging() override;
+    virtual void on_dragging(const UpdateData& data) override;
     virtual void on_render() override;
-    virtual void on_render_for_picking() override;
+    virtual void on_register_raycasters_for_picking() override;
+    virtual void on_unregister_raycasters_for_picking() override;
     //BBS: GUI refactor: add object manipulation
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
 private:
-    void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
+    void render_grabbers_connection(unsigned int id_1, unsigned int id_2, const ColorRGBA& color);
 
     void do_scale_along_axis(Axis axis, const UpdateData& data);
     void do_scale_uniform(const UpdateData& data);

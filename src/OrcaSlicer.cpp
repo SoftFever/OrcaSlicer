@@ -1553,23 +1553,11 @@ int CLI::run(int argc, char **argv)
                         o->cut(Z, m_config.opt_float("cut"), &out);
                     }
 #else
-                    ModelObject* object = model.objects.front();
-                    const BoundingBoxf3& box = object->bounding_box();
-                    const float Margin = 20.0;
-                    const float max_x = box.size()(0) / 2.0 + Margin;
-                    const float min_x = -max_x;
-                    const float max_y = box.size()(1) / 2.0 + Margin;
-                    const float min_y = -max_y;
-
-                    std::array<Vec3d, 4> plane_points;
-                    plane_points[0] = { min_x, min_y, 0 };
-                    plane_points[1] = { max_x, min_y, 0 };
-                    plane_points[2] = { max_x, max_y, 0 };
-                    plane_points[3] = { min_x, max_y, 0 };
-                    for (Vec3d& point : plane_points) {
-                        point += box.center();
-                    }
-                    model.objects.front()->cut(0, plane_points, ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::KeepLower);
+                    Cut cut(model.objects.front(), 0, Geometry::translation_transform(m_config.opt_float("cut") * Vec3d::UnitZ()),
+                                               ModelObjectCutAttribute::KeepLower | ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::PlaceOnCutUpper);
+                    auto cut_objects = cut.perform_with_plane();
+                    for (ModelObject* obj : cut_objects)
+                        model.add_object(*obj);
 #endif
                     model.delete_object(size_t(0));
                 }
@@ -2279,12 +2267,12 @@ int CLI::run(int argc, char **argv)
             else
                 colors.push_back("#FFFFFF");
 
-            std::vector<std::array<float, 4>> colors_out(colors.size());
-            unsigned char rgb_color[3] = {};
+            std::vector<ColorRGBA> colors_out(colors.size());
+            ColorRGBA rgb_color;
             for (const std::string& color : colors) {
-                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
+                Slic3r::decode_color(color, rgb_color);
                 size_t color_idx = &color - &colors.front();
-                colors_out[color_idx] = { float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f };
+                colors_out[color_idx] = rgb_color;
             }
 
             int gl_major, gl_minor, gl_verbos;
@@ -2353,19 +2341,16 @@ int CLI::run(int argc, char **argv)
                             //    continue;
                             for (int instance_idx = 0; instance_idx < (int)model_object.instances.size(); ++ instance_idx) {
                                 const ModelInstance &model_instance = *model_object.instances[instance_idx];
-                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, "volume", true, false, true);
+                                glvolume_collection.load_object_volume(&model_object, obj_idx, volume_idx, instance_idx, false, true);
                                 //glvolume_collection.volumes.back()->geometry_id = key.geometry_id;
                                 std::string color = filament_color?filament_color->get_at(extruder_id - 1):"#00FF00";
 
-                                unsigned char  rgb_color[3] = {};
-                                Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
-                                glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
+                                ColorRGBA rgb_color;
+                                Slic3r::decode_color(color, rgb_color);
+                                glvolume_collection.volumes.back()->set_render_color(rgb_color);
 
-                                std::array<float, 4> new_color;
-                                new_color[0] = float(rgb_color[0]) / 255.f;
-                                new_color[1] = float(rgb_color[1]) / 255.f;
-                                new_color[2] = float(rgb_color[2]) / 255.f;
-                                new_color[3] = 1.f;
+                                ColorRGBA new_color;
+                                new_color = rgb_color;
                                 glvolume_collection.volumes.back()->set_color(new_color);
                                 glvolume_collection.volumes.back()->printable = model_instance.printable;
                             }
