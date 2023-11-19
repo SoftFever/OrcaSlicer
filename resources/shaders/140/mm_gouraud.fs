@@ -40,6 +40,30 @@ struct SlopeDetection
 };
 uniform SlopeDetection slope;
 
+out vec4 out_color;
+
+//BBS: add wireframe logic
+in vec3 barycentric_coordinates;
+float edgeFactor(float lineWidth) {
+    vec3 d = fwidth(barycentric_coordinates);
+    vec3 a3 = smoothstep(vec3(0.0), d * lineWidth, barycentric_coordinates);
+    return min(min(a3.x, a3.y), a3.z);
+}
+
+vec3 wireframe(vec3 fill, vec3 stroke, float lineWidth) {
+    return mix(stroke, fill, edgeFactor(lineWidth));
+	//if (any(lessThan(barycentric_coordinates, vec3(0.005, 0.005, 0.005))))
+	//	return vec3(1.0, 0.0, 0.0);
+	//else
+	//	return fill;
+}
+
+vec3 getWireframeColor(vec3 fill) {
+    float brightness = 0.2126 * fill.r + 0.7152 * fill.g + 0.0722 * fill.b;
+    return (brightness > 0.75) ? vec3(0.11, 0.165, 0.208) : vec3(0.988, 0.988, 0.988);
+}
+uniform bool show_wireframe;
+
 void main()
 {
     if (any(lessThan(clipping_planes_dots, ZERO)))
@@ -86,5 +110,12 @@ void main()
     NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
-    gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
+    if (show_wireframe) {
+        vec3 wireframeColor = show_wireframe ? getWireframeColor(color) : color;
+        vec3 triangleColor = wireframe(color, wireframeColor, 1.0);
+        out_color = vec4(vec3(intensity.y) + triangleColor * intensity.x, alpha);
+    }
+    else {
+        out_color = vec4(vec3(intensity.y) + color * intensity.x, alpha);
+    }
 }
