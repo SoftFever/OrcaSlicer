@@ -550,6 +550,16 @@ void Transformation::set_rotation(Axis axis, double rotation)
     }
 }
 
+Transform3d Transformation::get_scaling_factor_matrix() const
+{
+    Transform3d scale = Transform3d::Identity();
+    scale.scale(m_scaling_factor);
+    scale(0, 0) = std::abs(scale(0, 0));
+    scale(1, 1) = std::abs(scale(1, 1));
+    scale(2, 2) = std::abs(scale(2, 2));
+    return scale;
+}
+
 void Transformation::set_scaling_factor(const Vec3d& scaling_factor)
 {
     set_scaling_factor(X, scaling_factor.x());
@@ -710,6 +720,53 @@ Transformation Transformation::volume_to_bed_transformation(const Transformation
     }
 
     return out;
+}
+
+TransformationSVD::TransformationSVD(const Transform3d& trafo)
+{
+    const auto &m0 = trafo.matrix().block<3, 3>(0, 0);
+    mirror = m0.determinant() < 0.0;
+
+    Matrix3d m;
+    if (mirror)
+        m = m0 * Eigen::DiagonalMatrix<double, 3, 3>(-1.0, 1.0, 1.0);
+    else
+        m = m0;
+    const Eigen::JacobiSVD<Matrix3d> svd(m, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    u = svd.matrixU();
+    v = svd.matrixV();
+    s = svd.singularValues().asDiagonal();
+
+    scale = !s.isApprox(Matrix3d::Identity());
+    anisotropic_scale = ! is_approx(s(0, 0), s(1, 1)) || ! is_approx(s(1, 1), s(2, 2));
+    rotation = !v.isApprox(u);
+
+    if (anisotropic_scale) {
+        rotation_90_degrees = true;
+        for (int i = 0; i < 3; ++i) {
+            const Vec3d row = v.row(i).cwiseAbs();
+            const size_t num_zeros = is_approx(row[0], 0.) + is_approx(row[1], 0.) + is_approx(row[2], 0.);
+            const size_t num_ones  = is_approx(row[0], 1.) + is_approx(row[1], 1.) + is_approx(row[2], 1.);
+            if (num_zeros != 2 || num_ones != 1) {
+                rotation_90_degrees = false;
+                break;
+            }
+        }
+        // Detect skew by brute force: check if the axes are still orthogonal after transformation
+        const Matrix3d trafo_linear = trafo.linear();
+        const std::array<Vec3d, 3> axes = { Vec3d::UnitX(), Vec3d::UnitY(), Vec3d::UnitZ() };
+        std::array<Vec3d, 3> transformed_axes;
+        for (int i = 0; i < 3; ++i) {
+            transformed_axes[i] = trafo_linear * axes[i];
+        }
+        skew = std::abs(transformed_axes[0].dot(transformed_axes[1])) > EPSILON ||
+               std::abs(transformed_axes[1].dot(transformed_axes[2])) > EPSILON ||
+               std::abs(transformed_axes[2].dot(transformed_axes[0])) > EPSILON;
+
+        // This following old code does not work under all conditions. The v matrix can become non diagonal (see SPE-1492) 
+//        skew = ! rotation_90_degrees;
+    } else
+        skew = false;
 }
 
 // For parsing a transformation matrix from 3MF / AMF.

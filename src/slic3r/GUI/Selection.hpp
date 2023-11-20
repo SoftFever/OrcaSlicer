@@ -152,6 +152,7 @@ private:
         ObjectIdxsToInstanceIdxsMap content;
         // List of ids of the volumes which are sinking when starting dragging
         std::vector<unsigned int> sinking_volumes;
+        Vec3d rotation_pivot;
     };
 
     // Volumes owned by GLCanvas3D.
@@ -187,6 +188,8 @@ private:
     // Bounding box aligned to the axis of the currently selected reference system (World/Object/Part)
     // and transform to place and orient it in world coordinates
     std::optional<std::pair<BoundingBoxf3, Transform3d>> m_bounding_box_in_current_reference_system;
+
+    std::optional<std::pair<Vec3d, double>> m_bounding_sphere;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLModel m_vbo_sphere;
@@ -332,6 +335,9 @@ public:
     // Returns the bounding box aligned to the axes of the given reference system
     // and the transform to place and orient it in world coordinates
     std::pair<BoundingBoxf3, Transform3d> get_bounding_box_in_reference_system(ECoordinatesType type) const;
+
+    // Returns the bounding sphere: first = center, second = radius
+    const std::pair<Vec3d, double> get_bounding_sphere() const;
 
     void setup_cache();
 
