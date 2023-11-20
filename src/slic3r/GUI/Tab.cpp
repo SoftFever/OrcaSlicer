@@ -1508,6 +1508,33 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    if(opt_key=="layer_height"){
+        auto min_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
+        auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
+        auto layer_height_floor = *std::min_element(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end());
+        auto layer_height_ceil  = *std::max_element(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end());
+        bool exceed_minimum_flag = m_config->opt_float("layer_height") < layer_height_floor;
+        bool exceed_maximum_flag = m_config->opt_float("layer_height") > layer_height_ceil;
+
+        if (exceed_maximum_flag || exceed_minimum_flag) {
+            wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."));
+            msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            dialog.SetButtonLabel(wxID_YES, "Adjust");
+            dialog.SetButtonLabel(wxID_NO, "Ignore");
+            auto answer = dialog.ShowModal();
+            auto new_conf = *m_config;
+            if (answer == wxID_YES) {
+                if (exceed_maximum_flag)
+                    new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_ceil));
+                if (exceed_minimum_flag)
+                    new_conf.set_key_value("layer_height",new ConfigOptionFloat(layer_height_floor));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
+        }
+    }
+
     // BBS
 #if 0
     if (opt_key == "extruders_count")

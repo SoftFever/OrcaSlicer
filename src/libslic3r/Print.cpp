@@ -1229,25 +1229,6 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (layer_height > min_nozzle_diameter)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 
-            double min_layer_height_from_nozzle = 0.01;
-            double max_layer_height_from_nozzle = std::numeric_limits<double>::max();
-            for (unsigned int extruder_id : extruders) {
-                min_layer_height_from_nozzle = std::max(min_layer_height_from_nozzle, m_config.min_layer_height.get_at(extruder_id));
-                max_layer_height_from_nozzle = std::min(max_layer_height_from_nozzle, m_config.max_layer_height.get_at(extruder_id));
-            }
-
-            if (layer_height > max_layer_height_from_nozzle ||
-                layer_height < min_layer_height_from_nozzle) {
-                return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), object, "layer_height", STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT };
-            }
-
-            for (auto range : object->m_model_object->layer_config_ranges) {
-                double range_layer_height = range.second.opt_float("layer_height");
-                if (range_layer_height > max_layer_height_from_nozzle ||
-                    range_layer_height < min_layer_height_from_nozzle)
-                    return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), nullptr, "layer_height", STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT };
-            }
-
             // Validate extrusion widths.
             std::string err_msg;
             if (!validate_extrusion_width(object->config(), "line_width", layer_height, err_msg))
