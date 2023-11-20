@@ -738,8 +738,16 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
     const unsigned int number_of_extruders = (unsigned int) (sqrt(flush_matrix.size()) + EPSILON);
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
-    for (unsigned int i = 0; i < number_of_extruders; ++i)
-        wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+    if (m_print_config_ptr->purge_in_prime_tower) {
+        for (unsigned int i = 0; i < number_of_extruders; ++i)
+            wipe_volumes.push_back(
+                std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+    } else {
+        // populate wipe_volumes with prime_volume
+        for (unsigned int i = 0; i < number_of_extruders; ++i) {
+            wipe_volumes.push_back(std::vector<float>(number_of_extruders, m_print_config_ptr->prime_volume));
+        }
+    }
 
     unsigned int current_extruder_id = -1;
     for (int i = 0; i < m_layer_tools.size(); ++i) {

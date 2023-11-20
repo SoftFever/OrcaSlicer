@@ -12,8 +12,6 @@
 #define ENABLE_RENDER_SELECTION_CENTER 0
 // Shows an imgui dialog with camera related data
 #define ENABLE_CAMERA_STATISTICS 0
-// Render the picking pass instead of the main scene (use [T] key to toggle between regular rendering and picking pass only rendering)
-#define ENABLE_RENDER_PICKING_PASS 0
 // Enable extracting thumbnails from selected gcode and save them as png files
 #define ENABLE_THUMBNAIL_GENERATOR_DEBUG 0
 // Disable synchronization of unselected instances
@@ -61,6 +59,8 @@
 #define ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT (1 && ENABLE_2_4_0_BETA2)
 // Enable fit print volume command for circular printbeds
 #define ENABLE_ENHANCED_PRINT_VOLUME_FIT (1 && ENABLE_2_4_0_BETA2)
+// Enable picking using raytracing
+#define ENABLE_RAYCAST_PICKING_DEBUG 0
 
 
 #endif // _prusaslicer_technologies_h_

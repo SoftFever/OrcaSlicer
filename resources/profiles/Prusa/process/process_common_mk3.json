@@ -21,7 +21,6 @@
   "enable_support": "0",
   "enforce_support_layers": "0",
   "extra_perimeters_on_overhangs": "0",
-  "filename_format": "{input_filename_base}_{layer_height}mm_{printing_filament_types}_{printer_model}_{print_time}.gcode",
   "fuzzy_skin": "none",
   "fuzzy_skin_point_distance": "0.8",
   "fuzzy_skin_thickness": "0.3",

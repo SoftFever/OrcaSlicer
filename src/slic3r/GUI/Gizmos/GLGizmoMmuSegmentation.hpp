@@ -67,9 +67,9 @@ public:
     GLGizmoMmuSegmentation(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoMmuSegmentation() override = default;
 
-    void render_painter_gizmo() const override;
+    void render_painter_gizmo() override;
 
-    void set_painter_gizmo_data(const Selection& selection) override;
+    void data_changed(bool is_serializing) override;
 
     void render_triangles(const Selection& selection) const override;
 
@@ -87,7 +87,7 @@ public:
 
 protected:
     // BBS
-    std::array<float, 4> get_cursor_hover_color() const override;
+    ColorRGBA get_cursor_hover_color() const override;
     void on_set_state() override;
 
     EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_selected_extruder_idx + 1); }
@@ -103,11 +103,11 @@ protected:
 
     std::string get_gizmo_entering_text() const override { return "Entering color painting"; }
     std::string get_gizmo_leaving_text() const override { return "Leaving color painting"; }
-    std::string get_action_snapshot_name() override { return "Color painting editing"; }
+    std::string get_action_snapshot_name() const override { return "Color painting editing"; }
 
     // BBS
     size_t                            m_selected_extruder_idx = 0;
-    std::vector<std::array<float, 4>> m_extruders_colors;
+    std::vector<ColorRGBA>            m_extruders_colors;
     std::vector<int>                  m_volumes_extruder_idxs;
 
     // BBS

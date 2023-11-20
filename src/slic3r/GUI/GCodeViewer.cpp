@@ -90,42 +90,6 @@ static EMoveType buffer_type(unsigned char id) {
     return static_cast<EMoveType>(static_cast<unsigned char>(EMoveType::Retract) + id);
 }
 
-static std::array<float, 4> decode_color(const std::string& color) {
-    static const float INV_255 = 1.0f / 255.0f;
-
-    std::array<float, 4> ret = { 0.0f, 0.0f, 0.0f, 1.0f };
-    const char* c = color.data() + 1;
-    if (color.size() == 7 && color.front() == '#') {
-        for (size_t j = 0; j < 3; ++j) {
-            int digit1 = hex_digit_to_int(*c++);
-            int digit2 = hex_digit_to_int(*c++);
-            if (digit1 == -1 || digit2 == -1)
-                break;
-
-            ret[j] = float(digit1 * 16 + digit2) * INV_255;
-        }
-    }
-    else if (color.size() == 9 && color.front() == '#') {
-        for (size_t j = 0; j < 4; ++j) {
-            int digit1 = hex_digit_to_int(*c++);
-            int digit2 = hex_digit_to_int(*c++);
-            if (digit1 == -1 || digit2 == -1)
-                break;
-
-            ret[j] = float(digit1 * 16 + digit2) * INV_255;
-        }
-    }
-    return ret;
-}
-
-static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::string>& colors) {
-    std::vector<std::array<float, 4>> output(colors.size(), { 0.0f, 0.0f, 0.0f, 1.0f });
-    for (size_t i = 0; i < colors.size(); ++i) {
-        output[i] = decode_color(colors[i]);
-    }
-    return output;
-}
-
 // Round to a bin with minimum two digits resolution.
 // Equivalent to conversion to string with sprintf(buf, "%.2g", value) and conversion back to float, but faster.
 static float round_to_bin(const float value)
@@ -263,7 +227,7 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move
         move.volumetric_rate(), move.layer_duration, move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
 
-GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) const
+ColorRGBA GCodeViewer::Extrusions::Range::get_color_at(float value) const
 {
     // Input value scaled to the colors range
     const float step = step_size();
@@ -280,15 +244,8 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
     const size_t color_low_idx = std::clamp<size_t>(static_cast<size_t>(global_t), 0, color_max_idx);
     const size_t color_high_idx = std::clamp<size_t>(color_low_idx + 1, 0, color_max_idx);
 
-    // Compute how far the value is between the low and high colors so that they can be interpolated
-    const float local_t = std::clamp(global_t - static_cast<float>(color_low_idx), 0.0f, 1.0f);
-
     // Interpolate between the low and high colors to find exactly which color the input value should get
-    Color ret = { 0.0f, 0.0f, 0.0f, 1.0f };
-    for (unsigned int i = 0; i < 3; ++i) {
-        ret[i] = lerp(Range_Colors[color_low_idx][i], Range_Colors[color_high_idx][i], local_t);
-    }
-    return ret;
+    return lerp(Range_Colors[color_low_idx], Range_Colors[color_high_idx], global_t - static_cast<float>(color_low_idx));
 }
 
 float GCodeViewer::Extrusions::Range::step_size() const {
@@ -331,7 +288,7 @@ void GCodeViewer::SequentialView::Marker::init(std::string filename)
     } else {
         m_model.init_from_file(filename);
     }
-    m_model.set_color(-1, {1.0f, 1.0f, 1.0f, 0.5f});
+    m_model.set_color({ 1.0f, 1.0f, 1.0f, 0.5f });
 }
 
 void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& position)
@@ -345,7 +302,7 @@ void GCodeViewer::SequentialView::Marker::update_curr_move(const GCodeProcessorR
 }
 
 //BBS: GUI refactor: add canvas size from parameters
-void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type) const
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type)
 {
     if (!m_visible)
         return;
@@ -360,12 +317,15 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     shader->start_using();
     shader->set_uniform("emission_factor", 0.0f);
 
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixf(m_world_transform.data()));
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d model_matrix = m_world_transform.cast<double>();
+    shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
     m_model.render();
-
-    glsafe(::glPopMatrix());
 
     shader->stop_using();
 
@@ -584,11 +544,11 @@ void GCodeViewer::SequentialView::GCodeWindow::render(float top, float bottom, f
         return ret;
     };
 
-    static const ImVec4 LINE_NUMBER_COLOR = ImGuiWrapper::COL_ORANGE_LIGHT;
+    static const ImVec4 LINE_NUMBER_COLOR    = ImGuiWrapper::COL_ORANGE_LIGHT;
     static const ImVec4 SELECTION_RECT_COLOR = ImGuiWrapper::COL_ORANGE_DARK;
-    static const ImVec4 COMMAND_COLOR = { 0.8f, 0.8f, 0.0f, 1.0f };
-    static const ImVec4 PARAMETERS_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
-    static const ImVec4 COMMENT_COLOR = { 0.7f, 0.7f, 0.7f, 1.0f };
+    static const ImVec4 COMMAND_COLOR        = { 0.8f, 0.8f, 0.0f, 1.0f };
+    static const ImVec4 PARAMETERS_COLOR     = { 1.0f, 1.0f, 1.0f, 1.0f };
+    static const ImVec4 COMMENT_COLOR        = { 0.7f, 0.7f, 0.7f, 1.0f };
 
     if (!m_visible || !wxGetApp().show_gcode_window() || m_filename.empty() || m_lines_ends.empty() || curr_line_id == 0)
         return;
@@ -713,7 +673,7 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
     }
 }
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type) const
+void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type)
 {
 if (has_render_path)
     marker.render(canvas_width, canvas_height, view_type);
@@ -728,7 +688,7 @@ if (has_render_path)
         gcode_window.render(legend_height + 2, std::max(10.f, (float)canvas_height - 40), (float)canvas_width - (float)right_margin, static_cast<uint64_t>(gcode_ids[current.last]));
 }
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
+const std::vector<ColorRGBA> GCodeViewer::Extrusion_Role_Colors{ {
     { 0.90f, 0.70f, 0.70f, 1.0f },   // erNone
     { 1.00f, 0.90f, 0.30f, 1.0f },   // erPerimeter
     { 1.00f, 0.49f, 0.22f, 1.0f },   // erExternalPerimeter
@@ -750,7 +710,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Extrusion_Role_Colors {{
     { 0.37f, 0.82f, 0.58f, 1.0f }    // erCustom
 }};
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
+const std::vector<ColorRGBA> GCodeViewer::Options_Colors{ {
     { 0.803f, 0.135f, 0.839f, 1.0f },   // Retractions
     { 0.287f, 0.679f, 0.810f, 1.0f },   // Unretractions
     { 0.900f, 0.900f, 0.900f, 1.0f },   // Seams
@@ -760,7 +720,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Options_Colors {{
     { 0.886f, 0.825f, 0.262f, 1.0f }    // CustomGCodes
 }};
 
-const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
+const std::vector<ColorRGBA> GCodeViewer::Travel_Colors{ {
     { 0.219f, 0.282f, 0.609f, 1.0f }, // Move
     { 0.112f, 0.422f, 0.103f, 1.0f }, // Extrude
     { 0.505f, 0.064f, 0.028f, 1.0f }  // Retract
@@ -768,7 +728,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
 
 // Normal ranges
 // blue to red
-const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
+const std::vector<ColorRGBA> GCodeViewer::Range_Colors{ {
     decode_color_to_float_array("#0b2c7a"),  // bluish
     decode_color_to_float_array("#135985"),
     decode_color_to_float_array("#1c8891"),
@@ -782,8 +742,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
     decode_color_to_float_array("#942616")    // reddish
 }};
 
-const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
-const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0f };
+const ColorRGBA GCodeViewer::Wipe_Color    = ColorRGBA::YELLOW();
+const ColorRGBA GCodeViewer::Neutral_Color = ColorRGBA::DARK_GRAY();
 
 GCodeViewer::GCodeViewer()
 {
@@ -858,8 +818,8 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
         }
         case EMoveType::Travel: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-            buffer.shader = "toolpaths_lines";
+            buffer.vertices.format = VBuffer::EFormat::Position;
+            buffer.shader = "flat";
             break;
         }
         }
@@ -963,7 +923,7 @@ std::vector<int> GCodeViewer::get_plater_extruder()
 
 //BBS: always load shell at preview
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
-                const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode)
+                const std::vector<BoundingBoxf3>& exclude_bounding_box, ConfigOptionMode mode, bool only_gcode)
 {
     // avoid processing if called with the same gcode_result
     if (m_last_result_id == gcode_result.id) {
@@ -1018,7 +978,7 @@ m_sequential_view.m_show_gcode_window = false;
     //BBS: always load shell at preview
     /*if (wxGetApp().is_editor())
     {
-        //load_shells(print, initialized);
+        load_shells(print);
     }
     else {*/
     //BBS: add only gcode mode
@@ -1140,13 +1100,13 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
 
     if (m_view_type == EViewType::Tool && !gcode_result.extruder_colors.empty()) {
         // update tool colors from config stored in the gcode
-        m_tools.m_tool_colors = decode_colors(gcode_result.extruder_colors);
+        decode_colors(gcode_result.extruder_colors, m_tools.m_tool_colors);
         m_tools.m_tool_visibles = std::vector<bool>(m_tools.m_tool_colors.size());
         for (auto item: m_tools.m_tool_visibles) item = true;
     }
     else {
         // update tool colors
-        m_tools.m_tool_colors = decode_colors(str_tool_colors);
+        decode_colors(str_tool_colors, m_tools.m_tool_colors);
         m_tools.m_tool_visibles = std::vector<bool>(m_tools.m_tool_colors.size());
         for (auto item : m_tools.m_tool_visibles) item = true;
     }
@@ -1154,9 +1114,11 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
     for (int i = 0; i < m_tools.m_tool_colors.size(); i++) {
         m_tools.m_tool_colors[i] = adjust_color_for_rendering(m_tools.m_tool_colors[i]);
     }
-    // ensure there are enough colors defined
+    ColorRGBA default_color;
+    decode_color("#FF8000", default_color);
+	// ensure there are enough colors defined
     while (m_tools.m_tool_colors.size() < std::max(size_t(1), gcode_result.extruders_count)) {
-        m_tools.m_tool_colors.push_back(decode_color("#FF8000"));
+        m_tools.m_tool_colors.push_back(default_color);
         m_tools.m_tool_visibles.push_back(true);
     }
 
@@ -1247,7 +1209,7 @@ void GCodeViewer::reset()
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
     m_max_print_height = 0.0f;
-    m_tools.m_tool_colors = std::vector<Color>();
+    m_tools.m_tool_colors = std::vector<ColorRGBA>();
     m_tools.m_tool_visibles = std::vector<bool>();
     m_extruders_count = 0;
     m_extruder_ids = std::vector<unsigned char>();
@@ -1276,14 +1238,11 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     m_statistics.total_instances_gpu_size = 0;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-    render_shells();
-    // Orca: add shell overlay effect
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-
     if (m_roles.empty())
         return;
-    glsafe(::glEnable(GL_DEPTH_TEST));
 
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    render_shells();
     render_toolpaths();
     float legend_height = 0.0f;
     render_legend(legend_height, canvas_width, canvas_height, right_margin);
@@ -1346,12 +1305,12 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 
 #if 1
     Camera camera;
-    camera.apply_viewport(0,0,thumbnail_data.width, thumbnail_data.height);
+    camera.set_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+    camera.apply_viewport();
     camera.set_scene_box(plate_box);
     camera.set_type(Camera::EType::Ortho);
     camera.set_target(center);
     camera.select_view("top");
-    camera.apply_view_matrix();
     camera.zoom_to_box(plate_box, 1.0f);
     camera.apply_projection(plate_box);
 
@@ -1365,7 +1324,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(!path.sizes.empty());
             assert(!path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            shader.set_uniform(uniform_color, path.color);
             glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_triangles_calls_count;
@@ -1387,7 +1346,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
 
             if (range.vbo > 0) {
-                buffer.model.model.set_color(-1, range.color);
+                buffer.model.model.set_color(range.color);
                 buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;
@@ -1400,7 +1359,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader) {
 #else
-    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader) {
+    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader, int position_id, int normal_id) {
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         struct Range
@@ -1416,12 +1375,16 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             const IBuffer& i_buffer = buffer.indices[j];
             buffer_range.last = buffer_range.first + i_buffer.count / indices_per_instance;
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-            glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+            if (position_id != -1) {
+                glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                glsafe(::glEnableVertexAttribArray(position_id));
+            }
             bool has_normals = buffer.vertices.normal_size_floats() > 0;
             if (has_normals) {
-                glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+                if (normal_id != -1) {
+                    glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                    glsafe(::glEnableVertexAttribArray(normal_id));
+                }
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
@@ -1444,11 +1407,11 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-            if (has_normals)
-                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+            
+            if (normal_id != -1)
+                glsafe(::glDisableVertexAttribArray(normal_id));
+            if (position_id != -1)
+                glsafe(::glDisableVertexAttribArray(position_id));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             buffer_range.first = buffer_range.last;
@@ -1464,9 +1427,14 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
         if (!buffer.visible || !buffer.has_data())
             continue;
 
-        GLShaderProgram* shader = opengl_manager.get_shader("cali");
+        GLShaderProgram* shader = opengl_manager.get_shader("flat");
         if (shader != nullptr) {
             shader->start_using();
+
+            shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+            shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+            int position_id = shader->get_attrib_location("v_position");
+            int normal_id   = shader->get_attrib_location("v_normal");
 
             if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
                 //shader->set_uniform("emission_factor", 0.25f);
@@ -1475,7 +1443,7 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
             }
             else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
                 //shader->set_uniform("emission_factor", 0.25f);
-                render_as_batched_model(buffer, *shader);
+                render_as_batched_model(buffer, *shader, position_id, normal_id);
                 //shader->set_uniform("emission_factor", 0.0f);
             }
             else {
@@ -1493,12 +1461,16 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                         continue;
 
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                    glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-                    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
+                    if (position_id != -1) {
+                        glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                        glsafe(::glEnableVertexAttribArray(position_id));
+                    }
                     bool has_normals = false;// buffer.vertices.normal_size_floats() > 0;
                     if (has_normals) {
-                        glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+                        if (normal_id != -1) {
+                            glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                            glsafe(::glEnableVertexAttribArray(normal_id));
+                        }
                     }
 
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
@@ -1514,11 +1486,12 @@ void GCodeViewer::_render_calibration_thumbnail_internal(ThumbnailData& thumbnai
                     }
 
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+                    
+                    if (normal_id != -1)
+                        glsafe(::glDisableVertexAttribArray(normal_id));
+                    if (position_id != -1)
+                        glsafe(::glDisableVertexAttribArray(position_id));
 
-                    if (has_normals)
-                        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-                    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
                 }
             }
@@ -1904,7 +1877,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         return;
 
     // collect color information to generate materials
-    std::vector<Color> colors;
+    std::vector<ColorRGBA> colors;
     for (const RenderPath& path : t_buffer.render_paths) {
         colors.push_back(path.color);
     }
@@ -1926,10 +1899,10 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     fprintf(fp, "# Generated by %s-%s based on Slic3r\n", SLIC3R_APP_NAME, SoftFever_VERSION);
 
     unsigned int colors_count = 1;
-    for (const Color& color : colors) {
+    for (const ColorRGBA& color : colors) {
         fprintf(fp, "\nnewmtl material_%d\n", colors_count++);
         fprintf(fp, "Ka 1 1 1\n");
-        fprintf(fp, "Kd %g %g %g\n", color[0], color[1], color[2]);
+        fprintf(fp, "Kd %g %g %g\n", color.r(), color.g(), color.b());
         fprintf(fp, "Ks 0 0 0\n");
     }
 
@@ -1990,7 +1963,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     }
 
     size_t i = 0;
-    for (const Color& color : colors) {
+    for (const ColorRGBA& color : colors) {
         // save material triangles to file
         fprintf(fp, "\nusemtl material_%zu\n", i + 1);
         fprintf(fp, "# triangles material %zu\n", i + 1);
@@ -2059,29 +2032,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         log_memory_used(label, vertices_size + indices_size);
     };
 
-    // format data into the buffers to be rendered as points
-    auto add_vertices_as_point = [](const GCodeProcessorResult::MoveVertex& curr, VertexBuffer& vertices) {
-        vertices.push_back(curr.position.x());
-        vertices.push_back(curr.position.y());
-        vertices.push_back(curr.position.z());
-    };
-    auto add_indices_as_point = [](const GCodeProcessorResult::MoveVertex& curr, TBuffer& buffer,
-        unsigned int ibuffer_id, IndexBuffer& indices, size_t move_id) {
-            buffer.add_path(curr, ibuffer_id, indices.size(), move_id);
-            indices.push_back(static_cast<IBufferType>(indices.size()));
-    };
-
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, VertexBuffer& vertices) {
-        auto add_vertex = [&vertices](const Vec3f& position, const Vec3f& normal) {
+        auto add_vertex = [&vertices](const Vec3f& position) {
             // add position
             vertices.push_back(position.x());
             vertices.push_back(position.y());
             vertices.push_back(position.z());
-            // add normal
-            vertices.push_back(normal.x());
-            vertices.push_back(normal.y());
-            vertices.push_back(normal.z());
         };
         // x component of the normal to the current segment (the normal is parallel to the XY plane)
         //BBS: Has modified a lot for this function to support arc move
@@ -2089,13 +2046,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         for (size_t i = 0; i < loop_num + 1; i++) {
             const Vec3f &previous = (i == 0? prev.position : curr.interpolation_points[i-1]);
             const Vec3f &current = (i == loop_num? curr.position : curr.interpolation_points[i]);
-            const Vec3f dir = (current - previous).normalized();
-            Vec3f normal(dir.y(), -dir.x(), 0.0);
-            normal.normalize();
             // add previous vertex
-            add_vertex(previous, normal);
+            add_vertex(previous);
             // add current vertex
-            add_vertex(current, normal);
+            add_vertex(current);
         }
     };
     //BBS: modify a lot to support arc travel
@@ -2332,28 +2286,27 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     };
 
     // format data into the buffers to be rendered as batched model
-    auto add_vertices_as_model_batch = [](const GCodeProcessorResult::MoveVertex& curr, const GLModel::InitializationData& data, VertexBuffer& vertices, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
+    auto add_vertices_as_model_batch = [](const GCodeProcessorResult::MoveVertex& curr, const GLModel::Geometry& data, VertexBuffer& vertices, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
         const double width = static_cast<double>(1.5f * curr.width);
         const double height = static_cast<double>(1.5f * curr.height);
 
         const Transform3d trafo = Geometry::assemble_transform((curr.position - 0.5f * curr.height * Vec3f::UnitZ()).cast<double>(), Vec3d::Zero(), { width, width, height });
         const Eigen::Matrix<double, 3, 3, Eigen::DontAlign> normal_matrix = trafo.matrix().template block<3, 3>(0, 0).inverse().transpose();
 
-        for (const auto& entity : data.entities) {
-            // append vertices
-            for (size_t i = 0; i < entity.positions.size(); ++i) {
-                // append position
-                const Vec3d position = trafo * entity.positions[i].cast<double>();
-                vertices.push_back(static_cast<float>(position.x()));
-                vertices.push_back(static_cast<float>(position.y()));
-                vertices.push_back(static_cast<float>(position.z()));
+        // append vertices
+        const size_t vertices_count = data.vertices_count();
+        for (size_t i = 0; i < vertices_count; ++i) {
+            // append position
+            const Vec3d position = trafo * data.extract_position_3(i).cast<double>();
+            vertices.push_back(float(position.x()));
+            vertices.push_back(float(position.y()));
+            vertices.push_back(float(position.z()));
 
-                // append normal
-                const Vec3d normal = normal_matrix * entity.normals[i].cast<double>();
-                vertices.push_back(static_cast<float>(normal.x()));
-                vertices.push_back(static_cast<float>(normal.y()));
-                vertices.push_back(static_cast<float>(normal.z()));
-            }
+            // append normal
+            const Vec3d normal = normal_matrix * data.extract_normal_3(i).cast<double>();
+            vertices.push_back(float(normal.x()));
+            vertices.push_back(float(normal.y()));
+            vertices.push_back(float(normal.z()));
         }
 
         // append instance position
@@ -2364,11 +2317,10 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         instances_ids.push_back(move_id);
     };
 
-    auto add_indices_as_model_batch = [](const GLModel::InitializationData& data, IndexBuffer& indices, IBufferType base_index) {
-        for (const auto& entity : data.entities) {
-            for (size_t i = 0; i < entity.indices.size(); ++i) {
-                indices.push_back(static_cast<IBufferType>(entity.indices[i] + base_index));
-            }
+    auto add_indices_as_model_batch = [](const GLModel::Geometry& data, IndexBuffer& indices, IBufferType base_index) {
+        const size_t indices_count = data.indices_count();
+        for (size_t i = 0; i < indices_count; ++i) {
+            indices.push_back(static_cast<IBufferType>(data.extract_index(i) + base_index));
         }
     };
 
@@ -2543,7 +2495,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 
         switch (t_buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point:    { add_vertices_as_point(curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Line:     { add_vertices_as_line(prev, curr, v_buffer); break; }
         case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, move_id); break; }
         case TBuffer::ERenderPrimitiveType::InstancedModel:
@@ -2931,8 +2882,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         if (i_multibuffer.back().size() * sizeof(IBufferType) >= IBUFFER_THRESHOLD_BYTES - indiced_size_to_add) {
             i_multibuffer.push_back(IndexBuffer());
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
-            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point &&
-                t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
+            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
                 Path& last_path = t_buffer.paths.back();
                 last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, move_id - 1);
             }
@@ -2949,8 +2899,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
             curr_vertex_buffer.second = 0;
             vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
 
-            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Point &&
-                t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
+            if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::BatchedModel) {
                 Path& last_path = t_buffer.paths.back();
                 last_path.add_sub_path(prev, static_cast<unsigned int>(i_multibuffer.size()) - 1, 0, move_id - 1);
             }
@@ -2960,11 +2909,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 
         switch (t_buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point: {
-            add_indices_as_point(curr, t_buffer, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, move_id);
-            curr_vertex_buffer.second += t_buffer.max_vertices_per_segment();
-            break;
-        }
         case TBuffer::ERenderPrimitiveType::Line: {
             add_indices_as_line(prev, curr, t_buffer, curr_vertex_buffer.second, static_cast<unsigned int>(i_multibuffer.size()) - 1, i_buffer, move_id);
             break;
@@ -3131,9 +3075,9 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 }
 
 //BBS: always load shell when preview
-void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)
+void GCodeViewer::load_shells(const Print& print, bool force_previewing)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": initialized=%1%, force_previewing=%2%")%initialized %force_previewing;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": force_previewing=%1%") %force_previewing;
     if ((print.id().id == m_shells.print_id)&&(print.get_modified_count() == m_shells.print_modify_count)) {
         //BBS: update force previewing logic
         if (force_previewing)
@@ -3181,7 +3125,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
         instance_ids.resize(instance_index);
 
         size_t current_volumes_count = m_shells.volumes.volumes.size();
-        m_shells.volumes.load_object(model_obj, object_idx, instance_ids, "object", initialized);
+        m_shells.volumes.load_object(model_obj, object_idx, instance_ids);
 
         // adjust shells' z if raft is present
         const SlicingParameters& slicing_parameters = obj->slicing_parameters();
@@ -3231,7 +3175,7 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
     for (GLVolume* volume : m_shells.volumes.volumes) {
         volume->zoom_to_volumes = false;
-        volume->color[3] = 0.5f;
+        volume->color.a(0.5f);
         volume->force_native_color = true;
         volume->set_render_color();
         //BBS: add shell bounding box logic
@@ -3254,7 +3198,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": enter, m_buffers size %1%!")%m_buffers.size();
     auto extrusion_color = [this](const Path& path) {
-        Color color;
+        ColorRGBA color;
         switch (m_view_type)
         {
         case EViewType::FeatureType:    { color = Extrusion_Role_Colors[static_cast<unsigned int>(path.role)]; break; }
@@ -3269,7 +3213,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:     {
             if (path.cp_color_id >= static_cast<unsigned char>(m_tools.m_tool_colors.size()))
-                color = { 0.5f, 0.5f, 0.5f, 1.0f };
+                color = ColorRGBA::GRAY();
             else {
                 color = m_tools.m_tool_colors[path.cp_color_id];
                 color = adjust_color_for_rendering(color);
@@ -3282,7 +3226,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             color      = {id, role, id, 1.0f};
             break;
         }
-        default: { color = { 1.0f, 1.0f, 1.0f, 1.0f }; break; }
+        default: { color = ColorRGBA::WHITE(); break; }
         }
 
         return color;
@@ -3515,7 +3459,7 @@ m_no_render_path = false;
         if (m_sequential_view.current.last < sub_path.first.s_id || sub_path.last.s_id < m_sequential_view.current.first)
             continue;
 
-        Color color;
+        ColorRGBA color;
         switch (path.type)
         {
         case EMoveType::Tool_change:
@@ -3560,10 +3504,6 @@ m_no_render_path = false;
         unsigned int size_in_indices = 0;
         switch (buffer.render_primitive_type)
         {
-        case TBuffer::ERenderPrimitiveType::Point: {
-            size_in_indices = buffer.indices_per_segment();
-            break;
-        }
         case TBuffer::ERenderPrimitiveType::Line:
         case TBuffer::ERenderPrimitiveType::Triangle: {
             // BBS: modify to support moves which has internal point
@@ -3807,69 +3747,20 @@ m_no_render_path = false;
 
 void GCodeViewer::render_toolpaths()
 {
-#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
-    float point_size = 20.0f;
-#else
-    float point_size = 0.8f;
-#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
-    std::array<float, 4> light_intensity = { 0.25f, 0.70f, 0.75f, 0.75f };
     const Camera& camera = wxGetApp().plater()->get_camera();
-    double zoom = camera.get_zoom();
-    const std::array<int, 4>& viewport = camera.get_viewport();
-    float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
-        static_cast<float>(viewport[3]) * 0.0005;
+    const double zoom = camera.get_zoom();
 
-    auto shader_init_as_points = [zoom, point_size, near_plane_height](GLShaderProgram& shader) {
-#if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
-        shader.set_uniform("use_fixed_screen_size", 1);
-#else
-        shader.set_uniform("use_fixed_screen_size", 0);
-#endif // ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
-        shader.set_uniform("zoom", zoom);
-        shader.set_uniform("percent_outline_radius", 0.0f);
-        shader.set_uniform("percent_center_radius", 0.33f);
-        shader.set_uniform("point_size", point_size);
-        shader.set_uniform("near_plane_height", near_plane_height);
-    };
-
-    auto render_as_points = [
-#if ENABLE_GCODE_VIEWER_STATISTICS
-        this
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
-        glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
-        glsafe(::glEnable(GL_POINT_SPRITE));
-
-        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
-            const RenderPath& path = *it;
-            // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
-            assert(! path.sizes.empty());
-            assert(! path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
-            glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
-#if ENABLE_GCODE_VIEWER_STATISTICS
-            ++m_statistics.gl_multi_points_calls_count;
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-        }
-
-        glsafe(::glDisable(GL_POINT_SPRITE));
-        glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
-    };
-
-    auto shader_init_as_lines = [light_intensity](GLShaderProgram &shader) {
-        shader.set_uniform("light_intensity", light_intensity);
-    };
     auto render_as_lines = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(! path.sizes.empty());
             assert(! path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            shader.set_uniform(uniform_color, path.color);
             glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_lines_calls_count;
@@ -3881,13 +3772,13 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<RenderPath>::reverse_iterator it_path, std::vector<RenderPath>::reverse_iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
         for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
             const RenderPath& path = *it;
             // Some OpenGL drivers crash on empty glMultiDrawElements, see GH #7415.
             assert(! path.sizes.empty());
             assert(! path.offsets.empty());
-            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            shader.set_uniform(uniform_color, path.color);
             glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_multi_triangles_calls_count;
@@ -3909,7 +3800,7 @@ void GCodeViewer::render_toolpaths()
             }
 
             if (range.vbo > 0) {
-                buffer.model.model.set_color(-1, range.color);
+                buffer.model.model.set_color(range.color);
                 buffer.model.model.render_instanced(range.vbo, range.count);
 #if ENABLE_GCODE_VIEWER_STATISTICS
                 ++m_statistics.gl_instanced_models_calls_count;
@@ -3920,9 +3811,9 @@ void GCodeViewer::render_toolpaths()
     };
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader) {
+        auto render_as_batched_model = [this](TBuffer& buffer, GLShaderProgram& shader, int position_id, int normal_id) {
 #else
-    auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader) {
+        auto render_as_batched_model = [](TBuffer& buffer, GLShaderProgram& shader, int position_id, int normal_id) {
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
         struct Range
@@ -3932,30 +3823,34 @@ void GCodeViewer::render_toolpaths()
             bool intersects(const Range& other) const { return (other.last < first || other.first > last) ? false : true; }
         };
         Range buffer_range = { 0, 0 };
-        size_t indices_per_instance = buffer.model.data.indices_count();
+        const size_t indices_per_instance = buffer.model.data.indices_count();
 
         for (size_t j = 0; j < buffer.indices.size(); ++j) {
             const IBuffer& i_buffer = buffer.indices[j];
             buffer_range.last = buffer_range.first + i_buffer.count / indices_per_instance;
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-            glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-            bool has_normals = buffer.vertices.normal_size_floats() > 0;
+            if (position_id != -1) {
+                glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                glsafe(::glEnableVertexAttribArray(position_id));
+            }
+            const bool has_normals = buffer.vertices.normal_size_floats() > 0;
             if (has_normals) {
-                glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+                if (normal_id != -1) {
+                    glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                    glsafe(::glEnableVertexAttribArray(normal_id));
+                }
             }
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
 
             for (auto& range : buffer.model.instances.render_ranges.ranges) {
-                Range range_range = { range.offset, range.offset + range.count };
+                const Range range_range = { range.offset, range.offset + range.count };
                 if (range_range.intersects(buffer_range)) {
                     shader.set_uniform("uniform_color", range.color);
-                    unsigned int offset = (range_range.first > buffer_range.first) ? range_range.first - buffer_range.first : 0;
-                    size_t offset_bytes = static_cast<size_t>(offset) * indices_per_instance * sizeof(IBufferType);
-                    Range render_range = { std::max(range_range.first, buffer_range.first), std::min(range_range.last, buffer_range.last) };
-                    size_t count = static_cast<size_t>(render_range.last - render_range.first) * indices_per_instance;
+                    const unsigned int offset = (range_range.first > buffer_range.first) ? range_range.first - buffer_range.first : 0;
+                    const size_t offset_bytes = static_cast<size_t>(offset) * indices_per_instance * sizeof(IBufferType);
+                    const Range render_range = { std::max(range_range.first, buffer_range.first), std::min(range_range.last, buffer_range.last) };
+                    const size_t count = static_cast<size_t>(render_range.last - render_range.first) * indices_per_instance;
                     if (count > 0) {
                         glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)count, GL_UNSIGNED_SHORT, (const void*)offset_bytes));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -3967,10 +3862,10 @@ void GCodeViewer::render_toolpaths()
 
             glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-            if (has_normals)
-                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
+            if (normal_id != -1)
+                glsafe(::glDisableVertexAttribArray(normal_id));
+            if (position_id != -1)
+                glsafe(::glDisableVertexAttribArray(position_id));
             glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
             buffer_range.first = buffer_range.last;
@@ -3981,9 +3876,8 @@ void GCodeViewer::render_toolpaths()
         return (zoom < 5.0) ? 1.0 : (1.0 + 5.0 * (zoom - 5.0) / (100.0 - 5.0));
     };
 
-    unsigned char begin_id = buffer_id(EMoveType::Retract);
-    unsigned char end_id = buffer_id(EMoveType::Count);
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":begin_id %1%, end_id %2% ")%(int)begin_id %(int)end_id;
+    const unsigned char begin_id = buffer_id(EMoveType::Retract);
+    const unsigned char end_id   = buffer_id(EMoveType::Count);
 
     for (unsigned char i = begin_id; i < end_id; ++i) {
         TBuffer& buffer = m_buffers[i];
@@ -3991,119 +3885,135 @@ void GCodeViewer::render_toolpaths()
             continue;
 
         GLShaderProgram* shader = wxGetApp().get_shader(buffer.shader.c_str());
-        if (shader != nullptr) {
-            shader->start_using();
+        if (shader == nullptr)
+            continue;
 
-            if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
-                shader->set_uniform("emission_factor", 0.25f);
-                render_as_instanced_model(buffer, *shader);
-                shader->set_uniform("emission_factor", 0.0f);
-            }
-            else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
-                shader->set_uniform("emission_factor", 0.25f);
-                render_as_batched_model(buffer, *shader);
-                shader->set_uniform("emission_factor", 0.0f);
-            }
-            else {
-                switch (buffer.render_primitive_type) {
-                case TBuffer::ERenderPrimitiveType::Point: shader_init_as_points(*shader); break;
-                case TBuffer::ERenderPrimitiveType::Line:  shader_init_as_lines(*shader); break;
-                default: break;
-                }
-                int uniform_color = shader->get_uniform_location("uniform_color");
-                auto it_path = buffer.render_paths.rbegin();
-                //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":buffer indices size %1%, render_path size %2% ")%buffer.indices.size() %buffer.render_paths.size();
-                unsigned int indices_count = static_cast<unsigned int>(buffer.indices.size());
-                for (unsigned int index = 0; index < indices_count; ++index) {
-                    unsigned int ibuffer_id = indices_count - index - 1;
-                    const IBuffer& i_buffer = buffer.indices[ibuffer_id];
-                    // Skip all paths with ibuffer_id < ibuffer_id.
-                    for (; it_path != buffer.render_paths.rend() && it_path->ibuffer_id > ibuffer_id; ++ it_path) ;
-                    if (it_path == buffer.render_paths.rend() || it_path->ibuffer_id < ibuffer_id)
-                        // Not found. This shall not happen.
-                        continue;
+        shader->start_using();
 
-                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
-                    glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
-                    glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-                    bool has_normals = buffer.vertices.normal_size_floats() > 0;
-                    if (has_normals) {
-                        glsafe(::glNormalPointer(GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
-                        glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
-                    }
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
 
-                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
-
-                    // Render all elements with it_path->ibuffer_id == ibuffer_id, possible with varying colors.
-                    switch (buffer.render_primitive_type)
-                    {
-                    case TBuffer::ERenderPrimitiveType::Point: {
-                        render_as_points(it_path, buffer.render_paths.rend(), *shader, uniform_color);
-                        break;
-                    }
-                    case TBuffer::ERenderPrimitiveType::Line: {
-                        glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
-                        render_as_lines(it_path, buffer.render_paths.rend(), *shader, uniform_color);
-                        break;
-                    }
-                    case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(it_path, buffer.render_paths.rend(), *shader, uniform_color);
-                        break;
-                    }
-                    default: { break; }
-                    }
-
-                    glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-                    if (has_normals)
-                        glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
-
-                    glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-                    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-                }
-            }
-
-            shader->stop_using();
+        if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
+            shader->set_uniform("emission_factor", 0.25f);
+            render_as_instanced_model(buffer, *shader);
+            shader->set_uniform("emission_factor", 0.0f);
         }
+        else if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
+            shader->set_uniform("emission_factor", 0.25f);
+            const int position_id = shader->get_attrib_location("v_position");
+            const int normal_id   = shader->get_attrib_location("v_normal");
+            render_as_batched_model(buffer, *shader, position_id, normal_id);
+            shader->set_uniform("emission_factor", 0.0f);
+        }
+        else {
+            const int position_id = shader->get_attrib_location("v_position");
+            const int normal_id   = shader->get_attrib_location("v_normal");
+            const int uniform_color = shader->get_uniform_location("uniform_color");
+
+            auto it_path = buffer.render_paths.begin();
+            for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
+                const IBuffer& i_buffer = buffer.indices[ibuffer_id];
+                // Skip all paths with ibuffer_id < ibuffer_id.
+                for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++it_path);
+                if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
+                    // Not found. This shall not happen.
+                    continue;
+
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
+                if (position_id != -1) {
+                    glsafe(::glVertexAttribPointer(position_id, buffer.vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
+                    glsafe(::glEnableVertexAttribArray(position_id));
+                }
+                const bool has_normals = buffer.vertices.normal_size_floats() > 0;
+                if (has_normals) {
+                    if (normal_id != -1) {
+                        glsafe(::glVertexAttribPointer(normal_id, buffer.vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.normal_offset_bytes()));
+                        glsafe(::glEnableVertexAttribArray(normal_id));
+                    }
+                }
+
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
+
+                // Render all elements with it_path->ibuffer_id == ibuffer_id, possible with varying colors.
+                switch (buffer.render_primitive_type)
+                {
+                case TBuffer::ERenderPrimitiveType::Line: {
+                    glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
+                    render_as_lines(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                    break;
+                }
+                case TBuffer::ERenderPrimitiveType::Triangle: {
+                    render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
+                    break;
+                }
+                default: { break; }
+                }
+
+                glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+                if (normal_id != -1)
+                    glsafe(::glDisableVertexAttribArray(normal_id));
+                if (position_id != -1)
+                    glsafe(::glDisableVertexAttribArray(position_id));
+                glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            }
+        }
+
+        shader->stop_using();
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_sequential_range_cap = [this]
+    auto render_sequential_range_cap = [this, &camera]
 #else
-    auto render_sequential_range_cap = []
+    auto render_sequential_range_cap = [&camera]
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     (const SequentialRangeCap& cap) {
-        GLShaderProgram* shader = wxGetApp().get_shader(cap.buffer->shader.c_str());
-        if (shader != nullptr) {
-            shader->start_using();
+        const TBuffer* buffer = cap.buffer;
+        GLShaderProgram* shader = wxGetApp().get_shader(buffer->shader.c_str());
+        if (shader == nullptr)
+            return;
 
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, cap.vbo));
-            glsafe(::glVertexPointer(cap.buffer->vertices.position_size_floats(), GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.position_offset_bytes()));
-            glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
-            bool has_normals = cap.buffer->vertices.normal_size_floats() > 0;
-            if (has_normals) {
-                glsafe(::glNormalPointer(GL_FLOAT, cap.buffer->vertices.vertex_size_bytes(), (const void*)cap.buffer->vertices.normal_offset_bytes()));
-                glsafe(::glEnableClientState(GL_NORMAL_ARRAY));
+        shader->start_using();
+
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        shader->set_uniform("view_normal_matrix", (Matrix3d)Matrix3d::Identity());
+
+        const int position_id = shader->get_attrib_location("v_position");
+        const int normal_id   = shader->get_attrib_location("v_normal");
+
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, cap.vbo));
+        if (position_id != -1) {
+            glsafe(::glVertexAttribPointer(position_id, buffer->vertices.position_size_floats(), GL_FLOAT, GL_FALSE, buffer->vertices.vertex_size_bytes(), (const void*)buffer->vertices.position_offset_bytes()));
+            glsafe(::glEnableVertexAttribArray(position_id));
+        }
+        const bool has_normals = buffer->vertices.normal_size_floats() > 0;
+        if (has_normals) {
+            if (normal_id != -1) {
+                glsafe(::glVertexAttribPointer(normal_id, buffer->vertices.normal_size_floats(), GL_FLOAT, GL_FALSE, buffer->vertices.vertex_size_bytes(), (const void*)buffer->vertices.normal_offset_bytes()));
+                glsafe(::glEnableVertexAttribArray(normal_id));
             }
+        }
 
-            shader->set_uniform("uniform_color", cap.color);
+        shader->set_uniform("uniform_color", cap.color);
 
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cap.ibo));
-            glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)cap.indices_count(), GL_UNSIGNED_SHORT, nullptr));
-            glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cap.ibo));
+        glsafe(::glDrawElements(GL_TRIANGLES, (GLsizei)cap.indices_count(), GL_UNSIGNED_SHORT, nullptr));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
             ++m_statistics.gl_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
-            if (has_normals)
-                glsafe(::glDisableClientState(GL_NORMAL_ARRAY));
+        if (normal_id != -1)
+            glsafe(::glDisableVertexAttribArray(normal_id));
+        if (position_id != -1)
+            glsafe(::glDisableVertexAttribArray(position_id));
 
-            glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
-            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-            shader->stop_using();
-        }
+        shader->stop_using();
     };
 
     for (unsigned int i = 0; i < 2; ++i) {
@@ -4123,23 +4033,16 @@ void GCodeViewer::render_shells()
     if (shader == nullptr)
         return;
 
-    // when the background processing is enabled, it may happen that the shells data have been loaded
-    // before opengl has been initialized for the preview canvas.
-    // when this happens, the volumes' data have not been sent to gpu yet.
-    for (GLVolume* v : m_shells.volumes.volumes) {
-        if (!v->indexed_vertex_array.has_VBOs())
-            v->finalize_geometry(true);
-    }
-
-    glsafe(::glEnable(GL_DEPTH_TEST));
-//    glsafe(::glDepthMask(GL_FALSE));
+    glsafe(::glDepthMask(GL_FALSE));
 
     shader->start_using();
-    //BBS: reopen cul faces
-    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, false, wxGetApp().plater()->get_camera().get_view_matrix());
+    shader->set_uniform("emission_factor", 0.1f);
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    m_shells.volumes.render(GLVolumeCollection::ERenderType::Transparent, true, camera.get_view_matrix(), camera.get_projection_matrix());
+    shader->set_uniform("emission_factor", 0.0f);
     shader->stop_using();
 
-    //    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDepthMask(GL_TRUE));
 }
 
 //BBS
@@ -4168,7 +4071,8 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
     std::vector<float> filament_diameters = gcode_result_list.front()->filament_diameters;
     std::vector<float> filament_densities = gcode_result_list.front()->filament_densities;
-    std::vector<Color> filament_colors = decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()));
+    std::vector<ColorRGBA> filament_colors;
+    decode_colors(wxGetApp().plater()->get_extruder_colors_from_plater_config(gcode_result_list.back()), filament_colors);
 
     for (int i = 0; i < filament_colors.size(); i++) { 
         filament_colors[i] = adjust_color_for_rendering(filament_colors[i]);
@@ -4213,13 +4117,13 @@ void GCodeViewer::render_all_plates_stats(const std::vector<const GCodeProcessor
 
         return ret;
     };
-    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](const Color& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
+    auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](const ColorRGBA& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
     {
         // render icon
         ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
 
         draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-            ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+            ImGuiWrapper::to_ImU32(color));
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(20.0 * m_scale, 6.0 * m_scale));
 
@@ -4425,7 +4329,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](
         EItemType type,
-        const Color& color,
+        const ColorRGBA& color,
         const std::vector<std::pair<std::string, float>>& columns_offsets,
         bool checkbox = true,
         bool visible = true,
@@ -4437,21 +4341,21 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         default:
         case EItemType::Rect: {
             draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
-                                     ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+                                     ImGuiWrapper::to_ImU32(color));
             break;
         }
         case EItemType::Circle: {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 16);
+            draw_list->AddCircleFilled(center, 0.5f * icon_size, ImGuiWrapper::to_ImU32(color), 16);
             break;
         }
         case EItemType::Hexagon: {
             ImVec2 center(0.5f * (pos.x + pos.x + icon_size), 0.5f * (pos.y + pos.y + icon_size + 5.0f));
-            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 6);
+            draw_list->AddNgonFilled(center, 0.5f * icon_size, ImGuiWrapper::to_ImU32(color), 6);
             break;
         }
         case EItemType::Line: {
-            draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }), 3.0f);
+            draw_list->AddLine({ pos.x + 1, pos.y + icon_size + 2 }, { pos.x + icon_size - 1, pos.y + 4 }, ImGuiWrapper::to_ImU32(color), 3.0f);
             break;
         case EItemType::None:
             break;
@@ -4567,7 +4471,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     };
 
     auto color_print_ranges = [this](unsigned char extruder_id, const std::vector<CustomGCode::Item>& custom_gcode_per_print_z) {
-        std::vector<std::pair<Color, std::pair<double, double>>> ret;
+        std::vector<std::pair<ColorRGBA, std::pair<double, double>>> ret;
         ret.reserve(custom_gcode_per_print_z.size());
 
         for (const auto& item : custom_gcode_per_print_z) {
@@ -4587,7 +4491,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
             // to avoid duplicate values, check adding values
             if (ret.empty() || !(ret.back().second.first == previous_z && ret.back().second.second == current_z))
-                ret.push_back({ decode_color(item.color), { previous_z, current_z } });
+            {
+                ColorRGBA color;
+                decode_color(item.color, color);
+                ret.push_back({ color, { previous_z, current_z } });
+            }
         }
 
         return ret;
@@ -4834,7 +4742,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
 
     auto append_option_item = [this, append_item](EMoveType type, std::vector<float> offsets) {
-        auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const Color& color, const std::string& label, bool visible) {
+        auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const ColorRGBA& color, const std::string& label, bool visible) {
             append_item(EItemType::Rect, color, {{ label , offsets[0] }}, true, visible, [this, type, visible]() {
                 m_buffers[buffer_id(type)].visible = !m_buffers[buffer_id(type)].visible;
                 // update buffers' render paths
@@ -4958,7 +4866,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (need_scrollable)
             ImGui::BeginChild("color_prints", { -1.0f, child_height }, false);
         if (m_extruder_ids.size() == 1) { // single extruder use case
-            const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
+            const std::vector<std::pair<ColorRGBA, std::pair<double, double>>> cp_values = color_print_ranges(0, custom_gcode_per_print_z);
             const int items_cnt = static_cast<int>(cp_values.size());
             auto extruder_idx = m_extruder_ids[0];
             if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
@@ -4990,7 +4898,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             // shows only extruders actually used
             size_t i = 0;
             for (auto extruder_idx : m_extruder_ids) {
-                const std::vector<std::pair<Color, std::pair<double, double>>> cp_values = color_print_ranges(extruder_idx, custom_gcode_per_print_z);
+                const std::vector<std::pair<ColorRGBA, std::pair<double, double>>> cp_values = color_print_ranges(extruder_idx, custom_gcode_per_print_z);
                 const int items_cnt = static_cast<int>(cp_values.size());
                 if (items_cnt == 0) { // There are no color changes, but there are some pause print or custom Gcode
                     const bool filament_visible = m_tools.m_tool_visibles[extruder_idx];
@@ -5119,8 +5027,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             };
             EType type;
             int extruder_id;
-            Color color1;
-            Color color2;
+            ColorRGBA color1;
+            ColorRGBA color2;
             Times times;
             std::pair<double, double> used_filament {0.0f, 0.0f};
         };
@@ -5131,7 +5039,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
             //BBS: replace model custom gcode with current plate custom gcode
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes : m_custom_gcode_per_print_z;
-            std::vector<Color> last_color(m_extruders_count);
+            std::vector<ColorRGBA> last_color(m_extruders_count);
             for (size_t i = 0; i < m_extruders_count; ++i) {
                 last_color[i] = m_tools.m_tool_colors[i];
             }
@@ -5143,8 +5051,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 case CustomGCode::PausePrint: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second });
-                        items.push_back({ PartialTime::EType::Pause, it->extruder, Color(), Color(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], ColorRGBA::BLACK(), time_rec.second });
+                        items.push_back({ PartialTime::EType::Pause, it->extruder, ColorRGBA::BLACK(), ColorRGBA::BLACK(), time_rec.second });
                         custom_gcode_per_print_z.erase(it);
                     }
                     break;
@@ -5152,14 +5060,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 case CustomGCode::ColorChange: {
                     auto it = std::find_if(custom_gcode_per_print_z.begin(), custom_gcode_per_print_z.end(), [time_rec](const CustomGCode::Item& item) { return item.type == time_rec.first; });
                     if (it != custom_gcode_per_print_z.end()) {
-                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], Color(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], it->extruder-1) });
-                        items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], decode_color(it->color), time_rec.second });
-                        last_color[it->extruder - 1] = decode_color(it->color);
+                        items.push_back({ PartialTime::EType::Print, it->extruder, last_color[it->extruder - 1], ColorRGBA::BLACK(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], it->extruder - 1) });
+                        ColorRGBA color;
+                        decode_color(it->color, color);
+                        items.push_back({ PartialTime::EType::ColorChange, it->extruder, last_color[it->extruder - 1], color, time_rec.second });
+                        last_color[it->extruder - 1] = color;
                         last_extruder_id = it->extruder;
                         custom_gcode_per_print_z.erase(it);
                     }
                     else
-                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], Color(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], last_extruder_id -1) });
+                        items.push_back({ PartialTime::EType::Print, last_extruder_id, last_color[last_extruder_id - 1], ColorRGBA::BLACK(), time_rec.second, get_used_filament_from_volume(used_filaments[color_change_idx++], last_extruder_id - 1) });
 
                     break;
                 }
@@ -5170,7 +5080,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             return items;
         };
 
-        auto append_color_change = [&imgui](const Color& color1, const Color& color2, const std::array<float, 4>& offsets, const Times& times) {
+        auto append_color_change = [&imgui](const ColorRGBA& color1, const ColorRGBA& color2, const std::array<float, 4>& offsets, const Times& times) {
             imgui.text(_u8L("Color change"));
             ImGui::SameLine();
 
@@ -5180,16 +5090,16 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGui::GetColorU32({ color1[0], color1[1], color1[2], 1.0f }));
+                ImGuiWrapper::to_ImU32(color1));
             pos.x += icon_size;
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGui::GetColorU32({ color2[0], color2[1], color2[2], 1.0f }));
+                ImGuiWrapper::to_ImU32(color2));
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second - times.first)));
         };
 
-        auto append_print = [&imgui, imperial_units](const Color& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
+        auto append_print = [&imgui, imperial_units](const ColorRGBA& color, const std::array<float, 4>& offsets, const Times& times, std::pair<double, double> used_filament) {
             imgui.text(_u8L("Print"));
             ImGui::SameLine();
 
@@ -5199,7 +5109,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             pos.x -= 0.5f * ImGui::GetStyle().ItemSpacing.x;
 
             draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 1.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size - 1.0f },
-                ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
+                ImGuiWrapper::to_ImU32(color));
 
             ImGui::SameLine(offsets[0]);
             imgui.text(short_time(get_time_dhms(times.second)));
@@ -5419,6 +5329,74 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
         }
     }
+    // Custom g-code overview
+    std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ?
+                                                                  wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
+                                                                  m_custom_gcode_per_print_z;
+    if (custom_gcode_per_print_z.size() != 0) {
+        float max_len = window_padding + 2 * ImGui::GetStyle().ItemSpacing.x;
+        ImGui::Spacing();
+        // Title Line
+        std::string cgcode_title_str       = _u8L("Custom g-code");
+        std::string cgcode_layer_str       = _u8L("Layer");
+        std::string cgcode_time_str        =  _u8L("Time");
+        // Types of custom gcode
+        std::string cgcode_pause_str = _u8L("Pause");
+        std::string cgcode_template_str= _u8L("Template");
+        std::string cgcode_toolchange_str = _u8L("ToolChange");
+        std::string cgcode_custom_str = _u8L("Custom");
+        std::string cgcode_unknown_str = _u8L("Unknown");
+
+        // Get longest String
+        max_len += std::max(ImGui::CalcTextSize(cgcode_title_str.c_str()).x,
+                                              std::max(ImGui::CalcTextSize(cgcode_pause_str.c_str()).x,
+                                                       std::max(ImGui::CalcTextSize(cgcode_template_str.c_str()).x,
+                                                                std::max(ImGui::CalcTextSize(cgcode_toolchange_str.c_str()).x,
+                                                                         std::max(ImGui::CalcTextSize(cgcode_custom_str.c_str()).x,
+                                                                                  ImGui::CalcTextSize(cgcode_unknown_str.c_str()).x))))
+
+        );
+       
+        ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+        ImGui::Dummy({window_padding, window_padding});
+        ImGui::SameLine();
+        imgui.title(cgcode_title_str,true);
+        ImGui::SameLine(max_len);
+        imgui.title(cgcode_layer_str, true);
+        ImGui::SameLine(max_len*1.5);
+        imgui.title(cgcode_time_str, false);
+
+        for (Slic3r::CustomGCode::Item custom_gcode : custom_gcode_per_print_z) {
+            ImGui::Dummy({window_padding, window_padding});
+            ImGui::SameLine();
+
+            switch (custom_gcode.type) {
+            case PausePrint: imgui.text(cgcode_pause_str); break;
+            case Template: imgui.text(cgcode_template_str); break;
+            case ToolChange: imgui.text(cgcode_toolchange_str); break;
+            case Custom: imgui.text(cgcode_custom_str); break;
+            default: imgui.text(cgcode_unknown_str); break;
+            }
+            ImGui::SameLine(max_len);
+            char buf[64];
+            int  layer = m_layers.get_l_at(custom_gcode.print_z);
+            ::sprintf(buf, "%d",layer );
+            imgui.text(buf);
+            ImGui::SameLine(max_len * 1.5);
+            
+            std::vector<float> layer_times = m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
+            float custom_gcode_time = 0;
+            if (layer > 0)
+            {
+                for (int i = 0; i < layer-1; i++) {
+                    custom_gcode_time += layer_times[i];
+                }
+            }
+            imgui.text(short_time(get_time_dhms(custom_gcode_time)));
+
+        }
+    }
+
 
     // total estimated printing time section
     if (show_estimated) {
@@ -5496,10 +5474,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             imgui.text(buf);
         }
 
-        auto role_time = [time_mode](ExtrusionRole role) {
+            auto role_time = [time_mode](ExtrusionRole role) {
             auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
-            return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
-        };
+                return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
+            };
         //BBS: start gcode is mostly same with prepeare time
         if (time_mode.prepare_time != 0.0f) {
             ImGui::Dummy({ window_padding, window_padding });
@@ -5595,13 +5573,13 @@ void GCodeViewer::render_statistics()
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
 
-    auto add_time = [this, &imgui](const std::string& label, int64_t time) {
+    auto add_time = [&imgui](const std::string& label, int64_t time) {
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
         imgui.text(std::to_string(time) + " ms (" + get_time_dhms(static_cast<float>(time) * 0.001f) + ")");
     };
 
-    auto add_memory = [this, &imgui](const std::string& label, int64_t memory) {
+    auto add_memory = [&imgui](const std::string& label, int64_t memory) {
         auto format_string = [memory](const std::string& units, float value) {
             return std::to_string(memory) + " bytes (" +
                    Slic3r::float_to_string_decimal_point(float(memory) * value, 3)
@@ -5624,7 +5602,7 @@ void GCodeViewer::render_statistics()
             imgui.text(format_string("GB", inv_gb));
     };
 
-    auto add_counter = [this, &imgui](const std::string& label, int64_t counter) {
+    auto add_counter = [&imgui](const std::string& label, int64_t counter) {
         imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, label);
         ImGui::SameLine(offset);
         imgui.text(std::to_string(counter));
@@ -5648,7 +5626,6 @@ void GCodeViewer::render_statistics()
     }
 
     if (ImGui::CollapsingHeader("OpenGL calls")) {
-        add_counter(std::string("Multi GL_POINTS:"), m_statistics.gl_multi_points_calls_count);
         add_counter(std::string("Multi GL_LINES:"), m_statistics.gl_multi_lines_calls_count);
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
         add_counter(std::string("GL_TRIANGLES:"), m_statistics.gl_triangles_calls_count);
@@ -5713,7 +5690,7 @@ void GCodeViewer::log_memory_used(const std::string& label, int64_t additional) 
     }
 }
 
-GCodeViewer::Color GCodeViewer::option_color(EMoveType move_type) const
+ColorRGBA GCodeViewer::option_color(EMoveType move_type) const
 {
     switch (move_type)
     {

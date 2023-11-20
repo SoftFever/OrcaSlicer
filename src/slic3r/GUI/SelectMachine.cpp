@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/Color.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -3643,7 +3644,6 @@ void SelectMachineDialog::set_default_normal()
 
     //init MaterialItem
     auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
-    BitmapCache bmcache;
 
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
@@ -3661,10 +3661,10 @@ void SelectMachineDialog::set_default_normal()
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
         auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
-        unsigned char rgb[4];
-        bmcache.parse_color4(colour, rgb);
+        ColorRGBA     rgb;
+        decode_color(colour, rgb);
 
-        auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
+        auto          colour_rgb = wxColour((int) rgb.r_uchar(), (int) rgb.g_uchar(), (int) rgb.b_uchar(), (int) rgb.a_uchar());
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
 

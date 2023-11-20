@@ -1021,7 +1021,6 @@ void WipeTower2::toolchange_Change(
 
     // This is where we want to place the custom gcodes. We will use placeholders for this.
     // These will be substituted by the actual gcodes when the gcode is generated.
-    writer.append("[filament_end_gcode]\n");
     writer.append("[change_filament_gcode]\n");
 
     // Travel to where we assume we are. Custom toolchange or some special T code handling (parking extruder etc)
@@ -1093,7 +1092,8 @@ void WipeTower2::toolchange_Wipe(
 	float dy = (is_first_layer() ? 1.f : m_extra_spacing) * m_perimeter_width; // Don't use the extra spacing for the first layer.
     // All the calculations in all other places take the spacing into account for all the layers.
 
-    const float target_speed = is_first_layer() ? m_first_layer_speed * 60.f : m_infill_speed * 60.f;
+	// If spare layers are excluded->if 1 or less toolchange has been done, it must be sill the first layer, too.So slow down.
+    const float target_speed = is_first_layer() || (m_num_tool_changes <= 1 && m_no_sparse_layers) ? m_first_layer_speed * 60.f : std::min(5400.f, m_infill_speed * 60.f);
     float wipe_speed = 0.33f * target_speed;
 
     // if there is less than 2.5*m_perimeter_width to the edge, advance straightaway (there is likely a blob anyway)
@@ -1161,9 +1161,10 @@ WipeTower::ToolChangeResult WipeTower2::finish_layer()
 
 
 	// Slow down on the 1st layer.
-    bool first_layer = is_first_layer();
-    float feedrate = first_layer ? m_first_layer_speed * 60.f : m_infill_speed * 60.f;
-	float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
+    // If spare layers are excluded -> if 1 or less toolchange has been done, it must be still the first layer, too. So slow down.
+    bool first_layer = is_first_layer() || (m_num_tool_changes <= 1 && m_no_sparse_layers);
+    float                      feedrate      = first_layer ? m_first_layer_speed * 60.f : std::min(5400.f, m_infill_speed * 60.f);
+    float current_depth = m_layer_info->depth - m_layer_info->toolchanges_depth();
     WipeTower::box_coordinates fill_box(Vec2f(m_perimeter_width, m_layer_info->depth-(current_depth-m_perimeter_width)),
                              m_wipe_tower_width - 2 * m_perimeter_width, current_depth-m_perimeter_width);
 

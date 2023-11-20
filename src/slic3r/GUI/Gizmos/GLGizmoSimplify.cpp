@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Hejl @hejllukas, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Filip Sykala @Jony01, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoSimplify.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -6,6 +10,7 @@
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/QuadricEdgeCollapse.hpp"
@@ -622,7 +627,7 @@ void GLGizmoSimplify::init_model(const indexed_triangle_set& its)
         m_c->selection_info()->get_active_instance(), m_volume);
 
     if (const Selection&sel = m_parent.get_selection(); sel.get_volume_idxs().size() == 1)
-        m_glmodel.set_color(-1, sel.get_volume(*sel.get_volume_idxs().begin())->color);
+        m_glmodel.set_color(sel.get_volume(*sel.get_volume_idxs().begin())->color);
     m_triangle_count = its.indices.size();
 }
 
@@ -641,19 +646,28 @@ void GLGizmoSimplify::on_render()
         return;
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
-    glsafe(::glPushMatrix());
-    glsafe(::glMultMatrixd(trafo_matrix.data()));
-
-    auto *gouraud_shader = wxGetApp().get_shader("gouraud_light");
+    auto* gouraud_shader = wxGetApp().get_shader("gouraud_light");
     glsafe(::glPushAttrib(GL_DEPTH_TEST));
     glsafe(::glEnable(GL_DEPTH_TEST));
     gouraud_shader->start_using();
+    const Camera& camera = wxGetApp().plater()->get_camera();
+    const Transform3d& view_matrix = camera.get_view_matrix();
+    const Transform3d view_model_matrix = view_matrix * trafo_matrix;
+    gouraud_shader->set_uniform("view_model_matrix", view_model_matrix);
+    gouraud_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+    const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+    gouraud_shader->set_uniform("view_normal_matrix", view_normal_matrix);
     m_glmodel.render();
     gouraud_shader->stop_using();
 
     if (m_show_wireframe) {
         auto* contour_shader = wxGetApp().get_shader("mm_contour");
         contour_shader->start_using();
+        contour_shader->set_uniform("offset", OpenGLManager::get_gl_info().is_mesa() ? 0.0005 : 0.00001);
+        contour_shader->set_uniform("view_model_matrix", view_model_matrix);
+        contour_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const ColorRGBA color = m_glmodel.get_color();
+        m_glmodel.set_color(ColorRGBA::WHITE());
         glsafe(::glLineWidth(1.0f));
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
         //ScopeGuard offset_fill_guard([]() { glsafe(::glDisable(GL_POLYGON_OFFSET_FILL)); });
@@ -661,11 +675,11 @@ void GLGizmoSimplify::on_render()
         //glsafe(::glPolygonOffset(5.0, 5.0));
         m_glmodel.render();
         glsafe(::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+        m_glmodel.set_color(color);
         contour_shader->stop_using();
     }
 
     glsafe(::glPopAttrib());
-    glsafe(::glPopMatrix());
 }
 
 

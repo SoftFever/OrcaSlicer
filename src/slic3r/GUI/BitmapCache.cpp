@@ -673,47 +673,6 @@ wxBitmap BitmapCache::mksolid(size_t width, size_t height, unsigned char r, unsi
     return wxImage_to_wxBitmap_with_alpha(std::move(image), scale);
 }
 
-bool BitmapCache::parse_color(const std::string& scolor, unsigned char* rgb_out)
-{
-    if (scolor.size() == 9) {
-        unsigned char rgba[4];
-        parse_color4(scolor, rgba);
-        rgb_out[0] = rgba[0];
-        rgb_out[1] = rgba[1];
-        rgb_out[2] = rgba[2];
-        return true;
-    }
-    rgb_out[0] = rgb_out[1] = rgb_out[2] = 0;
-    if (scolor.size() != 7 || scolor.front() != '#')
-        return false;
-    const char* c = scolor.data() + 1;
-    for (size_t i = 0; i < 3; ++i) {
-        int digit1 = hex_digit_to_int(*c++);
-        int digit2 = hex_digit_to_int(*c++);
-        if (digit1 == -1 || digit2 == -1)
-            return false;
-        rgb_out[i] = (unsigned char)(digit1 * 16 + digit2);
-    }
-
-    return true;
-}
-
-bool BitmapCache::parse_color4(const std::string& scolor, unsigned char* rgba_out)
-{
-    rgba_out[0] = rgba_out[1] = rgba_out[2] = 0; rgba_out[3] = 255;
-    if ((scolor.size() != 7 && scolor.size() != 9) || scolor.front() != '#')
-        return false;
-    const char* c = scolor.data() + 1;
-    for (size_t i = 0; i < scolor.size() / 2; ++i) {
-        int digit1 = hex_digit_to_int(*c++);
-        int digit2 = hex_digit_to_int(*c++);
-        if (digit1 == -1 || digit2 == -1)
-            return false;
-        rgba_out[i] = (unsigned char)(digit1 * 16 + digit2);
-    }
-    return true;
-}
-
 //we make scaled solid bitmaps only for the cases, when its will be used with scaled SVG icon in one output bitmap
 wxBitmapBundle BitmapCache::mksolid(size_t width_in, size_t height_in, unsigned char r, unsigned char g, unsigned char b, unsigned char transparency, size_t border_width /*= 0*/, bool dark_mode/* = false*/)
 {
@@ -781,13 +740,9 @@ wxBitmapBundle* BitmapCache::mksolid_bndl(size_t width, size_t height, const std
         if (color.empty())
             bndl = new wxBitmapBundle(mksolid(width, height, 0, 0, 0, wxALPHA_TRANSPARENT, size_t(0)));
         else {
-            //OcraftyoneTODO: replace with ColorRGB class
-//            ColorRGB rgb;// [3]
-//            decode_color(color, rgb);
-            unsigned char rgb[3];
-            parse_color(into_u8(color), rgb);
-//            bndl = new wxBitmapBundle(mksolid(width, height, rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar(), wxALPHA_OPAQUE, border_width, dark_mode));
-            bndl = new wxBitmapBundle(mksolid(width, height, rgb[0], rgb[1], rgb[2], wxALPHA_OPAQUE, border_width, dark_mode));
+            ColorRGB rgb;// [3]
+            decode_color(color, rgb);
+            bndl = new wxBitmapBundle(mksolid(width, height, rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar(), wxALPHA_OPAQUE, border_width, dark_mode));
         }
         m_bndl_map[bitmap_key] = bndl;
     }
