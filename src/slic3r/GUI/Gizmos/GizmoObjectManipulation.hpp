@@ -6,6 +6,8 @@
 #include "libslic3r/Point.hpp"
 #include <float.h>
 
+#include "slic3r/GUI/GUI_Geometry.hpp"
+
 //#include "slic3r/GUI/GLCanvas3D.hpp"
 
 namespace Slic3r {
@@ -81,8 +83,7 @@ public:
     Vec3d           m_buffered_size;
     bool            m_new_enabled {true};
     bool            m_uniform_scale {true};
-    // Does the object manipulation panel work in World or Local coordinates?
-    bool            m_world_coordinates = true;
+    ECoordinatesType m_coordinates_type{ ECoordinatesType::World };
 
     bool            m_show_clear_rotation { false };
     bool            m_show_clear_scale { false };
@@ -107,9 +108,12 @@ public:
 
     void        set_uniform_scaling(const bool uniform_scale);
     bool        get_uniform_scaling() const { return m_uniform_scale; }
-    // Does the object manipulation panel work in World or Local coordinates?
-    void        set_world_coordinates(const bool world_coordinates) { m_world_coordinates = world_coordinates; this->UpdateAndShow(true); }
-    bool        get_world_coordinates() const { return m_world_coordinates; }
+
+    void             set_coordinates_type(ECoordinatesType type);
+    ECoordinatesType get_coordinates_type() const;
+    bool             is_world_coordinates() const { return m_coordinates_type == ECoordinatesType::World; }
+    bool             is_instance_coordinates() const { return m_coordinates_type == ECoordinatesType::Instance; }
+    bool             is_local_coordinates() const { return m_coordinates_type == ECoordinatesType::Local; }
 
     void reset_cache() { m_cache.reset(); }
 

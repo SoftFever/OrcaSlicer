@@ -404,6 +404,7 @@ public:
     void clear_before_change_mesh(int obj_idx);
     void changed_mesh(int obj_idx);
 
+    void changed_object(ModelObject &object);
     void changed_object(int obj_idx);
     void changed_objects(const std::vector<size_t>& object_idxs);
     void schedule_background_process(bool schedule = true);
@@ -515,10 +516,6 @@ public:
 
     //BBS:
     void fill_color(int extruder_id);
-
-    //BBS:
-    void edit_text();
-    bool can_edit_text() const;
 
     bool can_delete() const;
     bool can_delete_all() const;

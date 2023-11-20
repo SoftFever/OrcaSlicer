@@ -1,3 +1,14 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Filip Sykala @Jony01, Lukáš Matěna @lukasmatena, Tomáš Mészáros @tamasmeszaros, Enrico Turri @enricoturri1966
+///|/ Copyright (c) Slic3r 2013 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2014 Petr Ledvina @ledvinap
+///|/
+///|/ ported from lib/Slic3r/Polygon.pm:
+///|/ Copyright (c) Prusa Research 2017 - 2022 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2014 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2012 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
 #include "Exception.hpp"
@@ -452,6 +463,38 @@ bool has_duplicate_points(const Polygons &polys)
             return true;
     return false;
 #endif
+}
+
+bool remove_same_neighbor(Polygon &polygon)
+{
+    Points &points = polygon.points;
+    if (points.empty())
+        return false;
+    auto last = std::unique(points.begin(), points.end());
+
+    // remove first and last neighbor duplication
+    if (const Point &last_point = *(last - 1); last_point == points.front()) {
+        --last;
+    }
+
+    // no duplicits
+    if (last == points.end())
+        return false;
+
+    points.erase(last, points.end());
+    return true;
+}
+
+bool remove_same_neighbor(Polygons &polygons)
+{
+    if (polygons.empty())
+        return false;
+    bool exist = false;
+    for (Polygon &polygon : polygons)
+        exist |= remove_same_neighbor(polygon);
+    // remove empty polygons
+    polygons.erase(std::remove_if(polygons.begin(), polygons.end(), [](const Polygon &p) { return p.points.size() <= 2; }), polygons.end());
+    return exist;
 }
 
 static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)

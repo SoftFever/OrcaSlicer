@@ -322,6 +322,13 @@ template<typename T> T angle_to_0_2PI(T angle)
 
     return angle;
 }
+template<typename T> void to_range_pi_pi(T &angle){
+    if (angle > T(PI) || angle <= -T(PI)) {
+        int count = static_cast<int>(std::round(angle / (2 * PI)));
+        angle -= static_cast<T>(count * 2 * PI);
+        assert(angle <= T(PI) && angle > -T(PI));
+    }
+}
 
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
@@ -462,8 +469,14 @@ public:
     void set_from_transform(const Transform3d& transform);
 
     void reset();
+    void reset_offset() { set_offset(Vec3d::Zero()); }
+    void reset_rotation() { set_rotation(Vec3d::Zero()); }
+    void reset_scaling_factor() { set_scaling_factor(Vec3d::Ones()); }
+    void reset_mirror() { set_mirror(Vec3d::Ones()); }
 
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+    Transform3d        get_matrix_no_offset() const { return get_matrix(true); }
+    Transform3d        get_matrix_no_scaling_factor() const { return get_matrix(false, false, true); }
 
     Transformation operator * (const Transformation& other) const;
 

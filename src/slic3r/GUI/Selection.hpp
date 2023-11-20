@@ -17,6 +17,8 @@ namespace Slic3r {
 class Shader;
 class Model;
 class ModelObject;
+class ModelVolume;
+class ObjectID;
 class GLVolume;
 class GLArrow;
 class GLCurvedArrow;
@@ -74,6 +76,8 @@ private:
             Transform3d mirror_matrix;
             Transform3d full_matrix;
 
+            Geometry::Transformation transform;
+
             TransformCache();
             explicit TransformCache(const Geometry::Transformation& transform);
         };
@@ -93,6 +97,7 @@ private:
         const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
         const Transform3d& get_volume_mirror_matrix() const { return m_volume.mirror_matrix; }
         const Transform3d& get_volume_full_matrix() const { return m_volume.full_matrix; }
+        const Geometry::Transformation& get_volume_transform() const { return m_volume.transform; }
 
         const Vec3d& get_instance_position() const { return m_instance.position; }
         const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
@@ -102,6 +107,7 @@ private:
         const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
         const Transform3d& get_instance_mirror_matrix() const { return m_instance.mirror_matrix; }
         const Transform3d& get_instance_full_matrix() const { return m_instance.full_matrix; }
+        const Geometry::Transformation &get_instance_transform() const { return m_instance.transform; }
     };
 
 public:
@@ -162,10 +168,25 @@ private:
     Cache m_cache;
     Clipboard m_clipboard;
     std::optional<BoundingBoxf3> m_bounding_box;
-    // Bounding box of a selection, with no instance scaling applied. This bounding box
-    // is useful for absolute scaling of tilted objects in world coordinate space.
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // This bounding box is useful for absolute scaling of tilted objects in world coordinate space.
+    // Modifiers are NOT taken in account
     std::optional<BoundingBoxf3> m_unscaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are NOT taken in account
     std::optional<BoundingBoxf3> m_scaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_scaled_instance_bounding_box;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    std::optional<BoundingBoxf3> m_full_unscaled_instance_local_bounding_box;
+    // Bounding box aligned to the axis of the currently selected reference system (World/Object/Part)
+    // and transform to place and orient it in world coordinates
+    std::optional<std::pair<BoundingBoxf3, Transform3d>> m_bounding_box_in_current_reference_system;
 
 #if ENABLE_RENDER_SELECTION_CENTER
     GLModel m_vbo_sphere;
@@ -256,6 +277,9 @@ public:
     bool is_from_single_object() const;
     bool is_sla_compliant() const;
     bool is_instance_mode() const { return m_mode == Instance; }
+    bool is_single_volume_or_modifier() const { return is_single_volume() || is_single_modifier(); }
+    bool is_single_volume_instance() const { return is_single_full_instance() && m_list.size() == 1; }
+    bool is_single_text() const;
 
     bool contains_volume(unsigned int volume_idx) const { return m_list.find(volume_idx) != m_list.end(); }
     // returns true if the selection contains all the given indices
@@ -280,15 +304,34 @@ public:
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
     const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
+    GLVolume* get_volume(unsigned int volume_idx);
 
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
     unsigned int volumes_count() const { return (unsigned int)m_list.size(); }
     const BoundingBoxf3& get_bounding_box() const;
-    // Bounding box of a selection, with no instance scaling applied. This bounding box
-    // is useful for absolute scaling of tilted objects in world coordinate space.
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // This bounding box is useful for absolute scaling of tilted objects in world coordinate space.
+    // Modifiers are NOT taken in account
     const BoundingBoxf3& get_unscaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are NOT taken in account
     const BoundingBoxf3& get_scaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3& get_full_unscaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in world coordinates.
+    // Modifiers are taken in account
+    const BoundingBoxf3& get_full_scaled_instance_bounding_box() const;
+    // Bounding box of a single full instance selection, in local coordinates, with no instance scaling applied.
+    // Modifiers are taken in account
+    const BoundingBoxf3& get_full_unscaled_instance_local_bounding_box() const;
+    // Returns the bounding box aligned to the axes of the currently selected reference system (World/Object/Part)
+    // and the transform to place and orient it in world coordinates
+    const std::pair<BoundingBoxf3, Transform3d>& get_bounding_box_in_current_reference_system() const;
+    // Returns the bounding box aligned to the axes of the given reference system
+    // and the transform to place and orient it in world coordinates
+    std::pair<BoundingBoxf3, Transform3d> get_bounding_box_in_reference_system(ECoordinatesType type) const;
 
     void setup_cache();
 
@@ -302,7 +345,8 @@ public:
 #else
     void scale_to_fit_print_volume(const DynamicPrintConfig& config);
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
-    void mirror(Axis axis);
+    void scale_and_translate(const Vec3d& scale, const Vec3d& world_translation, TransformationType transformation_type);
+    void mirror(Axis axis, TransformationType transformation_type);
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
@@ -370,11 +414,13 @@ private:
     void render_sidebar_layers_hints(const std::string& sidebar_field, GLShaderProgram& shader);
 
 public:
-    enum SyncRotationType {
+    enum class SyncRotationType {
         // Do not synchronize rotation. Either not rotating at all, or rotating by world Z axis.
-        SYNC_ROTATION_NONE = 0,
+        NONE = 0,
         // Synchronize after rotation by an axis not parallel with Z.
-        SYNC_ROTATION_GENERAL = 1,
+        GENERAL = 1,
+        // Synchronize after rotation reset.
+        RESET = 2
     };
     void synchronize_unselected_instances(SyncRotationType sync_rotation_type);
     void synchronize_unselected_volumes();
@@ -386,7 +432,18 @@ private:
 
     void paste_volumes_from_clipboard();
     void paste_objects_from_clipboard();
+
+    void transform_instance_relative(GLVolume& volume, const VolumeCache& volume_data, TransformationType transformation_type,
+        const Transform3d& transform, const Vec3d& world_pivot);
+    void transform_volume_relative(GLVolume& volume, const VolumeCache& volume_data, TransformationType transformation_type,
+        const Transform3d& transform, const Vec3d& world_pivot);
 };
+
+ModelVolume    *get_selected_volume   (const Selection &selection);
+const GLVolume *get_selected_gl_volume(const Selection &selection);
+
+ModelVolume    *get_selected_volume   (const ObjectID &volume_id, const Selection &selection);
+ModelVolume    *get_volume            (const ObjectID &volume_id, const Selection &selection);
 
 } // namespace GUI
 } // namespace Slic3r

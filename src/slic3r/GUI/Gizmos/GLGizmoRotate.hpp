@@ -42,7 +42,9 @@ private:
     float m_snap_coarse_out_radius{ 0.0f };
     float m_snap_fine_in_radius{ 0.0f };
     float m_snap_fine_out_radius{ 0.0f };
-	
+    BoundingBoxf3 m_bounding_box;
+    Transform3d m_orient_matrix{ Transform3d::Identity() };
+
 	ColorRGBA m_drag_color;
     ColorRGBA m_highlight_color;
 
@@ -61,6 +63,9 @@ private:
     float m_old_hover_radius{ 0.0f };
     float m_old_angle{ 0.0f };
 
+    // emboss need to draw rotation gizmo in local coordinate systems
+    bool m_force_local_coordinate{ false };
+
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
     virtual ~GLGizmoRotate() = default;
@@ -69,6 +74,9 @@ public:
     void set_angle(double angle);
 
     std::string get_tooltip() const override;
+
+    void set_group_id(int group_id) { m_group_id = group_id; }
+    void set_force_local_coordinate(bool use) { m_force_local_coordinate = use; }
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
 
