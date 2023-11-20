@@ -519,6 +519,10 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
     ModelObject *lower{nullptr};
     cut_mo->clone_for_cut(&lower);
 
+    if (upper && lower) {
+        upper->name = upper->name + "_A";
+        lower->name = lower->name + "_B";
+    }
     const double groove_half_depth = 0.5 * double(groove.depth);
 
     Model tmp_model_for_cut = Model();
