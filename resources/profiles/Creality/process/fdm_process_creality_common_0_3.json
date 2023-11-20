@@ -13,8 +13,6 @@
     "support_line_width": "0.27",
     "top_surface_line_width": "0.3",
     "wall_loops": "4",
-    "support_interface_spacing": "0.15",
-    "support_bottom_interface_spacing": "0.15",
     "compatible_printers": [
         "Creality Ender-5 Pro (2019) 0.3 nozzle"
     ]

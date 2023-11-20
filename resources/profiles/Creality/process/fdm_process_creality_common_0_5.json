@@ -12,6 +12,7 @@
     "internal_solid_infill_line_width": "0.55",
     "support_line_width": "0.45",
     "top_surface_line_width": "0.5",
+    "wall_loops": "3",
     "compatible_printers": [
         "Creality Ender-5 Pro (2019) 0.5 nozzle"
     ]

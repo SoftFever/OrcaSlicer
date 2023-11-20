@@ -79,12 +79,32 @@
 			"sub_path": "process/fdm_process_creality_common.json"
 		},
 		{
+            "name": "fdm_process_creality_common_0_2",
+            "sub_path": "process/fdm_process_creality_common_0_2.json"
+        },
+		{
+            "name": "fdm_process_creality_common_0_25",
+            "sub_path": "process/fdm_process_creality_common_0_25.json"
+        },
+		{
+            "name": "fdm_process_creality_common_0_3",
+            "sub_path": "process/fdm_process_creality_common_0_3.json"
+        },
+		{
             "name": "fdm_process_creality_common_0_5",
             "sub_path": "process/fdm_process_creality_common_0_5.json"
         },
 		{
             "name": "fdm_process_creality_common_0_6",
             "sub_path": "process/fdm_process_creality_common_0_6.json"
+        },
+		{
+            "name": "fdm_process_creality_common_0_8",
+            "sub_path": "process/fdm_process_creality_common_0_8.json"
+        },
+		{
+            "name": "fdm_process_creality_common_1_0",
+            "sub_path": "process/fdm_process_creality_common_1_0.json"
         },
 		{
 			"name": "0.08mm SuperDetail @Creality CR-6 0.2",
@@ -547,6 +567,18 @@
 			"sub_path": "machine/Creality Ender-5 Plus 0.4 nozzle.json"
 		},
 		{
+			"name": "Creality Ender-5 Pro (2019) 0.2 nozzle",
+			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.2 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-5 Pro (2019) 0.25 nozzle",
+			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.25 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-5 Pro (2019) 0.3 nozzle",
+			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.3 nozzle.json"
+		},
+		{
 			"name": "Creality Ender-5 Pro (2019) 0.4 nozzle",
 			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.4 nozzle.json"
 		},
@@ -557,6 +589,14 @@
 		{
 			"name": "Creality Ender-5 Pro (2019) 0.6 nozzle",
 			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.6 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-5 Pro (2019) 0.8 nozzle",
+			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.8 nozzle.json"
+		},
+		{
+			"name": "Creality Ender-5 Pro (2019) 1.0 nozzle",
+			"sub_path": "machine/Creality Ender-5 Pro (2019) 1.0 nozzle.json"
 		},
 		{
 			"name": "Creality Ender-5S 0.4 nozzle",
