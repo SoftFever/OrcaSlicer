@@ -16,7 +16,6 @@
     "wall_loops": "2",
     "support_interface_spacing": "0.3",
     "support_bottom_interface_spacing": "0.3",
-    "support_base_pattern_spacing": "1.2",
     "compatible_printers": [
         "Creality Ender-5 Pro (2019) 0.6 nozzle"
     ]
