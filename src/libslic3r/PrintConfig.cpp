@@ -810,7 +810,7 @@ void PrintConfigDef::init_fff_params()
 
     // the tooltip is copied from SuperStudio
     def = this->add("min_width_top_surface", coFloatOrPercent);
-    def->label = L("One wall threshold");
+    def->label = L("Top-surface threshold");
     def->category = L("Quality");
     def->tooltip = L("If a top surface has to be printed and it's partially covered by another layer, it won't be considered at a top layer where its width is below this value."
         " This can be useful to not let the 'one perimeter on top' trigger on surface that should be covered only by perimeters."
@@ -4354,12 +4354,15 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("min_length_factor", coFloat);
     def->label = L("Minimum wall length");
     def->category = L("Quality");
-    def->tooltip = L("Adjust this value to prevent small walls from being printed, which could increase print time."
-    " Higher values remove more and longer individual (unclosed) walls.");
+    def->tooltip = L("Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. "
+    "Higher values remove more and longer walls.\n\n"
+    "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the ouside of the model. "
+    "Adjust 'Top-surface threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
+    "'Top-surface threshold' is only visibile if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
     def->sidetext = L("");
     def->mode = comAdvanced;
     def->min = 0.0;
-    def->max = 10.0;
+    def->max = 25.0;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("initial_layer_min_bead_width", coPercent);

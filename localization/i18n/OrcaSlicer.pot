@@ -7151,7 +7151,7 @@ msgid ""
 "pattern"
 msgstr ""
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

@@ -7756,7 +7756,7 @@ msgstr ""
 "Používejte pouze jednu stěnu na rovném horním povrchu, abyste získali více "
 "prostoru pro horní vzor výplně"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr "Hranice jedné stěny"
 
 #, fuzzy, c-format, boost-format

@@ -7763,7 +7763,7 @@ msgstr ""
 "Üst dolgu desenine daha fazla yer açmak için düz üst yüzeyde yalnızca bir "
 "duvar kullanın"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr "Tek duvar eşiği"
 
 msgid ""

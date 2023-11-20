@@ -7887,7 +7887,7 @@ msgstr ""
 "Sólo un perímetro en la capas superiores, para dar más espacio al patrón de "
 "relleno superior"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr "Umbral para generar un solo perímetro"
 
 #, c-format, boost-format

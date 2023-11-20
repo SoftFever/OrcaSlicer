@@ -1893,18 +1893,26 @@ void PerimeterGenerator::process_arachne()
         if (config->precise_outer_wall)
             bead_width_0 = ext_perimeter_width + this->perimeter_flow.scaled_width() - perimeter_spacing;
         // detect how many perimeters must be generated for this island
-        int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
-        if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
+        int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
+
+        // Set the bottommost layer to be one wall
+        const bool is_bottom_layer = (this->layer_id == 0) ? true : false;
+        if (is_bottom_layer && this->config->only_one_wall_first_layer)
             loop_number = 0;
 
         // BBS: set the topmost layer to be one wall
-        const bool is_topmost_layer = (loop_number > 0 && this->upper_slices == nullptr) ? true : false;
-        if (is_topmost_layer && config->only_one_wall_top) loop_number = 0;
+        const bool is_topmost_layer = (this->upper_slices == nullptr) ? true : false;
+        if (is_topmost_layer && loop_number > 0 && config->only_one_wall_top)
+            loop_number = 0;
+
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
                       config->precise_outer_wall ? -float(ext_perimeter_width / 2. - bead_width_0 / 2.)
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         
-        Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config, is_topmost_layer);
+        Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config);
+        // Set params is_top_or_bottom_layer for adjusting short-wall removal sensitivity.
+        input_params.is_top_or_bottom_layer = (is_bottom_layer || is_topmost_layer) ? true : false;
+
         coord_t wall_0_inset = 0;
         //if (config->precise_outer_wall)
         //    wall_0_inset = 0.5 * (ext_perimeter_width + this->perimeter_flow.scaled_width() - ext_perimeter_spacing -
@@ -1913,29 +1921,44 @@ void PerimeterGenerator::process_arachne()
         std::vector<Arachne::VariableWidthLines> out_shell;
         ExPolygons top_fills;
         ExPolygons fill_clip;
-        if (loop_number > 0 && config->only_one_wall_top && !surface.is_bridge() && this->upper_slices != nullptr) {
-            // Check if current layer has surfaces that are not covered by upper layer (i.e., top surfaces)
-            ExPolygons non_top_polygons;
-            this->split_top_surfaces(last, top_fills, non_top_polygons, fill_clip);
 
-            if (top_fills.empty()) {
+        // Check if we're on a top surface, and make adjustments where needed
+        if (!surface.is_bridge() && !is_topmost_layer) {
+            ExPolygons non_top_polygons;
+            // Temporary storage, in the event all we need to do is set is_top_or_bottom_layer
+            ExPolygons top_fills_tmp;
+            ExPolygons fill_clip_tmp;
+            // Check if current layer has surfaces that are not covered by upper layer (i.e., top surfaces)
+            this->split_top_surfaces(last, top_fills_tmp, non_top_polygons, fill_clip_tmp);
+
+            if (top_fills_tmp.empty()) {
                 // No top surfaces, no special handling needed
             } else {
-                // First we slice the outer shell
-                Polygons last_p = to_polygons(last);
-                Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(1),
-                                                     wall_0_inset, layer_height, input_params);
-                out_shell = wallToolPaths.getToolPaths();
-                // Make sure infill not overlap with wall
-                top_fills = intersection_ex(top_fills, wallToolPaths.getInnerContour());
+                // Adjust arachne input params to prevent removal of larger short walls, which could lead to gaps
+                input_params.is_top_or_bottom_layer = true;
+                
+                // Use single-wall on top-surfaces if configured
+                if (loop_number > 0 && config->only_one_wall_top) {
+                    // Swap in the temporary storage
+                    top_fills.swap(top_fills_tmp);
+                    fill_clip.swap(fill_clip_tmp);
+                    
+                    // First we slice the outer shell
+                    Polygons last_p = to_polygons(last);
+                    Arachne::WallToolPaths wallToolPaths(last_p, bead_width_0, perimeter_spacing, coord_t(1),
+                                                        wall_0_inset, layer_height, input_params);
+                    out_shell = wallToolPaths.getToolPaths();
+                    // Make sure infill not overlap with wall
+                    top_fills = intersection_ex(top_fills, wallToolPaths.getInnerContour());
 
-                if (!top_fills.empty()) {
-                    // Then get the inner part that needs more walls
-                    last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
-                    loop_number--;
-                } else {
-                    // Give up the outer shell because we don't have any meaningful top surface
-                    out_shell.clear();
+                    if (!top_fills.empty()) {
+                        // Then get the inner part that needs more walls
+                        last = intersection_ex(non_top_polygons, wallToolPaths.getInnerContour());
+                        loop_number--;
+                    } else {
+                        // Give up the outer shell because we don't have any meaningful top surface
+                        out_shell.clear();
+                    }
                 }
             }
         }

@@ -7600,7 +7600,7 @@ msgstr ""
 "Use only one wall on flat top surfaces, to give more space to the top infill "
 "pattern"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr ""
 
 #, c-format, boost-format

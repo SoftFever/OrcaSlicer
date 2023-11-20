@@ -7892,7 +7892,7 @@ msgstr ""
 "Utiliser qu'une seule paroi sur une surface plane pour donner plus d'espace "
 "au motif de remplissage supérieur"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr "Seuil d'une paroi"
 
 #, c-format, boost-format

@@ -30,10 +30,10 @@ public:
     float   wall_transition_angle;
     float   wall_transition_filter_deviation;
     int     wall_distribution_count;
-    bool    is_topmost_layer;
+    bool    is_top_or_bottom_layer;
 };
 
-WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config, const bool is_topmost_layer = false);
+WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config);
 
 class WallToolPaths
 {

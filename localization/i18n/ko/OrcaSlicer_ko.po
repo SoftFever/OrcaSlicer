@@ -7619,7 +7619,7 @@ msgstr ""
 "평평한 상단 표면에 하나의 벽만 사용하여 상단 표면 패턴에 더 많은 공간을 제공"
 "합니다"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr "단일 벽 임계값"
 
 #, c-format, boost-format

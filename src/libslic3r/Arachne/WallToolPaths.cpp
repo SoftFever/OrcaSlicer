@@ -23,7 +23,7 @@
 namespace Slic3r::Arachne
 {
 
-WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config, const bool is_topmost_layer)
+WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfig &print_object_config, const PrintConfig &print_config)
 {
     WallToolPathsParams input_params;
     {
@@ -53,7 +53,7 @@ WallToolPathsParams make_paths_params(const int layer_id, const PrintObjectConfi
         input_params.wall_transition_angle   = print_object_config.wall_transition_angle.value;
         input_params.wall_distribution_count = print_object_config.wall_distribution_count.value;
 
-        input_params.is_topmost_layer = is_topmost_layer;
+        input_params.is_top_or_bottom_layer = false; // Set to default value
     }
 
     return input_params;
@@ -679,7 +679,7 @@ void WallToolPaths::removeSmallLines(std::vector<VariableWidthLines> &toolpaths)
             for (const ExtrusionJunction &j : line)
                 min_width = std::min(min_width, j.w);
             // Only use min_length_factor for non-topmost, to prevent top gaps. Otherwise use default value.
-            if (line.is_odd && !line.is_closed && shorterThan(line, m_params.is_topmost_layer ? (min_width / 2) : (min_width * m_params.min_length_factor))) { // remove line
+            if (line.is_odd && !line.is_closed && shorterThan(line, m_params.is_top_or_bottom_layer ? (min_width / 2) : (min_width * m_params.min_length_factor))) { // remove line
                 line = std::move(inset.back());
                 inset.erase(--inset.end());
                 line_idx--; // reconsider the current position

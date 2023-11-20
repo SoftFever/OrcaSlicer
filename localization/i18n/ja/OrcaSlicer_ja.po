@@ -7429,7 +7429,7 @@ msgid ""
 "pattern"
 msgstr "トップ面に1層だけ造形します、インフィルを多い空間を与えます。"
 
-msgid "One wall threshold"
+msgid "Top-surface threshold"
 msgstr ""
 
 #, c-format, boost-format
