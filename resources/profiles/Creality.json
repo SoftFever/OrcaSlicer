@@ -112,7 +112,7 @@
 		},
 		{
 			"name": "0.08mm SuperDetail @Creality Ender5Pro (2019) (0.2 nozzle)",
-			"sub_path": "process/0.08mm SuperDetail 0.2 @Creality Ender5Pro (2019).json"
+			"sub_path": "process/0.08mm SuperDetail @Creality Ender5Pro (2019) (0.2 nozzle).json"
 		},
 		{
 			"name": "0.08mm SuperDetail @Creality Ender5Pro (2019) (0.25 nozzle)",
@@ -128,7 +128,7 @@
 		},
 		{
 			"name": "0.10mm HighDetail @Creality Ender5Pro (2019) (0.2 nozzle)",
-			"sub_path": "process/0.10mm HighDetail 0.2 @Creality Ender5Pro (2019).json"
+			"sub_path": "process/0.10mm HighDetail @Creality Ender5Pro (2019) (0.2 nozzle).json"
 		},
 		{
 			"name": "0.10mm HighDetail @Creality Ender5Pro (2019) (0.25 nozzle)",
@@ -156,7 +156,7 @@
 		},
 		{
 			"name": "0.12mm Detail @Creality Ender5Pro (2019) (0.2 nozzle)",
-			"sub_path": "process/0.12mm Detail 0.2 @Creality Ender5Pro (2019).json"
+			"sub_path": "process/0.12mm Detail @Creality Ender5Pro (2019) (0.2 nozzle).json"
 		},
 		{
 			"name": "0.12mm Detail @Creality Ender5Pro (2019) (0.25 nozzle)",
@@ -204,7 +204,7 @@
 		},
 		{
 			"name": "0.16mm Optimal @Creality Ender5Pro (2019) (0.2 nozzle)",
-			"sub_path": "process/0.16mm Optimal 0.2 @Creality Ender5Pro (2019).json"
+			"sub_path": "process/0.16mm Optimal @Creality Ender5Pro (2019) (0.2 nozzle).json"
 		},
 		{
 			"name": "0.16mm Optimal @Creality Ender5Pro (2019) (0.25 nozzle)",
@@ -631,8 +631,8 @@
 			"sub_path": "machine/Creality Ender-5 Plus 0.4 nozzle.json"
 		},
 		{
-			"name": "Creality Ender-5 Pro (2019) 0.2 nozzle",
-			"sub_path": "machine/Creality Ender-5 Pro (2019) 0.2 nozzle.json"
+			"name": "Creality Ender-5 Pro (2019) (0.2 nozzle)",
+			"sub_path": "machine/Creality Ender-5 Pro (2019) (0.2 nozzle).json"
 		},
 		{
 			"name": "Creality Ender-5 Pro (2019) 0.25 nozzle",
