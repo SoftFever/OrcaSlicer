@@ -104,9 +104,9 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
      {"Zonestar",       {"Z5",              "Z6",               "Z5x",              "Z8",               "Z9"}}};
 
 static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2"};
-static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2 mm", 0.2}, {"0.25 mm", 0.25}, {"0.3 mm", 0.3}, {"0.35 mm", 0.35},
-                                                                     {"0.4 mm", 0.4}, {"0.5 mm", 0.5},   {"0.6 mm", 0.6}, {"0.75 mm", 0.75},
-                                                                     {"0.8 mm", 0.8}, {"1.0 mm", 1.0},   {"1.2 mm", 1.2}};
+static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2", 0.2}, {"0.25", 0.25}, {"0.3", 0.3}, {"0.35", 0.35},
+                                                                     {"0.4", 0.4}, {"0.5", 0.5},   {"0.6", 0.6}, {"0.75", 0.75},
+                                                                     {"0.8", 0.8}, {"1.0", 1.0},   {"1.2", 1.2}};
 
 static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 43, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
 
@@ -814,7 +814,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
                         continue;
                     }
-                    if (nozzle_diameter[compatible_printer_name.substr(index - 4)] == 0) {
+                    if (nozzle_diameter[compatible_printer_name.substr(index - 4, 3)] == 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << compatible_printer_name;
                         continue;
                     }
@@ -1232,7 +1232,7 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
                 continue;
             }
-            if (nozzle_diameter[compatible_printer_name.substr(index - 4)] == 0) {
+            if (nozzle_diameter[compatible_printer_name.substr(index - 4, 3)] == 0) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << compatible_printer_name;
                 continue;
             }
@@ -1308,8 +1308,8 @@ void CreateFilamentPresetDialog::sort_printer_by_nozzle(std::vector<std::pair<st
                   std::string nozzle_str_a;
                   std::string nozzle_str_b;
                   try {
-                      nozzle_str_a = a.first.substr(nozzle_index_a - 4);
-                      nozzle_str_b = b.first.substr(nozzle_index_b - 4);
+                      nozzle_str_a = a.first.substr(nozzle_index_a - 4, 3);
+                      nozzle_str_b = b.first.substr(nozzle_index_b - 4, 3);
                   } catch (...) {
                       BOOST_LOG_TRIVIAL(info) << "substr filed, and printer name is: " << a.first << " and " << b.first;
                       return a.first < b.first;
@@ -1320,7 +1320,7 @@ void CreateFilamentPresetDialog::sort_printer_by_nozzle(std::vector<std::pair<st
                       nozzle_b = nozzle_diameter[nozzle_str_b];
                       assert(nozzle_a != 0 && nozzle_b != 0);
                   } catch (...) {
-                      BOOST_LOG_TRIVIAL(info) << "find nozzle filed, and nozzle is: " << nozzle_str_a << " and " << nozzle_str_b;
+                      BOOST_LOG_TRIVIAL(info) << "find nozzle filed, and nozzle is: " << nozzle_str_a << "mm and " << nozzle_str_b << "mm";
                       return a.first < b.first;
                   }
                   float diff_nozzle_a = std::abs(nozzle_a - 0.4);
@@ -2627,7 +2627,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
             /******************************   clone process preset    ********************************/
             failures.clear();
             if (!selected_process_presets.empty()) {
-                generate_process_presets_data(selected_process_presets, printer_nozzle_name + " mm");
+                generate_process_presets_data(selected_process_presets, printer_nozzle_name);
                 bool create_preset_result = preset_bundle->prints.create_presets_from_template_for_printer(selected_process_presets, failures, printer_preset_name,
                                                                                                            get_filament_id, rewritten);
                 if (!create_preset_result) {
@@ -2706,7 +2706,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_page2_btns_item(wxWindow *parent)
 
             auto nozzle_diameter = dynamic_cast<ConfigOptionFloats *>(m_printer_preset->config.option("nozzle_diameter", true));
             if (nozzle_diameter) {
-                std::unordered_map<std::string, float>::const_iterator iter = nozzle_diameter_map.find(printer_nozzle_name + " mm");
+                std::unordered_map<std::string, float>::const_iterator iter = nozzle_diameter_map.find(printer_nozzle_name);
                 if (nozzle_diameter_map.end() != iter) {
                     nozzle_diameter->values = {iter->second};
                 }
@@ -2760,6 +2760,10 @@ void CreatePrinterPresetDialog::show_page2()
 bool CreatePrinterPresetDialog::data_init()
 { 
     std::string nozzle_type  = into_u8(m_nozzle_diameter->GetStringSelection());
+    size_t      index_mm    = nozzle_type.find(" mm");
+    if (std::string::npos != index_mm) {
+        nozzle_type = nozzle_type.substr(0, index_mm);
+    }
     float nozzle             = nozzle_diameter_map[nozzle_type];
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry and nozzle type is: " << nozzle_type << " and nozzle is: " << nozzle;
 
