@@ -3202,8 +3202,9 @@ void PrintConfigDef::init_fff_params()
                      "will create more stable supports (default), while snug support towers will save material and reduce "
                      "object scarring.\n"
                      "For tree support, slim style will merge branches more aggressively and save "
-                     "a lot of material (default), while hybrid style will create similar structure to normal support "
-                     "under large flat overhangs.");
+                     "a lot of material, strong style will make larger and stronger support structure and use more materials, "
+                     "while hybrid style is the combination of slim tree and normal support with normal nodes "
+                     "under large flat overhangs (default).");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
     def->enum_values.push_back("default");
     def->enum_values.push_back("grid");
