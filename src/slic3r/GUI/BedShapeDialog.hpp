@@ -18,6 +18,7 @@ namespace GUI {
 class ConfigOptionsGroup;
 
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
+using ConfigOptionsGroupWkp = std::weak_ptr<ConfigOptionsGroup>;
 
 struct BedShape
 {

@@ -107,13 +107,22 @@ public:
     double get_far_z() const { return m_frustrum_zs.second; }
     const std::pair<double, double>& get_z_range() const { return m_frustrum_zs; }
 
+    double get_near_left() const;
+    double get_near_right() const;
+    double get_near_top() const;
+    double get_near_bottom() const;
+    double get_near_width() const;
+    double get_near_height() const;
+
     double get_fov() const;
 
-    void apply_viewport(int x, int y, unsigned int w, unsigned int h);
-    void apply_view_matrix();
+    void set_viewport(int x, int y, unsigned int w, unsigned int h);
+    void apply_viewport() const;
     // Calculates and applies the projection matrix tighting the frustrum z range around the given box.
     // If larger z span is needed, pass the desired values of near and far z (negative values are ignored)
     void apply_projection(const BoundingBoxf3& box, double near_z = -1.0, double far_z = -1.0);
+
+    void apply_projection(double left, double right, double bottom, double top, double near_z, double far_z);
 
     void zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultZoomToBoxMarginFactor);
     void zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor = DefaultZoomToVolumesMarginFactor);

@@ -246,78 +246,91 @@ private:
 };
 
 enum class CutConnectorType : int {
-    Plug,
-    Dowel,
-    Undef
+    Plug
+    , Dowel
+    , Snap
+    , Undef
 };
 
 enum class CutConnectorStyle : int {
-    Prizm,
-    Frustum,
-    Undef
+    Prism
+    , Frustum
+    , Undef
     //,Claw
 };
 
 enum class CutConnectorShape : int {
-    Triangle,
-    Square,
-    Hexagon,
-    Circle,
-    Undef
+    Triangle
+    , Square
+    , Hexagon
+    , Circle
+    , Undef
     //,D-shape
 };
 
 struct CutConnectorAttributes
 {
-    CutConnectorType  type{CutConnectorType::Plug};
-    CutConnectorStyle style{CutConnectorStyle::Prizm};
-    CutConnectorShape shape{CutConnectorShape::Circle};
+    CutConnectorType    type{ CutConnectorType::Plug };
+    CutConnectorStyle   style{ CutConnectorStyle::Prism };
+    CutConnectorShape   shape{ CutConnectorShape::Circle };
 
     CutConnectorAttributes() {}
 
-    CutConnectorAttributes(CutConnectorType t, CutConnectorStyle st, CutConnectorShape sh) : type(t), style(st), shape(sh) {}
+    CutConnectorAttributes(CutConnectorType t, CutConnectorStyle st, CutConnectorShape sh)
+        : type(t), style(st), shape(sh)
+    {}
 
-    CutConnectorAttributes(const CutConnectorAttributes &rhs) : CutConnectorAttributes(rhs.type, rhs.style, rhs.shape) {}
+    CutConnectorAttributes(const CutConnectorAttributes& rhs) :
+        CutConnectorAttributes(rhs.type, rhs.style, rhs.shape) {}
 
-    bool operator==(const CutConnectorAttributes &other) const;
+    bool operator==(const CutConnectorAttributes& other) const;
 
-    bool operator!=(const CutConnectorAttributes &other) const { return !(other == (*this)); }
+    bool operator!=(const CutConnectorAttributes& other) const { return !(other == (*this)); }
 
-    bool operator<(const CutConnectorAttributes &other) const
-    {
-        return this->type < other.type || (this->type == other.type && this->style < other.style) ||
-               (this->type == other.type && this->style == other.style && this->shape < other.shape);
+    bool operator<(const CutConnectorAttributes& other) const {
+        return   this->type <  other.type ||
+                (this->type == other.type && this->style <  other.style) ||
+                (this->type == other.type && this->style == other.style && this->shape < other.shape);
     }
 
-    template<class Archive> inline void serialize(Archive &ar) { ar(type, style, shape); }
+    template<class Archive> inline void serialize(Archive& ar) {
+        ar(type, style, shape);
+    }
 };
 
 struct CutConnector
 {
-    Vec3d                  pos;
-    Transform3d            rotation_m;
-    float                  radius;
-    float                  height;
-    float                  radius_tolerance; // [0.f : 1.f]
-    float                  height_tolerance; // [0.f : 1.f]
+    Vec3d pos;
+    Transform3d rotation_m;
+    float radius;
+    float height;
+    float radius_tolerance;// [0.f : 1.f]
+    float height_tolerance;// [0.f : 1.f]
+    float z_angle {0.f};
     CutConnectorAttributes attribs;
 
-    CutConnector() : pos(Vec3d::Zero()), rotation_m(Transform3d::Identity()), radius(5.f), height(10.f), radius_tolerance(0.f), height_tolerance(0.1f) {}
-
-    CutConnector(Vec3d p, Transform3d rot, float r, float h, float rt, float ht, CutConnectorAttributes attributes)
-        : pos(p), rotation_m(rot), radius(r), height(h), radius_tolerance(rt), height_tolerance(ht), attribs(attributes)
+    CutConnector()
+        : pos(Vec3d::Zero()), rotation_m(Transform3d::Identity()), radius(5.f), height(10.f), radius_tolerance(0.f), height_tolerance(0.1f), z_angle(0.f)
     {}
 
-    CutConnector(const CutConnector &rhs) : CutConnector(rhs.pos, rhs.rotation_m, rhs.radius, rhs.height, rhs.radius_tolerance, rhs.height_tolerance, rhs.attribs) {}
+    CutConnector(Vec3d p, Transform3d rot, float r, float h, float rt, float ht, float za, CutConnectorAttributes attributes)
+        : pos(p), rotation_m(rot), radius(r), height(h), radius_tolerance(rt), height_tolerance(ht), z_angle(za), attribs(attributes)
+    {}
 
-    bool operator==(const CutConnector &other) const;
+    CutConnector(const CutConnector& rhs) :
+        CutConnector(rhs.pos, rhs.rotation_m, rhs.radius, rhs.height, rhs.radius_tolerance, rhs.height_tolerance, rhs.z_angle, rhs.attribs) {}
 
-    bool operator!=(const CutConnector &other) const { return !(other == (*this)); }
+    bool operator==(const CutConnector& other) const;
 
-    template<class Archive> inline void serialize(Archive &ar) { ar(pos, rotation_m, radius, height, radius_tolerance, height_tolerance, attribs); }
+    bool operator!=(const CutConnector& other) const { return !(other == (*this)); }
+
+    template<class Archive> inline void serialize(Archive& ar) {
+        ar(pos, rotation_m, radius, height, radius_tolerance, height_tolerance, z_angle, attribs);
+    }
 };
 
 using CutConnectors = std::vector<CutConnector>;
+
 
 // Declared outside of ModelVolume, so it could be forward declared.
 enum class ModelVolumeType : int {
@@ -326,12 +339,8 @@ enum class ModelVolumeType : int {
     NEGATIVE_VOLUME,
     PARAMETER_MODIFIER,
     SUPPORT_BLOCKER,
-    SUPPORT_ENFORCER
+    SUPPORT_ENFORCER,
 };
-
-enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipUpper, FlipLower, PlaceOnCutUpper, PlaceOnCutLower, CreateDowels, CutToParts, InvalidateCutInfo };
-using ModelObjectCutAttributes = enum_bitmask<ModelObjectCutAttribute>;
-ENABLE_ENUM_BITMASK_OPERATORS(ModelObjectCutAttribute);
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
@@ -371,6 +380,10 @@ public:
     // Holes to be drilled into the object so resin can flow out
     sla::DrainHoles         sla_drain_holes;
 
+    // Connectors to be added into the object before cut and are used to create a solid/negative volumes during a cut perform
+    CutConnectors           cut_connectors;
+    CutObjectBase           cut_id;
+
     /* This vector accumulates the total translation applied to the object by the
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preserve alignment
@@ -379,10 +392,6 @@ public:
 
     // BBS: save for compare with new load volumes
     std::vector<ObjectID>   volume_ids;
-
-    // Connectors to be added into the object before cut and are used to create a solid/negative volumes during a cut perform
-    CutConnectors cut_connectors;
-    CutObjectBase cut_id;
 
     Model*                  get_model() { return m_model; }
     const Model*            get_model() const { return m_model; }
@@ -480,52 +489,13 @@ public:
     size_t materials_count() const;
     size_t facets_count() const;
     size_t parts_count() const;
-
-    bool                        is_cut() const { return cut_id.id().valid(); }
-    bool                        has_connectors() const;
-    static indexed_triangle_set get_connector_mesh(CutConnectorAttributes connector_attributes);
-    void                        apply_cut_connectors(const std::string &name);
     // invalidate cut state for this object and its connectors/volumes
     void invalidate_cut();
     // delete volumes which are marked as connector for this object
     void delete_connectors();
-    void synchronize_model_after_cut();
-    void apply_cut_attributes(ModelObjectCutAttributes attributes);
     void clone_for_cut(ModelObject **obj);
-    Transform3d calculate_cut_plane_inverse_matrix(const std::array<Vec3d, 4> &plane_points);
-    void process_connector_cut(ModelVolume *volume,
-                               const Transform3d & instance_matrix,
-                               const Transform3d& cut_matrix,
-                               ModelObjectCutAttributes attributes,
-                               ModelObject *upper, ModelObject *lower,
-                               std::vector<ModelObject *> &dowels,
-                               Vec3d &local_dowels_displace);
-    void process_modifier_cut(ModelVolume *            volume,
-                              const Transform3d &      instance_matrix,
-                              const Transform3d &      inverse_cut_matrix,
-                              ModelObjectCutAttributes attributes,
-                              ModelObject *            upper,
-                              ModelObject *            lower);
-    void process_volume_cut(ModelVolume *            volume,
-                            const Transform3d &      instance_matrix,
-                            const Transform3d &      cut_matrix,
-                            ModelObjectCutAttributes attributes,
-                            TriangleMesh &           upper_mesh,
-                            TriangleMesh &           lower_mesh);
-    void process_solid_part_cut(ModelVolume *            volume,
-                                const Transform3d &      instance_matrix,
-                                const Transform3d &      cut_matrix,
-                                const std::array<Vec3d, 4> &plane_points,
-                                ModelObjectCutAttributes attributes,
-                                ModelObject *            upper,
-                                ModelObject *            lower,
-                                Vec3d &                  local_displace);
 
-    // BBS: replace z with plane_points
-    ModelObjectPtrs cut(size_t instance, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
-    // BBS
-    ModelObjectPtrs segment(size_t instance, unsigned int max_extruders, double smoothing_alpha = 0.5, int segment_number = 5);
-    void split(ModelObjectPtrs* new_objects);
+    void split(ModelObjectPtrs*new_objects);
     void merge();
 
     // BBS: Boolean opts - Musang King
@@ -553,6 +523,10 @@ public:
     // Get count of errors in the mesh( or all object's meshes, if volume index isn't defined)
     int         get_repaired_errors_count(const int vol_idx = -1) const;
 
+    // Detect if object has at least one solid mash
+    bool has_solid_mesh() const;
+    bool is_cut() const { return cut_id.id().valid(); }
+    bool has_connectors() const;
 private:
     friend class Model;
     // This constructor assigns new ID to this ModelObject and its config.
@@ -853,37 +827,45 @@ public:
     };
     Source              source;
 
-    // struct used by cut command
+    // struct used by cut command 
     // It contains information about connetors
     struct CutInfo
     {
-        bool             is_connector{false};
-        bool             is_processed{true};
-        CutConnectorType connector_type{CutConnectorType::Plug};
-        float            radius{0.f};
-        float            height{0.f};
-        float            radius_tolerance{0.f}; // [0.f : 1.f]
-        float            height_tolerance{0.f}; // [0.f : 1.f]
+        bool                is_from_upper{ true };
+        bool                is_connector{ false };
+        bool                is_processed{ true };
+        CutConnectorType    connector_type{ CutConnectorType::Plug };
+        float               radius_tolerance{ 0.f };// [0.f : 1.f]
+        float               height_tolerance{ 0.f };// [0.f : 1.f]
 
         CutInfo() = default;
-        CutInfo(CutConnectorType type, float radius_, float height_, float rad_tolerance, float h_tolerance, bool processed = false)
-            : is_connector(true), is_processed(processed), connector_type(type)
-            , radius(radius_), height(height_), radius_tolerance(rad_tolerance), height_tolerance(h_tolerance)
+        CutInfo(CutConnectorType type, float rad_tolerance, float h_tolerance, bool processed = false) :
+        is_connector(true),
+        is_processed(processed),
+        connector_type(type),
+        radius_tolerance(rad_tolerance),
+        height_tolerance(h_tolerance)
         {}
 
         void set_processed() { is_processed = true; }
-        void invalidate() { is_connector = false; }
+        void invalidate()    { is_connector = false; }
+        void reset_from_upper() { is_from_upper = true; }
 
-        template<class Archive> inline void serialize(Archive &ar) { ar(is_connector, is_processed, connector_type, radius_tolerance, height_tolerance); }
+        template<class Archive> inline void serialize(Archive& ar) {
+            ar(is_connector, is_processed, connector_type, radius_tolerance, height_tolerance);
+        }
     };
-    CutInfo cut_info;
+    CutInfo             cut_info;
 
-    bool is_cut_connector() const { return cut_info.is_processed && cut_info.is_connector; }
-    void invalidate_cut_info() { cut_info.invalidate(); }
+    bool                is_from_upper() const    { return cut_info.is_from_upper; }
+    void                reset_from_upper()       { cut_info.reset_from_upper(); }
+
+    bool                is_cut_connector() const { return cut_info.is_processed && cut_info.is_connector; }
+    void                invalidate_cut_info()    { cut_info.invalidate(); }
 
     // The triangular model.
     const TriangleMesh& mesh() const { return *m_mesh.get(); }
-    const TriangleMesh* mesh_ptr() const { return m_mesh.get(); }
+    std::shared_ptr<const TriangleMesh> mesh_ptr() const { return m_mesh; }
     void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
     void                set_mesh(TriangleMesh &&mesh) { m_mesh = std::make_shared<const TriangleMesh>(std::move(mesh)); }
     void                set_mesh(const indexed_triangle_set &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
@@ -922,6 +904,7 @@ public:
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
     t_model_material_id material_id() const { return m_material_id; }
+    void                reset_extra_facets();
     void                set_material_id(t_model_material_id material_id);
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
@@ -930,8 +913,6 @@ public:
     int                 extruder_id() const;
 
     bool                is_splittable() const;
-
-    void apply_tolerance();
 
     // BBS
     std::vector<int>    get_extruders() const;

@@ -38,7 +38,6 @@ varying vec2 intensity;
 
 varying vec3 clipping_planes_dots;
 
-varying vec4 model_pos;
 varying vec4 world_pos;
 varying float world_normal_z;
 varying vec3 eye_normal;
@@ -60,7 +59,6 @@ void main()
 	NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
 	intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
-    model_pos = gl_Vertex;
     // Point in homogenous coordinates.
     world_pos = volume_world_matrix * gl_Vertex;
 

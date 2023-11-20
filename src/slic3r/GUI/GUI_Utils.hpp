@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GUI_Utils_hpp_
 #define slic3r_GUI_Utils_hpp_
 
@@ -23,6 +27,7 @@
 #include "Event.hpp"
 #include "../libslic3r/libslic3r_version.h"
 #include "../libslic3r/Utils.hpp"
+#include "libslic3r/Color.hpp"
 
 
 class wxCheckBox;
@@ -39,28 +44,10 @@ inline int hex_to_int(const char c)
     return (c >= '0' && c <= '9') ? int(c - '0') : (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 : (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
 }
 
-static std::array<float, 4> decode_color_to_float_array(const std::string color)
+static ColorRGBA decode_color_to_float_array(const std::string color)
 {
-    // set alpha to 1.0f by default
-    std::array<float, 4> ret = {0, 0, 0, 1.0f};
-    const char *         c   = color.data() + 1;
-    if (color.size() == 7 && color.front() == '#') {
-        for (size_t j = 0; j < 3; ++j) {
-            int digit1 = hex_to_int(*c++);
-            int digit2 = hex_to_int(*c++);
-            if (digit1 == -1 || digit2 == -1) break;
-            ret[j] = float(digit1 * 16 + digit2) / 255.0f;
-        }
-    }
-    else if (color.size() == 9 && color.front() == '#') {
-        for (size_t j = 0; j < 4; ++j) {
-            int digit1 = hex_to_int(*c++);
-            int digit2 = hex_to_int(*c++);
-            if (digit1 == -1 || digit2 == -1) break;
-
-            ret[j] = float(digit1 * 16 + digit2) / 255.0f;
-        }
-    }
+    ColorRGBA ret = ColorRGBA::BLACK();
+    decode_color(color, ret);
     return ret;
 }
 
@@ -470,14 +457,6 @@ public:
 
 std::ostream& operator<<(std::ostream &os, const WindowMetrics& metrics);
 
-inline int hex_digit_to_int(const char c)
-{
-    return
-        (c >= '0' && c <= '9') ? int(c - '0') :
-        (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 :
-        (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
-}
-
 class TaskTimer
 {
     std::chrono::milliseconds   start_timer;
@@ -486,6 +465,16 @@ public:
     TaskTimer(std::string task_name);
 
     ~TaskTimer();
+};
+
+class KeyAutoRepeatFilter
+{
+    size_t m_count{ 0 };
+
+public:
+    void increase_count() { ++m_count; }
+    void reset_count() { m_count = 0; }
+    bool is_first() const { return m_count == 0; }
 };
 
 

@@ -1,9 +1,13 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Pavel Mikuš @Godrak, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, Filip Sykala @Jony01
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLGizmoPainterBase_hpp_
 #define slic3r_GLGizmoPainterBase_hpp_
 
 #include "GLGizmoBase.hpp"
 
-#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/GLModel.hpp"
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/TriangleSelector.hpp"
@@ -12,6 +16,7 @@
 #include <cereal/types/vector.hpp>
 #include <GL/glew.h>
 
+#include <memory>
 
 
 namespace Slic3r::GUI {
@@ -20,47 +25,12 @@ enum class SLAGizmoEventType : unsigned char;
 class ClippingPlane;
 struct Camera;
 class GLGizmoMmuSegmentation;
+class Selection;
 
 enum class PainterGizmoType {
     FDM_SUPPORTS,
     SEAM,
     MMU_SEGMENTATION
-};
-
-class GLPaintContour
-{
-public:
-    GLPaintContour() = default;
-
-    void render() const;
-
-    inline bool has_VBO() const { return this->m_contour_EBO_id != 0; }
-
-    // Release the geometry data, release OpenGL VBOs.
-    void release_geometry();
-
-    // Finalize the initialization of the contour geometry and the indices, upload both to OpenGL VBO objects
-    // and possibly releasing it if it has been loaded into the VBOs.
-    void finalize_geometry();
-
-    void clear()
-    {
-        this->contour_vertices.clear();
-        this->contour_indices.clear();
-        this->contour_indices_size = 0;
-    }
-
-    std::vector<float> contour_vertices;
-    std::vector<int>   contour_indices;
-
-    // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
-    // the above mentioned std::vectors are cleared and the following variables keep their original length.
-    size_t contour_indices_size{0};
-
-    // IDs of the Vertex Array Objects, into which the geometry has been loaded.
-    // Zero if the VBOs are not sent to GPU yet.
-    GLuint m_contour_VBO_id{0};
-    GLuint m_contour_EBO_id{0};
 };
 
 class TriangleSelectorGUI : public TriangleSelector {
@@ -69,10 +39,8 @@ public:
         : TriangleSelector(mesh, edge_limit) {}
     virtual ~TriangleSelectorGUI() = default;
 
-    // Render current selection. Transformation matrices are supposed
-    // to be already set.
-    virtual void render(ImGuiWrapper *imgui);
-    void         render() { this->render(nullptr); }
+    virtual void render(ImGuiWrapper* imgui, const Transform3d& matrix);
+    //void         render(const Transform3d& matrix) { this->render(nullptr, matrix); }
     void         set_wireframe_needed(bool need_wireframe) { m_need_wireframe = need_wireframe; }
     bool         get_wireframe_needed() { return m_need_wireframe; }
 
@@ -81,11 +49,11 @@ public:
     {
         m_update_render_data = true;
         m_paint_changed |= paint_changed;
-    };
+    }
 
     // BBS
-    static constexpr std::array<float, 4> enforcers_color{ 0.5f, 1.f, 0.5f, 1.f };
-    static constexpr std::array<float, 4> blockers_color{ 1.f, 0.5f, 0.5f, 1.f };
+    static ColorRGBA enforcers_color;
+    static ColorRGBA blockers_color;
 
 #ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
     void render_debug(ImGuiWrapper* imgui);
@@ -98,18 +66,24 @@ protected:
     // BBS
     bool m_paint_changed = true;
 
-    static std::array<float, 4> get_seed_fill_color(const std::array<float, 4> &base_color);
+    static ColorRGBA get_seed_fill_color(const ColorRGBA &base_color);
 
 private:
     void update_render_data();
 
-    GLIndexedVertexArray                m_iva_enforcers;
-    GLIndexedVertexArray                m_iva_blockers;
-    std::array<GLIndexedVertexArray, 3> m_iva_seed_fills;
-    std::array<GLIndexedVertexArray, 3> m_varrays;
+    GLModel                m_iva_enforcers;
+    GLModel                m_iva_blockers;
+    std::array<GLModel, 3> m_iva_seed_fills;
+#ifdef PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
+    std::array<GLModel, 3> m_varrays;
+#endif // PRUSASLICER_TRIANGLE_SELECTOR_DEBUG
 
 protected:
-    GLPaintContour                      m_paint_contour;
+    GLModel                      m_paint_contour;
+
+    void update_paint_contour();
+    void render_paint_contour(const Transform3d& matrix);
+
     bool                                m_need_wireframe {false};
 };
 
@@ -128,20 +102,20 @@ struct TrianglePatch {
 
 class TriangleSelectorPatch : public TriangleSelectorGUI {
 public:
-    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<std::array<float, 4>> ebt_colors, float edge_limit = 0.6f)
+    explicit TriangleSelectorPatch(const TriangleMesh& mesh, const std::vector<ColorRGBA> ebt_colors, float edge_limit = 0.6f)
         : TriangleSelectorGUI(mesh, edge_limit), m_ebt_colors(ebt_colors) {}
     virtual ~TriangleSelectorPatch() = default;
 
     // Render current selection. Transformation matrices are supposed
     // to be already set.
-    void render(ImGuiWrapper* imgui) override;
+    void render(ImGuiWrapper* imgui, const Transform3d& matrix) override;
     // TriangleSelector.m_triangles => m_gizmo_scene.triangle_patches
     void update_triangles_per_type();
     // m_gizmo_scene.triangle_patches => TriangleSelector.m_triangles
     void update_selector_triangles();
     void update_triangles_per_patch();
 
-    void set_ebt_colors(const std::vector<std::array<float, 4>> ebt_colors) { m_ebt_colors = ebt_colors; }
+    void set_ebt_colors(const std::vector<ColorRGBA> ebt_colors) { m_ebt_colors = ebt_colors; }
     void set_filter_state(bool is_filter_state);
 
     constexpr static float GapAreaMin = 0.f;
@@ -195,13 +169,13 @@ protected:
     std::vector<unsigned int>   m_vertices_VBO_ids;
     std::vector<unsigned int>   m_triangle_indices_VBO_ids;
 
-    std::vector<std::array<float, 4>> m_ebt_colors;
+    std::vector<ColorRGBA> m_ebt_colors;
 
     bool                        m_filter_state = false;
 
 private:
     void update_render_data();
-    void render(int buffer_idx, int position_id = -1, int barycentric_id = -1);
+    void render(int buffer_idx);
 };
 
 
@@ -214,18 +188,18 @@ private:
     ObjectID m_old_mo_id;
     size_t m_old_volumes_size = 0;
     void on_render() override {}
-    void on_render_for_picking() override {}
+
 public:
     GLGizmoPainterBase(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
-    ~GLGizmoPainterBase() override = default;
-    virtual void set_painter_gizmo_data(const Selection& selection);
+    ~GLGizmoPainterBase() override;
+    void data_changed(bool is_serializing) override;
     virtual bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position, bool shift_down, bool alt_down, bool control_down);
 
     // Following function renders the triangles and cursor. Having this separated
     // from usual on_render method allows to render them before transparent
     // objects, so they can be seen inside them. The usual on_render is called
     // after all volumes (including transparent ones) are rendered.
-    virtual void render_painter_gizmo() const = 0;
+    virtual void render_painter_gizmo() = 0;
 
     virtual const float get_cursor_radius_min() const { return CursorRadiusMin; }
     virtual const float get_cursor_radius_max() const { return CursorRadiusMax; }
@@ -236,10 +210,19 @@ public:
     virtual const float get_cursor_height_max() const { return CursorHeightMax; }
     virtual const float get_cursor_height_step() const { return CursorHeightStep; }
 
+    /// <summary>
+    /// Implement when want to process mouse events in gizmo
+    /// Click, Right click, move, drag, ...
+    /// </summary>
+    /// <param name="mouse_event">Keep information about mouse click</param>
+    /// <returns>Return True when use the information and don't want to
+    /// propagate it otherwise False.</returns>
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+
 protected:
     virtual void render_triangles(const Selection& selection) const;
-    void render_cursor() const;
-    void render_cursor_circle() const;
+    void render_cursor();
+    void render_cursor_circle();
     void render_cursor_sphere(const Transform3d& trafo) const;
     // BBS
     void render_cursor_height_range(const Transform3d& trafo) const;
@@ -247,10 +230,10 @@ protected:
     virtual void update_model_object() = 0;
     virtual void update_from_model_object(bool first_update) = 0;
 
-    virtual std::array<float, 4> get_cursor_sphere_left_button_color() const { return {0.f, 0.f, 1.f, 0.25f}; }
-    virtual std::array<float, 4> get_cursor_sphere_right_button_color() const { return {1.f, 0.f, 0.f, 0.25f}; }
+    virtual ColorRGBA get_cursor_sphere_left_button_color() const  { return { 0.0f, 0.0f, 1.0f, 0.25f }; }
+    virtual ColorRGBA get_cursor_sphere_right_button_color() const { return { 1.0f, 0.0f, 0.0f, 0.25f }; }
     // BBS
-    virtual std::array<float, 4> get_cursor_hover_color() const { return { 0.f, 0.f, 0.f, 0.25f }; }
+    virtual ColorRGBA get_cursor_hover_color() const { return { 0.f, 0.f, 0.f, 0.25f }; }
 
     virtual EnforcerBlockerType get_left_button_state_type() const { return EnforcerBlockerType::ENFORCER; }
     virtual EnforcerBlockerType get_right_button_state_type() const { return EnforcerBlockerType::BLOCKER; }
@@ -300,6 +283,9 @@ protected:
     bool     m_paint_on_overhangs_only          = false;
     float    m_highlight_by_angle_threshold_deg = 0.f;
 
+    GLModel m_circle;
+    Vec2d m_old_center{ Vec2d::Zero() };
+    float m_old_cursor_radius{ 0.0f };
     static constexpr float SmartFillAngleMin  = 0.0f;
     static constexpr float SmartFillAngleMax  = 90.f;
     static constexpr float SmartFillAngleStep = 1.f;
@@ -338,7 +324,7 @@ private:
                               const Camera& camera,
                               const std::vector<Transform3d>& trafo_matrices) const;
 
-    GLIndexedVertexArray m_vbo_sphere;
+    static std::shared_ptr<GLModel> s_sphere;
 
     bool m_internal_stack_active = false;
     bool m_schedule_update = false;
@@ -356,7 +342,7 @@ private:
         Vec3f hit;
         size_t facet;
     };
-    mutable RaycastResult m_rr;
+    mutable RaycastResult m_rr = {Vec2d::Zero(), -1, Vec3f::Zero(), 0};
 
     // BBS
     struct CutContours
@@ -376,9 +362,6 @@ private:
 
 protected:
     void on_set_state() override;
-    void on_start_dragging() override {}
-    void on_stop_dragging() override {}
-
     virtual void on_opening() = 0;
     virtual void on_shutdown() = 0;
     virtual PainterGizmoType get_painter_type() const = 0;

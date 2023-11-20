@@ -1,4 +1,7 @@
-// Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code, which overrides our localization "L" macro.
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoRotate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
@@ -17,10 +20,9 @@ namespace GUI {
 
 
 const float GLGizmoRotate::Offset = 5.0f;
-const unsigned int GLGizmoRotate::CircleResolution = 64;
 const unsigned int GLGizmoRotate::AngleResolution = 64;
 const unsigned int GLGizmoRotate::ScaleStepsCount = 72;
-const float GLGizmoRotate::ScaleStepRad = 2.0f * (float)PI / GLGizmoRotate::ScaleStepsCount;
+const float GLGizmoRotate::ScaleStepRad = 2.0f * float(PI) / GLGizmoRotate::ScaleStepsCount;
 const unsigned int GLGizmoRotate::ScaleLongEvery = 2;
 const float GLGizmoRotate::ScaleLongTooth = 0.1f; // in percent of radius
 const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
@@ -30,33 +32,20 @@ const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent, "", -1)
     , m_axis(axis)
-    , m_angle(0.0)
-    , m_center(0.0, 0.0, 0.0)
-    , m_radius(0.0f)
-    , m_snap_coarse_in_radius(0.0f)
-    , m_snap_coarse_out_radius(0.0f)
-    , m_snap_fine_in_radius(0.0f)
-    , m_snap_fine_out_radius(0.0f)
+    , m_drag_color(DEFAULT_DRAG_COLOR)
+    , m_highlight_color(DEFAULT_HIGHLIGHT_COLOR)
 {
+    m_group_id = static_cast<int>(axis);
 }
 
-GLGizmoRotate::GLGizmoRotate(const GLGizmoRotate& other)
-    : GLGizmoBase(other.m_parent, other.m_icon_filename, other.m_sprite_id)
-    , m_axis(other.m_axis)
-    , m_angle(other.m_angle)
-    , m_center(other.m_center)
-    , m_radius(other.m_radius)
-    , m_snap_coarse_in_radius(other.m_snap_coarse_in_radius)
-    , m_snap_coarse_out_radius(other.m_snap_coarse_out_radius)
-    , m_snap_fine_in_radius(other.m_snap_fine_in_radius)
-    , m_snap_fine_out_radius(other.m_snap_fine_out_radius)
+void GLGizmoRotate::set_highlight_color(const ColorRGBA &color)
 {
+    m_highlight_color = color;
 }
-
 
 void GLGizmoRotate::set_angle(double angle)
 {
-    if (std::abs(angle - 2.0 * (double)PI) < EPSILON)
+    if (std::abs(angle - 2.0 * double(PI)) < EPSILON)
         angle = 0.0;
 
     m_angle = angle;
@@ -71,12 +60,35 @@ std::string GLGizmoRotate::get_tooltip() const
     case Y: { axis = "Y"; break; }
     case Z: { axis = "Z"; break; }
     }
-    return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
+    return (m_hover_id == 0 || m_grabbers.front().dragging) ? axis + ": " + format(float(Geometry::rad2deg(m_angle)), 2) : "";
 }
+
+bool GLGizmoRotate::on_mouse(const wxMouseEvent &mouse_event)
+{
+    return use_grabbers(mouse_event);
+}
+
+void GLGizmoRotate::dragging(const UpdateData &data) { on_dragging(data); }
+
+void GLGizmoRotate::start_dragging()
+{
+    m_grabbers[0].dragging = true;
+    on_start_dragging();
+}
+
+void GLGizmoRotate::stop_dragging()
+{
+    m_grabbers[0].dragging = false;
+    on_stop_dragging();
+}
+
+void GLGizmoRotate::enable_grabber() { m_grabbers[0].enabled = true; }
+void GLGizmoRotate::disable_grabber() { m_grabbers[0].enabled = false; }
 
 bool GLGizmoRotate::on_init()
 {
     m_grabbers.push_back(Grabber());
+    m_grabbers.back().extensions = (GLGizmoBase::EGrabberExtension)(int(GLGizmoBase::EGrabberExtension::PosY) | int(GLGizmoBase::EGrabberExtension::NegY));
     return true;
 }
 
@@ -91,36 +103,33 @@ void GLGizmoRotate::on_start_dragging()
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const UpdateData& data)
+void GLGizmoRotate::on_dragging(const UpdateData &data)
 {
-    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, m_parent.get_selection()));
+    const Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, m_parent.get_selection()));
 
-    Vec2d orig_dir = Vec2d::UnitX();
-    Vec2d new_dir = mouse_pos.normalized();
+    const Vec2d orig_dir = Vec2d::UnitX();
+    const Vec2d new_dir = mouse_pos.normalized();
 
     double theta = ::acos(std::clamp(new_dir.dot(orig_dir), -1.0, 1.0));
     if (cross2(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (double)PI - theta;
 
-    double len = mouse_pos.norm();
+    const double len = mouse_pos.norm();
 
     // snap to coarse snap region
-    if ((m_snap_coarse_in_radius <= len) && (len <= m_snap_coarse_out_radius))
-    {
-        double step = 2.0 * (double)PI / (double)SnapRegionsCount;
-        theta = step * (double)std::round(theta / step);
+    if (m_snap_coarse_in_radius <= len && len <= m_snap_coarse_out_radius) {
+        const double step = 2.0 * double(PI) / double(SnapRegionsCount);
+        theta = step * std::round(theta / step);
     }
-    else
-    {
+    else {
         // snap to fine snap region (scale)
-        if ((m_snap_fine_in_radius <= len) && (len <= m_snap_fine_out_radius))
-        {
-            double step = 2.0 * (double)PI / (double)ScaleStepsCount;
-            theta = step * (double)std::round(theta / step);
+        if (m_snap_fine_in_radius <= len && len <= m_snap_fine_out_radius) {
+            const double step = 2.0 * double(PI) / double(ScaleStepsCount);
+            theta = step * std::round(theta / step);
         }
     }
 
-    if (theta == 2.0 * (double)PI)
+    if (theta == 2.0 * double(PI))
         theta = 0.0;
 
     m_angle = theta;
@@ -128,13 +137,13 @@ void GLGizmoRotate::on_update(const UpdateData& data)
 
 void GLGizmoRotate::on_render()
 {
-    if (!m_grabbers[0].enabled)
+    if (!m_grabbers.front().enabled)
         return;
 
     const Selection& selection = m_parent.get_selection();
     const BoundingBoxf3& box = selection.get_bounding_box();
 
-    if (m_hover_id != 0 && !m_grabbers[0].dragging) {
+    if (m_hover_id != 0 && !m_grabbers.front().dragging) {
         m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
         m_radius = Offset + box.radius();
         m_snap_coarse_in_radius = m_radius / 3.0f;
@@ -143,48 +152,47 @@ void GLGizmoRotate::on_render()
         m_snap_fine_out_radius = m_radius * (1.0f + ScaleLongTooth);
     }
 
+    const double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
+    m_grabbers.front().center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
+    m_grabbers.front().angles.z() = m_angle;
+    m_grabbers.front().color = AXES_COLOR[m_axis];
+    m_grabbers.front().hover_color = AXES_HOVER_COLOR[m_axis];
+
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    glsafe(::glPushMatrix());
-    transform_to_local(selection);
+    m_grabbers.front().matrix = local_transform(selection);
 
     glsafe(::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f));
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+    GLShaderProgram* shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
 
-    render_circle();
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        Transform3d view_model_matrix = camera.get_view_matrix() * m_grabbers.front().matrix;
 
-    if (m_hover_id != -1) {
-        render_scale();
-        render_snap_radii();
-        render_reference_radius();
+        shader->set_uniform("view_model_matrix", view_model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+        const bool radius_changed = std::abs(m_old_radius - m_radius) > EPSILON;
+        m_old_radius = m_radius;
+
+        ColorRGBA color((m_hover_id != -1) ? m_drag_color : m_highlight_color);
+        render_circle(color, radius_changed);
+        if (m_hover_id != -1) {
+            const bool hover_radius_changed = std::abs(m_old_hover_radius - m_radius) > EPSILON;
+            m_old_hover_radius = m_radius;
+
+            render_scale(color, hover_radius_changed);
+            render_snap_radii(color, hover_radius_changed);
+            render_reference_radius(color, hover_radius_changed);
+            render_angle_arc(m_highlight_color, hover_radius_changed);
+        }
+
+        render_grabber_connection(color, radius_changed);
+        shader->stop_using();
     }
 
-    glsafe(::glColor4fv(m_highlight_color.data()));
-
-    if (m_hover_id != -1)
-        render_angle();
-
     render_grabber(box);
-    render_grabber_extension(box, false);
-
-    glsafe(::glPopMatrix());
-}
-
-void GLGizmoRotate::on_render_for_picking()
-{
-    const Selection& selection = m_parent.get_selection();
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-
-    glsafe(::glPushMatrix());
-
-    transform_to_local(selection);
-
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    render_grabbers_for_picking(box);
-    render_grabber_extension(box, true);
-
-    glsafe(::glPopMatrix());
 }
 
 //BBS: add input window for move
@@ -219,192 +227,226 @@ void GLGizmoRotate3D::load_rotoptimize_state()
     }
 }
 
-void GLGizmoRotate::render_circle() const
+void GLGizmoRotate::render_circle(const ColorRGBA& color, bool radius_changed)
 {
-    ::glBegin(GL_LINE_LOOP);
-    for (unsigned int i = 0; i < ScaleStepsCount; ++i)
-    {
-        float angle = (float)i * ScaleStepRad;
-        float x = ::cos(angle) * m_radius;
-        float y = ::sin(angle) * m_radius;
-        float z = 0.0f;
-        ::glVertex3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
+    if (!m_circle.is_initialized() || radius_changed) {
+        m_circle.reset();
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::LineLoop, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(ScaleStepsCount);
+        init_data.reserve_indices(ScaleStepsCount);
+
+        // vertices + indices
+        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
+            const float angle = float(i * ScaleStepRad);
+            init_data.add_vertex(Vec3f(::cos(angle) * m_radius, ::sin(angle) * m_radius, 0.0f));
+            init_data.add_index(i);
+        }
+
+        m_circle.init_from(std::move(init_data));
     }
-    glsafe(::glEnd());
+
+    m_circle.set_color(color);
+    m_circle.render();
 }
 
-void GLGizmoRotate::render_scale() const
+void GLGizmoRotate::render_scale(const ColorRGBA& color, bool radius_changed)
 {
-    float out_radius_long = m_snap_fine_out_radius;
-    float out_radius_short = m_radius * (1.0f + 0.5f * ScaleLongTooth);
+    const float out_radius_long = m_snap_fine_out_radius;
+    const float out_radius_short = m_radius * (1.0f + 0.5f * ScaleLongTooth);
 
-    ::glBegin(GL_LINES);
-    for (unsigned int i = 0; i < ScaleStepsCount; ++i)
-    {
-        float angle = (float)i * ScaleStepRad;
-        float cosa = ::cos(angle);
-        float sina = ::sin(angle);
-        float in_x = cosa * m_radius;
-        float in_y = sina * m_radius;
-        float in_z = 0.0f;
-        float out_x = (i % ScaleLongEvery == 0) ? cosa * out_radius_long : cosa * out_radius_short;
-        float out_y = (i % ScaleLongEvery == 0) ? sina * out_radius_long : sina * out_radius_short;
-        float out_z = 0.0f;
-        ::glVertex3f((GLfloat)in_x, (GLfloat)in_y, (GLfloat)in_z);
-        ::glVertex3f((GLfloat)out_x, (GLfloat)out_y, (GLfloat)out_z);
+    if (!m_scale.is_initialized() || radius_changed) {
+        m_scale.reset();
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2 * ScaleStepsCount);
+        init_data.reserve_indices(2 * ScaleStepsCount);
+
+        // vertices + indices
+        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
+            const float angle = float(i * ScaleStepRad);
+            const float cosa = ::cos(angle);
+            const float sina = ::sin(angle);
+            const float in_x = cosa * m_radius;
+            const float in_y = sina * m_radius;
+            const float out_x = (i % ScaleLongEvery == 0) ? cosa * out_radius_long : cosa * out_radius_short;
+            const float out_y = (i % ScaleLongEvery == 0) ? sina * out_radius_long : sina * out_radius_short;
+
+            // vertices
+            init_data.add_vertex(Vec3f(in_x, in_y, 0.0f));
+            init_data.add_vertex(Vec3f(out_x, out_y, 0.0f));
+
+            // indices
+            init_data.add_line(i * 2, i * 2 + 1);
+        }
+
+        m_scale.init_from(std::move(init_data));
     }
-    glsafe(::glEnd());
+
+    m_scale.set_color(color);
+    m_scale.render();
 }
 
-void GLGizmoRotate::render_snap_radii() const
+void GLGizmoRotate::render_snap_radii(const ColorRGBA& color, bool radius_changed)
 {
-    float step = 2.0f * (float)PI / (float)SnapRegionsCount;
+    const float step = 2.0f * float(PI) / float(SnapRegionsCount);
+    const float in_radius = m_radius / 3.0f;
+    const float out_radius = 2.0f * in_radius;
 
-    float in_radius = m_radius / 3.0f;
-    float out_radius = 2.0f * in_radius;
+    if (!m_snap_radii.is_initialized() || radius_changed) {
+        m_snap_radii.reset();
 
-    ::glBegin(GL_LINES);
-    for (unsigned int i = 0; i < SnapRegionsCount; ++i)
-    {
-        float angle = (float)i * step;
-        float cosa = ::cos(angle);
-        float sina = ::sin(angle);
-        float in_x = cosa * in_radius;
-        float in_y = sina * in_radius;
-        float in_z = 0.0f;
-        float out_x = cosa * out_radius;
-        float out_y = sina * out_radius;
-        float out_z = 0.0f;
-        ::glVertex3f((GLfloat)in_x, (GLfloat)in_y, (GLfloat)in_z);
-        ::glVertex3f((GLfloat)out_x, (GLfloat)out_y, (GLfloat)out_z);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2 * ScaleStepsCount);
+        init_data.reserve_indices(2 * ScaleStepsCount);
+
+        // vertices + indices
+        for (unsigned int i = 0; i < ScaleStepsCount; ++i) {
+            const float angle = float(i * step);
+            const float cosa = ::cos(angle);
+            const float sina = ::sin(angle);
+            const float in_x = cosa * in_radius;
+            const float in_y = sina * in_radius;
+            const float out_x = cosa * out_radius;
+            const float out_y = sina * out_radius;
+
+            // vertices
+            init_data.add_vertex(Vec3f(in_x, in_y, 0.0f));
+            init_data.add_vertex(Vec3f(out_x, out_y, 0.0f));
+
+            // indices
+            init_data.add_line(i * 2, i * 2 + 1);
+        }
+
+        m_snap_radii.init_from(std::move(init_data));
     }
-    glsafe(::glEnd());
+
+    m_snap_radii.set_color(color);
+    m_snap_radii.render();
 }
 
-void GLGizmoRotate::render_reference_radius() const
+void GLGizmoRotate::render_reference_radius(const ColorRGBA& color, bool radius_changed)
 {
-    ::glBegin(GL_LINES);
-    ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)(m_radius * (1.0f + GrabberOffset)), 0.0f, 0.0f);
-    glsafe(::glEnd());
-}
+    if (!m_reference_radius.is_initialized() || radius_changed) {
+        m_reference_radius.reset();
 
-void GLGizmoRotate::render_angle() const
-{
-    float step_angle = (float)m_angle / AngleResolution;
-    float ex_radius = m_radius * (1.0f + GrabberOffset);
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
 
-    ::glBegin(GL_LINE_STRIP);
-    for (unsigned int i = 0; i <= AngleResolution; ++i)
-    {
-        float angle = (float)i * step_angle;
-        float x = ::cos(angle) * ex_radius;
-        float y = ::sin(angle) * ex_radius;
-        float z = 0.0f;
-        ::glVertex3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
+        // vertices
+        init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
+        init_data.add_vertex(Vec3f(m_radius * (1.0f + GrabberOffset), 0.0f, 0.0f));
+
+        // indices
+        init_data.add_line(0, 1);
+
+        m_reference_radius.init_from(std::move(init_data));
     }
-    glsafe(::glEnd());
+
+    m_reference_radius.set_color(color);
+    m_reference_radius.render();
 }
 
-void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
+void GLGizmoRotate::render_angle_arc(const ColorRGBA& color, bool radius_changed)
 {
-    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
-    m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
-    m_grabbers[0].angles(2) = m_angle;
-    m_grabbers[0].color = AXES_COLOR[m_axis];
-    m_grabbers[0].hover_color = AXES_HOVER_COLOR[m_axis];
+    const float step_angle = float(m_angle) / float(AngleResolution);
+    const float ex_radius = m_radius * (1.0f + GrabberOffset);
 
-    glsafe(::glColor4fv((m_hover_id != -1) ? m_drag_color.data() : m_highlight_color.data()));
+    const bool angle_changed = std::abs(m_old_angle - m_angle) > EPSILON;
+    m_old_angle = m_angle;
 
-    ::glBegin(GL_LINES);
-    ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3dv(m_grabbers[0].center.data());
-    glsafe(::glEnd());
+    if (!m_angle_arc.is_initialized() || radius_changed || angle_changed) {
+        m_angle_arc.reset();
+        if (m_angle > 0.0f) {
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::LineStrip, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.reserve_vertices(1 + AngleResolution);
+            init_data.reserve_indices(1 + AngleResolution);
 
-    m_grabbers[0].color = m_highlight_color;
+            // vertices + indices
+            for (unsigned int i = 0; i <= AngleResolution; ++i) {
+                const float angle = float(i) * step_angle;
+                init_data.add_vertex(Vec3f(::cos(angle) * ex_radius, ::sin(angle) * ex_radius, 0.0f));
+                init_data.add_index(i);
+            }
+
+            m_angle_arc.init_from(std::move(init_data));
+        }
+    }
+
+    m_angle_arc.set_color(color);
+    m_angle_arc.render();
+}
+
+void GLGizmoRotate::render_grabber_connection(const ColorRGBA& color, bool radius_changed)
+{
+    if (!m_grabber_connection.model.is_initialized() || radius_changed || !m_grabber_connection.old_center.isApprox(m_grabbers.front().center)) {
+        m_grabber_connection.model.reset();
+        m_grabber_connection.old_center = m_grabbers.front().center;
+
+        GLModel::Geometry init_data;
+        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+        init_data.reserve_vertices(2);
+        init_data.reserve_indices(2);
+
+        // vertices
+        init_data.add_vertex(Vec3f(0.0f, 0.0f, 0.0f));
+        init_data.add_vertex((Vec3f)m_grabbers.front().center.cast<float>());
+
+        // indices
+        init_data.add_line(0, 1);
+
+        m_grabber_connection.model.init_from(std::move(init_data));
+    }
+
+    m_grabber_connection.model.set_color(color);
+    m_grabber_connection.model.render();
+}
+
+void GLGizmoRotate::render_grabber(const BoundingBoxf3& box)
+{
+    m_grabbers.front().color = m_highlight_color;
     render_grabbers(box);
 }
 
-void GLGizmoRotate::render_grabber_extension(const BoundingBoxf3& box, bool picking) const
+Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
 {
-    double size = 0.75 * GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    //float mean_size = (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0);
-    //double size = m_dragging ? (double)m_grabbers[0].get_dragging_half_size(mean_size) : (double)m_grabbers[0].get_half_size(mean_size);
-
-    std::array<float, 4> color = m_grabbers[0].color;
-    if (!picking && m_hover_id != -1) {
-        color = m_grabbers[0].hover_color;
-        //color[0] = 1.0f - color[0];
-        //color[1] = 1.0f - color[1];
-        //color[2] = 1.0f - color[2];
-    }
-
-    GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
-    if (shader == nullptr)
-        return;
-
-    const_cast<GLModel*>(&m_cone)->set_color(-1, color);
-    if (!picking) {
-        shader->start_using();
-        shader->set_uniform("emission_factor", 0.1f);
-    }
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
-    m_cone.render();
-    glsafe(::glPopMatrix());
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_grabbers[0].center.x(), m_grabbers[0].center.y(), m_grabbers[0].center.z()));
-    glsafe(::glRotated(Geometry::rad2deg(m_angle), 0.0, 0.0, 1.0));
-    glsafe(::glRotated(-90.0, 1.0, 0.0, 0.0));
-    glsafe(::glTranslated(0.0, 0.0, 1.5 * size));
-    glsafe(::glScaled(0.75 * size, 0.75 * size, 3.0 * size));
-    m_cone.render();
-    glsafe(::glPopMatrix());
-
-    if (! picking)
-        shader->stop_using();
-}
-
-void GLGizmoRotate::transform_to_local(const Selection& selection) const
-{
-    glsafe(::glTranslated(m_center(0), m_center(1), m_center(2)));
-
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes()) {
-        Transform3d orient_matrix = selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true);
-        glsafe(::glMultMatrixd(orient_matrix.data()));
-    }
+    Transform3d ret;
 
     switch (m_axis)
     {
     case X:
     {
-        glsafe(::glRotatef(90.0f, 0.0f, 1.0f, 0.0f));
-        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
+        ret = Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
         break;
     }
     case Y:
     {
-        glsafe(::glRotatef(-90.0f, 0.0f, 0.0f, 1.0f));
-        glsafe(::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f));
+        ret = Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitY());
         break;
     }
     default:
     case Z:
     {
-        // no rotation
+        ret = Transform3d::Identity();
         break;
     }
     }
+
+    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
+        ret = selection.get_first_volume()->get_instance_transformation().get_matrix(true, false, true, true) * ret;
+
+    return Geometry::assemble_transform(m_center) * ret;
 }
 
 Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const
 {
-    double half_pi = 0.5 * (double)PI;
+    const double half_pi = 0.5 * double(PI);
 
     Transform3d m = Transform3d::Identity();
 
@@ -431,40 +473,75 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     }
 
     if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        m = m * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_transformation().get_matrix(true, false, true, true).inverse();
+        m = m * selection.get_first_volume()->get_instance_transformation().get_matrix(true, false, true, true).inverse();
 
     m.translate(-m_center);
 
-    return transform(mouse_ray, m).intersect_plane(0.0);
+    const Linef3 local_mouse_ray = transform(mouse_ray, m);
+    if (std::abs(local_mouse_ray.vector().dot(Vec3d::UnitZ())) < EPSILON) {
+        // if the ray is parallel to the plane containing the circle
+        if (std::abs(local_mouse_ray.vector().dot(Vec3d::UnitY())) > 1.0 - EPSILON)
+            // if the ray is parallel to grabber direction
+            return Vec3d::UnitX();
+        else {
+            const Vec3d world_pos = (local_mouse_ray.a.x() >= 0.0) ? mouse_ray.a - m_center : mouse_ray.b - m_center;
+            m.translate(m_center);
+            return m * world_pos;
+        }
+    }
+    else
+        return local_mouse_ray.intersect_plane(0.0);
 }
 
 //BBS: GUI refactor: add obj manipulation
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
+    , m_gizmos({ GLGizmoRotate(parent, GLGizmoRotate::X), GLGizmoRotate(parent, GLGizmoRotate::Y), GLGizmoRotate(parent, GLGizmoRotate::Z) })
     //BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
-    m_gizmos.emplace_back(parent, GLGizmoRotate::X);
-    m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
-    m_gizmos.emplace_back(parent, GLGizmoRotate::Z);
-
-    for (unsigned int i = 0; i < 3; ++i) {
-        m_gizmos[i].set_group_id(i);
-    }
-
     load_rotoptimize_state();
+}
+
+bool GLGizmoRotate3D::on_mouse(const wxMouseEvent &mouse_event) {
+
+    if (mouse_event.Dragging() && m_dragging) {
+        // Apply new temporary rotations
+        TransformationType transformation_type(
+            TransformationType::World_Relative_Joint);
+        if (mouse_event.AltDown())
+            transformation_type.set_independent();
+        m_parent.get_selection().rotate(get_rotation(), transformation_type);
+    }
+    return use_grabbers(mouse_event);
+}
+
+void GLGizmoRotate3D::data_changed(bool is_serializing) {
+    const Selection &selection = m_parent.get_selection();
+    bool is_wipe_tower = selection.is_wipe_tower();
+    if (is_wipe_tower) {
+        DynamicPrintConfig& config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        float wipe_tower_rotation_angle =
+            dynamic_cast<const ConfigOptionFloat *>(
+                config.option("wipe_tower_rotation_angle"))
+                ->value;
+        set_rotation(Vec3d(0., 0., (M_PI / 180.) * wipe_tower_rotation_angle));
+        m_gizmos[0].disable_grabber();
+        m_gizmos[1].disable_grabber();
+    } else {
+        set_rotation(Vec3d::Zero());
+        m_gizmos[0].enable_grabber();
+        m_gizmos[1].enable_grabber();
+    }
 }
 
 bool GLGizmoRotate3D::on_init()
 {
-    for (GLGizmoRotate& g : m_gizmos) {
-        if (!g.init())
-            return false;
-    }
+    for (GLGizmoRotate& g : m_gizmos) 
+        if (!g.init()) return false;
 
-    for (unsigned int i = 0; i < 3; ++i) {
+    for (unsigned int i = 0; i < 3; ++i)
         m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
-    }
 
     m_shortcut_key = WXK_CONTROL_R;
 
@@ -485,14 +562,21 @@ bool GLGizmoRotate3D::on_is_activable() const
 
 void GLGizmoRotate3D::on_start_dragging()
 {
-    if ((0 <= m_hover_id) && (m_hover_id < 3))
-        m_gizmos[m_hover_id].start_dragging();
+    assert(0 <= m_hover_id && m_hover_id < 3);
+    m_gizmos[m_hover_id].start_dragging();
 }
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
-    if ((0 <= m_hover_id) && (m_hover_id < 3))
-        m_gizmos[m_hover_id].stop_dragging();
+    assert(0 <= m_hover_id && m_hover_id < 3);
+    m_parent.do_rotate(L("Gizmo-Rotate"));
+    m_gizmos[m_hover_id].stop_dragging();
+}
+
+void GLGizmoRotate3D::on_dragging(const UpdateData &data)
+{
+    assert(0 <= m_hover_id && m_hover_id < 3);
+    m_gizmos[m_hover_id].dragging(data);
 }
 
 void GLGizmoRotate3D::on_render()
@@ -507,6 +591,23 @@ void GLGizmoRotate3D::on_render()
 
     if (m_hover_id == -1 || m_hover_id == 2)
         m_gizmos[Z].render();
+}
+
+void GLGizmoRotate3D::on_register_raycasters_for_picking()
+{
+    // the gizmo grabbers are rendered on top of the scene, so the raytraced picker should take it into account
+    m_parent.set_raycaster_gizmos_on_top(true);
+    for (GLGizmoRotate& g : m_gizmos) {
+        g.register_raycasters_for_picking();
+    }
+}
+
+void GLGizmoRotate3D::on_unregister_raycasters_for_picking()
+{
+    for (GLGizmoRotate& g : m_gizmos) {
+        g.unregister_raycasters_for_picking();
+    }
+    m_parent.set_raycaster_gizmos_on_top(false);
 }
 
 GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
