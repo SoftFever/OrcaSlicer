@@ -3330,12 +3330,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("head_wrap_detect_zone", coPoints);
     def->label ="Head wrap detect zone"; //do not need translation
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionPoints{
-        Vec2d(0,150),
-        Vec2d(30,150),
-        Vec2d(0,180),
-        Vec2d(30,180)
-        });
+    def->set_default_value(new ConfigOptionPoints{});
 
     def = this->add("detect_thin_wall", coBool);
     def->label = L("Detect thin wall");
