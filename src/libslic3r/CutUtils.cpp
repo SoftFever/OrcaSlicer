@@ -447,6 +447,11 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
     if (m_attributes.has(ModelObjectCutAttribute::KeepLower))
         cut_mo->clone_for_cut(&lower);
 
+    if (upper && lower) {
+        upper->name = upper->name + "_A";
+        lower->name = lower->name + "_B";
+    }
+
     const size_t cut_parts_cnt = parts.size();
     bool         has_modifiers = false;
 
