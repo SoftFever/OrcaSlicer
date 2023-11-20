@@ -4496,7 +4496,7 @@ msgid "Resync"
 msgstr "重新同步"
 
 msgid "There are no compatible filaments, and sync is not performed."
-msgstr "没有如任何兼容的材料，同步操作未执行。"
+msgstr "没有任何兼容的材料，同步操作未执行。"
 
 msgid ""
 "There are some unknown or uncompatible filaments mapped to generic preset. "
