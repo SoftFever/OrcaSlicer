@@ -2502,7 +2502,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::string nozzle_diameter;
     std::string filament_type;
 
-    if (!obj_->nozzle_type.empty()) {
+    if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             has_update_nozzle  = true;
