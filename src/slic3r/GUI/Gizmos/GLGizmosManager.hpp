@@ -86,6 +86,7 @@ public:
         FdmSupports,
         Seam,
         Emboss,
+        Svg,
         MmuSegmentation,
         Measure,
         Simplify,

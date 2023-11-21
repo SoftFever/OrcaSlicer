@@ -703,7 +703,7 @@ bool check(const DataBase &input, bool check_fontfile, bool use_surface)
 bool check(GLGizmosManager::EType gizmo)
 {
     assert(gizmo == GLGizmosManager::Emboss || gizmo == GLGizmosManager::Svg);
-    return gizmo == GLGizmosManager::Emboss /*|| gizmo == GLGizmosManager::Svg*/;
+    return gizmo == GLGizmosManager::Emboss || gizmo == GLGizmosManager::Svg;
 }
 
 bool check(const CreateVolumeParams &input)

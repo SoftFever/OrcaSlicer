@@ -130,6 +130,7 @@
 #include "MsgDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
+#include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
 #include "Gizmos/GizmoObjectManipulation.hpp"
 
 // BBS
@@ -1748,39 +1749,38 @@ std::string& Sidebar::get_search_line()
 class PlaterDropTarget : public wxFileDropTarget
 {
 public:
-    PlaterDropTarget(Plater* plater) : m_plater(plater) { this->SetDefaultAction(wxDragCopy); }
+    PlaterDropTarget(MainFrame& mainframe, Plater& plater) : m_mainframe(mainframe), m_plater(plater) {
+        this->SetDefaultAction(wxDragCopy);
+    }
 
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
 
-    void handleOnIdle(wxIdleEvent & event);
-
 private:
-    Plater* m_plater;
-    wxArrayString m_filenames;
+    MainFrame& m_mainframe;
+    Plater& m_plater;
 };
 
-bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
+namespace {
+bool emboss_svg(Plater& plater, const wxString &svg_file, const Vec2d& mouse_drop_position)
 {
-#ifdef WIN32
-    // hides the system icon
-    this->MSWUpdateDragImageOnLeave();
-#endif // WIN32
+    std::string svg_file_str = into_u8(svg_file);
+    GLCanvas3D* canvas = plater.canvas3D();
+    if (canvas == nullptr)
+        return false;
+    auto base_svg = canvas->get_gizmos_manager().get_gizmo(GLGizmosManager::Svg);
+    if (base_svg == nullptr)
+        return false;
+    GLGizmoSVG* svg = dynamic_cast<GLGizmoSVG *>(base_svg);
+    if (svg == nullptr)
+        return false;
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": drag %1% files into app")%filenames.size();
-    m_filenames = filenames;
-    wxGetApp().Bind(wxEVT_IDLE, &PlaterDropTarget::handleOnIdle, this);
-    return true;
+    // Refresh hover state to find surface point under mouse
+    wxMouseEvent evt(wxEVT_MOTION);
+    evt.SetPosition(wxPoint(mouse_drop_position.x(), mouse_drop_position.y()));
+    canvas->on_mouse(evt); // call render where is call GLCanvas3D::_picking_pass()
+
+    return svg->create_volume(svg_file_str, mouse_drop_position, ModelVolumeType::MODEL_PART);
 }
-
-void PlaterDropTarget::handleOnIdle(wxIdleEvent &event)
-{
-    wxGetApp().mainframe->Raise();
-    wxGetApp().Unbind(wxEVT_IDLE, &PlaterDropTarget::handleOnIdle, this);
-    if (m_plater != nullptr) {
-        m_plater->load_files(m_filenames);
-        wxGetApp().mainframe->update_title();
-    }
-    //m_filenames.clear();
 }
 
 // State to manage showing after export notifications and device ejecting
@@ -2137,6 +2137,7 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
+    void show_right_click_menu(Vec2d mouse_position, wxMenu *menu);
     void on_right_click(RBtnEvent&);
     //BBS: add model repair
     void on_repair_model(wxCommandEvent &event);
@@ -2295,6 +2296,37 @@ const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
 const std::regex Plater::priv::pattern_prusa(".*bbl", std::regex::icase);
+
+bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
+{
+#ifdef WIN32
+    // hides the system icon
+    this->MSWUpdateDragImageOnLeave();
+#endif // WIN32
+
+    m_mainframe.Raise();
+    m_mainframe.select_tab(size_t(MainFrame::tp3DEditor));
+    if (wxGetApp().is_editor())
+        m_plater.select_view_3D("3D");
+
+    // When only one .svg file is dropped on scene
+    if (filenames.size() == 1) {
+        const wxString &filename = filenames.Last();
+        const wxString  file_extension = filename.substr(filename.length() - 4);
+        if (file_extension.CmpNoCase(".svg") == 0) {
+            // BBS: GUI refactor: move sidebar to the left
+            const wxPoint offset  = m_plater.GetPosition() + m_plater.p->current_panel->GetPosition();
+            Vec2d mouse_position(x - offset.x, y - offset.y);
+            // Scale for retina displays
+            const GLCanvas3D *canvas = m_plater.canvas3D();
+            canvas->apply_retina_scale(mouse_position);
+            return emboss_svg(m_plater, filename, mouse_position);
+        }
+    }
+    bool res = m_plater.load_files(filenames);
+    m_mainframe.update_title();
+    return res;
+}
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame)
     : q(q)
@@ -2598,7 +2630,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     }
 
     // Drop target:
-    q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
+    q->SetDropTarget(new PlaterDropTarget(*main_frame, *q));   // if my understanding is right, wxWindow takes the owenership
     q->Layout();
 
     set_current_panel(wxGetApp().is_editor() ? static_cast<wxPanel*>(view3D) : static_cast<wxPanel*>(preview));
@@ -6080,7 +6112,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 }
             }
         }
-        q->SetDropTarget(new PlaterDropTarget(q));
+        q->SetDropTarget(new PlaterDropTarget(*main_frame, *q));
     }
     else
     {
@@ -6455,6 +6487,24 @@ void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
     if (m_send_to_sdcard_dlg) m_send_to_sdcard_dlg->on_change_color_mode();
 }
 
+void Plater::priv::show_right_click_menu(Vec2d mouse_position, wxMenu *menu)
+{
+    // BBS: GUI refactor: move sidebar to the left
+    int x, y;
+    current_panel->GetPosition(&x, &y);
+    wxPoint position(static_cast<int>(mouse_position.x() + x), static_cast<int>(mouse_position.y() + y));
+#ifdef __linux__
+    // For some reason on Linux the menu isn't displayed if position is
+    // specified (even though the position is sane).
+    position = wxDefaultPosition;
+#endif
+    GLCanvas3D &canvas = *q->canvas3D();
+    canvas.apply_retina_scale(mouse_position);
+    canvas.set_popup_menu_position(mouse_position);
+    q->PopupMenu(menu, position);
+    canvas.clear_popup_menu_position();
+}
+
 void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
@@ -6506,6 +6556,7 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
                     const GLVolume* gl_volume = selection.get_first_volume();
                     const ModelVolume *model_volume = get_model_volume(*gl_volume, selection.get_model()->objects);
                     menu = (model_volume != nullptr && model_volume->is_text()) ? menus.text_part_menu() :
+                           (model_volume != nullptr && model_volume->is_svg()) ? menus.svg_part_menu() : 
                         menus.part_menu();
                 } else
                     menu = menus.multi_selection_menu();
@@ -6514,34 +6565,15 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
     }
 
     if (q != nullptr && menu) {
-#ifdef __linux__
-        // For some reason on Linux the menu isn't displayed if position is specified
-        // (even though the position is sane).
-        q->PopupMenu(menu);
-#else
-        //BBS: GUI refactor: move sidebar to the left
-        int x, y;
-        current_panel->GetPosition(&x, &y);
-        q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
-        //q->PopupMenu(menu);
-#endif
+        show_right_click_menu(evt.data.first, menu);
     }
 }
 
 //BBS: add part plate related logic
 void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 {
-    wxMenu* menu = menus.plate_menu();
-
-#ifdef __linux__
-    q->PopupMenu(menu);
-#else
-    //BBS: GUI refactor: move sidebar to the left
-    int x, y;
-    current_panel->GetPosition(&x, &y);
-    q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
-    //q->PopupMenu(menu);
-#endif
+    wxMenu *menu = menus.plate_menu();
+    show_right_click_menu(evt.data.first, menu);
 }
 
 void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
@@ -10291,6 +10323,110 @@ void Plater::export_stl(bool extended, bool selection_only)
     }
 }*/
 
+namespace {
+std::string get_file_name(const std::string &file_path)
+{
+    size_t pos_last_delimiter = file_path.find_last_of("/\\");
+    size_t pos_point          = file_path.find_last_of('.');
+    size_t offset             = pos_last_delimiter + 1;
+    size_t count              = pos_point - pos_last_delimiter - 1;
+    return file_path.substr(offset, count);
+}
+using SvgFile = EmbossShape::SvgFile;
+using SvgFiles = std::vector<SvgFile*>;
+std::string create_unique_3mf_filepath(const std::string &file, const SvgFiles svgs)
+{
+    // const std::string MODEL_FOLDER = "3D/"; // copy from file 3mf.cpp
+    std::string path_in_3mf = "3D/" + file + ".svg";
+    size_t suffix_number = 0;
+    bool is_unique = false;
+    do{
+        is_unique = true;
+        path_in_3mf = "3D/" + file + ((suffix_number++)? ("_" + std::to_string(suffix_number)) : "") + ".svg";
+        for (SvgFile *svgfile : svgs) {
+            if (svgfile->path_in_3mf.empty())
+                continue;
+            if (svgfile->path_in_3mf.compare(path_in_3mf) == 0) {
+                is_unique = false;
+                break;
+            }
+        } 
+    } while (!is_unique);
+    return path_in_3mf;
+}
+
+bool set_by_local_path(SvgFile &svg, const SvgFiles& svgs)
+{
+    // Try to find already used svg file
+    for (SvgFile *svg_ : svgs) {
+        if (svg_->path_in_3mf.empty())
+            continue;
+        if (svg.path.compare(svg_->path) == 0) {
+            svg.path_in_3mf = svg_->path_in_3mf;
+            return true;
+        }
+    }
+    return false;
+}
+
+/// <summary>
+/// Function to secure private data before store to 3mf
+/// </summary>
+/// <param name="model">Data(also private) to clean before publishing</param>
+void publish(Model &model, SaveStrategy strategy) {
+
+    // SVG file publishing
+    bool exist_new = false;
+    SvgFiles svgfiles;
+    for (ModelObject *object: model.objects){
+        for (ModelVolume *volume : object->volumes) {
+            if (!volume->emboss_shape.has_value())
+                continue;
+            if (volume->text_configuration.has_value())
+                continue; // text dosen't have svg path
+
+            assert(volume->emboss_shape->svg_file.has_value());
+            if (!volume->emboss_shape->svg_file.has_value())
+                continue;
+
+            SvgFile* svg = &(*volume->emboss_shape->svg_file);
+            if (svg->path_in_3mf.empty())
+                exist_new = true;
+            svgfiles.push_back(svg);
+        }
+    }
+
+    // Orca: don't show this in silence mode
+    if (exist_new && !(strategy & SaveStrategy::Silence)) {
+        MessageDialog dialog(nullptr,
+                             _L("Are you sure you want to store original SVGs with their local paths into the 3MF file?\n"
+                                "If you hit 'NO', all SVGs in the project will not be editable any more."),
+                             _L("Private protection"), wxYES_NO | wxICON_QUESTION);
+        if (dialog.ShowModal() == wxID_NO){
+            for (ModelObject *object : model.objects) 
+                for (ModelVolume *volume : object->volumes)
+                    if (volume->emboss_shape.has_value())
+                        volume->emboss_shape.reset();
+        }
+    }
+
+    for (SvgFile* svgfile : svgfiles){
+        if (!svgfile->path_in_3mf.empty())
+            continue; // already suggested path (previous save)
+
+        // create unique name for svgs, when local path differ
+        std::string filename = "unknown";
+        if (!svgfile->path.empty()) {
+            if (set_by_local_path(*svgfile, svgfiles))
+                continue;
+            // check whether original filename is already in:
+            filename = get_file_name(svgfile->path);
+        }
+        svgfile->path_in_3mf = create_unique_3mf_filepath(filename, svgfiles);        
+    }
+}
+}
+
 // BBS: backup
 int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy strategy, int export_plate_idx, Export3mfProgressFn proFn)
 {
@@ -10309,6 +10445,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     if (!path.Lower().EndsWith(".3mf"))
         return -1;
+
+    // take care about private data stored into .3mf
+    // modify model
+    publish(p->model, strategy);
 
     DynamicPrintConfig cfg = wxGetApp().preset_bundle->full_config_secure();
     const std::string path_u8 = into_u8(path);
@@ -12643,6 +12783,7 @@ wxMenu* Plater::plate_menu()            { return p->menus.plate_menu();         
 wxMenu* Plater::object_menu()           { return p->menus.object_menu();            }
 wxMenu* Plater::part_menu()             { return p->menus.part_menu();              }
 wxMenu* Plater::text_part_menu()        { return p->menus.text_part_menu();         }
+wxMenu* Plater::svg_part_menu()         { return p->menus.svg_part_menu();          }
 wxMenu* Plater::sla_object_menu()       { return p->menus.sla_object_menu();        }
 wxMenu* Plater::default_menu()          { return p->menus.default_menu();           }
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }

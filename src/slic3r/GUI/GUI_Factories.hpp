@@ -53,6 +53,7 @@ class MenuFactory
 public:
     static std::vector<wxBitmap>    get_volume_bitmaps();
 	static std::vector<wxBitmap>    get_text_volume_bitmaps();
+	static std::vector<wxBitmap>    get_svg_volume_bitmaps();
 
     MenuFactory();
     ~MenuFactory() = default;
@@ -71,6 +72,7 @@ public:
     wxMenu* sla_object_menu();
     wxMenu* part_menu();
     wxMenu* text_part_menu();
+    wxMenu* svg_part_menu();
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
@@ -92,6 +94,7 @@ private:
     MenuWithSeparators m_object_menu;
     MenuWithSeparators m_part_menu;
     MenuWithSeparators m_text_part_menu;
+    MenuWithSeparators m_svg_part_menu;
     MenuWithSeparators m_sla_object_menu;
     MenuWithSeparators m_default_menu;
     MenuWithSeparators m_instance_menu;
@@ -112,6 +115,7 @@ private:
     void        create_sla_object_menu();
     void        create_part_menu();
     void        create_text_part_menu();
+    void        create_svg_part_menu();
     //BBS: add part plate related logic
     void        create_plate_menu();
     //BBS: add bbl object menu
@@ -122,6 +126,7 @@ private:
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_text(wxMenu* menu, ModelVolumeType type, bool is_submenu_item = true);
+    void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);    
     void        append_menu_items_add_volume(wxMenu* menu);
     wxMenuItem* append_menu_item_layers_editing(wxMenu* menu);
     wxMenuItem* append_menu_item_settings(wxMenu* menu);
@@ -146,6 +151,7 @@ private:
     void        append_menu_items_mirror(wxMenu *menu);
     void        append_menu_item_invalidate_cut_info(wxMenu *menu);
     void        append_menu_item_edit_text(wxMenu *menu);
+    void        append_menu_item_edit_svg(wxMenu *menu);
 
     //void        append_menu_items_instance_manipulation(wxMenu *menu);
     //void        update_menu_items_instance_manipulation(MenuType type);

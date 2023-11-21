@@ -2533,6 +2533,7 @@ void ObjectList::split()
         const wxDataViewItem& vol_item = m_objects_model->AddVolumeChild(parent, from_u8(volume->name),
             volume->type(),// is_modifier() ? ModelVolumeType::PARAMETER_MODIFIER : ModelVolumeType::MODEL_PART,
             volume->is_text(),
+            volume->is_svg(),
 			get_warning_icon_name(volume->mesh().stats()),
             volume->config.has("extruder") ? volume->config.extruder() : 0,
             false);
@@ -3690,6 +3691,7 @@ wxDataViewItemArray ObjectList::add_volumes_to_object_in_list(size_t obj_idx, st
                 from_u8(volume->name),
                 volume->type(),
                 volume->is_text(),
+                volume->is_svg(),
                 get_warning_icon_name(volume->mesh().stats()),
                 volume->config.has("extruder") ? volume->config.extruder() : 0,
                 false);
@@ -5703,6 +5705,7 @@ wxDataViewItemArray ObjectList::reorder_volumes_and_get_selection(int obj_idx, s
         wxDataViewItem vol_item = m_objects_model->AddVolumeChild(object_item, from_u8(volume->name),
             volume->type(),
             volume->is_text(),
+            volume->is_svg(),
             get_warning_icon_name(volume->mesh().stats()),
             volume->config.has("extruder") ? volume->config.extruder() : 0,
             false);

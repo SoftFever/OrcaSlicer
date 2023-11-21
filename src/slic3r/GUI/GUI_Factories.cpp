@@ -20,6 +20,7 @@
 //BBS: add partplate related logic
 #include "PartPlate.hpp"
 #include "Gizmos/GLGizmoEmboss.hpp"
+#include "Gizmos/GLGizmoSVG.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
@@ -295,6 +296,12 @@ static const constexpr std::array<std::pair<const char *, const char *>, 3> TEXT
         {L("Add negative text"),    "add_text_negative" },   // ~ModelVolumeType::NEGATIVE_VOLUME
         {L("Add text modifier"),    "add_text_modifier"},    // ~ModelVolumeType::PARAMETER_MODIFIER
 }};
+// Note: id accords to type of the sub-object (adding volume), so sequence of the menu items is important
+static const constexpr std::array<std::pair<const char *, const char *>, 3> SVG_VOLUME_ICONS{{
+    {L("Add SVG part"),     "svg_part"},     // ~ModelVolumeType::MODEL_PART
+    {L("Add negative SVG"), "svg_negative"}, // ~ModelVolumeType::NEGATIVE_VOLUME
+    {L("Add SVG modifier"), "svg_modifier"}, // ~ModelVolumeType::PARAMETER_MODIFIER
+}};
 
 static Plater* plater()
 {
@@ -447,6 +454,15 @@ std::vector<wxBitmap> MenuFactory::get_text_volume_bitmaps()
     return volume_bmps;
 }
 
+std::vector<wxBitmap> MenuFactory::get_svg_volume_bitmaps()
+{
+    std::vector<wxBitmap> volume_bmps;
+    volume_bmps.reserve(SVG_VOLUME_ICONS.size());
+    for (const auto &item : SVG_VOLUME_ICONS)
+        volume_bmps.push_back(create_scaled_bitmap(item.second));
+    return volume_bmps;
+}
+
 void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
 {
     bool has_one_shown = false;
@@ -508,6 +524,7 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
     }
 
     append_menu_item_add_text(sub_menu, type);
+    append_menu_item_add_svg(sub_menu, type);
 
     sub_menu->AppendSeparator();
     for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone")}) {
@@ -543,7 +560,7 @@ static void append_menu_itemm_add_(const wxString& name, GLGizmosManager::EType 
             } else {
                 emboss->create_volume(volume_type);
             }
-        } /*else if (gizmo_type == GLGizmosManager::Svg) {
+        } else if (gizmo_type == GLGizmosManager::Svg) {
             auto svg = dynamic_cast<GLGizmoSVG *>(gizmo_base);
             assert(svg != nullptr);
             if (svg == nullptr) return;
@@ -552,7 +569,7 @@ static void append_menu_itemm_add_(const wxString& name, GLGizmosManager::EType 
             } else {
                 svg->create_volume(volume_type);
             }
-        }*/        
+        }        
     };
 
     if (type == ModelVolumeType::MODEL_PART || type == ModelVolumeType::NEGATIVE_VOLUME || type == ModelVolumeType::PARAMETER_MODIFIER ||
@@ -567,6 +584,10 @@ static void append_menu_itemm_add_(const wxString& name, GLGizmosManager::EType 
 
 void MenuFactory::append_menu_item_add_text(wxMenu* menu, ModelVolumeType type, bool is_submenu_item/* = true*/){
     append_menu_itemm_add_(_L("Text"), GLGizmosManager::Emboss, menu, type, is_submenu_item);
+}
+
+void MenuFactory::append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item /* = true*/){
+    append_menu_itemm_add_(_L("SVG"), GLGizmosManager::Svg, menu, type, is_submenu_item);
 }
 
 void MenuFactory::append_menu_items_add_volume(wxMenu* menu)
@@ -1074,6 +1095,43 @@ void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
     append_menu_item(menu, wxID_ANY, name, description, open_emboss, icon, nullptr, can_edit_text, m_parent);
 }
 
+void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
+{
+    wxString name = _L("Edit SVG");
+    auto can_edit_svg = []() {
+        if (plater() == nullptr)
+            return false;        
+        const Selection& selection = plater()->get_selection();
+        if (selection.volumes_count() != 1)
+            return false;
+        const GLVolume* gl_volume = selection.get_first_volume();
+        if (gl_volume == nullptr)
+            return false;
+        const ModelVolume *volume = get_model_volume(*gl_volume, selection.get_model()->objects);
+        if (volume == nullptr)
+            return false;
+        return volume->is_svg();        
+    };
+
+    if (menu != &m_svg_part_menu) {
+        const int menu_item_id = menu->FindItem(name);
+        if (menu_item_id != wxNOT_FOUND)
+            menu->Destroy(menu_item_id);
+        if (!can_edit_svg())
+            return;
+    }
+
+    wxString description = _L("Change SVG source file, projection, size, ...");
+    std::string icon = "cog";
+    auto open_svg = [](const wxCommandEvent &) {
+        GLGizmosManager &mng = plater()->canvas3D()->get_gizmos_manager();
+        if (mng.get_current_type() == GLGizmosManager::Svg)
+            mng.open_gizmo(GLGizmosManager::Svg); // close() and reopen - move to be visible
+        mng.open_gizmo(GLGizmosManager::Svg);
+    };
+    append_menu_item(menu, wxID_ANY, name, description, open_svg, icon, nullptr, can_edit_svg, m_parent);
+}
+
 void MenuFactory::append_menu_item_invalidate_cut_info(wxMenu *menu)
 {
     const wxString menu_name = _L("Invalidate cut info");
@@ -1271,6 +1329,20 @@ void MenuFactory::create_text_part_menu()
     append_menu_item_change_type(menu);
 }
 
+void MenuFactory::create_svg_part_menu()
+{
+    wxMenu* menu = &m_svg_part_menu;
+
+    append_menu_item_edit_svg(menu);
+    append_menu_item_delete(menu);
+    append_menu_item_fix_through_netfabb(menu);
+    append_menu_item_simplify(menu);
+    append_menu_items_mirror(menu);
+    menu->AppendSeparator();
+    append_menu_item_per_object_settings(menu);
+    append_menu_item_change_type(menu);
+}
+
 void MenuFactory::create_bbl_part_menu()
 {
     wxMenu* menu = &m_part_menu;
@@ -1398,6 +1470,7 @@ void MenuFactory::init(wxWindow* parent)
     create_sla_object_menu();
     //create_part_menu();
     create_text_part_menu();
+    create_svg_part_menu();
     create_extra_object_menu();
     create_bbl_part_menu();
     create_bbl_assemble_object_menu();
@@ -1427,6 +1500,7 @@ wxMenu* MenuFactory::object_menu()
     append_menu_items_flush_options(&m_object_menu);
     append_menu_item_invalidate_cut_info(&m_object_menu);
     append_menu_item_edit_text(&m_object_menu);
+    append_menu_item_edit_svg(&m_object_menu);
     append_menu_item_change_filament(&m_object_menu);
     return &m_object_menu;
 }
@@ -1437,6 +1511,7 @@ wxMenu* MenuFactory::sla_object_menu()
     append_menu_item_settings(&m_sla_object_menu);
     //update_menu_items_instance_manipulation(mtObjectSLA);
     append_menu_item_edit_text(&m_sla_object_menu);
+    append_menu_item_edit_svg(&m_object_menu);
 
     return &m_sla_object_menu;
 }
@@ -1455,6 +1530,14 @@ wxMenu* MenuFactory::text_part_menu()
     append_menu_item_per_object_settings(&m_text_part_menu);
 
     return &m_text_part_menu;
+}
+
+wxMenu *MenuFactory::svg_part_menu()
+{
+    append_menu_item_change_filament(&m_svg_part_menu);
+    append_menu_item_per_object_settings(&m_svg_part_menu);
+
+    return &m_svg_part_menu;
 }
 
 wxMenu* MenuFactory::instance_menu()

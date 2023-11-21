@@ -1106,6 +1106,8 @@ public:
 
     bool is_object_sinking(int object_idx) const;
 
+    void apply_retina_scale(Vec2d &screen_coordinate) const;
+
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
 
     // Convert the screen space coordinate to an object space coordinate.

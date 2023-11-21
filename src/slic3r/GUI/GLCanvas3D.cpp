@@ -4376,8 +4376,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
          type == GLGizmosManager::EType::Move ||
          type == GLGizmosManager::EType::Rotate ||
          type == GLGizmosManager::EType::Scale ||
-         type == GLGizmosManager::EType::Emboss/*||
-         type == GLGizmosManager::EType::Svg*/) ) {
+         type == GLGizmosManager::EType::Emboss ||
+         type == GLGizmosManager::EType::Svg) ) {
         for (int hover_volume_id : m_hover_volume_idxs) { 
             const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
             int object_idx = hover_gl_volume.object_idx();
@@ -4395,8 +4395,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 return;
             } else if (hover_volume->emboss_shape.has_value()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
-                /*if (type != GLGizmosManager::EType::Svg)
-                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);*/
+                if (type != GLGizmosManager::EType::Svg)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
                 wxGetApp().obj_list()->update_selections();
                 return;
             }
@@ -5239,6 +5239,14 @@ bool GLCanvas3D::is_object_sinking(int object_idx) const
             return true;
     }
     return false;
+}
+
+void GLCanvas3D::apply_retina_scale(Vec2d &screen_coordinate) const 
+{
+#if ENABLE_RETINA_GL
+    double scale = static_cast<double>(m_retina_helper->get_scale_factor());
+    screen_coordinate *= scale;
+#endif // ENABLE_RETINA_GL
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
