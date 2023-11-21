@@ -1924,6 +1924,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         update_plate_normal_boundingbox_clipper(tran.get_matrix());
         reset_cut_by_contours();
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
+        m_start_dragging_m = m_rotate_matrix; // for takeshot
     }
 
     ImGui::Separator();
@@ -1944,6 +1945,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         m_buffered_movement = m_movement = 0.0;
         m_buffered_height   = m_plane_center.z();//update m_buffered_height
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "set z along z axis for cut plane");
+        m_ar_plane_center = m_plane_center;
     }
 
     // height input box
@@ -1959,7 +1961,9 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     if (m_last_active_item_imgui != current_active_id && std::abs(m_buffered_height - m_plane_center.z()) > EPSILON) {
         update_plate_center(Axis::Z, m_buffered_height - m_plane_center.z(), false);
         reset_cut_by_contours();
+
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "set height for cut plane");
+        m_ar_plane_center = m_plane_center;
     }
     ImGui::PopStyleVar(1);
     m_imgui->disabled_end();
