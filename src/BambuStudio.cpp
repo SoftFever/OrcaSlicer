@@ -1793,6 +1793,27 @@ int CLI::run(int argc, char **argv)
                             }
                         }
 
+                        int orig_printable_width = 0, orig_printable_depth = 0, orig_printable_height = 0;
+                        Pointfs orig_printable_area;
+                        orig_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
+                        if (orig_printable_area.size() >= 4) {
+                            orig_printable_width = (int)(orig_printable_area[2].x() - orig_printable_area[0].x());
+                            orig_printable_depth = (int)(orig_printable_area[2].y() - orig_printable_area[0].y());
+                        }
+                        orig_printable_height = (int)(config.opt_float("printable_height"));
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, check printable size: old_printable_width=%2%, orig_printable_width=%3%, old_printable_depth=%4%, orig_printable_depth=%5%, old_printable_height=%6%, orig_printable_height=%7%")
+                                    %__LINE__ %old_printable_width %orig_printable_width %old_printable_depth %orig_printable_depth %old_printable_height %orig_printable_height;
+                        if ((orig_printable_width > 0) && (orig_printable_depth > 0) && (orig_printable_height > 0))
+                        {
+                            if ((old_printable_width > orig_printable_width) || (old_printable_depth > orig_printable_depth) || (old_printable_height > orig_printable_height))
+                            {
+                                std::string error_str = (boost::format("Printer Settings: the printable size {%1%, %2%, %3%} exceeds the default size.")%old_printable_width %old_printable_depth %old_printable_height).str();
+                                BOOST_LOG_TRIVIAL(error) << error_str;
+                                record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
+                                flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
+                            }
+                        }
+
                         load_machine_config = std::move(config);
                     }
                 }
@@ -1833,56 +1854,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
                         flush_and_exit(ret);
                     }
-                    int orig_printable_width = 0, orig_printable_depth = 0, orig_printable_height = 0;
-                    Pointfs orig_printable_area;
-                    orig_printable_area = config.option<ConfigOptionPoints>("printable_area", true)->values;
-                    if (orig_printable_area.size() >= 4) {
-                        orig_printable_width = (int)(orig_printable_area[2].x() - orig_printable_area[0].x());
-                        orig_printable_depth = (int)(orig_printable_area[2].y() - orig_printable_area[0].y());
-                    }
-                    orig_printable_height = (int)(config.opt_float("printable_height"));
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, check printable size: old_printable_width=%2%, orig_printable_width=%3%, old_printable_depth=%4%, orig_printable_depth=%5%, old_printable_height=%6%, orig_printable_height=%7%")
-                                %__LINE__ %old_printable_width %orig_printable_width %old_printable_depth %orig_printable_depth %old_printable_height %orig_printable_height;
-                    if ((orig_printable_width > 0) && (orig_printable_depth > 0) && (orig_printable_height > 0))
-                    {
-                        if ((old_printable_width > orig_printable_width) || (old_printable_depth > orig_printable_depth) || (old_printable_height > orig_printable_height))
-                        {
-                            std::string error_str = (boost::format("Printer Settings: the printable size {%1%, %2%, %3%} exceeds the default size.")%old_printable_width %old_printable_depth %old_printable_height).str();
-                            BOOST_LOG_TRIVIAL(error) << error_str;
-                            record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
-                            flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
-                        }
-                    }
 
-                    std::vector<double> orig_max_layer_height, orig_min_layer_height;
-                    if (config.option<ConfigOptionFloats>("max_layer_height"))
-                        orig_max_layer_height = config.option<ConfigOptionFloats>("max_layer_height")->values;
-                    if (config.option<ConfigOptionFloats>("min_layer_height"))
-                        orig_min_layer_height = config.option<ConfigOptionFloats>("min_layer_height")->values;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(":%1%, check max and min layer height: old_min_layer_height size %2%, orig_min_layer_height size %3%, old_max_layer_height size %4%, orig_max_layer_height size %5%")
-                                %__LINE__ %old_min_layer_height.size() %orig_min_layer_height.size() %old_max_layer_height.size() %orig_max_layer_height.size();
-                    if ((orig_min_layer_height.size() > 0)
-                        && (orig_max_layer_height.size() == old_max_layer_height.size()) && (orig_min_layer_height.size() == old_min_layer_height.size())
-                        && (orig_max_layer_height.size() == orig_min_layer_height.size()))
-                    {
-                        for (size_t index = 0; index < orig_min_layer_height.size(); index++)
-                        {
-                            if (old_min_layer_height[index] < orig_min_layer_height[index])
-                            {
-                                std::string error_str = (boost::format("Printer Settings: nozzle %1%'s \"min layer height limits\" %2% should not be smaller than %3%.")%(index+1) %old_min_layer_height[index] %orig_min_layer_height[index]).str();
-                                BOOST_LOG_TRIVIAL(error) << error_str;
-                                record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
-                                flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
-                            }
-                            else if (old_max_layer_height[index] > orig_max_layer_height[index])
-                            {
-                                std::string error_str = (boost::format("Printer Settings: nozzle %1%'s \"max layer height limits\" %2% should not be larger than %3%.")%(index+1) %old_max_layer_height[index] %orig_max_layer_height[index] ).str();
-                                BOOST_LOG_TRIVIAL(error) << error_str;
-                                record_exit_reson(outfile_dir, CLI_MODIFIED_PARAMS_TO_PRINTER, 0, error_str, sliced_info);
-                                flush_and_exit(CLI_MODIFIED_PARAMS_TO_PRINTER);
-                            }
-                        }
-                    }
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     config.set("printer_settings_id", config_name, true);
 
