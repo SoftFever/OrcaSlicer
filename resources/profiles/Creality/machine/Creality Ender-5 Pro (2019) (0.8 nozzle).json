@@ -1,7 +1,7 @@
 {
   "type": "machine",
   "setting_id": "GM001",
-  "name": "Creality Ender-5 Pro (2019) 0.8 nozzle",
+  "name": "Creality Ender-5 Pro (2019) (0.8 nozzle)",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_creality_common",
@@ -10,7 +10,7 @@
     "Creality Generic PLA"
   ],
   "printer_variant": "0.8",
-  "default_print_profile": "0.20mm Standard 0.8 nozzle @Creality Ender5Pro (2019)",
+  "default_print_profile": "0.20mm Standard @Creality Ender5Pro (2019) (0.8 nozzle)",
   "max_layer_height": [
     "0.64"
   ],
