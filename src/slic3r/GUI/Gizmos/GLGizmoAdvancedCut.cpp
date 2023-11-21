@@ -129,7 +129,6 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     , m_connector_shape_id(size_t(CutConnectorShape::Circle))
 {
     set_group_id(m_gizmos.size());
-    m_rotation.setZero();
     m_buffered_rotation.setZero();
 }
 
@@ -388,7 +387,7 @@ void GLGizmoAdvancedCut::reset_cut_plane()
 
     m_movement = 0.0;
     m_height = box.size()[2] / 2.0;
-    m_rotation.setZero();
+    m_rotation = Geometry::extract_euler_angles(m_rotate_matrix);
 
     m_buffered_movement = 0.0;
     m_buffered_height = m_height;
@@ -567,7 +566,6 @@ void GLGizmoAdvancedCut::on_start_dragging()
             }
         }
         m_rotate_angle = 0;
-        m_start_dragging_m = m_rotate_matrix;
     } else if (m_hover_id >= c_cube_z_move_id && c_connectors_group_id) {
         const Selection &    selection = m_parent.get_selection();
         const BoundingBoxf3 &box       = selection.get_bounding_box();
@@ -581,8 +579,8 @@ void GLGizmoAdvancedCut::on_start_dragging()
         } else if (m_hover_id == c_plate_move_id) {
             m_drag_pos_start = m_plane_drag_start;
         }
-        m_start_dragging_m = m_rotate_matrix;
     }
+    m_start_dragging_m = m_rotate_matrix;
 }
 
 void GLGizmoAdvancedCut::on_stop_dragging()
@@ -600,7 +598,7 @@ void GLGizmoAdvancedCut::on_stop_dragging()
         reset_cut_by_contours();
     }
     m_movement     = 0.0;
-    m_rotation.setZero();
+    m_rotation = Geometry::extract_euler_angles(m_rotate_matrix);
 }
 
 void GLGizmoAdvancedCut::update_plate_center(Axis axis_type, double projection, bool is_abs_move) {
@@ -615,13 +613,14 @@ void GLGizmoAdvancedCut::update_plate_center(Axis axis_type, double projection, 
     }
 }
 
-void GLGizmoAdvancedCut::update_plate_normal_boundingbox_clipper(Vec3d rotation)
+void GLGizmoAdvancedCut::update_plate_normal_boundingbox_clipper(const Transform3d &rotation_tmp)
 {
-    const Transform3d rotation_tmp = Geometry::rotation_transform(rotation) * m_start_dragging_m;
     const bool        update_tbb   = !m_rotate_matrix.rotation().isApprox(rotation_tmp.rotation());
-    m_rotate_matrix                = rotation_tmp;
-    if (update_tbb) m_transformed_bounding_box = transformed_bounding_box(m_plane_center, m_rotate_matrix);
-    update_clipper();
+    if (update_tbb) {
+        m_rotate_matrix            = rotation_tmp;
+        m_transformed_bounding_box = transformed_bounding_box(m_plane_center, m_rotate_matrix);
+        update_clipper();
+    }
 }
 
 void GLGizmoAdvancedCut::on_update(const UpdateData& data)
@@ -637,9 +636,11 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
             if (rotation(i) < 0) rotation(i) = 2 * PI + rotation(i);
             if (rotation(i) != 0) { m_rotate_angle = rotation(i); }
         }
-        m_rotation = rotation;
+        const Transform3d rotation_tmp = Geometry::rotation_transform(rotation) * m_start_dragging_m;
         // deal rotate
-        if (!is_approx(rotation, Vec3d(0, 0, 0))) { update_plate_normal_boundingbox_clipper(rotation); }
+        if (!is_approx(rotation, Vec3d(0, 0, 0))) {
+            update_plate_normal_boundingbox_clipper(rotation_tmp);
+        }
     } // move plane
     else if (m_hover_id == c_cube_z_move_id || m_hover_id == c_plate_move_id) {
         double move = calc_projection(m_drag_pos_start, data.mouse_ray, m_plane_normal);
@@ -1872,9 +1873,11 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         m_rotation(0) = Geometry::deg2rad(m_buffered_rotation(0));
         m_rotation(1) = Geometry::deg2rad(m_buffered_rotation(1));
         m_rotation(2) = Geometry::deg2rad(m_buffered_rotation(2));
-        update_plate_normal_boundingbox_clipper(m_rotation);
+
+        Geometry::Transformation tran;
+        tran.set_rotation(m_rotation);
+        update_plate_normal_boundingbox_clipper(tran.get_matrix());
         reset_cut_by_contours();
-        m_rotation.setZero();
     }
 
     ImGui::Separator();

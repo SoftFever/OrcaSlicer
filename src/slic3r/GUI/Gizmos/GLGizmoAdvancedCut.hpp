@@ -231,7 +231,7 @@ protected:
     virtual void on_start_dragging() override;
     virtual void on_stop_dragging() override;
     virtual void update_plate_center(Axis axis_type, double projection, bool is_abs_move); // old name:dragging_grabber_move
-    virtual void update_plate_normal_boundingbox_clipper(Vec3d rotation);                  // old name:dragging_grabber_rotation
+    virtual void update_plate_normal_boundingbox_clipper(const Transform3d &rotation_tmp); // old name:dragging_grabber_rotation
     virtual void on_update(const UpdateData& data);
     virtual void on_render();
     virtual void on_render_for_picking();
