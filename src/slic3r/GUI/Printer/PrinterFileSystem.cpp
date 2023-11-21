@@ -160,8 +160,12 @@ void PrinterFileSystem::ListAllFiles()
     }, [this, type = m_file_type](int result, FileList list) {
         if (result != 0) {
             m_last_error = result;
-            m_status = Status::ListReady;
+            m_status = Status::Failed;
+            m_file_list.clear();
+            BuildGroups();
+            UpdateGroupSelect();
             SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", result);
+            SendChangedEvent(EVT_FILE_CHANGED);
             return 0;
         }
         if (type != m_file_type)
