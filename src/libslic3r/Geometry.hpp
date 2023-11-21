@@ -492,6 +492,11 @@ public:
         return l.m_offset == r.m_offset && l.m_rotation == r.m_rotation && l.m_scaling_factor == r.m_scaling_factor && l.m_mirror == r.m_mirror;
     }
 
+    friend bool operator!=(Transformation const &l, Transformation const &r)
+    {
+        return !(l == r);
+    }
+
 private:
 	friend class cereal::access;
 	template<class Archive> void serialize(Archive & ar) { ar(m_offset, m_rotation, m_scaling_factor, m_mirror); }

@@ -1579,7 +1579,6 @@ void GLCanvas3D::enable_legend_texture(bool enable)
 void GLCanvas3D::enable_picking(bool enable)
 {
     m_picking_enabled = enable;
-    m_selection.set_mode(Selection::Instance);
 }
 
 void GLCanvas3D::enable_moving(bool enable)
@@ -4509,10 +4508,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
                 if (selection_mode == Selection::Instance)
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                 else if (selection_mode == Selection::Volume) {
-                    if (model_object->volumes[volume_idx]->get_offset() != v->get_volume_offset()) {
-                        model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                    if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                        model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                         // BBS: backup
                         Slic3r::save_object_mesh(*model_object);
                     }
