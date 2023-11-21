@@ -11,6 +11,8 @@
 #include "wx/uri.h"
 #include "wx/mediactrl.h"
 
+wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
 #ifdef __WXMAC__
 
 class wxMediaCtrl2 : public wxWindow

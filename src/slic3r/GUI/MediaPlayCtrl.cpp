@@ -40,6 +40,14 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_label_status = new Label(this, "");
     m_label_status->SetForegroundColour(wxColour("#323A3C"));
 
+    m_label_stat = new Label(this, "");
+    m_label_stat->SetForegroundColour(wxColour("#323A3C"));
+#if !BBL_RELEASE_TO_PUBLIC
+    m_media_ctrl->Bind(EVT_MEDIA_CTRL_STAT, [this](auto & e) {
+        m_label_stat->SetLabel(e.GetString());
+    });
+#endif
+
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
     // m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
@@ -67,6 +75,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_button_play, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(m_label_stat, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(25));
     sizer->AddStretchSpacer(1);
     sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(25));
     SetSizer(sizer);

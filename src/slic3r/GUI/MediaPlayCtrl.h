@@ -103,6 +103,7 @@ private:
     wxDateTime    m_next_retry;
 
     ::Button *m_button_play;
+    ::Label * m_label_stat;
     ::Label * m_label_status;
 };
 

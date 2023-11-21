@@ -21,6 +21,8 @@ public:
 };
 #endif
 
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 {
 #ifdef __WIN32__
@@ -243,6 +245,11 @@ WXLRESULT wxMediaCtrl2::MSWWindowProc(WXUINT   nMsg,
                     if (msg.SubString(n + 1, msg.Length() - 2).ToLong(&val))
                         m_error = (int) val;
                 }
+            } else if (msg.Contains("stat_log")) {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_STAT);
+                evt.SetEventObject(this);
+                evt.SetString(msg.Mid(msg.Find(' ') + 1));
+                wxPostEvent(this, evt);
             }
         }
         BOOST_LOG_TRIVIAL(trace) << msg.ToUTF8().data();

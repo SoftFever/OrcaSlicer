@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+
 #define BAMBU_DYNAMIC
 
 void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
