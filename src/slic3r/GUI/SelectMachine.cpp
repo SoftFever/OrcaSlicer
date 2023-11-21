@@ -4196,6 +4196,8 @@ void SelectMachineDialog::sys_color_changed()
     else {
         m_rename_button->SetBitmap(ams_editable->bmp());
     }
+    m_thumbnailPanel->set_thumbnail_on_color_change();
+    m_thumbnailPanel->Refresh();
     m_rename_button->Refresh();
 }
 
@@ -4430,7 +4432,6 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      m_staticbitmap    = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
      m_background_bitmap = ScalableBitmap(this,"thumbnail_grid",256);
      sizer->Add(m_staticbitmap, 1, wxEXPAND, 0);
-     Bind(wxEVT_PAINT, &ThumbnailPanel::paint,this);
      SetSizer(sizer);
      Layout();
      Fit();
@@ -4438,15 +4439,23 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
  void ThumbnailPanel::set_thumbnail(wxImage img)
  {
-     wxBitmap bitmap(img);
-     m_staticbitmap->SetBitmap(bitmap);
+     m_bitmap = img;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+     //Paint the background bitmap to the thumbnail bitmap with wxMemoryDC
+     wxMemoryDC dc;
+     bitmap_with_background.Create(wxSize(m_bitmap.GetWidth(), m_bitmap.GetHeight()));
+     dc.SelectObject(bitmap_with_background);
+     dc.DrawBitmap(m_background_bitmap.bmp(), 0, 0);
+     dc.DrawBitmap(m_bitmap, 0, 0);
+     dc.SelectObject(wxNullBitmap);
+
+     set_thumbnail_on_color_change();
  }
 
- void ThumbnailPanel::paint(wxPaintEvent& evt) {
-     wxPaintDC dc(this);
+ void ThumbnailPanel::set_thumbnail_on_color_change() {
      if (wxGetApp().dark_mode())
-         dc.DrawBitmap(m_background_bitmap.bmp(), 0, 0);
-     dc.DrawBitmap(m_staticbitmap->GetBitmap(),0,0);
+         m_staticbitmap->SetBitmap(bitmap_with_background);
+     else
+         m_staticbitmap->SetBitmap(m_bitmap);
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}

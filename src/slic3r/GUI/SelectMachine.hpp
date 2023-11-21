@@ -501,7 +501,7 @@ public:
 class ThumbnailPanel : public wxPanel
 {
 public:
-    wxBitmap *      m_bitmap{nullptr};
+    wxBitmap       m_bitmap;
     wxStaticBitmap *m_staticbitmap{nullptr};
 
     ThumbnailPanel(wxWindow *      parent,
@@ -514,9 +514,10 @@ public:
     void PaintBackground(wxDC &dc);
     void OnEraseBackground(wxEraseEvent &event);
     void set_thumbnail(wxImage img);
-    void paint(wxPaintEvent& evt);
+    void set_thumbnail_on_color_change();
 private:
     ScalableBitmap m_background_bitmap;
+    wxBitmap bitmap_with_background;
     
 };
 
