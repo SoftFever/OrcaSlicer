@@ -1,3 +1,8 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Oleksandra Iushchenko @YuSanka, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Král @vojtechkral
+///|/ Copyright (c) BambuStudio 2023 manch1n @manch1n
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
@@ -16,6 +21,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "GCodeViewer.hpp"
 #include "Camera.hpp"
+#include "SceneRaycaster.hpp"
 #include "IMToolbar.hpp"
 
 #include "libslic3r/Slicing.hpp"
@@ -62,24 +68,23 @@ class RetinaHelper;
 
 class Size
 {
-    int m_width;
-    int m_height;
-    float m_scale_factor;
+    int m_width{ 0 };
+    int m_height{ 0 };
+    float m_scale_factor{ 1.0f };
 
 public:
-    Size();
-    Size(int width, int height, float scale_factor = 1.0);
+    Size() = default;
+    Size(int width, int height, float scale_factor = 1.0f) : m_width(width), m_height(height), m_scale_factor(scale_factor) {}
 
-    int get_width() const;
-    void set_width(int width);
+    int get_width() const { return m_width; }
+    void set_width(int width) { m_width = width; }
 
-    int get_height() const;
-    void set_height(int height);
+    int get_height() const { return m_height; }
+    void set_height(int height) { m_height = height; }
 
-    int get_scale_factor() const;
-    void set_scale_factor(int height);
+    float get_scale_factor() const { return m_scale_factor; }
+    void set_scale_factor(float factor) { m_scale_factor = factor; }
 };
-
 
 class RenderTimerEvent : public wxEvent
 {
@@ -199,14 +204,6 @@ class GLCanvas3D
     static const double DefaultCameraZoomToBedMarginFactor;
     static const double DefaultCameraZoomToPlateMarginFactor;
 
-
-    static float DEFAULT_BG_LIGHT_COLOR[3];
-    static float ERROR_BG_LIGHT_COLOR[3];
-    static float DEFAULT_BG_LIGHT_COLOR_LIGHT[3];
-    static float ERROR_BG_LIGHT_COLOR_LIGHT[3];
-    static float DEFAULT_BG_LIGHT_COLOR_DARK[3];
-    static float ERROR_BG_LIGHT_COLOR_DARK[3];
-
     static void update_render_colors();
     static void load_render_colors();
 
@@ -265,6 +262,15 @@ class GLCanvas3D
         int last_object_id{ -1 };
         float last_z{ 0.0f };
         LayerHeightEditActionType last_action{ LAYER_HEIGHT_EDIT_ACTION_INCREASE };
+        struct Profile
+        {
+            GLModel baseline;
+            GLModel profile;
+            GLModel background;
+            float old_canvas_width{ 0.0f };
+            std::vector<double> old_layer_height_profile;
+        };
+        Profile m_profile;
 
         LayersEditing() = default;
         ~LayersEditing();
@@ -293,7 +299,6 @@ class GLCanvas3D
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
-        static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
         static float get_overlay_window_width() { return LayersEditing::s_overlay_window_width; }
 
         float object_max_z() const { return m_object_max_z; }
@@ -303,10 +308,8 @@ class GLCanvas3D
     private:
         bool is_initialized() const;
         void generate_layer_height_texture();
-
-        void render_background_texture(const GLCanvas3D& canvas, const Rect& bar_rect);
-        void render_curve(const Rect& bar_rect);
-
+        void render_active_object_annotations(const GLCanvas3D& canvas);
+        void render_profile(const GLCanvas3D& canvas);
         void update_slicing_parameters();
 
         static float thickness_bar_width(const GLCanvas3D& canvas);
@@ -356,12 +359,12 @@ class GLCanvas3D
     {
         struct Triangles
         {
-            Pointf3s object;
-            Pointf3s supports;
+            GLModel object;
+            GLModel supports;
         };
-        typedef std::map<unsigned int, Triangles> ObjectIdToTrianglesMap;
+        typedef std::map<unsigned int, Triangles> ObjectIdToModelsMap;
         double z;
-        ObjectIdToTrianglesMap triangles;
+        ObjectIdToModelsMap triangles;
 
         SlaCap() { reset(); }
         void reset() { z = DBL_MAX; triangles.clear(); }
@@ -504,6 +507,7 @@ private:
     bool m_is_dark = false;
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    SceneRaycaster m_scene_raycaster;
     Bed3D &m_bed;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
@@ -527,7 +531,7 @@ private:
     std::array<ClippingPlane, 2> m_clipping_planes;
     ClippingPlane m_camera_clipping_plane;
     bool m_use_clipping_planes;
-    SlaCap m_sla_caps[2];
+    std::array<SlaCap, 2> m_sla_caps;
     std::string m_sidebar_field;
     // when true renders an extra frame by not resetting m_dirty to false
     // see request_extra_frame()
@@ -578,13 +582,7 @@ private:
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
     bool m_render_sla_auxiliaries;
 
-    std::string m_color_by;
-
     bool m_reload_delayed;
-
-#if ENABLE_RENDER_PICKING_PASS
-    bool m_show_picking_texture;
-#endif // ENABLE_RENDER_PICKING_PASS
 
     RenderStats m_render_stats;
 
@@ -706,6 +704,16 @@ public:
     }
     m_gizmo_highlighter;
 
+#if ENABLE_SHOW_CAMERA_TARGET
+    struct CameraTarget
+    {
+        std::array<GLModel, 3> axis;
+        Vec3d target{ Vec3d::Zero() };
+    };
+
+    CameraTarget m_camera_target;
+#endif // ENABLE_SHOW_CAMERA_TARGET
+    GLModel m_background;
 public:
     explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
     ~GLCanvas3D();
@@ -721,6 +729,25 @@ public:
 
     bool init();
     void post_event(wxEvent &&event);
+
+    std::shared_ptr<SceneRaycasterItem> add_raycaster_for_picking(SceneRaycaster::EType type, int id, const MeshRaycaster& raycaster,
+        const Transform3d& trafo = Transform3d::Identity(), bool use_back_faces = false) {
+        return m_scene_raycaster.add_raycaster(type, id, raycaster, trafo, use_back_faces);
+    }
+    void remove_raycasters_for_picking(SceneRaycaster::EType type, int id) {
+        m_scene_raycaster.remove_raycasters(type, id);
+    }
+    void remove_raycasters_for_picking(SceneRaycaster::EType type) {
+        m_scene_raycaster.remove_raycasters(type);
+    }
+
+    std::vector<std::shared_ptr<SceneRaycasterItem>>* get_raycasters_for_picking(SceneRaycaster::EType type) {
+        return m_scene_raycaster.get_raycasters(type);
+    }
+
+    void set_raycaster_gizmos_on_top(bool value) {
+        m_scene_raycaster.set_gizmos_on_top(value);
+    }
 
     void reset_explosion_ratio() { m_explosion_ratio = 1.0; }
     void on_change_color_mode(bool is_dark, bool reinit = true);
@@ -780,7 +807,9 @@ public:
     bool                                get_use_clipping_planes() const { return m_use_clipping_planes; }
     const std::array<ClippingPlane, 2> &get_clipping_planes() const { return m_clipping_planes; };
 
-    void set_color_by(const std::string& value);
+    void set_use_color_clip_plane(bool use) { m_volumes.set_use_color_clip_plane(use); }
+    void set_color_clip_plane(const Vec3d& cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
+    void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_volumes.set_color_clip_plane_colors(colors); }
 
     void refresh_camera_scene_box();
 
@@ -857,15 +886,15 @@ public:
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
         const GLVolumeCollection& volumes, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     static void render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
-        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
         GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     // render thumbnail using an off-screen framebuffer
     static void render_thumbnail_framebuffer(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
         GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
     // render thumbnail using an off-screen framebuffer when GLEW_EXT_framebuffer_object is supported
     static void render_thumbnail_framebuffer_ext(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors,
         GLShaderProgram* shader, Camera::EType camera_type, bool use_top_view = false, bool for_picking = false);
 
     //BBS use gcoder viewer render calibration thumbnails
@@ -937,7 +966,6 @@ public:
     void do_move(const std::string& snapshot_type);
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
-    void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
     void do_center();
     void do_mirror(const std::string& snapshot_type);
 
@@ -1111,27 +1139,25 @@ private:
 
     void _picking_pass();
     void _rectangular_selection_picking_pass();
-    void _render_background() const;
-    void _render_bed(bool bottom, bool show_axes);
-    void _render_bed_for_picking(bool bottom);
+    void _render_background();
+    void _render_bed(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool show_axes);
     //BBS: add part plate related logic
-    void _render_platelist(bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false) const;
-    void _render_plates_for_picking() const;
+    void _render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false);
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
     //BBS: GUI refactor: add canvas size as parameters
     void _render_gcode(int canvas_width, int canvas_height);
     //BBS: render a plane for assemble
     void _render_plane() const;
-    void _render_selection() const;
+    void _render_selection();
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
-    void _render_selection_center() const;
+    void _render_selection_center();
 #endif // ENABLE_RENDER_SELECTION_CENTER
     void _check_and_update_toolbar_icon_scale();
     void _render_overlays();
     void _render_style_editor();
-    void _render_volumes_for_picking() const;
+    void _render_volumes_for_picking(const Camera& camera) const;
     void _render_current_gizmo() const;
     void _render_gizmos_overlay();
     void _render_main_toolbar();
@@ -1147,15 +1173,15 @@ private:
     void _render_assemble_control() const;
     void _render_assemble_info() const;
 #if ENABLE_SHOW_CAMERA_TARGET
-    void _render_camera_target() const;
+    void _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
     void _render_sla_slices();
-    void _render_selection_sidebar_hints() const;
+    void _render_selection_sidebar_hints();
     //BBS: GUI refactor: adjust main toolbar position
     bool _render_orient_menu(float left, float right, float bottom, float top);
     bool _render_arrange_menu(float left, float right, float bottom, float top);
     // render thumbnail using the default framebuffer
-    void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
+    void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<ColorRGBA>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
 
     void _update_volumes_hover_state();
 
@@ -1201,8 +1227,6 @@ private:
 
     // BBS FIXME
     float get_overlay_window_width() { return 0; /*LayersEditing::get_overlay_window_width();*/ }
-
-    static std::vector<std::array<float, 4>> _parse_colors(const std::vector<std::string>& colors);
 };
 
 } // namespace GUI

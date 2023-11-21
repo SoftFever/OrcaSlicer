@@ -17,6 +17,8 @@
 
 #include <imgui/imgui_internal.h>
 
+#include "slic3r/GUI/CameraUtils.hpp"
+
 namespace Slic3r {
 namespace GUI {
 
@@ -27,32 +29,12 @@ const int c_connectors_group_id = 4;
 const float UndefFloat = -999.f;
 
 // connector colors
-
-using ColorRGBA = std::array<float, 4>;
-
-static const ColorRGBA BLACK() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA BLUE() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA BLUEISH() { return {0.5f, 0.5f, 1.0f, 1.0f}; }
-static const ColorRGBA CYAN() { return {0.0f, 1.0f, 1.0f, 1.0f}; }
-static const ColorRGBA DARK_GRAY() { return {0.25f, 0.25f, 0.25f, 1.0f}; }
-static const ColorRGBA DARK_YELLOW() { return {0.5f, 0.5f, 0.0f, 1.0f}; }
-static const ColorRGBA GRAY() { return {0.5f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA GREEN() { return {0.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA GREENISH() { return {0.5f, 1.0f, 0.5f, 1.0f}; }
-static const ColorRGBA LIGHT_GRAY() { return {0.75f, 0.75f, 0.75f, 1.0f}; }
-static const ColorRGBA MAGENTA() { return {1.0f, 0.0f, 1.0f, 1.0f}; }
-static const ColorRGBA ORANGE() { return {0.923f, 0.504f, 0.264f, 1.0f}; }
-static const ColorRGBA RED() { return {1.0f, 0.0f, 0.0f, 1.0f}; }
-static const ColorRGBA REDISH() { return {1.0f, 0.5f, 0.5f, 1.0f}; }
-static const ColorRGBA YELLOW() { return {1.0f, 1.0f, 0.0f, 1.0f}; }
-static const ColorRGBA WHITE() { return {1.0f, 1.0f, 1.0f, 1.0f}; }
-
-static const ColorRGBA PLAG_COLOR           = YELLOW();
-static const ColorRGBA DOWEL_COLOR          = DARK_YELLOW();
-static const ColorRGBA HOVERED_PLAG_COLOR   = CYAN();
+static const ColorRGBA PLAG_COLOR           = ColorRGBA::YELLOW();
+static const ColorRGBA DOWEL_COLOR          = ColorRGBA::DARK_YELLOW();
+static const ColorRGBA HOVERED_PLAG_COLOR   = ColorRGBA::CYAN();
 static const ColorRGBA HOVERED_DOWEL_COLOR  = {0.0f, 0.5f, 0.5f, 1.0f};
-static const ColorRGBA SELECTED_PLAG_COLOR  = GRAY();
-static const ColorRGBA SELECTED_DOWEL_COLOR = GRAY(); // DARK_GRAY();
+static const ColorRGBA SELECTED_PLAG_COLOR  = ColorRGBA::GRAY();
+static const ColorRGBA SELECTED_DOWEL_COLOR = ColorRGBA::GRAY(); // DARK_GRAY();
 static const ColorRGBA CONNECTOR_DEF_COLOR  = {1.0f, 1.0f, 1.0f, 0.5f};
 static const ColorRGBA CONNECTOR_ERR_COLOR  = {1.0f, 0.3f, 0.3f, 0.5f};
 static const ColorRGBA HOVERED_ERR_COLOR    = {1.0f, 0.3f, 0.3f, 1.0f};
@@ -103,8 +85,8 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
 
 const double GLGizmoAdvancedCut::Offset = 10.0;
 const double GLGizmoAdvancedCut::Margin = 20.0;
-const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
-const std::array<float, 4> GLGizmoAdvancedCut::GrabberHoverColor = { 0.7, 0.7, 0.0, 1.0};
+const ColorRGBA GLGizmoAdvancedCut::GrabberColor      = { 1.0f, 1.0f, 0.0f, 1.0f };
+const ColorRGBA GLGizmoAdvancedCut::GrabberHoverColor = { 0.7f, 0.7f, 0.0f, 1.0f };
 
 GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoRotate3D(parent, icon_filename, sprite_id, nullptr)
@@ -124,11 +106,17 @@ GLGizmoAdvancedCut::GLGizmoAdvancedCut(GLCanvas3D& parent, const std::string& ic
     for (int i = 0; i < 4; i++)
         m_cut_plane_points[i] = { 0., 0., 0. };
 
-    set_group_id(m_gizmos.size());
+    m_group_id = (m_gizmos.size());
     m_rotation.setZero();
     //m_current_base_rotation.setZero();
     m_rotate_cmds.clear();
     m_buffered_rotation.setZero();
+}
+
+void GLGizmoAdvancedCut::data_changed(bool is_serializing)
+{
+    GLGizmoRotate3D::data_changed(is_serializing);
+    finish_rotation();
 }
 
 bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down)
@@ -146,7 +134,7 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
             return false;
 
         if (m_hover_id != -1) {
-            start_dragging();
+            //start_dragging();
             return true;
         }
 
@@ -241,7 +229,7 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     Vec3d                point;
     Vec3d                direction;
     Vec3d                hit;
-    MeshRaycaster::line_from_mouse_pos_static(mouse_pos, Transform3d::Identity(), camera, point, direction);
+    CameraUtils::ray_from_screen_pos(camera, mouse_pos, point, direction);
     Vec3d  normal = -cp->get_normal().cast<double>();
     double den    = normal.dot(direction);
     if (den != 0.) {
@@ -431,38 +419,32 @@ CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
 
 void GLGizmoAdvancedCut::on_start_dragging()
 {
-    for (auto gizmo : m_gizmos) {
-        if (m_hover_id == gizmo.get_group_id()) {
-            gizmo.start_dragging();
-            return;
-        }
+    if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
+        m_gizmos[m_hover_id].start_dragging();
+    } else if (m_hover_id == c_connectors_group_id - 1) {
+        const Selection& selection = m_parent.get_selection();
+        const BoundingBoxf3& box = selection.get_bounding_box();
+        m_start_movement = m_movement;
+        m_start_height = m_height;
+        m_drag_pos = m_move_grabber.center;
     }
-
-    if (m_hover_id != get_group_id())
-        return;
-
-    const Selection& selection = m_parent.get_selection();
-    const BoundingBoxf3& box = selection.get_bounding_box();
-    m_start_movement = m_movement;
-    m_start_height = m_height;
-    m_drag_pos = m_move_grabber.center;
-
-    if (m_hover_id >= c_connectors_group_id)
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
 }
 
 void GLGizmoAdvancedCut::on_stop_dragging()
 {
     if (m_hover_id == X || m_hover_id == Y || m_hover_id == Z) {
+        m_gizmos[m_hover_id].stop_dragging();
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Rotate cut plane");
     } else if (m_hover_id == c_connectors_group_id - 1) {
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move cut plane");
+    } else if (m_hover_id >= c_connectors_group_id) {
+        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Move connector");
     }
 }
 
-void GLGizmoAdvancedCut::on_update(const UpdateData& data)
+void GLGizmoAdvancedCut::on_dragging(const UpdateData &data)
 {
-    GLGizmoRotate3D::on_update(data);
+    GLGizmoRotate3D::on_dragging(data);
 
     Vec3d rotation;
     for (int i = 0; i < 3; i++)
@@ -475,7 +457,7 @@ void GLGizmoAdvancedCut::on_update(const UpdateData& data)
     m_rotation = rotation;
     //m_move_grabber.angles = m_current_base_rotation + m_rotation;
 
-    if (m_hover_id == get_group_id()) {
+    if (m_hover_id == m_group_id) {
         double move = calc_projection(data.mouse_ray);
         set_movement(m_start_movement + move);
         Vec3d plane_normal = get_plane_normal();
@@ -511,7 +493,7 @@ void GLGizmoAdvancedCut::on_render()
 
     render_cut_line();
 }
-
+/*
 void GLGizmoAdvancedCut::on_render_for_picking()
 {
     GLGizmoRotate3D::on_render_for_picking();
@@ -525,12 +507,17 @@ void GLGizmoAdvancedCut::on_render_for_picking()
     float mean_size = (float)((box.size().x() + box.size().y() + box.size().z()) / 3.0);
 #endif
 
-    std::array<float, 4> color = picking_color_component(0);
-    m_move_grabber.color[0] = color[0];
-    m_move_grabber.color[1] = color[1];
-    m_move_grabber.color[2] = color[2];
-    m_move_grabber.color[3] = color[3];
-    m_move_grabber.render_for_picking(mean_size);
+    m_move_grabber.color    = picking_color_component(0);
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        m_move_grabber.render_for_picking(mean_size);
+
+        shader->stop_using();
+    }
 
     glsafe(::glEnable(GL_DEPTH_TEST));
     auto inst_id = m_c->selection_info()->get_active_instance();
@@ -548,7 +535,6 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         Vec3d pos = connector.pos + instance_offset + sla_shift * Vec3d::UnitZ();
         float height = connector.height;
 
-        const Camera &camera = wxGetApp().plater()->get_camera();
         if (connector.attribs.type == CutConnectorType::Dowel && connector.attribs.style == CutConnectorStyle::Prizm) {
             pos -= height * m_cut_plane_normal;
             height *= 2;
@@ -561,14 +547,13 @@ void GLGizmoAdvancedCut::on_render_for_picking()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
+        const Transform3d model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-
-        std::array<float, 4> color = picking_color_component(i+1);
-        render_connector_model(m_shapes[connectors[i].attribs], color, view_model_matrix, true);
+        ColorRGBA color = picking_color_component(i+1);
+        render_connector_model(m_shapes[connectors[i].attribs], color, model_matrix, true);
     }
 }
-
+*/
 void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_limit)
 {
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
@@ -638,7 +623,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
     wxCHECK_RET(instance_idx >= 0 && object_idx >= 0, "GLGizmoAdvancedCut: Invalid object selection");
 
     // m_cut_z is the distance from the bed. Subtract possible SLA elevation.
-    const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
+    const GLVolume* first_glvolume = selection.get_first_volume();
 
     // perform cut
     {
@@ -882,67 +867,117 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
         point += object_offset;
     }
 
-    // draw plane
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
     glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
 
-    ::glBegin(GL_QUADS);
-    ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-    for (const Vec3d& point : plane_points_rot) {
-        ::glVertex3f(point(0), point(1), point(2));
+        // draw plane
+        {
+            m_plane.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.color  = { 0.8f, 0.8f, 0.8f, 0.5f };
+            init_data.reserve_vertices(4);
+            init_data.reserve_vertices(6);
+
+            // vertices
+            for (const Vec3d &point : plane_points_rot) {
+                init_data.add_vertex((Vec3f)point.cast<float>());
+            }
+
+            // indices
+            init_data.add_triangle(0, 1, 2);
+            init_data.add_triangle(2, 3, 0);
+
+            m_plane.init_from(std::move(init_data));
+        }
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        m_plane.render();
+
+        glsafe(::glEnable(GL_CULL_FACE));
+        glsafe(::glDisable(GL_BLEND));
+
+        // Draw the grabber and the connecting line
+        Vec3d plane_center_rot = calc_plane_center(plane_points_rot);
+        m_move_grabber.center = plane_center_rot + plane_normal_rot * Offset;
+        // m_move_grabber.angles = m_current_base_rotation + m_rotation;
+
+        {
+            m_grabber_connection.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
+            init_data.color  = ColorRGBA::YELLOW();
+            init_data.reserve_vertices(2);
+            init_data.reserve_vertices(2);
+
+            // vertices
+            init_data.add_vertex((Vec3f)plane_center_rot.cast<float>());
+            init_data.add_vertex((Vec3f)m_move_grabber.center.cast<float>());
+
+            // indices
+            init_data.add_line(0, 1);
+
+            m_grabber_connection.init_from(std::move(init_data));
+        }
+
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
+        glLineStipple(1, 0x0FFF);
+        glEnable(GL_LINE_STIPPLE);
+        m_grabber_connection.render();
+        glDisable(GL_LINE_STIPPLE);
+
+        shader->stop_using();
     }
-    glsafe(::glEnd());
 
-    glsafe(::glEnable(GL_CULL_FACE));
-    glsafe(::glDisable(GL_BLEND));
+    {
+        GLShaderProgram *shader = wxGetApp().get_shader("gouraud_light");
+        if (shader == nullptr)
+            return;
+        shader->start_using();
+        shader->set_uniform("emission_factor", 0.1f);
+        // std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
+        // m_move_grabber.color = GrabberColor;
+        // m_move_grabber.hover_color = GrabberHoverColor;
+        // m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
+        bool hover = (m_hover_id == m_group_id);
+        ColorRGBA render_color;
+        if (hover) {
+            render_color = GrabberHoverColor;
+        }
+        else
+            render_color = GrabberColor;
 
-    // Draw the grabber and the connecting line
-    Vec3d plane_center_rot = calc_plane_center(plane_points_rot);
-    m_move_grabber.center = plane_center_rot + plane_normal_rot * Offset;
-    // m_move_grabber.angles = m_current_base_rotation + m_rotation;
+        PickingModel &cube = m_move_grabber.get_cube();
+        // BBS set to fixed size grabber
+        // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
+        float fullsize = 8.0f;
+        if (GLGizmoBase::INV_ZOOM > 0) {
+            fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
+        }
 
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f));
-    glsafe(::glColor3f(1.0, 1.0, 0.0));
-    glLineStipple(1, 0x0FFF);
-    glEnable(GL_LINE_STIPPLE);
-    ::glBegin(GL_LINES);
-    ::glVertex3dv(plane_center_rot.data());
-    ::glVertex3dv(m_move_grabber.center.data());
-    glsafe(::glEnd());
-    glDisable(GL_LINE_STIPPLE);
+        cube.model.set_color(render_color);
 
-    // std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_move_grabber.color);
-    // m_move_grabber.color = GrabberColor;
-    // m_move_grabber.hover_color = GrabberHoverColor;
-    // m_move_grabber.render(m_hover_id == get_group_id(), (float)((box.size()(0) + box.size()(1) + box.size()(2)) / 3.0));
-    bool hover = (m_hover_id == get_group_id());
-    std::array<float, 4> render_color;
-    if (hover) {
-        render_color = GrabberHoverColor;
+        const Transform3d trafo_matrix = Geometry::assemble_transform(m_move_grabber.center) * m_rotate_matrix *
+                                         Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), fullsize * Vec3d::Ones());
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
+        cube.model.render();
+        shader->stop_using();
     }
-    else
-        render_color = GrabberColor;
-
-    const GLModel &cube = m_move_grabber.get_cube();
-    // BBS set to fixed size grabber
-    // float fullsize = 2 * (dragging ? get_dragging_half_size(size) : get_half_size(size));
-    float fullsize = 8.0f;
-    if (GLGizmoBase::INV_ZOOM > 0) {
-        fullsize = m_move_grabber.FixedGrabberSize * GLGizmoBase::INV_ZOOM;
-    }
-
-    const_cast<GLModel*>(&cube)->set_color(-1, render_color);
-
-    glsafe(::glPushMatrix());
-    glsafe(::glTranslated(m_move_grabber.center.x(), m_move_grabber.center.y(), m_move_grabber.center.z()));
-    glsafe(::glMultMatrixd(m_rotate_matrix.data()));
-
-    glsafe(::glScaled(fullsize, fullsize, fullsize));
-    cube.render();
-    glsafe(::glPopMatrix());
 
     // Should be placed at last, because GLGizmoRotate3D clears depth buffer
     set_center(m_cut_plane_center);
@@ -1007,9 +1042,9 @@ void GLGizmoAdvancedCut::render_connectors()
         Transform3d scale_tf = Transform3d::Identity();
         scale_tf.scale(Vec3f(connector.radius, connector.radius, height).cast<double>());
 
-        const Transform3d view_model_matrix = translate_tf * m_rotate_matrix * scale_tf;
+        const Transform3d model_matrix = translate_tf * m_rotate_matrix * scale_tf;
 
-        render_connector_model(m_shapes[connector.attribs], render_color, view_model_matrix);
+        render_connector_model(m_shapes[connector.attribs], render_color, model_matrix);
     }
 }
 
@@ -1025,36 +1060,65 @@ void GLGizmoAdvancedCut::render_cut_line()
     if (!cut_line_processing() || m_cut_line_end == Vec3d::Zero())
         return;
 
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glColor3f(0.0, 1.0, 0.0));
-    glEnable(GL_LINE_STIPPLE);
-    ::glBegin(GL_LINES);
-    ::glVertex3dv(m_cut_line_begin.data());
-    ::glVertex3dv(m_cut_line_end.data());
-    glsafe(::glEnd());
-    glDisable(GL_LINE_STIPPLE);
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    GLShaderProgram *shader = wxGetApp().get_shader("flat");
+    if (shader != nullptr) {
+        shader->start_using();
+
+        {
+            m_cut_line.reset();
+
+            GLModel::Geometry init_data;
+            init_data.format = {GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3};
+            init_data.color  = ColorRGBA::GREEN();
+            init_data.reserve_vertices(2);
+            init_data.reserve_vertices(2);
+
+            // vertices
+            init_data.add_vertex((Vec3f) m_cut_line_begin.cast<float>());
+            init_data.add_vertex((Vec3f) m_cut_line_end.cast<float>());
+
+            // indices
+            init_data.add_line(0, 1);
+
+            m_cut_line.init_from(std::move(init_data));
+        }
+        const Camera &camera = wxGetApp().plater()->get_camera();
+        shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+        glEnable(GL_LINE_STIPPLE);
+        glLineStipple(1, 0x0FFF);
+        m_cut_line.render();
+        glDisable(GL_LINE_STIPPLE);
+
+        shader->stop_using();
+    }
 }
 
-void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const std::array<float, 4> &color, Transform3d view_model_matrix, bool for_picking)
+void GLGizmoAdvancedCut::render_connector_model(GLModel &model, const ColorRGBA &color, Transform3d model_matrix, bool for_picking)
 {
-    glPushMatrix();
     GLShaderProgram *shader = nullptr;
     if (for_picking)
-        shader = wxGetApp().get_shader("cali");
+        shader = wxGetApp().get_shader("flat");
     else
         shader = wxGetApp().get_shader("gouraud_light");
     if (shader) {
         shader->start_using();
 
-        glsafe(::glMultMatrixd(view_model_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * model_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * model_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
-        model.set_color(-1, color);
+        model.set_color(color);
         model.render();
 
         shader->stop_using();
     }
-    glPopMatrix();
 }
 
 void GLGizmoAdvancedCut::clear_selection()
@@ -1814,7 +1878,7 @@ bool GLGizmoAdvancedCut::process_cut_line(SLAGizmoEventType action, const Vec2d 
 
     Vec3d pt;
     Vec3d dir;
-    MeshRaycaster::line_from_mouse_pos_static(mouse_position, Transform3d::Identity(), camera, pt, dir);
+    CameraUtils::ray_from_screen_pos(camera, mouse_position, pt, dir);
     dir.normalize();
     pt += dir; // Move the pt along dir so it is not clipped.
 

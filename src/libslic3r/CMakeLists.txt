@@ -56,6 +56,8 @@ set(lisbslic3r_sources
     Clipper2Utils.cpp
     Clipper2Utils.hpp
     ClipperZUtils.hpp
+    Color.cpp
+    Color.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
@@ -200,12 +202,17 @@ set(lisbslic3r_sources
     BlacklistedLibraryCheck.hpp
     LocalesUtils.cpp
     LocalesUtils.hpp
+    CutUtils.cpp
+    CutUtils.hpp
     Model.cpp
     Model.hpp
     ModelArrange.hpp
     ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
+    Measure.hpp
+    Measure.cpp
+    MeasureUtils.hpp
     CustomGCode.cpp
     CustomGCode.hpp
     Arrange.hpp
@@ -305,6 +312,7 @@ set(lisbslic3r_sources
     Surface.hpp
     SurfaceCollection.cpp
     SurfaceCollection.hpp
+    SurfaceMesh.hpp
     SVG.cpp
     SVG.hpp
     Technologies.hpp

@@ -5,7 +5,8 @@
 #include "3DScene.hpp"
 #include "GLModel.hpp"
 
-#include <libslic3r/BuildVolume.hpp>
+#include "libslic3r/BuildVolume.hpp"
+#include "libslic3r/ExPolygon.hpp"
 
 #include <tuple>
 #include <array>
@@ -15,6 +16,7 @@ namespace GUI {
 
 class GLCanvas3D;
 
+/*
 class GeometryBuffer
 {
     struct Vertex
@@ -38,13 +40,16 @@ public:
     size_t get_tex_coords_offset() const { return (size_t)(3 * sizeof(float)); }
     unsigned int get_vertices_count() const { return (unsigned int)m_vertices.size(); }
 };
+*/
+
+bool init_model_from_poly(GLModel &model, const ExPolygon &poly, float z);
 
 class Bed3D
 {
 public:
-    static std::array<float, 4> AXIS_X_COLOR;
-    static std::array<float, 4> AXIS_Y_COLOR;
-    static std::array<float, 4> AXIS_Z_COLOR;
+    static ColorRGBA AXIS_X_COLOR;
+    static ColorRGBA AXIS_Y_COLOR;
+    static ColorRGBA AXIS_Z_COLOR;
 
     static void update_render_colors();
     static void load_render_colors();
@@ -70,7 +75,7 @@ public:
             m_arrow.reset();
         }
         float get_total_length() const { return m_stem_length + DefaultTipLength; }
-        void render() const;
+        void render();
     };
 
 public:
@@ -91,14 +96,13 @@ private:
     BoundingBoxf3 m_extended_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
     //Polygon m_polygon;
-    GeometryBuffer m_triangles;
-    //GeometryBuffer m_gridlines;
+    GLModel m_triangles;
+    //GLModel m_gridlines;
     GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
     //GLTexture m_temp_texture;
     GLModel m_model;
     Vec3d m_model_offset{ Vec3d::Zero() };
-    unsigned int m_vbo_id{ 0 };
     Axes m_axes;
 
     float m_scale_factor{ 1.0f };
@@ -109,7 +113,7 @@ private:
 
 public:
     Bed3D() = default;
-    ~Bed3D() { release_VBOs(); }
+    ~Bed3D() = default;
 
     // Update print bed model from configuration.
     // Return true if the bed shape changed, so the calee will update the UI.
@@ -142,8 +146,7 @@ public:
     bool contains(const Point& point) const;
     Point point_projection(const Point& point) const;
 
-    void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes);
-    //void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+    void render(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor, bool show_axes);
 
     void on_change_color_mode(bool is_dark);
 
@@ -151,21 +154,21 @@ private:
     //BBS: add partplate related logic
     // Calculate an extended bounding box from axes and current model for visualization purposes.
     BoundingBoxf3 calc_extended_bounding_box(bool consider_model_offset = true) const;
-    void calc_triangles(const ExPolygon& poly);
-    void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     void update_model_offset() const;
     //BBS: with offset
-    GeometryBuffer update_bed_triangles() const;
+    void update_bed_triangles();
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
-    void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
+    void render_internal(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, float scale_factor,
         bool show_axes);
-    void render_axes() const;
-    void render_system(GLCanvas3D& canvas, bool bottom) const;
-    //void render_texture(bool bottom, GLCanvas3D& canvas) const;
-    void render_model() const;
-    void render_custom(GLCanvas3D& canvas, bool bottom) const;
-    void render_default(bool bottom) const;
-    void release_VBOs();
+    void render_axes();
+    void render_system(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
+    //void render_texture(bool bottom, GLCanvas3D& canvas);
+    void render_model(const Transform3d& view_matrix, const Transform3d& projection_matrix);
+    void render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom);
+    void render_default(bool bottom, const Transform3d& view_matrix, const Transform3d& projection_matrix);
+    
+    // BBS: remove the bed picking logic
+    // void register_raycasters_for_picking(const GLModel::Geometry& geometry, const Transform3d& trafo);
 };
 
 } // GUI

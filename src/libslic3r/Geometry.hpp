@@ -1,3 +1,18 @@
+///|/ Copyright (c) Prusa Research 2016 - 2023 Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, Tomáš Mészáros @tamasmeszaros, Lukáš Matěna @lukasmatena, Filip Sykala @Jony01, Lukáš Hejl @hejllukas
+///|/ Copyright (c) 2017 Eyal Soha @eyal0
+///|/ Copyright (c) Slic3r 2013 - 2016 Alessandro Ranellucci @alranel
+///|/
+///|/ ported from lib/Slic3r/Geometry.pm:
+///|/ Copyright (c) Prusa Research 2017 - 2022 Vojtěch Bubník @bubnikv
+///|/ Copyright (c) Slic3r 2011 - 2015 Alessandro Ranellucci @alranel
+///|/ Copyright (c) 2013 Jose Luis Perez Diez
+///|/ Copyright (c) 2013 Anders Sundman
+///|/ Copyright (c) 2013 Jesse Vincent
+///|/ Copyright (c) 2012 Mike Sheldrake @mesheldrake
+///|/ Copyright (c) 2012 Mark Hindess
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_Geometry_hpp_
 #define slic3r_Geometry_hpp_
 
@@ -324,7 +339,8 @@ bool arrange(
 // 4) rotate Y
 // 5) rotate Z
 // 6) translate
-void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(),
+    const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
 
 // Returns the transform obtained by assembling the given transformations in the following order:
 // 1) mirror
@@ -333,7 +349,45 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d
 // 4) rotate Y
 // 5) rotate Z
 // 6) translate
-Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(),
+    const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+
+// Sets the given transform by multiplying the given transformations in the following order:
+// T = translation * rotation * scale * mirror
+void assemble_transform(Transform3d& transform, const Transform3d& translation = Transform3d::Identity(),
+    const Transform3d& rotation = Transform3d::Identity(), const Transform3d& scale = Transform3d::Identity(),
+    const Transform3d& mirror = Transform3d::Identity());
+
+// Returns the transform obtained by multiplying the given transformations in the following order:
+// T = translation * rotation * scale * mirror
+Transform3d assemble_transform(const Transform3d& translation = Transform3d::Identity(), const Transform3d& rotation = Transform3d::Identity(),
+    const Transform3d& scale = Transform3d::Identity(), const Transform3d& mirror = Transform3d::Identity());
+
+// Sets the given transform by assembling the given translation
+void translation_transform(Transform3d& transform, const Vec3d& translation);
+
+// Returns the transform obtained by assembling the given translation
+Transform3d translation_transform(const Vec3d& translation);
+
+// Sets the given transform by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+void rotation_transform(Transform3d& transform, const Vec3d& rotation);
+
+// Returns the transform obtained by assembling the given rotations in the following order:
+// 1) rotate X
+// 2) rotate Y
+// 3) rotate Z
+Transform3d rotation_transform(const Vec3d& rotation);
+
+// Sets the given transform by assembling the given scale factors
+void scale_transform(Transform3d& transform, double scale);
+void scale_transform(Transform3d& transform, const Vec3d& scale);
+
+// Returns the transform obtained by assembling the given scale factors
+Transform3d scale_transform(double scale);
+Transform3d scale_transform(const Vec3d& scale);
 
 // Returns the euler angles extracted from the given rotation matrix
 // Warning -> The matrix should not contain any scale or shear !!!
@@ -346,40 +400,29 @@ Vec3d extract_euler_angles(const Transform3d& transform);
 // get rotation from two vectors.
 // Default output is axis-angle. If rotation_matrix pointer is provided, also output rotation matrix
 // Euler angles can be obtained by extract_euler_angles()
-void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d& rotation_axis, double& phi, Matrix3d* rotation_matrix = nullptr);
-
-// Returns the transform obtained by assembling the given translation
-Transform3d translation_transform(const Vec3d &translation);
-
-// Returns the transform obtained by assembling the given rotations in the following order:
-// 1) rotate X
-// 2) rotate Y
-// 3) rotate Z
-Transform3d rotation_transform(const Vec3d &rotation);
+void rotation_from_two_vectors(Vec3d from, Vec3d to, Vec3d &rotation_axis, double &phi, Matrix3d *rotation_matrix = nullptr);
 
 class Transformation
 {
     struct Flags
     {
-        bool dont_translate;
-        bool dont_rotate;
-        bool dont_scale;
-        bool dont_mirror;
-
-        Flags();
+        bool dont_translate{ true };
+        bool dont_rotate{ true };
+        bool dont_scale{ true };
+        bool dont_mirror{ true };
 
         bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const;
         void set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror);
     };
 
-    Vec3d m_offset;              // In unscaled coordinates
-    Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
-    Vec3d m_scaling_factor;      // Scaling factors along the three axes
-    Vec3d m_mirror;              // Mirroring along the three axes
+    Vec3d m_offset{ Vec3d::Zero() };              // In unscaled coordinates
+    Vec3d m_rotation{ Vec3d::Zero() };            // Rotation around the three axes, in radians around mesh center point
+    Vec3d m_scaling_factor{ Vec3d::Ones() };      // Scaling factors along the three axes
+    Vec3d m_mirror{ Vec3d::Ones() };              // Mirroring along the three axes
 
-    mutable Transform3d m_matrix;
+    mutable Transform3d m_matrix{ Transform3d::Identity() };
     mutable Flags m_flags;
-    mutable bool m_dirty;
+    mutable bool m_dirty{ false };
 
 public:
     Transformation();
@@ -396,6 +439,8 @@ public:
 
     const Vec3d& get_rotation() const { return m_rotation; }
     double get_rotation(Axis axis) const { return m_rotation(axis); }
+
+    Transform3d get_rotation_matrix() const;
 
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
@@ -457,7 +502,7 @@ extern double rotation_diff_z(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to
 // Is the angle close to a multiple of 90 degrees?
 inline bool is_rotation_ninety_degrees(double a)
 {
-    a = fmod(std::abs(a), 0.5 * M_PI);
+    a = fmod(std::abs(a), 0.5 * PI);
     if (a > 0.25 * PI)
         a = 0.5 * PI - a;
     return a < 0.001;

@@ -21,6 +21,7 @@
 #include <libslic3r/ObjectID.hpp>
 #include <libslic3r/Utils.hpp>
 
+#include "slic3r/GUI/3DScene.hpp"
 #include <boost/foreach.hpp>
 
 #ifndef NDEBUG

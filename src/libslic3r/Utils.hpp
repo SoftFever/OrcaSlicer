@@ -160,6 +160,11 @@ void flush_logs();
 // This type is only needed for Perl bindings to relay to Perl that the string is raw, not UTF-8 encoded.
 typedef std::string local_encoded_string;
 
+// Returns next utf8 sequence length. =number of bytes in string, that creates together one utf-8 character. 
+// Starting at pos. ASCII characters returns 1. Works also if pos is in the middle of the sequence.
+extern size_t get_utf8_sequence_length(const std::string& text, size_t pos = 0);
+extern size_t get_utf8_sequence_length(const char *seq, size_t size);
+
 // Convert an UTF-8 encoded string into local coding.
 // On Windows, the UTF-8 string is converted to a local 8-bit code page.
 // On OSX and Linux, this function does no conversion and returns a copy of the source string.

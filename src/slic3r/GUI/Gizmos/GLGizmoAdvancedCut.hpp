@@ -27,8 +27,8 @@ struct Rotate_data {
 private:
     static const double Offset;
     static const double Margin;
-    static const std::array<float, 4> GrabberColor;
-    static const std::array<float, 4> GrabberHoverColor;
+    static const ColorRGBA GrabberColor;
+    static const ColorRGBA GrabberHoverColor;
 
     mutable double m_movement;
     mutable double m_height;  // height of cut plane to heatbed
@@ -53,6 +53,9 @@ private:
     bool m_place_on_cut_lower{false};
     bool m_rotate_upper{false};
     bool m_rotate_lower{false};
+    GLModel m_plane;
+    GLModel m_grabber_connection;
+    GLModel m_cut_line;
 
     bool m_do_segment;
     double m_segment_smoothing_alpha;
@@ -135,44 +138,23 @@ public:
     
     virtual bool apply_clipping_plane() { return m_connectors_editing; }
 
+    void data_changed(bool is_serializing) override;
+
 protected:
-    virtual bool on_init();
-    virtual void on_load(cereal::BinaryInputArchive &ar) override;
-    virtual void on_save(cereal::BinaryOutputArchive &ar) const override;
-    virtual std::string on_get_name() const;
-    virtual void on_set_state();
-    virtual bool on_is_activable() const;
-    virtual CommonGizmosDataID on_get_requirements() const override;
-    virtual void on_start_dragging() override;
-    virtual void on_stop_dragging() override;
-    virtual void on_update(const UpdateData& data);
-    virtual void on_render();
-    virtual void on_render_for_picking();
+    bool on_init() override;
+    void on_load(cereal::BinaryInputArchive &ar) override;
+    void on_save(cereal::BinaryOutputArchive &ar) const override;
+    std::string on_get_name() const override;
+    void on_set_state() override;
+    bool on_is_activable() const override;
+    CommonGizmosDataID on_get_requirements() const override;
+    void on_start_dragging() override;
+    void on_stop_dragging() override;
+    void on_dragging(const UpdateData& data) override;
+    void on_render() override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
 
     void show_tooltip_information(float x, float y);
-
-    virtual void on_enable_grabber(unsigned int id)
-    {
-        if (id < 3)
-            m_gizmos[id].enable_grabber(0);
-        else if (id == 3)
-            this->enable_grabber(0);
-    }
-
-    virtual void on_disable_grabber(unsigned int id)
-    {
-        if (id < 3)
-            m_gizmos[id].disable_grabber(0);
-        else if (id == 3)
-            this->disable_grabber(0);
-    }
-
-    virtual void on_set_hover_id()
-    {
-        for (int i = 0; i < 3; ++i)
-            m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
-    }
 
 private:
     void perform_cut(const Selection& selection);
@@ -201,7 +183,7 @@ private:
     void render_connectors();
     void render_clipper_cut();
     void render_cut_line();
-    void render_connector_model(GLModel &model, const std::array<float, 4>& color, Transform3d view_model_matrix, bool for_picking = false);
+    void render_connector_model(GLModel &model, const ColorRGBA& color, Transform3d model_matrix, bool for_picking = false);
 
     void clear_selection();
     void init_connector_shapes();

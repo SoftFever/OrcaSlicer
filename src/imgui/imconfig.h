@@ -161,6 +161,7 @@ namespace ImGui
     const wchar_t ClippyMarker             = 0x0802;
     const wchar_t InfoMarker               = 0x0803;
     const wchar_t SliderFloatEditBtnIcon   = 0x0804;
+    const wchar_t ClipboardBtnIcon         = 0x0805;
 
     // BBS
     const wchar_t CircleButtonIcon         = 0x0810;
@@ -196,6 +197,7 @@ namespace ImGui
     const wchar_t CloseBlockNotifButton      = 0x0833;
     const wchar_t CloseBlockNotifHoverButton = 0x0834;
     const wchar_t BlockNotifErrorIcon        = 0x0835;
+    const wchar_t ClipboardBtnDarkIcon       = 0x0836;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }

@@ -127,4 +127,5 @@ jobs:
       cache-path: ${{ inputs.cache-path }}
       os: ${{ inputs.os }}
       arch: ${{ inputs.arch }}
+    secrets: inherit
         

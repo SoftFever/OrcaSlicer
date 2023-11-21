@@ -157,7 +157,7 @@ jobs:
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
 
       - name: Upload artifacts Win PDB
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: PDB
