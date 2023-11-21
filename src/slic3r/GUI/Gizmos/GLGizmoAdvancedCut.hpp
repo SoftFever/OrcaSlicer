@@ -68,6 +68,7 @@ private:
 class GLGizmoAdvancedCut : public GLGizmoRotate3D
 {
 private:
+    unsigned int m_last_active_item_imgui{0};
     double m_snap_step{1.0};
     // archived values
     Vec3d m_ar_plane_center{Vec3d::Zero()};
@@ -92,7 +93,6 @@ private:
     static const std::array<float, 4> GrabberHoverColor;
 
     mutable double m_movement;
-    mutable double m_height;  // height of cut plane to heatbed
     double m_start_movement;
     double m_start_height;
 
@@ -321,6 +321,7 @@ private:
     void rotate_vec3d_around_plane_center(Vec3d &vec, const Transform3d &rotate_matrix, const Vec3d &center);
     Transform3d get_cut_matrix(const Selection &selection);
     // render input window
+    void update_buffer_data();
     bool render_cut_mode_combo(double label_width,float item_width);
     void render_color_marker(float size, const ColorRGBA &color);
     void render_cut_plane_input_window(float x, float y, float bottom_limit);
