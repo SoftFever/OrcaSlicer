@@ -1237,6 +1237,12 @@ float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matrix)
 {
+    static bool last_show_wireframe = false;
+    if (last_show_wireframe != wxGetApp().plater()->is_show_wireframe()) {
+        last_show_wireframe  = wxGetApp().plater()->is_show_wireframe();
+        m_update_render_data = true;
+        m_paint_changed      = true;
+    }
     if (m_update_render_data) {
         update_render_data();
         m_update_render_data = false;
@@ -1246,6 +1252,18 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
     if (!shader)
         return;
     assert(shader->get_name() == "gouraud" || shader->get_name() == "mm_gouraud");
+    bool  show_wireframe = false;
+    if (wxGetApp().plater()->is_wireframe_enabled()) {
+        if (m_need_wireframe && wxGetApp().plater()->is_show_wireframe()) {
+            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe on");
+            shader->set_uniform("show_wireframe", true);
+            show_wireframe = true;
+        }
+        else {
+            //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", show_wireframe off");
+            shader->set_uniform("show_wireframe", false);
+        }
+    }
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         if (this->has_VBOs(buffer_idx)) {
@@ -1263,7 +1281,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui, const Transform3d& matri
             //to make black not too hard too see
             ColorRGBA new_color = adjust_color_for_rendering(color);
             shader->set_uniform("uniform_color", new_color);
-            this->render(buffer_idx);
+            this->render(buffer_idx, show_wireframe);
         }
     }
 
@@ -1280,7 +1298,7 @@ void TriangleSelectorPatch::update_triangles_per_type()
         patch.triangle_indices.reserve(m_triangles.size() / 3);
     }
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled())?true:false;
+    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false;
 
     for (auto& triangle : m_triangles) {
         if (!triangle.valid() || triangle.is_split())
@@ -1338,7 +1356,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
     auto [neighbors, neighbors_propagated] = this->precompute_all_neighbors();
     std::vector<bool>  visited(m_triangles.size(), false);
 
-    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled())?true:false;
+    bool using_wireframe = (wxGetApp().plater()->is_wireframe_enabled() && wxGetApp().plater()->is_show_wireframe()) ? true : false; 
 
     auto get_all_touching_triangles = [this](int facet_idx, const Vec3i& neighbors, const Vec3i& neighbors_propagated) -> std::vector<int> {
         assert(facet_idx != -1 && facet_idx < int(m_triangles.size()));
@@ -1494,13 +1512,12 @@ void TriangleSelectorPatch::update_render_data()
     //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", exit");
 }
 
-void TriangleSelectorPatch::render(int triangle_indices_idx)
+void TriangleSelectorPatch::render(int triangle_indices_idx, bool show_wireframe)
 {
     assert(triangle_indices_idx < this->m_triangle_indices_VBO_ids.size());
     assert(this->m_triangle_patches.size() == this->m_triangle_indices_VBO_ids.size());
     //assert(this->m_vertices_VBO_id != 0);
     assert(this->m_triangle_patches.size() == this->m_vertices_VBO_ids.size());
-    assert(this->m_vertices_VAO_ids[triangle_indices_idx] != 0);
     assert(this->m_vertices_VBO_ids[triangle_indices_idx] != 0);
     assert(this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
@@ -1512,8 +1529,20 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
     const GLint position_id = shader->get_attrib_location("v_position");
     if (position_id != -1) {
-        glsafe(::glVertexAttribPointer((GLint) position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr));
+        if (show_wireframe) {
+            glsafe(::glVertexAttribPointer((GLint) position_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (const void *) 0));
+        } else {
+            glsafe(::glVertexAttribPointer((GLint) position_id, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr));
+        }
         glsafe(::glEnableVertexAttribArray((GLint)position_id));
+    }
+    GLint barycentric_id = -1;
+    if (show_wireframe) {
+        barycentric_id = shader->get_attrib_location("v_barycentric");
+        if (barycentric_id != -1) {
+            glsafe(::glVertexAttribPointer((GLint) barycentric_id, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (const void *) (3 * sizeof(float))));
+            glsafe(::glEnableVertexAttribArray((GLint) barycentric_id));
+        }
     }
 
     // Render using the Vertex Buffer Objects.
@@ -1526,6 +1555,8 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
 
     if (position_id != -1)
         glsafe(::glDisableVertexAttribArray(position_id));
+    if (barycentric_id != -1)
+        glsafe(::glDisableVertexAttribArray(barycentric_id));
 
     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
