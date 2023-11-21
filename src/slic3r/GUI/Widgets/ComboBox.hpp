@@ -17,6 +17,7 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
     DropDown               drop;
     bool     drop_down = false;
     bool     text_off = false;
+    bool m_is_enabled = true;
 
 public:
     ComboBox(wxWindow *      parent,
@@ -62,6 +63,8 @@ public:
     void     SetItemBitmap(unsigned int n, wxBitmapBundle const &bitmap);
 
     void ToggleDropDown();
+    bool Enable(bool enable = true) override;
+    void SetIcon(const wxBitmapBundle &icon) override;
 
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,

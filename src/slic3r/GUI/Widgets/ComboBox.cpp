@@ -98,6 +98,13 @@ void ComboBox::Rescale()
     drop.Rescale();
 }
 
+bool ComboBox::Enable(bool enable) {
+    bool ret = TextInput::Enable(enable);
+    if (ret && icons[drop.selection].IsOk())
+        SetIcon(icons[drop.selection]);
+    return ret;
+}
+
 wxString ComboBox::GetValue() const
 {
     return drop.GetSelection() >= 0 ? drop.GetValue() : GetLabel();
@@ -143,6 +150,10 @@ bool ComboBox::SetFont(wxFont const& font)
         return GetTextCtrl()->SetFont(font);
     else
         return TextInput::SetFont(font);
+}
+
+void ComboBox::SetIcon(const wxBitmapBundle &icon) {
+    TextInput::SetIcon(m_isEnabled ? icon : icon.GetBitmapFor(this).ConvertToDisabled(128));
 }
 
 int ComboBox::Append(const wxString &item, const wxBitmapBundle &bitmap)
