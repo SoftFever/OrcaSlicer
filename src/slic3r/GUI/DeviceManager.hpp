@@ -52,7 +52,7 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
-
+class SecondaryCheckDialog;
 enum PrinterArch {
     ARCH_CORE_XY,
     ARCH_I3,
@@ -450,8 +450,10 @@ public:
     time_t last_alive;
     bool m_is_online;
     bool m_lan_mode_connection_state{false};
+    bool m_set_ctt_dlg{ false };
     void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
     bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
+    void set_ctt_dlg( wxString text);
     int  parse_msg_count = 0;
     int  keep_alive_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */

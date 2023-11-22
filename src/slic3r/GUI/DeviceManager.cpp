@@ -8,6 +8,7 @@
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
+#include "ReleaseNote.hpp"
 #include <thread>
 #include <mutex>
 #include <codecvt>
@@ -3009,14 +3010,18 @@ int MachineObject::parse_json(std::string payload)
                 if (jj["command"].get<std::string>() == "set_ctt") {
                     if (m_agent && is_studio_cmd(sequence_id)) {
                         if (jj["errno"].is_number()) {
+                            wxString text;
                             if (jj["errno"].get<int>() == -2) {
-                                wxString text = _L("Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\u2103.");
-                                GUI::wxGetApp().show_dialog(text);
+                                 text = _L("Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\u2103.");
                             }
                             else if (jj["errno"].get<int>() == -4) {
-                                wxString text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0\u2103.");
-                                GUI::wxGetApp().show_dialog(text);
+                                 text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0\u2103.");
                             }
+#if __WXOSX__
+                            set_ctt_dlg(text);
+#else
+                            GUI::wxGetApp().show_dialog(text);
+#endif
                         }
                     }
                 }
@@ -4563,6 +4568,25 @@ int MachineObject::parse_json(std::string payload)
         BOOST_LOG_TRIVIAL(trace) << "parse_json timeout = " << diff.count();
     }
     return 0;
+}
+
+void MachineObject::set_ctt_dlg( wxString text){
+    if (!m_set_ctt_dlg) {
+        m_set_ctt_dlg = true;
+        auto print_error_dlg = new GUI::SecondaryCheckDialog(nullptr, wxID_ANY, _L("Warning"), GUI::SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+        print_error_dlg->update_text(text);
+        print_error_dlg->Bind(wxEVT_SHOW, [this](auto& e) {
+            if (!e.IsShown()) {
+                m_set_ctt_dlg = false;
+            }
+            });
+        print_error_dlg->Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+            e.Skip();
+            m_set_ctt_dlg = false;
+            });
+        print_error_dlg->on_show();
+
+    }
 }
 
 int MachineObject::publish_gcode(std::string gcode_str)
