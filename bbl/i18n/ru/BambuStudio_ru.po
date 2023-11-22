@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-22 10:39+0800\n"
+"POT-Creation-Date: 2023-11-22 18:26+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -11238,8 +11238,8 @@ msgstr "Журнал сведений"
 msgid "Select filament preset"
 msgstr "Выбор профиля прутка"
 
-msgid "Creat Filament"
-msgstr "Создание пластиковой нити"
+msgid "Create Filament"
+msgstr ""
 
 msgid "Create based on current filamet"
 msgstr "Создать на основе выбранного прутка"
@@ -11348,14 +11348,14 @@ msgstr "Создать принтер/сопло"
 msgid "Create Printer"
 msgstr "Создать принтер"
 
-msgid "Create Nozzle for existing printer"
-msgstr "Создать сопло для выбранного принтера"
+msgid "Create Nozzle for Existing Printer"
+msgstr ""
 
-msgid "Create from template"
-msgstr "Создать из шаблона"
+msgid "Create from Template"
+msgstr ""
 
-msgid "Create based on current printer"
-msgstr "Создать на основе выбранного принтера"
+msgid "Create Based on Current Printer"
+msgstr ""
 
 msgid "wiki"
 msgstr "Wiki-страница"
@@ -11365,6 +11365,9 @@ msgstr "Импорт профиля"
 
 msgid "Create Type"
 msgstr "Создать тип"
+
+msgid "Select vendor"
+msgstr "Выбор производителя"
 
 msgid "The model is not fond, place reselect vendor."
 msgstr "Модель не найдена, выберите производителя."
@@ -11424,9 +11427,6 @@ msgstr "Профиль принтера не найдена, выберите з
 
 msgid "Printer preset"
 msgstr "Профиль принтера"
-
-msgid "Select vendor"
-msgstr "Выбор производителя"
 
 msgid "Filament preset template"
 msgstr "Шаблон профиля прутка"
@@ -11652,6 +11652,11 @@ msgstr "Изменение прутока"
 
 msgid "Filament presets under this filament"
 msgstr "Профили прутка под эту пластиковую нить"
+
+msgid ""
+"Note: If the only preset under this filament is deleted, the filament will "
+"be deleted after exiting the dialog."
+msgstr ""
 
 msgid "Presets inherited by other presets can not be deleted"
 msgstr "Профили, наследуемые от других профилей, не могут быть удалены."
@@ -12156,6 +12161,18 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "Creat Filament"
+#~ msgstr "Создание пластиковой нити"
+
+#~ msgid "Create Nozzle for existing printer"
+#~ msgstr "Создать сопло для выбранного принтера"
+
+#~ msgid "Create from template"
+#~ msgstr "Создать из шаблона"
+
+#~ msgid "Create based on current printer"
+#~ msgstr "Создать на основе выбранного принтера"
 
 #~ msgid ""
 #~ "Layer height cannot exceed the limit in Printer Settings -> Extruder -> "

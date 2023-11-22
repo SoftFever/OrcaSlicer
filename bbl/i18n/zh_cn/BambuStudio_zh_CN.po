@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-22 10:39+0800\n"
+"POT-Creation-Date: 2023-11-22 18:26+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5842,7 +5842,8 @@ msgstr ""
 msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
-msgstr "层高超出了打印机设置->挤出机->层高限制中的范围，这可能导致打印质量问题。"
+msgstr ""
+"层高超出了打印机设置->挤出机->层高限制中的范围，这可能导致打印质量问题。"
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "是否自动调整到范围内？\n"
@@ -10374,7 +10375,7 @@ msgstr "日志信息"
 msgid "Select filament preset"
 msgstr "选择材料预设"
 
-msgid "Creat Filament"
+msgid "Create Filament"
 msgstr "创建材料"
 
 msgid "Create based on current filamet"
@@ -10474,14 +10475,14 @@ msgstr "创建打印机/喷嘴"
 msgid "Create Printer"
 msgstr "创建打印机"
 
-msgid "Create Nozzle for existing printer"
-msgstr "为现存的打印机创建喷嘴"
+msgid "Create Nozzle for Existing Printer"
+msgstr ""
 
-msgid "Create from template"
-msgstr "从模板中创建"
+msgid "Create from Template"
+msgstr ""
 
-msgid "Create based on current printer"
-msgstr "基于当前打印机创建"
+msgid "Create Based on Current Printer"
+msgstr ""
 
 msgid "wiki"
 msgstr ""
@@ -10491,6 +10492,9 @@ msgstr "导入预设"
 
 msgid "Create Type"
 msgstr "创建类型"
+
+msgid "Select vendor"
+msgstr "选择供应商"
 
 msgid "The model is not fond, place reselect vendor."
 msgstr "该模型未找到，请重新选择供应商。"
@@ -10548,9 +10552,6 @@ msgstr "打印机预设未找到，请重新选择。"
 
 msgid "Printer preset"
 msgstr "打印机预设"
-
-msgid "Select vendor"
-msgstr "选择供应商"
 
 msgid "Filament preset template"
 msgstr "材料预设模板"
@@ -10759,6 +10760,11 @@ msgstr "编辑材料"
 
 msgid "Filament presets under this filament"
 msgstr "此材料下的所有材料预设"
+
+msgid ""
+"Note: If the only preset under this filament is deleted, the filament will "
+"be deleted after exiting the dialog."
+msgstr ""
 
 msgid "Presets inherited by other presets can not be deleted"
 msgstr "被其他预设继承的预设不能被删除。"
@@ -11236,6 +11242,18 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid "Creat Filament"
+#~ msgstr "创建材料"
+
+#~ msgid "Create Nozzle for existing printer"
+#~ msgstr "为现存的打印机创建喷嘴"
+
+#~ msgid "Create from template"
+#~ msgstr "从模板中创建"
+
+#~ msgid "Create based on current printer"
+#~ msgstr "基于当前打印机创建"
+
 #~ msgid ""
 #~ "Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
 #~ "Layer height limits"
@@ -11690,9 +11708,6 @@ msgstr ""
 #~ msgstr ""
 #~ "打印机以及所有属于该打印机的材料和工艺预设。\n"
 #~ "可以在 MakerWorld 中共享。"
-
-#~ msgid "Create Filament"
-#~ msgstr "创建材料"
 
 #~ msgid "You have not selected a filament preset, please choose."
 #~ msgstr "你还没选择材料预设，请选择。"

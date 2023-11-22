@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-22 10:39+0800\n"
+"POT-Creation-Date: 2023-11-22 18:26+0800\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -10399,7 +10399,7 @@ msgstr ""
 msgid "Select filament preset"
 msgstr ""
 
-msgid "Creat Filament"
+msgid "Create Filament"
 msgstr ""
 
 msgid "Create based on current filamet"
@@ -10495,13 +10495,13 @@ msgstr ""
 msgid "Create Printer"
 msgstr ""
 
-msgid "Create Nozzle for existing printer"
+msgid "Create Nozzle for Existing Printer"
 msgstr ""
 
-msgid "Create from template"
+msgid "Create from Template"
 msgstr ""
 
-msgid "Create based on current printer"
+msgid "Create Based on Current Printer"
 msgstr ""
 
 msgid "wiki"
@@ -10511,6 +10511,9 @@ msgid "Improt Preset"
 msgstr ""
 
 msgid "Create Type"
+msgstr ""
+
+msgid "Select vendor"
 msgstr ""
 
 msgid "The model is not fond, place reselect vendor."
@@ -10568,9 +10571,6 @@ msgid "The printer preset is not fond, place reselect."
 msgstr ""
 
 msgid "Printer preset"
-msgstr ""
-
-msgid "Select vendor"
 msgstr ""
 
 msgid "Filament preset template"
@@ -10761,6 +10761,11 @@ msgid "Edit Filament"
 msgstr ""
 
 msgid "Filament presets under this filament"
+msgstr ""
+
+msgid ""
+"Note: If the only preset under this filament is deleted, the filament will "
+"be deleted after exiting the dialog."
 msgstr ""
 
 msgid "Presets inherited by other presets can not be deleted"
