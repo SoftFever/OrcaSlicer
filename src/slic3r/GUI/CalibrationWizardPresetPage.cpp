@@ -491,7 +491,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     filament_for_text->SetFont(Label::Head_14);
     filament_for_title_sizer->Add(filament_for_text, 0, wxALIGN_CENTER);
     filament_for_title_sizer->AddSpacer(FromDIP(25));
-    m_ams_sync_button = new ScalableButton(parent, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+    m_ams_sync_button = new ScalableButton(parent, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, 18);
     m_ams_sync_button->SetBackgroundColour(*wxWHITE);
     m_ams_sync_button->SetToolTip(_L("Synchronize filament list from AMS"));
     filament_for_title_sizer->Add(m_ams_sync_button, 0, wxALIGN_CENTER);

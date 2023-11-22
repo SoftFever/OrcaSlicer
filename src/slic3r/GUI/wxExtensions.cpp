@@ -902,11 +902,9 @@ ScalableButton::ScalableButton( wxWindow *          parent,
                                 const wxSize&       size /* = wxDefaultSize*/,
                                 const wxPoint&      pos /* = wxDefaultPosition*/,
                                 long                style /*= wxBU_EXACTFIT | wxNO_BORDER*/,
-                                bool                use_default_disabled_bitmap/* = false*/, //OcraftyoneTODO: removed by ps
                                 int                 bmp_px_cnt/* = 16*/) :
     m_parent(parent),
     m_current_icon_name(icon_name),
-    m_use_default_disabled_bitmap (use_default_disabled_bitmap), //OcraftyoneTODO: removed by ps
     m_px_cnt(bmp_px_cnt),
     m_has_border(!(style & wxNO_BORDER))
 {
@@ -916,9 +914,6 @@ ScalableButton::ScalableButton( wxWindow *          parent,
 
     if (!icon_name.empty()) {
         SetBitmap(create_scaled_bitmap(icon_name, parent, m_px_cnt));
-        if (m_use_default_disabled_bitmap)
-            SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
-        //OcraftyoneTODO: replace above 3 lines with following
 //        SetBitmap(*get_bmp_bundle(icon_name, m_px_cnt));
         if (!label.empty())
             SetBitmapMargins(int(0.5* em_unit(parent)), 0);
@@ -966,10 +961,7 @@ bool ScalableButton::SetBitmap_(const std::string& bmp_name)
     SetBitmapCurrent(bmp);
     SetBitmapPressed(bmp);
     SetBitmapFocus(bmp);
-    if (m_use_default_disabled_bitmap)
-        SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
-    //OcraftyoneTODO: above 2 lines replaced with
-//    SetBitmapDisabled(bmp);
+    SetBitmapDisabled(bmp);
     return true;
 }
 
@@ -986,12 +978,6 @@ int ScalableButton::GetBitmapHeight()
 #else
     return GetBitmap().GetHeight();
 #endif
-}
-
-void ScalableButton::UseDefaultBitmapDisabled() //OcraftyoneTODO: removed by ps
-{
-    m_use_default_disabled_bitmap = true;
-    SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
 }
 
 void ScalableButton::msw_rescale()

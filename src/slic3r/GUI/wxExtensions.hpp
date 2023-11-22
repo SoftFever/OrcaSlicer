@@ -263,7 +263,6 @@ public:
         const wxSize&       size = wxDefaultSize,
         const wxPoint&      pos = wxDefaultPosition,
         long                style = wxBU_EXACTFIT | wxNO_BORDER,
-        bool                use_default_disabled_bitmap = false,  //OcraftyoneTODO: LEGACY (PS deleted)
         int                 bmp_px_cnt = 16);
 
     ScalableButton(
@@ -279,7 +278,6 @@ public:
     bool SetBitmap_(const std::string& bmp_name);
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
     int  GetBitmapHeight();
-    void UseDefaultBitmapDisabled(); //OcraftyoneTODO: LEGACY (PS deleted)
 
     void    msw_rescale();
 
@@ -289,8 +287,6 @@ private:
     std::string     m_disabled_icon_name;
     int             m_width {-1}; // should be multiplied to em_unit
     int             m_height{-1}; // should be multiplied to em_unit
-
-    bool            m_use_default_disabled_bitmap {false}; //OcraftyoneTODO: LEGACY (PS deleted)
 
     // bitmap dimensions 
     int             m_px_cnt{ 16 };

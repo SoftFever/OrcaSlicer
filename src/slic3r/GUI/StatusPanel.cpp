@@ -263,7 +263,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
 
     bSizer_task_btn->Add(FromDIP(10), 0, 0);
 
-    m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
+    m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
 
     m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
@@ -286,7 +286,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
         }
     });
 
-    m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
     m_button_abort->SetToolTip(_L("Stop"));
 
     m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
@@ -490,7 +490,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     m_score_star.resize(5);
     for (int i = 0; i < m_score_star.size(); ++i) {
         m_score_star[i] = new ScalableButton(m_score_subtask_info, wxID_ANY, "score_star_dark", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
-                                             wxBU_EXACTFIT | wxNO_BORDER, true, 26);
+                                             wxBU_EXACTFIT | wxNO_BORDER, 26);
         m_score_star[i]->Bind(wxEVT_LEFT_DOWN, [this, i](auto &e) {
             for (int j = 0; j < m_score_star.size(); ++j) {
                 ScalableBitmap light_star = ScalableBitmap(nullptr, "score_star_light", 26);
@@ -4278,10 +4278,10 @@ wxBoxSizer *ScoreDialog::get_star_sizer()
         }
         if (i < m_star_count) {
             m_score_star[i] = new ScalableButton(this, wxID_ANY, "score_star_light", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, true, 26);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, 26);
         } else
             m_score_star[i] = new ScalableButton(this, wxID_ANY, "score_star_dark", wxEmptyString, wxSize(FromDIP(26), FromDIP(26)), wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, true, 26);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, 26);
 
         m_score_star[i]->Bind(wxEVT_LEFT_DOWN, [this, i](auto &e) {
             if (!m_success_printed && i >= 3) {
