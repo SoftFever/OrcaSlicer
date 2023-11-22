@@ -48,19 +48,18 @@ static const std::vector<std::string> filament_types = {"PLA",    "PLA+",  "PLA 
 static const std::vector<std::string> system_filament_types = {"PLA",      "ABS",    "TPU",    "PC",     "ASA", "PA-CF", "PA6-CF", "PET-CF", "PETG", "PETG-CF",
                                                                "PLA Aero", "PLA-CF", "PPA-CF", "PPA-GF", "PA",  "HIPS",  "PPS",    "PPS-CF", "PVA"};
 
-/*
-static const std::unordered_map<std::string, std::string> system_filament_types_map = {{"PLA", "PLA"},         {"ABS", "ABS"},           {"TPU", "TPU"},
-                                                                                       {"PC", "PC"},           {"ASA", "ASA"},           {"PA-CF", "PA-CF"},
-                                                                                       {"PA6-CF", "PA6-CF"},   {"PET-CF", "PET-CF"},     {"PETG", "PETG"},
-                                                                                       {"PETG-CF", "PETG-CF"}, {"PLA Aero", "PLA-AERO"}, {"PLA-CF", "PLA-CF"},
-                                                                                       {"PPA-CF", "PPA-CF"},   {"PPA-GF", "PPA-GF"},     {"PA", "PA"},
-                                                                                       {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
-                                                                                       {"PVA", "PVA"}};*/
+static std::unordered_map<std::string, std::string> system_filament_types_map = {{"PLA", "PLA"},         {"ABS", "ABS"},           {"TPU", "TPU"},
+                                                                                 {"PC", "PC"},           {"ASA", "ASA"},           {"PA-CF", "PA-CF"},
+                                                                                 {"PA6-CF", "PA6-CF"},   {"PET-CF", "PET-CF"},     {"PETG", "PETG"},
+                                                                                 {"PETG-CF", "PETG-CF"}, {"PLA Aero", "PLA-AERO"}, {"PLA-CF", "PLA-CF"},
+                                                                                 {"PPA-CF", "PPA-CF"},   {"PPA-GF", "PPA-GF"},     {"PA", "PA"},
+                                                                                 {"HIPS", "HIPS"},       {"PPS", "PPS"},           {"PPS-CF", "PPS-CF"},
+                                                                                 {"PVA", "PVA"}};
 
-static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",        "BIQU",    "Creality ENDER", "Creality CR", "Creality SERMOON",
-                                                         "FLSun",     "gCreate",   "Geeetech",    "INAT",    "Infinity3D",     "Jubilee",     "LNL3D",
-                                                         "LulzBot",   "MakerGear", "Papapiu",   "Print4Taste", "RatRig",  "Rigid3D",        "Snapmaker",   "Sovol",
-                                                         "TriLAB",    "Trimaker",  "Ultimaker", "Voron",       "Zonestar"};
+static const std::vector<std::string> printer_vendors = {"Anycubic",  "Artillery", "BIBO",           "BIQU",     "Creality ENDER", "Creality CR", "Creality SERMOON",
+                                                         "FLSun",     "gCreate",   "Geeetech",       "INAT",     "Infinity3D",     "Jubilee",     "LNL3D",
+                                                         "LulzBot",   "MakerGear", "Original Prusa", "Papapiu",  "Print4Taste",    "RatRig",      "Rigid3D",
+                                                         "Snapmaker", "Sovol",     "TriLAB",         "Trimaker", "Ultimaker",      "Voron",       "Zonestar"};
 
 static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
     {{"Anycubic",       {"Kossel Linear Plus", "Kossel Pulley(Linear)", "Mega Zero", "i3 Mega", "Predator"}},
@@ -89,6 +88,7 @@ static const std::unordered_map<std::string, std::vector<std::string>> printer_m
      {"LulzBot",        {"Mini Aero",       "Taz6 Aero"}},
      {"MakerGear",      {"Micro",           "M2(V4 Hotend)",    "M2 Dual",          "M3-single Extruder", "M3-Independent Dual Rev.0", "M3-Independent Dual Rev.0(Duplication Mode)",
                         "M3-Independent Dual Rev.1",            "M3-Independent Dual Rev.1(Duplication Mode)", "ultra One", "Ultra One (DuplicationMode)"}},
+     {"Original Prusa", {"MK4", "SL1S SPEED", "MMU3"}},
      {"Papapiu",        {"N1s"}},
      {"Print4Taste",    {"mycusini 2.0"}},
      {"RatRig",         {"V-core-3 300mm",  "V-Core-3 400mm",   "V-Core-3 500mm", "V-Minion"}},
@@ -510,7 +510,7 @@ static char* read_json_file(const std::string &preset_path)
 }
 
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
-	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Creat Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
+	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
 {
     m_create_type.base_filament = _L("Create based on current filamet");
     m_create_type.base_filament_preset = _L("Copy current filament preset ");
@@ -730,9 +730,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
         m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
         Layout();
         Fit();
-        if (this->GetSize().GetHeight() > 900) {
-            this->SetSize(-1, 900);
-        }
+        update_dialog_size();
         e.Skip();
     });
 
@@ -835,10 +833,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
         Layout();
         Fit();
         Refresh();
-        if (this->GetSize().GetHeight() > 900) {
-            this->SetSize(-1, 900);
-        }
-
+        update_dialog_size();
         e.Skip();
     });
 
@@ -1071,6 +1066,8 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
 
     for (std::pair<std::string, Preset*> filament_presets : m_all_presets_map) {
         Preset *preset = filament_presets.second;
+        auto    inherit = preset->config.option<ConfigOptionString>("inherits");
+        if (inherit && !inherit->value.empty()) continue;
         if (std::string::npos == filament_presets.first.find(type_name)) continue;
         m_filament_choice_map[preset->filament_id].push_back(preset);
     }
@@ -1097,9 +1094,11 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
                 suffix++;
                 m_public_name_to_filament_id_map[public_name + "_" + std::to_string(suffix)] = preset.first;
                 choices.Add(public_name + "_" + std::to_string(suffix));
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " add filament choice: " << choices.back();
             } else {
                 m_public_name_to_filament_id_map[public_name] = preset.first;
                 choices.Add(public_name);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " add filament choice: " << choices.back();
             }
         }
     }
@@ -1163,9 +1162,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
     Layout();
     Fit();
     Refresh();
-    if (this->GetSize().GetHeight() > 900) {
-        this->SetSize(-1, 900);
-    }
+    update_dialog_size();
 }
 
 wxString CreateFilamentPresetDialog::curr_create_filament_type()
@@ -1296,6 +1293,17 @@ void CreateFilamentPresetDialog::get_all_visible_printer_name()
 
 }
 
+void CreateFilamentPresetDialog::update_dialog_size()
+{
+    int width      = GetSize().GetWidth();
+    int height     = GetSize().GetHeight();
+    int new_width  = width;
+    int new_height = height;
+    if (width > 1400) new_width = 1400;
+    if (height > 900) new_height = 900;
+    if (height != new_height || width != new_width) this->SetSize(new_width, new_height);
+}
+
 template<typename T>
 void CreateFilamentPresetDialog::sort_printer_by_nozzle(std::vector<std::pair<std::string, T>> &printer_name_to_filament_preset)
 {
@@ -1347,9 +1355,9 @@ CreatePrinterPresetDialog::CreatePrinterPresetDialog(wxWindow *parent)
 : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Printer/Nozzle"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTER)
 {
     m_create_type.create_printer    = _L("Create Printer");
-    m_create_type.create_nozzle     = _L("Create Nozzle for existing printer");
-    m_create_type.base_template     = _L("Create from template");
-    m_create_type.base_curr_printer = _L("Create based on current printer");
+    m_create_type.create_nozzle     = _L("Create Nozzle for Existing Printer");
+    m_create_type.base_template     = _L("Create from Template");
+    m_create_type.base_curr_printer = _L("Create Based on Current Printer");
     this->SetBackgroundColour(*wxWHITE);
     SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -1422,7 +1430,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
     horizontal_sizer->Add(0, 0, 1, wxEXPAND,0);
     m_step_1 = new wxStaticBitmap(step_switch_panel, wxID_ANY, create_scaled_bitmap("step_1", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
     horizontal_sizer->Add(m_step_1, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
-    wxStaticText *static_create_printer_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Create Printer"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_create_printer_text = new wxStaticText(step_switch_panel, wxID_ANY, m_create_type.create_printer, wxDefaultPosition, wxDefaultSize);
     horizontal_sizer->Add(static_create_printer_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
     auto divider_line = new wxPanel(step_switch_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(50), 1));
     divider_line->SetBackgroundColour(PRINTER_LIST_COLOUR);
@@ -1505,7 +1513,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxHORIZONTAL);
     m_select_vendor            = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
-    m_select_vendor->SetValue(_L("Select Vendor"));
+    m_select_vendor->SetValue(_L("Select vendor"));
     m_select_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     wxArrayString printer_vendor;
     for (const std::string &vendor : printer_vendors) { 
@@ -2314,9 +2322,9 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_preset_item(wxWindow *pare
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     wxBoxSizer *  vertical_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *combobox_title  = new wxStaticText(parent, wxID_ANY, _L("Create based on current printer"), wxDefaultPosition, wxDefaultSize, 0);
+    wxStaticText *combobox_title = new wxStaticText(parent, wxID_ANY, m_create_type.base_curr_printer, wxDefaultPosition, wxDefaultSize, 0);
     combobox_title->SetFont(::Label::Body_13);
-    auto size = combobox_title->GetTextExtent(_L("Create based on current printer"));
+    auto size = combobox_title->GetTextExtent(m_create_type.base_curr_printer);
     combobox_title->SetMinSize(wxSize(size.x + FromDIP(4), -1));
     combobox_title->Wrap(-1);
     vertical_sizer->Add(combobox_title, 0, wxEXPAND | wxALL, 0);
@@ -4197,6 +4205,9 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
 
     m_main_sizer->Add(create_add_filament_btn(), 0, wxEXPAND | wxALL, 0);
     m_main_sizer->Add(create_preset_tree_sizer(), 0, wxEXPAND | wxALL, 0);
+    m_note_text = new wxStaticText(this, wxID_ANY, _L("Note: If the only preset under this filament is deleted, the filament will be deleted after exiting the dialog."));
+    m_main_sizer->Add(m_note_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+    m_note_text->Hide();
     m_main_sizer->Add(create_button_sizer(), 0, wxEXPAND | wxALL, 0);
 
     update_preset_tree();
@@ -4240,8 +4251,15 @@ void EditFilamentPresetDialog::update_preset_tree()
     for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> printer_and_presets : m_printer_compatible_presets) {
         m_preset_tree_sizer->Add(m_preset_tree_creater->get_preset_tree(printer_and_presets), 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 5);
     }
+    if (m_printer_compatible_presets.size() == 1 && m_printer_compatible_presets.begin()->second.size() == 1) {
+        m_note_text->Show();
+    } else {
+        m_note_text->Hide();
+    }
 
     m_preset_tree_panel->SetSizerAndFit(m_preset_tree_sizer);
+    m_preset_tree_panel->SetMinSize(wxSize(m_note_text->GetSize().GetWidth(), -1));
+    m_preset_tree_panel->SetSize(wxSize(m_note_text->GetSize().GetWidth(), -1));
     int whidth = m_preset_tree_panel->GetSize().GetWidth();
     int height = m_preset_tree_panel->GetSize().GetHeight();
     m_preset_tree_window->SetMinSize(wxSize(std::min(1000, whidth), std::min(600, height)));
@@ -4621,8 +4639,9 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
                     
                     if (filament_types && filament_types->values.empty()) continue;
                     const std::string filament_type = filament_types->values[0];
-                    //if (filament_type != m_filament_type) continue;
-                    if (filament_type == m_filament_type) {
+                    std::string       filament_type_ = system_filament_types_map[m_filament_type];
+                    if (filament_type_.empty()) filament_type_ = m_filament_type;
+                    if (filament_type == filament_type_) {
                         m_printer_compatible_filament_presets[printer_preset.name].push_back(std::make_shared<Preset>(filament_preset));
                     }
                 }

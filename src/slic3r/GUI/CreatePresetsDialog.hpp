@@ -58,6 +58,7 @@ private:
     void          get_filament_presets_by_machine();
     void          get_all_filament_presets();
     void          get_all_visible_printer_name();
+    void          update_dialog_size();
     template<typename T>
     void          sort_printer_by_nozzle(std::vector<std::pair<std::string, T>> &printer_name_to_filament_preset);
 
@@ -390,6 +391,7 @@ private:
     wxPanel *                                                             m_preset_tree_panel        = nullptr;
     wxScrolledWindow *                                                    m_preset_tree_window       = nullptr;
     wxBoxSizer *                                                          m_main_sizer               = nullptr;
+    wxStaticText *                                                        m_note_text                = nullptr;
     int                                                                   m_need_delete_preset_index = -1;
     int                                                                   m_need_edit_preset_index   = -1;
     std::string                                                           m_selected_printer         = "";
