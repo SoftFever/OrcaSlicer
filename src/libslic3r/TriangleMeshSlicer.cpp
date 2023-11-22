@@ -319,6 +319,159 @@ static FacetSliceType slice_facet(
     return FacetSliceType::NoSlice;
 }
 
+// Return true, if the facet has been sliced and line_out has been filled.
+static FacetSliceType slice_facet_for_cut_mesh(
+    // Z height of the slice in XY plane. Scaled or unscaled (same as vertices[].z()).
+    float slice_z,
+    // 3 vertices of the triangle, XY scaled. Z scaled or unscaled (same as slice_z).
+    const stl_vertex *                 vertices,
+    const stl_triangle_vertex_indices &indices,
+    const Vec3i &                      edge_ids,
+    const int                          idx_vertex_lowest,
+    const bool                         horizontal,
+    IntersectionLine &                 line_out)
+{
+    IntersectionPoint points[3];
+    size_t            num_points     = 0;
+    auto              point_on_layer = size_t(-1);
+
+    // Reorder vertices so that the first one is the one with lowest Z.
+    // This is needed to get all intersection lines in a consistent order
+    // (external on the right of the line)
+    for (int j = 0; j < 3; ++j) { // loop through facet edges
+        int               edge_id;
+        const stl_vertex *a, *b, *c;
+        int               a_id, b_id;
+        {
+            int k   = (idx_vertex_lowest + j) % 3;
+            int l   = (k + 1) % 3;
+            edge_id = edge_ids(k);
+            a_id    = indices[k];
+            a       = vertices + k;
+            b_id    = indices[l];
+            b       = vertices + l;
+            c       = vertices + (k + 2) % 3;
+        }
+
+        // Is edge or face aligned with the cutting plane?
+        if (is_equal(a->z(), slice_z) && is_equal(b->z(), slice_z)) {
+            // Edge is horizontal and belongs to the current layer.
+            // The following rotation of the three vertices may not be efficient, but this branch happens rarely.
+            const stl_vertex &v0 = vertices[0];
+            const stl_vertex &v1 = vertices[1];
+            const stl_vertex &v2 = vertices[2];
+            // We may ignore this edge for slicing purposes, but we may still use it for object cutting.
+            FacetSliceType result = FacetSliceType::Slicing;
+            if (horizontal) {
+                // All three vertices are aligned with slice_z.
+                line_out.edge_type = IntersectionLine::FacetEdgeType::Horizontal;
+                result             = FacetSliceType::Cutting;
+                double normal      = (v1.x() - v0.x()) * (v2.y() - v1.y()) - (v1.y() - v0.y()) * (v2.x() - v1.x());
+                if (normal < 0) {
+                    // If normal points downwards this is a bottom horizontal facet so we reverse its point order.
+                    std::swap(a, b);
+                    std::swap(a_id, b_id);
+                }
+            } else {
+                // Two vertices are aligned with the cutting plane, the third vertex is below or above the cutting plane.
+                // Is the third vertex below the cutting plane?
+                bool third_below = c->z() < slice_z;
+                // Two vertices on the cutting plane, the third vertex is below the plane. Consider the edge to be part of the slice
+                // only if it is the upper edge.
+                // (the bottom most edge resp. vertex of a triangle is not owned by the triangle, but the top most edge resp. vertex is part of the triangle
+                // in respect to the cutting plane).
+                result = third_below ? FacetSliceType::Slicing : FacetSliceType::Cutting;
+                if (third_below) {
+                    line_out.edge_type = IntersectionLine::FacetEdgeType::Top;
+                    std::swap(a, b);
+                    std::swap(a_id, b_id);
+                } else
+                    line_out.edge_type = IntersectionLine::FacetEdgeType::Bottom;
+            }
+            line_out.a.x() = a->x();
+            line_out.a.y() = a->y();
+            line_out.b.x() = b->x();
+            line_out.b.y() = b->y();
+            line_out.a_id  = a_id;
+            line_out.b_id  = b_id;
+            assert(line_out.a != line_out.b);
+            return result;
+        }
+
+        if (is_equal(a->z(), slice_z)) {
+            // Only point a alings with the cutting plane.
+            if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != a_id) {
+                point_on_layer           = num_points;
+                IntersectionPoint &point = points[num_points++];
+                point.x()                = a->x();
+                point.y()                = a->y();
+                point.point_id           = a_id;
+            }
+        } else if (is_equal(b->z(), slice_z)) {
+            // Only point b alings with the cutting plane.
+            if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != b_id) {
+                point_on_layer           = num_points;
+                IntersectionPoint &point = points[num_points++];
+                point.x()                = b->x();
+                point.y()                = b->y();
+                point.point_id           = b_id;
+            }
+        } else if ((a->z() < slice_z && b->z() > slice_z) || (b->z() < slice_z && a->z() > slice_z)) {
+            // A general case. The face edge intersects the cutting plane. Calculate the intersection point.
+            assert(a_id != b_id);
+            // Sort the edge to give a consistent answer.
+            if (a_id > b_id) {
+                std::swap(a_id, b_id);
+                std::swap(a, b);
+            }
+            IntersectionPoint &point = points[num_points];
+            double             t     = (double(slice_z) - double(b->z())) / (double(a->z()) - double(b->z()));
+            if (t <= 0.) {
+                if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != a_id) {
+                    point.x()      = a->x();
+                    point.y()      = a->y();
+                    point_on_layer = num_points++;
+                    point.point_id = a_id;
+                }
+            } else if (t >= 1.) {
+                if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != b_id) {
+                    point.x()      = b->x();
+                    point.y()      = b->y();
+                    point_on_layer = num_points++;
+                    point.point_id = b_id;
+                }
+            } else {
+                point.x()     = coord_t(floor(double(b->x()) + (double(a->x()) - double(b->x())) * t + 0.5));
+                point.y()     = coord_t(floor(double(b->y()) + (double(a->y()) - double(b->y())) * t + 0.5));
+                point.edge_id = edge_id;
+                ++num_points;
+            }
+        }
+    }
+
+    // Facets must intersect each plane 0 or 2 times, or it may touch the plane at a single vertex only.
+    assert(num_points < 3);
+    if (num_points == 2) {
+        line_out.edge_type = IntersectionLine::FacetEdgeType::General;
+        line_out.a         = static_cast<const Point &>(points[1]);
+        line_out.b         = static_cast<const Point &>(points[0]);
+        line_out.a_id      = points[1].point_id;
+        line_out.b_id      = points[0].point_id;
+        line_out.edge_a_id = points[1].edge_id;
+        line_out.edge_b_id = points[0].edge_id;
+        // Not a zero lenght edge.
+        // FIXME slice_facet() may create zero length edges due to rounding of doubles into coord_t.
+        // assert(line_out.a != line_out.b);
+        // The plane cuts at least one edge in a general position.
+        assert(line_out.a_id == -1 || line_out.b_id == -1);
+        assert(line_out.edge_a_id != -1 || line_out.edge_b_id != -1);
+        // General slicing position, use the segment for both slicing and object cutting.
+
+        return FacetSliceType::Slicing;
+    }
+    return FacetSliceType::NoSlice;
+}
+
 template<typename TransformVertex>
 void slice_facet_at_zs(
     // Scaled or unscaled vertices. transform_vertex_fn may scale zs.
@@ -2080,9 +2233,9 @@ static void triangulate_slice(
                     });
                 int   idx = -1;
                 bool exist = false;
-                for (auto i = section_vertices_map.begin(); i != section_vertices_map.end(); i++) {
-                    if (is_equal(v, *i->second)) {
-                        idx            = i->first;
+                for (auto iter = section_vertices_map.begin(); iter != section_vertices_map.end(); iter++) {
+                    if (is_equal(v, *iter->second)) {
+                        idx   = iter->first;
                         exist = true;
                         break;
                     }
@@ -2214,7 +2367,7 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
                 dst.y() = scale_(src.y());
                 dst.z() = src.z();
             }
-            slice_type = slice_facet(z, vertices_scaled, mesh.indices[facet_idx], facets_edge_ids[facet_idx], idx_vertex_lowest, is_equal(min_z , max_z), line);
+            slice_type = slice_facet_for_cut_mesh(z, vertices_scaled, mesh.indices[facet_idx], facets_edge_ids[facet_idx], idx_vertex_lowest, is_equal(min_z, max_z), line);
         }
 
         if (slice_type != FacetSliceType::NoSlice) {
