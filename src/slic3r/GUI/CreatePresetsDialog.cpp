@@ -108,7 +108,7 @@ static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2", 0.2
                                                                      {"0.4", 0.4}, {"0.5", 0.5},   {"0.6", 0.6}, {"0.75", 0.75},
                                                                      {"0.8", 0.8}, {"1.0", 1.0},   {"1.2", 1.2}};
 
-static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 43, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
+static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
 
 static std::set<char> special_key = {'\n', '\t', '\r', '\v', '@', ';'};
 
@@ -4858,7 +4858,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     edit_preset_btn->SetBackgroundColor(flush_bg_col);
     edit_preset_btn->SetBorderColor(flush_bd_col);
     edit_preset_btn->SetTextColor(flush_fg_col);
-    //edit_preset_btn->Hide();
+    edit_preset_btn->Hide();
     sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
 
