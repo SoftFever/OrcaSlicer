@@ -245,6 +245,8 @@ private:
     bool m_filament_exist{false};
     bool m_is_compatible{true};
     const Preset* m_selected_preset = nullptr;
+    std::map<wxString, std::pair<std::string, wxBitmap*>> m_nonsys_presets;
+    std::map<wxString, std::pair<std::string, wxBitmap*>> m_system_presets;
 };
 
 } // namespace GUI
