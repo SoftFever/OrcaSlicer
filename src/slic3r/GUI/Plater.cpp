@@ -7742,7 +7742,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
-    enable_wireframe(false);
+    enable_wireframe(true);
 }
 
 bool Plater::Show(bool show)

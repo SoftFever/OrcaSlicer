@@ -3377,8 +3377,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     wxGetApp().plater()->toggle_render_statistic_dialog();
                     m_dirty = true;
 #endif
-                }
-                else  if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) {
+                } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) ||
+                    evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN) {
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
                 }
