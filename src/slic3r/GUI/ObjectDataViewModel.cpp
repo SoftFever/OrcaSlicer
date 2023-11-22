@@ -295,7 +295,7 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
     switch (col)
     {
     case colPrint:
-        m_printable_icon << variant; //OcraftyoneTODO: removed by ps
+        m_printable_icon << variant;
         return true;
     case colName: {
         DataViewBitmapText data;
@@ -320,7 +320,7 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
         m_color_icon << variant;
         break;
     case colEditing:
-        m_action_icon << variant; //OcraftyoneTODO: removed by ps
+        m_action_icon << variant;
         return true;
     default:
         printf("MyObjectTreeModel::SetValue: wrong column");
