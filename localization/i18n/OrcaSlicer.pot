@@ -10906,3 +10906,30 @@ msgstr ""
 #: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid "When need to print with the printer door opened\nOpening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+
+msgid "Measure"
+msgstr ""
+
+msgid "Select feature"
+msgstr ""
+
+msgid "Select point"
+msgstr ""
+
+msgid "Restart selection"
+msgstr ""
+
+msgid "Unselect"
+msgstr ""
+
+msgid "Edge"
+msgstr ""
+
+msgid "Plane"
+msgstr ""
+
+msgid "Edit to scale"
+msgstr ""
+
+msgid "Distance"
+msgstr ""
