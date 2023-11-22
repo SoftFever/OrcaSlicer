@@ -175,7 +175,7 @@ protected:
 
 private:
     void update_render_data();
-    void render(int buffer_idx);
+    void render(int buffer_idx, bool show_wireframe=false);
 };
 
 
