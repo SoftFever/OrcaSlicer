@@ -275,6 +275,7 @@ private:
     Slic3r::DeviceManager* m_device_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
+    std::vector<bool> m_create_preset_blocked { false, false, false, false, false, false }; // excceed limit
     bool m_networking_compatible { false };
     bool m_networking_need_update { false };
     bool m_networking_cancel_update { false };
@@ -289,10 +290,11 @@ private:
     HMSQuery    *hms_query { nullptr };
 
     boost::thread    m_sync_update_thread;
-    bool             enable_sync = false;
+    std::shared_ptr<int> m_user_sync_token;
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
+    bool             m_show_http_errpr_msgdlg{false};
     wxString         m_info_dialog_content;
     HttpServer       m_http_server;
     bool             m_show_gcode_window{true};
@@ -480,6 +482,7 @@ private:
     bool            load_language(wxString language, bool initial);
 
     Tab*            get_tab(Preset::Type type);
+    Tab*            get_plate_tab();
     Tab*            get_model_tab(bool part = false);
     Tab*            get_layer_tab();
     ConfigOptionMode get_mode();
@@ -583,6 +586,7 @@ private:
 
     std::vector<Tab *>      tabs_list;
     std::vector<Tab *>      model_tabs_list;
+    Tab*                    plate_tab;
 
 	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
 	//OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }

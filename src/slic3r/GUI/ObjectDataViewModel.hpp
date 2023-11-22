@@ -329,6 +329,7 @@ class ObjectDataViewModel :public wxDataViewModel
     ObjectDataViewModelNode*                    m_plate_outside;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
+    wxDataViewItemArray                         found_list;
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
@@ -370,6 +371,7 @@ public:
     wxDataViewItem GetItemByLayerRange(const int obj_idx, const t_layer_height_range& layer_range);
     int  GetItemIdByLayerRange(const int obj_idx, const t_layer_height_range& layer_range);
     int  GetIdByItem(const wxDataViewItem& item) const;
+    int  GetPlateIdByItem(const wxDataViewItem& item) const;
     int  GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
     int  GetObjectIdByItem(const wxDataViewItem& item) const;
     int  GetVolumeIdByItem(const wxDataViewItem& item) const;
@@ -483,6 +485,9 @@ public:
     // BBS
     void        UpdateItemNames();
 
+    void        append_found_list(wxString current_search_text);
+    void        append_found(wxString current_search_text, ObjectDataViewModelNode* item);
+    wxDataViewItemArray        get_search_list() { return found_list; }
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);
     wxDataViewItem  AddInstanceRoot(const wxDataViewItem& parent_item);

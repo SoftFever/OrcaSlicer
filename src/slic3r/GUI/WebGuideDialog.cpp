@@ -27,12 +27,41 @@
 #include <slic3r/Utils/Http.hpp>
 #include <libslic3r/miniz_extension.hpp>
 #include <libslic3r/Utils.hpp>
+#include "CreatePresetsDialog.hpp"
 
 using namespace nlohmann;
 
 namespace Slic3r { namespace GUI {
 
 json m_ProfileJson;
+
+static wxString update_custom_filaments()
+{
+    json m_Res                                                                     = json::object();
+    m_Res["command"]                                                               = "update_custom_filaments";
+    m_Res["sequence_id"]                                                           = "2000";
+    json                                               m_CustomFilaments           = json::array();
+    PresetBundle *                                     preset_bundle               = wxGetApp().preset_bundle;
+    std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets = preset_bundle->filaments.get_filament_presets();
+    json                                               temp_j;
+    for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
+        std::string filament_id = filament_id_to_presets.first;
+        if (filament_id.empty()) continue;
+        for (const Preset *preset : filament_id_to_presets.second) {
+            if (preset->is_system || filament_id.empty() || "null" == filament_id || filament_id.size() != 8 || filament_id[0] != 'P') break;
+            temp_j["id"]            = preset->filament_id;
+            std::string preset_name = preset->name;
+            size_t      index_at    = preset_name.find_last_of('@');
+            if (std::string::npos != index_at) { preset_name = preset_name.substr(0, index_at - 1); }
+            temp_j["name"] = preset_name;
+            m_CustomFilaments.push_back(temp_j);
+            break;
+        }
+    }
+    m_Res["data"]  = m_CustomFilaments;
+    wxString strJS = wxString::Format("HandleStudio(%s)", wxString::FromUTF8(m_Res.dump(-1, ' ', false, json::error_handler_t::ignore)));
+    return strJS;
+}
 
 GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "OrcaSlicer", wxDefaultPosition, wxDefaultSize, style),
@@ -321,6 +350,20 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
             wxGetApp().CallAfter([this,strJS] { RunScript(strJS); });
+        }
+        else if (strCmd == "request_custom_filaments") {
+            wxString strJS = update_custom_filaments();
+            wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
+        }
+        else if (strCmd == "create_custom_filament") {
+            this->EndModal(wxID_OK);
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_CREATE_FILAMENT));
+        } else if (strCmd == "modify_custom_filament") {
+            this->EndModal(wxID_OK);
+            FilamentInfomation *filament_info = new FilamentInfomation();
+            filament_info->filament_id  = j["id"];
+            //filament_info->filament_name = j["name"];
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
         }
         else if (strCmd == "save_userguide_models")
         {
@@ -738,19 +781,20 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         BOOST_LOG_TRIVIAL(info) << "No bundles need to be installed from resource directory";
     }
 
-    if (remove_bundles.size() > 0) {
-        //remove unused bundles
-        for (const auto &it : remove_bundles) {
-            auto vendor_file = vendor_dir/(it + ".json");
-            auto sub_dir = vendor_dir/(it);
-            if (fs::exists(vendor_file))
-                fs::remove(vendor_file);
-            if (fs::exists(sub_dir))
-                fs::remove_all(sub_dir);
-        }
-    } else {
-        BOOST_LOG_TRIVIAL(info) << "No bundles need to be removed";
-    }
+    // Not remove, because these bundles may be updated
+    //if (remove_bundles.size() > 0) {
+    //    //remove unused bundles
+    //    for (const auto &it : remove_bundles) {
+    //        auto vendor_file = vendor_dir/(it + ".json");
+    //        auto sub_dir = vendor_dir/(it);
+    //        if (fs::exists(vendor_file))
+    //            fs::remove(vendor_file);
+    //        if (fs::exists(sub_dir))
+    //            fs::remove_all(sub_dir);
+    //    }
+    //} else {
+    //    BOOST_LOG_TRIVIAL(info) << "No bundles need to be removed";
+    //}
 
     std::string preferred_model;
     std::string preferred_variant;

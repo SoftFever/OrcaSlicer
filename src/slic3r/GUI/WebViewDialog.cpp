@@ -10,6 +10,7 @@
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
+#include <wx/url.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
@@ -452,8 +453,17 @@ void WebViewPanel::SendDesignStaffpick(bool on)
 void WebViewPanel::OpenModelDetail(std::string id, NetworkAgent *agent)
 {
     std::string url;
-    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0)
-        wxLaunchDefaultBrowser(url);
+    if ((agent ? agent->get_model_mall_detail_url(&url, id) : get_model_mall_detail_url(&url, id)) == 0) 
+    {
+        if (url.find("?") != std::string::npos) 
+        { 
+            url += "&from=bambustudio";
+        } else {
+            url += "?from=bambustudio";
+        }
+        
+        wxLaunchDefaultBrowser(url); 
+    }
 }
 
 void WebViewPanel::SendLoginInfo()
@@ -528,6 +538,12 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
+            auto file = wxURL::Unescape(wxURL(url).GetPath());
+#ifdef _WIN32
+            if (file.StartsWith('/'))
+                file = file.Mid(1);
+#endif
+            wxGetApp().plater()->load_files(wxArrayString{1, &file});
             evt.Veto();
             return;
         }

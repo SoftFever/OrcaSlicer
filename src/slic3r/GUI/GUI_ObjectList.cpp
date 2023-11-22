@@ -276,6 +276,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
+    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING, &ObjectList::OnStartEditing, this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,    &ObjectList::OnEditingDone,     this);
 
@@ -380,7 +381,8 @@ void ObjectList::create_objects_ctrl()
     // And Icon can be consisting of several bitmaps
     BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
     bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
-        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
+        auto type = m_objects_model->GetItemType(GetSelection());
+        return type & (itVolume | itObject | itPlate);
     });
 
     // BBS
@@ -791,6 +793,60 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     wxGetApp().plater()->update();
 }
 
+void ObjectList::search_object_list() {
+
+    auto found_list = m_objects_model->get_search_list();
+    auto found_size = found_list.size();
+
+    if (cur_pos >= found_size) {
+        cur_pos = 0;
+    }
+
+    if (cur_pos < found_size) {
+        wxDataViewItem cur_item = found_list.Item(cur_pos);
+        select_item(cur_item);
+        cur_pos++;
+        ensure_current_item_visible();
+        selection_changed();
+    }
+}
+
+void ObjectList::set_found_list(wxString current_search_text) {
+
+    PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+    current_search_text = current_search_text.MakeLower();
+
+    m_objects_model->append_found_list(current_search_text);
+
+    if (current_search_text.empty()) {
+        if (ppl.get_plate_count() > 0) {
+            wxDataViewItem item = m_objects_model->GetItemByPlateId(0);
+            select_item(item);
+            ensure_current_item_visible();
+            selection_changed();
+        }
+        auto column = GetColumn(colName);
+        column->SetTitle(_L("Name"));
+    }
+    else {
+        auto found_list = m_objects_model->get_search_list();
+        auto column = GetColumn(colName);
+        wxString match_num = wxString::Format("%d", found_list.size());
+        wxString match_message = " (" + match_num + _L(" search results") + ")";
+        wxString column_name = _L("Name") + match_message;
+        column->SetTitle(column_name);
+    }
+}
+
+void ObjectList::set_cur_pos(int value) {
+    cur_pos = value;
+}
+
+void ObjectList::searchbar_kill_focus() {
+    auto column = GetColumn(colName);
+    column->SetTitle(_L("Name"));
+}
+
 void ObjectList::update_objects_list_filament_column(size_t filaments_count)
 {
     assert(filaments_count >= 1);
@@ -911,6 +967,20 @@ void ObjectList::update_filament_in_config(const wxDataViewItem& item)
 
 void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 {
+    if (m_objects_model->GetItemType(item) & itPlate) {
+        std::string name = m_objects_model->GetName(item).ToUTF8().data();
+        int plate_idx = -1;
+        const ItemType type0 = m_objects_model->GetItemType(item, plate_idx);
+        if (plate_idx >= 0) {
+            auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+            if (plate->get_plate_name() != name) {
+                plate->set_plate_name(name);
+            }
+            m_objects_model->SetCurSelectedPlateFullName(plate_idx, name);
+        }
+        return;
+    }
+
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -1247,7 +1317,9 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 
             get_selected_item_indexes(obj_idx, vol_idx, item);
             //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
-            if (m_objects_model->GetItemType(item) & itLayer)
+            if (m_objects_model->GetItemType(item) & itPlate)
+                dynamic_cast<TabPrintPlate*>(wxGetApp().get_plate_tab())->reset_model_config();
+            else if (m_objects_model->GetItemType(item) & itLayer)
                 dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
             else
                 dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
@@ -5482,6 +5554,22 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
     }
 }
 
+void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
+{
+    auto col  = event.GetColumn();
+    auto item = event.GetItem();
+    if (col == colName) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->GetType() & itPlate) {
+            int plate_idx = node->GetPlateIdx();
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetName(from_u8(plate->get_plate_name()), GetSelection());
+            }
+        }
+    }
+}
+
 // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
@@ -5556,6 +5644,17 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
         return;
+
+    if (event.IsEditCancelled()) {
+        if (m_objects_model->GetItemType(event.GetItem()) & itPlate) {
+            int plate_idx = -1;
+            m_objects_model->GetItemType(event.GetItem(), plate_idx);
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetCurSelectedPlateFullName(plate_idx, plate->get_plate_name());
+            }
+        }
+    }
 
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(colName)->GetRenderer());
 #if __WXOSX__

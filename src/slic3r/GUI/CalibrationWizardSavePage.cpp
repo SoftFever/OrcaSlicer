@@ -8,6 +8,7 @@ namespace Slic3r { namespace GUI {
 
 #define CALIBRATION_SAVE_INPUT_SIZE     wxSize(FromDIP(240), FromDIP(24))
 #define FLOW_RATE_MAX_VALUE  1.15
+static const wxString k_tips = "Please input a valid value (K in 0~0.3)";
 
 static wxString get_default_name(wxString filament_name, CalibMode mode){
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
@@ -363,10 +364,11 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         if (input->get_type() == GridTextInputType::K) {
             float k = 0.0f;
             if (!CalibUtils::validate_input_k_value(input->GetTextCtrl()->GetValue(), &k)) {
-                *out_msg = _L("Please input a valid value (K in 0~0.5)");
+                *out_msg = _L("Please input a valid value (K in 0~0.3)");
                 *out_is_valid = false;
             }
-            m_calib_results[tray_id].k_value = k;
+            else
+                m_calib_results[tray_id].k_value = k;
         }
         else if (input->get_type() == GridTextInputType::N) {
         }
@@ -517,9 +519,9 @@ void CaliPASaveManualPanel::create_panel(wxWindow* parent)
 
 void CaliPASaveManualPanel::set_save_img() {
     if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
-        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result_CN", nullptr, 330));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result_CN", 330));
     } else {
-        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 330));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result", 330));
     }
 }
 
@@ -531,9 +533,9 @@ void CaliPASaveManualPanel::set_pa_cali_method(ManualPaCaliMethod method)
     } else if (method == ManualPaCaliMethod::PA_PATTERN) {
         m_complete_text->SetLabel(_L("Please find the cornor with perfect degree of extrusion"));
         if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result_CN", nullptr, 350));
+            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_pattern_manual_result_CN", 350));
         } else {
-            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result", nullptr, 350));
+            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_pattern_manual_result", 350));
         }
     }
 }
@@ -546,7 +548,7 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
     // Check if the value is valid
     float k;
     if (!CalibUtils::validate_input_k_value(m_k_val->GetTextCtrl()->GetValue(), &k)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
@@ -593,6 +595,8 @@ bool CaliPASaveManualPanel::Show(bool show) {
             if (!m_obj->selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(m_obj->selected_cali_preset[0].name, CalibMode::Calib_PA_Line);
                 set_default_name(default_name);
+                m_k_val->GetTextCtrl()->SetLabel("");
+                m_n_val->GetTextCtrl()->SetLabel("");
             }
         }
         else {
@@ -600,6 +604,11 @@ bool CaliPASaveManualPanel::Show(bool show) {
         }
     }
     return wxPanel::Show(show);
+}
+
+void CaliPASaveManualPanel::msw_rescale()
+{
+    m_picture_panel->msw_rescale();
 }
 
 CaliPASaveP1PPanel::CaliPASaveP1PPanel(
@@ -671,9 +680,9 @@ void CaliPASaveP1PPanel::create_panel(wxWindow* parent)
 
 void CaliPASaveP1PPanel::set_save_img() {
     if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result_CN", nullptr, 350));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result_CN", 350));
     } else {
-        m_picture_panel->set_img(create_scaled_bitmap("fd_calibration_manual_result", nullptr, 350));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "fd_calibration_manual_result", 350));
     }
 }
 
@@ -686,9 +695,9 @@ void CaliPASaveP1PPanel::set_pa_cali_method(ManualPaCaliMethod method)
     else if (method == ManualPaCaliMethod::PA_PATTERN) {
         m_complete_text->SetLabel(_L("Please find the cornor with perfect degree of extrusion"));
         if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result_CN", nullptr, 350));
+            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_pattern_manual_result_CN", 350));
         } else {
-            m_picture_panel->set_img(create_scaled_bitmap("fd_pattern_manual_result", nullptr, 350));
+            m_picture_panel->set_bmp(ScalableBitmap(this, "fd_pattern_manual_result", 350));
         }
     }
 }
@@ -696,11 +705,24 @@ void CaliPASaveP1PPanel::set_pa_cali_method(ManualPaCaliMethod method)
 bool CaliPASaveP1PPanel::get_result(float* out_k, float* out_n){
     // Check if the value is valid
     if (!CalibUtils::validate_input_k_value(m_k_val->GetTextCtrl()->GetValue(), out_k)) {
-        MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
     }
     return true;
+}
+
+bool CaliPASaveP1PPanel::Show(bool show) {
+    if (show) {
+        m_k_val->GetTextCtrl()->SetLabel("");
+        m_n_val->GetTextCtrl()->SetLabel("");
+    }
+    return wxPanel::Show(show);
+}
+
+void CaliPASaveP1PPanel::msw_rescale()
+{
+    m_picture_panel->msw_rescale();
 }
 
 CaliSavePresetValuePanel::CaliSavePresetValuePanel(
@@ -751,7 +773,7 @@ void CaliSavePresetValuePanel::create_panel(wxWindow *parent)
 
 void CaliSavePresetValuePanel::set_img(const std::string& bmp_name_in)
 {
-    m_picture_panel->set_img(create_scaled_bitmap(bmp_name_in, nullptr, 400));
+    m_picture_panel->set_bmp(ScalableBitmap(this, bmp_name_in, 400));
 }
 
 void CaliSavePresetValuePanel::set_value_title(const wxString& title) {
@@ -775,6 +797,11 @@ void CaliSavePresetValuePanel::get_save_name(std::string& name)
 void CaliSavePresetValuePanel::set_save_name(const std::string& name)
 { 
     m_input_name->GetTextCtrl()->SetValue(name); 
+}
+
+void CaliSavePresetValuePanel::msw_rescale()
+{
+    m_picture_panel->msw_rescale();
 }
 
 CalibrationPASavePage::CalibrationPASavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -875,6 +902,8 @@ void CalibrationPASavePage::set_cali_method(CalibrationMethod method)
 void CalibrationPASavePage::on_device_connected(MachineObject* obj)
 {
     curr_obj = obj;
+    m_auto_panel->set_machine_obj(curr_obj);
+    m_manual_panel->set_machine_obj(curr_obj);
     if (curr_obj)
         show_panels(m_cali_method, curr_obj->get_printer_series());
 }
@@ -897,6 +926,14 @@ bool CalibrationPASavePage::Show(bool show) {
         }
     }
     return wxPanel::Show(show);
+}
+
+void CalibrationPASavePage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    m_manual_panel->msw_rescale();
+    m_p1p_panel->msw_rescale();
+    m_help_panel->msw_rescale();
 }
 
 CalibrationFlowX1SavePage::CalibrationFlowX1SavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -1138,6 +1175,11 @@ bool CalibrationFlowX1SavePage::Show(bool show) {
     return wxPanel::Show(show);
 }
 
+void CalibrationFlowX1SavePage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+}
+
 CalibrationFlowCoarseSavePage::CalibrationFlowCoarseSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationCommonSavePage(parent, id, pos, size, style)
 {
@@ -1258,6 +1300,13 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
         m_coarse_calc_result_text->SetLabel(wxString::Format(_L("flow ratio : %s "), std::to_string(m_coarse_flow_ratio)));
         });
 
+    m_sending_panel = new CaliPageSendingPanel(parent);
+    m_sending_panel->get_sending_progress_bar()->set_cancel_callback_fina([this]() {
+        on_cali_cancel_job();
+        });
+    m_sending_panel->Hide();
+    m_top_sizer->Add(m_sending_panel, 0, wxALIGN_CENTER);
+
     m_action_panel = new CaliPageActionPanel(parent, m_cali_mode, CaliPageType::CALI_PAGE_COARSE_SAVE);
     m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_COARSE_SAVE, false);
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
@@ -1265,9 +1314,9 @@ void CalibrationFlowCoarseSavePage::create_page(wxWindow* parent)
 
 void CalibrationFlowCoarseSavePage::set_save_img() {
     if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
-        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse_result_CN", nullptr, 350));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse_result_CN", 350));
     } else {
-        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_coarse_result", nullptr, 350));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse_result", 350));
     }
 }
 
@@ -1322,6 +1371,51 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         }
     }
     return wxPanel::Show(show);
+}
+
+void CalibrationFlowCoarseSavePage::on_cali_start_job()
+{
+    m_sending_panel->reset();
+    m_sending_panel->Show();
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, false);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, false);
+    Layout();
+    Fit();
+}
+
+void CalibrationFlowCoarseSavePage::on_cali_finished_job()
+{
+    m_sending_panel->reset();
+    m_sending_panel->Show(false);
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    Layout();
+    Fit();
+}
+
+void CalibrationFlowCoarseSavePage::on_cali_cancel_job()
+{
+    BOOST_LOG_TRIVIAL(info) << "CalibrationWizard::print_job: enter canceled";
+    if (CalibUtils::print_job) {
+        if (CalibUtils::print_job->is_running()) {
+            BOOST_LOG_TRIVIAL(info) << "calibration_print_job: canceled";
+            CalibUtils::print_job->cancel();
+        }
+        CalibUtils::print_job->join();
+    }
+
+    m_sending_panel->reset();
+    m_sending_panel->Show(false);
+    m_action_panel->enable_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    m_action_panel->show_button(CaliPageActionType::CALI_ACTION_FLOW_CALI_STAGE_2, true);
+    Layout();
+    Fit();
+}
+
+void CalibrationFlowCoarseSavePage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    m_picture_panel->msw_rescale();
 }
 
 CalibrationFlowFineSavePage::CalibrationFlowFineSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -1406,9 +1500,9 @@ void CalibrationFlowFineSavePage::create_page(wxWindow* parent)
 
 void CalibrationFlowFineSavePage::set_save_img() {
     if (wxGetApp().app_config->get_language_code() == "zh-cn") { 
-        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine_result_CN", nullptr, 350));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine_result_CN", 350));
     } else {
-        m_picture_panel->set_img(create_scaled_bitmap("flow_rate_calibration_fine_result", nullptr, 350));
+        m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine_result", 350));
     }
 }
 
@@ -1454,6 +1548,12 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
         }
     }
     return wxPanel::Show(show);
+}
+
+void CalibrationFlowFineSavePage::msw_rescale()
+{
+    CalibrationWizardPage::msw_rescale();
+    m_picture_panel->msw_rescale();
 }
 
 CalibrationMaxVolumetricSpeedSavePage::CalibrationMaxVolumetricSpeedSavePage(

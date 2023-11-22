@@ -26,4 +26,6 @@ SVG
 src/OrcaSlicer-doc/
 .idea/
 /.cache/
-*.mo
+*.mo**/process_full/
+**/machine_full/
+**/filament_full/

@@ -97,6 +97,10 @@ Model& Model::assign_copy(const Model &rhs)
         );
     }
 
+    if (rhs.calib_pa_pattern) {
+        this->calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(CalibPressureAdvancePattern(*rhs.calib_pa_pattern));
+    }
+
     // BBS: for design info
     this->design_info = rhs.design_info;
     this->model_info = rhs.model_info;

@@ -15,6 +15,7 @@ namespace GUI {
 #define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         5
+static const wxString k_tips = "Please input a valid value (K in 0~0.3)";
 
 static wxString get_preset_name_by_filament_id(std::string filament_id)
 {
@@ -376,22 +377,26 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow* parent, con
     k_value->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, k_value](auto& e) {
         float k = 0.0f;
         if (!CalibUtils::validate_input_k_value(k_value->GetTextCtrl()->GetValue(), &k)) {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
         }
-        wxString k_str = wxString::Format("%.3f", k);
-        k_value->GetTextCtrl()->SetValue(k_str);
-        m_new_result.k_value = k;
+        else {
+            wxString k_str = wxString::Format("%.3f", k);
+            k_value->GetTextCtrl()->SetValue(k_str);
+            m_new_result.k_value = k;
+        }
         });
     k_value->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, k_value](auto& e) {
         float k = 0.0f;
         if (!CalibUtils::validate_input_k_value(k_value->GetTextCtrl()->GetValue(), &k)) {
-            MessageDialog msg_dlg(nullptr, _L("Please input a valid value (K in 0~0.5)"), wxEmptyString, wxICON_WARNING | wxOK);
+            MessageDialog msg_dlg(nullptr, _L(k_tips), wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
         }
-        wxString k_str = wxString::Format("%.3f", k);
-        k_value->GetTextCtrl()->SetValue(k_str);
-        m_new_result.k_value = k;
+        else {
+            wxString k_str = wxString::Format("%.3f", k);
+            k_value->GetTextCtrl()->SetValue(k_str);
+            m_new_result.k_value = k;
+        }
         e.Skip();
         });
     flex_sizer->Add(k_title);

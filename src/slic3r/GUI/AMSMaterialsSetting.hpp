@@ -180,6 +180,7 @@ protected:
 #endif
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
+    std::map<std::string, std::string> map_filament_items;
 };
 
 wxDECLARE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);

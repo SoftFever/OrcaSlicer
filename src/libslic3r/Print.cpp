@@ -31,7 +31,7 @@
 #include "Geometry/ConvexHull.hpp"
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
-#include "SupportMaterial.hpp"
+#include "Support/SupportMaterial.hpp"
 #include "Thread.hpp"
 #include "Time.hpp"
 #include "GCode.hpp"
@@ -102,6 +102,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "printable_area",
         //BBS: add bed_exclude_area
         "bed_exclude_area",
+        "thumbnail_size",
         "before_layer_change_gcode",
         "enable_pressure_advance",
         "pressure_advance",
@@ -113,6 +114,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "deretraction_speed",
         "close_fan_the_first_x_layers",
         "machine_end_gcode",
+        "printing_by_object_gcode",
         "filament_end_gcode",
         "post_process",
         "extruder_clearance_height_to_rod",
@@ -183,6 +185,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "nozzle_hrc",
         "required_nozzle_HRC",
         "upward_compatible_machine",
+        "is_infill_first",
         // Orca
         "chamber_temperature",
         "thumbnails",
@@ -310,7 +313,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             //|| opt_key == "resolution"
             //BBS: when enable arc fitting, we must re-generate perimeter
             || opt_key == "enable_arc_fitting"
-            || opt_key == "wall_infill_order") {
+            || opt_key == "wall_sequence") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posEstimateCurledExtrusions);
             osteps.emplace_back(posInfill);
@@ -1339,11 +1342,23 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (layer_height > min_nozzle_diameter)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 
+            double min_layer_height_from_nozzle = 0.01;
+            double max_layer_height_from_nozzle = std::numeric_limits<double>::max();
+            for (unsigned int extruder_id : extruders) {
+                min_layer_height_from_nozzle = std::max(min_layer_height_from_nozzle, m_config.min_layer_height.get_at(extruder_id));
+                max_layer_height_from_nozzle = std::min(max_layer_height_from_nozzle, m_config.max_layer_height.get_at(extruder_id));
+            }
+
+            if (layer_height > max_layer_height_from_nozzle ||
+                layer_height < min_layer_height_from_nozzle) {
+                return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), object, "layer_height", STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT };
+            }
+
             for (auto range : object->m_model_object->layer_config_ranges) {
                 double range_layer_height = range.second.opt_float("layer_height");
-                if (range_layer_height > object->m_slicing_params.max_layer_height ||
-                    range_layer_height < object->m_slicing_params.min_layer_height)
-                    return  { L("Layer height cannot exceed nozzle diameter"), nullptr, "layer_height" };
+                if (range_layer_height > max_layer_height_from_nozzle ||
+                    range_layer_height < min_layer_height_from_nozzle)
+                    return  { L("Layer height cannot exceed the limit in Printer Settings -> Extruder -> Layer height limits"), nullptr, "layer_height", STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT };
             }
 
             // Validate extrusion widths.
@@ -1626,16 +1641,21 @@ std::map<ObjectID, unsigned int> getObjectExtruderMap(const Print& print) {
     std::map<ObjectID, unsigned int> objectExtruderMap;
     for (const PrintObject* object : print.objects()) {
         // BBS
-        unsigned int objectFirstLayerFirstExtruder = print.config().filament_diameter.size();
-        auto firstLayerRegions = object->layers().front()->regions();
-        if (!firstLayerRegions.empty()) {
-            for (const LayerRegion* regionPtr : firstLayerRegions) {
-                if (regionPtr -> has_extrusions())
-                    objectFirstLayerFirstExtruder = std::min(objectFirstLayerFirstExtruder,
-                        regionPtr->region().extruder(frExternalPerimeter));
+        if (object->object_first_layer_wall_extruders.empty()){
+            unsigned int objectFirstLayerFirstExtruder = print.config().filament_diameter.size();
+            auto firstLayerRegions = object->layers().front()->regions();
+            if (!firstLayerRegions.empty()) {
+                for (const LayerRegion* regionPtr : firstLayerRegions) {
+                    if (regionPtr->has_extrusions())
+                        objectFirstLayerFirstExtruder = std::min(objectFirstLayerFirstExtruder,
+                          regionPtr->region().extruder(frExternalPerimeter));
+                }
             }
+            objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
         }
-        objectExtruderMap.insert(std::make_pair(object->id(), objectFirstLayerFirstExtruder));
+        else {
+            objectExtruderMap.insert(std::make_pair(object->id(), object->object_first_layer_wall_extruders.front()));
+        }
     }
     return objectExtruderMap;
 }
@@ -1841,6 +1861,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 obj->infill();
                 obj->ironing();
                 obj->generate_support_material();
+                obj->detect_overhangs_for_lift();
                 obj->estimate_curled_extrusions();
             }
         }
@@ -1980,7 +2001,15 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
     }
 
     // BBS
-    if(!m_no_check)
+    bool has_adaptive_layer_height = false;
+    for (PrintObject* obj : m_objects) {
+        if (obj->model_object()->layer_height_profile.empty() == false) {
+            has_adaptive_layer_height = true;
+            break;
+        }
+    }
+    // TODO adaptive layer height won't work with conflict checker because m_fake_wipe_tower's path is generated using fixed layer height
+    if(!m_no_check && !has_adaptive_layer_height)
     {
         using Clock                 = std::chrono::high_resolution_clock;
         auto            startTime   = Clock::now();

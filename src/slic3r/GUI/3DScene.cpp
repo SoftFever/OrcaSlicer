@@ -612,30 +612,38 @@ bool GLWipeTowerVolume::IsTransparent() {
 }
 
 std::vector<int> GLVolumeCollection::load_object(
-    const ModelObject*      model_object,
-    int                     obj_idx,
-    const std::vector<int>& instance_idxs)
+    const ModelObject       *model_object,
+    int                      obj_idx,
+    const std::vector<int>  &instance_idxs,
+    const std::string       &color_by,
+    bool 					 opengl_initialized)
 {
     std::vector<int> volumes_idx;
     for (int volume_idx = 0; volume_idx < int(model_object->volumes.size()); ++volume_idx)
         for (int instance_idx : instance_idxs)
-            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx));
+            volumes_idx.emplace_back(this->GLVolumeCollection::load_object_volume(model_object, obj_idx, volume_idx, instance_idx, color_by, opengl_initialized));
     return volumes_idx;
 }
 
+
 int GLVolumeCollection::load_object_volume(
-    const ModelObject* model_object,
+    const ModelObject   *model_object,
     int                  obj_idx,
     int                  volume_idx,
     int                  instance_idx,
+    const std::string   &color_by,
+    bool 				 opengl_initialized,
     bool                 in_assemble_view,
     bool                 use_loaded_id)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
+    auto color = GLVolume::MODEL_COLOR[((color_by == "volume") ? volume_idx : obj_idx) % 4];
+    color.a(model_volume->is_model_part() ? 0.7f : 0.4f);
+
     std::shared_ptr<const TriangleMesh> mesh = model_volume->mesh_ptr();
-    this->volumes.emplace_back(new GLVolume());
+    this->volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *this->volumes.back();
     v.set_color(color_from_model_volume(*model_volume));
     v.name = model_volume->name;
@@ -647,7 +655,9 @@ int GLVolumeCollection::load_object_volume(
     v.mesh_raycaster = std::make_unique<GUI::MeshRaycaster>(mesh);
 #endif // ENABLE_SMOOTH_NORMALS
     v.composite_id = GLVolume::CompositeID(obj_idx, volume_idx, instance_idx);
-    if (model_volume->is_model_part()) {
+
+    if (model_volume->is_model_part())
+    {
         // GLVolume will reference a convex hull from model_volume!
         v.set_convex_hull(model_volume->get_convex_hull_shared_ptr());
         if (extruder_id != -1)

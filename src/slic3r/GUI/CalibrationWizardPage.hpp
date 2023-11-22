@@ -96,6 +96,7 @@ public:
     virtual bool Show(bool show = true);
     virtual bool Enable(bool enable);
     virtual void SetValue(bool value, bool send_event = true);
+    void msw_rescale();
 
 protected:
     int m_tray_id { -1 };
@@ -123,6 +124,7 @@ public:
     void show_prev_btn(bool show = true);
     void show_help_icon(bool show = true);
     void on_sys_color_changed();
+    void msw_rescale();
 
 protected:
     ScalableButton* m_prev_btn;
@@ -167,9 +169,12 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = wxTAB_TRAVERSAL);
 
-    void set_img(const wxBitmap& bmp);
+    void set_bmp(const ScalableBitmap& bmp);
     void paint_on_img();
+    void msw_rescale();
+
 protected:
+    ScalableBitmap m_bmp;
     wxStaticBitmap* m_img;
 };
 
@@ -182,12 +187,14 @@ public:
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long style = wxTAB_TRAVERSAL);
-    
+    void msw_rescale();
+
 protected:
     void create_pop_window();
 
     ScalableButton* m_help_btn;
     PopupWindow* m_pop_win;
+    ScalableBitmap m_bmp;
     wxStaticBitmap* m_img;
 };
 
@@ -218,8 +225,36 @@ public:
     CaliPageButton(wxWindow* parent, CaliPageActionType type, wxString text = wxEmptyString);
 
     CaliPageActionType get_action_type() { return m_action_type; }
+
+    void msw_rescale();
+
 private:
     CaliPageActionType m_action_type;
+};
+
+class CaliPageSendingPanel : public wxPanel 
+{
+public:
+    CaliPageSendingPanel(wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
+    void create(wxWindow* parent);
+    void update_print_error_info(int code, const std::string& msg, const std::string& extra);
+    void show_send_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    std::shared_ptr<BBLStatusBarSend> get_sending_progress_bar();
+    void reset();
+
+private:
+    std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;
+    wxScrolledWindow* m_sw_print_failed_info{ nullptr };
+    Label* m_st_txt_error_code{ nullptr };
+    Label* m_st_txt_error_desc{ nullptr };
+    Label* m_st_txt_extra_info{ nullptr };
+    int                               m_print_error_code;
+    std::string                       m_print_error_msg;
+    std::string                       m_print_error_extra;
 };
 
 class CaliPageActionPanel : public wxPanel
@@ -236,6 +271,7 @@ public:
     void bind_button(CaliPageActionType action_type, bool is_block);
     void show_button(CaliPageActionType action_type, bool show = true);
     void enable_button(CaliPageActionType action_type, bool enable = true);
+    void msw_rescale();
 
 protected:
     std::vector<CaliPageButton*> m_action_btns;
@@ -277,7 +313,7 @@ public:
         }
     }
 
-    void msw_rescale();
+    virtual void msw_rescale();
     void on_sys_color_changed();
 
 protected:

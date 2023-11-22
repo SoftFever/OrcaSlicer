@@ -26,6 +26,7 @@ ExtrusionEntityCollection::ExtrusionEntityCollection(const ExtrusionPaths &paths
 
 ExtrusionEntityCollection& ExtrusionEntityCollection::operator=(const ExtrusionEntityCollection &other)
 {
+    clear();
     this->entities      = other.entities;
     for (size_t i = 0; i < this->entities.size(); ++i)
         this->entities[i] = this->entities[i]->clone();

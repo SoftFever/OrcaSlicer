@@ -59,6 +59,8 @@ wxString get_fail_reason(int code)
      SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
+     m_tocken.reset(new int(0));
+
      std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
@@ -296,8 +298,7 @@ wxString get_fail_reason(int code)
      wxBoxSizer* m_sizer_bind_failed_info = new wxBoxSizer(wxVERTICAL);
      m_sw_bind_failed_info->SetSizer( m_sizer_bind_failed_info );
 
-     m_link_network_state = new Label(m_sw_bind_failed_info, _L("Check the status of current system services"));
-     m_link_network_state->SetForegroundColour(0x009688);
+     m_link_network_state = new wxHyperlinkCtrl(m_sw_bind_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
      m_link_network_state->SetFont(::Label::Body_12);
      m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
      m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
@@ -433,26 +434,6 @@ wxString get_fail_reason(int code)
 
      Bind(wxEVT_SHOW, &BindMachineDialog::on_show, this);
      Bind(wxEVT_CLOSE_WINDOW, &BindMachineDialog::on_close, this);
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
-         switch (evt.GetState()) {
-             // Request completed
-         case wxWebRequest::State_Completed: {
-             wxImage avatar_stream = *evt.GetResponse().GetStream();
-             if (avatar_stream.IsOk()) {
-                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
-                 auto bitmap = new wxBitmap(avatar_stream);
-                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
-                 m_avatar->SetBitmap(*bitmap);
-                 Layout();
-             }
-             break;
-         }
-                                           // Request failed
-         case wxWebRequest::State_Failed: {
-             break;
-         }
-         }
-         });
 
      m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_bind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_cancel), NULL, this);
@@ -536,10 +517,6 @@ wxString get_fail_reason(int code)
          m_bind_job->cancel();
          m_bind_job->join();
      }
-
-     if (web_request.IsOk()) {
-         web_request.Cancel();
-     }
  }
 
  void BindMachineDialog::on_close(wxCloseEvent &event)
@@ -597,7 +574,7 @@ wxString get_fail_reason(int code)
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(), m_machine_info->dev_id, m_machine_info->dev_ip, m_machine_info->bind_sec_link);
 
-     if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+     if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
          m_bind_job->set_improved(false);
      }
      else {
@@ -617,7 +594,7 @@ void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 void BindMachineDialog::update_machine_info(MachineObject* info)
 {
     m_machine_info = info;
-    if (m_machine_info && (m_machine_info->printer_type == "BL-P001" || m_machine_info->printer_type == "BL-P002")) {
+    if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
         m_button_bind->Enable(true);
         m_panel_agreement->Hide();
     }
@@ -650,14 +627,30 @@ void BindMachineDialog::on_show(wxShowEvent &event)
         if (wxGetApp().is_user_login()) {
             wxString username_text = from_u8(wxGetApp().getAgent()->get_user_nickanme());
             m_user_name->SetLabelText(username_text);
-            web_request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
-            if (!web_request.IsOk()) {
-                // todo request fail
-            }
-            // Start the request
-            web_request.Start();
-        }
 
+            std::string avatar_url = wxGetApp().getAgent()->get_user_avatar();
+            Slic3r::Http http = Slic3r::Http::get(avatar_url);
+            std::string  suffix = avatar_url.substr(avatar_url.find_last_of(".") + 1);
+            http.header("accept", "image/" + suffix)
+                .on_complete([this, time = std::weak_ptr<int>(m_tocken)](std::string body, unsigned int status) {
+                if (time.expired()) return;
+                wxMemoryInputStream stream(body.data(), body.size());
+                wxImage             avatar_image;
+                if (avatar_image.LoadFile(stream, wxBITMAP_TYPE_ANY)) {
+                    if (avatar_image.IsOk() && m_avatar) {
+                        avatar_image.Rescale(this->FromDIP(60), this->FromDIP(60));
+                        CallAfter([this, avatar_image]() {
+                            auto bitmap = new wxBitmap(avatar_image);
+                            m_avatar->SetBitmap(*bitmap);
+                            Layout();
+                            });
+                    }
+                }
+                    })
+                .on_error([this](std::string body, std::string error, unsigned status) {
+                        //BOOST_LOG_TRIVIAL(info) << "load oss picture failed, oss path: " << oss_path << " status:" << status << " error:" << error;
+            }).perform();
+        }
         Layout();
         event.Skip();
     }
@@ -667,7 +660,8 @@ void BindMachineDialog::on_show(wxShowEvent &event)
 UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log out printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
-     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    m_tocken.reset(new int(0));
+std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
      SetBackgroundColour(*wxWHITE);
@@ -779,33 +773,12 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
 
-     Bind(wxEVT_WEBREQUEST_STATE, [this](wxWebRequestEvent& evt) {
-         switch (evt.GetState()) {
-             // Request completed
-         case wxWebRequest::State_Completed: {
-             wxImage avatar_stream = *evt.GetResponse().GetStream();
-             if (avatar_stream.IsOk()) {
-                 avatar_stream.Rescale(FromDIP(60), FromDIP(60));
-                 auto bitmap = new wxBitmap(avatar_stream);
-                 //bitmap->SetSize(wxSize(FromDIP(60), FromDIP(60)));
-                 m_avatar->SetBitmap(*bitmap);
-                 Layout();
-             }
-             break;
-         }
-                                           // Request failed
-         case wxWebRequest::State_Failed: {
-             break;
-         }
-         }
-     });
 
      wxGetApp().UpdateDlgDarkUI(this);
  }
 
  UnBindMachineDialog::~UnBindMachineDialog()
  {
-     web_request.Cancel();
      m_button_unbind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
  }
@@ -874,12 +847,30 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
         if (wxGetApp().is_user_login()) {
             wxString username_text = from_u8(wxGetApp().getAgent()->get_user_name());
             m_user_name->SetLabelText(username_text);
-            wxString avatar_url = wxGetApp().getAgent()->get_user_avatar();
-            web_request = wxWebSession::GetDefault().CreateRequest(this, avatar_url);
-            if (!web_request.IsOk()) {
-                // todo request fail
-            }
-            web_request.Start();
+            
+            std::string avatar_url = wxGetApp().getAgent()->get_user_avatar();
+            Slic3r::Http http = Slic3r::Http::get(avatar_url);
+            std::string  suffix = avatar_url.substr(avatar_url.find_last_of(".") + 1);
+            http.header("accept", "image/" + suffix)
+                .on_complete([this, time = std::weak_ptr<int>(m_tocken)](std::string body, unsigned int status) {
+                if (time.expired()) return;
+                wxMemoryInputStream stream(body.data(), body.size());
+                wxImage             avatar_image;
+                if (avatar_image.LoadFile(stream, wxBITMAP_TYPE_ANY)) {
+                    if (avatar_image.IsOk() && m_avatar) {
+                        avatar_image.Rescale(this->FromDIP(60), this->FromDIP(60));
+                        CallAfter([this, avatar_image]() {
+                            auto bitmap = new wxBitmap(avatar_image);
+                            m_avatar->SetBitmap(*bitmap);
+                            Layout();
+                            });
+                    }
+                }
+                    })
+                .on_error([this](std::string body, std::string error, unsigned status) {
+                        //BOOST_LOG_TRIVIAL(info) << "load oss picture failed, oss path: " << oss_path << " status:" << status << " error:" << error;
+                }).perform();
+
         }
 
         Layout();

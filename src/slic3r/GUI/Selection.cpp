@@ -418,6 +418,22 @@ void Selection::add_curr_plate()
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::add_object_from_idx(std::vector<int>& object_idxs) {
+    if (!m_valid)
+        return;
+
+    m_mode = Instance;
+    clear();
+
+    for (int obj_idx = 0; obj_idx < object_idxs.size(); obj_idx++) {
+        std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(object_idxs[obj_idx]);
+        do_add_volumes(volume_idxs);
+    }
+
+    update_type();
+    this->set_bounding_boxes_dirty();
+}
+
 void Selection::remove_curr_plate()
 {
     if (!m_valid)
@@ -446,10 +462,12 @@ void Selection::remove_curr_plate()
 
 void Selection::clone(int numbers)
 {
-    if (numbers > 0)
-        wxGetApp().plater()->take_snapshot(std::string("Selection-clone!"));
+    if (numbers <= 0)
+        return;
+
+    wxGetApp().plater()->take_snapshot(std::string("Selection-clone"));
+    copy_to_clipboard();
     for (int i = 0; i < numbers; i++) {
-        copy_to_clipboard();
         paste_from_clipboard();
     }
 }
@@ -459,6 +477,20 @@ void Selection::center()
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_selected_plate();
 
     // calc distance
+    Vec3d src_pos = this->get_bounding_box().center();
+    Vec3d tar_pos = plate->get_center_origin();
+    Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
+
+    this->move_to_center(distance);
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
+    return;
+}
+
+void Selection::center_plate(const int plate_idx) {
+
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+
+
     Vec3d src_pos = this->get_bounding_box().center();
     Vec3d tar_pos = plate->get_center_origin();
     Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
@@ -905,7 +937,7 @@ void Selection::translate(const Vec3d& displacement, bool local)
             Vec3d tower_size = v.bounding_box().size();
             Vec3d tower_origin = m_cache.volumes_data[i].get_volume_position();
             Vec3d actual_displacement = displacement;
-            const double margin = 15.f;
+            const double margin = WIPE_TOWER_MARGIN;
 
             if (!local)
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
@@ -2802,7 +2834,7 @@ void Selection::paste_objects_from_clipboard()
     {
         const ModelObject *src_object = src_objects[i];
         ModelObject* dst_object = m_model->add_object(*src_object);
-        
+
         // BBS: find an empty cell to put the copied object
         BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
 

@@ -48,6 +48,7 @@
 #define CLI_PRINTABLE_SIZE_REDUCED     -20
 #define CLI_OBJECT_ARRANGE_FAILED      -21
 #define CLI_OBJECT_ORIENT_FAILED       -22
+#define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -124,8 +125,11 @@ inline std::string convert_to_full_version(std::string short_version)
     }
     return result;
 }
-
-
+template<typename DataType>
+inline DataType round_divide(DataType dividend, DataType divisor) //!< Return dividend divided by divisor rounded to the nearest integer
+{
+    return (dividend + divisor / 2) / divisor;
+}
 
 // Set a path with GUI localization files.
 void set_local_dir(const std::string &path);

@@ -45,6 +45,7 @@ public:
 		LABEL_ITEM_WIZARD_PRINTERS,
         LABEL_ITEM_WIZARD_FILAMENTS,
         LABEL_ITEM_WIZARD_MATERIALS,
+        LABEL_ITEM_WIZARD_ADD_PRINTERS,
 
         LABEL_ITEM_MAX,
 	};
@@ -227,6 +228,7 @@ public:
     void load_tray(DynamicPrintConfig & config);
 
     void update() override;
+    void msw_rescale() override;
     void OnSelect(wxCommandEvent &evt) override;
     const Preset* get_selected_preset() { return m_selected_preset; }
     std::string get_tray_name() { return m_tray_name; }

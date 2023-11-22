@@ -190,6 +190,8 @@ void ObjectDataViewModelNode::set_extruder_icon()
 
 void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
+    if (m_printable == printable)
+        return;
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
                        create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
@@ -197,9 +199,11 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)
 {
+    if (m_action_enable == enable)
+        return;
     m_action_enable = enable;
     auto undo = enable ? "lock_normal" : "dot";
-    m_action_icon_name = m_type & itPlate ? "dot" :
+    m_action_icon_name = m_type & itPlate ? undo :
                          m_type & itObject ? undo :
                          m_type & (itVolume | itLayer) ? undo : /*m_type & itInstance*/ "set_separate_obj";
     m_action_icon = create_scaled_bitmap(m_action_icon_name);    // FIXME: pass window ptr
@@ -208,6 +212,8 @@ void ObjectDataViewModelNode::set_action_icon(bool enable)
 // BBS
 void ObjectDataViewModelNode::set_color_icon(bool enable)
 {
+    if (m_color_enable == enable)
+        return;
     m_color_enable = enable;
     if ((m_type & itObject) && enable)
         m_color_icon = create_scaled_bitmap("mmu_segmentation");
@@ -217,6 +223,8 @@ void ObjectDataViewModelNode::set_color_icon(bool enable)
 
 void ObjectDataViewModelNode::set_support_icon(bool enable)
 {
+    if (m_support_enable == enable)
+        return;
     m_support_enable = enable;
     if ((m_type & itObject) && enable)
         m_support_icon = create_scaled_bitmap("toolbar_support");
@@ -226,6 +234,8 @@ void ObjectDataViewModelNode::set_support_icon(bool enable)
 
 void ObjectDataViewModelNode::set_sinking_icon(bool enable)
 {
+    if (m_sink_enable == enable)
+        return;
     m_sink_enable = enable;
     if ((m_type & itObject) && enable)
         m_sinking_icon = create_scaled_bitmap("objlist_sinking");
@@ -459,7 +469,7 @@ wxBitmap& ObjectDataViewModel::GetWarningBitmap(const std::string& warning_icon_
 wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString name, bool refresh)
 {
     int  plate_idx  = part_plate ? part_plate->get_index() : -1;
-    wxString plate_name;
+    wxString plate_name = name;
     if (name.empty()) {
         plate_name = _L("Plate");
         plate_name += wxString::Format(" %d", plate_idx + 1);
@@ -1364,6 +1374,19 @@ int ObjectDataViewModel::GetIdByItem(const wxDataViewItem& item) const
 	return it - m_objects.begin();
 }
 
+int  ObjectDataViewModel::GetPlateIdByItem(const wxDataViewItem& item) const
+{
+    if (!item.IsOk())
+        return -1;
+
+    ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
+    auto it = find(m_plates.begin(), m_plates.end(), node);
+    if (it == m_plates.end())
+        return -1;
+
+    return it - m_plates.begin();
+}
+
 int ObjectDataViewModel::GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const
 {
 	wxASSERT(item.IsOk());
@@ -1467,6 +1490,29 @@ void ObjectDataViewModel::UpdateItemNames()
     }
 
     ItemsChanged(changed_items);
+}
+
+void ObjectDataViewModel::append_found_list(wxString current_search_text)
+{
+    found_list.clear();
+    for (int i = 0; i < m_plates.size(); ++i) {
+        append_found(current_search_text, m_plates[i]);
+    }
+}
+
+void ObjectDataViewModel::append_found(wxString current_search_text, ObjectDataViewModelNode* item)
+{
+    wxString item_name = item->GetName();
+    item_name = item_name.MakeLower();
+
+    if (item_name.find(current_search_text) != wxString::npos) {
+        if(item != m_plate_outside)
+            found_list.Add(wxDataViewItem(item));
+    }
+
+    for (size_t i = 0; i < item->GetChildCount(); ++i) {
+        append_found(current_search_text, item->GetNthChild(i));
+    }
 }
 
 // BBS: add use_obj_extruder

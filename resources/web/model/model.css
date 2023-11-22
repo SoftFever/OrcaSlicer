@@ -4,6 +4,7 @@
 	padding: 0px;
 	border: 0px;
 	font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+	user-select: none;
 }
 
 html
@@ -265,6 +266,16 @@ body
 }
 
 /*---Document---*/
+#LeftEmptyBlock
+{
+
+}
+
+#Model_Desc img
+{
+	max-width:100%;
+}
+
 #Model_Accessories
 {
 }

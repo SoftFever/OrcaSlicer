@@ -197,6 +197,8 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "P", L("Preferences") },
             //3D control
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            // Switch table page
+            { ctrl + "Tab", L("Switch table page")},
             //DEL
             #ifdef __APPLE__
                 {"fn+⌫", L("Delete selected")},

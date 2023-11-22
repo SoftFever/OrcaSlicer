@@ -58,7 +58,7 @@ void main()
          }
          else if( transformed_normal.z < slope.normal_z - EPSILON)
         {
-            color = color * 0.5 + LightRed * 0.5;
+            color = color * 0.7 + LightRed * 0.3;
             alpha = 1.0;
         }
     }

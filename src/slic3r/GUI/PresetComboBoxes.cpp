@@ -248,6 +248,7 @@ int PresetComboBox::update_ams_color()
     wxGetApp().plater()->on_config_change(new_cfg);
     //trigger the filament color changed
     wxCommandEvent *evt = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+    evt->SetInt(m_filament_idx);
     wxQueueEvent(wxGetApp().plater(), evt);
     return idx;
 }
@@ -382,7 +383,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             std::string filament_id = tray.opt_string("filament_id", 0u);
             if (filament_id.empty()) continue;
             auto iter = std::find_if(filaments.begin(), filaments.end(),
-                [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
+                [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
             if (iter == filaments.end()) {
                 auto filament_type = tray.opt_string("filament_type", 0u);
                 if (!filament_type.empty()) {
@@ -632,7 +633,7 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
 PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type) :
     PresetComboBox(parent, preset_type, wxSize(25 * wxGetApp().em_unit(), 30 * wxGetApp().em_unit() / 10))
 {
-    GetDropDown().SetUseContentWidth(true);
+    GetDropDown().SetUseContentWidth(true,true);
 
     if (m_type == Preset::TYPE_FILAMENT)
     {
@@ -699,6 +700,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 wxGetApp().plater()->on_config_change(cfg_new);
 
                 wxCommandEvent *evt = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+                evt->SetInt(m_filament_idx);
                 wxQueueEvent(wxGetApp().plater(), evt);
             }
         });
@@ -748,6 +750,10 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     auto marker = reinterpret_cast<Marker>(this->GetClientData(selected_item));
     if (marker >= LABEL_ITEM_MARKER && marker < LABEL_ITEM_MAX) {
         this->SetSelection(m_last_selected);
+        if (LABEL_ITEM_WIZARD_ADD_PRINTERS == marker) {
+            evt.Skip();
+            return;
+        }
         evt.StopPropagation();
         if (marker == LABEL_ITEM_MARKER)
             return;
@@ -1080,8 +1086,10 @@ void PlaterPresetComboBox::update()
             set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
         else if (m_type == Preset::TYPE_SLA_MATERIAL)
             set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
-        else
-            set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+        else {
+            set_label_marker(Append(separator(L("Select/Remove printers(system presets)")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+            set_label_marker(Append(separator(L("Create printer")), *bmp), LABEL_ITEM_WIZARD_ADD_PRINTERS);
+        }
     }
 
     update_selection();
@@ -1385,7 +1393,7 @@ GUI::CalibrateFilamentComboBox::CalibrateFilamentComboBox(wxWindow *parent)
 : PlaterPresetComboBox(parent, Preset::TYPE_FILAMENT)
 {
     clr_picker->SetBackgroundColour(*wxWHITE);
-    clr_picker->SetBitmap(*get_extruder_color_icon("#FFFFFFFF", "", 20, 20));
+    clr_picker->SetBitmap(*get_extruder_color_icon("#FFFFFFFF", "", FromDIP(20), FromDIP(20)));
     clr_picker->SetToolTip("");
     clr_picker->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {});
 }
@@ -1403,7 +1411,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
     m_filament_color = config.opt_string("filament_colour", 0u);
     m_filament_exist = config.opt_bool("filament_exist", 0u);
     wxColor clr(m_filament_color);
-    clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, 20, 20));
+    clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, FromDIP(20), FromDIP(20)));
 #ifdef __WXOSX__
     clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
     clr_picker->Refresh();
@@ -1412,7 +1420,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
         SetValue(_L("Empty"));
         m_selected_preset = nullptr;
         m_is_compatible = false;
-        clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, 20, 20));
+        clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
     } else {
         auto &filaments = m_collection->get_presets();
         auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
@@ -1511,6 +1519,17 @@ void GUI::CalibrateFilamentComboBox::update()
     Thaw();
 
     SetToolTip(NULL);
+}
+
+void GUI::CalibrateFilamentComboBox::msw_rescale()
+{
+    if (clr_picker) {
+        clr_picker->SetSize(FromDIP(20), FromDIP(20));
+        clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, FromDIP(20), FromDIP(20)));
+    }
+    // BBS
+    if (edit_btn != nullptr)
+        edit_btn->msw_rescale();
 }
 
 void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)

@@ -683,5 +683,4 @@ Polygon make_circle_num_segments(double radius, size_t num_segments)
     }
     return out;
 }
-
 }
