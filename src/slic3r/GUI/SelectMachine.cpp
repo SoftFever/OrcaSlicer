@@ -4196,8 +4196,6 @@ void SelectMachineDialog::sys_color_changed()
     else {
         m_rename_button->SetBitmap(ams_editable->bmp());
     }
-    m_thumbnailPanel->set_thumbnail_on_color_change();
-    m_thumbnailPanel->Refresh();
     m_rename_button->Refresh();
 }
 
@@ -4432,6 +4430,7 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      m_staticbitmap    = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
      m_background_bitmap = ScalableBitmap(this,"thumbnail_grid",256);
      sizer->Add(m_staticbitmap, 1, wxEXPAND, 0);
+     Bind(wxEVT_PAINT, &ThumbnailPanel::OnPaint, this);
      SetSizer(sizer);
      Layout();
      Fit();
@@ -4448,14 +4447,30 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      dc.DrawBitmap(m_bitmap, 0, 0);
      dc.SelectObject(wxNullBitmap);
 
-     set_thumbnail_on_color_change();
  }
 
- void ThumbnailPanel::set_thumbnail_on_color_change() {
-     if (wxGetApp().dark_mode())
-         m_staticbitmap->SetBitmap(bitmap_with_background);
+ void ThumbnailPanel::OnPaint(wxPaintEvent& event) {
+
+     wxPaintDC dc(this);
+     render(dc);
+ }
+
+ void ThumbnailPanel::render(wxDC& dc) {
+     
+     if (wxGetApp().dark_mode()) {
+         #ifdef __WXMSW__
+             wxMemoryDC memdc;
+             wxBitmap bmp(GetSize());
+             memdc.SelectObject(bmp);
+             memdc.DrawBitmap(bitmap_with_background, 0, 0);
+             dc.Blit(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), &memdc, 0, 0);
+        #else
+             dc.DrawBitmap(bitmap_with_background, 0, 0);
+        #endif
+     }
      else
-         m_staticbitmap->SetBitmap(m_bitmap);
+         dc.DrawBitmap(m_bitmap, 0, 0);
+     
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}
