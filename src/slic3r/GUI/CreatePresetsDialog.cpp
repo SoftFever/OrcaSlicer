@@ -4431,9 +4431,7 @@ void EditFilamentPresetDialog::edit_preset()
     wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
     // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
     if (!need_edit_preset->is_compatible) wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
-    wxGetApp().params_dialog()->ShowModal();
-    get_same_filament_id_presets(m_filament_id);
-    update_preset_tree();
+    wxGetApp().params_dialog()->Popup(true);
 
     m_selected_printer.clear();
     m_need_edit_preset_index = -1;

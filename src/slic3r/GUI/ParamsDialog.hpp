@@ -20,7 +20,7 @@ public:
 
     ParamsPanel * panel() { return m_panel; }
 
-    void Popup();
+    void Popup(bool just_edit = false);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;

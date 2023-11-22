@@ -59,13 +59,16 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
     //wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void ParamsDialog::Popup()
+void ParamsDialog::Popup(bool just_edit)
 {
     wxGetApp().UpdateDlgDarkUI(this);
 #ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
 #endif
     Center();
+    if (m_panel && m_panel->get_current_tab()) {
+        dynamic_cast<Tab *>(m_panel->get_current_tab())->set_just_edit(just_edit);
+    }
     Show();
 }
 

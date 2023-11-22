@@ -4925,8 +4925,10 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
 
     if (name.empty()) {
         SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");
-        if (dlg.ShowModal() != wxID_OK)
-            return;
+        if (!m_just_edit) {
+            if (dlg.ShowModal() != wxID_OK)
+                return;
+        }
         name = dlg.get_name();
         //BBS: add project embedded preset relate logic
         save_to_project = dlg.get_save_to_project_selection(m_type);
@@ -5376,6 +5378,18 @@ bool Tab::validate_custom_gcodes()
             break;
     }
     return valid;
+}
+
+void Tab::set_just_edit(bool just_edit)
+{
+    m_just_edit = just_edit;
+    if (just_edit) {
+        m_presets_choice->Disable();
+        m_btn_delete_preset->Disable();
+    } else {
+        m_presets_choice->Enable();
+        m_btn_delete_preset->Enable();
+    }
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)
