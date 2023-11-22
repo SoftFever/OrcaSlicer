@@ -1,5 +1,6 @@
 #include "FileHelp.hpp"
 #include <boost/filesystem.hpp>
+#include <regex>
 namespace Slic3r {
     namespace Utils {
 
@@ -15,6 +16,11 @@ bool is_file_too_large(std::string file_path, bool &try_ok)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error message: " << e.what();
     }
     return false;
+}
+
+void slash_to_back_slash(std::string &file_path) {
+    std::regex regex("\\\\");
+    file_path = std::regex_replace(file_path, regex, "/");
 }
 
 }} // namespace Slic3r::Utils

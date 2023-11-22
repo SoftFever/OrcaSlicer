@@ -1,5 +1,4 @@
 #include "CreatePresetsDialog.hpp"
-#include <regex>
 #include <vector>
 #include <set>
 #include <unordered_map>
@@ -2987,9 +2986,9 @@ bool CreatePrinterPresetDialog::save_printable_area_config(Preset *preset)
         double max_print_height = 0;
         m_print_height_input->GetTextCtrl()->GetValue().ToDouble(&max_print_height);
         config.set("printable_height", max_print_height);
-        std::regex regex("\\\\");
-        m_custom_model   = std::regex_replace(m_custom_model, regex, "/");
-        m_custom_texture = std::regex_replace(m_custom_texture, regex, "/");
+
+        Utils::slash_to_back_slash(m_custom_texture);
+        Utils::slash_to_back_slash(m_custom_model);
         config.set("bed_custom_model", m_custom_model);
         config.set("bed_custom_texture", m_custom_texture);
     } else if(m_create_type.create_nozzle){

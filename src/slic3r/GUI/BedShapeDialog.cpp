@@ -592,6 +592,7 @@ void BedShapePanel::load_texture()
     wxBusyCursor wait;
 
     m_custom_texture = file_name;
+    Utils::slash_to_back_slash(m_custom_texture);
     update_shape();
 }
 
@@ -622,6 +623,7 @@ void BedShapePanel::load_model()
     wxBusyCursor wait;
 
     m_custom_model = file_name;
+    Utils::slash_to_back_slash(m_custom_model);
     update_shape();
 }
 
