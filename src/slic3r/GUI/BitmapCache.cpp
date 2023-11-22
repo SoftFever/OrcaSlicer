@@ -502,16 +502,26 @@ wxBitmapBundle* BitmapCache::from_svg(const std::string& bitmap_name, unsigned t
         + (dark_mode ? "-dm" : "")
         + new_color;
 
-    auto it = m_bndl_map.find(bitmap_key);
+    // Orca: disable to match load_svg function
+    /*auto it = m_bndl_map.find(bitmap_key);
     if (it != m_bndl_map.end())
-        return it->second;
+        return it->second;*/
 
     // map of color replaces
+    //Orca: use replaces from load_svg function
     std::map<std::string, std::string> replaces;
-    if (dark_mode)
-        replaces["\"#808080\""] = "\"#FFFFFF\"";
-    if (!new_color.empty())
-        replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
+    replaces["\"#0x00AE42\""] = "\"#009688\"";
+    replaces["\"#00FF00\""] = "\"#52c7b8\"";
+    if (dark_mode) {
+        replaces["\"#262E30\""] = "\"#EFEFF0\"";
+        replaces["\"#323A3D\""] = "\"#B3B3B5\"";
+        replaces["\"#808080\""] = "\"#818183\"";
+        replaces["\"#CECECE\""] = "\"#54545B\"";
+        replaces["\"#6B6B6B\""] = "\"#818182\"";
+        replaces["\"#909090\""] = "\"#FFFFFF\"";
+        replaces["\"#00FF00\""] = "\"#FF0000\"";
+        replaces["\"#009688\""] = "\"#00675b\"";
+    }
 
     std::string str;
     nsvgGetDataFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), str, replaces);
