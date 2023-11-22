@@ -22,7 +22,7 @@
 #ifndef __linux__
 // msw_menuitem_bitmaps is used for MSW and OSX
 static std::map<int, std::string> msw_menuitem_bitmaps;
-void msw_rescale_menu(wxMenu* menu) //OcraftyoneTODO: PS RENAME (sys_color_changed_menu)
+void                              sys_color_changed_menu(wxMenu* menu)
 {
 	struct update_icons {
 		static void run(wxMenuItem* item) {
@@ -406,11 +406,6 @@ int mode_icon_px_size()
 #endif
 }
 
-wxBitmap create_menu_bitmap(const std::string& bmp_name)
-{
-    return create_scaled_bitmap(bmp_name, nullptr, 16, false, "", true);
-}
-
 wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name_in, int px_cnt/* = 16*/)
 {
     static Slic3r::GUI::BitmapCache cache;
@@ -678,14 +673,14 @@ void LockButton::SetLock(bool lock)
     update_button_bitmaps();
 }
 
-void LockButton::msw_rescale()
+void LockButton::sys_color_changed()
 {
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
-    
-    m_bmp_lock_closed.msw_rescale();
-    m_bmp_lock_closed_f.msw_rescale();
-    m_bmp_lock_open.msw_rescale();
-    m_bmp_lock_open_f.msw_rescale();
+
+    m_bmp_lock_closed.sys_color_changed();
+    m_bmp_lock_closed_f.sys_color_changed();
+    m_bmp_lock_open.sys_color_changed();
+    m_bmp_lock_open_f.sys_color_changed();
 
     update_button_bitmaps();
 }
@@ -830,7 +825,7 @@ void ModeSizer::set_items_border(int border)
         item->SetBorder(border);
 }
 
-void ModeSizer::msw_rescale()
+void ModeSizer::sys_color_changed()
 {
 //    this->SetHGap(std::lround(m_hgap_unscaled * em_unit(m_parent))); //OcraftyoneTODO: LEGACY (PS removed)
     for (size_t m = 0; m < m_mode_btns.size(); m++)
@@ -879,8 +874,8 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     if (px_cnt == 0) {
         m_px_cnt = GetHeight(); // scale
         unsigned int height = (unsigned int) (parent->FromDIP(m_px_cnt) + 0.5f);
-        if (height != GetBmpHeight())
-            msw_rescale();
+        if (height != GetHeight())
+            sys_color_changed();
     }
     //OcraftyoneTODO: PS replaces this function body with the following code
 //    m_bmp = *get_bmp_bundle(icon_name, px_cnt);
@@ -888,18 +883,8 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     
 }
 
-//OcraftyoneTODO: Remove the following 3 functions when refactor complete
-wxSize ScalableBitmap::GetBmpSize() const
-{ return GetSize(); }
 
-int ScalableBitmap::GetBmpWidth() const
-{ return GetWidth(); }
-
-int ScalableBitmap::GetBmpHeight() const
-{ return GetHeight(); }
-
-
-void ScalableBitmap::msw_rescale()
+void ScalableBitmap::sys_color_changed()
 {
     // BBS: support resize by fill border
     m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, std::string(), false, m_resize);
@@ -1009,7 +994,7 @@ void ScalableButton::UseDefaultBitmapDisabled() //OcraftyoneTODO: removed by ps
     SetBitmapDisabled(create_scaled_bitmap(m_current_icon_name, m_parent, m_px_cnt, true));
 }
 
-void ScalableButton::msw_rescale() //OcraftyoneTODO: renamed to sys_color_changed
+void ScalableButton::msw_rescale()
 {
     Slic3r::GUI::wxGetApp().UpdateDarkUI(this, m_has_border);
 
@@ -1037,9 +1022,9 @@ BlinkingBitmap::BlinkingBitmap(wxWindow* parent, const std::string& icon_name) :
 
 void BlinkingBitmap::msw_rescale() //OcraftyoneTODO: removed by ps
 {
-    bmp.msw_rescale();
-    this->SetSize(bmp.GetBmpSize());
-    this->SetMinSize(bmp.GetBmpSize());
+    bmp.sys_color_changed();
+    this->SetSize(bmp.GetSize());
+    this->SetMinSize(bmp.GetSize());
 }
 
 void BlinkingBitmap::invalidate()

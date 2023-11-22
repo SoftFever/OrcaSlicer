@@ -3973,8 +3973,8 @@ void StatusPanel::rescale_camera_icons()
 void StatusPanel::on_sys_color_changed()
 {
     m_project_task_panel->msw_rescale();
-    m_bitmap_speed.msw_rescale();
-    m_bitmap_speed_active.msw_rescale();
+    m_bitmap_speed.sys_color_changed();
+    m_bitmap_speed_active.sys_color_changed();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_ams_control->msw_rescale();
     if (m_print_error_dlg) { m_print_error_dlg->msw_rescale(); }
@@ -4012,8 +4012,8 @@ void StatusPanel::msw_rescale()
     m_tempCtrl_chamber->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_chamber->Rescale();
 
-    m_bitmap_speed.msw_rescale();
-    m_bitmap_speed_active.msw_rescale();
+    m_bitmap_speed.sys_color_changed();
+    m_bitmap_speed_active.sys_color_changed();
 
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_switch_speed->SetMinSize(MISC_BUTTON_2FAN_SIZE);

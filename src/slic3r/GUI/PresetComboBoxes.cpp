@@ -417,8 +417,8 @@ void PresetComboBox::msw_rescale()
     m_em_unit = em_unit(this);
     Rescale();
 
-    m_bitmapIncompatible.msw_rescale();
-    m_bitmapCompatible.msw_rescale();
+    m_bitmapIncompatible.sys_color_changed();
+    m_bitmapCompatible.sys_color_changed();
 
     // parameters for an icon's drawing
     fill_width_height();
@@ -437,8 +437,8 @@ void PresetComboBox::fill_width_height()
 {
     // To avoid asserts, each added bitmap to wxBitmapCombobox should be the same size, so
     // set a bitmap's height to m_bitmapCompatible->GetHeight() and norm_icon_width to m_bitmapCompatible->GetWidth()
-    icon_height     = m_bitmapCompatible.GetBmpHeight();
-    norm_icon_width = m_bitmapCompatible.GetBmpWidth();
+    icon_height     = m_bitmapCompatible.GetHeight();
+    norm_icon_width = m_bitmapCompatible.GetWidth();
 
     /* It's supposed that standard size of an icon is 16px*16px for 100% scaled display.
     * So set sizes for solid_colored icons used for filament preset

@@ -242,8 +242,8 @@ void ObjectLayers::UpdateAndShow(const bool show)
 
 void ObjectLayers::msw_rescale()
 {
-    m_bmp_delete.msw_rescale();
-    m_bmp_add.msw_rescale();
+    m_bmp_delete.sys_color_changed();
+    m_bmp_add.sys_color_changed();
 
     m_grid_sizer->SetHGap(wxGetApp().em_unit());
 
@@ -281,8 +281,8 @@ void ObjectLayers::msw_rescale()
 
 void ObjectLayers::sys_color_changed()
 {
-    m_bmp_delete.msw_rescale();
-    m_bmp_add.msw_rescale();
+    m_bmp_delete.sys_color_changed();
+    m_bmp_add.sys_color_changed();
 
     // rescale edit-boxes
     const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();

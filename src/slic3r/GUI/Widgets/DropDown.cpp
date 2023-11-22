@@ -255,7 +255,7 @@ void DropDown::render(wxDC &dc)
     rcContent.x += 5;
     rcContent.width -= 5;
     if (check_bitmap.bmp().IsOk()) {
-        auto szBmp = check_bitmap.GetBmpSize();
+        auto szBmp = check_bitmap.GetSize();
         if (selection >= 0) {
             wxPoint pt = rcContent.GetLeftTop();
             pt.y += (rcContent.height - szBmp.y) / 2;

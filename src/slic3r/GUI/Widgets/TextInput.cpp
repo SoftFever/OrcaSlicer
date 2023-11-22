@@ -116,7 +116,7 @@ void TextInput::SetTextColor(StateColor const& color)
 void TextInput::Rescale()
 {
     if (!this->icon.name().empty())
-        this->icon.msw_rescale();
+        this->icon.sys_color_changed();
     messureSize();
     Refresh();
 }

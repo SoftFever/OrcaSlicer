@@ -19,10 +19,13 @@
 #include "Widgets/PopupWindow.hpp"
 
 #ifndef __linux__
-void                msw_rescale_menu(wxMenu* menu); //OcraftyoneTODO: PS RENAME (sys_color_changed_menu)
+void sys_color_changed_menu(wxMenu* menu);
 #else
-inline void         msw_rescale_menu(wxMenu* /* menu */) {} //OcraftyoneTODO: PS RENAME (sys_color_changed_menu)
+inline void sys_color_changed_menu(wxMenu* /* menu */) {}
 #endif // no __linux__
+
+[[deprecated("Function renamed to sys_color_changed_menu. This function now redirects to sys_color_changed_menu")]]
+inline void msw_rescale_menu(wxMenu* menu) { sys_color_changed_menu(menu); }
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, wxBitmapBundle* icon, wxEvtHandler* event_handler = nullptr,
@@ -171,11 +174,9 @@ public:
 
     ~ScalableBitmap() {}
 
-    wxSize  GetBmpSize() const; // OcraftyoneTODO: REPLACE
-    int     GetBmpWidth() const;
-    int     GetBmpHeight() const;
-
-    void                msw_rescale(); //OcraftyoneTODO: PS RENAME (sys_color_changed)
+    [[deprecated("Function renamed to sys_color_changed. This function now redirects to sys_color_changed")]]
+    inline void msw_rescale() { sys_color_changed(); }
+    void sys_color_changed();
 
     const wxBitmapBundle&     bmp() const { return m_bmp; }
     wxBitmapBundle&           bmp()       { return m_bmp; }
@@ -184,7 +185,7 @@ public:
     const std::string&        name() const{ return m_icon_name; }
     int                       px_cnt() const { return m_px_cnt; }
 
-    wxSize              GetSize()   const { // OcraftyoneTODO: REPLACEMENTS
+    wxSize              GetSize()   const {
 #ifdef __APPLE__
         return m_bmp.GetDefaultSize();
 #else
@@ -228,7 +229,9 @@ public:
     void    enable()                        { m_disabled = false; }
     void    disable()                       { m_disabled = true;  }
 
-    void    msw_rescale(); //OcraftyoneTODO: PS RENAME (sys_color_changed)
+    [[deprecated("Function renamed to sys_color_changed. This function now redirects to sys_color_changed")]]
+    inline void msw_rescale() { sys_color_changed(); }
+    void sys_color_changed();
 
 protected:
     void    update_button_bitmaps();
@@ -354,7 +357,9 @@ public:
     void set_items_flag(int flag);
     void set_items_border(int border);
 
-    void msw_rescale(); //OcraftyoneTODO: PS RENAME (sys_color_changed)
+    [[deprecated("Function renamed to sys_color_changed. This function now redirects to sys_color_changed")]]
+    inline void msw_rescale() { sys_color_changed(); }
+    void sys_color_changed();
     const std::vector<ModeButton*>& get_btns() { return m_mode_btns; }
 
 private:

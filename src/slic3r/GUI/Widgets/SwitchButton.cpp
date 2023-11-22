@@ -58,8 +58,8 @@ void SwitchButton::SetValue(bool value)
 void SwitchButton::Rescale()
 {
 	if (labels[0].IsEmpty()) {
-		m_on.msw_rescale();
-		m_off.msw_rescale();
+        m_on.sys_color_changed();
+        m_off.sys_color_changed();
 	}
 	else {
         SetBackgroundColour(StaticBox::GetParentBackgroundColor(GetParent()));
@@ -138,7 +138,7 @@ void SwitchButton::Rescale()
 			(i == 0 ? m_off : m_on).bmp() = bmp;
 		}
 	}
-	SetSize(m_on.GetBmpSize());
+	SetSize(m_on.GetSize());
 	update();
 }
 

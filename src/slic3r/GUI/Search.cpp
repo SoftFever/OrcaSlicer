@@ -875,7 +875,8 @@ void SearchListModel::Prepend(const std::string &label)
 
 void SearchListModel::msw_rescale()
 {
-    for (ScalableBitmap &bmp : m_icon) bmp.msw_rescale();
+    for (ScalableBitmap &bmp : m_icon)
+        bmp.sys_color_changed();
 }
 
 wxString SearchListModel::GetColumnType(unsigned int col) const

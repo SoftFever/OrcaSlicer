@@ -1655,9 +1655,9 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
     }
     
     //draw logo
-    if (int y = size.y - bg.GetBmpHeight(); y>=0) {
+    if (int y = size.y - bg.GetHeight(); y>=0) {
         dc.DrawBitmap(bg.get_bitmap(), 0, y, false);
-        index_width = std::max(index_width, bg.GetBmpWidth() + em_w / 2);
+        index_width = std::max(index_width, bg.GetWidth() + em_w / 2);
     }
 
     if (GetMinSize().x < index_width) {
@@ -1689,12 +1689,12 @@ void ConfigWizardIndex::msw_rescale()
     em_w = size.x;
     em_h = size.y;
 
-    bg.msw_rescale();
+    bg.sys_color_changed();
     SetMinSize(bg.GetSize());
 
-    bullet_black.msw_rescale();
-    bullet_blue.msw_rescale();
-    bullet_white.msw_rescale();
+    bullet_black.sys_color_changed();
+    bullet_blue.sys_color_changed();
+    bullet_white.sys_color_changed();
     Refresh();
 }
 

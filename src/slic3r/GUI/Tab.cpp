@@ -1179,7 +1179,7 @@ void Tab::msw_rescale()
     for (const auto btn : m_scaled_buttons)
         btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
-        bmp->msw_rescale();
+        bmp->sys_color_changed();
 
     if (m_mode_view)
         m_mode_view->Rescale();
@@ -1189,7 +1189,7 @@ void Tab::msw_rescale()
 
     // rescale icons for tree_ctrl
     for (ScalableBitmap& bmp : m_scaled_icons_list)
-        bmp.msw_rescale();
+        bmp.sys_color_changed();
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().GetWidth(), m_scaled_icons_list.front().GetHeight(), false);
@@ -1217,13 +1217,13 @@ void Tab::sys_color_changed()
     for (const auto btn : m_scaled_buttons)
         btn->msw_rescale();
     for (const auto bmp : m_scaled_bitmaps)
-        bmp->msw_rescale();
+        bmp->sys_color_changed();
     if (m_detach_preset_btn)
         m_detach_preset_btn->msw_rescale();
 
     // update icons for tree_ctrl
     for (ScalableBitmap& bmp : m_scaled_icons_list)
-        bmp.msw_rescale();
+        bmp.sys_color_changed();
     // recreate and set new ImageList for tree_ctrl
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().GetWidth(), m_scaled_icons_list.front().GetHeight(), false);

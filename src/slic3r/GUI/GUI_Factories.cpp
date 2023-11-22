@@ -1743,7 +1743,7 @@ void MenuFactory::update_default_menu()
 void MenuFactory::msw_rescale()
 {
     for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu })
-        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));
+        sys_color_changed_menu(dynamic_cast<wxMenu *>(menu));
 }
 
 #ifdef _WIN32
@@ -1775,7 +1775,7 @@ static void update_menu_item_def_colors(T* item)
 void MenuFactory::sys_color_changed()
 {
     for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu }) {
-        msw_rescale_menu(dynamic_cast<wxMenu*>(menu));// msw_rescale_menu updates just icons, so use it
+        sys_color_changed_menu(dynamic_cast<wxMenu *>(menu));// msw_rescale_menu updates just icons, so use it
 #ifdef _WIN32
         // but under MSW we have to update item's bachground color
         for (wxMenuItem* item : menu->GetMenuItems())
