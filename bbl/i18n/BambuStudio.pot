@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-20 09:21+0800\n"
+"POT-Creation-Date: 2023-11-22 10:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5273,6 +5273,9 @@ msgstr ""
 msgid "(LAN)"
 msgstr ""
 
+msgid "Search"
+msgstr ""
+
 msgid "My Device"
 msgstr ""
 
@@ -5665,6 +5668,14 @@ msgid ""
 "following settings:\n"
 "0 top z distance, 0 interface spacing, concentric pattern and disable "
 "independent support layer height"
+msgstr ""
+
+msgid ""
+"Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
+"height limits ,this may cause printing quality issues."
+msgstr ""
+
+msgid "Adjust to the set range automatically? \n"
 msgstr ""
 
 msgid ""
@@ -6895,11 +6906,6 @@ msgid ""
 msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
-msgstr ""
-
-msgid ""
-"Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
-"Layer height limits"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

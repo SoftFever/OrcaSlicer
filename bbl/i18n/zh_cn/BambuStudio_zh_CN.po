@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-18 11:37+0800\n"
+"POT-Creation-Date: 2023-11-22 10:39+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5410,6 +5410,9 @@ msgstr "任务已取消"
 msgid "(LAN)"
 msgstr "（局域网）"
 
+msgid "Search"
+msgstr "搜索"
+
 msgid "My Device"
 msgstr "我的设备"
 
@@ -5835,6 +5838,14 @@ msgid ""
 msgstr ""
 "当使用支持界面的支持材料时，我们推荐以下设置：\n"
 "0顶层z距离，0接触层间距，同心图案，并且禁用独立支撑层高"
+
+msgid ""
+"Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
+"height limits ,this may cause printing quality issues."
+msgstr "层高超出了打印机设置->挤出机->层高限制中的范围，这可能导致打印质量问题。"
+
+msgid "Adjust to the set range automatically? \n"
+msgstr "是否自动调整到范围内？\n"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -7093,11 +7104,6 @@ msgstr "使用了支撑添加器但没有打开支撑。请打开支撑。"
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "层高不能超过喷嘴直径"
-
-msgid ""
-"Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
-"Layer height limits"
-msgstr "层高不能超过打印机设置->挤出机->层高限制中的限制"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
@@ -9070,8 +9076,9 @@ msgid ""
 msgstr ""
 "支撑物的样式和形状。对于普通支撑，将支撑投射到一个规则的网格中，将创建更稳定"
 "的支撑（默认），而紧贴的支撑塔将节省材料并减少物体的瑕疵。\n"
-"对于树形支撑，苗条树将更激进地合并树枝，并节省大量的材料；粗壮树会产生更大更强壮的支撑结构，"
-"但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面悬垂下创建与正常支撑类似的结构（默认）。"
+"对于树形支撑，苗条树将更激进地合并树枝，并节省大量的材料；粗壮树会产生更大更"
+"强壮的支撑结构，但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面"
+"悬垂下创建与正常支撑类似的结构（默认）。"
 
 msgid "Snug"
 msgstr "紧贴"
@@ -10458,7 +10465,7 @@ msgid ""
 "\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
-"我们将将预设重命名为“供应商 类型 序列号 @您选择的打印机”。\n"
+"我们会将预设重命名为“供应商 类型 系列 @您选择的打印机”。\n"
 "要为更多的打印机添加预设，请前往打印机选择。"
 
 msgid "Create Printer/Nozzle"
@@ -11228,6 +11235,11 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid ""
+#~ "Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
+#~ "Layer height limits"
+#~ msgstr "层高不能超过打印机设置->挤出机->层高限制中的限制"
 
 #~ msgid ""
 #~ "Style and shape of the support. For normal support, projecting the "
@@ -12261,9 +12273,6 @@ msgstr ""
 
 #~ msgid "Failed uploading print file. Please enter ip address again."
 #~ msgstr "上传打印文件失败，请重新输入IP地址。"
-
-#~ msgid "Search"
-#~ msgstr "搜索"
 
 #~ msgid ""
 #~ "This controls the generation of the brim at outer side of models. Auto "
