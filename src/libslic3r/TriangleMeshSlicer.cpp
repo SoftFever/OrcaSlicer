@@ -187,7 +187,7 @@ static FacetSliceType slice_facet(
         }
 
         // Is edge or face aligned with the cutting plane?
-        if (is_equal(a->z(), slice_z) && is_equal(b->z() ,slice_z)) {
+        if (a->z() == slice_z && b->z() == slice_z) {
             // Edge is horizontal and belongs to the current layer.
             // The following rotation of the three vertices may not be efficient, but this branch happens rarely.
             const stl_vertex &v0 = vertices[0];
@@ -208,7 +208,7 @@ static FacetSliceType slice_facet(
             } else {
                 // Two vertices are aligned with the cutting plane, the third vertex is below or above the cutting plane.
                 // Is the third vertex below the cutting plane?
-                bool third_below = c->z() < slice_z;
+                bool third_below = v0.z() < slice_z || v1.z() < slice_z || v2.z() < slice_z;
                 // Two vertices on the cutting plane, the third vertex is below the plane. Consider the edge to be part of the slice
                 // only if it is the upper edge.
                 // (the bottom most edge resp. vertex of a triangle is not owned by the triangle, but the top most edge resp. vertex is part of the triangle
@@ -231,7 +231,7 @@ static FacetSliceType slice_facet(
             return result;
         }
 
-        if (is_equal(a->z() ,slice_z)) {
+        if (a->z() == slice_z) {
             // Only point a alings with the cutting plane.
             if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != a_id) {
                 point_on_layer = num_points;
@@ -240,7 +240,7 @@ static FacetSliceType slice_facet(
                 point.y()      = a->y();
                 point.point_id = a_id;
             }
-        } else if (is_equal(b->z() , slice_z)) {
+        } else if (b->z() == slice_z) {
             // Only point b alings with the cutting plane.
             if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != b_id) {
                 point_on_layer = num_points;
@@ -340,12 +340,12 @@ void slice_facet_at_zs(
     // find layer extents
     auto min_layer = std::lower_bound(zs.begin(), zs.end(), min_z); // first layer whose slice_z is >= min_z
     auto max_layer = std::upper_bound(min_layer, zs.end(), max_z); // first layer whose slice_z is > max_z
-    int  idx_vertex_lowest = is_equal(vertices[1].z(), min_z) ? 1 : (is_equal(vertices[2].z() , min_z) ? 2 : 0);
+    int  idx_vertex_lowest = (vertices[1].z() == min_z) ? 1 : ((vertices[2].z() == min_z) ? 2 : 0);
 
     for (auto it = min_layer; it != max_layer; ++ it) {
         IntersectionLine il;
         // Ignore horizontal triangles. Any valid horizontal triangle must have a vertical triangle connected, otherwise the part has zero volume.
-        if (!is_equal(min_z , max_z) && slice_facet(*it, vertices, indices, edge_ids, idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
+        if (min_z != max_z && slice_facet(*it, vertices, indices, edge_ids, idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
             assert(il.edge_type != IntersectionLine::FacetEdgeType::Horizontal);
             size_t slice_id = it - zs.begin();
             boost::lock_guard<std::mutex> l(lines_mutex[slice_id % lines_mutex.size()]);
@@ -396,10 +396,10 @@ static inline IntersectionLines slice_make_lines(
             const float min_z = fminf(vertices[0].z(), fminf(vertices[1].z(), vertices[2].z()));
             const float max_z = fmaxf(vertices[0].z(), fmaxf(vertices[1].z(), vertices[2].z()));
             assert(min_z <= plane_z && max_z >= plane_z);
-            int idx_vertex_lowest = is_equal(vertices[1].z(), min_z) ? 1 : (is_equal(vertices[2].z(), min_z) ? 2 : 0);
+            int              idx_vertex_lowest = (vertices[1].z() == min_z) ? 1 : ((vertices[2].z() == min_z) ? 2 : 0);
             IntersectionLine il;
             // Ignore horizontal triangles. Any valid horizontal triangle must have a vertical triangle connected, otherwise the part has zero volume.
-            if (!is_equal(min_z, max_z) && slice_facet(plane_z, vertices, indices, face_edge_ids[face_idx], idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
+            if (min_z != max_z && slice_facet(plane_z, vertices, indices, face_edge_ids[face_idx], idx_vertex_lowest, false, il) == FacetSliceType::Slicing) {
                 assert(il.edge_type != IntersectionLine::FacetEdgeType::Horizontal);
                 lines.emplace_back(il);
             }
@@ -451,7 +451,7 @@ void slice_facet_with_slabs(
     // find facet extents
     const float min_z = fminf(vertices[0].z(), fminf(vertices[1].z(), vertices[2].z()));
     const float max_z = fmaxf(vertices[0].z(), fmaxf(vertices[1].z(), vertices[2].z()));
-    const bool  horizontal = is_equal(min_z , max_z);
+    const bool  horizontal = min_z == max_z;
 
     // find layer extents
     auto min_layer = std::lower_bound(zs.begin(), zs.end(), min_z); // first layer whose slice_z is >= min_z
@@ -541,7 +541,7 @@ void slice_facet_with_slabs(
         }
     } else {
         // The triangle is not horizontal and at least a single slicing plane intersects the triangle.
-        int idx_vertex_lowest = is_equal(vertices[1].z(), min_z) ? 1 : (is_equal(vertices[2].z() , min_z) ? 2 : 0);
+        int idx_vertex_lowest = (vertices[1].z() == min_z) ? 1 : ((vertices[2].z() == min_z) ? 2 : 0);
         IntersectionLine il_prev;
         for (auto it = min_layer; it != max_layer; ++ it) {
             IntersectionLine il;
