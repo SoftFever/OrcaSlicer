@@ -1100,7 +1100,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_input_area->Add(m_input_access_code, 0, wxALIGN_CENTER, 0);
 
     m_test_right_msg = new Label(this, Label::Body_13, wxEmptyString, LB_AUTO_WRAP);
-    m_test_right_msg->SetForegroundColour(wxColour(61, 203, 115));
+    m_test_right_msg->SetForegroundColour(wxColour(38, 166, 154));
     m_test_right_msg->Hide();
 
     
@@ -1123,7 +1123,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     auto m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed), std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
