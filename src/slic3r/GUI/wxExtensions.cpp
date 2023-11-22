@@ -827,7 +827,6 @@ void ModeSizer::set_items_border(int border)
 
 void ModeSizer::sys_color_changed()
 {
-//    this->SetHGap(std::lround(m_hgap_unscaled * em_unit(m_parent))); //OcraftyoneTODO: LEGACY (PS removed)
     for (size_t m = 0; m < m_mode_btns.size(); m++)
         m_mode_btns[m]->msw_rescale();
 }
@@ -1004,13 +1003,6 @@ BlinkingBitmap::BlinkingBitmap(wxWindow* parent, const std::string& icon_name) :
     wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(int(1.6 * Slic3r::GUI::wxGetApp().em_unit()), -1))
 {
     bmp = ScalableBitmap(parent, icon_name);
-}
-
-void BlinkingBitmap::msw_rescale() //OcraftyoneTODO: removed by ps
-{
-    bmp.sys_color_changed();
-    this->SetSize(bmp.GetSize());
-    this->SetMinSize(bmp.GetSize());
 }
 
 void BlinkingBitmap::invalidate()

@@ -55,7 +55,6 @@ void    msw_buttons_rescale(wxDialog* dlg, const int em_unit, const std::vector<
 int     em_unit(wxWindow* win);
 int     mode_icon_px_size();
 
-wxBitmap create_menu_bitmap(const std::string& bmp_name);  //OcraftyoneTODO: LEGACY (PS deleted)
 wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name, int px_cnt = 16);
 wxBitmapBundle* get_empty_bmp_bundle(int width, int height);
 wxBitmapBundle* get_solid_bmp_bundle(int width, int height, const std::string& color);
@@ -403,7 +402,6 @@ public:
 
     ~BlinkingBitmap() {}
 
-    void    msw_rescale(); //OcraftyoneTODO: LEGACY (PS deleted)
     void    invalidate();
     void    activate();
     void    blink();
