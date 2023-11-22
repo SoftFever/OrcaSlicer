@@ -4752,17 +4752,21 @@ bool PartPlateList::set_shapes(const Pointfs& shape, const Pointfs& exclude_area
 	is_load_bedtype_textures = false;//reload textures
 	calc_bounding_boxes();
 
-	auto check_texture = [](const std::string& texture) {
-		boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
-		return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
-	};
-	if (! texture_filename.empty() && ! check_texture(texture_filename)) {
-		BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
-	}
-	else
-		m_logo_texture_filename = texture_filename;
+	update_logo_texture_filename(texture_filename);
 
 	return true;
+}
+
+void PartPlateList::update_logo_texture_filename(const std::string &texture_filename)
+{
+    auto check_texture = [](const std::string &texture) {
+        boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
+        return !texture.empty() && (boost::algorithm::iends_with(texture, ".png") || boost::algorithm::iends_with(texture, ".svg")) && boost::filesystem::exists(texture, ec);
+    };
+    if (!texture_filename.empty() && !check_texture(texture_filename)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to load bed texture: " << texture_filename;
+    } else
+        m_logo_texture_filename = texture_filename;
 }
 
 /*slice related functions*/

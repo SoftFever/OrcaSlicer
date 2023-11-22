@@ -785,6 +785,8 @@ public:
     bool intersects(const BoundingBoxf3 &bb);
     bool contains(const BoundingBoxf3 &bb);
 
+    const std::string &get_logo_texture_filename() { return m_logo_texture_filename; }
+    void               update_logo_texture_filename(const std::string &texture_filename);
     /*slice related functions*/
     //update current slice context into backgroud slicing process
     void update_slice_context_to_current_plate(BackgroundSlicingProcess& process);
