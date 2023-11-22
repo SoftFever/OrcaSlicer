@@ -465,6 +465,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/FixModelByWin10.hpp
     Utils/EmbossStyleManager.cpp
     Utils/EmbossStyleManager.hpp
+    Utils/FontConfigHelp.cpp
+    Utils/FontConfigHelp.hpp
     Utils/Bonjour.cpp
     Utils/Bonjour.hpp
     Utils/PresetUpdater.cpp
@@ -607,7 +609,7 @@ endif ()
 if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
-    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
+    target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES} fontconfig)
 
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)

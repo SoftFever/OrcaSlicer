@@ -5,6 +5,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/format.hpp"
 
 namespace Slic3r {
 namespace GUI {
