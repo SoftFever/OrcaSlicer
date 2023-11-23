@@ -3413,6 +3413,8 @@ void ObjectList::part_selection_changed()
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
 #endif
 
+    if (!this->IsShown())
+        update_and_show_layers = false;
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
     else if (update_and_show_layers) {
