@@ -167,9 +167,10 @@ public:
     ScalableBitmap() {};
     ScalableBitmap( wxWindow *parent,
                     const std::string& icon_name = "",
-                    const int px_cnt = 16, 
+                    const int px_cnt = 16,
                     const bool grayscale = false,
-                    const bool resize = false); // BBS: support resize by fill border
+                    const bool resize = false, // BBS: support resize by fill border
+                    const bool use_legacy_bmp = false);
 
     ~ScalableBitmap() {}
 
@@ -197,11 +198,11 @@ public:
 private:
     wxWindow*       m_parent{ nullptr };
     wxBitmapBundle  m_bmp = wxBitmapBundle();
-    wxBitmap        m_bitmap = wxBitmap();
     std::string     m_icon_name = "";
     int             m_px_cnt {16};
     bool            m_grayscale{ false };
     bool            m_resize{ false };
+    bool            m_legacy_bmp{ false };
 };
 
 
