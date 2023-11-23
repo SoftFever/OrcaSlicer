@@ -509,6 +509,28 @@ static char* read_json_file(const std::string &preset_path)
     return json_contents;
 }
 
+static void adjust_dialog_in_screen(DPIDialog* dialog) {
+    wxSize screen_size = wxGetDisplaySize();
+    int    pos_x, pos_y, size_x, size_y, screen_width, screen_height, dialog_x, dialog_y;
+    pos_x         = dialog->GetPosition().x;
+    pos_y         = dialog->GetPosition().y;
+    size_x        = dialog->GetSize().x;
+    size_y        = dialog->GetSize().y;
+    screen_width  = screen_size.GetWidth();
+    screen_height = screen_size.GetHeight();
+    dialog_x      = pos_x;
+    dialog_y      = pos_y;
+    if (pos_x + size_x > screen_width) {
+        int exceed_x = pos_x + size_x - screen_width;
+        dialog_x -= exceed_x;
+    }
+    if (pos_y + size_y > screen_height - 50) {
+        int exceed_y = pos_y + size_y - screen_height + 50;
+        dialog_y -= exceed_y;
+    }
+    if (pos_x != dialog_x || pos_y != dialog_y) { dialog->SetPosition(wxPoint(dialog_x, dialog_y)); }
+}
+
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
 	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
 {
@@ -547,6 +569,9 @@ CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent)
     m_main_sizer->Add(presets_infomation, 0, wxLEFT | wxRIGHT, FromDIP(15));
 
     m_main_sizer->Add(create_item(FilamentOptionType::FILAMENT_PRESET), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(5));
+
+    m_filament_preset_text = new wxStaticText(this, wxID_ANY, _L("We could create the filament presets for your following printer:"), wxDefaultPosition, wxDefaultSize);
+    m_main_sizer->Add(m_filament_preset_text, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
 
     m_scrolled_preset_panel = new wxScrolledWindow(this, wxID_ANY);
     m_scrolled_preset_panel->SetMaxSize(wxSize(-1, FromDIP(350)));
@@ -728,8 +753,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
             get_filament_presets_by_machine();
         }
         m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
-        Layout();
-        Fit();
+
         update_dialog_size();
         e.Skip();
     });
@@ -792,7 +816,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
         wxString filament_type = m_filament_preset_combobox->GetStringSelection();
         std::unordered_map<std::string, std::vector<Preset *>>::iterator iter = m_filament_choice_map.find(m_public_name_to_filament_id_map[filament_type]);
         
-        m_filament_preset_panel->Freeze();
+        m_scrolled_preset_panel->Freeze();
         m_filament_presets_sizer->Clear(true);
         m_filament_preset.clear();
 
@@ -828,11 +852,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
             m_filament_presets_sizer->Add(create_checkbox(m_filament_preset_panel, printer_to_preset.first, printer_to_preset.second, m_filament_preset), 0,
                                           wxEXPAND | wxTOP | wxLEFT, FromDIP(5));
         m_scrolled_preset_panel->SetSizerAndFit(m_scrolled_sizer);
-        m_filament_preset_panel->Thaw();
+        m_scrolled_preset_panel->Thaw();
 
-        Layout();
-        Fit();
-        Refresh();
         update_dialog_size();
         e.Skip();
     });
@@ -852,9 +873,6 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
 wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_for_printer_item()
 {
     wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
-    m_filament_preset_text = new wxStaticText(m_scrolled_preset_panel, wxID_ANY, _L("We could create the filament presets for your following printer:"),
-                                                                 wxDefaultPosition, wxDefaultSize);
-    vertical_sizer->Add(m_filament_preset_text, 0, wxEXPAND | wxALL, 0);
     m_filament_preset_panel = new wxPanel(m_scrolled_preset_panel, wxID_ANY);
     m_filament_preset_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
     m_filament_preset_panel->SetSize(PRINTER_LIST_SIZE);
@@ -1159,9 +1177,6 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
             radiobox_list[i].first->SetValue(false);
         }
     }
-    Layout();
-    Fit();
-    Refresh();
     update_dialog_size();
 }
 
@@ -1295,13 +1310,18 @@ void CreateFilamentPresetDialog::get_all_visible_printer_name()
 
 void CreateFilamentPresetDialog::update_dialog_size()
 {
-    int width      = GetSize().GetWidth();
-    int height     = GetSize().GetHeight();
-    int new_width  = width;
-    int new_height = height;
-    if (width > 1400) new_width = 1400;
-    if (height > 900) new_height = 900;
-    if (height != new_height || width != new_width) this->SetSize(new_width, new_height);
+    this->Freeze();
+    m_filament_preset_panel->SetSizerAndFit(m_filament_presets_sizer);
+    int width      = m_filament_preset_panel->GetSize().GetWidth();
+    int height     = m_filament_preset_panel->GetSize().GetHeight();
+    m_scrolled_preset_panel->SetMinSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(600, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetMaxSize(wxSize(std::min(1400, width + FromDIP(26)), std::min(600, height + FromDIP(18))));
+    m_scrolled_preset_panel->SetSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(600, height + FromDIP(18))));
+    Layout();
+    Fit();
+    Refresh();
+    adjust_dialog_in_screen(this);
+    this->Thaw();
 }
 
 template<typename T>
@@ -2170,38 +2190,16 @@ void CreatePrinterPresetDialog::update_preset_list_size()
     m_preset_template_panel->SetSizerAndFit(m_filament_sizer);
     m_preset_template_panel->SetMinSize(wxSize(FromDIP(660), -1));
     m_preset_template_panel->SetSize(wxSize(FromDIP(660), -1));
-    int whidth = m_preset_template_panel->GetSize().GetWidth();
+    int width = m_preset_template_panel->GetSize().GetWidth();
     int height = m_preset_template_panel->GetSize().GetHeight();
-    m_scrolled_preset_window->SetMinSize(wxSize(std::min(1500, whidth), std::min(600, height)));
-    m_scrolled_preset_window->SetMaxSize(wxSize(std::min(1500, whidth), std::min(600, height)));
-    m_scrolled_preset_window->SetSize(wxSize(std::min(1500, whidth), std::min(600, height)));
+    m_scrolled_preset_window->SetMinSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(600, height)));
+    m_scrolled_preset_window->SetMaxSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(600, height)));
+    m_scrolled_preset_window->SetSize(wxSize(std::min(1500, width + FromDIP(26)), std::min(600, height)));
     m_page2->SetSizerAndFit(m_page2_sizer);
     Layout();
     Fit();
     Refresh();
-    wxSize screen_size = wxGetDisplaySize();
-    int    pos_x, pos_y, size_x, size_y, screen_width, screen_height, dialog_x, dialog_y;
-    pos_x         = GetPosition().x;
-    pos_y         = GetPosition().y;
-    size_x        = GetSize().x;
-    size_y        = GetSize().y;
-    screen_width  = screen_size.GetWidth();
-    screen_height = screen_size.GetHeight();
-    dialog_x      = pos_x;
-    dialog_y      = pos_y;
-    if (pos_x + size_x > screen_width) { 
-        int exceed_x = pos_x + size_x - screen_width;
-        dialog_x -= exceed_x;
-        
-    }
-    if (pos_y + size_y > screen_height - FromDIP(50)) { // FromDIP(50) task bar
-        int exceed_y = pos_y + size_y - screen_height + FromDIP(50); 
-        dialog_y -= exceed_y;
-    }
-    if (pos_x != dialog_x || pos_y != dialog_y) {
-        SetPosition(wxPoint(dialog_x, dialog_y));
-    }
-    
+    adjust_dialog_in_screen(this);
     m_scrolled_preset_window->Thaw();
 }
 
