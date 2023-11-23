@@ -3140,6 +3140,53 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
     return printable_area.bounding_box();
 }
 
+std::string read_binary_stl(const std::string& filename) {
+    std::string model_id;
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        return model_id;
+    }
+
+    try{
+        // Read the first 80 bytes
+        char data[80];
+        file.read(data, 80);
+        if (!file) {
+            file.close();
+            return model_id;
+        }
+
+        if (data[0] == '\0' || data[0] == ' ') {
+            file.close();
+            return model_id;
+        }
+
+        char magic[2] = { data[0], data[1] };
+        if (magic[0] != 'M' || magic[1] != 'W') {
+            file.close();
+            return model_id;
+        }
+
+        if (data[2] != ' ') {
+            file.close();
+            return model_id;
+        }
+
+        char protocol_version[3] = { data[3], data[4], data[5] };
+
+        //version 
+        if (protocol_version[0] == '1' && protocol_version[1] == '.' && protocol_version[2] == '0') {
+            model_id = std::string(&data[7], &data[80]);
+        }
+
+        file.close();
+    }
+    catch (...){
+    }
+    return model_id;
+}
+
+
 // BBS: backup & restore
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi)
 {
@@ -3176,6 +3223,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
+
+    std::string  designer_model_id;
 
     int answer_convert_from_meters          = wxOK_DEFAULT;
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
@@ -3626,10 +3675,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 std::vector<Preset *> project_presets;
                 bool                  is_xxx;
                 Semver                file_version;
+
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i](int current, int total, bool &cancel)
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id](int current, int total, bool &cancel, std::string &mode_id)
                     {
+                            designer_model_id = mode_id;
                             bool     cont = true;
                             float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
                             BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
@@ -3653,6 +3704,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
                                                    _L("Attention!"));
                     });
+
+
+                if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
+                    designer_model_id = read_binary_stl(path.string());
+                }
 
                 if (type_any_amf && is_xxx) imperial_units = true;
 
@@ -3947,6 +4003,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     GLGizmoSimplify::add_simplify_suggestion_notification(
         obj_idxs, model.objects, *notification_manager);
 
+    //set designer_model_id
+    if (!designer_model_id.empty() && q->model().stl_design_id.empty()) {
+        q->model().stl_design_id = designer_model_id;
+    }
 
     if (tolal_model_count <= 0 && !q->m_exported_file) {
         dlg.Hide();

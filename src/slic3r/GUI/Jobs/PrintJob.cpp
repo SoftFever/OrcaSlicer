@@ -245,7 +245,6 @@ void PrintJob::process()
         params.dst_file = m_dst_path;
     }
 
-
     if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
         ModelInfo* model_info = wxGetApp().model().model_info.get();
         auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
@@ -279,7 +278,17 @@ void PrintJob::process()
             catch (...) {}
         }
     }
-    
+
+    if (!wxGetApp().model().stl_design_id.empty()) {
+       int stl_design_id = 0;
+        try {
+            stl_design_id = std::stoi(wxGetApp().model().stl_design_id);
+        }
+        catch (const std::exception& e) {
+            stl_design_id = 0;
+        }
+        params.stl_design_id = stl_design_id;
+    }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
     if (params.project_name.empty()) {params.project_name = m_project_name;}
