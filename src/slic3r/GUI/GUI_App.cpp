@@ -4727,7 +4727,9 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                         total_count += sync_count;
 
                         if (total_count == 0) {
-                            plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
+                            CallAfter([this] {
+                                plater()->get_notification_manager()->close_notification_of_type(NotificationType::BBLUserPresetExceedLimit);
+                            });
                         }
 
                         unsigned int http_code = 200;
