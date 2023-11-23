@@ -1101,66 +1101,47 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(const Vec3d& displacement, bool local)
+void Selection::translate(const Vec3d& displacement, TransformationType transformation_type)
 {
     if (!m_valid)
         return;
 
-    EMode translation_type = m_mode;
-    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
+    // Emboss use translate in local coordinate
+    assert(transformation_type.relative() || 
+           transformation_type.local());
 
     for (unsigned int i : m_list) {
         GLVolume& v = *(*m_volumes)[i];
-        if (v.is_wipe_tower) {
-            int plate_idx = v.object_idx() - 1000;
-            BoundingBoxf3 plate_bbox = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_bounding_box();
-            Vec3d tower_size = v.bounding_box().size();
-            Vec3d tower_origin = m_cache.volumes_data[i].get_volume_position();
-            Vec3d actual_displacement = displacement;
-            const double margin = 15.f;
-
-            if (!local)
-                actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
-
-            if (tower_origin(0) + actual_displacement(0) - margin < plate_bbox.min(0)) {
-                actual_displacement(0) = plate_bbox.min(0) - tower_origin(0) + margin;
+        const VolumeCache& volume_data = m_cache.volumes_data[i];
+        if (m_mode == Instance && !is_wipe_tower()) {
+            assert(is_from_fully_selected_instance(i));
+            if (transformation_type.instance()) {
+                const Geometry::Transformation& inst_trafo = volume_data.get_instance_transform();
+                v.set_instance_offset(inst_trafo.get_offset() + inst_trafo.get_rotation_matrix() * displacement);
             }
-            else if (tower_origin(0) + actual_displacement(0) + tower_size(0) + margin > plate_bbox.max(0)) {
-                actual_displacement(0) = plate_bbox.max(0) - tower_origin(0) - tower_size(0) - margin;
-            }
-
-            if (tower_origin(1) + actual_displacement(1) - margin < plate_bbox.min(1)) {
-                actual_displacement(1) = plate_bbox.min(1) - tower_origin(1) + margin;
-            }
-            else if (tower_origin(1) + actual_displacement(1) + tower_size(1) + margin > plate_bbox.max(1)) {
-                actual_displacement(1) = plate_bbox.max(1) - tower_origin(1) - tower_size(1) - margin;
-            }
-
-            v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + actual_displacement);
+            else
+                transform_instance_relative(v, volume_data, transformation_type, Geometry::translation_transform(displacement), m_cache.dragging_center);
         }
-        else if (m_mode == Volume || v.is_wipe_tower) {
-            if (local)
-                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
-            else {
-                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
-                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+        else {
+            if (transformation_type.local() && transformation_type.absolute()) {
+                const Geometry::Transformation& vol_trafo = volume_data.get_volume_transform();
+                const Geometry::Transformation& inst_trafo = volume_data.get_instance_transform();
+                v.set_volume_offset(vol_trafo.get_offset() + inst_trafo.get_scaling_factor_matrix().inverse() * vol_trafo.get_rotation_matrix() * displacement);
             }
-        }
-        else if (m_mode == Instance) {
-            if (is_from_fully_selected_instance(i))
-                v.set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
             else {
-                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
-                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
-                translation_type = Volume;
+                Vec3d relative_disp = displacement;
+                if (transformation_type.world() && transformation_type.instance())
+                    relative_disp = volume_data.get_instance_transform().get_scaling_factor_matrix().inverse() * relative_disp;
+
+                transform_volume_relative(v, volume_data, transformation_type, Geometry::translation_transform(relative_disp), m_cache.dragging_center);
             }
         }
     }
 
 #if !DISABLE_INSTANCES_SYNCH
-    if (translation_type == Instance)
+    if (m_mode == Instance)
         synchronize_unselected_instances(SyncRotationType::NONE);
-    else if (translation_type == Volume)
+    else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
@@ -1409,7 +1390,9 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         // center selection on print bed
         setup_cache();
         offset.z() = -get_bounding_box().min.z();
-        translate(offset);
+        TransformationType trafo_type;
+        trafo_type.set_relative();
+        translate(offset, trafo_type);
         wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
         // BBS

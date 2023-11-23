@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Enrico Turri @enricoturri1966, Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include <imgui/imgui_internal.h>
 
@@ -260,7 +264,15 @@ void GizmoObjectManipulation::change_position_value(int axis, double value)
 
     Selection& selection = m_glcanvas.get_selection();
     selection.setup_cache();
-    selection.translate(position - m_cache.position, selection.requires_local_axes());
+    TransformationType trafo_type;
+    trafo_type.set_relative();
+    switch (m_coordinates_type)
+    {
+    case ECoordinatesType::Instance: { trafo_type.set_instance(); break; }
+    case ECoordinatesType::Local:    { trafo_type.set_local(); break; }
+    default:                         { break; }
+    }
+    selection.translate(position - m_cache.position, trafo_type);
     m_glcanvas.do_move(L("Set Position"));
 
     m_cache.position = position;
@@ -278,14 +290,16 @@ void GizmoObjectManipulation::change_rotation_value(int axis, double value)
 
     Selection& selection = m_glcanvas.get_selection();
 
-    TransformationType transformation_type(TransformationType::World_Relative_Joint);
-    if (selection.is_single_full_instance() || selection.requires_local_axes())
-		transformation_type.set_independent();
-    if (selection.is_single_full_instance() && !is_world_coordinates()) {
-        //FIXME Selection::rotate() does not process absoulte rotations correctly: It does not recognize the axis index, which was changed.
-		// transformation_type.set_absolute();
-		transformation_type.set_local();
-	}
+    TransformationType transformation_type;
+    transformation_type.set_relative();
+    if (selection.is_single_full_instance())
+        transformation_type.set_independent();
+
+    if (is_local_coordinates())
+        transformation_type.set_local();
+
+    if (is_instance_coordinates())
+        transformation_type.set_instance();
 
     selection.setup_cache();
 	selection.rotate(
