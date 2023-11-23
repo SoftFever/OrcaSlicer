@@ -3436,7 +3436,7 @@ msgid "Send"
 msgstr "Надіслати"
 
 msgid "Export plate sliced file"
-msgstr "Експорт файлу зрізів планшета"
+msgstr "Експортувати файл нарізки пластини"
 
 msgid "Export all sliced file"
 msgstr "Експортувати весь нарізаний файл"
@@ -6308,7 +6308,7 @@ msgstr ""
 "Temp Plate"
 
 msgid "Textured PEI Plate"
-msgstr "Textured PEI Пластина"
+msgstr "Textured PEI Plate"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
