@@ -584,7 +584,7 @@ void GLGizmoFdmSupports::select_facets_by_angle(float threshold_deg, bool block)
 
         ++mesh_id;
 
-        const Transform3d trafo_matrix = mi->get_matrix(true) * mv->get_matrix(true);
+        const Transform3d trafo_matrix = mi->get_matrix_no_offset() * mv->get_matrix_no_offset();
         Vec3f down  = (trafo_matrix.inverse() * (-Vec3d::UnitZ())).cast<float>().normalized();
         Vec3f limit = (trafo_matrix.inverse() * Vec3d(std::sin(threshold), 0, -std::cos(threshold))).cast<float>().normalized();
 

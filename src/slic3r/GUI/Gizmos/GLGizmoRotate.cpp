@@ -475,7 +475,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
     }
     }
 
-    m = m * Geometry::Transformation(m_orient_matrix).get_matrix(true).inverse();
+    m = m * Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().inverse();
 
     m.translate(-m_center);
 

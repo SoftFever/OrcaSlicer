@@ -1769,7 +1769,7 @@ BoundingBoxf3 GLGizmoCut3D::transformed_bounding_box(const Vec3d& plane_center, 
         // respect just to the solid parts for FFF and ignore pad and supports for SLA
         if (!volume->is_modifier && !volume->is_sla_pad() && !volume->is_sla_support()) {
 
-            const auto instance_matrix = volume->get_instance_transformation().get_matrix(true);
+            const auto instance_matrix = volume->get_instance_transformation().get_matrix_no_offset();
             auto volume_trafo = instance_matrix * volume->get_volume_transformation().get_matrix();
             ret.merge(volume->transformed_convex_hull_bounding_box(cut_matrix * volume_trafo));
         }
