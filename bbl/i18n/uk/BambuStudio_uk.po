@@ -2796,16 +2796,16 @@ msgid "Motor noise showoff"
 msgstr "Демонстрація шуму мотора"
 
 msgid "Nozzle filament covered detected pause"
-msgstr ""
+msgstr "Пауза через виявлене покриття філаментом сопла"
 
 msgid "Cutter error pause"
-msgstr ""
+msgstr "Пауза через помилку різака"
 
 msgid "First layer error pause"
-msgstr ""
+msgstr "Пауза через помилку першого шару"
 
 msgid "Nozzle clog pause"
-msgstr ""
+msgstr "Пауза через засмічення сопла"
 
 msgid "MC"
 msgstr "MC"
@@ -6152,8 +6152,8 @@ msgstr "Автоматично налаштувати на встановлен�
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -11105,7 +11105,7 @@ msgid "Select filament preset"
 msgstr "Вибрати налаштування філаменту"
 
 msgid "Create Filament"
-msgstr ""
+msgstr "Створити Філамент"
 
 msgid "Create based on current filamet"
 msgstr "Створити налаштування на основі поточного філаменту"
@@ -11205,8 +11205,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ми перейменовуємо налаштування на “Виробник Тип Серійний номер @принтер, "
@@ -11220,13 +11220,13 @@ msgid "Create Printer"
 msgstr "Принтер"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr ""
+msgstr "Створити сопло для існуючого принтера"
 
 msgid "Create from Template"
-msgstr ""
+msgstr "Створити з шаблону"
 
 msgid "Create Based on Current Printer"
-msgstr ""
+msgstr "Створити на основі поточного принтера"
 
 msgid "wiki"
 msgstr "вікі"
@@ -11277,7 +11277,7 @@ msgid "Hot Bed SVG"
 msgstr "SVG для гарячого ліжка"
 
 msgid "Load svg"
-msgstr ""
+msgstr "Завантажити SVG"
 
 msgid "Max print height"
 msgstr "Максимальна висота друку"
@@ -11539,6 +11539,8 @@ msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
 msgstr ""
+"Примітка: Якщо єдиний пресет під цим філаментом буде видалений, то філамент "
+"також буде видалений після виходу з діалогового вікна."
 
 msgid "Presets inherited by other presets can not be deleted"
 msgstr ""
@@ -11616,128 +11618,138 @@ msgstr ""
 "калібрування занадто великий, або крок занадто малий"
 
 msgid "Physical Printer"
-msgstr ""
+msgstr "Фізичний Принтер"
 
 msgid "Print Host upload"
-msgstr ""
+msgstr "Завантаження на Принт-Сервер"
 
 msgid "Could not get a valid Printer Host reference"
-msgstr ""
+msgstr "Не вдалося отримати дійсне посилання на Принт-Сервер"
 
 msgid "Success!"
-msgstr ""
+msgstr "Успіх!"
 
 msgid "Refresh Printers"
-msgstr ""
+msgstr "Оновити список принтерів"
 
 msgid ""
 "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
 "signed certificate."
 msgstr ""
+"Файл HTTPS CA є необов’язковим. Він потрібен лише у випадку використання "
+"HTTPS з самопідписаним сертифікатом."
 
 msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-msgstr ""
+msgstr "Файли сертифікатів (*.crt, *.pem)|*.crt;*.pem|Усі файли|*.*"
 
 msgid "Open CA certificate file"
-msgstr ""
+msgstr "Відкрити файл CA сертифіката"
 
 #, c-format, boost-format
 msgid ""
 "On this system, %s uses HTTPS certificates from the system Certificate Store "
 "or Keychain."
 msgstr ""
+"У цій системі %s використовує HTTPS сертифікати з системного Сховища "
+"Сертифікатів або Брелока ключів."
 
 msgid ""
 "To use a custom CA file, please import your CA file into Certificate Store / "
 "Keychain."
 msgstr ""
+"Щоб використовувати власний файл CA, будь ласка, імпортуйте ваш файл CA до "
+"Сховища Сертифікатів / Брелока ключів."
 
 msgid "Connection to printers connected via the print host failed."
-msgstr ""
+msgstr "Не вдалося з’єднатися з принтерами, підключеними через принт-сервер."
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "Невідповідність типу принт-сервера: %s"
 
 msgid "Connection to AstroBox works correctly."
-msgstr ""
+msgstr "З’єднання з AstroBox працює коректно."
 
 msgid "Could not connect to AstroBox"
-msgstr ""
+msgstr "Не вдалося з’єднатися з AstroBox"
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
-msgstr ""
+msgstr "Примітка: Для AstroBox потрібна версія щонайменше 1.1.0."
 
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "З’єднання з Duet працює коректно."
 
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "Не вдалося з’єднатися з Duet"
 
 msgid "Unknown error occured"
-msgstr ""
+msgstr "Сталася невідома помилка"
 
 msgid "Wrong password"
-msgstr ""
+msgstr "Неправильний пароль"
 
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "Не вдалося отримати ресурси для створення нового з’єднання"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr ""
+msgstr "Завантаження не активовано на картці FlashAir."
 
 msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr ""
+msgstr "З’єднання з FlashAir працює коректно, і завантаження активовано."
 
 msgid "Could not connect to FlashAir"
-msgstr ""
+msgstr "Не вдалося з’єднатися з FlashAir"
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
+"Примітка: Для FlashAir потрібна прошивка версії 2.00.02 або новіша з "
+"активованою функцією завантаження."
 
 msgid "Connection to MKS works correctly."
-msgstr ""
+msgstr "З’єднання з MKS працює коректно."
 
 msgid "Could not connect to MKS"
-msgstr ""
+msgstr "Не вдалося підключитися до MKS"
 
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "Підключення до OctoPrint працює правильно."
 
 msgid "Could not connect to OctoPrint"
-msgstr ""
+msgstr "Не вдалося підключитися до OctoPrint"
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
-msgstr ""
+msgstr "Примітка. Потрібна версія OctoPrint не нижче 1.1.0."
 
 msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr ""
+msgstr "Підключення до Prusa SL1 / SL1S працює правильно."
 
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "Не вдалося підключитися до Prusa SLA"
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "Підключення до PrusaLink працює коректно."
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "Не вдалося підключитися до PrusaLink"
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "Підключення до Repetier працює правильно."
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "Не вдалося підключитися до Repetier"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "Примітка: потрібна версія Repetier принаймні 0.90.0."
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"Статус HTTP: %1%\n"
+"Тіло повідомлення: “%2%"
 
 #, boost-format
 msgid ""
@@ -11745,6 +11757,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Помилка аналізу відповіді хоста.\n"
+"Тіло повідомлення: “%1%”\n"
+"Помилка: “%2%”"
 
 #, boost-format
 msgid ""
@@ -11752,6 +11767,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Помилка переліку хост-принтерів.\n"
+"Тіло повідомлення: “%1%”\n"
+"Помилка: “%2%”"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
