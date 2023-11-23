@@ -242,13 +242,21 @@ PrintSequence PartPlate::get_print_seq() const
     return PrintSequence::ByDefault;
 }
 
-PrintSequence PartPlate::get_real_print_seq() const
+PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
 {
+	PrintSequence global_print_seq = PrintSequence::ByDefault;
+	auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+	if (curr_preset_config.has("print_sequence"))
+		global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+
     PrintSequence curr_plate_seq = get_print_seq();
     if (curr_plate_seq == PrintSequence::ByDefault) {
-        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        if (curr_preset_config.has("print_sequence")) curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+		curr_plate_seq = global_print_seq;
     }
+	
+	if(plate_same_as_global)
+		*plate_same_as_global = (curr_plate_seq == global_print_seq);
+
     return curr_plate_seq;
 }
 
@@ -4591,11 +4599,9 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 		{
 			// outarea for large object
 			arrange_polygon.bed_idx = m_plate_list.size();
-			BoundingBox apbox = get_extents(arrange_polygon.poly);
+			BoundingBox apbox = get_extents(arrange_polygon.transformed_poly());  // the item may have been rotated
 			auto        apbox_size = apbox.size();
 
-			//arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
-			//arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
 			arrange_polygon.translation(X) = 0.5 * apbox_size[0];
 			arrange_polygon.translation(Y) = scaled<double>(static_cast<double>(m_plate_depth)) - 0.5 * apbox_size[1];
 		}

@@ -245,7 +245,7 @@ public:
     // Get the real effective print sequence of current plate.
     // If curr_plate's print_seq is ByDefault, use the global sequence
     // @return PrintSequence::{ByLayer,ByObject}
-    PrintSequence get_real_print_seq() const;
+    PrintSequence get_real_print_seq(bool* plate_same_as_global=nullptr) const;
 
     bool has_spiral_mode_config() const;
     bool get_spiral_vase_mode() const;
@@ -694,6 +694,7 @@ public:
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
 
+    //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }
