@@ -251,27 +251,6 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_B, texture_id));
-    else
-        return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 20, 20, texture_id))
-         icon_list.insert(std::make_pair((int)IC_TEXT_B_DARK, texture_id));
-     else
-         return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_T, texture_id));
-    else
-        return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 20, 20, texture_id))
-         icon_list.insert(std::make_pair((int)IC_TEXT_T_DARK, texture_id));
-     else
-         return false;
-
     return true;
 }
 

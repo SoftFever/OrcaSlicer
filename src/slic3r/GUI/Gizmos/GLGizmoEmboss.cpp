@@ -31,6 +31,10 @@
 #include "libslic3r/BuildVolume.hpp"
 
 #include "imgui/imgui_stdlib.h" // using std::string for inputs
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include <imgui/imgui_internal.h>
 
 #include <wx/font.h>
 #include <wx/fontutil.h>
@@ -95,6 +99,8 @@ static const struct Limits
     // distance text object from surface
     MinMax<float> angle{-180.f, 180.f}; // in degrees
 } limits;
+
+static const float SELECTABLE_INNER_OFFSET = 8.0f;
 
 /// <summary>
 /// Prepare data for emboss
@@ -196,6 +202,7 @@ struct Facenames
 
     // data of can_load() faces
     std::vector<FaceName> faces = {};
+    std::vector<std::string> faces_names = {};
     // Sorter set of Non valid face names in OS
     std::vector<wxString> bad = {};
 
@@ -222,8 +229,8 @@ struct Facenames
     size_t hash = 0;
 
     // filtration pattern
-    std::string       search = "";
-    std::vector<bool> hide; // result of filtration
+    //std::string       search = "";
+    //std::vector<bool> hide; // result of filtration
 };
 
 bool store(const Facenames &facenames);
@@ -238,17 +245,15 @@ struct GuiCfg
 {
     // Detect invalid config values when change monitor DPI
     double screen_scale;
-    float  main_toolbar_height;
+    bool   dark_mode = false;
 
     // Zero means it is calculated in init function
-    ImVec2       minimal_window_size                  = ImVec2(0, 0);
-    ImVec2       minimal_window_size_with_advance     = ImVec2(0, 0);
-    ImVec2       minimal_window_size_with_collections = ImVec2(0, 0);
     float        height_of_volume_type_selector       = 0.f;
     float        input_width                          = 0.f;
     float        delete_pos_x                         = 0.f;
     float        max_style_name_width                 = 0.f;
     unsigned int icon_width                           = 0;
+    float        max_tooltip_width                    = 0.f;
 
     // maximal width and height of style image
     Vec2i max_style_image_size = Vec2i(0, 0);
@@ -841,30 +846,30 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
     else if (!m_is_unknown_font && !m_style_manager.get_wx_font().IsOk())
         create_notification_not_valid_font("WxFont is not loaded properly.");
 
-    // Configuration creation
     double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
-    float  main_toolbar_height = m_parent.get_main_toolbar_height();
+
+    // Orca
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0, 5.0) * screen_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * screen_scale);
+
+    // Configuration creation
     if (m_gui_cfg == nullptr ||                   // Exist configuration - first run
-        m_gui_cfg->screen_scale != screen_scale || // change of DPI
-        m_gui_cfg->main_toolbar_height != main_toolbar_height // change size of view port
+        m_gui_cfg->screen_scale != screen_scale  ||// change of DPI
+        m_gui_cfg->dark_mode != m_is_dark_mode // change of dark mode
         ) {
         // Create cache for gui offsets
         ::GuiCfg cfg = create_gui_configuration();
         cfg.screen_scale = screen_scale;
-        cfg.main_toolbar_height = main_toolbar_height;
+        cfg.dark_mode    = m_is_dark_mode;
 
         GuiCfg gui_cfg{std::move(cfg)};
         m_gui_cfg = std::make_unique<const GuiCfg>(std::move(gui_cfg));
-        // set position near toolbar
-        m_set_window_offset = ImVec2(-1.f, -1.f);
 
         // change resolution regenerate icons
         init_icons();
         m_style_manager.clear_imgui_font();
     }
-
-    const ImVec2 &min_window_size = get_minimal_window_size();
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, min_window_size);
 
     // Draw origin position of text during dragging
     if (m_surface_drag.has_value()) {
@@ -891,41 +896,31 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
     draw_mouse_offset(m_dragging_mouse_offset);
 #endif // SHOW_OFFSET_DURING_DRAGGING
 
-    // check if is set window offset
-    if (m_set_window_offset.has_value()) {
-        if (m_set_window_offset->y < 0)
-            // position near toolbar
-            m_set_window_offset = ImVec2(x, std::min(y, bottom_limit - min_window_size.y));
-        
-        ImGui::SetNextWindowPos(*m_set_window_offset, ImGuiCond_Always);
-        m_set_window_offset.reset();
-    } else if (!m_allow_open_near_volume) {
-        y = std::min(y, bottom_limit - min_window_size.y);
-        // position near toolbar
-        ImVec2 pos(x, y);
-        ImGui::SetNextWindowPos(pos, ImGuiCond_Once);
-    }
+    static float last_y = 0.0f;
+    static float last_h = 0.0f;
 
-    bool is_opened = true;
-    ImGuiWindowFlags flag = ImGuiWindowFlags_NoCollapse;
-    if (ImGui::Begin(get_name().c_str(), &is_opened, flag)) {
-        // Need to pop var before draw window
-        ImGui::PopStyleVar(); // WindowMinSize
-        draw_window();
-    } else {
-        ImGui::PopStyleVar(); // WindowMinSize
+    // adjust window position to avoid overlap the view toolbar
+    const float win_h = ImGui::GetWindowHeight();
+    y = std::min(y, bottom_limit - win_h);
+    GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+    if (last_h != win_h || last_y != y) {
+        // ask canvas for another frame to render the window in the correct position
+        m_imgui->set_requires_extra_frame();
+        if (last_h != win_h)
+            last_h = win_h;
+        if (last_y != y)
+            last_y = y;
     }
+    
+    GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-    // after change volume from object to volume it is necessary to recalculate
-    // minimal windows size because of set type
-    if (m_should_set_minimal_windows_size) {
-        m_should_set_minimal_windows_size = false;
-        ImGui::SetWindowSize(ImVec2(0.f, min_window_size.y), ImGuiCond_Always);
-    }
+    draw_window();
 
-    ImGui::End();
-    if (!is_opened)
-        close();
+    GizmoImguiEnd();
+
+    // Orca
+    ImGui::PopStyleVar(2);
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 void GLGizmoEmboss::on_set_state()
@@ -951,14 +946,6 @@ void GLGizmoEmboss::on_set_state()
         // Immediately after set state On is called function data_changed(), 
         // where one could distiguish undo/redo serialization from opening by letter 'T'
         // set_volume_by_selection();
-
-        // change position of just opened emboss window
-        if (m_allow_open_near_volume) {
-            m_set_window_offset = calc_fine_position(m_parent.get_selection(), get_minimal_window_size(), m_parent.get_canvas_size());
-        } else {            
-            m_set_window_offset = (m_gui_cfg != nullptr) ?
-                ImGuiWrapper::change_window_position(on_get_name().c_str(), false) : ImVec2(-1, -1);
-        }
     }
 }
 
@@ -1236,14 +1223,6 @@ void GLGizmoEmboss::set_volume_by_selection()
     
     if (!is_exact_font)
         create_notification_not_valid_font(tc);
-        
-    // The change of volume could show or hide part with setter on volume type
-    if (m_volume == nullptr || 
-        get_model_volume(m_volume_id, objects) == nullptr ||
-        (m_volume->get_object()->volumes.size() == 1) != 
-        (volume->get_object()->volumes.size() == 1)){
-        m_should_set_minimal_windows_size = true;
-    }
 
     // cancel previous job
     if (m_job_cancel != nullptr) {
@@ -1390,13 +1369,13 @@ void GLGizmoEmboss::draw_window()
 
     if (ImGui::TreeNode(_u8L("Advanced").c_str())) {
         if (!m_is_advanced_edit_style) {
-            set_minimal_window_size(true);
+            m_is_advanced_edit_style = true;
         } else {
             draw_advanced();
         }
         ImGui::TreePop();
-    } else if (m_is_advanced_edit_style) 
-        set_minimal_window_size(false);
+    } else if (m_is_advanced_edit_style)
+        m_is_advanced_edit_style = false;
 
     ImGui::Separator();
 
@@ -1519,10 +1498,7 @@ void GLGizmoEmboss::draw_text_input()
     // flag for extend font ranges if neccessary
     // ranges can't be extend during font is activ(pushed)
     std::string range_text;
-    float  window_height  = ImGui::GetWindowHeight();
-    float  minimal_height = get_minimal_window_size().y;
-    float  extra_height   = window_height - minimal_height;
-    ImVec2 input_size(m_gui_cfg->text_size.x, m_gui_cfg->text_size.y + extra_height);
+    ImVec2 input_size(m_gui_cfg->text_size.x, m_gui_cfg->text_size.y);
     const ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_AutoSelectAll;
     if (ImGui::InputTextMultiline("##Text", &m_text, input_size, flags)) {
         if (m_style_manager.get_font_prop().per_glyph) {
@@ -1546,7 +1522,7 @@ void GLGizmoEmboss::draw_text_input()
         float scrollbar_height = (input->ScrollbarX) ? style.ScrollbarSize : 0.f;
 
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", warning_tool_tip.c_str());
+            m_imgui->tooltip(warning_tool_tip, m_gui_cfg->max_tooltip_width);
 
         ImVec2 cursor = ImGui::GetCursorPos();
         float width = ImGui::GetContentRegionAvailWidth();
@@ -1598,7 +1574,7 @@ void GLGizmoEmboss::init_font_name_texture() {
     }
 
     // Prepare filtration cache
-    m_face_names->hide = std::vector<bool>(m_face_names->faces.size(), {false});
+    //m_face_names->hide = std::vector<bool>(m_face_names->faces.size(), {false});
 }
 
 bool GLGizmoEmboss::select_facename(const wxString &facename)
@@ -1617,13 +1593,53 @@ bool GLGizmoEmboss::select_facename(const wxString &facename)
     return true;
 }
 
+void GLGizmoEmboss::push_button_style(bool pressed)
+{
+    if (m_is_dark_mode) {
+        if (pressed) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 174 / 255.f, 66 / 255.f, 1.f));
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+        }
+    }
+    else {
+        if (pressed) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 174 / 255.f, 66 / 255.f, 1.f));
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.f, 1.f, 1.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238 / 255.f, 238 / 255.f, 238 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(238 / 255.f, 238 / 255.f, 238 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.f, 1.f, 1.f, 1.f));
+        }
+    
+    }
+}
+
+void GLGizmoEmboss::pop_button_style()
+{
+    ImGui::PopStyleColor(4);
+}
+
 void GLGizmoEmboss::draw_font_list_line()
-{    
+{
+    ImGui::AlignTextToFramePadding();
+
     bool exist_stored_style   = m_style_manager.exist_stored_style();
     bool exist_change_in_font = m_style_manager.is_font_changed();
     const std::string& font_text = m_gui_cfg->translations.font;
     if (exist_change_in_font || !exist_stored_style)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, font_text);
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, font_text);
     else
         ImGuiWrapper::text(font_text);
 
@@ -1661,7 +1677,7 @@ void GLGizmoEmboss::draw_font_list_line()
             if (new_wx_font.IsOk() && m_style_manager.set_wx_font(new_wx_font))
                 exist_change = true;
         } else if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", _u8L("Revert font changes.").c_str());
+            m_imgui->tooltip(_u8L("Revert font changes."), m_gui_cfg->max_tooltip_width);
     }
 
     if (exist_change) {
@@ -1674,6 +1690,12 @@ void GLGizmoEmboss::draw_font_list_line()
 
 void GLGizmoEmboss::draw_font_list()
 {
+    ImGuiWrapper::push_combo_style(m_gui_cfg->screen_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * m_gui_cfg->screen_scale);
+
+    wxString tooltip_name = "";
+
     // Set partial
     wxString actual_face_name;
     if (m_style_manager.is_active_font()) {
@@ -1683,62 +1705,17 @@ void GLGizmoEmboss::draw_font_list()
     }
     // name of actual selected font
     const char * selected = (!actual_face_name.empty()) ?
-        actual_face_name.ToUTF8().data() : " --- ";
+        (const char *)actual_face_name.c_str() : " --- ";
 
     // Do not remove font face during enumeration
     // When deletation of font appear this variable is set
     std::optional<size_t> del_index;
-
-    // Code
-    const char *popup_id = "##font_list_popup";
-    const char *input_id = "##font_list_input";
-    ImGui::SetNextItemWidth(m_gui_cfg->input_width);
-
-    // change color of hint to normal text
-    bool is_popup_open = ImGui::IsPopupOpen(popup_id);
-    if (!is_popup_open) {
-        ImGui::PushStyleColor(ImGuiCol_TextDisabled, ImGui::GetStyleColorVec4(ImGuiCol_Text));
-
-        // Fix clearance of search input,
-        // Sometime happens that search text not disapear after font select
-        m_face_names->search.clear();
-    }
-
-    if (ImGui::InputTextWithHint(input_id, selected, &m_face_names->search)) {
-        // update filtration result        
-        m_face_names->hide = std::vector<bool>(m_face_names->faces.size(), {false});
-
-        // search to uppercase
-        std::string search = m_face_names->search; // copy
-        std::transform(search.begin(), search.end(), search.begin(), ::toupper);
-
-        for (const FaceName &face : m_face_names->faces) {
-            size_t index = &face - &m_face_names->faces.front();
-
-            // font name to uppercase
-            std::string name(face.wx_name.ToUTF8().data());
-            std::transform(name.begin(), name.end(), name.begin(), ::toupper);
-
-            // It should use C++ 20 feature https://en.cppreference.com/w/cpp/string/basic_string/starts_with
-            bool start_with = boost::starts_with(name, search);
-            m_face_names->hide[index] = !start_with; 
-        }
-    }
-    if (!is_popup_open) 
-        ImGui::PopStyleColor(); // revert changes for hint color
-
-    const bool is_input_text_active = ImGui::IsItemActive();
     
-    // is_input_text_activated
-    if (ImGui::IsItemActivated())
-        ImGui::OpenPopup(popup_id);
-    
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y));
-    ImGui::SetNextWindowSize({2*m_gui_cfg->input_width, ImGui::GetTextLineHeight()*10});
-    ImGuiWindowFlags popup_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | 
-                                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_ChildWindow;
-    if (ImGui::BeginPopup(popup_id, popup_flags))
-    {
+    ImGui::SetNextItemWidth(2 * m_gui_cfg->input_width);
+    std::vector<int> filtered_items_idx;
+    bool             is_filtered = false;
+    if (m_imgui->bbl_combo_with_filter("##Combo_Font", selected, m_face_names->faces_names,
+        &filtered_items_idx, &is_filtered, m_imgui->scaled(32.f / 15.f))) {
         bool set_selection_focus = false;
         if (!m_face_names->is_init) {
             init_face_names(*m_face_names);
@@ -1747,60 +1724,61 @@ void GLGizmoEmboss::draw_font_list()
 
         if (!m_face_names->has_truncated_names)
             init_truncated_names(*m_face_names, m_gui_cfg->input_width);
-        
-        if (m_face_names->texture_id == 0) 
+
+        if (m_face_names->texture_id == 0)
             init_font_name_texture();
 
-        for (FaceName &face : m_face_names->faces) {
+        int show_items_count = is_filtered ? filtered_items_idx.size() : m_face_names->faces.size();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+
+        for (int i = 0; i < show_items_count; i++) {
+            int idx = is_filtered ? filtered_items_idx[i] : i;
+            FaceName &face = m_face_names->faces[idx];
             const wxString &wx_face_name = face.wx_name;
-            size_t index = &face - &m_face_names->faces.front();
 
-            // Filter for face names
-            if (m_face_names->hide[index])
-                continue;
-
-            ImGui::PushID(index);
+            ImGui::PushID(idx);
             ScopeGuard sg([]() { ImGui::PopID(); });
             bool is_selected = (actual_face_name == wx_face_name);
-            ImVec2 selectable_size(0, m_gui_cfg->face_name_size.y());
+            ImVec2 selectable_size(0, m_imgui->scaled(32.f / 15.f));
             ImGuiSelectableFlags flags = 0;
-            if (ImGui::Selectable(face.name_truncated.c_str(), is_selected, flags, selectable_size)) {
+            if (ImGui::BBLSelectable(face.name_truncated.c_str(), is_selected, flags, selectable_size)) {
                 if (!select_facename(wx_face_name)) {
-                    del_index = index;
+                    del_index = idx;
                     MessageDialog(wxGetApp().plater(), GUI::format_wxstr(_L("Font \"%1%\" can't be selected."), wx_face_name));
+                } else {
+                    ImGui::CloseCurrentPopup();
                 }
             }
             // tooltip as full name of font face
             if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", wx_face_name.ToUTF8().data());
+                tooltip_name = wx_face_name;
+
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
 
             // on first draw set focus on selected font
             if (set_selection_focus && is_selected)
                 ImGui::SetScrollHereY();
             ::draw_font_preview(face, m_text, *m_face_names, *m_gui_cfg, ImGui::IsItemVisible());
         }
-
-        if (!ImGui::IsWindowFocused() || 
-            (!is_input_text_active && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))) {
-            // closing of popup
-            ImGui::CloseCurrentPopup();
-        }
+        
+        ImGui::PopStyleVar(3);
+        ImGui::EndListBox();
         ImGui::EndPopup();
     } else if (m_face_names->is_init) {
         // Just one after close combo box
         // free texture and set id to zero
         m_face_names->is_init = false;
-        m_face_names->hide.clear();
         // cancel all process for generation of texture
         for (FaceName &face : m_face_names->faces)
             if (face.cancel != nullptr)
                 face.cancel->store(true);
         glsafe(::glDeleteTextures(1, &m_face_names->texture_id));
         m_face_names->texture_id = 0;
-
-        // Remove value from search input
-        ImGuiWrapper::left_inputs();
-        m_face_names->search.clear();
     }
 
     // delete unloadable face name when try to use
@@ -1811,6 +1789,7 @@ void GLGizmoEmboss::draw_font_list()
         auto it = std::upper_bound(bad.begin(), bad.end(), face->wx_name);
         bad.insert(it, face->wx_name);
         m_face_names->faces.erase(face);
+        m_face_names->faces_names.erase(m_face_names->faces_names.begin() + (*del_index));
         // update cached file
         store(*m_face_names);
     }
@@ -1835,7 +1814,12 @@ void GLGizmoEmboss::draw_font_list()
     } else if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Open dialog for choose from fonts.");
 #endif //  ALLOW_ADD_FONT_BY_OS_SELECTOR
+    
+    ImGui::PopStyleVar(2);
+    ImGuiWrapper::pop_combo_style();
 
+    if (!tooltip_name.IsEmpty())
+        m_imgui->tooltip(tooltip_name, m_gui_cfg->max_tooltip_width);
 }
 
 void GLGizmoEmboss::draw_model_type()
@@ -1859,7 +1843,7 @@ void GLGizmoEmboss::draw_model_type()
     if (ImGui::RadioButton(_u8L("Join").c_str(), type == part))
         new_type = part;
     else if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("%s", _u8L("Click to change text into object part.").c_str());
+        m_imgui->tooltip(_u8L("Click to change text into object part."), m_gui_cfg->max_tooltip_width);
     ImGui::SameLine();
 
     std::string last_solid_part_hint = _u8L("You can't change a type of the last solid part of the object.");
@@ -1867,9 +1851,9 @@ void GLGizmoEmboss::draw_model_type()
         new_type = negative;
     else if (ImGui::IsItemHovered()) {
         if (is_last_solid_part)
-            ImGui::SetTooltip("%s", last_solid_part_hint.c_str());
+            m_imgui->tooltip(last_solid_part_hint, m_gui_cfg->max_tooltip_width);
         else if (type != negative)
-            ImGui::SetTooltip("%s", _u8L("Click to change part type into negative volume.").c_str());
+            m_imgui->tooltip(_u8L("Click to change part type into negative volume."), m_gui_cfg->max_tooltip_width);
     }
 
     // In simple mode are not modifiers
@@ -1879,9 +1863,9 @@ void GLGizmoEmboss::draw_model_type()
             new_type = modifier;
         else if (ImGui::IsItemHovered()) {
             if (is_last_solid_part)
-                ImGui::SetTooltip("%s", last_solid_part_hint.c_str());
+                m_imgui->tooltip(last_solid_part_hint, m_gui_cfg->max_tooltip_width);
             else if (type != modifier)
-                ImGui::SetTooltip("%s", _u8L("Click to change part type into modifier.").c_str());
+                m_imgui->tooltip(_u8L("Click to change part type into modifier."), m_gui_cfg->max_tooltip_width);
         }
     }
 
@@ -1970,8 +1954,8 @@ void GLGizmoEmboss::draw_style_rename_button()
         ImGui::OpenPopup(popup_id);
     }
     else if (ImGui::IsItemHovered()) {
-        if (can_rename) ImGui::SetTooltip("%s", _u8L("Rename current style.").c_str());
-        else            ImGui::SetTooltip("%s", _u8L("Can't rename temporary style.").c_str());
+        if (can_rename) m_imgui->tooltip(_u8L("Rename current style."), m_gui_cfg->max_tooltip_width);
+        else            m_imgui->tooltip(_u8L("Can't rename temporary style."), m_gui_cfg->max_tooltip_width);
     }
     if (ImGui::BeginPopupModal(popup_id, 0, ImGuiWindowFlags_AlwaysAutoResize)) {
         m_imgui->disable_background_fadeout_animation();
@@ -1994,7 +1978,7 @@ void GLGizmoEmboss::draw_style_save_button(bool is_modified)
         } else {
             tooltip = _u8L("No changes to save.");
         }
-        ImGui::SetTooltip("%s", tooltip.c_str());
+        m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
     }
 }
 
@@ -2056,11 +2040,11 @@ void GLGizmoEmboss::draw_style_add_button()
         }
     } else if (ImGui::IsItemHovered()) {
         if (!can_add) {
-            ImGui::SetTooltip("%s", _u8L("Only valid font can be added to style.").c_str());
-        }else if (only_add_style) {
-            ImGui::SetTooltip("%s", _u8L("Add style to my list.").c_str());
+            m_imgui->tooltip(_u8L("Only valid font can be added to style."), m_gui_cfg->max_tooltip_width);
+        } else if (only_add_style) {
+            m_imgui->tooltip(_u8L("Add style to my list."), m_gui_cfg->max_tooltip_width);
         } else {
-            ImGui::SetTooltip("%s", _u8L("Save as new style.").c_str());
+            m_imgui->tooltip(_u8L("Save as new style."), m_gui_cfg->max_tooltip_width);
         }
     }
 
@@ -2124,8 +2108,8 @@ void GLGizmoEmboss::draw_delete_style_button() {
         std::string tooltip;
         if (can_delete)        tooltip = GUI::format(_L("Delete \"%1%\" style."), style_name);
         else if (is_last)      tooltip = GUI::format(_L("Can't delete \"%1%\". It is last style."), style_name);
-        else/*if(!is_stored)*/ tooltip = GUI::format(_L("Can't delete temporary style \"%1%\"."), style_name);        
-        ImGui::SetTooltip("%s", tooltip.c_str());
+        else/*if(!is_stored)*/ tooltip = GUI::format(_L("Can't delete temporary style \"%1%\"."), style_name);      
+        m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);  
     }
 }
 
@@ -2177,7 +2161,7 @@ void GLGizmoEmboss::draw_style_list() {
     if (m_style_manager.exist_stored_style())
         ImGui::Text("%s", title.c_str());
     else
-        ImGui::TextColored(ImGuiWrapper::COL_ORANGE_LIGHT, "%s", title.c_str());
+        ImGui::TextColored(ImGuiWrapper::COL_ORCA, "%s", title.c_str());
         
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
     auto add_text_modify = [&is_modified](const std::string& name) {
@@ -2185,7 +2169,8 @@ void GLGizmoEmboss::draw_style_list() {
         return name + Preset::suffix_modified();
     };
     std::optional<size_t> selected_style_index;
-    if (ImGui::BeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
+    ImGuiWrapper::push_combo_style(m_parent.get_scale());
+    if (ImGui::BBLBeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
         m_style_manager.init_style_images(m_gui_cfg->max_style_image_size, m_text);
         m_style_manager.init_trunc_names(max_style_name_width);
         std::optional<std::pair<size_t,size_t>> swap_indexes;
@@ -2201,10 +2186,10 @@ void GLGizmoEmboss::draw_style_list() {
             const std::optional<StyleManager::StyleImage> &img = style.image;            
             // allow click delete button
             ImGuiSelectableFlags_ flags = ImGuiSelectableFlags_AllowItemOverlap; 
-            if (ImGui::Selectable(style.truncated_name.c_str(), is_selected, flags, select_size)) {
+            if (ImGui::BBLSelectable(style.truncated_name.c_str(), is_selected, flags, select_size)) {
                 selected_style_index = index;
             } else if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", actual_style_name.c_str());
+                m_imgui->tooltip(actual_style_name, m_gui_cfg->max_tooltip_width);
 
             // reorder items
             if (ImGui::IsItemActive() && !ImGui::IsItemHovered()) {
@@ -2237,9 +2222,10 @@ void GLGizmoEmboss::draw_style_list() {
             std::string tooltip = is_modified?
                 GUI::format(_L("Modified style \"%1%\""), current_style.name):
                 GUI::format(_L("Current style is \"%1%\""), current_style.name);
-            ImGui::SetTooltip(" %s", tooltip.c_str());
+            m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
         }
     }
+    ImGuiWrapper::pop_combo_style();
         
     // Check whether user wants lose actual style modification
     if (selected_style_index.has_value() && is_modified) { 
@@ -2306,8 +2292,8 @@ bool GLGizmoEmboss::draw_italic_button()
             }
             return true;
         }
-        if (ImGui::IsItemHovered()) 
-            ImGui::SetTooltip("%s", _u8L("Unset italic").c_str());
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_u8L("Unset italic"), m_gui_cfg->max_tooltip_width);
     } else {
         // set italic
         if (draw_button(m_icons, IconType::italic)) {
@@ -2324,7 +2310,7 @@ bool GLGizmoEmboss::draw_italic_button()
             return true;
         }
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", _u8L("Set italic").c_str());
+            m_imgui->tooltip(_u8L("Set italic"), m_gui_cfg->max_tooltip_width);
     }
     return false;
 }
@@ -2353,7 +2339,7 @@ bool GLGizmoEmboss::draw_bold_button() {
             return true;
         }
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", _u8L("Unset bold").c_str());
+            m_imgui->tooltip(_u8L("Unset bold"), m_gui_cfg->max_tooltip_width);
     } else {
         // set bold
         if (draw_button(m_icons, IconType::bold)) {
@@ -2371,7 +2357,7 @@ bool GLGizmoEmboss::draw_bold_button() {
             return true;
         }
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", _u8L("Set bold").c_str());
+            m_imgui->tooltip(_u8L("Set bold"), m_gui_cfg->max_tooltip_width);
     }
     return false;
 }
@@ -2401,7 +2387,7 @@ bool GLGizmoEmboss::revertible(const std::string &name,
 {
     bool changed = exist_change(value, default_value);
     if (changed || default_value == nullptr)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, name);
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, name);
     else
         ImGuiWrapper::text(name);
 
@@ -2414,7 +2400,7 @@ bool GLGizmoEmboss::revertible(const std::string &name,
             value = *default_value;
             return true;
         } else if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", undo_tooltip.c_str());
+            m_imgui->tooltip(undo_tooltip, m_gui_cfg->max_tooltip_width);
         window->DC.CursorPosPrevLine.x = prev_x; // set back previous position
     }
     return draw();
@@ -2685,9 +2671,9 @@ void GLGizmoEmboss::draw_advanced()
         process();
     } else if (ImGui::IsItemHovered()) {
         if (per_glyph) {
-            ImGui::SetTooltip("%s", _u8L("Set global orientation for whole text.").c_str());
+            m_imgui->tooltip(_u8L("Set global orientation for whole text."), m_gui_cfg->max_tooltip_width);
         } else {
-            ImGui::SetTooltip("%s", _u8L("Set position and orientation per glyph.").c_str());
+            m_imgui->tooltip(_u8L("Set position and orientation per glyph."), m_gui_cfg->max_tooltip_width);
             if (!m_text_lines.is_init())
                 reinit_text_lines();
         }
@@ -2695,33 +2681,33 @@ void GLGizmoEmboss::draw_advanced()
         m_text_lines.reset();
     m_imgui->disabled_end(); // !can_use_per_glyph
         
-    auto draw_align = [&align = font_prop.align, input_offset = m_gui_cfg->advanced_input_offset, &icons = m_icons]() {
+    auto draw_align = [&align = font_prop.align, input_offset = m_gui_cfg->advanced_input_offset, &icons = m_icons, &m_imgui = m_imgui, &m_gui_cfg = m_gui_cfg]() {
         bool is_change = false;
         ImGui::SameLine(input_offset);
         if (align.first==FontProp::HorizontalAlign::left) draw(get_icon(icons, IconType::align_horizontal_left, IconState::hovered));
         else if (draw_button(icons, IconType::align_horizontal_left)) { align.first=FontProp::HorizontalAlign::left; is_change = true; }
-        else if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _CTX_utf8(L_CONTEXT("Left", "Alignment"), "Alignment").c_str());
+        else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Left", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
         ImGui::SameLine();
         if (align.first==FontProp::HorizontalAlign::center) draw(get_icon(icons, IconType::align_horizontal_center, IconState::hovered));
         else if (draw_button(icons, IconType::align_horizontal_center)) { align.first=FontProp::HorizontalAlign::center; is_change = true; }
-        else if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _CTX_utf8(L_CONTEXT("Center", "Alignment"), "Alignment").c_str());
+        else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Center", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
         ImGui::SameLine();
         if (align.first==FontProp::HorizontalAlign::right) draw(get_icon(icons, IconType::align_horizontal_right, IconState::hovered));
         else if (draw_button(icons, IconType::align_horizontal_right)) { align.first=FontProp::HorizontalAlign::right; is_change = true; }
-        else if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _CTX_utf8(L_CONTEXT("Right", "Alignment"), "Alignment").c_str());
+        else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Right", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
 
         ImGui::SameLine();
         if (align.second==FontProp::VerticalAlign::top) draw(get_icon(icons, IconType::align_vertical_top, IconState::hovered));
         else if (draw_button(icons, IconType::align_vertical_top)) { align.second=FontProp::VerticalAlign::top; is_change = true; }
-        else if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _CTX_utf8(L_CONTEXT("Top", "Alignment"), "Alignment").c_str());
+        else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Top", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
         ImGui::SameLine();
         if (align.second==FontProp::VerticalAlign::center) draw(get_icon(icons, IconType::align_vertical_center, IconState::hovered));
         else if (draw_button(icons, IconType::align_vertical_center)) { align.second=FontProp::VerticalAlign::center; is_change = true; }
-        else if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _CTX_utf8(L_CONTEXT("Middle", "Alignment"), "Alignment").c_str());
+        else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Middle", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
         ImGui::SameLine();
         if (align.second==FontProp::VerticalAlign::bottom) draw(get_icon(icons, IconType::align_vertical_bottom, IconState::hovered));
         else if (draw_button(icons, IconType::align_vertical_bottom)) { align.second=FontProp::VerticalAlign::bottom; is_change = true; }
-        else if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _CTX_utf8(L_CONTEXT("Bottom", "Alignment"), "Alignment").c_str());
+        else if (ImGui::IsItemHovered()) m_imgui->tooltip(_CTX_utf8(L_CONTEXT("Bottom", "Alignment"), "Alignment"), m_gui_cfg->max_tooltip_width);
         return is_change;
     };
     const FontProp::Align * def_align = stored_style ? &stored_style->prop.align : nullptr;
@@ -2893,10 +2879,10 @@ void GLGizmoEmboss::draw_advanced()
             m_keep_up = !m_keep_up;
     
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("%s", (m_keep_up?
+            m_imgui->tooltip(m_keep_up?
                 _u8L("Unlock the text's rotation when moving text along the object's surface."):
                 _u8L("Lock the text's rotation when moving text along the object's surface.")
-            ).c_str());
+            , m_gui_cfg->max_tooltip_width);
     }
 
     // when more collection add selector
@@ -2905,11 +2891,12 @@ void GLGizmoEmboss::draw_advanced()
         ImGui::SameLine(m_gui_cfg->advanced_input_offset);
         ImGui::SetNextItemWidth(m_gui_cfg->input_width);
         unsigned int selected = current_prop.collection_number.value_or(0);
-        if (ImGui::BeginCombo("## Font collection", std::to_string(selected).c_str())) {
+        ImGuiWrapper::push_combo_style(m_parent.get_scale());
+        if (ImGui::BBLBeginCombo("## Font collection", std::to_string(selected).c_str())) {
             for (unsigned int i = 0; i < ff.font_file->infos.size(); ++i) {
                 ImGui::PushID(1 << (10 + i));
                 bool is_selected = (i == selected);
-                if (ImGui::Selectable(std::to_string(i).c_str(), is_selected)) {
+                if (ImGui::BBLSelectable(std::to_string(i).c_str(), is_selected)) {
                     if (i == 0) current_prop.collection_number.reset();
                     else current_prop.collection_number = i;
                     exist_change = true;
@@ -2918,8 +2905,9 @@ void GLGizmoEmboss::draw_advanced()
             }
             ImGui::EndCombo();
         } else if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", _u8L("Select from True Type Collection.").c_str());
+            m_imgui->tooltip(_u8L("Select from True Type Collection."), m_gui_cfg->max_tooltip_width);
         }
+        ImGuiWrapper::pop_combo_style();
     }
 
     if (exist_change) {
@@ -2938,7 +2926,7 @@ void GLGizmoEmboss::draw_advanced()
         if (face_selected_volume_to_camera(cam, m_parent, wanted_up_limit))
             volume_transformation_changed();
     } else if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", _u8L("Orient the text towards the camera.").c_str());
+        m_imgui->tooltip(_u8L("Orient the text towards the camera."), m_gui_cfg->max_tooltip_width);
     }
 
     //ImGui::SameLine(); if (ImGui::Button("Re-emboss")) GLGizmoEmboss::re_emboss(*m_volume);    
@@ -2960,37 +2948,6 @@ void GLGizmoEmboss::draw_advanced()
     std::string descriptor = style.path;
     ImGui::Text("descriptor = %s", descriptor.c_str());
 #endif // ALLOW_DEBUG_MODE
-}
-
-void GLGizmoEmboss::set_minimal_window_size(bool is_advance_edit_style)
-{
-    ImVec2 window_size = ImGui::GetWindowSize();
-    const ImVec2& min_win_size_prev = get_minimal_window_size();
-    //ImVec2 diff(window_size.x - min_win_size_prev.x,
-    //            window_size.y - min_win_size_prev.y);
-    float diff_y = window_size.y - min_win_size_prev.y;
-    m_is_advanced_edit_style = is_advance_edit_style;
-    const ImVec2 &min_win_size = get_minimal_window_size();
-    ImVec2 new_window_size(0.f, min_win_size.y + diff_y);
-    ImGui::SetWindowSize(new_window_size, ImGuiCond_Always);
-    m_set_window_offset = ImGuiWrapper::change_window_position(on_get_name().c_str(), true);
-}
-
-ImVec2 GLGizmoEmboss::get_minimal_window_size() const
-{
-    ImVec2 res;
-    if (!m_is_advanced_edit_style)
-        res = m_gui_cfg->minimal_window_size;
-    else if (!m_style_manager.has_collections())
-        res = m_gui_cfg->minimal_window_size_with_advance;
-    else
-        res = m_gui_cfg->minimal_window_size_with_collections;
-
-    // Can change type of volume
-    if (!m_volume->is_the_only_one_part())
-        res.y += m_gui_cfg->height_of_volume_type_selector;
-
-    return res;
 }
 
 #ifdef ALLOW_ADD_FONT_BY_OS_SELECTOR
@@ -3473,12 +3430,15 @@ void init_face_names(Facenames &face_names)
     };
 
     face_names.faces.clear();
+    face_names.faces_names.clear();
     face_names.bad.clear();
     face_names.faces.reserve(facenames.size());
+    face_names.faces_names.reserve(facenames.size());
     std::sort(facenames.begin(), facenames.end());
     for (const wxString &name : facenames) {
         if (is_valid_font(name)) {
             face_names.faces.push_back({name});
+            face_names.faces_names.push_back(name.utf8_string());
         }else{
             face_names.bad.push_back(name);
         }
@@ -3569,8 +3529,9 @@ void draw_font_preview(FaceName &face, const std::string& text, Facenames &faces
     }
 
     ImGui::SameLine(cfg.face_name_texture_offset_x);
-    ImTextureID tex_id = (void *) (intptr_t) faces.texture_id;
-    ImGui::Image(tex_id, size, uv0, uv1);
+    ImTextureID tex_id     = (void *) (intptr_t) faces.texture_id;
+    ImVec4 tint_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+    ImGui::Image(tex_id, size, uv0, uv1, tint_color);
 }
 
 GuiCfg create_gui_configuration()
@@ -3670,42 +3631,20 @@ GuiCfg create_gui_configuration()
 
     cfg.lock_offset = cfg.advanced_input_offset - (cfg.icon_width + space);
     // calculate window size
-    float window_title = line_height + 2*style.FramePadding.y + 2 * style.WindowTitleAlign.y;
     float input_height = line_height_with_spacing + 2*style.FramePadding.y;
-    float tree_header  = line_height_with_spacing;
     float separator_height = 2 + style.FramePadding.y;
 
     // "Text is to object" + radio buttons
     cfg.height_of_volume_type_selector = separator_height + line_height_with_spacing + input_height;
-
-    float window_height = 
-        window_title + // window title
-        cfg.text_size.y +  // text field
-        input_height * 4 + // font name + height + depth + style selector 
-        tree_header +      // advance tree
-        separator_height + // presets separator line
-        line_height_with_spacing + // "Presets"
-        2 * style.WindowPadding.y;
-    float window_width = cfg.input_offset + cfg.input_width + 2*style.WindowPadding.x 
-        + 2 * (cfg.icon_width + space);
-    cfg.minimal_window_size = ImVec2(window_width, window_height);
-
-    // 9 = useSurface, charGap, lineGap, bold, italic, surfDist, rotation, keepUp, textFaceToCamera
-    // 4 = 1px for fix each edit image of drag float 
-    float advance_height = input_height * 10 + 9;
-    cfg.minimal_window_size_with_advance =
-        ImVec2(cfg.minimal_window_size.x,
-               cfg.minimal_window_size.y + advance_height);
-
-    cfg.minimal_window_size_with_collections = 
-        ImVec2(cfg.minimal_window_size_with_advance.x,
-            cfg.minimal_window_size_with_advance.y + input_height);
 
     int max_style_image_width = static_cast<int>(std::round(cfg.max_style_name_width/2 - 2 * style.FramePadding.x));
     int max_style_image_height = static_cast<int>(std::round(1.5 * input_height));
     cfg.max_style_image_size = Vec2i(max_style_image_width, max_style_image_height);
     cfg.face_name_size = Vec2i(cfg.input_width, line_height_with_spacing);
     cfg.face_name_texture_offset_x = cfg.face_name_size.x() + space;
+
+    cfg.max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+
     return cfg;
 }
 } // namespace
