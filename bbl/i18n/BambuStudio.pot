@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-22 18:26+0800\n"
+"POT-Creation-Date: 2023-11-24 20:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3807,6 +3807,9 @@ msgstr ""
 msgid "Connection lost. Please retry."
 msgstr ""
 
+msgid "The device cannot handle more conversations. Please retry later."
+msgstr ""
+
 msgid "File not exists."
 msgstr ""
 
@@ -3941,7 +3944,9 @@ msgstr ""
 msgid "Layer: %d/%d"
 msgstr ""
 
-msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgid ""
+"Please heat the nozzle to above 170 degree before loading or unloading "
+"filament."
 msgstr ""
 
 msgid "Still unload"
@@ -6860,6 +6865,25 @@ msgstr ""
 msgid ""
 "The spiral vase mode does not work when an object contains more than one "
 "materials."
+msgstr ""
+
+msgid ""
+"Different nozzle diameters and different filament diameters is not allowed "
+"when prime tower is enabled."
+msgstr ""
+
+msgid ""
+"The Wipe Tower is currently only supported with the relative extruder "
+"addressing (use_relative_e_distances=1)."
+msgstr ""
+
+msgid ""
+"Ooze prevention is currently not supported with the prime tower enabled."
+msgstr ""
+
+msgid ""
+"The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
+"RepRapFirmware and Repetier G-code flavors."
 msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
@@ -9943,10 +9967,10 @@ msgstr ""
 msgid "Create Filament"
 msgstr ""
 
-msgid "Create based on current filamet"
+msgid "Create Based on Current Filament"
 msgstr ""
 
-msgid "Copy current filament preset "
+msgid "Copy Current Filament Preset "
 msgstr ""
 
 msgid "Basic Information"
@@ -9955,10 +9979,13 @@ msgstr ""
 msgid "Add Filament Preset under this filament"
 msgstr ""
 
+msgid "We could create the filament presets for your following printer:"
+msgstr ""
+
 msgid "Select Vendor"
 msgstr ""
 
-msgid "Input custom vendor"
+msgid "Input Custom Vendor"
 msgstr ""
 
 msgid "Can't find vendor I want"
@@ -9976,10 +10003,7 @@ msgstr ""
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr ""
 
-msgid "Filament preset"
-msgstr ""
-
-msgid "We could create the filament presets for your following printer:"
+msgid "Filament Preset"
 msgstr ""
 
 msgid "Create"
@@ -10054,19 +10078,16 @@ msgstr ""
 msgid "Create Type"
 msgstr ""
 
-msgid "Select vendor"
-msgstr ""
-
 msgid "The model is not fond, place reselect vendor."
 msgstr ""
 
-msgid "Select model"
+msgid "Select Model"
 msgstr ""
 
-msgid "Select printer"
+msgid "Select Printer"
 msgstr ""
 
-msgid "Input custom model"
+msgid "Input Custom Model"
 msgstr ""
 
 msgid "Can't find my printer model"
@@ -10096,7 +10117,7 @@ msgstr ""
 msgid "Load svg"
 msgstr ""
 
-msgid "Max print height"
+msgid "Max Print Height"
 msgstr ""
 
 msgid "Preset path is not find, please reselect vendor."
@@ -10111,16 +10132,16 @@ msgstr ""
 msgid "The printer preset is not fond, place reselect."
 msgstr ""
 
-msgid "Printer preset"
+msgid "Printer Preset"
 msgstr ""
 
-msgid "Filament preset template"
+msgid "Filament Preset Template"
 msgstr ""
 
 msgid "Deselect All"
 msgstr ""
 
-msgid "Process preset template"
+msgid "Process Preset Template"
 msgstr ""
 
 msgid "Back Page 1"

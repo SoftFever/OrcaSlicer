@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-22 18:26+0800\n"
+"POT-Creation-Date: 2023-11-24 20:00+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -4127,6 +4127,9 @@ msgstr "Загрузка %d%%..."
 msgid "Connection lost. Please retry."
 msgstr "Соединение потеряно. Пожалуйста, повторите попытку."
 
+msgid "The device cannot handle more conversations. Please retry later."
+msgstr ""
+
 msgid "File not exists."
 msgstr "Файл не существует."
 
@@ -4264,10 +4267,10 @@ msgstr "Слой: %s"
 msgid "Layer: %d/%d"
 msgstr "Слой: %d/%d"
 
-msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgid ""
+"Please heat the nozzle to above 170 degree before loading or unloading "
+"filament."
 msgstr ""
-"Пожалуйста, перед загрузкой нити, нагрейте сопло до температуры выше 170 "
-"градусов."
 
 msgid "Still unload"
 msgstr "Ещё выгружается"
@@ -7527,6 +7530,25 @@ msgid ""
 msgstr ""
 "Режим «Спиральная ваза» не работает, когда модель печатается несколькими "
 "материалами."
+
+msgid ""
+"Different nozzle diameters and different filament diameters is not allowed "
+"when prime tower is enabled."
+msgstr ""
+
+msgid ""
+"The Wipe Tower is currently only supported with the relative extruder "
+"addressing (use_relative_e_distances=1)."
+msgstr ""
+
+msgid ""
+"Ooze prevention is currently not supported with the prime tower enabled."
+msgstr ""
+
+msgid ""
+"The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
+"RepRapFirmware and Repetier G-code flavors."
+msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Черновая башня не поддерживается при печати в режиме «По очереди»."
@@ -11241,11 +11263,11 @@ msgstr "Выбор профиля прутка"
 msgid "Create Filament"
 msgstr ""
 
-msgid "Create based on current filamet"
-msgstr "Создать на основе выбранного прутка"
+msgid "Create Based on Current Filament"
+msgstr ""
 
-msgid "Copy current filament preset "
-msgstr "Скопировать текущий профиль прутка"
+msgid "Copy Current Filament Preset "
+msgstr ""
 
 msgid "Basic Information"
 msgstr "Основная информация"
@@ -11253,11 +11275,14 @@ msgstr "Основная информация"
 msgid "Add Filament Preset under this filament"
 msgstr "Добавление профиля прутка под текущий пруток"
 
+msgid "We could create the filament presets for your following printer:"
+msgstr "Мы можем создать профили прутка для ваших следующих принтеров:"
+
 msgid "Select Vendor"
 msgstr "Выбор производителя"
 
-msgid "Input custom vendor"
-msgstr "Введите своего производителя"
+msgid "Input Custom Vendor"
+msgstr ""
 
 msgid "Can't find vendor I want"
 msgstr "Производитель отсутствует в списке"
@@ -11274,11 +11299,8 @@ msgstr "Серия"
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr "например обычная, матовая, шёлковая, мраморная"
 
-msgid "Filament preset"
-msgstr "Профиль прутка"
-
-msgid "We could create the filament presets for your following printer:"
-msgstr "Мы можем создать профили прутка для ваших следующих принтеров:"
+msgid "Filament Preset"
+msgstr ""
 
 msgid "Create"
 msgstr "Создать"
@@ -11366,20 +11388,17 @@ msgstr "Импорт профиля"
 msgid "Create Type"
 msgstr "Создать тип"
 
-msgid "Select vendor"
-msgstr "Выбор производителя"
-
 msgid "The model is not fond, place reselect vendor."
 msgstr "Модель не найдена, выберите производителя."
 
-msgid "Select model"
-msgstr "Выбор модели"
+msgid "Select Model"
+msgstr ""
 
-msgid "Select printer"
-msgstr "Выбор принтера"
+msgid "Select Printer"
+msgstr ""
 
-msgid "Input custom model"
-msgstr "Введите свою модель"
+msgid "Input Custom Model"
+msgstr ""
 
 msgid "Can't find my printer model"
 msgstr "Мой принтер отсутствует в списке"
@@ -11408,8 +11427,8 @@ msgstr "Текстура стола"
 msgid "Load svg"
 msgstr ""
 
-msgid "Max print height"
-msgstr "Максимальная высота печати"
+msgid "Max Print Height"
+msgstr ""
 
 msgid "Preset path is not find, please reselect vendor."
 msgstr ""
@@ -11425,17 +11444,17 @@ msgstr "Диаметр сопла не задан, пожалуйста, выб�
 msgid "The printer preset is not fond, place reselect."
 msgstr "Профиль принтера не найдена, выберите заново."
 
-msgid "Printer preset"
-msgstr "Профиль принтера"
+msgid "Printer Preset"
+msgstr ""
 
-msgid "Filament preset template"
-msgstr "Шаблон профиля прутка"
+msgid "Filament Preset Template"
+msgstr ""
 
 msgid "Deselect All"
 msgstr "Снять выбор со всего"
 
-msgid "Process preset template"
-msgstr "Шаблон профиля процесса"
+msgid "Process Preset Template"
+msgstr ""
 
 msgid "Back Page 1"
 msgstr "Вернуться на 1-ю страницу"
@@ -12161,6 +12180,47 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgstr ""
+#~ "Пожалуйста, перед загрузкой нити, нагрейте сопло до температуры выше 170 "
+#~ "градусов."
+
+#~ msgid "Create based on current filamet"
+#~ msgstr "Создать на основе выбранного прутка"
+
+#~ msgid "Copy current filament preset "
+#~ msgstr "Скопировать текущий профиль прутка"
+
+#~ msgid "Input custom vendor"
+#~ msgstr "Введите своего производителя"
+
+#~ msgid "Filament preset"
+#~ msgstr "Профиль прутка"
+
+#~ msgid "Select vendor"
+#~ msgstr "Выбор производителя"
+
+#~ msgid "Select model"
+#~ msgstr "Выбор модели"
+
+#~ msgid "Select printer"
+#~ msgstr "Выбор принтера"
+
+#~ msgid "Input custom model"
+#~ msgstr "Введите свою модель"
+
+#~ msgid "Max print height"
+#~ msgstr "Максимальная высота печати"
+
+#~ msgid "Printer preset"
+#~ msgstr "Профиль принтера"
+
+#~ msgid "Filament preset template"
+#~ msgstr "Шаблон профиля прутка"
+
+#~ msgid "Process preset template"
+#~ msgstr "Шаблон профиля процесса"
 
 #~ msgid "Creat Filament"
 #~ msgstr "Создание пластиковой нити"

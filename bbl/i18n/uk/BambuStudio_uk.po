@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-22 18:26+0800\n"
+"POT-Creation-Date: 2023-11-24 20:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4083,6 +4083,9 @@ msgstr "Завантаження %d%%..."
 msgid "Connection lost. Please retry."
 msgstr "З’єднання втрачено. Будь ласка, спробуйте ще раз."
 
+msgid "The device cannot handle more conversations. Please retry later."
+msgstr ""
+
 msgid "File not exists."
 msgstr "Файл не існує."
 
@@ -4219,10 +4222,10 @@ msgstr "Шар: %s"
 msgid "Layer: %d/%d"
 msgstr "Шар: %d/%d"
 
-msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgid ""
+"Please heat the nozzle to above 170 degree before loading or unloading "
+"filament."
 msgstr ""
-"Будь ласка, нагрійте сопло до температури вище 170 градусів перед "
-"завантаженням нитки."
 
 msgid "Still unload"
 msgstr "Ще вивантажує"
@@ -6152,8 +6155,8 @@ msgstr "Автоматично налаштувати на встановлен�
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "При записі таймлапсу без інструментальної головки рекомендується додати "
 "“Timelapse Wipe Tower” \n"
@@ -7434,6 +7437,25 @@ msgid ""
 "materials."
 msgstr ""
 "Режим спіральної вази не працює, якщо об'єкт містить більше одногоматеріалу."
+
+msgid ""
+"Different nozzle diameters and different filament diameters is not allowed "
+"when prime tower is enabled."
+msgstr ""
+
+msgid ""
+"The Wipe Tower is currently only supported with the relative extruder "
+"addressing (use_relative_e_distances=1)."
+msgstr ""
+
+msgid ""
+"Ooze prevention is currently not supported with the prime tower enabled."
+msgstr ""
+
+msgid ""
+"The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
+"RepRapFirmware and Repetier G-code flavors."
+msgstr ""
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Під час друку \"По об'єкту\" підставка для очищення не підтримується."
@@ -11107,11 +11129,11 @@ msgstr "Вибрати налаштування філаменту"
 msgid "Create Filament"
 msgstr "Створити Філамент"
 
-msgid "Create based on current filamet"
-msgstr "Створити налаштування на основі поточного філаменту"
+msgid "Create Based on Current Filament"
+msgstr ""
 
-msgid "Copy current filament preset "
-msgstr "Скопіювати поточне налаштування філаменту "
+msgid "Copy Current Filament Preset "
+msgstr ""
 
 msgid "Basic Information"
 msgstr "Основна інформація"
@@ -11119,11 +11141,15 @@ msgstr "Основна інформація"
 msgid "Add Filament Preset under this filament"
 msgstr "Додати налаштування філаменту під цим філаментом"
 
+msgid "We could create the filament presets for your following printer:"
+msgstr ""
+"Ми можемо створити налаштування філаменту для вашого наступного принтера:"
+
 msgid "Select Vendor"
 msgstr "Вибрати виробника"
 
-msgid "Input custom vendor"
-msgstr "Виробник"
+msgid "Input Custom Vendor"
+msgstr ""
 
 msgid "Can't find vendor I want"
 msgstr "Не можу знайти виробника, якого я хочу"
@@ -11140,12 +11166,8 @@ msgstr "Серійний номер"
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr "наприклад, Basic, Matte, Silk, Marble"
 
-msgid "Filament preset"
-msgstr "Налаштування філаменту"
-
-msgid "We could create the filament presets for your following printer:"
+msgid "Filament Preset"
 msgstr ""
-"Ми можемо створити налаштування філаменту для вашого наступного принтера:"
 
 msgid "Create"
 msgstr "Створити"
@@ -11205,8 +11227,8 @@ msgstr ""
 "Чи бажаєте ви їх перезаписати?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you "
-"selected\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
 "Ми перейменовуємо налаштування на “Виробник Тип Серійний номер @принтер, "
@@ -11237,20 +11259,17 @@ msgstr "Імпортувати налаштування"
 msgid "Create Type"
 msgstr "Тип"
 
-msgid "Select vendor"
-msgstr "Виберіть виробника"
-
 msgid "The model is not fond, place reselect vendor."
 msgstr "Модель не знайдено. Будь ласка, перевиберіть виробника."
 
-msgid "Select model"
-msgstr "Виберіть модель"
+msgid "Select Model"
+msgstr ""
 
-msgid "Select printer"
-msgstr "Виберіть принтер"
+msgid "Select Printer"
+msgstr ""
 
-msgid "Input custom model"
-msgstr "Модель"
+msgid "Input Custom Model"
+msgstr ""
 
 msgid "Can't find my printer model"
 msgstr "Не можу знайти свою модель принтера"
@@ -11279,8 +11298,8 @@ msgstr "SVG для гарячого ліжка"
 msgid "Load svg"
 msgstr "Завантажити SVG"
 
-msgid "Max print height"
-msgstr "Максимальна висота друку"
+msgid "Max Print Height"
+msgstr ""
 
 msgid "Preset path is not find, please reselect vendor."
 msgstr "Шлях до налаштувань не знайдено. Будь ласка, перевиберіть виробника."
@@ -11294,17 +11313,17 @@ msgstr "Діаметр сопла не знайдено. Будь ласка, п
 msgid "The printer preset is not fond, place reselect."
 msgstr "Налаштування принтера не знайдено. Будь ласка, перевиберіть його."
 
-msgid "Printer preset"
-msgstr "Налаштування принтера"
+msgid "Printer Preset"
+msgstr ""
 
-msgid "Filament preset template"
-msgstr "Шаблон налаштувань філаменту"
+msgid "Filament Preset Template"
+msgstr ""
 
 msgid "Deselect All"
 msgstr "Скасувати вибір всіх"
 
-msgid "Process preset template"
-msgstr "Шаблон налаштувань процесу"
+msgid "Process Preset Template"
+msgstr ""
 
 msgid "Back Page 1"
 msgstr "Повернутися на 1 сторінку"
@@ -12067,6 +12086,47 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgstr ""
+#~ "Будь ласка, нагрійте сопло до температури вище 170 градусів перед "
+#~ "завантаженням нитки."
+
+#~ msgid "Create based on current filamet"
+#~ msgstr "Створити налаштування на основі поточного філаменту"
+
+#~ msgid "Copy current filament preset "
+#~ msgstr "Скопіювати поточне налаштування філаменту "
+
+#~ msgid "Input custom vendor"
+#~ msgstr "Виробник"
+
+#~ msgid "Filament preset"
+#~ msgstr "Налаштування філаменту"
+
+#~ msgid "Select vendor"
+#~ msgstr "Виберіть виробника"
+
+#~ msgid "Select model"
+#~ msgstr "Виберіть модель"
+
+#~ msgid "Select printer"
+#~ msgstr "Виберіть принтер"
+
+#~ msgid "Input custom model"
+#~ msgstr "Модель"
+
+#~ msgid "Max print height"
+#~ msgstr "Максимальна висота друку"
+
+#~ msgid "Printer preset"
+#~ msgstr "Налаштування принтера"
+
+#~ msgid "Filament preset template"
+#~ msgstr "Шаблон налаштувань філаменту"
+
+#~ msgid "Process preset template"
+#~ msgstr "Шаблон налаштувань процесу"
 
 #~ msgid "Creat Filament"
 #~ msgstr "Створити Філамент"
