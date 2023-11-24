@@ -376,6 +376,8 @@ std::string MachineObject::parse_printer_type(std::string type_str)
         return "BL-P001";
     } else if (type_str.compare("BL-P001") == 0) {
         return type_str;
+    } else if (type_str.compare("BL-P002") == 0) {
+        return type_str;
     } else {
         return DeviceManager::parse_printer_type(type_str);
     }

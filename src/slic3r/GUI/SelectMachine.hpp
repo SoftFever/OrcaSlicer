@@ -450,7 +450,7 @@ public:
     bool has_timelapse_warning();
     void update_timelapse_enable_status();
     bool is_same_printer_model();
-    bool is_blocking_printing();
+    bool is_blocking_printing(MachineObject* obj_);
     bool is_same_nozzle_diameters(std::string& nozzle_type, std::string& nozzle_diameter);
     bool is_same_nozzle_type(std::string& filament_type, std::string& tag_nozzle_type);
     bool has_tips(MachineObject* obj);

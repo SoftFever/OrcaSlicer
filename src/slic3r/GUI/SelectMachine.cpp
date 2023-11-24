@@ -2214,13 +2214,10 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     this->EndModal(wxID_CANCEL);
 }
 
-bool SelectMachineDialog::is_blocking_printing()
+bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return true;
-
-    MachineObject* obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return true;
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
@@ -3413,7 +3410,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (m_print_type == PrintFromType::FROM_NORMAL && is_blocking_printing()) {
+    if (m_print_type == PrintFromType::FROM_NORMAL && is_blocking_printing(obj_)) {
         show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
         return;
     }
