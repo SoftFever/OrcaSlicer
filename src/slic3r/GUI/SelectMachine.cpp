@@ -2291,7 +2291,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std
     return is_same_nozzle_diameters;
 }
 
-bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type)
+bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::string& tag_nozzle_type)
 {
     bool  is_same_nozzle_type = true;
 
@@ -2324,6 +2324,10 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type)
             filament_type = m->m_material_name.ToStdString();
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
             is_same_nozzle_type = false;
+            tag_nozzle_type = "hardened_steel";
+        }
+        else {
+            tag_nozzle_type = obj_->nozzle_type;
         }
 
         iter++;
@@ -2502,6 +2506,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::string nozzle_type;
     std::string nozzle_diameter;
     std::string filament_type;
+    std::string tag_nozzle_type;
 
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
         if (!is_same_nozzle_diameters(nozzle_type, nozzle_diameter)) {
@@ -2516,7 +2521,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 + "\n    " + nozzle_in_printer
                 + "\n");
         }
-        else if (!is_same_nozzle_type(filament_type)){
+        else if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             has_update_nozzle = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
@@ -2543,13 +2548,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         });
 
-        confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
-            if (obj_ && !nozzle_type.empty() && !nozzle_diameter.empty()) {
+        confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
+            if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
                 try
                 {
                     float diameter = std::stof(nozzle_diameter); 
                     diameter = round(diameter * 10) / 10;
-                    obj_->command_set_printer_nozzle(nozzle_type, diameter);
+                    obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
                 }
                 catch (...) {} 
             }
