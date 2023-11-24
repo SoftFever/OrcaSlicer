@@ -21,7 +21,7 @@ Bellow is a reference configuration for Klipper.
 [heater_generic chamber_heater]
 heater_pin:PB10
 max_power:1.0
-# Note: here the temperature sensor should be the sensor you are using for chamber temperature, not the PTC sensor
+# Orca note: here the temperature sensor should be the sensor you are using for chamber temperature, not the PTC sensor
 sensor_type:NTC 100K MGB18-104F39050L32
 sensor_pin:PA1
 control = pid
@@ -43,6 +43,8 @@ gcode:
         M117 Chamber heating cancelled
     {% else %}
         SET_HEATER_TEMPERATURE HEATER=chamber_heater TARGET={s}
+        # Orca: uncomment the following line if you want to use heat bed to assist chamber heating
+        # M140 S100
         TEMPERATURE_WAIT SENSOR="heater_generic chamber_heater" MINIMUM={s-1} MAXIMUM={s+1}
         M117 Chamber at target temperature
     {% endif %}

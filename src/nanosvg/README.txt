@@ -1,1 +1,1 @@
-Upstream source: https://github.com/memononen/nanosvg/tree/c1f6e209c16b18b46aa9f45d7e619acf42c29726
+Upstream source: https://github.com/fltk/nanosvg/archive/abcd277ea45e9098bed752cf9c6875b533c0892f.zip

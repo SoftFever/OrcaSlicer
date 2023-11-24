@@ -7,6 +7,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
+#include "libslic3r/Color.hpp"
 #include "Widgets/Button.hpp"
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "MainFrame.hpp"
@@ -407,9 +408,9 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
 
     for (const std::string& color : extruder_colours) {
-        //unsigned char rgb[3];
-        //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
-        m_colours.push_back(wxColor(color));
+        Slic3r::ColorRGB rgb;
+        Slic3r::decode_color(color, rgb);
+        m_colours.push_back(wxColor(rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar()));
     }
 
     // Create two switched panels with their own sizers

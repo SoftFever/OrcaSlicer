@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Filip Sykala @Jony01, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Lukáš Hejl @hejllukas, David Kocík @kocikdav, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_ImGuiWrapper_hpp_
 #define slic3r_ImGuiWrapper_hpp_
 
@@ -11,9 +15,12 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 
-namespace Slic3r {namespace Search {
+namespace Slic3r {
+class ColorRGBA;
+namespace Search {
 struct OptionViewParameters;
-}}
+} // namespace Search
+} // namespace Slic3r
 
 class wxString;
 class wxMouseEvent;
@@ -58,6 +65,7 @@ class ImGuiWrapper
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     bool m_requires_extra_frame{ false };
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    std::map<wchar_t, int> m_custom_glyph_rects_ids;
     std::string m_clipboard_text;
 
 public:
@@ -66,6 +74,11 @@ public:
         bool edited  { false };
         bool clicked { false };
         bool deactivated_after_edit { false };
+        // flag to indicate possibility to take snapshot from the slider value
+        // It's used from Gizmos to take snapshots just from the very beginning of the editing
+        bool can_take_snapshot { false };
+        // When Undo/Redo snapshot is taken, then call this function
+        void invalidate_snapshot() { can_take_snapshot = false; }
     };
 
     ImGuiWrapper();
@@ -87,12 +100,13 @@ public:
 
     float scaled(float x) const { return x * m_font_size; }
     ImVec2 scaled(float x, float y) const { return ImVec2(x * m_font_size, y * m_font_size); }
-    ImVec2 calc_text_size(const wxString &text, float wrap_width = -1.0f) const;
+    ImVec2 calc_text_size(const wxString &text, bool  hide_text_after_double_hash = false, float wrap_width = -1.0f) const;
     ImVec2 calc_button_size(const wxString &text, const ImVec2 &button_size = ImVec2(0, 0)) const;
 
     ImVec2 get_item_spacing() const;
     float  get_slider_float_height() const;
     const LastSliderStatus& get_last_slider_status() const { return m_last_slider_status; }
+    LastSliderStatus& get_last_slider_status() { return m_last_slider_status; }
 
     void set_next_window_pos(float x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     void set_next_window_bg_alpha(float alpha);
@@ -110,11 +124,11 @@ public:
     bool begin(const wxString& name, bool* close, int flags = 0);
     void end();
 
-    bool button(const wxString &label);
-    bool bbl_button(const wxString &label);
-	bool button(const wxString& label, float width, float height);
+    bool button(const wxString &label, const wxString& tooltip = {});
+    bool bbl_button(const wxString &label, const wxString& tooltip = {});
+    bool button(const wxString& label, float width, float height);
+    bool button(const wxString& label, const ImVec2 &size, bool enable); // default size = ImVec2(0.f, 0.f)
     bool radio_button(const wxString &label, bool active);
-	bool image_button();
     bool input_double(const std::string &label, const double &value, const std::string &format = "%.3f");
     bool input_double(const wxString &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
@@ -147,7 +161,12 @@ public:
     bool slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format = "%.3f", float power = 1.0f,  bool clamp = true);
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
-    bool combo(const wxString& label, const std::vector<std::string>& options, int& selection);   // Use -1 to not mark any option as selected
+    bool image_button(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0.0, 0.0), const ImVec2& uv1 = ImVec2(1.0, 1.0), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0.0, 0.0, 0.0, 0.0), const ImVec4& tint_col = ImVec4(1.0, 1.0, 1.0, 1.0), ImGuiButtonFlags flags = 0);
+    bool image_button(const wchar_t icon, const wxString& tooltip = L"");
+
+    // Use selection = -1 to not mark any option as selected
+    bool combo(const std::string& label, const std::vector<std::string>& options, int& selection, ImGuiComboFlags flags = 0, float label_width = 0.0f, float item_width = 0.0f);
+    bool combo(const wxString& label, const std::vector<std::string>& options, int& selection, ImGuiComboFlags flags = 0, float label_width = 0.0f, float item_width = 0.0f);
     bool undo_redo_list(const ImVec2& size, const bool is_undo, bool (*items_getter)(const bool, int, const char**), int& hovered, int& selected, int& mouse_wheel);
     void search_list(const ImVec2& size, bool (*items_getter)(int, const char** label, const char** tooltip), char* search_str,
                      Search::OptionViewParameters &view_params,
@@ -157,6 +176,7 @@ public:
                      bool                          is_localized);
     void bold_text(const std::string &str);
     void title(const std::string& str);
+    void title(const std::string &str, bool suppress_seperator);
 
     // set font
     const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }
@@ -181,6 +201,15 @@ public:
     void reset_requires_extra_frame() { m_requires_extra_frame = false; }
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
+    void disable_background_fadeout_animation();
+
+    static ImU32 to_ImU32(const ColorRGBA& color);
+    static ImVec4 to_ImVec4(const ColorRGBA& color);
+    static ColorRGBA from_ImU32(const ImU32& color);
+    static ColorRGBA from_ImVec4(const ImVec4& color);
+
+    ImFontAtlasCustomRect* GetTextureCustomRect(const wchar_t& tex_id);
+
     static const ImVec4 COL_GREY_DARK;
     static const ImVec4 COL_GREY_LIGHT;
     static const ImVec4 COL_ORANGE_DARK;
@@ -200,6 +229,7 @@ public:
     static const ImVec4 COL_WINDOW_BG_DARK;
     static const ImVec4 COL_SEPARATOR;
     static const ImVec4 COL_SEPARATOR_DARK;
+    static const ImVec4 COL_ORCA;
 
     //BBS
     static void on_change_color_mode(bool is_dark);

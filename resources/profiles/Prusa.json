@@ -1,6 +1,6 @@
 {
     "name": "Prusa",
-    "version": "01.07.01.04",
+    "version": "01.08.00.00",
     "force_update": "0",
     "description": "Prusa configurations",
     "machine_model_list": [
@@ -29,6 +29,10 @@
         {
             "name": "process_common_mk3",
             "sub_path": "process/process_common_mk3.json"
+        },
+        {
+            "name": "0.20mm Standard @MINI",
+            "sub_path": "process/0.20mm Standard @MINI.json"
         },
         {
             "name": "0.05mm UltraDetail @MK3S",

@@ -83,6 +83,8 @@ public:
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d &mouse_position, bool shift_down, bool alt_down, bool control_down);
 
+    bool on_mouse(const wxMouseEvent &mouse_event) override;
+
     bool is_mesh_point_clipped(const Vec3d &point, const Transform3d &trafo) const;
     BoundingBoxf3 bounding_box() const;
 
@@ -91,8 +93,7 @@ protected:
     virtual std::string on_get_name() const override;
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
-    virtual void on_render_for_picking() override;
-    virtual void on_update(const UpdateData &data) override;
+    virtual void on_dragging(const UpdateData &data) override;
     void push_combo_style(const float scale);
     void pop_combo_style();
     void push_button_style(bool pressed);
@@ -100,6 +101,8 @@ protected:
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
+    virtual void on_register_raycasters_for_picking() override;
+    virtual void on_unregister_raycasters_for_picking() override;
 
     void show_tooltip_information(float x, float y);
 

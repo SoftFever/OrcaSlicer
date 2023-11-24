@@ -205,7 +205,7 @@ private:
 
 public:
     ObjectList(wxWindow* parent);
-    ~ObjectList();
+    ~ObjectList() override;
 
     void set_min_height();
     void update_min_height();
@@ -297,7 +297,7 @@ public:
     void                del_info_item(const int obj_idx, InfoItemType type);
     void                split();
     void                merge(bool to_multipart_object);
-    void                merge_volumes(); // BBS: merge parts to single part
+    // void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
     void                boolean();    // BBS: Boolean Operation of parts

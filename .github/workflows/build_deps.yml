@@ -1,60 +1,62 @@
-# name: Build Deps
-name: Build deps
-
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'deps/**'
-      - .github/workflows/build_deps.yml
-  push:
-    branches:
-      - main
-    paths:
-      - 'deps/**'
-      - .github/workflows/build_deps.yml
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+    inputs:
+      cache-key:
+        required: true
+        type: string
+      cache-path:
+        required: true
+        type: string
+      valid-cache:
+        required: true
+        type: boolean
+      os:
+        required: true
+        type: string
+      arch:
+        required: false
+        type: string
+      build-deps-only:
+        required: false
+        type: boolean
 
 jobs:
   build_deps:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-20.04
-          - os: windows-latest
-          - os: macos-12
-            arch: x86_64
-          - os: macos-12
-            arch: arm64
-    runs-on: ${{ matrix.os }}
-
+    name: Build Deps
+    if: inputs.build-deps-only || inputs.valid-cache != true
+    runs-on: ${{ inputs.os }}
+    env:
+      date:
     steps:
+      
+      # Setup the environment
       - name: Checkout
         uses: actions/checkout@v3
+        
+      - name: load cached deps
+        uses: actions/cache@v3
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
 
       - name: setup dev on Windows
-        if: matrix.os == 'Windows'
+        if: inputs.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v1.1
 
       - name: Get the date on Ubuntu and macOS
-        if: matrix.os != 'windows-latest'
-        id: get-date-unix
+        if: inputs.os != 'windows-latest'
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
         
       - name: Get the date on Windows
-        if: matrix.os == 'windows-latest'
-        id: get-date-windows
+        if: inputs.os == 'windows-latest'
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
+        
+      # Build Dependencies
       - name: Build on Windows
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
@@ -64,26 +66,18 @@ jobs:
             .\build_release_vs2022.bat pack
             cd ${{ github.workspace }}/deps/build
 
-      - name: Build on Mac x86_64
-        if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
+      - name: Build on Mac ${{ inputs.arch }}
+        if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
             brew install cmake git gettext automake
-            mkdir -p ${{ github.workspace }}/deps/build_x86_64
-            mkdir -p ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep_x86_64
-            ./build_release_macos.sh -dp -a x86_64
-
-      - name: Build on Mac arm64
-        if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
-        working-directory: ${{ github.workspace }}
-        run: |
-            brew install cmake git gettext automake
-            mkdir -p ${{ github.workspace }}/deps/build_arm64
-            mkdir -p ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep_arm64
-            ./build_release_macos.sh -dp -a arm64
+            brew list
+            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}
+            mkdir -p ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep_${{ inputs.arch }}
+            ./build_release_macos.sh -dp -a ${{ inputs.arch }}
 
       - name: Build on Ubuntu
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         working-directory: ${{ github.workspace }}
         run: |
             sudo apt-get update
@@ -99,32 +93,39 @@ jobs:
             ./BuildLinux.sh -dr
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
-
-      - name: Upload Mac arm64 artifacts
-        if: matrix.os == 'macos-12' && matrix.arch == 'arm64'
-        uses: actions/upload-artifact@v3
-        with:
-          name: OrcaSlicer_dep_mac_arm64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build_arm64/OrcaSlicer_dep*.tar.gz
       
-      - name: Upload Mac x86_64 artifacts
-        if: matrix.os == 'macos-12' && matrix.arch == 'x86_64'
+            
+      # Upload Artifacts
+      - name: Upload Mac ${{ inputs.arch }} artifacts
+        if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_dep_mac_x86_64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build_x86_64/OrcaSlicer_dep*.tar.gz
+          name: OrcaSlicer_dep_mac_${{ inputs.arch }}_${{ env.date }}
+          path: ${{ github.workspace }}/deps/build_${{ inputs.arch }}/OrcaSlicer_dep*.tar.gz
 
       - name: Upload Windows artifacts
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_win64_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_dep_ubuntu_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
+          
+  build_orca:
+    name: Build OrcaSlicer
+    needs: [build_deps]
+    if: ${{ !cancelled() && !inputs.build-deps-only && (inputs.valid-cache == true && needs.build_deps.result == 'skipped') || (inputs.valid-cache != true && success()) }}
+    uses: ./.github/workflows/build_orca.yml
+    with:
+      cache-key: ${{ inputs.cache-key }}
+      cache-path: ${{ inputs.cache-path }}
+      os: ${{ inputs.os }}
+      arch: ${{ inputs.arch }}
+    secrets: inherit
         

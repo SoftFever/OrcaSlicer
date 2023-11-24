@@ -66,10 +66,11 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                             encoded = encoded.substr(max_row_length);
                         }
 
+                        // Orca write remaining ecoded data
                         if (encoded.size() > 0)
-                            output((boost::format("; %s end\n;\n") % compressed->tag()).str().c_str());
+                            output((boost::format("; %s\n") % encoded).str().c_str());
 
-                        output("; thumbnail end\n");
+                        output((boost::format("; %s end\n") % compressed->tag()).str().c_str());
                     }
                     throw_if_canceled();
                 }

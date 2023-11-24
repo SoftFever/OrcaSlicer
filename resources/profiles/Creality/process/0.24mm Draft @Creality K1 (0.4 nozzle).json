@@ -49,7 +49,7 @@
     "ironing_spacing": "0.15",
     "ironing_speed": "100",
     "ironing_type": "no ironing",
-    "layer_height": "0.2",
+    "layer_height": "0.24",
     "reduce_infill_retraction": "1",
     "filename_format": "{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode",
     "detect_overhang_wall": "1",
