@@ -1944,11 +1944,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         m_is_slider_editing_done = false;
         m_imgui->text(_L("Groove") + ": "); // ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, m_labels_map["Groove"] + ": ");
         m_label_width          = caption_size + 1 * space_size;
-#ifdef __APPLE__
-        m_editing_window_width = 400;
-#else
-        m_editing_window_width = 290;
-#endif
+        m_editing_window_width = m_label_width* 2.5;
         bool is_changed{false};
         is_changed |= render_slider_double_input(_u8L("Depth"), m_groove.depth, m_groove.depth_tolerance);
         is_changed |= render_slider_double_input(_u8L("Width"), m_groove.width, m_groove.width_tolerance);
