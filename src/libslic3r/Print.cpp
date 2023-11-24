@@ -1037,19 +1037,19 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
                 || std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1)
                 // BBS: remove L()
-                return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
+                return { L("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
 
         if (! m_config.use_relative_e_distances)
-            return { ("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
+            return { L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
         if (m_config.ooze_prevention)
-            return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
+            return { L("Ooze prevention is currently not supported with the prime tower enabled.") };
 
         // BBS: remove following logic and _L()
 #if 0
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
-            return {("The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.")};
+            return { L("The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors.")};
 
         if ((m_config.print_sequence == PrintSequence::ByObject) && extruders.size() > 1)
             return { L("The prime tower is not supported in \"By object\" print."), nullptr, "enable_prime_tower" };

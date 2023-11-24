@@ -533,8 +533,8 @@ static void adjust_dialog_in_screen(DPIDialog* dialog) {
 CreateFilamentPresetDialog::CreateFilamentPresetDialog(wxWindow *parent) 
 	: DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Create Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxCENTRE)
 {
-    m_create_type.base_filament = _L("Create based on current filamet");
-    m_create_type.base_filament_preset = _L("Copy current filament preset ");
+    m_create_type.base_filament = _L("Create Based on Current Filament");
+    m_create_type.base_filament_preset = _L("Copy Current Filament Preset ");
 
 	this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(600), FromDIP(480)));
@@ -664,7 +664,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->GetTextCtrl()->SetMaxLength(50);
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
-    m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input custom vendor"));
+    m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input Custom Vendor"));
     m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) {
@@ -797,7 +797,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxBoxSizer *  optionSizer        = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_filament_preset_text = new wxStaticText(this, wxID_ANY, _L("Filament preset"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_filament_preset_text = new wxStaticText(this, wxID_ANY, _L("Filament Preset"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -1532,7 +1532,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     wxBoxSizer *vertical_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *comboBoxSizer = new wxBoxSizer(wxHORIZONTAL);
     m_select_vendor            = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
-    m_select_vendor->SetValue(_L("Select vendor"));
+    m_select_vendor->SetValue(_L("Select Vendor"));
     m_select_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     wxArrayString printer_vendor;
     for (const std::string &vendor : printer_vendors) { 
@@ -1566,7 +1566,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
 
     m_select_model = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     comboBoxSizer->Add(m_select_model, 0, wxEXPAND | wxLEFT, FromDIP(5));
-    m_select_model->SetValue(_L("Select model"));
+    m_select_model->SetValue(_L("Select Model"));
     m_select_model->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_select_model->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent e) {
         m_select_model->SetLabelColor(*wxBLACK);
@@ -1575,7 +1575,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
 
     m_select_printer = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, PRINTER_PRESET_MODEL_SIZE, 0, nullptr, wxCB_READONLY);
     comboBoxSizer->Add(m_select_printer, 0, wxEXPAND | wxALL, 0);
-    m_select_printer->SetValue(_L("Select printer"));
+    m_select_printer->SetValue(_L("Select Printer"));
     m_select_printer->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_select_printer->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent e) {
         m_select_printer->SetLabelColor(*wxBLACK);
@@ -1585,7 +1585,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_printer->Hide();
 
     m_custom_vendor_text_ctrl                      = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
-    m_custom_vendor_text_ctrl->SetHint(_L("Input custom vendor"));
+    m_custom_vendor_text_ctrl->SetHint(_L("Input Custom Vendor"));
     m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
@@ -1597,7 +1597,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     comboBoxSizer->Add(m_custom_vendor_text_ctrl, 0, wxEXPAND | wxALL, 0);
     m_custom_vendor_text_ctrl->Hide();
     m_custom_model_text_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
-    m_custom_model_text_ctrl->SetHint(_L("Input custom model"));
+    m_custom_model_text_ctrl->SetHint(_L("Input Custom Model"));
     m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
@@ -1853,7 +1853,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_max_print_height_item(wxWindow *pa
     wxBoxSizer *  horizontal_sizer  = new wxBoxSizer(wxHORIZONTAL);
 
     wxBoxSizer *  optionSizer      = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_type_text = new wxStaticText(parent, wxID_ANY, _L("Max print height"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_type_text = new wxStaticText(parent, wxID_ANY, _L("Max Print Height"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_type_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -2235,7 +2235,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
             wxString curr_selected_type = radiobox_list[i].second;
             this->Freeze();
             if (curr_selected_type == m_create_type.base_template) {
-                if (m_printer_model->GetValue() == _L("Select model")) {
+                if (m_printer_model->GetValue() == _L("Select Model")) {
                     m_filament_preset_template_sizer->Clear(true);
                     m_filament_preset.clear();
                     m_process_preset_template_sizer->Clear(true);
@@ -2245,7 +2245,7 @@ void CreatePrinterPresetDialog::select_curr_radiobox(std::vector<std::pair<Radio
                 }
                 m_page2->SetSizerAndFit(m_page2_sizer);
             } else if (curr_selected_type == m_create_type.base_curr_printer) {
-                if (m_printer_model->GetValue() == _L("Select model")) {
+                if (m_printer_model->GetValue() == _L("Select Model")) {
                     m_filament_preset_template_sizer->Clear(true);
                     m_filament_preset.clear();
                     m_process_preset_template_sizer->Clear(true);
@@ -2313,7 +2313,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_preset_item(wxWindow *pare
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxBoxSizer *  optionSizer        = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_vendor_text = new wxStaticText(parent, wxID_ANY, _L("Printer preset"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_vendor_text = new wxStaticText(parent, wxID_ANY, _L("Printer Preset"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_vendor_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -2328,12 +2328,12 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_preset_item(wxWindow *pare
 
     wxBoxSizer *comboBox_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_printer_vendor           = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, PRINTER_PRESET_VENDOR_SIZE, 0, nullptr, wxCB_READONLY);
-    m_printer_vendor->SetValue(_L("Select vendor"));
+    m_printer_vendor->SetValue(_L("Select Vendor"));
     m_printer_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     comboBox_sizer->Add(m_printer_vendor, 0, wxEXPAND, 0);
     m_printer_model = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, PRINTER_PRESET_MODEL_SIZE, 0, nullptr, wxCB_READONLY);
     m_printer_model->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
-    m_printer_model->SetValue(_L("Select model"));
+    m_printer_model->SetValue(_L("Select Model"));
 
     comboBox_sizer->Add(m_printer_model, 0, wxEXPAND | wxLEFT, FromDIP(10));
     vertical_sizer->Add(comboBox_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -2380,7 +2380,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     m_preset_template_panel->SetBackgroundColour(PRINTER_LIST_COLOUR);
     m_preset_template_panel->SetMinSize(wxSize(FromDIP(660), -1));
     m_filament_sizer              = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_filament_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Filament preset template"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_filament_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Filament Preset Template"), wxDefaultPosition, wxDefaultSize);
     m_filament_sizer->Add(static_filament_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
     m_filament_preset_panel          = new wxPanel(m_preset_template_panel);
     m_filament_preset_template_sizer = new wxGridSizer(3, FromDIP(5), FromDIP(5));
@@ -2412,7 +2412,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
     split_panel->SetBackgroundColour(wxColour(*wxWHITE));
     m_filament_sizer->Add(split_panel, 0, wxEXPAND, 0);
 
-    wxStaticText *static_process_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Process preset template"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_process_preset_text = new wxStaticText(m_preset_template_panel, wxID_ANY, _L("Process Preset Template"), wxDefaultPosition, wxDefaultSize);
     m_filament_sizer->Add(static_process_preset_text, 0, wxEXPAND | wxALL, FromDIP(5));
     m_process_preset_panel = new wxPanel(m_preset_template_panel);
     m_process_preset_panel->SetSize(PRESET_TEMPLATE_SIZE);
@@ -3637,15 +3637,16 @@ void ExportConfigsDialog::select_curr_radiobox(std::vector<std::pair<RadioBox *,
             //m_presets_window->SetSizerAndFit(m_preset_sizer);
             m_presets_window->Layout();
             m_presets_window->Fit();
-            int whidth = m_presets_window->GetSize().GetWidth();
+            int width  = m_presets_window->GetSize().GetWidth();
             int height = m_presets_window->GetSize().GetHeight();
-            m_scrolled_preset_window->SetMinSize(wxSize(std::min(1200, whidth), std::min(600, height)));
-            m_scrolled_preset_window->SetMaxSize(wxSize(std::min(1200, whidth), std::min(600, height)));
-            m_scrolled_preset_window->SetSize(wxSize(std::min(1200, whidth), std::min(600, height)));
+            m_scrolled_preset_window->SetMinSize(wxSize(std::min(1200, width), std::min(600, height)));
+            m_scrolled_preset_window->SetMaxSize(wxSize(std::min(1200, width), std::min(600, height)));
+            m_scrolled_preset_window->SetSize(wxSize(std::min(1200, width), std::min(600, height)));
             this->SetSizerAndFit(m_main_sizer);
             Layout();
             Fit();
             Refresh();
+            adjust_dialog_in_screen(this);
             this->Thaw();
         } else {
             radiobox_list[i].first->SetValue(false);
@@ -4255,19 +4256,22 @@ void EditFilamentPresetDialog::update_preset_tree()
     }
 
     m_preset_tree_panel->SetSizerAndFit(m_preset_tree_sizer);
-    m_preset_tree_panel->SetMinSize(wxSize(m_note_text->GetSize().GetWidth(), -1));
-    m_preset_tree_panel->SetSize(wxSize(m_note_text->GetSize().GetWidth(), -1));
-    int whidth = m_preset_tree_panel->GetSize().GetWidth();
+    int width  = m_preset_tree_panel->GetSize().GetWidth();
     int height = m_preset_tree_panel->GetSize().GetHeight();
-    m_preset_tree_window->SetMinSize(wxSize(std::min(1000, whidth), std::min(600, height)));
-    m_preset_tree_window->SetMaxSize(wxSize(std::min(1000, whidth), std::min(600, height)));
-    m_preset_tree_window->SetSize(wxSize(std::min(1000, whidth), std::min(600, height)));
+    if (width < m_note_text->GetSize().GetWidth()) {
+        width = m_note_text->GetSize().GetWidth();
+        m_preset_tree_panel->SetMinSize(wxSize(width, -1));
+    }
+    m_preset_tree_window->SetMinSize(wxSize(std::min(1000, width), std::min(400, height)));
+    m_preset_tree_window->SetMaxSize(wxSize(std::min(1000, width), std::min(400, height)));
+    m_preset_tree_window->SetSize(wxSize(std::min(1000, width), std::min(400, height)));
     this->SetSizerAndFit(m_main_sizer);
     
     this->Layout();
     this->Fit();
     this->Refresh();
     wxGetApp().UpdateDlgDarkUI(this);
+    adjust_dialog_in_screen(this);
     this->Thaw();
 }
 
