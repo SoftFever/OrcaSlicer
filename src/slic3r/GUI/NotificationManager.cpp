@@ -1579,20 +1579,25 @@ void NotificationManager::push_validate_error_notification(StringObjectException
 {
     auto po = dynamic_cast<PrintObjectBase const *>(error.object);
     auto mo = po ? po->model_object() : dynamic_cast<ModelObject const *>(error.object);
-    auto callback = (mo || !error.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = error.opt_key](wxEvtHandler *) {
-		auto & objects = wxGetApp().model().objects;
-		auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
-        if (iter != objects.end())
-			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
-        if (!opt.empty()) {
-            if (iter != objects.end())
-				wxGetApp().params_panel()->switch_to_object();
-            wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
-        } else {
-            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-        }
-		return false;
-	} : std::function<bool(wxEvtHandler *)>();
+	std::function<bool(wxEvtHandler*)> callback;
+	if (mo || !error.opt_key.empty()) {
+		callback =
+			[id = mo ? mo->id() : 0, opt = error.opt_key](wxEvtHandler*) {
+			auto& objects = wxGetApp().model().objects;
+			auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
+			if (iter != objects.end())
+				wxGetApp().obj_list()->select_items({ {*iter, nullptr} });
+			if (!opt.empty()) {
+				if (iter != objects.end())
+					wxGetApp().params_panel()->switch_to_object();
+				wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
+			}
+			else {
+				wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+			}
+			return false;
+		};
+	}
     auto link = (mo || !error.opt_key.empty()) ? _u8L("Jump to") : "";
     if (mo) link += std::string(" [") + mo->name + "]";
     if (!error.opt_key.empty()) link += std::string(" (") + error.opt_key + ")";
@@ -1607,19 +1612,22 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
         if (optr)
             ids.push_back(optr->id());
     }
-	auto callback = !objs.empty() ? [ids](wxEvtHandler *) {
-		auto & objects = wxGetApp().model().objects;
-		std::vector<ObjectVolumeID> ovs;
-		for (auto id : ids) {
-            auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
-            if (iter != objects.end()) { ovs.push_back({*iter, nullptr}); }
-		}
-		if (!ovs.empty()) {
-            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-            wxGetApp().obj_list()->select_items(ovs);
-		}
-		return false;
-	} : std::function<bool(wxEvtHandler *)>();
+	std::function<bool(wxEvtHandler*)> callback;
+	if (!objs.empty()) {
+		callback = [ids](wxEvtHandler*) {
+			auto& objects = wxGetApp().model().objects;
+			std::vector<ObjectVolumeID> ovs;
+			for (auto id : ids) {
+				auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+				if (iter != objects.end()) { ovs.push_back({ *iter, nullptr }); }
+			}
+			if (!ovs.empty()) {
+				wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+				wxGetApp().obj_list()->select_items(ovs);
+			}
+			return false;
+		};
+	}
     auto link     = callback ? _u8L("Jump to") : "";
     if (!objs.empty()) {
         link += " [";
@@ -1639,15 +1647,18 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 }
 void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level/* = NotificationLevel::WarningNotificationLevel*/)
 {
-    auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
-		auto & objects = wxGetApp().model().objects;
-		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
-        if (iter != objects.end()) {
-            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
-		}
-		return false;
-	} : std::function<bool(wxEvtHandler *)>();
+	std::function<bool(wxEvtHandler*)> callback;
+	if (obj) {
+		callback = [id = obj->id()](wxEvtHandler*) {
+			auto& objects = wxGetApp().model().objects;
+			auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+			if (iter != objects.end()) {
+				wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+				wxGetApp().obj_list()->select_items({ {*iter, nullptr} });
+			}
+			return false;
+		};
+	}
     auto link = callback ? _u8L("Jump to") : "";
     if (obj) link += std::string(" [") + obj->name + "]";
 	NotificationData data { NotificationType::SlicingWarning, level, 0,  _u8L("Warning:") + "\n" + text, link, callback };
@@ -1873,21 +1884,22 @@ void NotificationManager::push_slicing_serious_warning_notification(const std::s
     for (auto optr : objs) {
         if (optr) ids.push_back(optr->id());
     }
-    auto callback = !objs.empty() ?
-                        [ids](wxEvtHandler *) {
-                            auto &                      objects = wxGetApp().model().objects;
-                            std::vector<ObjectVolumeID> ovs;
-                            for (auto id : ids) {
-                                auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
-                                if (iter != objects.end()) { ovs.push_back({*iter, nullptr}); }
-                            }
-                            if (!ovs.empty()) {
-                                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-                                wxGetApp().obj_list()->select_items(ovs);
-                            }
-                            return false;
-                        } :
-                        std::function<bool(wxEvtHandler *)>();
+	std::function<bool(wxEvtHandler*)> callback;
+	if (!objs.empty()) {
+		callback = [ids](wxEvtHandler*) {
+			auto& objects = wxGetApp().model().objects;
+			std::vector<ObjectVolumeID> ovs;
+			for (auto id : ids) {
+				auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+				if (iter != objects.end()) { ovs.push_back({ *iter, nullptr }); }
+			}
+			if (!ovs.empty()) {
+				wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+				wxGetApp().obj_list()->select_items(ovs);
+			}
+			return false;
+		};
+	}
     auto link     = callback ? _u8L("Jump to") : "";
     if (!objs.empty()) {
         link += " [";

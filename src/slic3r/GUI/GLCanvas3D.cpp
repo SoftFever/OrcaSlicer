@@ -9082,13 +9082,13 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_SERIOUS_WARNING:
         if (state)
-            notification_manager.push_slicing_serious_warning_notification(text, {conflictObj});
+            notification_manager.push_slicing_serious_warning_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_serious_warning_notification(text);
         break;
     case SLICING_ERROR:
         if (state)
-            notification_manager.push_slicing_error_notification(text, {conflictObj});
+            notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_error_notification(text);
         break;
