@@ -1563,6 +1563,7 @@ bool GLGizmoAdvancedCut::has_valid_contour() const
 
 void GLGizmoAdvancedCut::reset_cut_by_contours()
 {
+    update_buffer_data();
     delete_part_selection();
     m_part_selection = new PartSelection();
 
