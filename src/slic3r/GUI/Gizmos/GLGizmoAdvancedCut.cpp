@@ -1947,7 +1947,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
 #ifdef __APPLE__
         m_editing_window_width = 400;
 #else
-        m_editing_window_width = 270;
+        m_editing_window_width = 290;
 #endif
         bool is_changed{false};
         is_changed |= render_slider_double_input(_u8L("Depth"), m_groove.depth, m_groove.depth_tolerance);
