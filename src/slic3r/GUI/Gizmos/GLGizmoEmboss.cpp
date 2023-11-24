@@ -3160,7 +3160,7 @@ void GLGizmoEmboss::init_icons()
         "align_vertical_bottom.svg"
     };
     assert(filenames.size() == static_cast<size_t>(IconType::_count));
-    std::string path = resources_dir() + "/icons/";
+    std::string path = resources_dir() + "/images/";
     for (std::string &filename : filenames) filename = path + filename;
 
     ImVec2 size(m_gui_cfg->icon_width, m_gui_cfg->icon_width);

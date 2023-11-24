@@ -406,7 +406,7 @@ IconManager::Icons init_icons(IconManager &mng, const GuiCfg &cfg)
     };
 
     assert(init_types.size() == static_cast<size_t>(IconType::_count));
-    std::string path = resources_dir() + "/icons/";
+    std::string path = resources_dir() + "/images/";
     for (IconManager::InitType &init_type : init_types)
         init_type.filepath = path + init_type.filepath;
 
