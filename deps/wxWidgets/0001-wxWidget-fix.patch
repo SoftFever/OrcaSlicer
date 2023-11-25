@@ -597,7 +597,7 @@ index 6ff0cc3088..4943f3ea38 100644
      }
 -    else
 +    //FIXME Vojtech's hack to get the accelerators assigned to the wxDataViewControl working.
-+    else if (! implementation->DoHandleKeyEvent(event))
++    else if (! DoHandleKeyEvent(event))
      {
          [super keyDown:event];  // all other keys
      }
