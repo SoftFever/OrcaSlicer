@@ -1016,7 +1016,7 @@ EmbossStyles GLGizmoEmboss::create_default_styles()
 
         // check that face name is setabled
         if (style.prop.face_name.has_value()) {
-            wxString face_name(style.prop.face_name->c_str());
+            wxString face_name = wxString::FromUTF8(style.prop.face_name->c_str());
             wxFont wx_font_temp;
             if (!wx_font_temp.SetFaceName(face_name))
                 return true;        
@@ -1069,7 +1069,7 @@ std::optional<wxString> get_installed_face_name(const std::optional<std::string>
     if (!face_name_opt.has_value())
         return wxString();
 
-    wxString face_name(face_name_opt->c_str());
+    wxString face_name = wxString::FromUTF8(face_name_opt->c_str());
 
     // search in enumerated fonts
     // refresh list of installed font in the OS.
