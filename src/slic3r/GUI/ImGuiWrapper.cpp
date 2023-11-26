@@ -2569,7 +2569,7 @@ void ImGuiWrapper::push_combo_style(const float scale)
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_BorderActive, COL_ORCA);
-        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.f)));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, to_ImVec4(to_rgba(ColorRGB::ORCA(), 0.5f)));
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, COL_ORCA);
         ImGui::PushStyleColor(ImGuiCol_Header, COL_ORCA);
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
@@ -2591,6 +2591,20 @@ void ImGuiWrapper::pop_combo_style()
 {
     ImGui::PopStyleVar(2);
     ImGui::PopStyleColor(7);
+}
+
+void ImGuiWrapper::push_radio_style()
+{
+    if (m_is_dark_mode) {
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+    } else {
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.00f, 0.00f, 1.00f));
+    }
+}
+
+void ImGuiWrapper::pop_radio_style()
+{
+    ImGui::PopStyleColor(1);
 }
 
 void ImGuiWrapper::init_font(bool compress)

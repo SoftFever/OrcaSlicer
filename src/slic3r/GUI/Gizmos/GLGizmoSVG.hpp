@@ -169,9 +169,6 @@ private:
 
     // Keep size aspect ratio when True.
     bool m_keep_ratio = true;
-        
-    // setted only when wanted to use - not all the time
-    std::optional<ImVec2> m_set_window_offset;
 
     // Keep data about dragging only during drag&drop
     std::optional<SurfaceDrag> m_surface_drag;
@@ -193,7 +190,7 @@ private:
     std::string m_filename_preview;
 
     IconManager m_icon_manager;
-    IconManager::Icons m_icons;
+    IconManager::VIcons m_icons;
 
     // only temporary solution
     static const std::string M_ICON_FILENAME;
