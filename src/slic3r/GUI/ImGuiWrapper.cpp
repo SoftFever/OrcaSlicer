@@ -591,8 +591,8 @@ bool ImGuiWrapper::bbl_combo_with_filter(const char* label, const std::string& p
 
     static char pattern_buffer[256] = { 0 };
     auto simple_match = [](const char* pattern, const char* str) {
-        wxString sub_str = wxString(pattern).Lower();
-        wxString main_str = wxString(str).Lower();
+        wxString sub_str = wxString::FromUTF8(pattern).Lower();
+        wxString main_str = wxString::FromUTF8(str).Lower();
         return main_str.Find(sub_str);
     };
 
