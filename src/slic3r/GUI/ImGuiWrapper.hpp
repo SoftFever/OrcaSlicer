@@ -13,10 +13,11 @@
 #include <wx/string.h>
 
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Color.hpp"
+#include "libslic3r/Polygon.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 
 namespace Slic3r {
-class ColorRGBA;
 namespace Search {
 struct OptionViewParameters;
 } // namespace Search
