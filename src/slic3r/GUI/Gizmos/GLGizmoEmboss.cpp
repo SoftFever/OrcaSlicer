@@ -2169,6 +2169,7 @@ void GLGizmoEmboss::draw_style_list() {
         return name + Preset::suffix_modified();
     };
     std::optional<size_t> selected_style_index;
+    std::string tooltip = "";
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
     if (ImGui::BBLBeginCombo("##style_selector", add_text_modify(trunc_name).c_str())) {
         m_style_manager.init_style_images(m_gui_cfg->max_style_image_size, m_text);
@@ -2189,7 +2190,7 @@ void GLGizmoEmboss::draw_style_list() {
             if (ImGui::BBLSelectable(style.truncated_name.c_str(), is_selected, flags, select_size)) {
                 selected_style_index = index;
             } else if (ImGui::IsItemHovered())
-                m_imgui->tooltip(actual_style_name, m_gui_cfg->max_tooltip_width);
+                tooltip = actual_style_name;
 
             // reorder items
             if (ImGui::IsItemActive() && !ImGui::IsItemHovered()) {
@@ -2219,13 +2220,14 @@ void GLGizmoEmboss::draw_style_list() {
         m_style_manager.free_style_images();
         if (ImGui::IsItemHovered()) {            
             std::string style_name = add_text_modify(current_style.name);
-            std::string tooltip = is_modified?
+            tooltip = is_modified?
                 GUI::format(_L("Modified style \"%1%\""), current_style.name):
                 GUI::format(_L("Current style is \"%1%\""), current_style.name);
-            m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
         }
     }
     ImGuiWrapper::pop_combo_style();
+    if (!tooltip.empty())
+        m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
         
     // Check whether user wants lose actual style modification
     if (selected_style_index.has_value() && is_modified) { 
@@ -2891,6 +2893,7 @@ void GLGizmoEmboss::draw_advanced()
         ImGui::SameLine(m_gui_cfg->advanced_input_offset);
         ImGui::SetNextItemWidth(m_gui_cfg->input_width);
         unsigned int selected = current_prop.collection_number.value_or(0);
+        std::string tooltip = "";
         ImGuiWrapper::push_combo_style(m_parent.get_scale());
         if (ImGui::BBLBeginCombo("## Font collection", std::to_string(selected).c_str())) {
             for (unsigned int i = 0; i < ff.font_file->infos.size(); ++i) {
@@ -2905,9 +2908,11 @@ void GLGizmoEmboss::draw_advanced()
             }
             ImGui::EndCombo();
         } else if (ImGui::IsItemHovered()) {
-            m_imgui->tooltip(_u8L("Select from True Type Collection."), m_gui_cfg->max_tooltip_width);
+            tooltip = _u8L("Select from True Type Collection.");
         }
         ImGuiWrapper::pop_combo_style();
+        if (!tooltip.empty())
+            m_imgui->tooltip(tooltip, m_gui_cfg->max_tooltip_width);
     }
 
     if (exist_change) {
