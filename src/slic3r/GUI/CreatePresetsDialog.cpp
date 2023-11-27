@@ -606,7 +606,17 @@ CreateFilamentPresetDialog::~CreateFilamentPresetDialog()
     }
 }
 
-void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    
+    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_create->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_create->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+
+    Layout();
+}
 
 bool CreateFilamentPresetDialog::is_check_box_selected()
 {
@@ -1433,7 +1443,24 @@ CreatePrinterPresetDialog::~CreatePrinterPresetDialog()
     }
 }
 
-void CreatePrinterPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void CreatePrinterPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    m_button_OK->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_OK->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_OK->SetCornerRadius(FromDIP(12));
+    m_button_create->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_create->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_create->SetCornerRadius(FromDIP(12));
+    m_button_page1_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_page1_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_page1_cancel->SetCornerRadius(FromDIP(12));
+    m_button_page2_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_page2_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_page2_cancel->SetCornerRadius(FromDIP(12));
+    m_button_page2_back->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_page2_back->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_page2_back->SetCornerRadius(FromDIP(12));
+    Layout();
+}
 
 wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
 { 
@@ -3218,7 +3245,15 @@ CreatePresetSuccessfulDialog::CreatePresetSuccessfulDialog(wxWindow *parent, con
 
 CreatePresetSuccessfulDialog::~CreatePresetSuccessfulDialog() {}
 
-void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void CreatePresetSuccessfulDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+    Layout();
+}
 
 ExportConfigsDialog::ExportConfigsDialog(wxWindow *parent)
     : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Export Configs"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -3293,7 +3328,15 @@ ExportConfigsDialog::~ExportConfigsDialog()
     }
 }
 
-void ExportConfigsDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void ExportConfigsDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetCornerRadius(FromDIP(12));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+    Layout();
+}
 
 void ExportConfigsDialog::show_export_result(const ExportCase &export_case)
 {
@@ -4217,7 +4260,16 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
 }
 EditFilamentPresetDialog::~EditFilamentPresetDialog() {}
 
-void EditFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void EditFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    /*m_add_filament_btn->Rescale();
+    m_del_filament_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_filament_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_filament_btn->SetCornerRadius(FromDIP(12));
+    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_ok_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_ok_btn->SetCornerRadius(FromDIP(12));*/ 
+    Layout();
+}
 
 bool EditFilamentPresetDialog::get_same_filament_id_presets(std::string filament_id)
 {
@@ -4616,7 +4668,15 @@ CreatePresetForPrinterDialog::CreatePresetForPrinterDialog(wxWindow *parent, std
 
 CreatePresetForPrinterDialog::~CreatePresetForPrinterDialog() {}
 
-void CreatePresetForPrinterDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+void CreatePresetForPrinterDialog::on_dpi_changed(const wxRect &suggested_rect) {
+    m_ok_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_ok_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_ok_btn->SetCornerRadius(FromDIP(12));
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetMaxSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
+    Layout();
+}
 
 void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_presets()
 {
