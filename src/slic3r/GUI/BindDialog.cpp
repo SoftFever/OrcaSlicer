@@ -13,6 +13,8 @@
 #include "MainFrame.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 #include "Widgets/WebView.hpp"
 
 namespace Slic3r {
@@ -373,7 +375,7 @@ wxString get_fail_reason(int code)
 
      m_status_bar = std::make_shared<BBLStatusBarBind>(m_simplebook);
 
-     m_worker     = std::make_unique<BoostThreadWorker>(m_status_bar, "bind_worker");
+     m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "bind_worker");
 
      auto        button_panel   = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, BIND_DIALOG_BUTTON_PANEL_SIZE);
      button_panel->SetBackgroundColour(*wxWHITE);

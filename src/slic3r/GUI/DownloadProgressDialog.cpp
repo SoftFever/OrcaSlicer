@@ -20,6 +20,8 @@
 #include "wxExtensions.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GUI_App.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 #define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
 
@@ -60,7 +62,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     m_panel_download->SetMinSize(wxSize(FromDIP(400), FromDIP(70)));
     m_panel_download->SetMaxSize(wxSize(FromDIP(400), FromDIP(70)));
 
-    m_worker = std::make_unique<BoostThreadWorker>(m_status_bar, "download_worker");
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "download_worker");
 
     //mode Download Failed 
     auto m_panel_download_failed = new wxPanel(m_simplebook_status, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);

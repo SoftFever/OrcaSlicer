@@ -112,7 +112,7 @@ private:
     wxColour							m_colour_bold_color{ wxColour(38, 46, 48) };
 	wxTimer*							m_refresh_timer{ nullptr };
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
-    std::unique_ptr<BoostThreadWorker>  m_worker;
+    std::unique_ptr<Worker>             m_worker;
 	wxScrolledWindow*                   m_sw_print_failed_info{nullptr};
 
    

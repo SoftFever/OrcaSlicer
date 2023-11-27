@@ -13,6 +13,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 
 #include <wx/progdlg.h>
@@ -1237,7 +1239,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
     
-    m_worker = std::make_unique<BoostThreadWorker>(m_status_bar, "send_worker");
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);

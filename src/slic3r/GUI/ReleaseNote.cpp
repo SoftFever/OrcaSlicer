@@ -12,6 +12,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 #include <wx/regex.h>
 #include <wx/progdlg.h>
@@ -1100,7 +1102,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
     m_status_bar->get_panel()->Hide();
 
-    m_worker = std::make_unique<BoostThreadWorker>(m_status_bar, "send_worker");
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);

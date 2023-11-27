@@ -7,11 +7,13 @@
 #include "libslic3r/CutUtils.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "slic3r/GUI/Jobs/BoostThreadWorker.hpp"
+#include "slic3r/GUI/Jobs/PlaterWorker.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
-std::unique_ptr<BoostThreadWorker> CalibUtils::print_worker;
+std::unique_ptr<Worker> CalibUtils::print_worker;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
 static const std::string temp_dir = wxstr_temp_dir.utf8_string();
 static const std::string temp_gcode_path = temp_dir + "/temp.gcode";
@@ -1011,7 +1013,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         }
     }
 
-    print_worker = std::make_unique<BoostThreadWorker>(std::move(process_bar), "calib_worker");
+    print_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(wxGetApp().plater(), std::move(process_bar), "calib_worker");
 
     auto print_job              = std::make_unique<PrintJob>(dev_id);
     print_job->m_dev_ip         = obj_->dev_ip;

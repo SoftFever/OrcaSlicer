@@ -27,7 +27,7 @@
 #include "Jobs/BindJob.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarBind.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/Worker.hpp"
 
 #define BIND_DIALOG_GREY200 wxColour(248, 248, 248)
 #define BIND_DIALOG_GREY800 wxColour(50, 58, 61)
@@ -78,7 +78,7 @@ private:
 
     MachineObject *                   m_machine_info{nullptr};
     std::shared_ptr<BBLStatusBarBind> m_status_bar;
-    std::unique_ptr<BoostThreadWorker> m_worker;
+    std::unique_ptr<Worker>           m_worker;
 
 public:
     BindMachineDialog(Plater *plater = nullptr);

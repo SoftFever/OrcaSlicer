@@ -16,7 +16,7 @@
 #include "Widgets/Button.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
-#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/Worker.hpp"
 #include "Jobs/UpgradeNetworkJob.hpp"
 
 class wxBoxSizer;
@@ -48,7 +48,7 @@ public:
     wxSimplebook* m_simplebook_status{nullptr};
 
 	std::shared_ptr<BBLStatusBarSend> m_status_bar;
-    std::unique_ptr<BoostThreadWorker> m_worker;
+    std::unique_ptr<Worker>           m_worker;
     wxPanel *                         m_panel_download;
 
 protected:

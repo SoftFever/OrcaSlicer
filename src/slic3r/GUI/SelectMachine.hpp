@@ -41,7 +41,7 @@
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
-#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/Worker.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -313,7 +313,7 @@ private:
     std::vector<FilamentInfo>           m_filaments;
     std::vector<FilamentInfo>           m_ams_mapping_result;
     std::shared_ptr<BBLStatusBarSend>   m_status_bar;
-    std::unique_ptr<BoostThreadWorker>  m_worker;
+    std::unique_ptr<Worker>             m_worker;
 
     Slic3r::DynamicPrintConfig          m_required_data_config;
     Slic3r::Model                       m_required_data_model; 

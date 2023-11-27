@@ -36,7 +36,7 @@
 #include <wx/hashmap.h>
 #include <wx/webview.h>
 
-#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/Worker.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -215,7 +215,7 @@ public:
     bool   m_show_access_code{ false };
 
     std::shared_ptr<BBLStatusBarSend>  m_status_bar;
-    std::unique_ptr<BoostThreadWorker> m_worker;
+    std::unique_ptr<Worker> m_worker;
 
     void on_cancel();
     void update_title(wxString title);
