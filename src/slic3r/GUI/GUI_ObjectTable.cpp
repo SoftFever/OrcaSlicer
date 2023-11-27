@@ -240,6 +240,9 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
 
     Combo()->SetFocus();
 
+    // Orca: Show dropdown on editing start
+    Combo()->ToggleDropDown();
+
 #ifdef __WXOSX_COCOA__
     // This is a work around for the combobox being simply dismissed when a
     // choice is made in it under OS X. The bug is almost certainly due to a
@@ -432,6 +435,9 @@ void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
 
     Combo()->SetFocus();
 
+    // Orca: Show dropdown on editing start
+    Combo()->ToggleDropDown();
+
 #ifdef __WXOSX_COCOA__
     // This is a work around for the combobox being simply dismissed when a
     // choice is made in it under OS X. The bug is almost certainly due to a
@@ -528,7 +534,7 @@ void GridCellComboBoxRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
         dc.DrawRectangle(rect);
-        dc.DrawBitmap(bitmap->GetBitmapFor(dc.GetWindow()), wxPoint(rect.x + offset_x, rect.y + offset_y)); //TODO: determine if this way of getting bitmap works well
+        dc.DrawBitmap(bitmap->GetBitmapFor(dc.GetWindow()), wxPoint(rect.x + offset_x, rect.y + offset_y));
         text_rect.x += bitmap_width + grid_cell_border_width * 2;
         text_rect.width -= (bitmap_width + grid_cell_border_width * 2);
     }
