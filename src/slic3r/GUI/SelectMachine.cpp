@@ -2234,7 +2234,7 @@ bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
     return false;
 }
 
-bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std::string& nozzle_diameter)
+bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type, std::string& nozzle_diameter)
 {
     bool  is_same_nozzle_diameters = true;
 
@@ -2261,10 +2261,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std
             preset_nozzle_type = "stainless_steel";
         }
 
-        //Just don't check the nozzle diameter
-        //if (obj_->nozzle_type != preset_nozzle_type) {
-        //    is_same_nozzle_diameters = false;
-        //}
+        tag_nozzle_type = obj_->nozzle_type;
 
         auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
         if (opt_nozzle_diameters != nullptr) {
@@ -2282,7 +2279,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std
     {
     }
 
-    nozzle_type = preset_nozzle_type;
+    //nozzle_type = preset_nozzle_type;
     nozzle_diameter = wxString::Format("%.1f", preset_nozzle_diameters).ToStdString();
 
     return is_same_nozzle_diameters;
@@ -2322,6 +2319,7 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::s
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
             is_same_nozzle_type = false;
             tag_nozzle_type = "hardened_steel";
+            return is_same_nozzle_type;
         }
         else {
             tag_nozzle_type = obj_->nozzle_type;
@@ -2500,18 +2498,17 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.") + "\n");
     }
 
-    std::string nozzle_type;
     std::string nozzle_diameter;
     std::string filament_type;
     std::string tag_nozzle_type;
 
     if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
-        if (!is_same_nozzle_diameters(nozzle_type, nozzle_diameter)) {
+        if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             has_update_nozzle  = true;
             
-            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, format_steel_name(nozzle_type));
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, format_steel_name(obj_->nozzle_type));
+            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
 
             confirm_text.push_back(_L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") 
                 + "\n    " + nozzle_in_preset 
