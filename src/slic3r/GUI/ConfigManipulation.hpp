@@ -74,6 +74,7 @@ public:
     void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
 
     //BBS: FFF filament nozzle temperature range
+    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
     void    check_nozzle_temperature_range(DynamicPrintConfig* config);
     void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
