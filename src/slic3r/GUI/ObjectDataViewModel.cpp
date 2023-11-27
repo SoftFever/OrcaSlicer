@@ -480,7 +480,7 @@ wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString nam
         }
     }
 
-    if (!is_added) {
+    if (!is_added && plate_idx != -1) {
         m_plates.push_back(plate_node);
     }
     
