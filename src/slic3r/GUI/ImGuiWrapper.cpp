@@ -2501,12 +2501,12 @@ void ImGuiWrapper::destroy_fonts_texture() {
 
 const char* ImGuiWrapper::clipboard_get(void* user_data)
 {
-    ImGuiWrapper *self = reinterpret_cast<ImGuiWrapper*>(user_data);
+    ImGuiWrapper* self = reinterpret_cast<ImGuiWrapper*>(user_data);
 
     const char* res = "";
 
     if (wxTheClipboard->Open()) {
-        if (wxTheClipboard->IsSupported(wxDF_TEXT)) {
+        if (wxTheClipboard->IsSupported(wxDF_TEXT) || wxTheClipboard->IsSupported(wxDF_UNICODETEXT)) {
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
 
