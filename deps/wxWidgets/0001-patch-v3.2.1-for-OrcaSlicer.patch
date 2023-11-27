@@ -579,7 +579,7 @@ index f188e61089..3d3159ce9d 100644
      }
 -    else
 +    //FIXME Vojtech's hack to get the accelerators assigned to the wxDataViewControl working.
-+    else if (! implementation->DoHandleKeyEvent(event))
++    else if (! DoHandleKeyEvent(event))
      {
          wxWidgetCocoaImpl::keyEvent(event, slf, _cmd);  // all other keys
      }
