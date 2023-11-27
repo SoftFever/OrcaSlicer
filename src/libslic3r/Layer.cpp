@@ -184,7 +184,7 @@ void Layer::make_perimeters()
                         && config.fuzzy_skin                  == other_config.fuzzy_skin
                         && config.fuzzy_skin_thickness        == other_config.fuzzy_skin_thickness
                         && config.fuzzy_skin_point_distance       == other_config.fuzzy_skin_point_distance
-                        && config.fuzzy_skin_first_layer == other_config.fuzzy_skin_first_layer)
+                        && config.fuzzy_skin_first_layer          == other_config.fuzzy_skin_first_layer)
 		            {
 			 			other_layerm->perimeters.clear();
 			 			other_layerm->fills.clear();
