@@ -12872,14 +12872,28 @@ bool Plater::show_publish_dialog(bool show)
 
 void Plater::post_process_string_object_exception(StringObjectException &err)
 {
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (err.type == StringExceptionType::STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE) {
         try {
             int extruder_id = atoi(err.params[2].c_str()) - 1;
-            if (extruder_id < wxGetApp().preset_bundle->filament_presets.size()) {
-                std::string filament_name = wxGetApp().preset_bundle->filament_presets[extruder_id];
-                for (auto filament : wxGetApp().preset_bundle->filaments) {
-                    if (filament.name == filament_name) {
-                        filament_name = filament.alias;
+            if (extruder_id < preset_bundle->filament_presets.size()) {
+                std::string filament_name = preset_bundle->filament_presets[extruder_id];
+                for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+                    if (filament_it->name == filament_name) {
+                        if (filament_it->is_system) {
+                            filament_name = filament_it->alias;
+                        } else {
+                            auto preset = preset_bundle->filaments.get_preset_base(*filament_it);
+                            if (!preset->alias.empty()) {
+                                filament_name = preset->alias;
+                            } else {
+                                char target = '@';
+                                size_t pos = preset->name.find(target);
+                                if (pos != std::string::npos) {
+                                    filament_name = preset->name.substr(0, pos - 1);
+                                }
+                            }
+                        }
                         break;
                     }
                 }
