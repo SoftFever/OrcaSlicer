@@ -304,6 +304,7 @@ public:
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
+    int             OnExit() override;
     bool            initialized() const { return m_initialized; }
 
     std::map<std::string, bool> test_url_state;

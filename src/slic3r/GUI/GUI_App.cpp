@@ -1348,21 +1348,6 @@ void GUI_App::shutdown()
 
     if (m_is_recreating_gui) return;
     m_is_closing = true;
-    stop_sync_user_preset();
-
-    if (m_device_manager) {
-        delete m_device_manager;
-        m_device_manager = nullptr;
-    }
-
-    if (m_agent) {
-        //BBS avoid a crash on mac platform
-#ifdef __WINDOWS__
-        m_agent->start_discovery(false, false);
-#endif
-        delete m_agent;
-        m_agent = nullptr;
-    }
     BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown exit";
 }
 
@@ -2287,6 +2272,27 @@ bool GUI_App::OnInit()
         generic_exception_handle();
         return false;
     }
+}
+
+int GUI_App::OnExit()
+{
+    stop_sync_user_preset();
+
+    if (m_device_manager) {
+        delete m_device_manager;
+        m_device_manager = nullptr;
+    }
+
+    if (m_agent) {
+        // BBS avoid a crash on mac platform
+#ifdef __WINDOWS__
+        m_agent->start_discovery(false, false);
+#endif
+        delete m_agent;
+        m_agent = nullptr;
+    }
+
+    return wxApp::OnExit();
 }
 
 class wxBoostLog : public wxLog
