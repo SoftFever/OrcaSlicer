@@ -376,7 +376,7 @@ void CreateObjectJob::finalize(bool canceled, std::exception_ptr &eptr)
     // When add new object selection is empty.
     // When cursor move and no one object is selected than
     // Manager::reset_all() So Gizmo could be closed before end of creation object
-    GLCanvas3D      *canvas  = plater->canvas3D();
+    GLCanvas3D      *canvas  = plater->get_view3D_canvas3D();
     GLGizmosManager &manager = canvas->get_gizmos_manager();
     if (manager.get_current_type() != m_input.gizmo)
         manager.open_gizmo(m_input.gizmo);
@@ -1056,7 +1056,7 @@ void create_volume(TriangleMesh                    &&mesh,
     GUI_App         &app      = wxGetApp();
     Plater          *plater   = app.plater();
     ObjectList      *obj_list = app.obj_list();
-    GLCanvas3D      *canvas   = plater->canvas3D();
+    GLCanvas3D      *canvas   = plater->get_view3D_canvas3D();
     ModelObjectPtrs &objects  = plater->model().objects;
 
     ModelObject *obj        = nullptr;

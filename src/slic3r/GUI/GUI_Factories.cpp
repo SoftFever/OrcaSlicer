@@ -1087,7 +1087,7 @@ void MenuFactory::append_menu_item_edit_text(wxMenu *menu)
     wxString description = _L("Ability to change text, font, size, ...");
     std::string icon = "cog";
     auto open_emboss = [](const wxCommandEvent &) {
-        GLGizmosManager &mng = plater()->canvas3D()->get_gizmos_manager();
+        GLGizmosManager &mng = plater()->get_view3D_canvas3D()->get_gizmos_manager();
         if (mng.get_current_type() == GLGizmosManager::Emboss)
             mng.open_gizmo(GLGizmosManager::Emboss); // close() and reopen - move to be visible
         mng.open_gizmo(GLGizmosManager::Emboss);
@@ -1124,7 +1124,7 @@ void MenuFactory::append_menu_item_edit_svg(wxMenu *menu)
     wxString description = _L("Change SVG source file, projection, size, ...");
     std::string icon = "cog";
     auto open_svg = [](const wxCommandEvent &) {
-        GLGizmosManager &mng = plater()->canvas3D()->get_gizmos_manager();
+        GLGizmosManager &mng = plater()->get_view3D_canvas3D()->get_gizmos_manager();
         if (mng.get_current_type() == GLGizmosManager::Svg)
             mng.open_gizmo(GLGizmosManager::Svg); // close() and reopen - move to be visible
         mng.open_gizmo(GLGizmosManager::Svg);
