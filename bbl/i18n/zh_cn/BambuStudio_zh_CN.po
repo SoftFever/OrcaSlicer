@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-24 20:00+0800\n"
+"POT-Creation-Date: 2023-11-27 09:04+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1703,8 +1703,8 @@ msgstr "自动朝向中..."
 msgid "Orienting"
 msgstr "自动朝向中..."
 
-msgid "Filling bed "
-msgstr "填充热床"
+msgid "Filling"
+msgstr "正在填充"
 
 msgid "Bed filling canceled."
 msgstr "填充热床已取消。"
@@ -3618,7 +3618,7 @@ msgid "Open a G-code file"
 msgstr "打开G-code 文件"
 
 msgid "Re&load from Disk"
-msgstr ""
+msgstr "从磁盘重新加载"
 
 msgid "Reload the plater from disk"
 msgstr "从磁盘重新加载平台"
@@ -3630,26 +3630,26 @@ msgid "Export toolpaths as OBJ"
 msgstr "将工具路径导出为OBJ格式"
 
 msgid "Open &Studio"
-msgstr ""
+msgstr "打开Studio"
 
 msgid "Open Studio"
 msgstr "打开Studio"
 
 msgid "&Quit"
-msgstr ""
+msgstr "退出"
 
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "退出 %s"
 
 msgid "&File"
-msgstr ""
+msgstr "文件"
 
 msgid "&View"
 msgstr ""
 
 msgid "&Help"
-msgstr ""
+msgstr "帮助"
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
@@ -6119,7 +6119,10 @@ msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
-msgstr "当使用固件回抽模式时，擦拭选项不可用。 \n\n是否应禁用它以启用固件回抽？"
+msgstr ""
+"当使用固件回抽模式时，擦拭选项不可用。 \n"
+"\n"
+"是否应禁用它以启用固件回抽？"
 
 msgid "Firmware Retraction"
 msgstr "固件回抽"
@@ -7073,7 +7076,9 @@ msgstr "启用擦拭塔时，不允许使用不同的喷嘴直径和不同的材
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
-msgstr "当前仅支持使用相对挤出器寻址（use_relative_e_distances=1）的情况下使用擦拭塔。"
+msgstr ""
+"当前仅支持使用相对挤出器寻址（use_relative_e_distances=1）的情况下使用擦拭"
+"塔。"
 
 msgid ""
 "Ooze prevention is currently not supported with the prime tower enabled."
@@ -7082,7 +7087,9 @@ msgstr "当启用擦拭塔时，目前不支持防滴功能。"
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
-msgstr "擦拭塔目前仅支持Marlin、RepRap/Sprinter、RepRapFirmware和Repetier G-code风格。"
+msgstr ""
+"擦拭塔目前仅支持Marlin、RepRap/Sprinter、RepRapFirmware和Repetier G-code风"
+"格。"
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "擦拭塔不支持在逐件打印模式下使用。"
@@ -7189,7 +7196,7 @@ msgid "Printer preset names"
 msgstr "打印机预设名"
 
 msgid "Hostname, IP or URL"
-msgstr ""
+msgstr "主机名，IP或URL"
 
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
@@ -7210,7 +7217,7 @@ msgid ""
 msgstr "如果设备用户界面与打印机主机不同，请指定设备用户界面的URL。"
 
 msgid "API Key / Password"
-msgstr ""
+msgstr "API秘钥/密码"
 
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field should contain "
@@ -7223,7 +7230,7 @@ msgid "Name of the printer"
 msgstr "打印机名称"
 
 msgid "HTTPS CA File"
-msgstr ""
+msgstr "HTTPS CA文件"
 
 msgid ""
 "Custom CA certificate file can be specified for HTTPS OctoPrint connections, "
@@ -7257,10 +7264,10 @@ msgid "Authorization Type"
 msgstr "授权类型"
 
 msgid "API key"
-msgstr ""
+msgstr "API秘钥"
 
 msgid "HTTP digest"
-msgstr ""
+msgstr "HTTP摘要"
 
 msgid "Avoid crossing wall"
 msgstr "避免跨越外墙"
@@ -10221,7 +10228,7 @@ msgid "Service name"
 msgstr "服务名"
 
 msgid "OctoPrint version"
-msgstr ""
+msgstr "OctoPrint版本"
 
 msgid "Searching for devices"
 msgstr "正在搜索设备"
@@ -10785,7 +10792,8 @@ msgstr "此材料下的所有材料预设"
 msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
-msgstr "注意：如果在该材料下仅有的预设被删除，那么在退出对话框后该材料将被删除。"
+msgstr ""
+"注意：如果在该材料下仅有的预设被删除，那么在退出对话框后该材料将被删除。"
 
 msgid "Presets inherited by other presets can not be deleted"
 msgstr "被其他预设继承的预设不能被删除。"
@@ -11262,6 +11270,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Filling bed "
+#~ msgstr "填充热床"
 
 #~ msgid "Please heat the nozzle to above 170 degree before loading filament."
 #~ msgstr "请在进料前把喷嘴升温到170℃。"
