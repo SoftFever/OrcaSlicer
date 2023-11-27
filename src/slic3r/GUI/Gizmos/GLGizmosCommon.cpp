@@ -414,13 +414,25 @@ void CommonGizmosDataObjects::ObjectClipper::render_cut(const std::vector<size_t
 {
     if (m_clp_ratio == 0.) return;
     const SelectionInfo *          sel_info          = get_pool()->selection_info();
-    const Geometry::Transformation inst_trafo        = sel_info->model_object()->instances[sel_info->get_active_instance()]->get_transformation();
+    //consider normal view  or assemble view 
+    const ModelObject *      mo       = sel_info->model_object();
+    Geometry::Transformation inst_trafo;
+    bool                     is_assem_cnv             = get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
+    inst_trafo                                        = is_assem_cnv ? mo->instances[sel_info->get_active_instance()]->get_assemble_transformation() :
+                                                                       mo->instances[sel_info->get_active_instance()]->get_transformation();
+    auto                           offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
+
     auto                           debug             = sel_info->get_sla_shift();
     std::vector<size_t>            ignore_idxs_local = ignore_idxs ? *ignore_idxs : std::vector<size_t>();
 
     for (auto &clipper : m_clippers) {
-        Geometry::Transformation trafo = inst_trafo * clipper.second;
-        trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+        auto                     vol_trafo = clipper.second;
+        Geometry::Transformation trafo     = inst_trafo * vol_trafo;
+        if (is_assem_cnv) {
+            trafo.set_offset(trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0) + vol_trafo.get_offset() * (GLVolume::explosion_ratio - 1.0));
+        } else {
+            trafo.set_offset(trafo.get_offset() + Vec3d(0., 0., sel_info->get_sla_shift()));
+        }
         clipper.first->set_plane(*m_clp);
         clipper.first->set_transformation(trafo);
         clipper.first->set_limiting_plane(ClippingPlane(Vec3d::UnitZ(), -SINKING_Z_THRESHOLD));
@@ -458,10 +470,19 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
     double             z_shift     = get_pool()->selection_info()->get_sla_shift();
 
     Vec3d        normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
-    const Vec3d &center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
+    Vec3d center;
+    if (get_pool()->get_canvas()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        const SelectionInfo *sel_info           = get_pool()->selection_info();
+        auto                 trafo              = mo->instances[sel_info->get_active_instance()]->get_assemble_transformation();
+        auto                 offset_to_assembly = mo->instances[0]->get_offset_to_assembly();
+        center                                  = trafo.get_offset() + offset_to_assembly * (GLVolume::explosion_ratio - 1.0);
+    } else {
+        center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
+    }
     float        dist   = normal.dot(center);
 
-    if (pos < 0.) pos = m_clp_ratio;
+    if (pos < 0.)
+        pos = m_clp_ratio;
 
     m_clp_ratio = pos;
     m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius) - m_clp_ratio * 2 * m_active_inst_bb_radius)));
