@@ -3214,13 +3214,14 @@ GCode::LayerResult GCode::process_layer(
                         dontcare_extruder = extruder_id;
                         break;
                     }
-
+                #if 0
                     //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
                     if (dontcare_extruder == interface_extruder && (object.config().support_interface_not_for_body && object.config().support_interface_filament.value!=0)) {
                         // BBS : get a suitable extruder from other layer
                         auto all_extruders = print.extruders();
                         dontcare_extruder = get_next_extruder(dontcare_extruder, all_extruders);
                     }
+                #endif
 
                     if (support_dontcare)
                         support_extruder = dontcare_extruder;

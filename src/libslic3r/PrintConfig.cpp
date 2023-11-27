@@ -3037,9 +3037,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_not_for_body",coBool);
-    def->label    = L("No interface filament for body");
+    def->label    = L("No interface filament for base");
     def->category = L("Support");
-    def->tooltip = L("Don't use support interface filament to print support body");
+    def->tooltip = L("Don't use support interface filament to print support base");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
