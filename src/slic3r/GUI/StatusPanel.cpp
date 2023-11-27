@@ -178,8 +178,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_printing_title->Fit(m_panel_printing_title);
 
     m_bitmap_thumbnail = new wxStaticBitmap(parent, wxID_ANY, m_thumbnail_placeholder.bmp(), wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
-
-    
+    m_bitmap_thumbnail->SetMaxSize(TASK_THUMBNAIL_SIZE);
+    m_bitmap_thumbnail->SetMinSize(TASK_THUMBNAIL_SIZE);
 
     wxBoxSizer *bSizer_subtask_info = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *bSizer_task_name = new wxBoxSizer(wxVERTICAL);
