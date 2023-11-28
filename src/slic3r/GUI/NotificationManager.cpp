@@ -1943,6 +1943,22 @@ void NotificationManager::init_slicing_progress_notification(std::function<bool(
 	};
 	push_notification_data(std::make_unique<NotificationManager::SlicingProgressNotification>(data, m_id_provider, m_evt_handler, cancel_callback), 0);
 }
+void NotificationManager::update_slicing_notif_dailytips(bool need_change)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::SlicingProgress) {
+			SlicingProgressNotification* spn = dynamic_cast<SlicingProgressNotification*>(notification.get());
+			if (need_change) {
+				wxGetApp().plater()->get_dailytips()->close();
+				spn->get_dailytips_panel()->retrieve_data_from_hint_database(HintDataNavigation::Random);
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+			}
+			return;
+		}
+	}
+	// Slicing progress notification was not found - init it thru plater so correct cancel callback function is appended
+	wxGetApp().plater()->init_notification_manager();
+}
 void NotificationManager::set_slicing_progress_began()
 {
 	for (std::unique_ptr<PopNotification> & notification : m_pop_notifications) {

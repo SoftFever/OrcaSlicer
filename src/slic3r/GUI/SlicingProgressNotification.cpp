@@ -85,10 +85,6 @@ bool NotificationManager::SlicingProgressNotification::set_progress_state(Notifi
 		if ((m_sp_state != SlicingProgressState::SP_BEGAN && m_sp_state != SlicingProgressState::SP_PROGRESS) || percent < m_percentage)
 			return false;
 		set_percentage(percent);
-		if (m_sp_state == SlicingProgressState::SP_BEGAN) {
-			wxGetApp().plater()->get_dailytips()->close();
-			m_dailytips_panel->retrieve_data_from_hint_database(HintDataNavigation::Random);
-		}
 		m_sp_state = state;
         m_current_fade_opacity = 1;
 		return true;

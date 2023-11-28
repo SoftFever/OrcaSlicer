@@ -6186,7 +6186,11 @@ void Plater::priv::on_slicing_began()
     clear_warnings();
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
     notification_manager->close_notification_of_type(NotificationType::ExportFinished);
+    bool is_first_plate = m_cur_slice_plate == 0;
+    bool slice_all = q->m_only_gcode ? m_slice_all_only_has_gcode : m_slice_all;
+    bool need_change_dailytips = !(slice_all && !is_first_plate);
     notification_manager->set_slicing_progress_began();
+    notification_manager->update_slicing_notif_dailytips(need_change_dailytips);
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
