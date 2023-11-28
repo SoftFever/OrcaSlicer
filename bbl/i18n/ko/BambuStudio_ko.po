@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 09:04+0800\n"
+"POT-Creation-Date: 2023-11-28 14:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -306,6 +306,9 @@ msgstr ""
 
 msgid "Cut"
 msgstr "자르기"
+
+msgid "Repairing model object"
+msgstr "모델 객체 오류수정"
 
 msgid "Connector"
 msgstr "커넥터"
@@ -1344,9 +1347,6 @@ msgstr "새 이름 입력"
 
 msgid "Renaming"
 msgstr "이름 바꾸기"
-
-msgid "Repairing model object"
-msgstr "모델 객체 오류수정"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -5935,6 +5935,12 @@ msgstr ""
 msgid "Adjust to the set range automatically? \n"
 msgstr ""
 
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
@@ -9199,10 +9205,10 @@ msgstr ""
 "서포트 및 라프트를 출력하기 위한 필라멘트. “기본값”은 서포트 전용필라멘트가 "
 "아닌 현재 필라멘트가 사용됨을 의미합니다."
 
-msgid "No interface filament for body"
+msgid "Reduce interface filament for base"
 msgstr ""
 
-msgid "Don't use support interface filament to print support body"
+msgid "Avoid using support interface filament to print support base"
 msgstr ""
 
 msgid "Line width of support"

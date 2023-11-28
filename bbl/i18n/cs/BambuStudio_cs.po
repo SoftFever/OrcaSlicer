@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 09:04+0800\n"
+"POT-Creation-Date: 2023-11-28 14:59+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -312,6 +312,9 @@ msgstr ""
 
 msgid "Cut"
 msgstr "Řezat"
+
+msgid "Repairing model object"
+msgstr "Oprava objektu modelu"
 
 msgid "Connector"
 msgstr "Spojka"
@@ -1367,9 +1370,6 @@ msgstr "Zadejte nový název"
 
 msgid "Renaming"
 msgstr "Přejmenování"
-
-msgid "Repairing model object"
-msgstr "Oprava objektu modelu"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -6036,6 +6036,12 @@ msgstr ""
 msgid "Adjust to the set range automatically? \n"
 msgstr ""
 
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
@@ -9394,10 +9400,10 @@ msgstr ""
 "Filament pro tiskové podpěry základen a raftu. \"Výchozí\" znamená, že pro  "
 "podpěry není použit žádný konkrétní filament a je použit aktuální filament"
 
-msgid "No interface filament for body"
+msgid "Reduce interface filament for base"
 msgstr ""
 
-msgid "Don't use support interface filament to print support body"
+msgid "Avoid using support interface filament to print support base"
 msgstr ""
 
 msgid "Line width of support"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 09:04+0800\n"
+"POT-Creation-Date: 2023-11-28 14:59+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -303,6 +303,9 @@ msgstr ""
 
 msgid "Cut"
 msgstr "Cut"
+
+msgid "Repairing model object"
+msgstr "Repairing model object"
 
 msgid "Connector"
 msgstr "Connector"
@@ -1351,9 +1354,6 @@ msgstr "Enter new name"
 
 msgid "Renaming"
 msgstr "Renaming"
-
-msgid "Repairing model object"
-msgstr "Repairing model object"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -5988,6 +5988,12 @@ msgstr ""
 msgid "Adjust to the set range automatically? \n"
 msgstr ""
 
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
@@ -9336,10 +9342,10 @@ msgstr ""
 "Filament to print support bases and rafts. \"Default\" means no specific "
 "filament for support, and current filament is used"
 
-msgid "No interface filament for body"
+msgid "Reduce interface filament for base"
 msgstr ""
 
-msgid "Don't use support interface filament to print support body"
+msgid "Avoid using support interface filament to print support base"
 msgstr ""
 
 msgid "Line width of support"

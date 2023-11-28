@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 09:04+0800\n"
+"POT-Creation-Date: 2023-11-28 14:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -308,6 +308,9 @@ msgid "Assign the part to the other side"
 msgstr ""
 
 msgid "Cut"
+msgstr ""
+
+msgid "Repairing model object"
 msgstr ""
 
 msgid "Connector"
@@ -1327,9 +1330,6 @@ msgid "Enter new name"
 msgstr ""
 
 msgid "Renaming"
-msgstr ""
-
-msgid "Repairing model object"
 msgstr ""
 
 msgid "Following model object has been repaired"
@@ -5683,6 +5683,12 @@ msgstr ""
 msgid "Adjust to the set range automatically? \n"
 msgstr ""
 
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
@@ -8686,10 +8692,10 @@ msgid ""
 "filament for support and current filament is used"
 msgstr ""
 
-msgid "No interface filament for body"
+msgid "Reduce interface filament for base"
 msgstr ""
 
-msgid "Don't use support interface filament to print support body"
+msgid "Avoid using support interface filament to print support base"
 msgstr ""
 
 msgid "Line width of support"

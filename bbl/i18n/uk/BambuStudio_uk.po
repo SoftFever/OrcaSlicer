@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 09:04+0800\n"
+"POT-Creation-Date: 2023-11-28 14:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -308,6 +308,9 @@ msgstr "Призначити деталь на інший бік"
 
 msgid "Cut"
 msgstr "Вирізати"
+
+msgid "Repairing model object"
+msgstr "Відновлення об'єкта моделі"
 
 msgid "Connector"
 msgstr "З'єднувач"
@@ -1370,9 +1373,6 @@ msgstr "Введіть нове ім'я"
 
 msgid "Renaming"
 msgstr "Перейменування"
-
-msgid "Repairing model object"
-msgstr "Відновлення об'єкта моделі"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -6152,6 +6152,12 @@ msgstr ""
 msgid "Adjust to the set range automatically? \n"
 msgstr "Автоматично налаштувати на встановлений діапазон? \n"
 
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
@@ -9604,13 +9610,11 @@ msgstr ""
 "відсутність конкретного філаменту для опори та використання поточного "
 "філаменту"
 
-msgid "No interface filament for body"
-msgstr "Без філаменту інтерфейсу для корпусу"
-
-msgid "Don't use support interface filament to print support body"
+msgid "Reduce interface filament for base"
 msgstr ""
-"Не використовуйте філамент для друку інтерфейсного супорту для друку "
-"опорного корпусу"
+
+msgid "Avoid using support interface filament to print support base"
+msgstr ""
 
 msgid "Line width of support"
 msgstr "Ширина лінії підтримки"
@@ -12086,6 +12090,14 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "No interface filament for body"
+#~ msgstr "Без філаменту інтерфейсу для корпусу"
+
+#~ msgid "Don't use support interface filament to print support body"
+#~ msgstr ""
+#~ "Не використовуйте філамент для друку інтерфейсного супорту для друку "
+#~ "опорного корпусу"
 
 #~ msgid "Filling bed "
 #~ msgstr "Наповнення ліжка "

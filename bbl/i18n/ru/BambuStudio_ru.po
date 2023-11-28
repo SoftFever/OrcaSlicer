@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-27 09:04+0800\n"
+"POT-Creation-Date: 2023-11-28 14:59+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -317,6 +317,9 @@ msgstr "Переназначение стороны части модели"
 
 msgid "Cut"
 msgstr "Разрезать"
+
+msgid "Repairing model object"
+msgstr "Починка модели"
 
 msgid "Connector"
 msgstr "Соединение"
@@ -1385,9 +1388,6 @@ msgstr "Введите новое имя"
 
 msgid "Renaming"
 msgstr "Переименование"
-
-msgid "Repairing model object"
-msgstr "Починка модели"
 
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
@@ -6226,6 +6226,12 @@ msgstr ""
 msgid "Adjust to the set range automatically? \n"
 msgstr ""
 
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
@@ -9728,14 +9734,11 @@ msgstr ""
 "Пластиковая нить для печати базовой поддержки и подложки. Значение «По "
 "умолчанию» означает, что для поддержки используется текущая пластиковая нить."
 
-# ???
-msgid "No interface filament for body"
-msgstr "Не исп. связующий пруток для тела поддержки"
-
-# ???
-msgid "Don't use support interface filament to print support body"
+msgid "Reduce interface filament for base"
 msgstr ""
-"Не использовать пруток связующего слоя поддержки для печати тела поддержки"
+
+msgid "Avoid using support interface filament to print support base"
+msgstr ""
 
 msgid "Line width of support"
 msgstr "Ширина экструзии для поддержки"
@@ -12180,6 +12183,15 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+# ???
+#~ msgid "No interface filament for body"
+#~ msgstr "Не исп. связующий пруток для тела поддержки"
+
+# ???
+#~ msgid "Don't use support interface filament to print support body"
+#~ msgstr ""
+#~ "Не использовать пруток связующего слоя поддержки для печати тела поддержки"
 
 #~ msgid "Filling bed "
 #~ msgstr "Заполнение стола "
