@@ -11,16 +11,10 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "miniz.h"
+#include "ParamsDialog.hpp"
 
 namespace Slic3r { 
 namespace GUI {
-
-class FilamentInfomation : public wxObject
-{
-public:
-    std::string filament_id;
-    std::string filament_name;
-};
 
 class CreateFilamentPresetDialog : public DPIDialog
 {

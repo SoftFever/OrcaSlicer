@@ -12,7 +12,6 @@
 #include "MsgDialog.hpp"
 #include "FileHelp.hpp"
 #include "Tab.hpp"
-#include "ParamsDialog.hpp"
 #include "MainFrame.hpp"
 
 #define NAME_OPTION_COMBOBOX_SIZE wxSize(FromDIP(200), FromDIP(24))
@@ -4431,10 +4430,12 @@ void EditFilamentPresetDialog::edit_preset()
     wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
     // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
     if (!need_edit_preset->is_compatible) wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
-    wxGetApp().params_dialog()->Popup(true);
 
     m_selected_printer.clear();
     m_need_edit_preset_index = -1;
+
+    wxGetApp().params_dialog()->set_editing_filament_id(m_filament_id);
+    EndModal(wxID_EDIT);
 }
 
 wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
@@ -4917,7 +4918,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     edit_preset_btn->SetBackgroundColor(flush_bg_col);
     edit_preset_btn->SetBorderColor(flush_bd_col);
     edit_preset_btn->SetTextColor(flush_fg_col);
-    edit_preset_btn->Hide();
+    //edit_preset_btn->Hide();
     sizer->Add(edit_preset_btn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
 

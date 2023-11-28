@@ -367,11 +367,8 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             this->EndModal(wxID_OK);
             wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_CREATE_FILAMENT));
         } else if (strCmd == "modify_custom_filament") {
-            this->EndModal(wxID_OK);
-            FilamentInfomation *filament_info = new FilamentInfomation();
-            filament_info->filament_id  = j["id"];
-            //filament_info->filament_name = j["name"];
-            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
+            m_editing_filament_id = j["id"];
+            this->EndModal(wxID_EDIT);
         }
         else if (strCmd == "save_userguide_models")
         {
@@ -917,6 +914,12 @@ bool GuideFrame::run()
         }
         else
             return false;
+    } else if (result == wxID_EDIT) {
+        this->Close();
+        FilamentInfomation *filament_info = new FilamentInfomation();
+        filament_info->filament_id        = m_editing_filament_id;
+        wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_MODIFY_FILAMENT, filament_info));
+        return false;
     }
     else
         return false;
