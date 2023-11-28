@@ -699,7 +699,8 @@ void merge_or_add_object(assemble_plate_info_t& assemble_plate_info, Model &mode
             new_object->name = "assemble_" + std::to_string(assemble_index);
             merged_objects[assemble_index] = new_object;
             assemble_plate_info.loaded_obj_list.emplace_back(new_object);
-    }
+            new_object->config.assign_config(ori_object->config.get());
+        }
         else
             new_object = iter->second;
 
