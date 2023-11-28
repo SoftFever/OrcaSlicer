@@ -3367,6 +3367,9 @@ static void generate_support_areas(Print &print, const BuildVolume &build_volume
         bool   has_raft    = config.raft_layers.size() > 0;
         num_support_layers = std::max(num_support_layers, config.raft_layers.size());
 
+        if (num_support_layers == 0)
+            continue;
+
         SupportParameters            support_params(print_object);
         support_params.with_sheath = true;
 // Don't override the support density of tree supports, as the support density is used for raft.
