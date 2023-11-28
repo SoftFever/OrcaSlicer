@@ -1095,6 +1095,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
+            || opt_key == "fuzzy_skin_first_layer"
             || opt_key == "detect_overhang_wall"
             || opt_key == "overhang_reverse"
             || opt_key == "overhang_reverse_internal_only"
@@ -1106,7 +1107,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_speed_classic") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bridge_flow") {
+        } else if (opt_key == "bridge_flow" || opt_key == "internal_bridge_flow") {
             if (m_config.support_top_z_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.
             	// If later "support_top_z_distance" is modified, the complete PrintObject is invalidated anyway.
