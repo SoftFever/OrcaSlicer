@@ -164,7 +164,7 @@ private:
     float m_connector_depth_ratio_tolerance{0.1f};
 
     float m_connector_size{2.5f};
-    float m_connector_size_tolerance{0.f};
+    float m_connector_size_tolerance{0.1f};
     // Input params for cut with snaps
     float        m_snap_space_proportion{0.3f};
     float        m_snap_bulge_proportion{0.15f};

@@ -456,7 +456,8 @@ void GLGizmoAdvancedCut::on_load(cereal::BinaryInputArchive &ar)
 
     m_transformed_bounding_box = transformed_bounding_box(m_ar_plane_center, m_rotate_matrix);
     set_center_pos(m_ar_plane_center);
-
+    m_rotation = Geometry::extract_euler_angles(m_rotate_matrix);
+    m_movement = 0;
     if (m_cut_mode != (CutMode) mode)
         switch_to_mode((CutMode) mode);
     else if (m_cut_mode == CutMode::cutTongueAndGroove) {
@@ -472,12 +473,11 @@ void GLGizmoAdvancedCut::on_load(cereal::BinaryInputArchive &ar)
             update_plane_model();
         }
         reset_cut_by_contours();
+    } else if (m_cut_mode == CutMode::cutPlanar) {
+        reset_cut_by_contours();
     }
 
     m_parent.request_extra_frame();
-
-    m_rotation = Geometry::extract_euler_angles(m_rotate_matrix);
-    m_movement = 0;
     update_buffer_data();
 }
 
