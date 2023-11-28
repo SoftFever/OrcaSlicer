@@ -1793,7 +1793,7 @@ void GLGizmoSVG::draw_use_surface()
     ImGuiWrapper::text(m_gui_cfg->translations.use_surface);
     ImGui::SameLine(m_gui_cfg->input_offset);
 
-    if (ImGui::Checkbox("##useSurface", &m_volume_shape.projection.use_surface))
+    if (m_imgui->bbl_checkbox("##useSurface", m_volume_shape.projection.use_surface))
         process();
 }
 
