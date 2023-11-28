@@ -702,7 +702,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("flush_into_objects", !is_global_config);
     
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
-    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
+    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer"})
         toggle_line(el, has_fuzzy_skin);
     
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
