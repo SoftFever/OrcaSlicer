@@ -162,6 +162,7 @@ static bool delete_filament_preset_by_name(std::string delete_preset_name, std::
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("delete preset dirty and cancelled");
         }
         m_presets.delete_preset(need_delete_preset->name);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset has been delete from filaments, and preset name is: " << delete_preset_name;
     } catch (const std::exception &ex) {
         // FIXME add some error reporting!
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("found exception when delete: %1% and preset name: %%") % ex.what() % delete_preset_name;
@@ -4348,7 +4349,9 @@ void EditFilamentPresetDialog::delete_preset()
         Preset *filament_preset = wxGetApp().preset_bundle->filaments.find_preset(need_delete_preset->name);
 
         // is root preset ?
+        bool is_base_preset = false;
         if (filament_preset && wxGetApp().preset_bundle->filaments.get_preset_base(*filament_preset) == filament_preset) {
+            is_base_preset = true;
             int      count = 0;
             wxString presets;
             for (auto &preset2 : wxGetApp().preset_bundle->filaments)
@@ -4368,7 +4371,13 @@ void EditFilamentPresetDialog::delete_preset()
                 return;
             }
         }
-        if (wxID_YES != MessageDialog(this, _L("Are you sure to delete the selected preset?"), _L("Delete preset"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()) {
+        wxString msg;
+        if (is_base_preset) {
+            msg = _L("Are you sure to delete the selected preset? \nIf the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot.");
+        } else {
+            msg = _L("Are you sure to delete the selected preset?");
+        }
+        if (wxID_YES != MessageDialog(this, msg, _L("Delete preset"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()) {
             m_selected_printer.clear();
             m_need_delete_preset_index = -1;
             return;
@@ -4586,7 +4595,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_button_sizer()
                             std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
     m_del_filament_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
-        WarningDialog dlg(this, _L("Delete filament?\nDelete filament would deleted all the attatched filament presets"), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
+        WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."), _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
         int res = dlg.ShowModal();
         if (wxID_YES == res) {
             PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -4897,6 +4906,7 @@ wxPanel *PresetTree::get_child_item(wxPanel *parent, std::shared_ptr<Preset> pre
     sizer->Add(line_right, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     sizer->Add(0, 0, 0, wxLEFT, 5);
     wxStaticText *preset_name = new wxStaticText(panel, wxID_ANY, from_u8(preset->name));
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " create child item: " << preset->name;
     preset_name->SetFont(Label::Body_10);
     preset_name->SetForegroundColour(*wxBLACK);
     sizer->Add(preset_name, 0, wxEXPAND | wxALL, 5);

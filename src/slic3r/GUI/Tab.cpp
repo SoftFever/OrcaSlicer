@@ -5039,7 +5039,9 @@ void Tab::delete_preset()
     // TRN  remove/delete
     wxString msg;
     bool     confirm_delete_third_party_printer = false;
+    bool     is_base_preset                 = false;
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
+        is_base_preset = true;
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
             Preset &current_preset = m_presets->get_selected_preset();
             int filament_preset_num    = 0;
@@ -5118,7 +5120,11 @@ void Tab::delete_preset()
         }
     }
 
-    msg += from_u8((boost::format(_u8L("Are you sure to %1% the selected preset?")) % action).str());
+    if (is_base_preset && (current_preset.type == Preset::Type::TYPE_FILAMENT) && action == _utf8(L("Delete"))) {
+        msg += from_u8(_u8L("Are you sure to delete the selected preset? \nIf the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot."));
+    } else {
+        msg += from_u8((boost::format(_u8L("Are you sure to %1% the selected preset?")) % action).str());
+    }
 
     //BBS: add project embedded preset logic and refine is_external
     action =  _utf8(L("Delete"));
