@@ -2101,6 +2101,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.8));
 
+    def = this->add("fuzzy_skin_first_layer", coBool);
+    def->label = L("Apply fuzzy skin to first layer");
+    def->category = L("Others");
+    def->tooltip = L("Whether to apply fuzzy skin on the first layer");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(0));
+
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
     def->category = L("Layers and Perimeters");

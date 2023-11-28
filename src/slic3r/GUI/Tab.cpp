@@ -2109,6 +2109,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
+        optgroup->append_single_option_line("fuzzy_skin_first_layer");
 
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
