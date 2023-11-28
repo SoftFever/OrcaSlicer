@@ -2729,6 +2729,11 @@ int MachineObject::parse_json(std::string payload)
                             BOOST_LOG_TRIVIAL(warning) << "unsupported msg_type=" << j_pre["print"]["msg"].get<std::string>();
                         }
                     }
+                    else {
+                        if (!printer_type.empty() && connection_type() == "lan")
+                            print_json.load_compatible_settings(printer_type, "");
+                        print_json.diff2all_base_reset(j_pre); 
+                    }
                 }
             }
         }
