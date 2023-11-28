@@ -1665,7 +1665,7 @@ void GLGizmoEmboss::draw_font_list_line()
 
     EmbossStyle &style = m_style_manager.get_style();
     if (exist_change_in_font) {
-        ImGui::SameLine(ImGui::GetStyle().FramePadding.x);
+        ImGui::SameLine(ImGui::GetStyle().WindowPadding.x);
         if (draw_button(m_icons, IconType::undo)) {
             const EmbossStyle *stored_style = m_style_manager.get_stored_style();
 
@@ -1824,6 +1824,7 @@ void GLGizmoEmboss::draw_font_list()
 
 void GLGizmoEmboss::draw_model_type()
 {
+    ImGui::AlignTextToFramePadding();
     bool is_last_solid_part = m_volume->is_the_only_one_part();
     std::string title = _u8L("Operation");
     if (is_last_solid_part) {
@@ -2389,6 +2390,7 @@ bool GLGizmoEmboss::revertible(const std::string &name,
                                float              undo_offset,
                                Draw               draw) const
 {
+    ImGui::AlignTextToFramePadding();
     bool changed = exist_change(value, default_value);
     if (changed || default_value == nullptr)
         ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, name);
@@ -2428,7 +2430,7 @@ bool GLGizmoEmboss::rev_input(const std::string &name, T &value, const T *defaul
         return imgui_input(("##" + name).c_str(),
             &value, step, step_fast, format, flags);
     };
-    float undo_offset = ImGui::GetStyle().FramePadding.x;
+    float undo_offset = ImGui::GetStyle().WindowPadding.x;
     return revertible(name, value, default_value, undo_tooltip, undo_offset, draw_offseted_input);
 }
 
@@ -2480,7 +2482,7 @@ bool GLGizmoEmboss::rev_checkbox(const std::string &name,
         ImGui::SameLine(offset);
         return m_imgui->bbl_checkbox(("##" + name).c_str(), value);
     };
-    float undo_offset  = ImGui::GetStyle().FramePadding.x;
+    float undo_offset  = ImGui::GetStyle().WindowPadding.x;
     return revertible(name, value, default_value, undo_tooltip,
                       undo_offset, draw_offseted_input);
 }
@@ -2563,7 +2565,7 @@ bool GLGizmoEmboss::rev_slider(const std::string &name,
         return m_imgui->slider_optional_int( ("##" + name).c_str(), value, 
             v_min, v_max, format.c_str(), 1.f, false, tooltip);
     };
-    float undo_offset = ImGui::GetStyle().FramePadding.x;
+    float undo_offset = ImGui::GetStyle().WindowPadding.x;
     return revertible(name, value, default_value,
         undo_tooltip, undo_offset, draw_slider_optional_int);
 }
@@ -2585,7 +2587,7 @@ bool GLGizmoEmboss::rev_slider(const std::string &name,
         return m_imgui->slider_optional_float(("##" + name).c_str(), value,
             v_min, v_max, format.c_str(), 1.f, false, tooltip);
     };
-    float undo_offset = ImGui::GetStyle().FramePadding.x;
+    float undo_offset = ImGui::GetStyle().WindowPadding.x;
     return revertible(name, value, default_value,
         undo_tooltip, undo_offset, draw_slider_optional_float);
 }
@@ -2607,7 +2609,7 @@ bool GLGizmoEmboss::rev_slider(const std::string &name,
         return m_imgui->slider_float("##" + name, &value, v_min, v_max,
             format.c_str(), 1.f, false, tooltip);
     };
-    float undo_offset = ImGui::GetStyle().FramePadding.x;
+    float undo_offset = ImGui::GetStyle().WindowPadding.x;
     return revertible(name, value, default_value,
         undo_tooltip, undo_offset, draw_slider_float);
 }
@@ -2715,7 +2717,7 @@ void GLGizmoEmboss::draw_advanced()
         return is_change;
     };
     const FontProp::Align * def_align = stored_style ? &stored_style->prop.align : nullptr;
-    float undo_offset = ImGui::GetStyle().FramePadding.x;
+    float undo_offset = ImGui::GetStyle().WindowPadding.x;
     if (revertible(tr.alignment, font_prop.align, def_align, _u8L("Revert alignment."), undo_offset, draw_align)) {
         if (font_prop.per_glyph)
             reinit_text_lines(m_text_lines.get_lines().size());
@@ -2891,6 +2893,7 @@ void GLGizmoEmboss::draw_advanced()
 
     // when more collection add selector
     if (ff.font_file->infos.size() > 1) {
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("%s", tr.collection.c_str());
         ImGui::SameLine(m_gui_cfg->advanced_input_offset);
         ImGui::SetNextItemWidth(m_gui_cfg->input_width);

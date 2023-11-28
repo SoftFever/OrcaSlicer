@@ -362,10 +362,21 @@ void draw(const IconManager::Icon &icon, const ImVec2 &size, const ImVec4 &tint_
         ImGui::Text("?");
         return;
     }
-
     ImTextureID id = (void *)static_cast<intptr_t>(icon.tex_id);
     const ImVec2 &s  = (size.x < 1 || size.y < 1) ? icon.size : size;
+
+    // Orca: Align icon center vertically
+    ImGuiWindow  *window      = ImGui::GetCurrentWindow();
+    ImGuiContext &g           = *GImGui;
+    float         cursor_y    = window->DC.CursorPos.y;
+    float         line_height = ImGui::GetTextLineHeight() + g.Style.FramePadding.y * 2;
+    float         offset_y    = (line_height - s.y) / 2;
+    window->DC.CursorPos.y += offset_y;
+
     ImGui::Image(id, s, icon.tl, icon.br, tint_col, border_col);
+
+    // Reset offset
+    window->DC.CursorPosPrevLine.y = cursor_y;
 }
 
 bool clickable(const IconManager::Icon &icon, const IconManager::Icon &icon_hover)
