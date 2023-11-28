@@ -776,6 +776,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("internal_bridge_flow", coFloat);
+    def->label = L("Internal bridge flow");
+    def->category = L("Quality");
+    def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
+    def->min = 0;
+    def->max = 2.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("top_solid_infill_flow_ratio", coFloat);
     def->label = L("Top surface flow ratio");
     def->category = L("Advanced");
@@ -5709,6 +5718,11 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --bridge-flow-ratio
     if (cfg.bridge_flow <= 0) {
         error_message.emplace("bridge_flow", L("invalid value ") + std::to_string(cfg.bridge_flow));
+    }
+    
+    // --bridge-flow-ratio
+    if (cfg.bridge_flow <= 0) {
+        error_message.emplace("internal_bridge_flow", L("invalid value ") + std::to_string(cfg.internal_bridge_flow));
     }
 
     // extruder clearance

@@ -32,14 +32,16 @@ Flow LayerRegion::flow(FlowRole role, double layer_height) const
     return m_region->flow(*m_layer->object(), role, layer_height, m_layer->id() == 0);
 }
 
-Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge) const
+Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge, bool internal_bridge) const
 {
     const PrintRegion       &region         = this->region();
     const PrintRegionConfig &region_config  = region.config();
     const PrintObject       &print_object   = *this->layer()->object();
     Flow bridge_flow;
     auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
-    if (thick_bridge) {
+    if(internal_bridge) { // internal bridge is using the thick bridge logic with the internal bridge flow ratio
+        bridge_flow = Flow::bridging_flow(float(sqrt(region_config.internal_bridge_flow)) * nozzle_diameter, nozzle_diameter);
+    } else if (thick_bridge) {
         // The old Slic3r way (different from all other slicers): Use rounded extrusions.
         // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
         // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
