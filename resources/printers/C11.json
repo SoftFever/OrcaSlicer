@@ -51,8 +51,7 @@
     }, 
     "01.02.00.00": {
         "print": {
-            "support_send_to_sd":true,
-            "support_ai_monitoring":true
+            "support_send_to_sd":true
         }
     },
     "01.02.99.00": {
@@ -61,8 +60,7 @@
                 "liveview": {
                     "remote": "enabled"
                 }
-            },
-            "support_ai_monitoring":true
+            }
         }
     },
     "01.02.99.10" : {
