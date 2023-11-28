@@ -5449,7 +5449,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
-        if (m_config.purge_in_prime_tower) {
+        if (m_config.purge_in_prime_tower || is_BBL_Printer()) {
             wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
             wipe_volume *= m_config.flush_multiplier;
         } else {
