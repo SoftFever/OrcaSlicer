@@ -1480,7 +1480,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         undo();
     else if (wxGetKeyState(wxKeyCode('X')) && wxGetKeyState(WXK_CONTROL))
         cut();
-    else if (wxGetKeyState(wxKeyCode('M')) && wxGetKeyState(WXK_CONTROL))
+    else if (wxGetKeyState(wxKeyCode('K')) && wxGetKeyState(WXK_CONTROL))
         clone();
     //else if (event.GetUnicodeKey() == '+')
     //    increase_instances();

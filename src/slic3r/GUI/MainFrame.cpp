@@ -2508,7 +2508,7 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
-        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "M",
+        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "K",
             _L("Clone copies of selections"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
