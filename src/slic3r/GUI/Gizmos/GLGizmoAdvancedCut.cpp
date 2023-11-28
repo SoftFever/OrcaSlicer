@@ -1974,7 +1974,11 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         m_is_slider_editing_done = false;
         m_imgui->text(_L("Groove") + ": "); // ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, m_labels_map["Groove"] + ": ");
         m_label_width          = caption_size + 1 * space_size;
-        m_editing_window_width = m_label_width* 2.5;
+#ifdef __APPLE__
+        m_editing_window_width = m_label_width * 2.9;
+#else
+        m_editing_window_width = m_label_width * 2.5;
+#endif
         bool is_changed{false};
         is_changed |= render_slider_double_input(_u8L("Depth"), m_groove.depth, m_groove.depth_tolerance);
         is_changed |= render_slider_double_input(_u8L("Width"), m_groove.width, m_groove.width_tolerance);
@@ -2006,14 +2010,10 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         m_imgui->disabled_begin(!keep_part || m_cut_to_parts);
 
         float text_size = m_imgui->calc_text_size(text).x;
-#ifdef __APPLE__
-        text_size += m_imgui->scaled(2.0f);
-#else
         text_size += m_imgui->scaled(2.5f);
- #endif
-        float checkbox_size   = 15;
+        float checkbox_size = m_imgui->calc_text_size(text).y;
 
-        float new_label_width = checkbox_size + text_size +2* space_size;
+        float new_label_width = checkbox_size + text_size + 2 * space_size;
         ImGui::SameLine(new_label_width);
         bool is_keep = !place_on_cut_part && !rotate_part;
         if (m_imgui->bbl_checkbox(_L("Keep orientation") + suffix, is_keep)){
