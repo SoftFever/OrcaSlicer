@@ -324,7 +324,7 @@ private:
     
     // SoftFever
     bool show_gcode_window() const { return m_show_gcode_window; }
-    void set_show_gcode_window(bool val) { m_show_gcode_window = val; } 
+    void toggle_show_gcode_window();
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
