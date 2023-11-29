@@ -68,16 +68,14 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
     { // 'a' is the (next) new point between p0 and p1
         Vec2d  p0p1      = (p1 - *p0).cast<double>();
         double p0p1_size = p0p1.norm();
-        // so that p0p1_size - dist_last_point evaulates to dist_left_over - p0p1_size
-        double dist_last_point = dist_left_over + p0p1_size * 2.;
-        for (double p0pa_dist = dist_left_over; p0pa_dist < p0p1_size;
+        double p0pa_dist = dist_left_over;
+        for (; p0pa_dist < p0p1_size;
             p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX))
         {
             double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
             out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
-            dist_last_point = p0pa_dist;
         }
-        dist_left_over = p0p1_size - dist_last_point;
+        dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
     }
     while (out.size() < 3) {
@@ -96,7 +94,7 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
 {
     const double min_dist_between_points = fuzzy_skin_point_dist * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = fuzzy_skin_point_dist / 2.;
-    double       dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
+    double dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
 
     auto* p0 = &ext_lines.front();
     std::vector<Arachne::ExtrusionJunction> out;
@@ -110,14 +108,12 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
         // 'a' is the (next) new point between p0 and p1
         Vec2d  p0p1 = (p1.p - p0->p).cast<double>();
         double p0p1_size = p0p1.norm();
-        // so that p0p1_size - dist_last_point evaulates to dist_left_over - p0p1_size
-        double dist_last_point = dist_left_over + p0p1_size * 2.;
-        for (double p0pa_dist = dist_left_over; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX)) {
+        double p0pa_dist = dist_left_over;
+        for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX)) {
             double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
             out.emplace_back(p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
-            dist_last_point = p0pa_dist;
         }
-        dist_left_over = p0p1_size - dist_last_point;
+        dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
     }
 
@@ -2093,8 +2089,7 @@ void PerimeterGenerator::process_arachne()
                     current_position = best_path->junctions.back().p; //Pick the other end from where we started.
             }
         }
-
-        if (this->layer_id > 0 && this->config->fuzzy_skin != FuzzySkinType::None) {
+        if ((this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None) {
             std::vector<PerimeterGeneratorArachneExtrusion*> closed_loop_extrusions;
             for (PerimeterGeneratorArachneExtrusion& extrusion : ordered_extrusions)
                 if (extrusion.extrusion->inset_idx == 0) {

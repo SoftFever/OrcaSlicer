@@ -732,7 +732,7 @@ static std::vector<std::string> s_Preset_print_options {
     "minimum_sparse_infill_area", "reduce_infill_retraction","internal_solid_infill_pattern",
     "ironing_type", "ironing_pattern", "ironing_flow", "ironing_speed", "ironing_spacing", "ironing_angle",
     "max_travel_detour_distance",
-    "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
+    "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer",
     "max_volumetric_extrusion_rate_slope", "max_volumetric_extrusion_rate_slope_segment_length",
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
