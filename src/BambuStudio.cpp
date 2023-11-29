@@ -2488,7 +2488,7 @@ int CLI::run(int argc, char **argv)
         std::vector<std::string>& project_filament_colors = project_filament_colors_option->values;
         project_filament_colors.resize(filament_count, "#FFFFFF");
     }
-    if (project_filament_colors_option && selected_filament_colors_option)
+    if (project_filament_colors_option && (selected_filament_colors_option || !m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix")))
     {
         std::vector<std::string>  selected_filament_colors;
         if (selected_filament_colors_option) {
