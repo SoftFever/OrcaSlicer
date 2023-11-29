@@ -495,7 +495,7 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     static_score_sizer->Add(static_score_text, 1, wxEXPAND | wxALL, FromDIP(10));
     m_has_rated_prompt = new wxStaticText(m_score_subtask_info, wxID_ANY, _L("(The model has already been rated. Your rating will overwrite the previous rating.)"), wxDefaultPosition, wxDefaultSize, 0);
     m_has_rated_prompt->Wrap(-1);
-    m_has_rated_prompt->SetForegroundColour(*wxRED);
+    m_has_rated_prompt->SetForegroundColour(*wxBLACK);
     m_has_rated_prompt->SetFont(::Label::Body_10);
     m_has_rated_prompt->Hide();
 

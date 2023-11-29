@@ -520,6 +520,20 @@ static char* read_json_file(const std::string &preset_path)
     return json_contents;
 }
 
+static std::string get_printer_nozzle_diameter(std::string printer_name) {
+
+    size_t index = printer_name.find(" nozzle");
+    if (std::string::npos == index) {
+        return "";
+    }
+    std::string nozzle           = printer_name.substr(0, index);
+    size_t      last_space_index = nozzle.find_last_of(" ");
+    if (std::string::npos == index) {
+        return "";
+    }
+    return nozzle.substr(last_space_index + 1);
+}
+
 static void adjust_dialog_in_screen(DPIDialog* dialog) {
     wxSize screen_size = wxGetDisplaySize();
     int    pos_x, pos_y, size_x, size_y, screen_width, screen_height, dialog_x, dialog_y;
@@ -851,13 +865,13 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
                     continue;
                 }
                 for (std::string &compatible_printer_name : compatible_printers->values) {
-                    if (m_visible_printers.find(compatible_printer_name) == m_visible_printers.end()) continue;
-                    size_t index = compatible_printer_name.find("nozzle");
-                    if (index < 4) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
+                    if (m_visible_printers.find(compatible_printer_name) == m_visible_printers.end()) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "there is a comppatible printer no exist: " << compatible_printer_name
+                                                << "and the preset name is: " << preset->name;
                         continue;
                     }
-                    if (nozzle_diameter[compatible_printer_name.substr(index - 4, 3)] == 0) {
+                    std::string nozzle = get_printer_nozzle_diameter(compatible_printer_name);
+                    if (nozzle_diameter[nozzle] == 0) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << compatible_printer_name;
                         continue;
                     }
@@ -1106,10 +1120,14 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
     for (std::pair<std::string, Preset*> filament_presets : m_all_presets_map) {
         Preset *preset = filament_presets.second;
         auto    inherit = preset->config.option<ConfigOptionString>("inherits");
-        if (inherit && !inherit->value.empty()) continue;
+        if (inherit && !inherit->value.empty()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inherit user preset is:" << preset->name << " and inherits is: " << inherit->value;
+            continue;
+        }
         auto fila_type = preset->config.option<ConfigOptionStrings>("filament_type");
         if (!fila_type || fila_type->values.empty() || system_filament_types_map[type_name] != fila_type->values[0]) continue;
         m_filament_choice_map[preset->filament_id].push_back(preset);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " base user preset is:" << preset->name;
     }
     
     int suffix = 0;
@@ -1261,12 +1279,8 @@ void CreateFilamentPresetDialog::get_filament_presets_by_machine()
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " preset type is not selected type and preset name is: " << preset->name;
                 continue;
             }
-            size_t index = compatible_printer_name.find("nozzle");
-            if (index < 4) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer name encounter exception and name is: " << compatible_printer_name;
-                continue;
-            }
-            if (nozzle_diameter[compatible_printer_name.substr(index - 4, 3)] == 0) {
+            std::string nozzle = get_printer_nozzle_diameter(compatible_printer_name);
+            if (nozzle_diameter[nozzle] == 0) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " compatible printer nozzle encounter exception and name is: " << compatible_printer_name;
                 continue;
             }
@@ -1352,14 +1366,18 @@ void CreateFilamentPresetDialog::sort_printer_by_nozzle(std::vector<std::pair<st
     std::unordered_map<std::string, float> nozzle_diameter = nozzle_diameter_map;
     std::sort(printer_name_to_filament_preset.begin(), printer_name_to_filament_preset.end(),
               [&nozzle_diameter](const std::pair<string, T> &a, const std::pair<string, T> &b) {
-                  size_t nozzle_index_a = a.first.find("nozzle");
-                  size_t nozzle_index_b = b.first.find("nozzle");
+                  size_t nozzle_index_a = a.first.find(" nozzle");
+                  size_t nozzle_index_b = b.first.find(" nozzle");
                   if (nozzle_index_a == std::string::npos || nozzle_index_b == std::string::npos) return a.first < b.first;
                   std::string nozzle_str_a;
                   std::string nozzle_str_b;
                   try {
-                      nozzle_str_a = a.first.substr(nozzle_index_a - 4, 3);
-                      nozzle_str_b = b.first.substr(nozzle_index_b - 4, 3);
+                      nozzle_str_a = a.first.substr(0, nozzle_index_a);
+                      nozzle_str_b = b.first.substr(0, nozzle_index_b);
+                      size_t last_space_index = nozzle_str_a.find_last_of(" ");
+                      nozzle_str_a            = nozzle_str_a.substr(last_space_index + 1);
+                      last_space_index        = nozzle_str_b.find_last_of(" ");
+                      nozzle_str_b            = nozzle_str_b.substr(last_space_index + 1);
                   } catch (...) {
                       BOOST_LOG_TRIVIAL(info) << "substr filed, and printer name is: " << a.first << " and " << b.first;
                       return a.first < b.first;
