@@ -775,6 +775,8 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     GizmoImguiBegin(on_get_name(),
                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
+    m_control_width = m_imgui->get_font_size() * 9.f;
+    m_editing_window_width = 1.55 * m_control_width;
     if (m_connectors_editing) {
         init_connectors_input_window_data();
         render_connectors_input_window(x, y, bottom_limit);
@@ -1841,6 +1843,7 @@ void GLGizmoAdvancedCut::render_color_marker(float size, const ColorRGBA &color)
     ImGui::SameLine();
     const float radius = 0.5f * size;
     ImVec2      pos    = ImGui::GetCurrentWindow()->DC.CursorPos;
+    pos.x += 3 * m_imgui->scaled(1 / 15.0f);
     pos.y += 1.25f * radius;
     ImGui::GetCurrentWindow()->DrawList->AddNgonFilled(pos, radius, to_ImU32(color), 6);
 }
@@ -1853,6 +1856,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     float        rotate_cap        = m_imgui->calc_text_size(_L("Rotate")).x;
     float        groove_angle_size = m_imgui->calc_text_size(_L("Groove Angle")).x;
     float        caption_size      = std::max(movement_cap, groove_angle_size) + 2 * space_size;
+    m_label_width                  = caption_size + 1 * space_size;
     m_imperial_units               = wxGetApp().app_config->get("use_inches") == "1";
     unsigned int current_active_id = ImGui::GetActiveID();
     char  buf[3][64];
@@ -1977,12 +1981,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     } else if (m_cut_mode == CutMode::cutTongueAndGroove) {
         m_is_slider_editing_done = false;
         m_imgui->text(_L("Groove") + ": "); // ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, m_labels_map["Groove"] + ": ");
-        m_label_width          = caption_size + 1 * space_size;
-#ifdef __APPLE__
-        m_editing_window_width = m_label_width * 2.9;
-#else
-        m_editing_window_width = m_label_width * 2.5;
-#endif
+
         bool is_changed{false};
         is_changed |= render_slider_double_input(_u8L("Depth"), m_groove.depth, m_groove.depth_tolerance);
         is_changed |= render_slider_double_input(_u8L("Width"), m_groove.width, m_groove.width_tolerance);
@@ -2097,9 +2096,7 @@ void GLGizmoAdvancedCut::init_connectors_input_window_data()
     float max_lable_size = std::max(std::max(std::max(connectors_cap, type_cap), std::max(style_cap, shape_cap)), std::max(depth_ratio_cap, size_cap));
 
     m_label_width   = double(max_lable_size + 3 + ImGui::GetStyle().WindowPadding.x);
-    m_control_width  = m_imgui->get_font_size() * 9.f;
 
-    m_editing_window_width = 1.45 * m_control_width + 11;
 
     if (m_connectors_editing && m_selected_count > 0) {
         float             depth_ratio           {UndefFloat};
@@ -2360,7 +2357,7 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
 {
     // -------- [ ] -------- [ ]
     // slider_with + item_in_gap + first_input_width + item_out_gap + slider_with + item_in_gap + second_input_width
-    double slider_with          = 0.24 * m_editing_window_width; // m_control_width * 0.35;
+    double slider_with          = 0.24 * m_editing_window_width;
     double item_in_gap          = 0.01 * m_editing_window_width;
     double item_out_gap         = 0.04 * m_editing_window_width;
     double first_input_width    = 0.29  * m_editing_window_width;
@@ -2422,7 +2419,7 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
 bool GLGizmoAdvancedCut::render_slider_double_input_by_format(const std::string &label, float &value_in, float value_min, float value_max, DoubleShowType show_type)
 {
     // slider_with + item_in_gap + first_input_width + item_out_gap
-    double slider_with       = 0.24 * m_editing_window_width; // m_control_width * 0.35;
+    double slider_with       = 0.24 * m_editing_window_width;
     double item_in_gap       = 0.01 * m_editing_window_width;
     double item_out_gap      = 0.01 * m_editing_window_width;
     double first_input_width = 0.29 * m_editing_window_width;
