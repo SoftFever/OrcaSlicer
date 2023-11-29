@@ -667,3 +667,22 @@ index de5f52860c..a9581174a4 100644
              return value;
  
          // TODO case wxSYS_FRAMESIZE_X:
+diff --git "a/src/common/image.cpp" "b/src/common/image.cpp"
+index 6360f5a447..fc0f391381 100644
+--- "a/src/common/image.cpp"
++++ "b/src/common/image.cpp"
+@@ -390,11 +390,11 @@ wxImage wxImage::ShrinkBy( int xFactor , int yFactor ) const
+                     unsigned char red = pixel[0] ;
+                     unsigned char green = pixel[1] ;
+                     unsigned char blue = pixel[2] ;
+-                    unsigned char alpha = 255  ;
+-                    if ( source_alpha )
+-                        alpha = *(source_alpha + y_offset + x * xFactor + x1) ;
+                     if ( !hasMask || red != maskRed || green != maskGreen || blue != maskBlue )
+                     {
++                        unsigned char alpha = 255;
++                        if ( source_alpha )
++                            alpha = *(source_alpha + y_offset + x * xFactor + x1);
+                         if ( alpha > 0 )
+                         {
+                             avgRed += red ;
