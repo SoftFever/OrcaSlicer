@@ -4217,7 +4217,16 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     bool get_filament_presets = get_same_filament_id_presets(m_filament_id);
     // get filament vendor, type, serial, and name
     if (get_filament_presets && !m_printer_compatible_presets.empty()) {
-        std::shared_ptr<Preset> preset = m_printer_compatible_presets.begin()->second[0];
+        std::shared_ptr<Preset> preset;
+        for (std::pair<std::string, std::vector<std::shared_ptr<Preset>>> pair : m_printer_compatible_presets) {
+            for (std::shared_ptr<Preset> fialment_preset : pair.second) {
+                if (fialment_preset->inherits().empty()) {
+                    preset = fialment_preset;
+                    break;
+                }
+            }
+        }
+        if (!preset.get()) preset = m_printer_compatible_presets.begin()->second[0];
         m_filament_name                = get_filament_name(preset->name);
         auto vendor_names              = dynamic_cast<ConfigOptionStrings *>(preset->config.option("filament_vendor"));
         if (vendor_names  && !vendor_names->values.empty()) m_vendor_name = vendor_names->values[0];
@@ -4314,9 +4323,13 @@ void EditFilamentPresetDialog::update_preset_tree()
         width = m_note_text->GetSize().GetWidth();
         m_preset_tree_panel->SetMinSize(wxSize(width, -1));
     }
-    m_preset_tree_window->SetMinSize(wxSize(std::min(1000, width), std::min(400, height)));
-    m_preset_tree_window->SetMaxSize(wxSize(std::min(1000, width), std::min(400, height)));
-    m_preset_tree_window->SetSize(wxSize(std::min(1000, width), std::min(400, height)));
+    int width_extend = 0;
+    int height_extend = 0;
+    if (width > 1000) height_extend = 22;
+    if (height > 400) width_extend = 22;
+    m_preset_tree_window->SetMinSize(wxSize(std::min(1000, width + width_extend), std::min(400, height + height_extend)));
+    m_preset_tree_window->SetMaxSize(wxSize(std::min(1000, width + width_extend), std::min(400, height + height_extend)));
+    m_preset_tree_window->SetSize(wxSize(std::min(1000, width + width_extend), std::min(400, height + height_extend)));
     this->SetSizerAndFit(m_main_sizer);
     
     this->Layout();
@@ -4345,6 +4358,13 @@ void EditFilamentPresetDialog::delete_preset()
     // is selecetd filament preset
     if (need_delete_preset->name == wxGetApp().preset_bundle->filaments.get_selected_preset_name()) {
         wxGetApp().get_tab(need_delete_preset->type)->delete_preset();
+        // is preset exist? exist: not delete
+        Preset *delete_preset = wxGetApp().preset_bundle->filaments.find_preset(need_delete_preset->name, false);
+        if (delete_preset) {
+            m_selected_printer.clear();
+            m_need_delete_preset_index = -1;
+            return;
+        }
     } else {
         Preset *filament_preset = wxGetApp().preset_bundle->filaments.find_preset(need_delete_preset->name);
 
