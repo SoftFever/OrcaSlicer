@@ -419,7 +419,7 @@ bool draw_clickable(const IconManager::VIcons &icons, IconType type)
 
 bool reset_button(const IconManager::VIcons &icons)
 {
-    float reset_offset = ImGui::GetStyle().FramePadding.x;
+    float reset_offset = ImGui::GetStyle().WindowPadding.x;
     ImGui::SameLine(reset_offset);
 
     // from GLGizmoCut
@@ -1448,6 +1448,7 @@ void GLGizmoSVG::draw_filename(){
 
     // Remove space between filename and gray suffix ".svg"
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::AlignTextToFramePadding();
     ImGui::Text("%s", m_filename_preview.c_str());
     bool is_hovered = ImGui::IsItemHovered();
     ImGui::SameLine();
@@ -1483,6 +1484,7 @@ void GLGizmoSVG::draw_filename(){
     if (ImGui::BeginCombo("##file_options", nullptr, flags)) {
         ScopeGuard combo_sg([]() { ImGui::EndCombo(); });
 
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {ImGui::GetStyle().FramePadding.x, 0});
         draw(get_icon(m_icons, IconType::change_file, IconState::hovered));
         ImGui::SameLine();
         if (ImGui::Selectable((_L("Change file") + dots).ToUTF8().data())) {
@@ -1596,6 +1598,7 @@ void GLGizmoSVG::draw_filename(){
         //} else if (ImGui::IsItemHovered()) {
         //    ImGui::SetTooltip("%s", _u8L("Save only used path as '.svg' file").c_str());
         //}
+        ImGui::PopStyleVar(1);
     }
     ImGuiWrapper::pop_combo_style();
     if (!tooltip.empty())
@@ -1616,6 +1619,7 @@ void GLGizmoSVG::draw_filename(){
 
 void GLGizmoSVG::draw_depth()
 {
+    ImGui::AlignTextToFramePadding();
     ImGuiWrapper::text(m_gui_cfg->translations.depth);
     ImGui::SameLine(m_gui_cfg->input_offset);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
@@ -1652,6 +1656,7 @@ void GLGizmoSVG::draw_depth()
 
 void GLGizmoSVG::draw_size() 
 {
+    ImGui::AlignTextToFramePadding();
     ImGuiWrapper::text(m_gui_cfg->translations.size);
     if (ImGui::IsItemHovered()){
         size_t count_points = 0;
@@ -1790,6 +1795,7 @@ void GLGizmoSVG::draw_use_surface()
     m_imgui->disabled_begin(!can_use_surface);
     ScopeGuard sc([imgui = m_imgui]() { imgui->disabled_end(); });
 
+    ImGui::AlignTextToFramePadding();
     ImGuiWrapper::text(m_gui_cfg->translations.use_surface);
     ImGui::SameLine(m_gui_cfg->input_offset);
 
@@ -1810,6 +1816,7 @@ void GLGizmoSVG::draw_distance()
     m_imgui->disabled_begin(!allowe_surface_distance);
     ScopeGuard sg([imgui = m_imgui]() { imgui->disabled_end(); });
 
+    ImGui::AlignTextToFramePadding();
     ImGuiWrapper::text(m_gui_cfg->translations.distance);
     ImGui::SameLine(m_gui_cfg->input_offset);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
@@ -1849,7 +1856,8 @@ void GLGizmoSVG::draw_distance()
 }
 
 void GLGizmoSVG::draw_rotation()
-{        
+{
+    ImGui::AlignTextToFramePadding();
     ImGuiWrapper::text(m_gui_cfg->translations.rotation);
     ImGui::SameLine(m_gui_cfg->input_offset);
     ImGui::SetNextItemWidth(m_gui_cfg->input_width);
@@ -1904,6 +1912,7 @@ void GLGizmoSVG::draw_rotation()
 
 void GLGizmoSVG::draw_mirroring()
 {
+    ImGui::AlignTextToFramePadding();
     ImGui::Text("%s", m_gui_cfg->translations.mirror.c_str());
     ImGui::SameLine(m_gui_cfg->input_offset);
     Axis axis = Axis::UNKNOWN_AXIS;
@@ -1944,6 +1953,7 @@ void GLGizmoSVG::draw_mirroring()
 
 void GLGizmoSVG::draw_model_type()
 {
+    ImGui::AlignTextToFramePadding();
     bool is_last_solid_part = m_volume->is_the_only_one_part();
     std::string title = _u8L("Operation");
     if (is_last_solid_part) {
