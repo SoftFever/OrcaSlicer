@@ -796,6 +796,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bottom_shell_thickness))
     ((ConfigOptionFloat,                bridge_angle))
     ((ConfigOptionFloat,                bridge_flow))
+    ((ConfigOptionFloat,                internal_bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionFloatOrPercent,       internal_bridge_speed))
     ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
@@ -810,6 +811,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<FuzzySkinType>,  fuzzy_skin))
     ((ConfigOptionFloat,                fuzzy_skin_thickness))
     ((ConfigOptionFloat,                fuzzy_skin_point_distance))
+    ((ConfigOptionBool,                 fuzzy_skin_first_layer))
     ((ConfigOptionFloat,                gap_infill_speed))
     ((ConfigOptionInt,                  sparse_infill_filament))
     ((ConfigOptionFloatOrPercent,       sparse_infill_line_width))
@@ -877,6 +879,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       hole_to_polyhole_threshold))
     ((ConfigOptionBool,                 hole_to_polyhole_twisted))
     ((ConfigOptionBool,                 overhang_reverse))
+    ((ConfigOptionBool,                 overhang_reverse_internal_only))
     ((ConfigOptionFloatOrPercent,       overhang_reverse_threshold))
 )
 

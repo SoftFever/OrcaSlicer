@@ -68,16 +68,14 @@ static void fuzzy_polygon(Polygon &poly, double fuzzy_skin_thickness, double fuz
     { // 'a' is the (next) new point between p0 and p1
         Vec2d  p0p1      = (p1 - *p0).cast<double>();
         double p0p1_size = p0p1.norm();
-        // so that p0p1_size - dist_last_point evaulates to dist_left_over - p0p1_size
-        double dist_last_point = dist_left_over + p0p1_size * 2.;
-        for (double p0pa_dist = dist_left_over; p0pa_dist < p0p1_size;
+        double p0pa_dist = dist_left_over;
+        for (; p0pa_dist < p0p1_size;
             p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX))
         {
             double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
             out.emplace_back(*p0 + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>());
-            dist_last_point = p0pa_dist;
         }
-        dist_left_over = p0p1_size - dist_last_point;
+        dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
     }
     while (out.size() < 3) {
@@ -96,7 +94,7 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
 {
     const double min_dist_between_points = fuzzy_skin_point_dist * 3. / 4.; // hardcoded: the point distance may vary between 3/4 and 5/4 the supplied value
     const double range_random_point_dist = fuzzy_skin_point_dist / 2.;
-    double       dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
+    double dist_left_over = double(rand()) * (min_dist_between_points / 2) / double(RAND_MAX); // the distance to be traversed on the line before making the first new point
 
     auto* p0 = &ext_lines.front();
     std::vector<Arachne::ExtrusionJunction> out;
@@ -110,14 +108,12 @@ static void fuzzy_extrusion_line(Arachne::ExtrusionLine& ext_lines, double fuzzy
         // 'a' is the (next) new point between p0 and p1
         Vec2d  p0p1 = (p1.p - p0->p).cast<double>();
         double p0p1_size = p0p1.norm();
-        // so that p0p1_size - dist_last_point evaulates to dist_left_over - p0p1_size
-        double dist_last_point = dist_left_over + p0p1_size * 2.;
-        for (double p0pa_dist = dist_left_over; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX)) {
+        double p0pa_dist = dist_left_over;
+        for (; p0pa_dist < p0p1_size; p0pa_dist += min_dist_between_points + double(rand()) * range_random_point_dist / double(RAND_MAX)) {
             double r = double(rand()) * (fuzzy_skin_thickness * 2.) / double(RAND_MAX) - fuzzy_skin_thickness;
             out.emplace_back(p0->p + (p0p1 * (p0pa_dist / p0p1_size) + perp(p0p1).cast<double>().normalized() * r).cast<coord_t>(), p1.w, p1.perimeter_index);
-            dist_last_point = p0pa_dist;
         }
-        dist_left_over = p0p1_size - dist_last_point;
+        dist_left_over = p0pa_dist - p0p1_size;
         p0 = &p1;
     }
 
@@ -899,7 +895,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
         offset_top_surface = 0;
     // don't takes into account too thin areas
     // skip if the exposed area is smaller than "min_width_top_surface"
-    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), config->min_width_top_surface.get_abs_value(perimeter_width));
+    double min_width_top_surface = std::max(double(ext_perimeter_spacing / 2 + 10), scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width))));
 
     Polygons grown_upper_slices = offset(*this->upper_slices, min_width_top_surface);
 
@@ -1404,7 +1400,7 @@ void PerimeterGenerator::apply_extra_perimeters(ExPolygons &infill_area)
 }
 
 // Reorient loop direction
-static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_overhang_contour, bool steep_overhang_hole)
+static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_overhang_contour, bool steep_overhang_hole, bool reverse_internal_only)
 {
     if (steep_overhang_hole || steep_overhang_contour) {
         for (auto entity : entities) {
@@ -1412,7 +1408,18 @@ static void reorient_perimeters(ExtrusionEntityCollection &entities, bool steep_
                 ExtrusionLoop *eloop = static_cast<ExtrusionLoop *>(entity);
                 // Only reverse when needed
                 bool need_reverse = ((eloop->loop_role() & elrHole) == elrHole) ? steep_overhang_hole : steep_overhang_contour;
-                if (need_reverse) {
+                
+                bool isExternal = false;
+                if(reverse_internal_only){
+                    for(auto path : eloop->paths){
+                        if(path.role() == erExternalPerimeter){
+                            isExternal = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (need_reverse && !isExternal) {
                     eloop->make_clockwise();
                 }
             }
@@ -1710,7 +1717,7 @@ void PerimeterGenerator::process_classic()
             bool steep_overhang_contour = false;
             bool steep_overhang_hole    = false;
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls, steep_overhang_contour, steep_overhang_hole);
-            reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole);
+            reorient_perimeters(entities, steep_overhang_contour, steep_overhang_hole, this->config->overhang_reverse_internal_only);
 
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
@@ -2082,8 +2089,7 @@ void PerimeterGenerator::process_arachne()
                     current_position = best_path->junctions.back().p; //Pick the other end from where we started.
             }
         }
-
-        if (this->layer_id > 0 && this->config->fuzzy_skin != FuzzySkinType::None) {
+        if ((this->config->fuzzy_skin_first_layer || this->layer_id>0) && this->config->fuzzy_skin != FuzzySkinType::None) {
             std::vector<PerimeterGeneratorArachneExtrusion*> closed_loop_extrusions;
             for (PerimeterGeneratorArachneExtrusion& extrusion : ordered_extrusions)
                 if (extrusion.extrusion->inset_idx == 0) {
@@ -2232,7 +2238,7 @@ void PerimeterGenerator::process_arachne()
         bool steep_overhang_contour = false;
         bool steep_overhang_hole    = false;
         if (ExtrusionEntityCollection extrusion_coll = traverse_extrusions(*this, ordered_extrusions, steep_overhang_contour, steep_overhang_hole); !extrusion_coll.empty()) {
-            reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole);
+            reorient_perimeters(extrusion_coll, steep_overhang_contour, steep_overhang_hole, this->config->overhang_reverse_internal_only);
             this->loops->append(extrusion_coll);
         }
 

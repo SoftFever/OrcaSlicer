@@ -776,6 +776,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("internal_bridge_flow", coFloat);
+    def->label = L("Internal bridge flow");
+    def->category = L("Quality");
+    def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
+    def->min = 0;
+    def->max = 2.0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     def = this->add("top_solid_infill_flow_ratio", coFloat);
     def->label = L("Top surface flow ratio");
     def->category = L("Advanced");
@@ -840,7 +849,15 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Reverse on odd");
     def->full_label = L("Overhang reversal");
     def->category = L("Quality");
-    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhang.");
+    def->tooltip = L("Extrude perimeters that have a part over an overhang in the reverse direction on odd layers. This alternating pattern can drastically improve steep overhangs.\n\nThis setting can also help reduce part warping due to the reduction of stresses in the part walls.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("overhang_reverse_internal_only", coBool);
+    def->label = L("Reverse only internal perimeters");
+    def->full_label = L("Reverse only internal perimeters");
+    def->category = L("Quality");
+    def->tooltip = L("Apply the reverse perimeters logic only on internal perimeters. \n\nThis setting greatly reduces part stresses as they are now distributed in alternating directions. This should reduce part warping while also maintaining external wall quality. This feature can be very useful for warp prone material, like ABS/ASA, and also for elastic filaments, like TPU and Silk PLA. It can also help reduce warping on floating regions over supports.\n\nFor this setting to be the most effective, it is recomended to set the Reverse Threshold to 0 so that all internal walls print in alternating directions on odd layers irrespective of their overhang degree.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -1454,7 +1471,6 @@ void PrintConfigDef::init_fff_params()
                      "Can't be zero");
     def->sidetext = L("mm³/s");
     def->min = 0;
-    def->max = 200;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 2. });
 
@@ -2084,6 +2100,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->max = 5;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.8));
+
+    def = this->add("fuzzy_skin_first_layer", coBool);
+    def->label = L("Apply fuzzy skin to first layer");
+    def->category = L("Others");
+    def->tooltip = L("Whether to apply fuzzy skin on the first layer");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(0));
 
     def = this->add("filter_out_gap_fill", coFloat);
     def->label = L("Filter out tiny gaps");
@@ -2817,7 +2840,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = L("User can self-define the project file name when export");
     def->full_width = true;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[0]}_{print_time}.gcode"));
+    def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode"));
 
     def = this->add("make_overhang_printable", coBool);
     def->label = L("Make overhang printable");
@@ -5702,6 +5725,11 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --bridge-flow-ratio
     if (cfg.bridge_flow <= 0) {
         error_message.emplace("bridge_flow", L("invalid value ") + std::to_string(cfg.bridge_flow));
+    }
+    
+    // --bridge-flow-ratio
+    if (cfg.bridge_flow <= 0) {
+        error_message.emplace("internal_bridge_flow", L("invalid value ") + std::to_string(cfg.internal_bridge_flow));
     }
 
     // extruder clearance

@@ -28,7 +28,7 @@ private:
     void perform_recognition(const Selection& selection);
     void display_exterior_face();
 
-    GLIndexedVertexArray m_iva;
+    GUI::GLModel model;
     double m_sample_interval = {0.5};
 };
 

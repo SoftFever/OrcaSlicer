@@ -1,51 +1,33 @@
-name: Build OrcaSlicer
-
-on: 
-    push:
-      branches: 
-       - main
-      paths:
-       - 'src/**'
-       - '**/CMakeLists.txt'
-       - 'version.inc'
-       - 'localization/**'
-       - 'resources/**'
-       - ".github/workflows/build_orca.yml"
-
-    pull_request:
-      branches: 
-       - main 
-      paths:
-       - 'src/**'
-       - '**/CMakeLists.txt'
-       - 'version.inc'
-       - ".github/workflows/build_orca.yml"
- 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+on:
+    workflow_call:
+      inputs:
+        cache-key:
+          required: true
+          type: string
+        cache-path:
+          required: true
+          type: string
+        os:
+          required: true
+          type: string
+        arch:
+          required: false
+          type: string
 
 jobs:
   build_orca:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-20.04
-          - os: windows-latest
-          - os: macos-12
-            arch: x86_64
-          - os: macos-12
-            arch: arm64
-    runs-on: ${{ matrix.os }}
+    name: Build OrcaSlicer
+    runs-on: ${{ inputs.os }}
+    env:
+      date:
+      ver:
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Get the version and date on Ubuntu and macOS
-        if: matrix.os != 'windows-latest'
-        id: get-version-unix
+        if: inputs.os != 'windows-latest'
         run: |
           ver=$(grep 'set(SoftFever_VERSION' version.inc | cut -d '"' -f2)
           echo "ver=$ver" >> $GITHUB_ENV
@@ -53,8 +35,7 @@ jobs:
         shell: bash
 
       - name: Get the version and date on Windows
-        if: matrix.os == 'windows-latest'
-        id: get-version-windows
+        if: inputs.os == 'windows-latest'
         run: |
           echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           # Extract the version from the file
@@ -65,50 +46,30 @@ jobs:
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date: ${{ env.date }} version: $ver"
         shell: pwsh
-
+        
+      - name: load cached deps
+        uses: actions/cache@v3
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key }}
+        
 #   Mac
       - name: Install tools mac
-        if: matrix.os == 'macos-12'
+        if: inputs.os == 'macos-12'
         run: |
           brew install cmake git gettext zstd tree
-          mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}
-          mkdir -p ${{ github.workspace }}/deps/build_${{matrix.arch}}/OrcaSlicer_dep_${{matrix.arch}}
-
-      # - name: build deps
-        # if: matrix.os == 'macos-12'
-        #   id: cache_deps
-      #   uses: actions/cache@v3
-      #   env:
-      #     cache-name: ${{ runner.os }}-cache-orcaslicer_deps_${{matrix.arch}}
-      #   with:
-      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-      #     key: build-${{ env.cache-name }}
-
-      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
-      #   name: build deps
-      #   working-directory: ${{ github.workspace }}
-      #   continue-on-error: true
-      #   run: ./build_release_macos.sh -d -a ${{matrix.arch}}
-      - name: Download and extract deps
-        if: matrix.os == 'macos-12'
-        working-directory: ${{ github.workspace }}
-        run: |
-          curl -LJO https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz
-          tar -zvxf ./OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz -C ${{ github.workspace }}/deps/build_${{matrix.arch}}
-          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build_${{matrix.arch}}
-          tree ${{ github.workspace }}/deps/build_${{matrix.arch}}
-          rm ./OrcaSlicer_dep_mac_${{matrix.arch}}_20231008.tar.gz
-
+          mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}
+          mkdir -p ${{ github.workspace }}/deps/build_${{inputs.arch}}/OrcaSlicer_dep_${{inputs.arch}}
 
       - name: Build slicer mac
-        if: matrix.os == 'macos-12'
+        if: inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
-          ./build_release_macos.sh -s -n -a ${{matrix.arch}}
+          ./build_release_macos.sh -s -n -a ${{inputs.arch}}
 
  # Thanks to RaySajuuk, it's working now
       - name: Sign app and notary
-        if: github.ref == 'refs/heads/main' && matrix.os == 'macos-12'
+        if: github.ref == 'refs/heads/main' && inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -125,109 +86,86 @@ jobs:
           security import $CERTIFICATE_PATH -P $P12_PASSWORD -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $P12_PASSWORD $KEYCHAIN_PATH
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/OrcaSlicer.app
-          ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
-          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/OrcaSlicer.app
+          ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}.dmg
+          codesign --deep --force --verbose --options runtime --timestamp --entitlements ${{ github.workspace }}/scripts/disable_validation.entitlements --sign "$CERTIFICATE_ID" OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}.dmg
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}"
-          xcrun notarytool submit "OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
-          xcrun stapler staple OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          xcrun notarytool submit "OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}.dmg" --keychain-profile "notarytool-profile" --wait
+          xcrun stapler staple OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}.dmg
 
       - name: Create DMG without notary
-        if: github.ref != 'refs/heads/main' && matrix.os == 'macos-12'
+        if: github.ref != 'refs/heads/main' && inputs.os == 'macos-12'
         working-directory: ${{ github.workspace }}
         run: |
-          ln -s /Applications ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer/Applications
-          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{matrix.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          ln -s /Applications ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer/Applications
+          hdiutil create -volname "OrcaSlicer" -srcfolder ${{ github.workspace }}/build_${{inputs.arch}}/OrcaSlicer -ov -format UDZO OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}.dmg
 
       - name: Upload artifacts mac
-        if: matrix.os == 'macos-12'
+        if: inputs.os == 'macos-12'
         uses: actions/upload-artifact@v3
         with:
-          name: OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}
-          path: ${{ github.workspace }}/OrcaSlicer_Mac_${{matrix.arch}}_V${{ env.ver }}.dmg
+          name: OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}
+          path: ${{ github.workspace }}/OrcaSlicer_Mac_${{inputs.arch}}_V${{ env.ver }}.dmg
 
 # Windows
       - name: setup MSVC
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v1.1
 
       - name: Install nsis
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
           choco install nsis
 
-      - name: download deps
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_win64_20230810_vs2022.zip", "$env:temp\OrcaSlicer_dep_win64_20230810_vs2022.zip")'
-
-      - name: maker dir
-        if: matrix.os == 'windows-latest'
-        working-directory: ${{ github.workspace }}
-        run: |
-          mkdir ${{ github.workspace }}/deps/build
-          mkdir ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-
-      - name: extract deps
-        if: matrix.os == 'windows-latest'
-        working-directory: ${{ github.workspace }}/deps/build
-        shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\OrcaSlicer_dep_win64_20230810_vs2022.zip'
-      
-      # - name: build deps
-        # if: matrix.os == 'windows-latest'
-        #   id: cache_deps
-      #   uses: actions/cache@v3
-      #   env:
-      #     cache-name: ${{ runner.os }}-cache-orcaslicer_deps
-      #   with:
-      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-      #     key: ${{ runner.os }}-build-${{ env.cache-name }}
-
-      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
-      #   name: build deps
-      #   working-directory: ${{ github.workspace }}
-      #   continue-on-error: true
-      #   run: .\build_release_vs2022.bat deps
-    
-      # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude OrcaSlicer_dep | Remove-Item -Recurse -Force
-
       - name: Build slicer Win
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}
         run: .\build_release_vs2022.bat slicer
 
       - name: Create installer Win
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         working-directory: ${{ github.workspace }}/build
         run: |
           cpack -G NSIS
 
-      # - name: pack app
-        # if: matrix.os == 'windows-latest'
-        #   working-directory: ${{ github.workspace }}/build
-      #   shell: cmd
-      #   run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_dev_build.zip ${{ github.workspace }}/build/OrcaSlicer'
+      - name: Pack app
+        if: inputs.os == 'windows-latest'
+        working-directory: ${{ github.workspace }}/build
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip OrcaSlicer_Windows_V${{ env.ver }}_portable.zip ${{ github.workspace }}/build/OrcaSlicer'
 
+      - name: Pack PDB
+        if: inputs.os == 'windows-latest'
+        working-directory: ${{ github.workspace }}/build/src/Release
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_V${{ env.ver }}_for_developers_only.7z  *.pdb'
+          
       - name: Upload artifacts Win zip
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}_portable
-          path: ${{ github.workspace }}/build/OrcaSlicer
+          path: ${{ github.workspace }}/build/OrcaSlicer_Windows_V${{ env.ver }}_portable.zip
 
       - name: Upload artifacts Win installer
-        if: matrix.os == 'windows-latest'
+        if: inputs.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Windows_V${{ env.ver }}
           path: ${{ github.workspace }}/build/OrcaSlicer*.exe
-# Ubuntu
 
+      - name: Upload artifacts Win PDB
+        if: inputs.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: PDB
+          path: ${{ github.workspace }}/build/src/Release/Debug_PDB_V${{ env.ver }}_for_developers_only.7z
+
+# Ubuntu
       - name: Install dependencies
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf build-essential cmake curl eglexternalplatform-dev \
@@ -237,51 +175,24 @@ jobs:
           libwebkit2gtk-4.0-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget
 
       - name: Install dependencies from BuildLinux.sh
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         shell: bash
         run: sudo chown $USER -R ./
-      # - name: Build deps
-        # if: matrix.os == 'ubuntu-20.04'
-        #   id: cache_deps
-      #   uses: actions/cache@v3
-      #   env:
-      #     cache-name: ${{ runner.os }}-cache-orcaslicer_deps_x64
-      #   with:
-      #     path: ${{ github.workspace }}/deps/build/destdir
-      #     key: build-${{ env.cache-name }}
-
-      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
-      #   name: Build deps
-      #   working-directory: ${{ github.workspace }}
-      #   continue-on-error: true
-      #   run: ./BuildLinux.sh -dr
-      - name: Download and extract deps
-        if: matrix.os == 'ubuntu-20.04'
-        working-directory: ${{ github.workspace }}
-        run: |
-          mkdir -p ${{ github.workspace }}/deps/build
-          mkdir -p ${{ github.workspace }}/deps/build/destdir
-          curl -LJO https://github.com/SoftFever/OrcaSlicer_deps/releases/download/OrcaSlicer_deps_Oct2023/OrcaSlicer_dep_ubuntu_20231008.zip
-          unzip ./OrcaSlicer_dep_ubuntu_20231008.zip -d ${{ github.workspace }}/deps/build/destdir
-          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/destdir
-          ls -l ${{ github.workspace }}/deps/build/destdir
-          rm OrcaSlicer_dep_ubuntu_20231008.zip
-
 
       - name: Build slicer
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         shell: bash
         run: |
           ./BuildLinux.sh -isr
           chmod +x ./build/OrcaSlicer_ubu64.AppImage
         
       - name: Upload artifacts Ubuntu
-        if: matrix.os == 'ubuntu-20.04'
+        if: inputs.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v3
         with:
           name: OrcaSlicer_Linux_V${{ env.ver }}

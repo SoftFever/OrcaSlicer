@@ -50,7 +50,7 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
 
         // Cast a ray on all meshes, pick the closest hit and save it for the respective mesh
         for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
-            MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh());
+            MeshRaycaster mesh_raycaster = MeshRaycaster(mo->volumes[mesh_id]->mesh_ptr());
             if (mesh_raycaster.unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal,
                 m_c->object_clipper()->get_clipping_plane(), &facet)) {
                 // Is this hit the closest to the camera so far?
@@ -82,6 +82,27 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         }
     }
     return true;
+}
+
+bool GLGizmoMeshBoolean::on_mouse(const wxMouseEvent &mouse_event)
+{
+    // wxCoord == int --> wx/types.h
+    Vec2i mouse_coord(mouse_event.GetX(), mouse_event.GetY());
+    Vec2d mouse_pos = mouse_coord.cast<double>();
+
+    // when control is down we allow scene pan and rotation even when clicking
+    // over some object
+    bool control_down           = mouse_event.CmdDown();
+    bool grabber_contains_mouse = (get_hover_id() != -1);
+    if (mouse_event.LeftDown()) {
+        if ((!control_down || grabber_contains_mouse) &&            
+            gizmo_event(SLAGizmoEventType::LeftDown, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false))
+            // the gizmo got the event and took some action, there is no need
+            // to do anything more
+            return true;
+    }
+
+    return false;
 }
 
 bool GLGizmoMeshBoolean::on_init()
@@ -131,8 +152,8 @@ void GLGizmoMeshBoolean::on_render()
         }
     }
 
-    float src_color[3] = { 1.0f, 1.0f, 1.0f };
-    float tool_color[3] = { 0.0f, 150.0f / 255.0f, 136.0f / 255.0f };
+    ColorRGB src_color = { 1.0f, 1.0f, 1.0f };
+    ColorRGB tool_color = {0.0f, 150.0f / 255.0f, 136.0f / 255.0f};
     m_parent.get_selection().render_bounding_box(src_bb, src_color, m_parent.get_scale());
     m_parent.get_selection().render_bounding_box(tool_bb, tool_color, m_parent.get_scale());
 }
