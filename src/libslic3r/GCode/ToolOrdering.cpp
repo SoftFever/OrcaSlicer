@@ -21,9 +21,74 @@ namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
 
+
+// Shortest hamilton path problem
+static std::vector<unsigned int> solve_extruder_order(const std::vector<std::vector<float>>& wipe_volumes, std::vector<unsigned int> all_extruders, unsigned int start_extruder_id) 
+{
+    auto start_iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
+    bool add_start_extruder_flag = false;
+    if (start_iter == all_extruders.end())
+        all_extruders.insert(all_extruders.begin(), start_extruder_id), add_start_extruder_flag = true;
+    else
+        std::swap(*all_extruders.begin(), *start_iter);
+
+    unsigned int iterations = (1 << all_extruders.size());
+    unsigned int final_state = iterations - 1;
+    std::vector<std::vector<float>>cache(iterations, std::vector<float>(all_extruders.size(),0x7fffffff));
+    std::vector<std::vector<int>>prev(iterations, std::vector<int>(all_extruders.size(), -1));
+    cache[1][0] = 0.;
+    for (unsigned int state = 0; state < iterations; ++state) {
+        if (state & 1) {
+            for (unsigned int target = 0; target < all_extruders.size(); ++target) {
+                if (state >> target & 1) {
+                    for (unsigned int mid_point = 0; mid_point < all_extruders.size(); ++mid_point) {
+                        if(state>>mid_point&1){
+                            auto tmp = cache[state - (1 << target)][mid_point] + wipe_volumes[all_extruders[mid_point]][all_extruders[target]];
+                            if (cache[state][target] >tmp) {
+                                cache[state][target] = tmp;
+                                prev[state][target] = mid_point;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //get res
+    float cost = std::numeric_limits<float>::max();
+    int final_dst =0;
+    for (unsigned int dst = 0; dst < all_extruders.size(); ++dst) {
+        if (all_extruders[dst] != start_extruder_id && cost > cache[final_state][dst]) {
+            cost = cache[final_state][dst];
+            final_dst = dst;
+        }
+    }
+
+    std::vector<unsigned int>path;
+    unsigned int curr_state = final_state;
+    int curr_point = final_dst;
+    while (curr_point != -1) {
+        path.emplace_back(all_extruders[curr_point]);
+        auto mid_point = prev[curr_state][curr_point];
+        curr_state -= (1 << curr_point);
+        curr_point = mid_point;
+    };
+
+    if (add_start_extruder_flag)
+        path.pop_back();
+
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
 std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes, std::vector<unsigned int> all_extruders, unsigned int start_extruder_id)
 {
-    if (all_extruders.size() > 1) {
+#define USE_DP_OPTIMIZE
+#ifdef USE_DP_OPTIMIZE
+    return solve_extruder_order(wipe_volumes, all_extruders, start_extruder_id);
+#else
+if (all_extruders.size() > 1) {
         int begin_index = 0;
         auto iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
         if (iter != all_extruders.end()) {
@@ -52,6 +117,8 @@ std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<floa
             return volumes_to_extruder_order.second;
     }
     return all_extruders;
+
+#endif // OPTIMIZE
 }
 
 
@@ -769,14 +836,40 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
             wipe_volumes.push_back(std::vector<float>(number_of_extruders, print_config->prime_volume));
     }
     
+    auto extruders_to_hash_key = [](const std::vector<unsigned int>& extruders, unsigned int initial_extruder_id)->uint32_t {
+        uint32_t hash_key = 0;
+        // high 16 bit define initial extruder ,low 16 bit define extruder set
+        hash_key |= (1 << (16 + initial_extruder_id));
+        for (auto item : extruders)
+            hash_key |= (1 << item);
+        return hash_key;
+    };
+
+
     unsigned int current_extruder_id = -1;
     for (int i = 0; i < m_layer_tools.size(); ++i) {
         LayerTools& lt = m_layer_tools[i];
         if (lt.extruders.empty())
             continue;
-        // todo: The algorithm complexity is too high(o(n2)), currently only 12 colors are supported
-        if (i != 0 && lt.extruders.size() <= 12) {
-            lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
+        // The algorithm complexity is O(n2*2^n)
+        if (i != 0) {
+            auto hash_key = extruders_to_hash_key(lt.extruders, current_extruder_id);
+            auto iter = m_tool_order_cache.find(hash_key);
+            if (iter == m_tool_order_cache.end()) {
+                lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
+                std::vector<uint8_t> hash_val;
+                hash_val.reserve(lt.extruders.size());
+                for (auto item : lt.extruders)
+                    hash_val.emplace_back(static_cast<uint8_t>(item));
+                m_tool_order_cache[hash_key] = hash_val;
+            }
+            else {
+                std::vector<unsigned int>extruder_order;
+                extruder_order.reserve(iter->second.size());
+                for (auto item : iter->second)
+                    extruder_order.emplace_back(static_cast<unsigned int>(item));
+                lt.extruders = std::move(extruder_order);
+            }
         }
         current_extruder_id = lt.extruders.back();
     }
