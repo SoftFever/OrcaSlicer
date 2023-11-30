@@ -3352,7 +3352,7 @@ msgid "Print plate"
 msgstr "Imprimer le plateau"
 
 msgid "Slice all"
-msgstr "Découper toutes les plateaux"
+msgstr "Découper tous les plateaux"
 
 msgid "Export G-code file"
 msgstr "Exporter le fichier G-code"

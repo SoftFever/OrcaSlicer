@@ -3196,7 +3196,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         //case 'B':
         //case 'b': { zoom_to_bed(); break; }
         case 'C':
-        case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
+        case 'c': { wxGetApp().toggle_show_gcode_window(); m_dirty = true; request_extra_frame(); break; }
         //case 'G':
         //case 'g': {
         //    if ((evt.GetModifiers() & shiftMask) != 0) {

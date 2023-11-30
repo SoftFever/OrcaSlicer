@@ -1726,7 +1726,7 @@ def = this->add("filament_loading_speed", coFloats);
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
-    def->tooltip = L("Density of internal sparse infill, 100% means solid throughout");
+    def->tooltip = L("Density of internal sparse infill, 100% turns all sparse infill into solid infill and internal solid infill pattern will be used");
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
@@ -5709,12 +5709,6 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --soild-fill-pattern
     if (!print_config_def.get("internal_solid_infill_pattern")->has_enum_value(cfg.internal_solid_infill_pattern.serialize())) {
         error_message.emplace("internal_solid_infill_pattern", L("invalid value ") + cfg.internal_solid_infill_pattern.serialize());
-    }
-
-    // --fill-density
-    if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
-        ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
-        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100%% density "));
     }
 
     // --skirt-height
