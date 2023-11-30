@@ -2091,7 +2091,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
         auto params            = print.calib_params();
-        gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
+        gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)) + 1);
 
         file.write(gcode);
     }
