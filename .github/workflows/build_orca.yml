@@ -4,6 +4,7 @@ on:
     push:
       branches: 
        - main
+       - release/*
       paths:
        - 'src/**'
        - '**/CMakeLists.txt'
@@ -15,6 +16,7 @@ on:
     pull_request:
       branches: 
        - main 
+       - release/*
       paths:
        - 'src/**'
        - '**/CMakeLists.txt'
