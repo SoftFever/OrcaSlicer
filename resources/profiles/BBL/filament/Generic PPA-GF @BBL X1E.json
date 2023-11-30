@@ -8,9 +8,6 @@
     "chamber_temperatures": [
         "60"
     ],
-    "filament_vendor": [
-        "Bambu Lab"
-    ],
     "compatible_printers": [
         "Bambu Lab X1E 0.6 nozzle",
         "Bambu Lab X1E 0.8 nozzle",
