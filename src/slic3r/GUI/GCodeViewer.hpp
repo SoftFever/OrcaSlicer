@@ -650,7 +650,6 @@ public:
                 std::string comment;
             };
             bool m_is_dark = false;
-            bool m_visible{ true };
             uint64_t m_selected_line_id{ 0 };
             size_t m_last_lines_size{ 0 };
             std::string m_filename;
@@ -673,8 +672,6 @@ public:
                 m_filename.clear();
                 m_filename.shrink_to_fit();
             }
-
-            void toggle_visibility() { m_visible = !m_visible; }
 
             //BBS: GUI refactor: add canvas size
             //void render(float top, float bottom, uint64_t curr_line_id) const;
@@ -701,7 +698,7 @@ public:
         GCodeWindow gcode_window;
         std::vector<unsigned int> gcode_ids;
         float m_scale = 1.0;
-        bool m_show_gcode_window = false;
+        bool m_show_marker = false;
         void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, int right_margin, const EViewType& view_type);
     };
 
@@ -882,8 +879,6 @@ public:
     void enable_legend(bool enable) { m_legend_enabled = enable; }
 
     void export_toolpaths_to_obj(const char* filename) const;
-
-    void toggle_gcode_window_visibility() { m_sequential_view.gcode_window.toggle_visibility(); }
 
     std::vector<CustomGCode::Item>& get_custom_gcode_per_print_z() { return m_custom_gcode_per_print_z; }
     size_t get_extruders_count() { return m_extruders_count; }
