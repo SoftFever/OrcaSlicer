@@ -446,6 +446,24 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
         RegionExpansionParameters::build(expansion_top, expansion_step, max_nr_expansion_steps), 
         sparse, expansion_params_into_sparse_infill, closing_radius);
 
+    // turn too small internal regions into solid regions according to the user setting
+    if (!this->layer()->object()->print()->config().spiral_mode && this->region().config().sparse_infill_density.value > 0) {
+        // scaling an area requires two calls!
+        double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
+        ExPolygons small_regions{};
+        sparse.erase(std::remove_if(sparse.begin(), sparse.end(), [min_area, &small_regions](ExPolygon& ex_polygon) {
+            if (ex_polygon.area() <= min_area) {
+                small_regions.push_back(ex_polygon);
+                return true;
+            }
+            return false;
+        }), sparse.end());
+
+        if (!small_regions.empty()) {
+            shells = union_ex(shells, small_regions);
+        }
+    }
+
 //    m_fill_surfaces.remove_types({ stBottomBridge, stBottom, stTop, stInternal, stInternalSolid });
     this->fill_surfaces.clear();
     reserve_more(this->fill_surfaces.surfaces, shells.size() + sparse.size() + bridges.size() + bottoms.size() + tops.size());
@@ -792,12 +810,10 @@ void LayerRegion::prepare_fill_surfaces()
                 surface.surface_type = stInternal;
     }
 
-    // turn too small internal regions into solid regions according to the user setting
-    if (! spiral_mode && this->region().config().sparse_infill_density.value > 0) {
-        // scaling an area requires two calls!
-        double min_area = scale_(scale_(this->region().config().minimum_sparse_infill_area.value));
+    if (!spiral_mode && fabs(this->region().config().sparse_infill_density.value - 100.) < EPSILON) {
+        // Turn all internal sparse infill into solid infill, if sparse_infill_density is 100%
         for (Surface &surface : this->fill_surfaces.surfaces)
-            if (surface.surface_type == stInternal && surface.area() <= min_area)
+            if (surface.surface_type == stInternal)
                 surface.surface_type = stInternalSolid;
     }
 

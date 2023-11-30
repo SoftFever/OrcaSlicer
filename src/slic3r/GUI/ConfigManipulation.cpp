@@ -419,43 +419,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
 
-    if (config->option<ConfigOptionPercent>("sparse_infill_density")->value == 100) {
-        std::string  sparse_infill_pattern            = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->serialize();
-        const auto  &top_fill_pattern_values = config->def()->get("top_surface_pattern")->enum_values;
-        bool correct_100p_fill = std::find(top_fill_pattern_values.begin(), top_fill_pattern_values.end(), sparse_infill_pattern) != top_fill_pattern_values.end();
-        if (!correct_100p_fill) {
-            // get sparse_infill_pattern name from enum_labels for using this one at dialog_msg
-            const ConfigOptionDef *fill_pattern_def = config->def()->get("sparse_infill_pattern");
-            assert(fill_pattern_def != nullptr);
-            auto it_pattern = std::find(fill_pattern_def->enum_values.begin(), fill_pattern_def->enum_values.end(), sparse_infill_pattern);
-            assert(it_pattern != fill_pattern_def->enum_values.end());
-            if (it_pattern != fill_pattern_def->enum_values.end()) {
-                wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."),
-                    _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
-                if (is_global_config)
-                    msg_text += "\n" + _L("Switch to rectilinear pattern?\n"
-                                          "Yes - switch to rectilinear pattern automaticlly\n"
-                                          "No  - reset density to default non 100% value automaticlly") + "\n";
-                MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
-                                                  wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
-                DynamicPrintConfig new_conf = *config;
-                is_msg_dlg_already_exist = true;
-                auto answer = dialog.ShowModal();
-                if (!is_global_config || answer == wxID_YES) {
-                    new_conf.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-                    sparse_infill_density = 100;
-                }
-                else
-                    sparse_infill_density = wxGetApp().preset_bundle->prints.get_selected_preset().config.option<ConfigOptionPercent>("sparse_infill_density")->value;
-                new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(sparse_infill_density));
-                apply(config, &new_conf);
-                if (cb_value_change)
-                    cb_value_change("sparse_infill_density", sparse_infill_density);
-                is_msg_dlg_already_exist = false;
-            }
-        }
-    }
-
     // BBS
     static const char* keys[] = { "support_filament", "support_interface_filament"};
     for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
