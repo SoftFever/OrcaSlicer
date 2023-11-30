@@ -341,6 +341,10 @@ std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, boo
 {
     if (FLAVOR_IS_NOT(gcfMakerWare) && FLAVOR_IS_NOT(gcfSailfish))
         return "";
+
+    if (config.disable_m73) {
+        return "";
+    }
     
     unsigned int percent = (unsigned int)floor(100.0 * num / tot + 0.5);
     if (!allow_100) percent = std::min(percent, (unsigned int)99);

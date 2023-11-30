@@ -3141,6 +3141,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
