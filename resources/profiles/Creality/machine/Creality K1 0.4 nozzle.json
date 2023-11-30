@@ -1,0 +1,124 @@
+{
+	"type": "machine",
+	"setting_id": "GM_CREALITY_018",
+	"name": "Creality K1 0.4 nozzle",
+	"from": "system",
+	"instantiation": "true",
+	"inherits": "fdm_creality_common",
+	"printer_model": "Creality K1",
+	"gcode_flavor": "klipper",
+	"default_print_profile": "0.20mm Standard @Creality K1 0.4 nozzle",
+	"nozzle_diameter": [
+		"0.4"
+	],
+	"nozzle_type": "stainless_steel",
+	"printer_structure": "corexy",
+	"thumbnail_size": [
+		"96x96",
+		"300x300"
+	],
+	"version": "1.8.0.2",
+	"printer_variant": "0.4",
+	"printable_area": [
+		"0x0",
+		"220x0",
+		"220x220",
+		"0x220"
+	],
+	"printable_height": "250",
+	"auxiliary_fan": "1",
+	"machine_max_acceleration_e": [
+		"5000",
+		"5000"
+	],
+	"machine_max_acceleration_extruding": [
+		"20000",
+		"20000"
+	],
+	"machine_max_acceleration_retracting": [
+		"5000",
+		"5000"
+	],
+	"machine_max_acceleration_travel": [
+		"9000",
+		"9000"
+	],
+	"machine_max_acceleration_x": [
+		"20000",
+		"20000"
+	],
+	"machine_max_acceleration_y": [
+		"20000",
+		"20000"
+	],
+	"machine_max_acceleration_z": [
+		"500",
+		"500"
+	],
+	"machine_max_speed_e": [
+		"100",
+		"100"
+	],
+	"machine_max_speed_x": [
+		"1000",
+		"1000"
+	],
+	"machine_max_speed_y": [
+		"1000",
+		"1000"
+	],
+	"machine_max_speed_z": [
+		"30",
+		"30"
+	],
+	"machine_max_jerk_e": [
+		"2.5",
+		"2.5"
+	],
+	"machine_max_jerk_x": [
+		"5",
+		"5"
+	],
+	"machine_max_jerk_y": [
+		"5",
+		"5"
+	],
+	"machine_max_jerk_z": [
+		"2",
+		"2"
+	],
+	"max_layer_height": [
+		"0.3"
+	],
+	"min_layer_height": [
+		"0.08"
+	],
+	"printer_settings_id": "Creality",
+	"retraction_minimum_travel": [
+		"2"
+	],
+	"retract_before_wipe": [
+		"70%"
+	],
+	"retraction_length": [
+		"0.5"
+	],
+	"retract_length_toolchange": [
+		"1"
+	],
+	"deretraction_speed": [
+		"40"
+	],
+	"z_hop": [
+		"0.4"
+	],
+	"single_extruder_multi_material": "1",
+	"change_filament_gcode": "",
+	"machine_pause_gcode": "PAUSE",
+	"default_filament_profile": [
+		"Generic PLA @Creality"
+	],
+	"machine_start_gcode": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]",
+	"machine_end_gcode": "END_PRINT",
+	"scan_first_layer": "0"
+}

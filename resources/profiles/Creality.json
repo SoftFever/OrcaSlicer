@@ -51,7 +51,15 @@
         {
             "name": "Creality CR-6 Max",
             "sub_path": "machine/Creality CR-6 Max.json"
-        }
+        },
+        {
+			"name": "Creality K1",
+			"sub_path": "machine/Creality K1.json"
+		},
+		{
+			"name": "Creality K1 Max",
+			"sub_path": "machine/Creality K1 Max.json"
+		}
     ],
     "process_list": [
         {
@@ -139,6 +147,14 @@
             "sub_path": "process/0.16mm Optimal @Creality Ender6.json"
         },
         {
+			"name": "0.16mm Optimal @Creality K1 0.4 nozzle",
+			"sub_path": "process/0.16mm Optimal @Creality K1 0.4 nozzle.json"
+		},
+		{
+			"name": "0.16mm Optimal @Creality K1Max 0.4 nozzle",
+			"sub_path": "process/0.16mm Optimal @Creality K1Max 0.4 nozzle.json"
+		},
+        {
             "name": "0.20mm Normal @Creality CR-6",
             "sub_path": "process/0.20mm Normal @Creality CR-6.json"
         },
@@ -183,8 +199,24 @@
             "sub_path": "process/0.20mm Standard @Creality Ender6.json"
         },
         {
+			"name": "0.20mm Standard @Creality K1 0.4 nozzle",
+			"sub_path": "process/0.20mm Standard @Creality K1 0.4 nozzle.json"
+		},
+		{
+			"name": "0.20mm Standard @Creality K1Max 0.4 nozzle",
+			"sub_path": "process/0.20mm Standard @Creality K1Max 0.4 nozzle.json"
+		},
+        {
             "name": "0.24mm Draft @Creality CR10Max",
             "sub_path": "process/0.24mm Draft @Creality CR10Max.json"
+        },
+        {
+            "name": "0.24mm Draft @Creality K1 0.4 nozzle",
+            "sub_path": "process/0.24mm Draft @Creality K1 0.4 nozzle.json"
+        },
+        {
+            "name": "0.24mm Draft @Creality K1Max 0.4 nozzle",
+            "sub_path": "process/0.24mm Draft @Creality K1Max 0.4 nozzle.json"
         },
         {
             "name": "0.24mm Draft @Creality Ender3V2",
@@ -261,6 +293,10 @@
             "sub_path": "filament/fdm_filament_abs.json"
         },
         {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
             "name": "fdm_filament_pet",
             "sub_path": "filament/fdm_filament_pet.json"
         },
@@ -269,8 +305,16 @@
             "sub_path": "filament/fdm_filament_pla.json"
         },
         {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
             "name": "Generic ABS @Creality",
             "sub_path": "filament/Generic ABS @Creality.json"
+        },
+        {
+            "name": "Generic ASA @Creality",
+            "sub_path": "filament/Generic ASA @Creality.json"
         },
         {
             "name": "Generic PETG @Creality",
@@ -279,6 +323,10 @@
         {
             "name": "Generic PLA @Creality",
             "sub_path": "filament/Generic PLA @Creality.json"
+        },
+        {
+            "name": "Generic TPU @Creality",
+            "sub_path": "filament/Generic TPU @Creality.json"
         },
         {
             "name": "Generic PETG @Creality CR-6",
@@ -373,6 +421,14 @@
         {
             "name": "Creality CR-6 Max 0.8 nozzle",
             "sub_path": "machine/Creality CR-6 Max 0.8 nozzle.json"
-        }
+        },
+        {
+			"name": "Creality K1 0.4 nozzle",
+			"sub_path": "machine/Creality K1 0.4 nozzle.json"
+		},
+		{
+			"name": "Creality K1 Max 0.4 nozzle",
+			"sub_path": "machine/Creality K1 Max 0.4 nozzle.json"
+		}
     ]
 }
