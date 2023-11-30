@@ -476,6 +476,7 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
         glFrontFace(GL_CW);
     glsafe(::glCullFace(GL_BACK));
 
+    glsafe(::glPolygonMode(GL_BACK, GL_LINE));
     bool color_volume = false;
     ModelObject* model_object = nullptr;
     ModelVolume* model_volume = nullptr;
@@ -547,6 +548,7 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     }
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
+    glsafe(::glPolygonMode(GL_BACK, GL_FILL));
 }
 
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
