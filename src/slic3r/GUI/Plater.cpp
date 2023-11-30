@@ -8818,7 +8818,8 @@ void Plater::calib_flowrate(int pass)
 {
     if (pass != 1 && pass != 2) return;
     const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
-    new_project(false, false, calib_name);
+    if (new_project(false, false, calib_name) == wxID_CANCEL)
+        return;
 
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
