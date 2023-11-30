@@ -1,17 +1,8 @@
 {
-    "name": "Snapmaker PLA Eco @base",
-    "instantiation": "false",
-    "filament_id": "SMF21",
-    "inherits": "fdm_filament_pla",
-    "default_filament_colour": [
-        "#D5DDDC"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "205"
-    ],
-    "nozzle_temperature": [
-        "200"
-    ],
-    "type": "filament",
-    "from": "system"
+  "type": "filament",
+  "from": "system",
+  "instantiation": "false",
+  "name": "Snapmaker PLA Eco @base",
+  "filament_id": "1695556157",
+  "inherits": "fdm_filament_pla_eco"
 }

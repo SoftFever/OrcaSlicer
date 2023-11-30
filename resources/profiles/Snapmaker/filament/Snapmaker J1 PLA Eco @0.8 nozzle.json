@@ -1,17 +1,14 @@
 {
-    "name": "Snapmaker J1 PLA Eco @0.8 nozzle",
-    "instantiation": "true",
-    "setting_id": "SMFS59",
-    "inherits": "Snapmaker J1 PLA Eco @base",
-    "compatible_printers": [
-        "Snapmaker J1 (0.8 nozzle)"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
-    "slow_down_min_speed": [
-        "20"
-    ],
-    "type": "filament",
-    "from": "system"
+  "type": "filament",
+  "from": "system",
+  "instantiation": "true",
+  "name": "Snapmaker J1 PLA Eco @0.8 nozzle",
+  "setting_id": "36938567",
+  "inherits": "Snapmaker J1 PLA Eco @base",
+  "compatible_printers": [
+    "Snapmaker J1 (0.8 nozzle)"
+  ],
+  "slow_down_min_speed": [
+    "20"
+  ]
 }
