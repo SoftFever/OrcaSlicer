@@ -1058,7 +1058,11 @@ void SendToPrinterDialog::update_show_status()
     reset_timeout();
 
     // reading done
-    if (obj_->is_in_upgrading()) {
+    if (is_blocking_printing(obj_)) {
+        show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
+        return;
+    }
+    else if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
     }
@@ -1085,6 +1089,26 @@ void SendToPrinterDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
     }
+}
+
+bool SendToPrinterDialog::is_blocking_printing(MachineObject* obj_)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    auto target_model = obj_->printer_type;
+
+    if (source_model != target_model) {
+        std::vector<std::string> compatible_machine = dev->get_compatible_machine(target_model);
+        vector<std::string>::iterator it = find(compatible_machine.begin(), compatible_machine.end(), source_model);
+        if (it == compatible_machine.end()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void SendToPrinterDialog::Enable_Refresh_Button(bool en)
@@ -1167,6 +1191,12 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(true);
 	}
+    else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
+        wxString msg_text = _L("The selected printer is incompatible with the chosen printer presets.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    }
 	else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
 		update_print_status_msg(wxEmptyString, false, true);
 		Enable_Send_Button(false);
