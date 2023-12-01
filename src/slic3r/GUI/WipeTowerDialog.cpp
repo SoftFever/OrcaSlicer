@@ -253,7 +253,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     );
 
     if (flags & wxRESET) {
-        Button *calc_btn = new Button(this, _L("Auto-Calc"));
+        Button *calc_btn = new Button(this, _L("Recalculate"));
         calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
         calc_btn->SetCornerRadius(FromDIP(12));
         calc_btn->SetBackgroundColor(calc_btn_bg);
@@ -261,7 +261,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         calc_btn->SetTextColor(calc_btn_text);
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
-        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(calc_btn, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
         m_button_list[wxRESET] = calc_btn;
     }
     if (flags & wxOK) {
@@ -284,7 +284,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         cancel_btn->SetBorderColor(cancel_btn_bd_);
         cancel_btn->SetTextColor(cancel_btn_text);
         cancel_btn->SetId(wxID_CANCEL);
-        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+        btn_sizer->Add(cancel_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP / 2);
         m_button_list[wxCANCEL] = cancel_btn;
     }
 
@@ -292,35 +292,6 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 
 }
 
-wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
-    auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
-    );
-
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    Button* calc_btn = new Button(parent, _L("Re-calculate"));
-    calc_btn->SetFont(Label::Body_13);
-    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-    calc_btn->SetCornerRadius(FromDIP(12));
-    calc_btn->SetBackgroundColor(calc_btn_bg);
-    calc_btn->SetBorderColor(calc_btn_bd);
-    calc_btn->SetTextColor(calc_btn_text);
-    calc_btn->SetFocus();
-    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
-
-    return btn_sizer;
-}
 void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     for (auto button_item : m_button_list)
@@ -374,7 +345,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     main_sizer->SetMinSize(wxSize(sizer_width, -1));
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
-    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
+    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL | wxRESET);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BTN_GAP);
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
@@ -391,11 +362,9 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 
     }
 
-    /*
     if (this->FindWindowById(wxID_RESET, this)) {
         this->FindWindowById(wxID_RESET, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { m_panel_wiping->calc_flushing_volumes(); });
     }
-    */
 
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
@@ -479,8 +448,8 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
             if (i == j) {
                 edit_boxes[i][j]->SetValue(wxString("-"));
                 edit_boxes[i][j]->SetEditable(false);
-                edit_boxes[i][j]->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent&) {});
-                edit_boxes[i][j]->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {});
+                edit_boxes[i][j]->Bind(wxEVT_KILL_FOCUS, [](wxFocusEvent&) {});
+                edit_boxes[i][j]->Bind(wxEVT_SET_FOCUS, [](wxFocusEvent&) {});
             }
             else {
                 edit_boxes[i][j]->SetValue(wxString("") << int(m_matrix[m_number_of_extruders * j + i] * flush_multiplier));
@@ -511,11 +480,11 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     // BBS
     m_sizer->AddSpacer(FromDIP(10));
     auto tip_message_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    tip_message_panel->SetBackgroundColour(wxColour(238, 238, 238));
+    tip_message_panel->SetBackgroundColour(*wxWHITE);
     auto message_sizer = new wxBoxSizer(wxVERTICAL);
     tip_message_panel->SetSizer(message_sizer);
     {
-        wxString message = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed. You could disable the auto-calculate in Bambu Studio > Preferences");
+        wxString message = _L("Orca recalculates your flushing volumes everytime the filament colors change. You can change this behavior in Preferences.");
         m_tip_message_label = new Label(tip_message_panel, wxEmptyString);
         wxClientDC dc(tip_message_panel);
         wxString multiline_message;
@@ -523,13 +492,12 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         m_tip_message_label->SetLabel(multiline_message);
         m_tip_message_label->SetFont(Label::Body_13);
         message_sizer->Add(m_tip_message_label, 0, wxEXPAND | wxALL, TIP_MESSAGES_PADDING);
+        update_ui(m_tip_message_label);
     }
     m_sizer->Add(tip_message_panel, 0, wxEXPAND | wxRIGHT | wxLEFT, TABLE_BORDER);
     bool is_show = wxGetApp().app_config->get("auto_calculate") == "true";
     tip_message_panel->Show(is_show);
     m_sizer->AddSpacer(FromDIP(10));
-    auto calc_btn_sizer = create_calc_btn_sizer(this);
-    m_sizer->Add(calc_btn_sizer, 0, wxEXPAND | wxLEFT, FromDIP(30));
 
     m_sizer->AddSpacer(FromDIP(5));
     header_line_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -554,6 +522,8 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     m_sizer->Add(header_line_panel, 0, wxEXPAND | wxRIGHT | wxLEFT, TABLE_BORDER);
 
     create_panels(this, m_number_of_extruders);
+
+    m_sizer->AddSpacer(FromDIP(5));
 
     // BBS: for tunning flush volumes
     {
@@ -602,6 +572,8 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         param_sizer->Add(m_flush_multiplier_ebox, 0, wxALIGN_CENTER | wxALL, 0);
         param_sizer->AddStretchSpacer(1);
         m_sizer->Add(param_sizer, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+
+        m_sizer->AddSpacer(BTN_SIZE.y);
 
         m_flush_multiplier_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
         m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);

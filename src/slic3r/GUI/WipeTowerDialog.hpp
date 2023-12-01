@@ -51,7 +51,6 @@ public:
     void create_panels(wxWindow* parent, const int num);
     void calc_flushing_volumes();
     void msw_rescale();
-    wxBoxSizer* create_calc_btn_sizer(wxWindow* parent);
 
     float get_flush_multiplier()
     {
