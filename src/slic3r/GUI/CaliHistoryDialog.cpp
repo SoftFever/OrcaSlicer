@@ -26,16 +26,28 @@ static wxString get_preset_name_by_filament_id(std::string filament_id)
         if (filament_id.compare(it->filament_id) == 0) {
             auto preset_parent = collection->get_preset_parent(*it);
             if (preset_parent) {
-                if (!preset_parent->alias.empty())
-                    preset_name = from_u8(preset_parent->alias);
-                else
-                    preset_name = from_u8(preset_parent->name);
+                if (preset_parent->is_system) {
+                    if (!preset_parent->alias.empty())
+                        preset_name = from_u8(preset_parent->alias);
+                    else
+                        preset_name = from_u8(preset_parent->name);
+                }
+                else { // is custom created filament
+                    std::string name_str = preset_parent->name;
+                    preset_name = from_u8(name_str.substr(0, name_str.find(" @")));
+                }
             }
             else {
-                if (!it->alias.empty())
-                    preset_name = from_u8(it->alias);
-                else
-                    preset_name = from_u8(it->name);
+                if (it->is_system) {
+                    if (!it->alias.empty())
+                        preset_name = from_u8(it->alias);
+                    else
+                        preset_name = from_u8(it->name);
+                }
+                else { // is custom created filament
+                    std::string name_str = it->name;
+                    preset_name = from_u8(name_str.substr(0, name_str.find(" @")));
+                }
             }
         }
     }
