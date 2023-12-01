@@ -245,6 +245,11 @@ private:
     friend class ModelObject;
 };
 
+enum class CutMode : int {
+    cutPlanar,
+    cutTongueAndGroove
+};
+
 enum class CutConnectorType : int {
     Plug
     , Dowel
@@ -266,6 +271,11 @@ enum class CutConnectorShape : int {
     , Circle
     , Undef
     //,D-shape
+};
+struct CutConnectorParas
+{
+    float snap_space_proportion{0.3};
+    float snap_bulge_proportion{0.15};
 };
 
 struct CutConnectorAttributes
@@ -904,8 +914,8 @@ public:
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
     t_model_material_id material_id() const { return m_material_id; }
-    void                reset_extra_facets();
     void                set_material_id(t_model_material_id material_id);
+    void                reset_extra_facets();
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
     // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.
@@ -1488,6 +1498,7 @@ public:
     static GlobalSpeedMap printSpeedMap;
 
     // DesignInfo of Model
+    std::string stl_design_id;
     std::shared_ptr<ModelDesignInfo> design_info = nullptr;
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;

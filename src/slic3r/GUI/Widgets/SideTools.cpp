@@ -92,6 +92,18 @@ bool SideToolsPanel::is_in_interval()
 
 void SideToolsPanel::msw_rescale() 
 { 
+    m_printing_img.msw_rescale();
+    m_arrow_img.msw_rescale();
+
+    m_none_printing_img.msw_rescale();
+    m_none_arrow_img.msw_rescale();
+    m_none_add_img.msw_rescale();
+
+    m_wifi_none_img.msw_rescale();
+    m_wifi_weak_img.msw_rescale();
+    m_wifi_middle_img.msw_rescale();
+    m_wifi_strong_img.msw_rescale();
+
     Refresh();
 }
 
@@ -314,10 +326,9 @@ SideTools::SideTools(wxWindow *parent, wxWindowID id, const wxPoint &pos, const 
     wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
 
-    m_link_network_state = new Label(m_side_error_panel, _L("Check cloud service status"), wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END);
+    m_link_network_state = new wxHyperlinkCtrl(m_side_error_panel, wxID_ANY,_L("Check the status of current system services"),"",wxDefaultPosition,wxDefaultSize,wxALIGN_CENTER_HORIZONTAL | wxST_ELLIPSIZE_END);
     m_link_network_state->SetMinSize(wxSize(FromDIP(220), -1));
     m_link_network_state->SetMaxSize(wxSize(FromDIP(220), -1));
-    m_link_network_state->SetForegroundColour(0x009688);
     m_link_network_state->SetFont(::Label::Body_12);
     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });

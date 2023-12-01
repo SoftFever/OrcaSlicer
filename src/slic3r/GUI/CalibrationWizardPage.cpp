@@ -249,6 +249,13 @@ CaliPageButton::CaliPageButton(wxWindow* parent, CaliPageActionType type, wxStri
     SetCornerRadius(FromDIP(12));
 }
 
+void CaliPageButton::msw_rescale()
+{
+    SetMinSize(wxSize(-1, FromDIP(24)));
+    SetCornerRadius(FromDIP(12));
+    Rescale();
+}
+
 
 FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
@@ -341,6 +348,14 @@ void FilamentComboBox::SetValue(bool value, bool send_event) {
         m_radioBox->SetValue(value);
     if (m_checkBox)
         m_checkBox->SetValue(value);
+}
+
+void FilamentComboBox::msw_rescale()
+{
+    //m_checkBox->Rescale();
+    m_comboBox->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_comboBox->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_comboBox->msw_rescale();
 }
 
 
@@ -460,6 +475,11 @@ void CaliPageCaption::on_sys_color_changed()
     m_prev_btn->msw_rescale();
 }
 
+void CaliPageCaption::msw_rescale()
+{
+    m_prev_btn->msw_rescale();
+}
+
 CaliPageStepGuide::CaliPageStepGuide(wxWindow* parent, wxArrayString steps,
     wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style),
@@ -541,9 +561,16 @@ CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint&
     top_sizer->Fit(this);
 }
 
-void CaliPagePicture::set_img(const wxBitmap& bmp)
+void CaliPagePicture::set_bmp(const ScalableBitmap& bmp)
 {
-    m_img->SetBitmap(bmp);
+    m_bmp = bmp;
+    m_img->SetBitmap(m_bmp.bmp());
+}
+
+void CaliPagePicture::msw_rescale()
+{
+    m_bmp.msw_rescale();
+    m_img->SetBitmap(m_bmp.bmp());
 }
 
 
@@ -582,6 +609,13 @@ PAPageHelpPanel::PAPageHelpPanel(wxWindow* parent, bool ground_panel, wxWindowID
     top_sizer->Fit(this);
 }
 
+void PAPageHelpPanel::msw_rescale()
+{
+    m_help_btn->msw_rescale();
+    m_bmp.msw_rescale();
+    m_img->SetBitmap(m_bmp.bmp());
+}
+
 void PAPageHelpPanel::create_pop_window()
 {
     m_pop_win = new PopupWindow(this);
@@ -589,13 +623,10 @@ void PAPageHelpPanel::create_pop_window()
     wxBoxSizer* pop_sizer = new wxBoxSizer(wxVERTICAL);
     m_pop_win->SetSizer(pop_sizer);
 
-    wxStaticBitmap* img = new wxStaticBitmap(m_pop_win, wxID_ANY, wxNullBitmap);
-    if (wxGetApp().app_config->get_language_code() == "zh-cn") {
-        img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram_CN", 206).bmp());
-    } else {
-        img->SetBitmap(ScalableBitmap(this, "cali_fdc_editing_diagram", 206).bmp());
-    }
-    pop_sizer->Add(img, 1, wxEXPAND | wxALL, FromDIP(20));
+    m_img = new wxStaticBitmap(m_pop_win, wxID_ANY, wxNullBitmap);
+    m_bmp = ScalableBitmap(this, "cali_fdc_editing_diagram", 206);
+    m_img->SetBitmap(m_bmp.bmp());
+    pop_sizer->Add(m_img, 1, wxEXPAND | wxALL, FromDIP(20));
 
     m_pop_win->Layout();
     m_pop_win->Fit();
@@ -754,6 +785,163 @@ void CaliPageActionPanel::enable_button(CaliPageActionType action_type, bool ena
     }
 }
 
+void CaliPageActionPanel::msw_rescale()
+{
+    for (int i = 0; i < m_action_btns.size(); i++) {
+        m_action_btns[i]->msw_rescale();
+    }
+}
+
+CaliPageSendingPanel::CaliPageSendingPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
+    : wxPanel(parent, id, pos, size, style)
+{
+    SetBackgroundColour(*wxWHITE);
+    SetMinSize({ FromDIP(475), FromDIP(200) });
+    SetMaxSize({ FromDIP(475), FromDIP(200) });
+
+    create(this);
+
+    Layout();
+    Fit();
+
+    Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {
+        show_send_failed_info(true);
+        });
+}
+
+void CaliPageSendingPanel::create(wxWindow* parent)
+{
+    auto panel_sizer = new wxBoxSizer(wxVERTICAL);
+    parent->SetSizer(panel_sizer);
+
+    m_send_progress_bar = std::shared_ptr<BBLStatusBarSend>(new BBLStatusBarSend(parent));
+    panel_sizer->Add(m_send_progress_bar->get_panel(), 0, wxEXPAND);
+
+    m_sw_print_failed_info = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(380), FromDIP(125)), wxVSCROLL);
+    m_sw_print_failed_info->SetBackgroundColour(*wxWHITE);
+    m_sw_print_failed_info->SetScrollRate(0, 5);
+    m_sw_print_failed_info->SetMinSize(wxSize(FromDIP(380), FromDIP(125)));
+    m_sw_print_failed_info->SetMaxSize(wxSize(FromDIP(380), FromDIP(125)));
+
+    m_sw_print_failed_info->Hide();
+
+    panel_sizer->Add(m_sw_print_failed_info, 0, wxEXPAND);
+
+    // create error info panel
+    wxBoxSizer* sizer_print_failed_info = new wxBoxSizer(wxVERTICAL);
+    m_sw_print_failed_info->SetSizer(sizer_print_failed_info);
+
+    wxBoxSizer* sizer_error_code = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_error_desc = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_extra_info = new wxBoxSizer(wxHORIZONTAL);
+
+    auto st_title_error_code = new Label(m_sw_print_failed_info, _L("Error code"));
+    auto st_title_error_code_doc = new Label(m_sw_print_failed_info, ": ");
+    m_st_txt_error_code = new Label(m_sw_print_failed_info, wxEmptyString);
+    st_title_error_code->SetForegroundColour(0x909090);
+    st_title_error_code_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_code->SetForegroundColour(0x909090);
+    st_title_error_code->SetFont(::Label::Body_13);
+    st_title_error_code_doc->SetFont(::Label::Body_13);
+    m_st_txt_error_code->SetFont(::Label::Body_13);
+    st_title_error_code->SetMinSize(wxSize(FromDIP(74), -1));
+    st_title_error_code->SetMaxSize(wxSize(FromDIP(74), -1));
+    m_st_txt_error_code->SetMinSize(wxSize(FromDIP(260), -1));
+    m_st_txt_error_code->SetMaxSize(wxSize(FromDIP(260), -1));
+    sizer_error_code->Add(st_title_error_code, 0, wxALL, 0);
+    sizer_error_code->Add(st_title_error_code_doc, 0, wxALL, 0);
+    sizer_error_code->Add(m_st_txt_error_code, 0, wxALL, 0);
+
+    auto st_title_error_desc = new Label(m_sw_print_failed_info, _L("Error desc"));
+    auto st_title_error_desc_doc = new Label(m_sw_print_failed_info, ": ");
+    m_st_txt_error_desc = new Label(m_sw_print_failed_info, wxEmptyString);
+    st_title_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc_doc->SetForegroundColour(0x909090);
+    m_st_txt_error_desc->SetForegroundColour(0x909090);
+    st_title_error_desc->SetFont(::Label::Body_13);
+    st_title_error_desc_doc->SetFont(::Label::Body_13);
+    m_st_txt_error_desc->SetFont(::Label::Body_13);
+    st_title_error_desc->SetMinSize(wxSize(FromDIP(74), -1));
+    st_title_error_desc->SetMaxSize(wxSize(FromDIP(74), -1));
+    m_st_txt_error_desc->SetMinSize(wxSize(FromDIP(260), -1));
+    m_st_txt_error_desc->SetMaxSize(wxSize(FromDIP(260), -1));
+    sizer_error_desc->Add(st_title_error_desc, 0, wxALL, 0);
+    sizer_error_desc->Add(st_title_error_desc_doc, 0, wxALL, 0);
+    sizer_error_desc->Add(m_st_txt_error_desc, 0, wxALL, 0);
+
+    auto st_title_extra_info = new Label(m_sw_print_failed_info, _L("Extra info"));
+    auto st_title_extra_info_doc = new Label(m_sw_print_failed_info, ": ");
+    m_st_txt_extra_info = new Label(m_sw_print_failed_info, wxEmptyString);
+    st_title_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info_doc->SetForegroundColour(0x909090);
+    m_st_txt_extra_info->SetForegroundColour(0x909090);
+    st_title_extra_info->SetFont(::Label::Body_13);
+    st_title_extra_info_doc->SetFont(::Label::Body_13);
+    m_st_txt_extra_info->SetFont(::Label::Body_13);
+    st_title_extra_info->SetMinSize(wxSize(FromDIP(74), -1));
+    st_title_extra_info->SetMaxSize(wxSize(FromDIP(74), -1));
+    m_st_txt_extra_info->SetMinSize(wxSize(FromDIP(260), -1));
+    m_st_txt_extra_info->SetMaxSize(wxSize(FromDIP(260), -1));
+    sizer_extra_info->Add(st_title_extra_info, 0, wxALL, 0);
+    sizer_extra_info->Add(st_title_extra_info_doc, 0, wxALL, 0);
+    sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
+
+    sizer_print_failed_info->Add(sizer_error_code, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_error_desc, 0, wxLEFT, 5);
+    sizer_print_failed_info->Add(0, 0, 0, wxTOP, FromDIP(3));
+    sizer_print_failed_info->Add(sizer_extra_info, 0, wxLEFT, 5);
+}
+
+void CaliPageSendingPanel::update_print_error_info(int code, const std::string& msg, const std::string& extra)
+{
+    m_print_error_code = code;
+    m_print_error_msg = msg;
+    m_print_error_extra = extra;
+}
+
+void CaliPageSendingPanel::show_send_failed_info(bool show, int code, wxString description, wxString extra)
+{
+    if (show) {
+        if (!m_sw_print_failed_info->IsShown()) {
+            m_sw_print_failed_info->Show(true);
+
+            m_st_txt_error_code->SetLabelText(wxString::Format("%d", m_print_error_code));
+            m_st_txt_error_desc->SetLabelText(wxGetApp().filter_string(m_print_error_msg));
+            m_st_txt_extra_info->SetLabelText(wxGetApp().filter_string(m_print_error_extra));
+
+            m_st_txt_error_code->Wrap(FromDIP(260));
+            m_st_txt_error_desc->Wrap(FromDIP(260));
+            m_st_txt_extra_info->Wrap(FromDIP(260));
+        }
+        else {
+            m_sw_print_failed_info->Show(false);
+        }
+        Layout();
+        Fit();
+    }
+    else {
+        if (!m_sw_print_failed_info->IsShown()) { return; }
+        m_sw_print_failed_info->Show(false);
+        m_st_txt_error_code->SetLabelText(wxEmptyString);
+        m_st_txt_error_desc->SetLabelText(wxEmptyString);
+        m_st_txt_extra_info->SetLabelText(wxEmptyString);
+        Layout();
+        Fit();
+    }
+}
+
+std::shared_ptr<BBLStatusBarSend> CaliPageSendingPanel::get_sending_progress_bar()
+{
+    return m_send_progress_bar;
+}
+
+void CaliPageSendingPanel::reset()
+{
+    m_send_progress_bar->reset();
+    m_sw_print_failed_info->Show(false);
+}
+
 CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
     , m_parent(parent)
@@ -764,6 +952,8 @@ CalibrationWizardPage::CalibrationWizardPage(wxWindow* parent, wxWindowID id, co
 
 void CalibrationWizardPage::msw_rescale()
 {
+    m_page_caption->msw_rescale();
+    m_action_panel->msw_rescale();
 }
 
 void CalibrationWizardPage::on_sys_color_changed()
@@ -771,4 +961,5 @@ void CalibrationWizardPage::on_sys_color_changed()
     m_page_caption->on_sys_color_changed();
 }
 
-}}
+}
+}

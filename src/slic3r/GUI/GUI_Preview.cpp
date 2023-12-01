@@ -123,6 +123,11 @@ void View3D::select_curr_plate_all()
         m_canvas->select_curr_plate_all();
 }
 
+void View3D::select_object_from_idx(std::vector<int>& object_idxs) {
+    if (m_canvas != nullptr)
+        m_canvas->select_object_from_idx(object_idxs);
+}
+
 //BBS
 void View3D::remove_curr_plate_all()
 {
@@ -152,6 +157,11 @@ void View3D::center_selected()
 {
     if (m_canvas != nullptr)
         m_canvas->do_center();
+}
+
+void View3D::center_selected_plate(const int plate_idx) {
+    if (m_canvas != nullptr)
+        m_canvas->do_center_plate(plate_idx);
 }
 
 void View3D::mirror_selection(Axis axis)

@@ -107,6 +107,20 @@ void SendToPrinterDialog::on_rename_enter()
     }
 
     auto     new_file_name = m_rename_input->GetTextCtrl()->GetValue();
+
+    wxString temp;
+    int      num = 0;
+    for (auto t : new_file_name) {
+        if (t == wxString::FromUTF8("\x20")) {
+            num++;
+            if (num == 1) temp += t;
+        } else {
+            num = 0;
+            temp += t;
+        }
+    }
+    new_file_name = temp;
+
     auto     m_valid_type = Valid;
     wxString info_line;
 
@@ -380,8 +394,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     sizer_extra_info->Add(m_st_txt_extra_info, 0, wxALL, 0);
 
 
-    m_link_network_state = new Label(m_sw_print_failed_info, _L("Check the status of current system services"));
-    m_link_network_state->SetForegroundColour(0x009688);
+    m_link_network_state = new wxHyperlinkCtrl(m_sw_print_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
     m_link_network_state->SetFont(::Label::Body_12);
     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
@@ -422,7 +435,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     rename_sizer_v = new wxBoxSizer(wxVERTICAL);
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
-    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
+    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     m_rename_text->SetForegroundColour(*wxBLACK);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
@@ -565,25 +578,27 @@ void SendToPrinterDialog::show_print_failed_info(bool show, int code, wxString d
 
 void SendToPrinterDialog::prepare_mode()
 {
-	m_is_in_sending_mode = false;
-	if (m_send_job) {
-		m_send_job->join();
-	}
+    m_is_in_sending_mode = false;
+    m_comboBox_printer->Enable();
+    if (m_send_job) {
+        m_send_job->join();
+    }
 
-	if (wxIsBusy())
-		wxEndBusyCursor();
-	Enable_Send_Button(true);
+    if (wxIsBusy())
+        wxEndBusyCursor();
+    Enable_Send_Button(true);
     show_print_failed_info(false);
 
     m_status_bar->reset();
-	if (m_simplebook->GetSelection() != 0) {
-		m_simplebook->SetSelection(0);
-	}
+    if (m_simplebook->GetSelection() != 0) {
+        m_simplebook->SetSelection(0);
+    }
 }
 
 void SendToPrinterDialog::sending_mode()
 {
     m_is_in_sending_mode = true;
+    m_comboBox_printer->Disable();
     if (m_simplebook->GetSelection() != 1){
         m_simplebook->SetSelection(1);
         Layout();
@@ -781,7 +796,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
  
     enable_prepare_mode = false;
 
-    m_send_job->on_check_ip_address_fail([this]() {
+    m_send_job->on_check_ip_address_fail([this](int result) {
         wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
         wxQueueEvent(this, evt);
         wxGetApp().show_ip_address_enter_dialog();
@@ -809,20 +824,23 @@ void SendToPrinterDialog::update_user_machine_list()
 {
     NetworkAgent* m_agent = wxGetApp().getAgent();
     if (m_agent && m_agent->is_user_login()) {
-        boost::thread get_print_info_thread = Slic3r::create_thread([&] {
+        boost::thread get_print_info_thread = Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
             NetworkAgent* agent = wxGetApp().getAgent();
             unsigned int http_code;
             std::string body;
             int result = agent->get_user_print_info(&http_code, &body);
-            if (result == 0) {
-                m_print_info = body;
-            }
-            else {
-                m_print_info = "";
-            }
-            wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
+            CallAfter([token, this, result, body] {
+                if (token.expired()) {return;}
+                if (result == 0) {
+                    m_print_info = body;
+                }
+                else {
+                    m_print_info = "";
+                }
+                wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
+                event.SetEventObject(this);
+                wxPostEvent(this, event);
+            });
         });
     } else {
         wxCommandEvent event(EVT_UPDATE_USER_MACHINE_LIST);
@@ -1026,7 +1044,7 @@ void SendToPrinterDialog::update_show_status()
 
     if (!obj_->is_info_ready()) {
         if (is_timeout()) {
-            (PrintDialogStatus::PrintStatusReadingTimeout);
+            show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
         }
         else {
@@ -1038,12 +1056,6 @@ void SendToPrinterDialog::update_show_status()
     }
 
     reset_timeout();
-
-    bool is_suppt = obj_->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD);
-    if (!is_suppt) {
-        show_status(PrintDialogStatus::PrintStatusNotSupportedSendToSDCard);
-        return;
-    }
 
     // reading done
     if (obj_->is_in_upgrading()) {
@@ -1063,12 +1075,16 @@ void SendToPrinterDialog::update_show_status()
 		return;
 	}
 
-    if (obj_->dev_ip.empty()) {
-        show_status(PrintDialogStatus::PrintStatusNotOnTheSameLAN);
+
+    if (!obj_->is_support_send_to_sdcard) {
+        show_status(PrintDialogStatus::PrintStatusNotSupportedSendToSDCard);
         return;
     }
-    
-    show_status(PrintDialogStatus::PrintStatusReadingFinished);
+
+    if (!m_is_in_sending_mode) {
+        show_status(PrintDialogStatus::PrintStatusReadingFinished);
+        return;
+    }
 }
 
 void SendToPrinterDialog::Enable_Refresh_Button(bool en)
@@ -1317,7 +1333,11 @@ void SendToPrinterDialog::set_default()
     }
 
     char weight[64];
-    ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+    if (wxGetApp().app_config->get("use_inches") == "1") {
+        ::sprintf(weight, "  %.2f oz", aprint_stats.total_weight*0.035274);
+    }else{
+        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
+    }
 
     m_stext_time->SetLabel(time);
     m_stext_weight->SetLabel(weight);

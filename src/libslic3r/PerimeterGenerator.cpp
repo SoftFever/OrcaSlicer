@@ -11,6 +11,7 @@
 #include "ClipperUtils.hpp"
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
+#include "PrintConfig.hpp"
 #include "ShortestPath.hpp"
 #include "VariableWidth.hpp"
 #include "CurveAnalyzer.hpp"
@@ -1495,12 +1496,18 @@ void PerimeterGenerator::process_classic()
 
     // BBS: don't simplify too much which influence arc fitting when export gcode if arc_fitting is enabled
     double surface_simplify_resolution = (print_config->enable_arc_fitting && this->config->fuzzy_skin == FuzzySkinType::None) ? 0.2 * m_scaled_resolution : m_scaled_resolution;
-    for (const Surface &surface : this->slices->surfaces) {
+    //BBS: reorder the surface to reduce the travel time
+    ExPolygons surface_exp;
+    for (const Surface &surface : this->slices->surfaces)
+        surface_exp.push_back(surface.expolygon);
+    std::vector<size_t> surface_order = chain_expolygons(surface_exp);
+    for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
+        const Surface &surface = this->slices->surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
         if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
             loop_number = 0;
-        //BBS: set the topmost layer to be one wall
+        // Set the topmost layer to be one wall
         if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
             loop_number = 0;
 
@@ -1723,8 +1730,8 @@ void PerimeterGenerator::process_classic()
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
             bool is_outer_wall_first =
-                this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-                this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+                this->object_config->wall_sequence == WallSequence::OuterInner ||
+                this->object_config->wall_sequence == WallSequence::InnerOuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
@@ -1732,7 +1739,7 @@ void PerimeterGenerator::process_classic()
                     this->object_config->brim_width.value > 0))
                 entities.reverse();
             // SoftFever: sandwich mode 
-            else if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill)
+            else if (this->object_config->wall_sequence == WallSequence::InnerOuterInner)
                 if (entities.entities.size() > 1){
                     int              last_outer=0;
                     int              outer = 0;
@@ -1862,6 +1869,39 @@ void PerimeterGenerator::process_classic()
     } // for each island
 }
 
+//BBS:
+void PerimeterGenerator::add_infill_contour_for_arachne( ExPolygons        infill_contour,
+                                                         int                loops,
+                                                         coord_t            ext_perimeter_spacing,
+                                                         coord_t            perimeter_spacing,
+                                                         coord_t            min_perimeter_infill_spacing,
+                                                         coord_t            spacing,
+                                                         bool               is_inner_part)
+{
+    if( offset_ex(infill_contour, -float(spacing / 2.)).empty() )
+    {
+        infill_contour.clear(); // Infill region is too small, so let's filter it out.
+    }
+
+    // create one more offset to be used as boundary for fill
+    // we offset by half the perimeter spacing (to get to the actual infill boundary)
+    // and then we offset back and forth by half the infill spacing to only consider the
+    // non-collapsing regions
+    coord_t insert = (loops < 0) ? 0: ext_perimeter_spacing;
+    if (is_inner_part || loops > 0)
+        insert = perimeter_spacing;
+
+    insert = coord_t(scale_(this->config->infill_wall_overlap.get_abs_value(unscale<double>(insert))));
+
+    Polygons inner_pp;
+    for (ExPolygon &ex : infill_contour)
+        ex.simplify_p(m_scaled_resolution, &inner_pp);
+
+    this->fill_surfaces->append(offset2_ex(union_ex(inner_pp), float(-min_perimeter_infill_spacing / 2.), float(insert + min_perimeter_infill_spacing / 2.)), stInternal);
+
+    append(*this->fill_no_overlap, offset2_ex(union_ex(inner_pp), float(-min_perimeter_infill_spacing / 2.), float(+min_perimeter_infill_spacing / 2.)));
+}
+
 // Thanks, Cura developers, for implementing an algorithm for generating perimeters with variable width (Arachne) that is based on the paper
 // "A framework for adaptive width control of dense contour-parallel toolpaths in fused deposition modeling"
 void PerimeterGenerator::process_arachne()
@@ -1973,7 +2013,7 @@ void PerimeterGenerator::process_arachne()
         }
         loop_number = int(perimeters.size()) - 1;
 
-#ifdef ARACHNE_DEBUG
+        #ifdef ARACHNE_DEBUG
         {
             static int iRun = 0;
             export_perimeters_to_svg(debug_out_path("arachne-perimeters-%d-%d.svg", layer_id, iRun++), to_polygons(last), perimeters, union_ex(wallToolPaths.getInnerContour()));
@@ -1996,14 +2036,12 @@ void PerimeterGenerator::process_arachne()
         int direction = -1;
 
 		bool is_outer_wall_first =
-            	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
-            	this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
+            	this->object_config->wall_sequence == WallSequence::OuterInner ||
+            	this->object_config->wall_sequence == WallSequence::InnerOuterInner;
         
         if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
         	is_outer_wall_first =
-            	this->config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-            	this->config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+            	this->object_config->wall_sequence == WallSequence::OuterInner;
         }
         if (is_outer_wall_first) {
             start_perimeter = 0;
@@ -2242,8 +2280,9 @@ void PerimeterGenerator::process_arachne()
             this->loops->append(extrusion_coll);
         }
 
-        ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
+ExPolygons    infill_contour = union_ex(wallToolPaths.getInnerContour());
         const coord_t spacing = (perimeters.size() == 1) ? ext_perimeter_spacing2 : perimeter_spacing;
+
         if (offset_ex(infill_contour, -float(spacing / 2.)).empty())
             infill_contour.clear(); // Infill region is too small, so let's filter it out.
 

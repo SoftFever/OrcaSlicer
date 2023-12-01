@@ -242,21 +242,26 @@ void SelectMObjectPopup::Popup(wxWindow* WXUNUSED(focus))
 
     if (wxGetApp().is_user_login()) {
         if (!get_print_info_thread) {
-            get_print_info_thread = new boost::thread(Slic3r::create_thread([&] {
+            get_print_info_thread = new boost::thread(Slic3r::create_thread([this, token = std::weak_ptr(m_token)] {
                 NetworkAgent* agent = wxGetApp().getAgent();
                 unsigned int http_code;
                 std::string body;
                 int result = agent->get_user_print_info(&http_code, &body);
-                if (result == 0) {
-                    m_print_info = body;
-                }
-                else {
-                    m_print_info = "";
-                }
-                wxCommandEvent event(EVT_UPDATE_USER_MLIST);
-                event.SetEventObject(this);
-                wxPostEvent(this, event);
-                }));
+
+                wxGetApp().CallAfter([token, this, result, body]() {
+                    if (token.expired()) {return;}
+                    if (result == 0) {
+                        m_print_info = body;
+                    }
+                    else {
+                        m_print_info = "";
+                    }
+
+                    wxCommandEvent event(EVT_UPDATE_USER_MLIST);
+                    event.SetEventObject(this);
+                    wxPostEvent(this, event);
+                });
+            }));
         }
     }
 
@@ -510,10 +515,15 @@ void CalibrationPanel::update_print_error_info(int code, std::string msg, std::s
     if (curr_selected >= 0 && curr_selected < CALI_MODE_COUNT) {
         if (m_cali_panels[curr_selected]) {
             auto page = m_cali_panels[curr_selected]->get_curr_step()->page;
-            if(page && page->get_page_type() == CaliPageType::CALI_PAGE_PRESET){
-                auto preset_page = static_cast<CalibrationPresetPage*>(page);
-                if (preset_page->get_page_status() == CaliPresetPageStatus::CaliPresetStatusSending)
+            if (page) {
+                if (page->get_page_type() == CaliPageType::CALI_PAGE_PRESET) {
+                    auto preset_page = static_cast<CalibrationPresetPage*>(page);
                     preset_page->update_print_error_info(code, msg, extra);
+                }
+                if (page->get_page_type() == CaliPageType::CALI_PAGE_COARSE_SAVE) {
+                    auto corase_page = static_cast<CalibrationFlowCoarseSavePage*>(page);
+                    corase_page->update_print_error_info(code, msg, extra);
+                }
             }
         }
     }

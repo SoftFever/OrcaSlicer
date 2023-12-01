@@ -11,6 +11,7 @@
 
 #include "RammingChart.hpp"
 class Button;
+class Label;
 
 
 class RammingPanel : public wxPanel {
@@ -50,6 +51,7 @@ public:
     void create_panels(wxWindow* parent, const int num);
     void calc_flushing_volumes();
     void msw_rescale();
+    wxBoxSizer* create_calc_btn_sizer(wxWindow* parent);
 
     float get_flush_multiplier()
     {
@@ -68,6 +70,8 @@ private:
     unsigned int m_number_of_extruders  = 0;
     wxPanel* header_line_panel = nullptr;
     wxBoxSizer* m_sizer        = nullptr;
+    Label* m_tip_message_label = nullptr;
+
     std::vector<wxButton *> icon_list1;
     std::vector<wxButton *> icon_list2;
 
@@ -90,7 +94,6 @@ public:
     WipingDialog(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours,
         int extra_flush_volume, float flush_multiplier);
     std::vector<float> get_matrix() const    { return m_output_matrix; }
-
     wxBoxSizer* create_btn_sizer(long flags);
 
     float get_flush_multiplier()

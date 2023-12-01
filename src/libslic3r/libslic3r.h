@@ -67,7 +67,7 @@ static constexpr double RESOLUTION = 0.0125;
 static constexpr double SPARSE_INFILL_RESOLUTION = 0.04;
 #define                 SCALED_SPARSE_INFILL_RESOLUTION (SPARSE_INFILL_RESOLUTION / SCALING_FACTOR)
 
-static constexpr double SUPPORT_RESOLUTION = 0.05;
+static constexpr double SUPPORT_RESOLUTION = 0.1;
 #define                 SCALED_SUPPORT_RESOLUTION (SUPPORT_RESOLUTION / SCALING_FACTOR)
 // Maximum perimeter length for the loop to apply the small perimeter speed. 
 #define                 SMALL_PERIMETER_LENGTH(LENGTH)  (((LENGTH) / SCALING_FACTOR) * 2 * PI)
@@ -76,6 +76,7 @@ static constexpr double INSET_OVERLAP_TOLERANCE = 0.4;
 //FIXME This is quite a lot.
 static constexpr double EXTERNAL_INFILL_MARGIN = 3;
 static constexpr double BRIDGE_INFILL_MARGIN = 1;
+static constexpr double WIPE_TOWER_MARGIN = 15.;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)

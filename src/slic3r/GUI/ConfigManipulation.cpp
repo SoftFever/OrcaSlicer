@@ -409,8 +409,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (config->opt_bool("enable_support")) {
         auto   support_type = config->opt_enum<SupportType>("support_type");
         auto   support_style = config->opt_enum<SupportMaterialStyle>("support_style");
-        std::set<int> enum_set_normal = {0, 1, 2};
-        std::set<int> enum_set_tree   = {0, 3, 4, 5, 6};
+        std::set<int> enum_set_normal = { smsDefault, smsGrid, smsSnug };
+        std::set<int> enum_set_tree   = { smsDefault, smsTreeSlim, smsTreeStrong, smsTreeHybrid, smsOrganic };
         auto &           set             = is_tree(support_type) ? enum_set_tree : enum_set_normal;
         if (set.find(support_style) == set.end()) {
             DynamicPrintConfig new_conf = *config;
@@ -490,7 +490,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
-        "seam_position", "staggered_inner_seams", "wall_infill_order", "outer_wall_line_width",
+        "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width",
         "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
         toggle_field(el, have_perimeters);
     
@@ -571,8 +571,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         "support_base_pattern_spacing", "support_expansion", "support_angle",
         "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
         "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
-        //BBS: add more support params to dependent of enable_support
-        "support_type", "support_on_build_plate_only", "support_critical_regions_only",
+        "support_type", "support_on_build_plate_only", "support_critical_regions_only","support_interface_not_for_body",
         "support_object_xy_distance"/*, "independent_support_layer_height"*/})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
@@ -663,7 +662,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_line("slowdown_for_curled_perimeters",!has_overhang_speed_classic && has_overhang_speed);
     
     toggle_line("flush_into_objects", !is_global_config);
-    
+
+    toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
+
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
     for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer"})
         toggle_line(el, has_fuzzy_skin);

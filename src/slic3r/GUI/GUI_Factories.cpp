@@ -77,7 +77,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"seam_position", "",2},
                     {"slice_closing_radius", "",3}, {"resolution", "",4},
                     {"xy_hole_compensation", "",5}, {"xy_contour_compensation", "",6}, {"elefant_foot_compensation", "",7},
-                    {"make_overhang_printable_angle","", 8},{"make_overhang_printable_hole_size","",9}
+                    {"make_overhang_printable_angle","", 8},{"make_overhang_printable_hole_size","",9}, {"wall_sequence","",10}
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
@@ -715,7 +715,7 @@ wxMenuItem* MenuFactory::append_menu_item_fix_through_netfabb(wxMenu* menu)
 
 void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Export as STL") + dots, "",
+    append_menu_item(menu, wxID_ANY, _L("Export as one STL") + dots, "",
         [](wxCommandEvent&) { plater()->export_stl(false, true); }, "", nullptr,
         [is_mulity_menu]() {
             const Selection& selection = plater()->canvas3D()->get_selection();
@@ -723,6 +723,14 @@ void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
                 return selection.is_multiple_full_instance() || selection.is_multiple_full_object();
             else
                 return selection.is_single_full_instance() || selection.is_single_full_object();
+        }, m_parent);
+    if (!is_mulity_menu)
+        return;
+    append_menu_item(menu, wxID_ANY, _L("Export as STLs") + dots, "",
+        [](wxCommandEvent&) { plater()->export_stl(false, true, true); }, "", nullptr,
+        []() {
+            const Selection& selection = plater()->canvas3D()->get_selection();
+            return selection.is_multiple_full_instance() || selection.is_multiple_full_object();
         }, m_parent);
 }
 
@@ -1482,7 +1490,12 @@ wxMenu* MenuFactory::assemble_part_menu()
 
 void MenuFactory::append_menu_item_clone(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Clone") , "",
+#ifdef __APPLE__
+    static const wxString ctrl = ("Ctrl+");
+#else
+    static const wxString ctrl = _L("Ctrl+");
+#endif
+    append_menu_item(menu, wxID_ANY, _L("Clone") + "\t" + ctrl + "K", "",
         [this](wxCommandEvent&) {
             plater()->clone_selection();
         }, "", nullptr,

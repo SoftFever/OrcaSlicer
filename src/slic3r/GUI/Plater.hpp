@@ -42,6 +42,7 @@
 
 #include "libslic3r/calib.hpp"
 #include "libslic3r/CutUtils.hpp"
+#include "libslic3r/FlushVolCalc.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -86,6 +87,7 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 class NotificationManager;
+class DailyTipsWindow;
 struct Camera;
 class GLToolbar;
 class PlaterPresetComboBox;
@@ -102,6 +104,7 @@ enum class ActionButtonType : int;
 //BBS: add EVT_SLICING_UPDATE declare here
 wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 wxDECLARE_EVENT(EVT_PUBLISH,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_OPEN_PLATESETTINGSDIALOG,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_REPAIR_MODEL,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILAMENT_COLOR_CHANGED,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,        wxCommandEvent);
@@ -110,7 +113,8 @@ wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
-
+wxDECLARE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
+wxDECLARE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
@@ -125,6 +129,7 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
+    void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
     void update_all_preset_comboboxes();
@@ -174,7 +179,9 @@ public:
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
-
+    void                    auto_calc_flushing_volumes(const int modify_id);
+    void                    jump_to_object(ObjectDataViewModelNode* item);
+    void                    can_search();
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);
 #endif
@@ -337,8 +344,13 @@ public:
     bool is_selection_empty() const;
     void scale_selection_to_fit_print_volume();
     void convert_unit(ConversionType conv_type);
+    // BBS: replace z with plane_points
+    void cut(size_t obj_idx, size_t instance_idx, std::array<Vec3d, 4> plane_points, ModelObjectCutAttributes attributes);
 
+    // BBS: segment model with CGAL
+    void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
     void apply_cut_object_to_model(size_t init_obj_idx, const ModelObjectPtrs& cut_objects);
+    void merge(size_t obj_idx, std::vector<int> &vol_indeces);
 
     void send_to_printer(bool isall = false);
     void export_gcode(bool prefer_removable);
@@ -346,7 +358,7 @@ public:
     void send_gcode_finish(wxString name);
     void export_core_3mf();
     static TriangleMesh combine_mesh_fff(const ModelObject& mo, int instance_id, std::function<void(const std::string&)> notify_func = {});
-    void export_stl(bool extended = false, bool selection_only = false);
+    void export_stl(bool extended = false, bool selection_only = false, bool multi_stls = false);
     //BBS: remove amf
     //void export_amf();
     //BBS add extra param for exporting 3mf silence
@@ -385,6 +397,7 @@ public:
     void print_job_finished(wxCommandEvent &evt);
     void send_job_finished(wxCommandEvent& evt);
     void publish_job_finished(wxCommandEvent& evt);
+    void open_platesettings_dialog(wxCommandEvent& evt);
     void on_change_color_mode(SimpleEvent& evt);
 	void eject_drive();
 
@@ -593,6 +606,7 @@ public:
 
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();
+    DailyTipsWindow* get_dailytips() const;
     //BBS: show message in status bar
     void show_status_message(std::string s);
 

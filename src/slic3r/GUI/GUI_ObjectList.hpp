@@ -185,6 +185,7 @@ private:
                                                            // because it would turn off the gizmos (mainly a problem for the SLA gizmo)
 
     wxDataViewItem m_last_selected_item {nullptr};
+
 #ifdef __WXMSW__
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
     int 	    m_last_selected_column = -1;
@@ -215,6 +216,7 @@ public:
     std::vector<ModelObject*>*  objects() const     { return m_objects; }
 
     ModelObject*                object(const int obj_idx) const ;
+
 
     void                create_objects_ctrl();
     // BBS
@@ -454,6 +456,10 @@ public:
     void object_config_options_changed(const ObjectVolumeID& ov_id);
     void printable_state_changed(const std::vector<ObjectVolumeID>& ov_ids);
 
+    // search objectlist
+    void assembly_plate_object_name();
+    void selected_object(ObjectDataViewModelNode* item);
+
 private:
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);
@@ -472,6 +478,7 @@ private:
 
     void ItemValueChanged(wxDataViewEvent &event);
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
+    void OnStartEditing(wxDataViewEvent &event);
 	void OnEditingStarted(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
 

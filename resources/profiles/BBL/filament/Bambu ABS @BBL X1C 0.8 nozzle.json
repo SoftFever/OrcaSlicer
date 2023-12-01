@@ -6,7 +6,7 @@
     "setting_id": "GFSB00_01",
     "instantiation": "true",
     "filament_max_volumetric_speed": [
-        "22"
+        "18"
     ],
     "nozzle_temperature": [
         "260"

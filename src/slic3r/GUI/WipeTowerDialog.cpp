@@ -32,9 +32,11 @@ static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 #define ROW_END_PADDING         FromDIP(21)
 #define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP                 FromDIP(20)
-#define TEXT_BEG_PADDING        FromDIP(41)
+#define TEXT_BEG_PADDING        FromDIP(30)
 #define MAX_FLUSH_VALUE         999
-#define MIN_WIPING_DIALOG_WIDTH FromDIP(400)
+#define MIN_WIPING_DIALOG_WIDTH FromDIP(300)
+#define TIP_MESSAGES_PADDING    FromDIP(8)
+
 
 
 static void update_ui(wxWindow* window)
@@ -289,6 +291,36 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     return btn_sizer;
 
 }
+
+wxBoxSizer* WipingPanel::create_calc_btn_sizer(wxWindow* parent) {
+    auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    StateColor calc_btn_bg(
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor calc_btn_bd(
+        std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
+    );
+
+    StateColor calc_btn_text(
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
+    );
+
+    Button* calc_btn = new Button(parent, _L("Re-calculate"));
+    calc_btn->SetFont(Label::Body_13);
+    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
+    calc_btn->SetCornerRadius(FromDIP(12));
+    calc_btn->SetBackgroundColor(calc_btn_bg);
+    calc_btn->SetBorderColor(calc_btn_bd);
+    calc_btn->SetTextColor(calc_btn_text);
+    calc_btn->SetFocus();
+    btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
+    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { calc_flushing_volumes(); });
+
+    return btn_sizer;
+}
 void WipingDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     for (auto button_item : m_button_list)
@@ -321,21 +353,28 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
                 wxDefaultSize,
                 wxDEFAULT_DIALOG_STYLE /* | wxRESIZE_BORDER*/)
 {
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % Slic3r::resources_dir()).str();
+    SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
+
 
     m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, nullptr, extra_flush_volume, flush_multiplier);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
 
     // set min sizer width according to extruders count
     auto sizer_width = (int)((sqrt(matrix.size()) + 2.8)*ITEM_WIDTH());
     sizer_width = sizer_width > MIN_WIPING_DIALOG_WIDTH ? sizer_width : MIN_WIPING_DIALOG_WIDTH;
     main_sizer->SetMinSize(wxSize(sizer_width, -1));
-
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
-    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL |wxRESET);
+    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BTN_GAP);
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
@@ -351,9 +390,13 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
         this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxCANCEL); });
 
     }
+
+    /*
     if (this->FindWindowById(wxID_RESET, this)) {
         this->FindWindowById(wxID_RESET, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { m_panel_wiping->calc_flushing_volumes(); });
     }
+    */
+
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
         if (e.GetKeyCode() == WXK_ESCAPE) {
@@ -389,6 +432,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         for (int j = 0; j < num; ++j) {
             edit_boxes[j][i]->Reparent(panel);
             edit_boxes[j][i]->SetBackgroundColour(panel->GetBackgroundColour());
+            edit_boxes[j][i]->SetFont(::Label::Body_13);
             sizer->AddSpacer(EDIT_BOXES_GAP);
             sizer->Add(edit_boxes[j][i], 0, wxALIGN_CENTER_VERTICAL, 0);
         }
@@ -414,10 +458,11 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         m_colours.push_back(wxColor(rgb.r_uchar(), rgb.g_uchar(), rgb.b_uchar()));
     }
 
+    auto sizer_width = (int)((sqrt(matrix.size())) * ITEM_WIDTH() + (sqrt(matrix.size()) + 1) * HEADER_BEG_PADDING);
+    sizer_width = sizer_width > MIN_WIPING_DIALOG_WIDTH ? sizer_width : MIN_WIPING_DIALOG_WIDTH;
     m_sizer = new wxBoxSizer(wxVERTICAL);
+    this->SetBackgroundColour(*wxWHITE);
     update_ui(this);
-
-//    m_gridsizer_advanced = new wxGridSizer(m_number_of_extruders + 1, 5, 1);
 
     // First create controls for advanced mode and assign them to m_page_advanced:
     for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
@@ -464,6 +509,29 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     }
 
     // BBS
+    m_sizer->AddSpacer(FromDIP(10));
+    auto tip_message_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    tip_message_panel->SetBackgroundColour(wxColour(238, 238, 238));
+    auto message_sizer = new wxBoxSizer(wxVERTICAL);
+    tip_message_panel->SetSizer(message_sizer);
+    {
+        wxString message = _L("Studio would re-calculate your flushing volumes everytime the filaments color changed. You could disable the auto-calculate in Bambu Studio > Preferences");
+        m_tip_message_label = new Label(tip_message_panel, wxEmptyString);
+        wxClientDC dc(tip_message_panel);
+        wxString multiline_message;
+        m_tip_message_label->split_lines(dc, sizer_width, message, multiline_message);
+        m_tip_message_label->SetLabel(multiline_message);
+        m_tip_message_label->SetFont(Label::Body_13);
+        message_sizer->Add(m_tip_message_label, 0, wxEXPAND | wxALL, TIP_MESSAGES_PADDING);
+    }
+    m_sizer->Add(tip_message_panel, 0, wxEXPAND | wxRIGHT | wxLEFT, TABLE_BORDER);
+    bool is_show = wxGetApp().app_config->get("auto_calculate") == "true";
+    tip_message_panel->Show(is_show);
+    m_sizer->AddSpacer(FromDIP(10));
+    auto calc_btn_sizer = create_calc_btn_sizer(this);
+    m_sizer->Add(calc_btn_sizer, 0, wxEXPAND | wxLEFT, FromDIP(30));
+
+    m_sizer->AddSpacer(FromDIP(5));
     header_line_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     header_line_panel->SetBackgroundColour(wxColour(238, 238, 238));
     auto header_line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -483,27 +551,12 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     header_line_sizer->AddSpacer(HEADER_END_PADDING);
     header_line_sizer->AddStretchSpacer();
 
-    m_sizer->Add(header_line_panel, 0, wxEXPAND | wxTOP | wxRIGHT | wxLEFT, TABLE_BORDER);
+    m_sizer->Add(header_line_panel, 0, wxEXPAND | wxRIGHT | wxLEFT, TABLE_BORDER);
 
     create_panels(this, m_number_of_extruders);
 
-    m_sizer->AddSpacer(BTN_SIZE.y);
-
     // BBS: for tunning flush volumes
     {
-        wxBoxSizer* param_sizer = new wxBoxSizer(wxHORIZONTAL);
-       
-        wxStaticText* flush_multiplier_title = new wxStaticText(this, wxID_ANY, _L("Multiplier"));
-        param_sizer->Add(flush_multiplier_title);
-        param_sizer->AddSpacer(FromDIP(5));
-        m_flush_multiplier_ebox = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
-        char flush_multi_str[32] = { 0 };
-        snprintf(flush_multi_str, sizeof(flush_multi_str), "%.2f", flush_multiplier);
-        m_flush_multiplier_ebox->SetValue(flush_multi_str);
-        param_sizer->Add(m_flush_multiplier_ebox);
-        param_sizer->AddStretchSpacer(1);
-        m_sizer->Add(param_sizer, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
-
         auto multi_desc_label = new wxStaticText(this, wxID_ANY, _(L("Flushing volume (mm³) for each filament pair.")), wxDefaultPosition, wxDefaultSize, 0);
         multi_desc_label->SetForegroundColour(g_text_color);
         m_sizer->Add(multi_desc_label, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
@@ -535,10 +588,23 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
             this->update_warning_texts();
             e.Skip();
         };
-        m_flush_multiplier_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
-        m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
 
         m_sizer->AddSpacer(10);
+
+        wxBoxSizer* param_sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxStaticText* flush_multiplier_title = new wxStaticText(this, wxID_ANY, _L("Multiplier"));
+        param_sizer->Add(flush_multiplier_title, 0, wxALIGN_CENTER | wxALL, 0);
+        param_sizer->AddSpacer(FromDIP(5));
+        m_flush_multiplier_ebox = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
+        char flush_multi_str[32] = { 0 };
+        snprintf(flush_multi_str, sizeof(flush_multi_str), "%.2f", flush_multiplier);
+        m_flush_multiplier_ebox->SetValue(flush_multi_str);
+        param_sizer->Add(m_flush_multiplier_ebox, 0, wxALIGN_CENTER | wxALL, 0);
+        param_sizer->AddStretchSpacer(1);
+        m_sizer->Add(param_sizer, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+
+        m_flush_multiplier_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
+        m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
     }
     this->update_warning_texts();
 

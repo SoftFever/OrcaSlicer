@@ -440,18 +440,21 @@ public:
     ~GLVolumeCollection() { clear(); }
 
     std::vector<int> load_object(
-        const ModelObject* model_object,
+        const ModelObject 		*model_object,
         int                      obj_idx,
-        const std::vector<int>& instance_idxs);
+        const std::vector<int>	&instance_idxs,
+        const std::string 		&color_by,
+        bool 					 opengl_initialized);
 
     int load_object_volume(
-        const ModelObject* model_object,
+        const ModelObject *model_object,
         int                obj_idx,
         int                volume_idx,
         int                instance_idx,
+        const std::string &color_by,
+        bool 			   opengl_initialized,
         bool               in_assemble_view = false,
         bool               use_loaded_id = false);
-
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(
         const SLAPrintObject           *print_object,
