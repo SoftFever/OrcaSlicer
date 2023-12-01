@@ -39,16 +39,16 @@ index 085381d785..62146abc04 100644
          set(WEBVIEW2_URL "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/${WEBVIEW2_VERSION}")
 -        set(WEBVIEW2_SHA256 "6a34bb553e18cfac7297b4031f3eac2558e439f8d16a45945c22945ac404105d")
 +        set(WEBVIEW2_SHA256 "51d2ef56196e2a9d768a6843385bcb9c6baf9ed34b2603ddb074fb4995543a99")
-
+ 
          set(WEBVIEW2_DEFAULT_PACKAGE_DIR "${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2.${WEBVIEW2_VERSION}")
-
+ 
 diff --git a/include/wx/fontutil.h b/include/wx/fontutil.h
 index 30529db8ce..e6a12366d5 100644
 --- a/include/wx/fontutil.h
 +++ b/include/wx/fontutil.h
 @@ -294,7 +294,11 @@ public:
      wxFontEncoding GetEncoding() const;
-
+ 
      void SetPointSize(int pointsize);
 -    void SetFractionalPointSize(double pointsize);
 +    void SetFractionalPointSize(double pointsize
@@ -60,7 +60,7 @@ index 30529db8ce..e6a12366d5 100644
      void SetStyle(wxFontStyle style);
      void SetNumericWeight(int weight);
 @@ -307,12 +311,19 @@ public:
-
+ 
      // Helper used in many ports: use the normal font size if the input is
      // negative, as we handle -1 as meaning this for compatibility.
 -    void SetSizeOrDefault(double size)
@@ -79,7 +79,7 @@ index 30529db8ce..e6a12366d5 100644
 +#endif
          );
      }
-
+ 
 diff --git a/include/wx/gdicmn.h b/include/wx/gdicmn.h
 index 2f5f8ee99f..39e9317d40 100644
 --- a/include/wx/gdicmn.h
@@ -89,11 +89,11 @@ index 2f5f8ee99f..39e9317d40 100644
  class WXDLLIMPEXP_FWD_CORE wxIconBundle;
  class WXDLLIMPEXP_FWD_CORE wxPoint;
 +class WXDLLIMPEXP_FWD_CORE wxWindow;
-
+ 
  // ---------------------------------------------------------------------------
  // constants
 @@ -1106,7 +1107,9 @@ extern int WXDLLIMPEXP_CORE wxDisplayDepth();
-
+ 
  // get the display size
  extern void WXDLLIMPEXP_CORE wxDisplaySize(int *width, int *height);
 +extern void WXDLLIMPEXP_CORE wxDisplaySize(const wxWindow *window, int *width, int *height);
@@ -116,7 +116,7 @@ index 1bd58bbf04..903cb81319 100644
 -                          wxGridWindow* gridWindow);
 +                          wxGridWindow* gridWindow,
 +                          CursorMode mode);
-
+ 
      // process different clicks on grid cells
      void DoGridCellLeftDown(wxMouseEvent& event,
 diff --git a/include/wx/msw/font.h b/include/wx/msw/font.h
@@ -126,10 +126,10 @@ index 0f9768b44e..094d774918 100644
 @@ -23,7 +23,7 @@ public:
      // ctors and such
      wxFont() { }
-
+ 
 -    wxFont(const wxFontInfo& info);
 +    wxFont(const wxFontInfo& info, const wxWindow *window = nullptr);
-
+ 
      wxFont(int size,
             wxFontFamily family,
 diff --git a/include/wx/msw/tooltip.h b/include/wx/msw/tooltip.h
@@ -148,13 +148,13 @@ index 4c3be08cec..96fb378d01 100644
 +private:
      // to be used in wxModule for deleting tooltip ctrl window when exiting mainloop
      static void DeleteToolTipCtrl();
-
+ 
 diff --git a/include/wx/osx/app.h b/include/wx/osx/app.h
 index 317a0ca96f..58014ec1d4 100644
 --- a/include/wx/osx/app.h
 +++ b/include/wx/osx/app.h
 @@ -161,7 +161,7 @@ private:
-
+ 
  public:
      bool                OSXInitWasCalled() { return m_inited; }
 -    void                OSXStoreOpenFiles(const wxArrayString &files ) { m_openFiles = files ; }
@@ -167,9 +167,9 @@ index 80408c6677..aa07caebdc 100644
 --- a/src/common/combocmn.cpp
 +++ b/src/common/combocmn.cpp
 @@ -2061,6 +2061,9 @@ void wxComboCtrlBase::ShowPopup()
-
+ 
      SetFocus();
-
+ 
 +    //int displayIdx = wxDisplay::GetFromWindow(this);
 +    //wxRect displayRect = wxDisplay(displayIdx != wxNOT_FOUND ? displayIdx : 0u).GetGeometry();
 +
@@ -177,9 +177,9 @@ index 80408c6677..aa07caebdc 100644
      int screenHeight;
      wxPoint scrPos;
 @@ -2183,9 +2186,13 @@ void wxComboCtrlBase::ShowPopup()
-
+ 
      int showFlags = CanDeferShow;
-
+ 
 -    if ( spaceBelow < szp.y )
 +    int anchorSideVertical = m_anchorSide & (wxUP | wxDOWN);
 +    if (// Pop up as asked for by the library user.
@@ -191,13 +191,13 @@ index 80408c6677..aa07caebdc 100644
 +        popupY = scrPos.y - szp.y + displayRect.GetTop();
          showFlags |= ShowAbove;
      }
-
+ 
 diff --git a/src/common/datavcmn.cpp b/src/common/datavcmn.cpp
 index 0a1e43ad51..6c492aedab 100644
 --- a/src/common/datavcmn.cpp
 +++ b/src/common/datavcmn.cpp
 @@ -1334,7 +1334,11 @@ wxDataViewItem wxDataViewCtrlBase::GetSelection() const
-
+ 
      wxDataViewItemArray selections;
      GetSelections(selections);
 -    return selections[0];
@@ -207,7 +207,7 @@ index 0a1e43ad51..6c492aedab 100644
 +    else
 +        return wxDataViewItem(0);
  }
-
+ 
  namespace
 diff --git a/src/common/dcbufcmn.cpp b/src/common/dcbufcmn.cpp
 index 9b1c1f3159..ef5865ed4b 100644
@@ -216,7 +216,7 @@ index 9b1c1f3159..ef5865ed4b 100644
 @@ -83,9 +83,15 @@ private:
          const double scale = dc ? dc->GetContentScaleFactor() : 1.0;
          wxBitmap* const buffer = new wxBitmap;
-
+ 
 +#if __WXMSW__
 +        // we must always return a valid bitmap but creating a bitmap of
 +        // size 0 would fail, so create a 1*1 bitmap in this case
@@ -226,7 +226,7 @@ index 9b1c1f3159..ef5865ed4b 100644
          // size 0 would fail, so create a 1*1 bitmap in this case
          buffer->CreateWithDIPSize(wxMax(w, 1), wxMax(h, 1), scale);
 +#endif
-
+ 
          return buffer;
      }
 diff --git a/src/common/gdicmn.cpp b/src/common/gdicmn.cpp
@@ -236,21 +236,21 @@ index db8a01f961..162c1ce2dc 100644
 @@ -863,11 +863,25 @@ void wxDisplaySize(int *width, int *height)
          *height = size.y;
  }
-
+ 
 +void wxDisplaySize(const wxWindow *window, int *width, int *height)
 +{
 +    const wxSize size = wxGetDisplaySize(window);
 +    if ( width )
 +        *width = size.x;
 +    if ( height )
-+        *height = size.y;
++        *height = size.y;    
 +}
 +
  wxSize wxGetDisplaySize()
  {
      return wxDisplay().GetGeometry().GetSize();
  }
-
+ 
 +wxSize wxGetDisplaySize(const wxWindow *window)
 +{
 +    return window ? wxDisplay(window).GetGeometry().GetSize() : wxDisplay().GetGeometry().GetSize();
@@ -293,21 +293,21 @@ index ed3d988994..d71cda122d 100644
              else if ( m_cursorMode == oper.GetCursorModeSelect() && line >=0 )
              {
 @@ -4691,12 +4692,14 @@ bool wxGrid::DoGridDragEvent(wxMouseEvent& event,
-
+ 
          case WXGRID_CURSOR_RESIZE_ROW:
              if ( m_dragRowOrCol != -1 )
 -                DoGridDragResize(event.GetPosition(), wxGridRowOperations(), gridWindow);
 +                //BBS: add cursor mode for DoGridDragResize's paremeters
 +                DoGridDragResize(event.GetPosition(), wxGridRowOperations(), gridWindow, WXGRID_CURSOR_RESIZE_ROW);
              break;
-
+ 
          case WXGRID_CURSOR_RESIZE_COL:
              if ( m_dragRowOrCol != -1 )
 -                DoGridDragResize(event.GetPosition(), wxGridColumnOperations(), gridWindow);
 +                //BBS: add cursor mode for DoGridDragResize's paremeters
 +                DoGridDragResize(event.GetPosition(), wxGridColumnOperations(), gridWindow, WXGRID_CURSOR_RESIZE_COL);
              break;
-
+ 
          default:
 @@ -4791,6 +4794,8 @@ wxGrid::DoGridCellLeftDown(wxMouseEvent& event,
                              case wxGridSelectCells:
@@ -316,12 +316,12 @@ index ed3d988994..d71cda122d 100644
 +                                //BBS: select this cell when first click
 +                                m_selection->SelectBlock(coords.GetRow(), coords.GetCol(), coords.GetRow(), coords.GetCol(), event);
                                  break;
-
+ 
                              case wxGridSelectRows:
 @@ -5049,9 +5054,11 @@ void wxGrid::ProcessGridCellMouseEvent(wxMouseEvent& event, wxGridWindow *eventG
      }
  }
-
+ 
 +//BBS: add cursor mode for DoGridDragResize's paremeters
  void wxGrid::DoGridDragResize(const wxPoint& position,
                                const wxGridOperations& oper,
@@ -334,7 +334,7 @@ index ed3d988994..d71cda122d 100644
 @@ -5064,10 +5071,28 @@ void wxGrid::DoGridDragResize(const wxPoint& position,
      // orthogonal direction.
      const int linePos = oper.Dual().Select(logicalPos);
-
+ 
 -    const int lineStart = oper.GetLineStartPos(this, m_dragRowOrCol);
 -    oper.SetLineSize(this, m_dragRowOrCol,
 +    //BBS: add logic for resize multiplexed cols
@@ -359,31 +359,31 @@ index ed3d988994..d71cda122d 100644
                       wxMax(linePos - lineStart,
                             oper.GetMinimalLineSize(this, m_dragRowOrCol)));
 +    }
-
+ 
      // TODO: generate RESIZING event, see #10754, if the size has changed.
  }
 @@ -5090,7 +5115,8 @@ wxPoint wxGrid::GetPositionForResizeEvent(int width) const
-
+ 
  void wxGrid::DoEndDragResizeRow(const wxMouseEvent& event, wxGridWindow* gridWindow)
  {
 -    DoGridDragResize(event.GetPosition(), wxGridRowOperations(), gridWindow);
 +    //BBS: add cursor mode for DoGridDragResize's paremeters
 +    DoGridDragResize(event.GetPosition(), wxGridRowOperations(), gridWindow, WXGRID_CURSOR_RESIZE_ROW);
-
+ 
      SendGridSizeEvent(wxEVT_GRID_ROW_SIZE, m_dragRowOrCol, event);
-
+ 
 @@ -5099,7 +5125,8 @@ void wxGrid::DoEndDragResizeRow(const wxMouseEvent& event, wxGridWindow* gridWin
-
+ 
  void wxGrid::DoEndDragResizeCol(const wxMouseEvent& event, wxGridWindow* gridWindow)
  {
 -    DoGridDragResize(event.GetPosition(), wxGridColumnOperations(), gridWindow);
 +    //BBS: add cursor mode for DoGridDragResize's paremeters
 +    DoGridDragResize(event.GetPosition(), wxGridColumnOperations(), gridWindow, WXGRID_CURSOR_RESIZE_COL);
-
+ 
      SendGridSizeEvent(wxEVT_GRID_COL_SIZE, m_dragRowOrCol, event);
-
+ 
 @@ -5113,9 +5140,10 @@ void wxGrid::DoHeaderStartDragResizeCol(int col)
-
+ 
  void wxGrid::DoHeaderDragResizeCol(int width)
  {
 +    //BBS: add cursor mode for DoGridDragResize's paremeters
@@ -392,11 +392,11 @@ index ed3d988994..d71cda122d 100644
 -                     m_gridWin);
 +                     m_gridWin, WXGRID_CURSOR_RESIZE_COL);
  }
-
+ 
  void wxGrid::DoHeaderEndDragResizeCol(int width)
 @@ -6013,6 +6041,10 @@ void wxGrid::OnKeyDown( wxKeyEvent& event )
                      DisableCellEditControl();
-
+ 
                      MoveCursorDown( event.ShiftDown() );
 +                    //BBS: select this cell when first click
 +                    m_selection->SelectBlock(m_currentCellCoords.GetRow(), m_currentCellCoords.GetCol(),
@@ -404,15 +404,15 @@ index ed3d988994..d71cda122d 100644
 +                                             event);
                  }
                  break;
-
+ 
 diff --git a/src/msw/bmpcbox.cpp b/src/msw/bmpcbox.cpp
 index 011bd4f534..17e7f18740 100644
 --- a/src/msw/bmpcbox.cpp
 +++ b/src/msw/bmpcbox.cpp
 @@ -156,13 +156,20 @@ void wxBitmapComboBox::RecreateControl()
-
+ 
      wxComboBox::DoClear();
-
+ 
 -    HWND hwnd = GetHwnd();
 +    WNDPROC wndproc_edit = nullptr;
 +	WinStruct<COMBOBOXINFO> combobox_info;
@@ -421,10 +421,10 @@ index 011bd4f534..17e7f18740 100644
 +		wndproc_edit = (WNDPROC)wxGetWindowProc(combobox_info.hwndItem);
      DissociateHandle();
      ::DestroyWindow(hwnd);
-
+ 
      if ( !MSWCreateControl(wxT("COMBOBOX"), wxEmptyString, pos, size) )
          return;
-
+ 
 +if (::GetComboBoxInfo(GetHwnd(), &combobox_info))
 +    wxSetWindowProc(combobox_info.hwndItem, wndproc_edit);
 +
@@ -441,18 +441,18 @@ index 434876939c..91d4603018 100644
  public:
 -    wxFontRefData(const wxFontInfo& info = wxFontInfo());
 +    wxFontRefData(const wxFontInfo& info = wxFontInfo(), const wxWindow* window = nullptr);
-
+ 
      wxFontRefData(const wxNativeFontInfo& info, WXHFONT hFont = 0)
      {
 @@ -324,7 +324,7 @@ protected:
  // wxFontRefData
  // ----------------------------------------------------------------------------
-
+ 
 -wxFontRefData::wxFontRefData(const wxFontInfo& info)
 +wxFontRefData::wxFontRefData(const wxFontInfo& info, const wxWindow *window)
  {
      m_hFont = NULL;
-
+ 
 @@ -335,7 +335,7 @@ wxFontRefData::wxFontRefData(const wxFontInfo& info)
      }
      else
@@ -460,12 +460,12 @@ index 434876939c..91d4603018 100644
 -        m_nativeFontInfo.SetSizeOrDefault(info.GetFractionalPointSize());
 +        m_nativeFontInfo.SetSizeOrDefault(info.GetFractionalPointSize(), window);
      }
-
+ 
      SetStyle(info.GetStyle());
 @@ -518,12 +518,12 @@ wxFontEncoding wxNativeFontInfo::GetEncoding() const
      return wxGetFontEncFromCharSet(lf.lfCharSet);
  }
-
+ 
 -void wxNativeFontInfo::SetFractionalPointSize(double pointSizeNew)
 +void wxNativeFontInfo::SetFractionalPointSize(double pointSizeNew, const wxWindow *window)
  {
@@ -475,19 +475,19 @@ index 434876939c..91d4603018 100644
 -    const int ppi = ::GetDeviceCaps(ScreenHDC(), LOGPIXELSY);
 +    const int ppi = window ? window->GetDPI().GetY() : ::GetDeviceCaps(ScreenHDC(), LOGPIXELSY);
      lf.lfHeight = GetLogFontHeightAtPPI(pointSizeNew, ppi);
-
+ 
      pointSize = pointSizeNew;
 @@ -812,9 +812,9 @@ wxFont::wxFont(const wxString& fontdesc)
          (void)Create(info);
  }
-
+ 
 -wxFont::wxFont(const wxFontInfo& info)
 +wxFont::wxFont(const wxFontInfo& info, const wxWindow *window)
  {
 -    m_refData = new wxFontRefData(info);
 +    m_refData = new wxFontRefData(info, window);
  }
-
+ 
  bool wxFont::Create(const wxNativeFontInfo& info, WXHFONT hFont)
 diff --git a/src/msw/menuitem.cpp b/src/msw/menuitem.cpp
 index 0bd017a36a..3b98bf1678 100644
@@ -508,7 +508,7 @@ index c529a4fa3b..7e547c64df 100644
 +++ b/src/msw/window.cpp
 @@ -4809,33 +4809,49 @@ static wxSize GetWindowDPI(HWND hwnd)
  }
-
+ 
  /*extern*/
 -int wxGetSystemMetrics(int nIndex, const wxWindow* window)
 +int wxGetSystemMetrics(int nIndex, const wxWindow* win)
@@ -517,7 +517,7 @@ index c529a4fa3b..7e547c64df 100644
 -    if ( !window )
 -        window = wxApp::GetMainTopWindow();
 +    const wxWindow* window = (!win && wxTheApp) ? wxTheApp->GetTopWindow() : win;
-
+ 
 -    if ( window )
 +    if (window)
      {
@@ -572,7 +572,7 @@ index c529a4fa3b..7e547c64df 100644
 -    wxUnusedVar(window);
 +    wxUnusedVar(win);
  #endif // wxUSE_DYNLIB_CLASS
-
+ 
      return ::GetSystemMetrics(nIndex);
 diff --git a/src/osx/cocoa/dataview.mm b/src/osx/cocoa/dataview.mm
 index f188e61089..7b867002d1 100644
@@ -581,7 +581,7 @@ index f188e61089..7b867002d1 100644
 @@ -1604,6 +1604,15 @@ outlineView:(NSOutlineView*)outlineView
      }
  }
-
+ 
 +//FIXME Vojtech: This is a workaround to get at least the "mouse move" events at the wxDataViewControl,
 +// so we can show the tooltips. The "mouse move" events are being send only if the wxDataViewControl
 +// has focus, which is a limitation of wxWidgets. We may grab focus on "mouse entry" though.
@@ -605,7 +605,7 @@ index f188e61089..7b867002d1 100644
          wxWidgetCocoaImpl::keyEvent(event, slf, _cmd);  // all other keys
      }
 @@ -2540,12 +2550,22 @@ void wxCocoaDataViewControl::DoSetIndent(int indent)
-
+ 
  void wxCocoaDataViewControl::HitTest(const wxPoint& point, wxDataViewItem& item, wxDataViewColumn*& columnPtr) const
  {
 -    NSPoint const nativePoint = wxToNSPoint((NSScrollView*) GetWXWidget(),point);
@@ -621,10 +621,10 @@ index f188e61089..7b867002d1 100644
 +    const NSRect &visibleRect = scrollView.contentView.visibleRect;
 +    NSPoint const nativePoint = wxToNSPoint((NSScrollView*) GetWXWidget(),
 +    wxPoint(point.x + visibleRect.origin.x, point.y + visibleRect.origin.y));
-
+ 
      int indexColumn;
      int indexRow;
-
+ 
 -
      indexColumn = [m_OutlineView columnAtPoint:nativePoint];
      indexRow    = [m_OutlineView rowAtPoint:   nativePoint];
@@ -635,26 +635,26 @@ index c819deeb0c..dc3c3b0b53 100644
 +++ b/src/osx/cocoa/settings.mm
 @@ -222,7 +222,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
  // ----------------------------------------------------------------------------
-
+ 
  // Get a system metric, e.g. scrollbar size
 -int wxSystemSettingsNative::GetMetric(wxSystemMetric index, const wxWindow* WXUNUSED(win))
 +int wxSystemSettingsNative::GetMetric(wxSystemMetric index, const wxWindow* win)
  {
      int value;
-
+ 
 @@ -257,11 +257,11 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, const wxWindow* WXUN
          // TODO case wxSYS_WINDOWMIN_Y:
-
+ 
          case wxSYS_SCREEN_X:
 -            wxDisplaySize(&value, NULL);
 +            wxDisplaySize(win, &value, NULL);
              return value;
-
+ 
          case wxSYS_SCREEN_Y:
 -            wxDisplaySize(NULL, &value);
 +            wxDisplaySize(win, NULL, &value);
              return value;
-
+ 
          // TODO case wxSYS_FRAMESIZE_X:
 diff --git a/src/osx/cocoa/window.mm b/src/osx/cocoa/window.mm
 index 635ea286d4..42ae67e27a 100644
@@ -663,21 +663,21 @@ index 635ea286d4..42ae67e27a 100644
 @@ -191,6 +191,9 @@ NSRect wxOSXGetFrameForControl( wxWindowMac* window , const wxPoint& pos , const
  - (BOOL)isEnabled;
  - (void)setEnabled:(BOOL)flag;
-
+ 
 +- (BOOL)clipsToBounds;
 +- (void)setClipsToBounds:(BOOL)clipsToBounds;
 +
  - (void)setImage:(NSImage *)image;
  - (void)setControlSize:(NSControlSize)size;
-
+ 
 @@ -2559,6 +2562,7 @@ wxWidgetImpl( peer, flags )
      if ( m_osxView )
          CFRetain(m_osxView);
      [m_osxView release];
 +    m_osxView.clipsToBounds = YES;
  }
-
-
+ 
+ 
 -- 
 2.42.0.windows.2
 
