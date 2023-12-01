@@ -282,11 +282,7 @@ PrintSequence PartPlate::get_print_seq() const
 
 PrintSequence PartPlate::get_real_print_seq(bool* plate_same_as_global) const
 {
-	PrintSequence global_print_seq = PrintSequence::ByDefault;
-	auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-	if (curr_preset_config.has("print_sequence"))
-		global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-
+	PrintSequence global_print_seq = wxGetApp().global_print_sequence();
     PrintSequence curr_plate_seq = get_print_seq();
     if (curr_plate_seq == PrintSequence::ByDefault) {
 		curr_plate_seq = global_print_seq;

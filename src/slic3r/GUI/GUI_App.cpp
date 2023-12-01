@@ -5934,6 +5934,15 @@ int GUI_App::filaments_cnt() const
     return preset_bundle->filament_presets.size();
 }
 
+PrintSequence GUI_App::global_print_sequence() const
+{
+    PrintSequence global_print_seq = PrintSequence::ByDefault;
+    auto curr_preset_config = preset_bundle->prints.get_edited_preset().config;
+    if (curr_preset_config.has("print_sequence"))
+        global_print_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    return global_print_seq;
+}
+
 wxString GUI_App::current_language_code_safe() const
 {
 	// Translate the language code to a code, for which Prusa Research maintains translations.

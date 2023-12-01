@@ -607,25 +607,6 @@ private:
 
     PrinterTechnology current_printer_technology() const;
 
-    template<class Self>
-    static auto & get_arrange_settings(Self *self) {
-        PrinterTechnology ptech = self->current_printer_technology();
-
-        auto *ptr = &self->m_arrange_settings_fff;
-
-        if (ptech == ptSLA) {
-            ptr = &self->m_arrange_settings_sla;
-        } else if (ptech == ptFFF) {
-            auto co_opt = self->m_config->template option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if (co_opt && (co_opt->value == PrintSequence::ByObject))
-                ptr = &self->m_arrange_settings_fff_seq_print;
-            else
-                ptr = &self->m_arrange_settings_fff;
-        }
-
-        return *ptr;
-    }
-
 
 
     //BBS:record key botton frequency
@@ -651,7 +632,11 @@ public:
     }
 
     void load_arrange_settings();
-    ArrangeSettings& get_arrange_settings() { return get_arrange_settings(this); }
+    ArrangeSettings& get_arrange_settings();// { return get_arrange_settings(this); }
+    ArrangeSettings& get_arrange_settings(PrintSequence print_seq) {
+        return (print_seq == PrintSequence::ByObject) ? m_arrange_settings_fff_seq_print
+            : m_arrange_settings_fff;
+    }
 
     class SequentialPrintClearance
     {
@@ -1067,6 +1052,17 @@ public:
 
     void highlight_toolbar_item(const std::string& item_name);
     void highlight_gizmo(const std::string& gizmo_name);
+
+    ArrangeSettings get_arrange_settings() const {
+        const ArrangeSettings &settings = get_arrange_settings();
+        ArrangeSettings ret = settings;
+        if (&settings == &m_arrange_settings_fff_seq_print) {
+            ret.distance = std::max(ret.distance,
+                                    float(min_object_distance(*m_config)));
+        }
+
+        return ret;
+    }
 
     // Timestamp for FPS calculation and notification fade-outs.
     static int64_t timestamp_now() {

@@ -1096,6 +1096,25 @@ void GLCanvas3D::load_arrange_settings()
     m_arrange_settings_fff_seq_print.is_seq_print = true;
 }
 
+GLCanvas3D::ArrangeSettings& GLCanvas3D::get_arrange_settings()
+{
+    PrinterTechnology ptech = current_printer_technology();
+
+    auto* ptr = &m_arrange_settings_fff;
+
+    if (ptech == ptSLA) {
+        ptr = &m_arrange_settings_sla;
+    }
+    else if (ptech == ptFFF) {
+        if (wxGetApp().global_print_sequence() == PrintSequence::ByObject)
+            ptr = &m_arrange_settings_fff_seq_print;
+        else
+            ptr = &m_arrange_settings_fff;
+    }
+
+    return *ptr;
+}
+
 int GLCanvas3D::GetHoverId()
 {
     if (m_hover_plate_idxs.size() == 0) {
@@ -5447,14 +5466,11 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
         dist_min     = 0.1f;
         postfix      = "_sla";
     } else if (ptech == ptFFF) {
-        auto co_opt = m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-        if (co_opt && (co_opt->value == PrintSequence::ByObject)) {
-            dist_min     = float(min_object_distance(*m_config));
+        dist_min = settings.distance;
+        seq_print = &settings == &m_arrange_settings_fff_seq_print;
+        if (seq_print) {
             postfix      = "_fff_seq_print";
-            //BBS:
-            seq_print = true;
         } else {
-            dist_min     = 0.0f;
             postfix     = "_fff";
         }
     }
