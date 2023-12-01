@@ -1949,6 +1949,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
         optgroup->append_single_option_line("bridge_flow");
+	optgroup->append_single_option_line("internal_bridge_flow");
         optgroup->append_single_option_line("bridge_density");
         optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
@@ -1979,13 +1980,13 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
-        optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
         optgroup->append_single_option_line("infill_anchor");
         optgroup->append_single_option_line("infill_anchor_max");
+        optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup->append_single_option_line("filter_out_gap_fill");
 
@@ -2162,6 +2163,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
+        optgroup->append_single_option_line("fuzzy_skin_first_layer");
 
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
         // optgroup->append_single_option_line("mmu_segmented_region_max_width");
