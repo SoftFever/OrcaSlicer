@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-10 14:54+0800\n"
+"POT-Creation-Date: 2023-12-02 01:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril\n"
@@ -4656,28 +4656,6 @@ msgstr ""
 "Le fichier 3mf a été généré par une ancienne version de Orca Slicer, "
 "chargement des données de géométrie uniquement."
 
-#, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
-msgstr ""
-"La version %s de 3mf est plus récente que la version %s de %s, clés "
-"suivantes non reconnues :"
-
-msgid "You'd better upgrade your software.\n"
-msgstr "Il est préférable de mettre à jour votre logiciel.\n"
-
-msgid "Newer 3mf version"
-msgstr "Nouvelle version 3mf"
-
-#, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
-msgstr ""
-"La version %s de 3mf est plus récente que la version %s de %s, nous vous "
-"suggérons de mettre à jour votre logiciel."
-
 msgid "Invalid values found in the 3mf:"
 msgstr "Valeurs non valides trouvées dans le 3mf :"
 
@@ -7853,6 +7831,15 @@ msgstr ""
 "Diminuez légèrement cette valeur (par exemple 0.9) pour réduire la quantité "
 "de matériaux pour le pont, pour améliorer l'affaissement"
 
+msgid "Internal bridge flow"
+msgstr ""
+
+msgid ""
+"This value governs the thickness of the internal bridge layer. This is the "
+"first layer over sparse infill. Decrease this value slightly (for example "
+"0.9) to improve surface quality over sparse infill."
+msgstr ""
+
 msgid "Top surface flow ratio"
 msgstr "Débit des surfaces supérieures"
 
@@ -8165,6 +8152,15 @@ msgstr ""
 "longues distances, mais peuvent sembler moins bons. S'ils sont désactivés, "
 "les ponts ont une meilleure apparence mais ne sont fiables que pour des "
 "distances plus courtes."
+
+msgid "Thick internal bridges"
+msgstr ""
+
+msgid ""
+"If enabled, thick internal bridges will be used. It's usually recommended to "
+"have this feature turned on. However, consider turning it off if you are "
+"using large nozzles."
+msgstr ""
 
 msgid "Max bridge length"
 msgstr "Longueur maximale des ponts"
@@ -12327,6 +12323,28 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "La version %s de 3mf est plus récente que la version %s de %s, clés "
+#~ "suivantes non reconnues :"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "Il est préférable de mettre à jour votre logiciel.\n"
+
+#~ msgid "Newer 3mf version"
+#~ msgstr "Nouvelle version 3mf"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "La version %s de 3mf est plus récente que la version %s de %s, nous vous "
+#~ "suggérons de mettre à jour votre logiciel."
 
 #~ msgid "Embeded"
 #~ msgstr "Intégré"

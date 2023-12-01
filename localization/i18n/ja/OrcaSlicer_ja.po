@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-10 14:54+0800\n"
+"POT-Creation-Date: 2023-12-02 01:44+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4443,27 +4443,6 @@ msgstr ""
 "3mfは古いバージョンのOrca Slicerで作成されています、ジオメトリーデータのみ読"
 "込みます。"
 
-#, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
-msgstr ""
-"3mfのバージョン %s は %sのバージョン %sより新しい為、下記のキーを認識できませ"
-"ん"
-
-msgid "You'd better upgrade your software.\n"
-msgstr "ソフトウェアをアップデートする必要があります。\n"
-
-msgid "Newer 3mf version"
-msgstr "新3mfバージョン"
-
-#, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
-msgstr ""
-"3mfのバージョン%sは%sの%sより新しい為、ソフトウェアを更新してください。"
-
 msgid "Invalid values found in the 3mf:"
 msgstr "Invalid values found in the 3mf:"
 
@@ -7399,6 +7378,15 @@ msgstr ""
 "この値を少し (例えば 0.9) 小さくし、ブリッジ用に押出し量を減らし、たるみを防"
 "ぎます。"
 
+msgid "Internal bridge flow"
+msgstr ""
+
+msgid ""
+"This value governs the thickness of the internal bridge layer. This is the "
+"first layer over sparse infill. Decrease this value slightly (for example "
+"0.9) to improve surface quality over sparse infill."
+msgstr ""
+
 msgid "Top surface flow ratio"
 msgstr ""
 
@@ -7682,6 +7670,15 @@ msgid ""
 msgstr ""
 "有効になる場合、より長いブリッジを造形できますが、仕上がりが劣る可能性があり"
 "ます。"
+
+msgid "Thick internal bridges"
+msgstr ""
+
+msgid ""
+"If enabled, thick internal bridges will be used. It's usually recommended to "
+"have this feature turned on. However, consider turning it off if you are "
+"using large nozzles."
+msgstr ""
 
 msgid "Max bridge length"
 msgstr "最大ブリッジ長さ"
@@ -11485,6 +11482,27 @@ msgid ""
 "clogging when printing lower temperature filament with a higher enclosure "
 "temperature. More info about this in the Wiki."
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "3mfのバージョン %s は %sのバージョン %sより新しい為、下記のキーを認識でき"
+#~ "ません"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "ソフトウェアをアップデートする必要があります。\n"
+
+#~ msgid "Newer 3mf version"
+#~ msgstr "新3mfバージョン"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "3mfのバージョン%sは%sの%sより新しい為、ソフトウェアを更新してください。"
 
 #~ msgid "Embeded"
 #~ msgstr "Embedded"
