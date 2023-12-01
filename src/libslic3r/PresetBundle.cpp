@@ -1895,7 +1895,6 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
                 if (filament_presets.size() < this->filament_presets.size()) {
                     filament_presets.push_back(this->filament_presets[filament_presets.size()]);
                     filament_colors.push_back(filament_color);
-                    ams_multi_color_filment.push_back(filament_multi_color);
                     ++unknowns;
                     continue;
                 }
