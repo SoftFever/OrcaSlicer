@@ -3639,7 +3639,7 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
     timeimg->SetBitmap(print_time->bmp());
     print_weight->sys_color_changed();
     weightimg->SetBitmap(print_weight->bmp());
-    m_rename_button->msw_rescale();
+    m_rename_button->sys_color_changed();
     ams_editable->sys_color_changed();
     ams_editable_light->sys_color_changed();
     enable_ams_mapping->sys_color_changed();

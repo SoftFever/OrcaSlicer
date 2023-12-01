@@ -57,7 +57,6 @@ public:
     void    update();
     void    update_object_menu();
     void    update_default_menu();
-    void    msw_rescale();
     void    sys_color_changed();
 
     static void sys_color_changed(wxMenuBar* menu_bar);

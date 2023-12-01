@@ -171,7 +171,15 @@ bool ObjectDataViewModelNode::valid()
 
 void ObjectDataViewModelNode::sys_color_changed()
 {
-    m_printable_icon = m_printable == piUndef ? m_empty_bmp : create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
+    m_printable_icon = m_printable == piUndef ? m_empty_bmp : *get_bmp_bundle(m_printable == piPrintable ? "check_on" : "check_off_focused");
+
+    if (!m_action_icon_name.empty())
+        m_action_icon = *get_bmp_bundle(m_action_icon_name);
+
+    if (!m_opt_categories.empty())
+        update_settings_digest_bitmaps();
+
+    set_extruder_icon();
 }
 
 void ObjectDataViewModelNode::set_icons()
@@ -292,26 +300,12 @@ bool ObjectDataViewModelNode::update_settings_digest(const std::vector<std::stri
     return true;
 }
 
-void ObjectDataViewModelNode::msw_rescale()
-{
-    if (!m_action_icon_name.empty())
-        m_action_icon = *get_bmp_bundle(m_action_icon_name);
-
-    if (m_printable != piUndef)
-        m_printable_icon = *get_bmp_bundle(m_printable == piPrintable ? "obj_printable" : "obj_unprintable");
-
-    if (!m_opt_categories.empty())
-        update_settings_digest_bitmaps();
-
-    set_extruder_icon();
-}
-
 bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
 {
     switch (col)
     {
     case colPrint:
-        m_printable_icon << variant;
+//        m_printable_icon << variant;
         return true;
     case colName: {
         DataViewBitmapText data;
@@ -336,7 +330,7 @@ bool ObjectDataViewModelNode::SetValue(const wxVariant& variant, unsigned col)
         m_color_icon << variant;
         break;
     case colEditing:
-        m_action_icon << variant;
+//        m_action_icon << variant;
         return true;
     default:
         printf("MyObjectTreeModel::SetValue: wrong column");
@@ -403,7 +397,7 @@ void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= "
 
     if (extruder_idx > 0) --extruder_idx;
     // Create the bitmap with color bars.
-    std::vector<wxBitmapBundle*> bmps = get_extruder_color_icons(false);// use wide icons
+    std::vector<wxBitmapBundle*> bmps = get_extruder_color_icons();// use wide icons
     if (bmps.empty()) {
         m_extruder_bmp = wxNullBitmap;
         return;
@@ -2301,7 +2295,7 @@ void ObjectDataViewModel::SetSinkState(const bool painted, wxDataViewItem obj_it
     ItemChanged(obj_item);
 }
 
-void ObjectDataViewModel::Rescale()
+void ObjectDataViewModel::UpdateBitmaps()
 {
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = *get_bmp_bundle(WarningIcon);
@@ -2320,7 +2314,7 @@ void ObjectDataViewModel::Rescale()
             continue;
 
         ObjectDataViewModelNode *node = static_cast<ObjectDataViewModelNode*>(item.GetID());
-        node->msw_rescale();
+        node->sys_color_changed();
 
         switch (node->m_type)
         {

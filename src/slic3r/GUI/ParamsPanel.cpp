@@ -646,11 +646,11 @@ void ParamsPanel::update_mode()
 
 void ParamsPanel::msw_rescale()
 {
-    if (m_process_icon) m_process_icon->msw_rescale();
-    if (m_setting_btn) m_setting_btn->msw_rescale();
-    if (m_search_btn) m_search_btn->msw_rescale();
-    if (m_compare_btn) m_compare_btn->msw_rescale();
-    if (m_tips_arrow) m_tips_arrow->msw_rescale();
+    if (m_process_icon) m_process_icon->sys_color_changed();
+    if (m_setting_btn) m_setting_btn->sys_color_changed();
+    if (m_search_btn) m_search_btn->sys_color_changed();
+    if (m_compare_btn) m_compare_btn->sys_color_changed();
+    if (m_tips_arrow) m_tips_arrow->sys_color_changed();
     m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
     if (m_mode_sizer)
         m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));

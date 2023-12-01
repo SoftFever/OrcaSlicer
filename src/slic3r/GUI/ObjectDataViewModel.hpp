@@ -293,7 +293,7 @@ public:
     void        update_settings_digest_bitmaps();
     bool        update_settings_digest(const std::vector<std::string>& categories);
     int         volume_type() const { return int(m_volume_type); }
-    void        msw_rescale();
+    void        sys_color_changed();
 
 #ifndef NDEBUG
     bool 		valid();
@@ -302,7 +302,6 @@ public:
     bool        has_warning_icon() const { return !m_warning_icon_name.empty(); }
     std::string warning_icon_name() const { return m_warning_icon_name; }
     bool        has_lock() const { return m_has_lock; }
-    void        sys_color_changed();
 
 private:
     friend class ObjectDataViewModel;
@@ -468,7 +467,7 @@ public:
 
     void    SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
     // Rescale bitmaps for existing Items
-    void    Rescale();
+    void    UpdateBitmaps();
 
     wxBitmapBundle    GetVolumeIcon(const Slic3r::ModelVolumeType vol_type,
                               const std::string& warning_icon_name = std::string());

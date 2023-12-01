@@ -1753,12 +1753,6 @@ void MenuFactory::update_default_menu()
     create_default_menu();
 }
 
-void MenuFactory::msw_rescale()
-{
-    for (MenuWithSeparators* menu : { &m_object_menu, &m_sla_object_menu, &m_part_menu, &m_default_menu })
-        sys_color_changed_menu(dynamic_cast<wxMenu *>(menu));
-}
-
 #ifdef _WIN32
 // For this class is used code from stackoverflow:
 // https://stackoverflow.com/questions/257288/is-it-possible-to-write-a-template-to-check-for-a-functions-existence
@@ -1803,14 +1797,17 @@ void MenuFactory::sys_color_changed(wxMenuBar* menubar)
 #if 0
     for (size_t id = 0; id < menubar->GetMenuCount(); id++) {
         wxMenu* menu = menubar->GetMenu(id);
-        msw_rescale_menu(menu);
+        sys_color_changed_menu(menu);
+#ifndef __linux__
+        menu->SetupBitmaps();
 #ifdef _WIN32
         // but under MSW we have to update item's bachground color
         for (wxMenuItem* item : menu->GetMenuItems())
             update_menu_item_def_colors(item);
 #endif
     }
-    menubar->Refresh();
+//    menubar->Refresh();
+#endif
 #endif
 }
 

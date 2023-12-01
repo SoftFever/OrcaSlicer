@@ -448,7 +448,7 @@ CalibrationPresetPage::CalibrationPresetPage(
 void CalibrationPresetPage::msw_rescale()
 {
     CalibrationWizardPage::msw_rescale();
-    m_ams_sync_button->msw_rescale();
+    m_ams_sync_button->sys_color_changed();
     m_virtual_tray_comboBox->msw_rescale();
     for (auto& comboBox : m_filament_comboBox_list) {
         comboBox->msw_rescale();
@@ -458,7 +458,7 @@ void CalibrationPresetPage::msw_rescale()
 void CalibrationPresetPage::on_sys_color_changed()
 {
     CalibrationWizardPage::on_sys_color_changed();
-    m_ams_sync_button->msw_rescale();
+    m_ams_sync_button->sys_color_changed();
 }
 
 void CalibrationPresetPage::create_selection_panel(wxWindow* parent)

@@ -186,10 +186,10 @@ public:
     int                       px_cnt() const { return m_px_cnt; }
 
     wxSize              GetSize()   const {
-#ifdef __APPLE__
-        return m_bmp.GetDefaultSize();
-#else
+#ifdef __WIN32__
         return m_bmp.GetPreferredBitmapSizeFor(m_parent);
+#else
+        return m_bmp.GetDefaultSize();
 #endif
     }
     int                 GetWidth()  const { return GetSize().GetWidth(); }
@@ -279,7 +279,9 @@ public:
     void SetBitmapDisabled_(const ScalableBitmap &bmp);
     int  GetBitmapHeight();
 
-    void    msw_rescale();
+    [[deprecated("Function renamed to sys_color_changed. This function now redirects to sys_color_changed")]]
+    inline void msw_rescale() { sys_color_changed(); }
+    void    sys_color_changed();
 
 private:
     wxWindow*       m_parent { nullptr };
