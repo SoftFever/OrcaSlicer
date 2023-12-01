@@ -737,6 +737,8 @@ void ConfigBase::setenv_() const
 //BBS
 ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::string>& key_values, ForwardCompatibilitySubstitutionRule compatibility_rule)
 {
+    CNumericLocalesSetter locales_setter;
+
     ConfigSubstitutionContext substitutions_ctxt(compatibility_rule);
     std::map<std::string, std::string>::iterator it;
     for (it = key_values.begin(); it != key_values.end(); it++) {
