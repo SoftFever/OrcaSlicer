@@ -3113,7 +3113,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE_ALL));
             break;
+#ifdef __APPLE__
+        case 'k':
+        case 'K':
+#else /* __APPLE__ */
         case WXK_CONTROL_K:
+#endif /* __APPLE__ */
             post_event(SimpleEvent(EVT_GLTOOLBAR_CLONE));
             break;
         default:            evt.Skip();
@@ -9187,13 +9192,13 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_SERIOUS_WARNING:
         if (state)
-            notification_manager.push_slicing_serious_warning_notification(text, {conflictObj});
+            notification_manager.push_slicing_serious_warning_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_serious_warning_notification(text);
         break;
     case SLICING_ERROR:
         if (state)
-            notification_manager.push_slicing_error_notification(text, {conflictObj});
+            notification_manager.push_slicing_error_notification(text, conflictObj ? std::vector<ModelObject const*>{conflictObj} : std::vector<ModelObject const*>{});
         else
             notification_manager.close_slicing_error_notification(text);
         break;

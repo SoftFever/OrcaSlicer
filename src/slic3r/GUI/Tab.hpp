@@ -179,6 +179,9 @@ protected:
      */
     bool                    m_is_default_preset {false};
 
+	// just be used for edit filament dialog
+    bool m_just_edit{false};
+
 	ScalableButton*			m_undo_btn;
 	ScalableButton*			m_undo_to_sys_btn;
 	//ScalableButton*			m_question_btn;
@@ -405,6 +408,7 @@ public:
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();
     bool        validate_custom_gcodes_was_shown{ false };
+    void        set_just_edit(bool just_edit);
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const std::string& path, widget_t widget);

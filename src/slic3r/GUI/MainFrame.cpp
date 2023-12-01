@@ -513,7 +513,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         // BBS: backup project
         if (wxGetApp().app_config->get("backup_switch") == "true") {
             std::string backup_interval;
-            if (!wxGetApp().app_config->get("", "backup_interval", backup_interval))
+            if (!wxGetApp().app_config->get("app", "backup_interval", backup_interval))
                 backup_interval = "10";
             Slic3r::set_backup_interval(boost::lexical_cast<long>(backup_interval));
         } else {
@@ -573,7 +573,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
         else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (can_save()) m_plater->save_project(); return;}
-
+        if (evt.CmdDown() && evt.GetKeyCode() == 'F') { 
+            if (m_plater && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview)) {
+                m_plater->sidebar().can_search();
+            }
+        }
 #ifdef __APPLE__
         if (evt.CmdDown() && evt.GetKeyCode() == ',')
 #else
@@ -2429,7 +2433,7 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
-        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "M",
+        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "K",
             _L("Clone copies of selections"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);

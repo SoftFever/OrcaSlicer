@@ -314,7 +314,7 @@ public:
     }
 
     virtual void msw_rescale();
-    void on_sys_color_changed();
+    virtual void on_sys_color_changed();
 
 protected:
     CalibMode             m_cali_mode;

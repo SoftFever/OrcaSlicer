@@ -202,9 +202,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
 wxDEFINE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,          SimpleEvent);
 
 wxDEFINE_EVENT(EVT_CREATE_FILAMENT, SimpleEvent);
-
 wxDEFINE_EVENT(EVT_MODIFY_FILAMENT, SimpleEvent);
-
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
 {
@@ -355,6 +353,7 @@ struct Sidebar::priv
     ScalableButton* m_filament_icon = nullptr;
     Button * m_flushing_volume_btn = nullptr;
     wxSearchCtrl* m_search_bar = nullptr;
+    Search::SearchObjectDialog* dia = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -381,9 +380,10 @@ struct Sidebar::priv
     ~priv();
 
     void show_preset_comboboxes();
-    void on_search_enter();
     void on_search_update();
-    void on_kill_focus();
+    void jump_to_object(ObjectDataViewModelNode* item);
+    void can_search();
+
 #ifdef _WIN32
     wxString btn_reslice_tip;
     void show_rich_tip(const wxString& tooltip, wxButton* btn);
@@ -423,21 +423,25 @@ void Sidebar::priv::show_preset_comboboxes()
     scrolled->Refresh();
 }
 
-void  Sidebar::priv::on_search_enter() {
-
-    m_object_list->search_object_list();
-
-}
-
-void Sidebar::priv::on_search_update() {
-
+void Sidebar::priv::on_search_update()
+{
+    m_object_list->assembly_plate_object_name();
+    
     wxString search_text = m_search_bar->GetValue();
-    m_object_list->set_found_list(search_text);
-
+    m_object_list->GetModel()->search_object(search_text);
+    dia->update_list();
 }
 
-void Sidebar::priv::on_kill_focus() {
-    m_object_list->searchbar_kill_focus();
+void Sidebar::priv::jump_to_object(ObjectDataViewModelNode* item)
+{
+    m_object_list->selected_object(item);
+}
+
+void Sidebar::priv::can_search()
+{
+    if (m_search_bar->IsShown()) {
+        m_search_bar->SetFocus();
+    }
 }
 
 #ifdef _WIN32
@@ -969,17 +973,21 @@ Sidebar::Sidebar(Plater *parent)
     p->m_search_bar->ShowSearchButton(true);
     p->m_search_bar->ShowCancelButton(true);
     p->m_search_bar->SetDescriptiveText(_L("Search plate, object and part."));
+
     p->m_search_bar->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent&) {
-        this->p->on_search_update();});
+        this->p->on_search_update();
+        wxPoint pos = this->p->m_search_bar->ClientToScreen(wxPoint(0, 0));
+        pos.y += this->p->m_search_bar->GetRect().height;
+        p->dia->SetPosition(pos);
+        p->dia->Popup();
+        });
     p->m_search_bar->Bind(wxEVT_COMMAND_TEXT_UPDATED, [this](wxCommandEvent&) {
-        this->p->m_object_list->set_cur_pos(0);
         this->p->on_search_update();
         });
     p->m_search_bar->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
-        this->p->on_kill_focus();
+        p->dia->Dismiss();
         e.Skip();
         });
-    p->m_search_bar->Bind(wxEVT_SEARCH, [this](wxCommandEvent&) {this->p->on_search_enter();});
 
     p->m_object_list = new ObjectList(p->scrolled);
 
@@ -990,6 +998,8 @@ Sidebar::Sidebar(Plater *parent)
     p->m_search_bar->Hide();
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
+
+    p->dia = new Search::SearchObjectDialog(p->m_object_list, p->m_search_bar);
 #if !NEW_OBJECT_SETTING
     p->object_settings->Hide();
     p->sizer_params->Add(p->object_settings->get_sizer(), 0, wxEXPAND | wxTOP, 5 * em / 10);
@@ -1215,7 +1225,11 @@ void Sidebar::update_presets(Preset::Type preset_type)
             preset_bundle.set_filament_preset(p->editing_filament, name);
         } else if (filament_cnt == 1) {
             // Single filament printer, synchronize the filament presets.
-            preset_bundle.set_filament_preset(0, name);
+            Preset *preset = preset_bundle.filaments.find_preset(name, false);
+            if (preset) {
+                if (preset->is_compatible) preset_bundle.set_filament_preset(0, name);
+            }
+            
         }
 
         for (size_t i = 0; i < filament_cnt; i++)
@@ -1482,10 +1496,12 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     {
         PlaterPresetComboBox* choice/*{ nullptr }*/;
         init_filament_combo(&choice, i);
+        int last_selection = choices.back()->GetSelection();
         choices.push_back(choice);
 
         // initialize selection
         choice->update();
+        choice->SetSelection(last_selection);
         ++i;
     }
 
@@ -1879,8 +1895,15 @@ void Sidebar::auto_calc_flushing_volumes(const int modify_id) {
     wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
 }
 
+void Sidebar::jump_to_object(ObjectDataViewModelNode* item)
+{
+    p->jump_to_object(item);
+}
 
-// Plater::DropTarget
+void Sidebar::can_search()
+{
+    p->can_search();
+}
 
 class PlaterDropTarget : public wxFileDropTarget
 {
@@ -2615,6 +2638,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { this->schedule_background_process(); });
         // jump to found option from SearchDialog
         q->Bind(wxCUSTOMEVT_JUMP_TO_OPTION, [this](wxCommandEvent& evt) { sidebar->jump_to_option(evt.GetInt()); });
+        q->Bind(wxCUSTOMEVT_JUMP_TO_OBJECT, [this](wxCommandEvent& evt) {
+            auto client_data = evt.GetClientData();
+            ObjectDataViewModelNode* data = static_cast<ObjectDataViewModelNode*>(client_data);
+            sidebar->jump_to_object(data);
+            }
+        );
     }
 
     wxGLCanvas* view3D_canvas = view3D->get_wxglcanvas();
@@ -2787,11 +2816,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
-        q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent &evt) { q->print_job_finished(evt); });
+        q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent& evt) { q->print_job_finished(evt); });
         q->Bind(EVT_SEND_CALIBRATION_FINISHED, [q](wxCommandEvent& evt) { q->send_calibration_job_finished(evt); });
-        q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent &evt) { q->send_job_finished(evt); });
-        q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent &evt) { q->publish_job_finished(evt);});
-        q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent &evt) { q->open_platesettings_dialog(evt);});
+        q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent& evt) { q->send_job_finished(evt); });
+        q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent& evt) { q->publish_job_finished(evt);});
+        q->Bind(EVT_OPEN_PLATESETTINGSDIALOG, [q](wxCommandEvent& evt) { q->open_platesettings_dialog(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -3137,6 +3166,53 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
     return printable_area.bounding_box();
 }
 
+std::string read_binary_stl(const std::string& filename) {
+    std::string model_id;
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        return model_id;
+    }
+
+    try{
+        // Read the first 80 bytes
+        char data[80];
+        file.read(data, 80);
+        if (!file) {
+            file.close();
+            return model_id;
+        }
+
+        if (data[0] == '\0' || data[0] == ' ') {
+            file.close();
+            return model_id;
+        }
+
+        char magic[2] = { data[0], data[1] };
+        if (magic[0] != 'M' || magic[1] != 'W') {
+            file.close();
+            return model_id;
+        }
+
+        if (data[2] != ' ') {
+            file.close();
+            return model_id;
+        }
+
+        char protocol_version[3] = { data[3], data[4], data[5] };
+
+        //version 
+        if (protocol_version[0] == '1' && protocol_version[1] == '.' && protocol_version[2] == '0') {
+            model_id = std::string(&data[7], &data[80]);
+        }
+
+        file.close();
+    }
+    catch (...){
+    }
+    return model_id;
+}
+
+
 // BBS: backup & restore
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi)
 {
@@ -3177,6 +3253,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     auto *new_model = (!load_model || one_by_one) ? nullptr : new Slic3r::Model();
     std::vector<size_t> obj_idxs;
+
+    std::string  designer_model_id;
 
     int answer_convert_from_meters          = wxOK_DEFAULT;
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
@@ -3627,10 +3705,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 std::vector<Preset *> project_presets;
                 bool                  is_xxx;
                 Semver                file_version;
+
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i](int current, int total, bool &cancel)
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id](int current, int total, bool &cancel, std::string &mode_id)
                     {
+                            designer_model_id = mode_id;
                             bool     cont = true;
                             float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
                             BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
@@ -3654,6 +3734,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             Slic3r::GUI::show_info(nullptr, _L("Name of components inside step file is not UTF8 format!") + "\n\n" + _L("The name may show garbage characters!"),
                                                    _L("Attention!"));
                     });
+
+
+                if (designer_model_id.empty() && boost::algorithm::iends_with(path.string(), ".stl")) {
+                    designer_model_id = read_binary_stl(path.string());
+                }
 
                 if (type_any_amf && is_xxx) imperial_units = true;
 
@@ -3949,6 +4034,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     GLGizmoSimplify::add_simplify_suggestion_notification(
         obj_idxs, model.objects, *notification_manager);
 
+    //set designer_model_id
+    if (!designer_model_id.empty() && q->model().stl_design_id.empty()) {
+        q->model().stl_design_id = designer_model_id;
+    }
 
     if (tolal_model_count <= 0 && !q->m_exported_file) {
         dlg.Hide();
@@ -5136,7 +5225,7 @@ void Plater::priv::reload_from_disk()
 #if ENABLE_RELOAD_FROM_DISK_REWORK
     // collect selected reloadable ModelVolumes
     std::vector<std::pair<int, int>> selected_volumes = reloadable_volumes(model, get_selection());
-
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and reloadable volumes number is: " << selected_volumes.size();
     // nothing to reload, return
     if (selected_volumes.empty())
         return;
@@ -5533,6 +5622,8 @@ void Plater::priv::reload_from_disk()
     for (size_t i = 0; i < model.objects.size(); ++i) {
         view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " finish.";
 }
 
 void Plater::priv::reload_all_from_disk()
@@ -6126,7 +6217,11 @@ void Plater::priv::on_slicing_began()
     clear_warnings();
     notification_manager->close_notification_of_type(NotificationType::SignDetected);
     notification_manager->close_notification_of_type(NotificationType::ExportFinished);
+    bool is_first_plate = m_cur_slice_plate == 0;
+    bool slice_all = q->m_only_gcode ? m_slice_all_only_has_gcode : m_slice_all;
+    bool need_change_dailytips = !(slice_all && !is_first_plate);
     notification_manager->set_slicing_progress_began();
+    notification_manager->update_slicing_notif_dailytips(need_change_dailytips);
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
@@ -7560,13 +7655,18 @@ void Plater::priv::on_create_filament(SimpleEvent &)
 
 void Plater::priv::on_modify_filament(SimpleEvent &evt)
 {
-    FilamentInfomation *       filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
-    EditFilamentPresetDialog dlg(wxGetApp().mainframe, filament_info);
-    int                        res = dlg.ShowModal();
-
+    FilamentInfomation *filament_info = static_cast<FilamentInfomation *>(evt.GetEventObject());
+    int                 res;
+    {
+        EditFilamentPresetDialog dlg(wxGetApp().mainframe, filament_info);
+        res = dlg.ShowModal();
+    }
     wxGetApp().mainframe->update_side_preset_ui();
     update_ui_from_settings();
     sidebar->update_all_preset_comboboxes();
+    if (wxID_EDIT == res) {
+        wxGetApp().params_dialog()->Popup(true);
+    }
 }
 
 void Plater::priv::enter_gizmos_stack()
@@ -12769,14 +12869,28 @@ bool Plater::show_publish_dialog(bool show)
 
 void Plater::post_process_string_object_exception(StringObjectException &err)
 {
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (err.type == StringExceptionType::STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE) {
         try {
             int extruder_id = atoi(err.params[2].c_str()) - 1;
-            if (extruder_id < wxGetApp().preset_bundle->filament_presets.size()) {
-                std::string filament_name = wxGetApp().preset_bundle->filament_presets[extruder_id];
-                for (auto filament : wxGetApp().preset_bundle->filaments) {
-                    if (filament.name == filament_name) {
-                        filament_name = filament.alias;
+            if (extruder_id < preset_bundle->filament_presets.size()) {
+                std::string filament_name = preset_bundle->filament_presets[extruder_id];
+                for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+                    if (filament_it->name == filament_name) {
+                        if (filament_it->is_system) {
+                            filament_name = filament_it->alias;
+                        } else {
+                            auto preset = preset_bundle->filaments.get_preset_base(*filament_it);
+                            if (!preset->alias.empty()) {
+                                filament_name = preset->alias;
+                            } else {
+                                char target = '@';
+                                size_t pos = preset->name.find(target);
+                                if (pos != std::string::npos) {
+                                    filament_name = preset->name.substr(0, pos - 1);
+                                }
+                            }
+                        }
                         break;
                     }
                 }

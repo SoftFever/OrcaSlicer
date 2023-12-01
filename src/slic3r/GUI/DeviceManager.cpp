@@ -8,6 +8,7 @@
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
+#include "ReleaseNote.hpp"
 #include <thread>
 #include <mutex>
 #include <codecvt>
@@ -28,7 +29,7 @@ float string_to_float(const std::string& str_value) {
     return value;
 }
 
-const int PRINTING_STAGE_COUNT = 32;
+const int PRINTING_STAGE_COUNT = 36;
 std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "printing",
     "bed_leveling",
@@ -61,7 +62,11 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "chamber_temperature_control_error_pause",
     "chamber_cooling",
     "user_insert_gcode_pause",
-    "motor_noise_showoff"
+    "motor_noise_showoff",
+    "nozzle_filament_covered_detected_pause",
+    "cutter_error_pause",
+    "first_layer_error_pause",
+    "nozzle_clog_pause"
     };
 
 
@@ -136,6 +141,14 @@ wxString get_stage_string(int stage)
         return _L("Paused by the Gcode inserted by user");
     case 31:
         return _L("Motor noise showoff");
+    case 32:
+        return _L("Nozzle filament covered detected pause");
+    case 33:
+        return _L("Cutter error pause");
+    case 34:
+        return _L("First layer error pause");
+    case 35:
+        return _L("Nozzle clog pause");
     default:
         ;
     }
@@ -362,6 +375,8 @@ std::string MachineObject::parse_printer_type(std::string type_str)
     } else if (type_str.compare("3DPrinter-X1-Carbon") == 0) {
         return "BL-P001";
     } else if (type_str.compare("BL-P001") == 0) {
+        return type_str;
+    } else if (type_str.compare("BL-P002") == 0) {
         return type_str;
     } else {
         return DeviceManager::parse_printer_type(type_str);
@@ -2457,6 +2472,7 @@ void MachineObject::reset()
     dev_connection_name = "";
     subscribe_counter = 3;
     job_id_ = "";
+    m_plate_index = -1;
 
     // reset print_json
     json empty_j;
@@ -2670,6 +2686,11 @@ int MachineObject::parse_json(std::string payload)
                         } else {
                             BOOST_LOG_TRIVIAL(warning) << "unsupported msg_type=" << j_pre["print"]["msg"].get<std::string>();
                         }
+                    }
+                    else {
+                        if (!printer_type.empty() && connection_type() == "lan")
+                            print_json.load_compatible_settings(printer_type, "");
+                        print_json.diff2all_base_reset(j_pre); 
                     }
                 }
             }
@@ -2954,13 +2975,19 @@ int MachineObject::parse_json(std::string payload)
                 if (jj["command"].get<std::string>() == "set_ctt") {
                     if (m_agent && is_studio_cmd(sequence_id)) {
                         if (jj["errno"].is_number()) {
+                            wxString text;
                             if (jj["errno"].get<int>() == -2) {
-                                wxString text = _L("Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\u2103.");
-                                GUI::wxGetApp().show_dialog(text);
+                                 text = _L("Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature above 45\u2103.");
                             }
                             else if (jj["errno"].get<int>() == -4) {
-                                wxString text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0\u2103.");
-                                GUI::wxGetApp().show_dialog(text);
+                                 text = _L("When you set the chamber temperature below 40\u2103, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0\u2103.");
+                            }
+                            if(!text.empty()){
+#if __WXOSX__
+                            set_ctt_dlg(text);
+#else
+                            GUI::wxGetApp().show_dialog(text);
+#endif
                             }
                         }
                     }
@@ -3125,6 +3152,7 @@ int MachineObject::parse_json(std::string payload)
                                 if (idx_start > 0 && idx_end > idx_start) {
                                     try {
                                         plate_index = atoi(m_gcode_file.substr(idx_start, idx_end - idx_start).c_str());
+                                        this->m_plate_index = plate_index;
                                     }
                                     catch (...) {
                                         ;
@@ -4509,6 +4537,25 @@ int MachineObject::parse_json(std::string payload)
     return 0;
 }
 
+void MachineObject::set_ctt_dlg( wxString text){
+    if (!m_set_ctt_dlg) {
+        m_set_ctt_dlg = true;
+        auto print_error_dlg = new GUI::SecondaryCheckDialog(nullptr, wxID_ANY, _L("Warning"), GUI::SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+        print_error_dlg->update_text(text);
+        print_error_dlg->Bind(wxEVT_SHOW, [this](auto& e) {
+            if (!e.IsShown()) {
+                m_set_ctt_dlg = false;
+            }
+            });
+        print_error_dlg->Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+            e.Skip();
+            m_set_ctt_dlg = false;
+            });
+        print_error_dlg->on_show();
+
+    }
+}
+
 int MachineObject::publish_gcode(std::string gcode_str)
 {
     json j;
@@ -4663,7 +4710,6 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 plate_index = plate_idx;
             }
             else {
-
                 std::string subtask_json;
                 unsigned http_code = 0;
                 std::string http_body;
@@ -4724,36 +4770,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                     BOOST_LOG_TRIVIAL(error) << "task_info: get subtask id failed!";
                 }
             }
-            //if (plate_index >= 0) {
-            //    std::string slice_json;
-            //    m_agent->get_slice_info(project_id, profile_id, plate_index, &slice_json);
-            //    if (slice_json.empty()) return;
-            //    //parse json
-            //    try {
-            //        json j = json::parse(slice_json);
-            //        if (!j["prediction"].is_null())
-            //            slice_info->prediction = j["prediction"].get<int>();
-            //        if (!j["weight"].is_null())
-            //            slice_info->weight = j["weight"].get<float>();
-            //        if (!j["thumbnail"].is_null()) {
-            //            //slice_info->thumbnail_url = j["thumbnail"]["url"].get<std::string>();
-            //            BOOST_LOG_TRIVIAL(trace) << "slice_info: thumbnail url=" << slice_info->thumbnail_url;
-            //        }
-            //        if (!j["filaments"].is_null()) {
-            //            for (auto filament : j["filaments"]) {
-            //                FilamentInfo f;
-            //                f.color = filament["color"].get<std::string>();
-            //                f.type = filament["type"].get<std::string>();
-            //                f.used_g = stof(filament["used_g"].get<std::string>());
-            //                f.used_m = stof(filament["used_m"].get<std::string>());
-            //                slice_info->filaments_info.push_back(f);
-            //            }
-            //        }
-            //    } catch(...) {
-            //        ;
-            //    }
-            //}
 
+            this->m_plate_index = plate_index;
             });
     }
 }

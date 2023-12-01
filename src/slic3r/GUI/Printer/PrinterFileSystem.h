@@ -44,6 +44,8 @@ public:
         ERROR_JSON          = 2,
         ERROR_PIPE          = 3,
         ERROR_CANCEL        = 4,
+        ERROR_RES_BUSY      = 5,
+
         FILE_NO_EXIST       = 10,
         FILE_NAME_INVALID   = 11,
         FILE_SIZE_ERR       = 12,

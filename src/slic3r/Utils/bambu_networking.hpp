@@ -202,6 +202,7 @@ struct PrintParams {
     std::string     connection_type;
     std::string     comments;
     int             origin_profile_id = 0;
+    int             stl_design_id = 0;
     std::string     origin_model_id;
     std::string     print_type;
     std::string     dst_file;

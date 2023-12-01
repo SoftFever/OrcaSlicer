@@ -3678,13 +3678,14 @@ LayerResult GCode::process_layer(
                         dontcare_extruder = extruder_id;
                         break;
                     }
-
+                #if 0
                     //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
                     if (dontcare_extruder == interface_extruder && (object.config().support_interface_not_for_body && object.config().support_interface_filament.value!=0)) {
                         // BBS : get a suitable extruder from other layer
                         auto all_extruders = print.extruders();
                         dontcare_extruder = get_next_extruder(dontcare_extruder, all_extruders);
                     }
+                #endif
 
                     if (support_dontcare)
                         support_extruder = dontcare_extruder;
@@ -5333,10 +5334,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         travel_bbox.inflated(1);
         travel_bbox.defined = true;
 
-        const float protect_z_scaled = scale_(0.4);
+        // do not scale for z
+        const float protect_z = 0.4;
         std::pair<float, float> z_range;
         z_range.second = m_layer ? m_layer->print_z : 0.f;
-        z_range.first = std::max(0.f, z_range.second - protect_z_scaled);
+        z_range.first = std::max(0.f, z_range.second - protect_z);
         std::vector<LayerPtrs> layers_of_objects;
         std::vector<BoundingBox> boundingBox_for_objects;
         std::vector<Points> objects_instances_shift;
@@ -5387,7 +5389,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     float max_z_hop = 0.f;
     for (int i = 0; i < m_config.z_hop.size(); i++)
         max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
-    float travel_len_thresh = max_z_hop / tan(GCodeWriter::slope_threshold);
+    float travel_len_thresh = scale_(max_z_hop / tan(GCodeWriter::slope_threshold));
     float accum_len = 0.f;
     Polyline clipped_travel;
 

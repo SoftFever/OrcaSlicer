@@ -42,6 +42,7 @@ static wxBitmap default_thumbnail;
 
 static std::map<int, std::string> error_messages = {
     {PrinterFileSystem::ERROR_PIPE, L("Connection lost. Please retry.")},
+    {PrinterFileSystem::ERROR_RES_BUSY, L("The device cannot handle more conversations. Please retry later.")},
     {PrinterFileSystem::FILE_NO_EXIST, L("File not exists.")},
     {PrinterFileSystem::FILE_CHECK_ERR, L("File checksum error. Please retry.")},
     {PrinterFileSystem::FILE_TYPE_ERR, L("Not supported on the current printer version.")},
@@ -159,8 +160,12 @@ void PrinterFileSystem::ListAllFiles()
     }, [this, type = m_file_type](int result, FileList list) {
         if (result != 0) {
             m_last_error = result;
-            m_status = Status::ListReady;
+            m_status = Status::Failed;
+            m_file_list.clear();
+            BuildGroups();
+            UpdateGroupSelect();
             SendChangedEvent(EVT_STATUS_CHANGED, m_status, "", result);
+            SendChangedEvent(EVT_FILE_CHANGED);
             return 0;
         }
         if (type != m_file_type)
@@ -507,6 +512,7 @@ void PrinterFileSystem::Start()
 void PrinterFileSystem::Retry()
 {
     boost::unique_lock l(m_mutex);
+    m_stopped = false;
     m_cond.notify_all();
 }
 
@@ -994,7 +1000,7 @@ void PrinterFileSystem::FileRemoved(std::pair<FileType, std::string> type, size_
                 m_group_flags.erase(m_group_flags.begin() + index2);
         }
     }
-    m_file_list.erase(m_file_list.begin() + index);
+    m_file_list.erase(file_index.first.begin() + index);
 }
 
 struct CallbackEvent : wxCommandEvent
@@ -1147,7 +1153,9 @@ void PrinterFileSystem::RecvMessageThread()
         if (n == 0) {
             HandleResponse(l, sample);
         } else if (n == Bambu_stream_end) {
-            Reconnect(l, 3);
+            if (m_status == ListSyncing)
+                m_stopped = true;
+            Reconnect(l, m_status == ListSyncing ? ERROR_RES_BUSY : ERROR_PIPE);
         } else if (n == Bambu_would_block) {
             m_cond.timed_wait(l, boost::posix_time::milliseconds(m_messages.empty() && m_callbacks.empty() ? 1000 : 20));
         } else {

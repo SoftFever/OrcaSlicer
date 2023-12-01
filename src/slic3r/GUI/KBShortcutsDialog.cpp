@@ -284,7 +284,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "V", L("Paste from clipboard")},
             {ctrl + "X", L("Cut")},
             {ctrl + "A", L("Select all objects")},
-            {ctrl + "M", L("Clone selected")},
+            {ctrl + "K", L("Clone selected")},
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             {L("Space"), L("Select the object/part and press space to change the name")},

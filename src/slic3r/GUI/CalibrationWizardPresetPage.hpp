@@ -208,6 +208,7 @@ public:
     CaliPresetPageStatus get_page_status() { return m_page_status; }
 
     void msw_rescale() override;
+    void on_sys_color_changed() override;
 
 protected:
     void create_selection_panel(wxWindow* parent);

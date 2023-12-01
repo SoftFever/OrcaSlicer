@@ -322,25 +322,29 @@ void ArrangeJob::prepare_wipe_tower()
         extruder_ids = ppl.get_extruders(true);
     }
 
+    int bedid_unlocked = 0;
     for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
+        int plate_index_valid = std::min(bedid, plate_count - 1);
+        PartPlate* pl = ppl.get_plate(plate_index_valid);
+        if(bedid<plate_count && pl->is_locked())
+            continue;
         if (auto wti = get_wipe_tower(*m_plater, bedid)) {
             // wipe tower is already there
             wipe_tower_ap = get_wipetower_arrange_poly(&wti);
-            wipe_tower_ap.bed_idx = bedid;
+            wipe_tower_ap.bed_idx = bedid_unlocked;
             m_unselected.emplace_back(wipe_tower_ap);
         }
         else if (need_wipe_tower) {
             if (only_on_partplate) {
-                int plate_index_valid = std::min(bedid, plate_count - 1);
-                PartPlate* pl = ppl.get_plate(plate_index_valid);
                 auto plate_extruders = pl->get_extruders(true);
                 extruder_ids.clear();
                 extruder_ids.insert(plate_extruders.begin(), plate_extruders.end());
             }
             wipe_tower_ap = estimate_wipe_tower_info(bedid, extruder_ids);
-            wipe_tower_ap.bed_idx = bedid;
+            wipe_tower_ap.bed_idx = bedid_unlocked;
             m_unselected.emplace_back(wipe_tower_ap);
         }
+        bedid_unlocked++;
     }
 }
 
@@ -368,7 +372,6 @@ void ArrangeJob::prepare_partplate() {
         return;
     }
 
-    params.is_seq_print = plate->get_real_print_seq() == PrintSequence::ByObject;
     Model& model = m_plater->model();
 
     // Go through the objects and check if inside the selection
@@ -550,9 +553,10 @@ void ArrangeJob::process()
         BOOST_LOG_TRIVIAL(warning)<< "Arrange full params: "<< params.to_json();
         BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % m_selected.size();
         for (auto selected : m_selected) {
-            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx<<", filemant_type:" << selected.filament_temp_type;
+            BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx << ", filemant_type:" << selected.filament_temp_type
+                << ", trans: " << selected.translation.transpose();
         }
-        BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
+        BOOST_LOG_TRIVIAL(debug) << "arrange: items unselected before arrange: " << m_unselected.size();
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose()
             <<", bbox:"<<get_extents(item.poly).min.transpose()<<","<<get_extents(item.poly).max.transpose();
@@ -563,12 +567,12 @@ void ArrangeJob::process()
     // sort by item id
     std::sort(m_selected.begin(), m_selected.end(), [](auto a, auto b) {return a.itemid < b.itemid; });
     {
-        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % m_unselected.size();
+        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected after arranging: %1%") % m_selected.size();
         for (auto selected : m_selected)
             BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
                                      << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp
                                      << ", trans: " << unscale<double>(selected.translation(X)) << ","<< unscale<double>(selected.translation(Y));
-        BOOST_LOG_TRIVIAL(debug) << "items unselected after arrange: ";
+        BOOST_LOG_TRIVIAL(debug) << "arrange: items unselected after arrange: "<< m_unselected.size();
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
@@ -761,7 +765,11 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         PartPlateList &plate_list = p->get_partplate_list();
         PartPlate *    plate      = plate_list.get_curr_plate();
-        params.is_seq_print       = plate->get_real_print_seq() == PrintSequence::ByObject;
+        bool plate_same_as_global = true;
+        params.is_seq_print       = plate->get_real_print_seq(&plate_same_as_global) == PrintSequence::ByObject;
+        // if plate's print sequence is not the same as global, the settings.distance is no longer valid, we set it to auto
+        if (!plate_same_as_global)
+            params.min_obj_distance = 0;
     }
 
     if (params.is_seq_print) {

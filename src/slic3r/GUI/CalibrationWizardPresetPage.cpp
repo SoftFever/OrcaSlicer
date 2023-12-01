@@ -455,6 +455,12 @@ void CalibrationPresetPage::msw_rescale()
     }
 }
 
+void CalibrationPresetPage::on_sys_color_changed()
+{
+    CalibrationWizardPage::on_sys_color_changed();
+    m_ams_sync_button->msw_rescale();
+}
+
 void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);

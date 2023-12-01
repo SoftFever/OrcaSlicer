@@ -147,6 +147,9 @@ PrintingTaskPanel::PrintingTaskPanel(wxWindow* parent, PrintingTaskType type)
     m_type = type;
     create_panel(this);
     SetBackgroundColour(*wxWHITE);
+    m_bitmap_background = ScalableBitmap(this, "thumbnail_grid", m_bitmap_thumbnail->GetSize().y);
+
+    m_bitmap_thumbnail->Bind(wxEVT_PAINT, &PrintingTaskPanel::paint, this);
 }
 
 PrintingTaskPanel::~PrintingTaskPanel()
@@ -174,8 +177,8 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     bSizer_printing_title->Fit(m_panel_printing_title);
 
     m_bitmap_thumbnail = new wxStaticBitmap(parent, wxID_ANY, m_thumbnail_placeholder.bmp(), wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
-
-    
+    m_bitmap_thumbnail->SetMaxSize(TASK_THUMBNAIL_SIZE);
+    m_bitmap_thumbnail->SetMinSize(TASK_THUMBNAIL_SIZE);
 
     wxBoxSizer *bSizer_subtask_info = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *bSizer_task_name = new wxBoxSizer(wxVERTICAL);
@@ -548,6 +551,20 @@ void PrintingTaskPanel::create_panel(wxWindow* parent)
     parent->Fit();
 }
 
+void PrintingTaskPanel::paint(wxPaintEvent&)
+{
+    wxPaintDC dc(m_bitmap_thumbnail);
+    if (wxGetApp().dark_mode())
+        dc.DrawBitmap(m_bitmap_background.bmp(), 0, 0);
+    dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0));
+    dc.SetTextForeground(*wxBLACK);
+    dc.SetFont(Label::Body_12);
+    if (m_plate_index >= 0) {
+        wxString plate_id_str = wxString::Format("%d", m_plate_index);
+        dc.DrawText(plate_id_str, wxPoint(4, 4));
+    }
+}
+
 void PrintingTaskPanel::set_has_reted_text(bool has_rated)
 {
     if (has_rated) {
@@ -602,7 +619,8 @@ void PrintingTaskPanel::show_error_msg(wxString msg)
 
 void PrintingTaskPanel::reset_printing_value()
 {
-    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
+    this->set_thumbnail_img(m_thumbnail_placeholder.bmp());
+    this->set_plate_index(-1);
 }
 
 void PrintingTaskPanel::enable_pause_resume_button(bool enable, std::string type)
@@ -752,18 +770,28 @@ void PrintingTaskPanel::show_profile_info(bool show, wxString profile /*= wxEmpt
     }
 }
 
+void PrintingTaskPanel::set_thumbnail_img(const wxBitmap& bmp)
+{
+    m_thumbnail_bmp_display = bmp;
+}
+
+void PrintingTaskPanel::set_plate_index(int plate_idx)
+{
+    m_plate_index = plate_idx;
+}
+
 void PrintingTaskPanel::market_scoring_show()
 { 
     m_score_staticline->Show();
     m_score_subtask_info->Show();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "show market scoring page";
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " show market scoring page";
 }
 
 void PrintingTaskPanel::market_scoring_hide()
 {
     m_score_staticline->Hide();
     m_score_subtask_info->Hide();
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "hide market scoring page";
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " hide market scoring page";
 }
 
 void PrintingTaskPanel::set_star_count(int star_count)
@@ -1880,14 +1908,20 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
         wxImage img(*evt.GetResponse().GetStream());
         img_list.insert(std::make_pair(m_request_url, img));
         wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y, wxIMAGE_QUALITY_HIGH);
-        m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(resize_img);
+        m_project_task_panel->set_thumbnail_img(resize_img);
+        if (obj) {
+            m_project_task_panel->set_plate_index(obj->m_plate_index);
+        } else {
+            m_project_task_panel->set_plate_index(-1);
+        }
         task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
         break;
     }
     case wxWebRequest::State_Failed:
     case wxWebRequest::State_Cancelled:
     case wxWebRequest::State_Unauthorized: {
-        m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_brokenimg.bmp());
+        m_project_task_panel->set_thumbnail_img(m_thumbnail_brokenimg.bmp());
+        m_project_task_panel->set_plate_index(-1);
         task_thumbnail_state = ThumbnailState::BROKEN_IMG;
         break;
     }
@@ -2962,7 +2996,12 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                 if (it != img_list.end()) {
                     img                = it->second;
                     wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y);
-                    m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(resize_img);
+                    m_project_task_panel->set_thumbnail_img(resize_img);
+                    if (this->obj) {
+                        m_project_task_panel->set_plate_index(obj->m_plate_index);
+                    } else {
+                        m_project_task_panel->set_plate_index(-1);
+                    }
                     task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
                     BOOST_LOG_TRIVIAL(trace) << "web_request: use cache image";
                 } else {
@@ -2996,7 +3035,6 @@ void StatusPanel::reset_printing_values()
     m_project_task_panel->show_profile_info(false);
     m_project_task_panel->update_stage_value(wxEmptyString, 0);
     m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
-
 
     m_project_task_panel->market_scoring_hide();
     m_project_task_panel->get_request_failed_panel()->Hide();
@@ -3101,7 +3139,7 @@ void StatusPanel::axis_ctrl_e_hint(bool up_down)
 {
     if (ctrl_e_hint_dlg == nullptr) {
         ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
-        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degree before loading filament."));
+        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degree before loading or unloading filament."));
         ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
     }
     if (up_down) {
@@ -4360,10 +4398,8 @@ wxBoxSizer* ScoreDialog::get_comment_text_sizer() {
 
 void ScoreDialog::create_comment_text(const wxString& comment) {
     m_comment_text = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(492), FromDIP(104)), wxTE_MULTILINE);
-    if (wxGetApp().dark_mode()) {
-        m_comment_text->SetForegroundColour(wxColor(*wxWHITE));
-    } else
-        m_comment_text->SetForegroundColour(wxColor(*wxBLACK));
+    m_comment_text->SetBackgroundColour(wxColor(*wxWHITE));
+
     if (!comment.empty()) {
         m_comment_text->SetValue(comment);
     }

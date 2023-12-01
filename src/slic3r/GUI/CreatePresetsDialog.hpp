@@ -11,16 +11,10 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "miniz.h"
+#include "ParamsDialog.hpp"
 
 namespace Slic3r { 
 namespace GUI {
-
-class FilamentInfomation : public wxObject
-{
-public:
-    std::string filament_id;
-    std::string filament_name;
-};
 
 class CreateFilamentPresetDialog : public DPIDialog
 {
@@ -58,6 +52,7 @@ private:
     void          get_filament_presets_by_machine();
     void          get_all_filament_presets();
     void          get_all_visible_printer_name();
+    void          update_dialog_size();
     template<typename T>
     void          sort_printer_by_nozzle(std::vector<std::pair<std::string, T>> &printer_name_to_filament_preset);
 
@@ -292,8 +287,10 @@ private:
     std::unordered_map<std::string, std::vector<Preset *>> m_process_presets;//first: printer name, second: filament presets have same printer name
     std::unordered_map<std::string, std::vector<std::pair<std::string, Preset *>>> m_filament_name_to_presets;//first: filament name, second presets have same filament name and printer name in vector
     ExportType                                             m_exprot_type;
+    wxBoxSizer *                                           m_main_sizer             = nullptr;
+    wxScrolledWindow *                                     m_scrolled_preset_window = nullptr;
     wxGridSizer *                                          m_preset_sizer   = nullptr;
-    wxWindow *                                             m_presets_window = nullptr;
+    wxPanel *                                              m_presets_window = nullptr;
     Button *                                               m_button_ok      = nullptr;
     Button *                                               m_button_cancel  = nullptr;
     wxStaticText *                                         m_serial_text    = nullptr;
@@ -387,7 +384,8 @@ private:
     wxBoxSizer *                                                          m_preset_tree_sizer        = nullptr;
     wxPanel *                                                             m_preset_tree_panel        = nullptr;
     wxScrolledWindow *                                                    m_preset_tree_window       = nullptr;
-    wxBoxSizer *                                                          m_preset_tree_window_sizer = nullptr;
+    wxBoxSizer *                                                          m_main_sizer               = nullptr;
+    wxStaticText *                                                        m_note_text                = nullptr;
     int                                                                   m_need_delete_preset_index = -1;
     int                                                                   m_need_edit_preset_index   = -1;
     std::string                                                           m_selected_printer         = "";

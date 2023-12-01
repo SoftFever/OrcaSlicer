@@ -383,6 +383,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
 	m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
 	m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_search_bar->SetDescriptiveText(_L("Search"));
 	m_search_bar->ShowSearchButton( true );
 	m_search_bar->ShowCancelButton( false );
 	m_sizer_search_bar->Add( m_search_bar, 1, wxALL| wxEXPAND, 1 );
@@ -978,7 +979,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     rename_sizer_v = new wxBoxSizer(wxVERTICAL);
     rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
 
-    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
+    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     m_rename_text->SetFont(::Label::Body_13);
     m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
     m_rename_button = new ScalableButton(m_rename_normal_panel, wxID_ANY, "ams_editable");
@@ -2214,13 +2215,10 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     this->EndModal(wxID_CANCEL);
 }
 
-bool SelectMachineDialog::is_blocking_printing()
+bool SelectMachineDialog::is_blocking_printing(MachineObject* obj_)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return true;
-
-    MachineObject* obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr) return true;
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
@@ -2237,7 +2235,7 @@ bool SelectMachineDialog::is_blocking_printing()
     return false;
 }
 
-bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std::string& nozzle_diameter)
+bool SelectMachineDialog::is_same_nozzle_diameters(std::string& tag_nozzle_type, std::string& nozzle_diameter)
 {
     bool  is_same_nozzle_diameters = true;
 
@@ -2264,10 +2262,7 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std
             preset_nozzle_type = "stainless_steel";
         }
 
-        //Just don't check the nozzle diameter
-        //if (obj_->nozzle_type != preset_nozzle_type) {
-        //    is_same_nozzle_diameters = false;
-        //}
+        tag_nozzle_type = obj_->nozzle_type;
 
         auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
         if (opt_nozzle_diameters != nullptr) {
@@ -2285,13 +2280,13 @@ bool SelectMachineDialog::is_same_nozzle_diameters(std::string& nozzle_type, std
     {
     }
 
-    nozzle_type = preset_nozzle_type;
+    //nozzle_type = preset_nozzle_type;
     nozzle_diameter = wxString::Format("%.1f", preset_nozzle_diameters).ToStdString();
 
     return is_same_nozzle_diameters;
 }
 
-bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type)
+bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type, std::string& tag_nozzle_type)
 {
     bool  is_same_nozzle_type = true;
 
@@ -2324,6 +2319,11 @@ bool SelectMachineDialog::is_same_nozzle_type(std::string& filament_type)
             filament_type = m->m_material_name.ToStdString();
             BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
             is_same_nozzle_type = false;
+            tag_nozzle_type = "hardened_steel";
+            return is_same_nozzle_type;
+        }
+        else {
+            tag_nozzle_type = obj_->nozzle_type;
         }
 
         iter++;
@@ -2503,24 +2503,24 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_text.push_back(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.") + "\n");
     }
 
-    std::string nozzle_type;
     std::string nozzle_diameter;
     std::string filament_type;
+    std::string tag_nozzle_type;
 
-    if (!obj_->nozzle_type.empty()) {
-        if (!is_same_nozzle_diameters(nozzle_type, nozzle_diameter)) {
+    if (!obj_->nozzle_type.empty() && (m_print_type == PrintFromType::FROM_NORMAL)) {
+        if (!is_same_nozzle_diameters(tag_nozzle_type, nozzle_diameter)) {
             has_slice_warnings = true;
             has_update_nozzle  = true;
             
-            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, format_steel_name(nozzle_type));
-            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, format_steel_name(obj_->nozzle_type));
+            wxString nozzle_in_preset = wxString::Format(_L("nozzle in preset: %s %s"),nozzle_diameter, "");
+            wxString nozzle_in_printer = wxString::Format(_L("nozzle memorized: %.1f %s"), obj_->nozzle_diameter, "");
 
             confirm_text.push_back(_L("Your nozzle diameter in preset is not consistent with memorized nozzle diameter. Did you change your nozzle lately?") 
                 + "\n    " + nozzle_in_preset 
                 + "\n    " + nozzle_in_printer
                 + "\n");
         }
-        else if (!is_same_nozzle_type(filament_type)){
+        else if (!is_same_nozzle_type(filament_type, tag_nozzle_type)){
             has_slice_warnings = true;
             has_update_nozzle = true;
             nozzle_diameter =  wxString::Format("%.1f", obj_->nozzle_diameter).ToStdString();
@@ -2547,13 +2547,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         });
 
-        confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
-            if (obj_ && !nozzle_type.empty() && !nozzle_diameter.empty()) {
+        confirm_dlg.Bind(EVT_UPDATE_NOZZLE, [this, obj_, tag_nozzle_type, nozzle_diameter, &confirm_dlg](wxCommandEvent& e) {
+            if (obj_ && !tag_nozzle_type.empty() && !nozzle_diameter.empty()) {
                 try
                 {
                     float diameter = std::stof(nozzle_diameter); 
                     diameter = round(diameter * 10) / 10;
-                    obj_->command_set_printer_nozzle(nozzle_type, diameter);
+                    obj_->command_set_printer_nozzle(tag_nozzle_type, diameter);
                 }
                 catch (...) {} 
             }
@@ -2773,11 +2773,11 @@ void SelectMachineDialog::on_send_print()
         if (input_str_arr.size() <= 1) {
             input_str_arr = wxGetApp().split_str(m_required_data_file_name, ".3mf");
             if (input_str_arr.size() > 1) {
-                m_print_job->set_project_name(wxString(input_str_arr[0]).utf8_string());
+                m_print_job->set_project_name(input_str_arr[0]);
             }
         }
         else {
-            m_print_job->set_project_name(wxString(input_str_arr[0]).utf8_string());
+            m_print_job->set_project_name(input_str_arr[0]);
         }
     }
 
@@ -3412,7 +3412,7 @@ void SelectMachineDialog::update_show_status()
         }
     }
 
-    if (m_print_type == PrintFromType::FROM_NORMAL && is_blocking_printing()) {
+    if (m_print_type == PrintFromType::FROM_NORMAL && is_blocking_printing(obj_)) {
         show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
         return;
     }
@@ -4431,7 +4431,9 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
      SetBackgroundStyle(wxBG_STYLE_CUSTOM);
      wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
      m_staticbitmap    = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize);
+     m_background_bitmap = ScalableBitmap(this,"thumbnail_grid",256);
      sizer->Add(m_staticbitmap, 1, wxEXPAND, 0);
+     Bind(wxEVT_PAINT, &ThumbnailPanel::OnPaint, this);
      SetSizer(sizer);
      Layout();
      Fit();
@@ -4439,8 +4441,39 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
 
  void ThumbnailPanel::set_thumbnail(wxImage img)
  {
-     wxBitmap bitmap(img);
-     m_staticbitmap->SetBitmap(bitmap);
+     m_bitmap = img;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+     //Paint the background bitmap to the thumbnail bitmap with wxMemoryDC
+     wxMemoryDC dc;
+     bitmap_with_background.Create(wxSize(m_bitmap.GetWidth(), m_bitmap.GetHeight()));
+     dc.SelectObject(bitmap_with_background);
+     dc.DrawBitmap(m_background_bitmap.bmp(), 0, 0);
+     dc.DrawBitmap(m_bitmap, 0, 0);
+     dc.SelectObject(wxNullBitmap);
+
+ }
+
+ void ThumbnailPanel::OnPaint(wxPaintEvent& event) {
+
+     wxPaintDC dc(this);
+     render(dc);
+ }
+
+ void ThumbnailPanel::render(wxDC& dc) {
+     
+     if (wxGetApp().dark_mode()) {
+         #ifdef __WXMSW__
+             wxMemoryDC memdc;
+             wxBitmap bmp(GetSize());
+             memdc.SelectObject(bmp);
+             memdc.DrawBitmap(bitmap_with_background, 0, 0);
+             dc.Blit(0, 0, GetSize().GetWidth(), GetSize().GetHeight(), &memdc, 0, 0);
+        #else
+             dc.DrawBitmap(bitmap_with_background, 0, 0);
+        #endif
+     }
+     else
+         dc.DrawBitmap(m_bitmap, 0, 0);
+     
  }
 
  ThumbnailPanel::~ThumbnailPanel() {}

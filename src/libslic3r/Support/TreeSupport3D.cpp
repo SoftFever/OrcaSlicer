@@ -4183,12 +4183,13 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 #endif
         // ### Precalculate avoidances, collision etc.
         size_t num_support_layers = precalculate(print, overhangs, processing.first, processing.second, volumes, throw_on_cancel);
-        if (num_support_layers == 0)
-            continue;
 
         bool   has_support = num_support_layers > 0;
         bool   has_raft = config.raft_layers.size() > 0;
         num_support_layers = std::max(num_support_layers, config.raft_layers.size());
+
+        if (num_support_layers == 0)
+            continue;
 
         SupportParameters            support_params(print_object);
         support_params.with_sheath = true;

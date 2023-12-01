@@ -244,6 +244,7 @@ public:
 	// notifications with progress bar
 	// slicing progress
 	void init_slicing_progress_notification(std::function<bool()> cancel_callback);
+	void update_slicing_notif_dailytips(bool need_change);
 	void set_slicing_progress_began();
 	// percentage negative = canceled, <0-1) = progress, 1 = completed
 	void set_slicing_progress_percentage(const std::string& text, float percentage);

@@ -159,7 +159,10 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
-            language_name = wxString::FromUTF8("\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9");
+            language_name = wxString::FromUTF8("\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
+            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
             language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
@@ -168,7 +171,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\xD1\x83\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD1\x9D\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
         }
 
-        if (app_config->get(param) == vlist[i]->CanonicalName) {
+        if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
@@ -477,6 +480,8 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->GetTextCtrl()->SetValidator(validator);
 
 
     auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
@@ -497,23 +502,22 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         e.Skip();
     });
 
-    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input](wxCommandEvent &e) {
+    std::function<void()> backup_interval = [this, param, input]() {
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
         long backup_interval = 0;
         m_backup_interval_time.ToLong(&backup_interval);
         Slic3r::set_backup_interval(backup_interval);
+    };
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [backup_interval](wxCommandEvent &e) {
+        backup_interval();
         e.Skip();
     });
 
-     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input](wxFocusEvent &e) {
-        m_backup_interval_time = input->GetTextCtrl()->GetValue();
-        app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
-        app_config->save();
-        long backup_interval = 0;
-        m_backup_interval_time.ToLong(&backup_interval);
-        Slic3r::set_backup_interval(backup_interval);
+     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [backup_interval](wxFocusEvent &e) {
+        backup_interval();
         e.Skip();
     });
 

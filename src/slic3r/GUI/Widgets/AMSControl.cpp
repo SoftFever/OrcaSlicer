@@ -484,7 +484,7 @@ void AMSextruder::doRender(wxDC& dc)
             else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
             dc.DrawRoundedRectangle(-size.x / 2, size.y * 0.1, size.x, size.y, 4);
 
-            if (m_current_colur == *wxWHITE && !wxGetApp().dark_mode()) {
+            if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
                 dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
                 dc.DrawRoundedRectangle(-size.x / 2 - FromDIP(3), size.y * 0.1 + FromDIP(3), size.x, size.y, 3);
                 dc.DrawRoundedRectangle(-size.x / 2 + FromDIP(3), size.y * 0.1 - FromDIP(3), size.x, size.y, 5);
@@ -496,7 +496,7 @@ void AMSextruder::doRender(wxDC& dc)
             else {dc.SetPen(wxPen(m_current_colur, 6, wxSOLID));}
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
-            if (m_current_colur == *wxWHITE && !wxGetApp().dark_mode()) {
+            if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
                 dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
                 dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
                 dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
@@ -509,7 +509,7 @@ void AMSextruder::doRender(wxDC& dc)
             else { dc.SetPen(wxPen(m_current_colur, 6, wxSOLID)); }
             dc.DrawLine(size.x / 2, -1, size.x / 2, size.y * 0.6 - 1);
 
-            if (m_current_colur == *wxWHITE && !wxGetApp().dark_mode()) {
+            if ((m_current_colur == *wxWHITE || m_current_colur.Alpha() == 0) && !wxGetApp().dark_mode()) {
                 dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
                 dc.DrawLine(size.x / 2 - FromDIP(4), -1, size.x / 2 - FromDIP(3), size.y * 0.6 - 1);
                 dc.DrawLine(size.x / 2 + FromDIP(3), -1, size.x / 2 + FromDIP(3), size.y * 0.6 - 1);
@@ -593,7 +593,7 @@ void AMSVirtualRoad::doRender(wxDC& dc)
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     dc.DrawRoundedRectangle(size.x / 2, -size.y / 1.1 + FromDIP(1), size.x, size.y, 4);
 
-    if (m_current_color == *wxWHITE && !wxGetApp().dark_mode()) {
+    if ((m_current_color == *wxWHITE || m_current_color.Alpha() == 0) && !wxGetApp().dark_mode()) {
         dc.SetPen(wxPen(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, 1, wxSOLID));
         dc.DrawRoundedRectangle(size.x / 2 - FromDIP(3), -size.y / 1.1 + FromDIP(4), size.x, size.y, 5);
         dc.DrawRoundedRectangle(size.x / 2 + FromDIP(3), -size.y / 1.1 - FromDIP(2), size.x, size.y, 3);
@@ -2444,7 +2444,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "hu_HU") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_extruder_feed->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_feed->SetFont(Label::Body_9);
-
+    if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_feed->SetFont(Label::Body_9);
 
     m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
@@ -2459,6 +2459,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "hu_HU") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_extruder_back->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_extruder_back->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_extruder_back->SetFont(Label::Body_9);
 
     m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
@@ -2639,6 +2640,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "hu_HU") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_guide->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_guide->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_guide->SetFont(Label::Body_9);
 
     m_button_guide->SetCornerRadius(FromDIP(12));
     m_button_guide->SetBorderColor(btn_bd_white);
@@ -2655,6 +2657,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     if (wxGetApp().app_config->get("language") == "hu_HU") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "ja_JP") m_button_retry->SetFont(Label::Body_9);
     if (wxGetApp().app_config->get("language") == "sv_SE") m_button_retry->SetFont(Label::Body_9);
+    if (wxGetApp().app_config->get("language") == "cs_CZ") m_button_retry->SetFont(Label::Body_9);
 
     m_button_retry->SetCornerRadius(FromDIP(12));
     m_button_retry->SetBorderColor(btn_bd_white);

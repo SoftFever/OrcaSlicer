@@ -457,10 +457,9 @@ public:
     void printable_state_changed(const std::vector<ObjectVolumeID>& ov_ids);
 
     // search objectlist
-    void search_object_list();
-    void set_found_list(wxString current_search_text);
-    void set_cur_pos(int value);
-    void searchbar_kill_focus();
+    void assembly_plate_object_name();
+    void selected_object(ObjectDataViewModelNode* item);
+
 private:
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);
@@ -488,7 +487,6 @@ private:
 
     std::vector<int> m_columns_width;
     wxSize           m_last_size;
-    int              cur_pos = 0;
 };
 
 

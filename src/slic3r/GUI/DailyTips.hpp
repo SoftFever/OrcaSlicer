@@ -30,6 +30,7 @@ public:
     void collapse();
     bool is_expanded();
     void on_change_color_mode(bool is_dark);
+    void set_fade_opacity(float opacity);
 
 protected:
     void render_controller_buttons(const ImVec2& pos, const ImVec2& size);
@@ -51,6 +52,7 @@ private:
     bool m_first_enter{ false };
     bool m_is_dark{ false };
     DailyTipsLayout m_layout{ DailyTipsLayout::Vertical };
+    float m_fade_opacity{ 1.0f };
 };
 
 class DailyTipsWindow {

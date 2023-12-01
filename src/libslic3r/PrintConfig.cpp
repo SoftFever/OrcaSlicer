@@ -3638,9 +3638,9 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_not_for_body",coBool);
-    def->label    = L("No interface filament for body");
+    def->label    = L("Reduce interface filament for base");
     def->category = L("Support");
-    def->tooltip = L("Don't use support interface filament to print support body");
+    def->tooltip = L("Avoid using support interface filament to print support base");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -3989,12 +3989,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(3.));
 
     def = this->add("tree_support_wall_count", coInt);
-    def->label = L("Tree support wall loops");
+    def->label = L("Support wall loops");
     def->category = L("Support");
-    def->tooltip = L("This setting specify the count of walls around tree support");
+    def->tooltip = L("This setting specify the count of walls around support");
     def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInt(1));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("tree_support_with_infill", coBool);
     def->label = L("Tree support with infill");
@@ -6286,6 +6286,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "load uptodate filament settings from the specified file when using uptodate";
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("load_assemble_list", coString);
+    def->label = "Load assemble list";
+    def->tooltip = "Load assemble object list from config file";
+    def->cli_params = "assemble_list.json";
+    def->set_default_value(new ConfigOptionString());
 
     /*def = this->add("output", coString);
     def->label = L("Output File");

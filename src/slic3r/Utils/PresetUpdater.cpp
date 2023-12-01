@@ -1020,7 +1020,8 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
         }
 
         if (need_delete_cache) {
-            std::string             data_dir_str = data_dir();
+            boost::system::error_code ec;
+            boost::filesystem::remove_all(cache_folder, ec);
             cached_version           = curr_version;
         }
     }

@@ -1513,6 +1513,33 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    if(opt_key=="layer_height"){
+        auto min_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("min_layer_height")->values;
+        auto max_layer_height_from_nozzle=wxGetApp().preset_bundle->full_config().option<ConfigOptionFloats>("max_layer_height")->values;
+        auto layer_height_floor = *std::min_element(min_layer_height_from_nozzle.begin(), min_layer_height_from_nozzle.end());
+        auto layer_height_ceil  = *std::max_element(max_layer_height_from_nozzle.begin(), max_layer_height_from_nozzle.end());
+        bool exceed_minimum_flag = m_config->opt_float("layer_height") < layer_height_floor;
+        bool exceed_maximum_flag = m_config->opt_float("layer_height") > layer_height_ceil;
+
+        if (exceed_maximum_flag || exceed_minimum_flag) {
+            wxString msg_text = _(L("Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."));
+            msg_text += "\n\n" + _(L("Adjust to the set range automatically? \n"));
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            dialog.SetButtonLabel(wxID_YES, _L("Adjust"));
+            dialog.SetButtonLabel(wxID_NO, _L("Ignore"));
+            auto answer = dialog.ShowModal();
+            auto new_conf = *m_config;
+            if (answer == wxID_YES) {
+                if (exceed_maximum_flag)
+                    new_conf.set_key_value("layer_height", new ConfigOptionFloat(layer_height_ceil));
+                if (exceed_minimum_flag)
+                    new_conf.set_key_value("layer_height",new ConfigOptionFloat(layer_height_floor));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
+        }
+    }
+
     // BBS
 #if 0
     if (opt_key == "extruders_count")
@@ -1900,7 +1927,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("hole_to_polyhole_twisted");
 
         optgroup = page->new_optgroup(L("Ironing"), L"param_ironing");
-        optgroup->append_single_option_line("ironing_type");
+        optgroup->append_single_option_line("ironing_type", "parameter/ironing");
         optgroup->append_single_option_line("ironing_pattern");
         optgroup->append_single_option_line("ironing_speed");
         optgroup->append_single_option_line("ironing_flow");
@@ -1980,8 +2007,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Other layers speed"), L"param_speed", 15);
         optgroup->append_single_option_line("outer_wall_speed");
         optgroup->append_single_option_line("inner_wall_speed");
-        optgroup->append_single_option_line("small_perimeter_threshold");
         optgroup->append_single_option_line("small_perimeter_speed");
+        optgroup->append_single_option_line("small_perimeter_threshold");
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
@@ -4964,8 +4991,10 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
 
     if (name.empty()) {
         SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");
-        if (dlg.ShowModal() != wxID_OK)
-            return;
+        if (!m_just_edit) {
+            if (dlg.ShowModal() != wxID_OK)
+                return;
+        }
         name = dlg.get_name();
         //BBS: add project embedded preset relate logic
         save_to_project = dlg.get_save_to_project_selection(m_type);
@@ -5076,7 +5105,9 @@ void Tab::delete_preset()
     // TRN  remove/delete
     wxString msg;
     bool     confirm_delete_third_party_printer = false;
+    bool     is_base_preset                 = false;
     if (m_presets->get_preset_base(current_preset) == &current_preset) { //root preset
+        is_base_preset = true;
         if (current_preset.type == Preset::Type::TYPE_PRINTER && !current_preset.is_system) { //Customize third-party printers
             Preset &current_preset = m_presets->get_selected_preset();
             int filament_preset_num    = 0;
@@ -5155,7 +5186,11 @@ void Tab::delete_preset()
         }
     }
 
-    msg += from_u8((boost::format(_u8L("Are you sure to %1% the selected preset?")) % action).str());
+    if (is_base_preset && (current_preset.type == Preset::Type::TYPE_FILAMENT) && action == _utf8(L("Delete"))) {
+        msg += from_u8(_u8L("Are you sure to delete the selected preset? \nIf the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot."));
+    } else {
+        msg += from_u8((boost::format(_u8L("Are you sure to %1% the selected preset?")) % action).str());
+    }
 
     //BBS: add project embedded preset logic and refine is_external
     action =  _utf8(L("Delete"));
@@ -5413,6 +5448,18 @@ bool Tab::validate_custom_gcodes()
             break;
     }
     return valid;
+}
+
+void Tab::set_just_edit(bool just_edit)
+{
+    m_just_edit = just_edit;
+    if (just_edit) {
+        m_presets_choice->Disable();
+        m_btn_delete_preset->Disable();
+    } else {
+        m_presets_choice->Enable();
+        m_btn_delete_preset->Enable();
+    }
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)

@@ -219,6 +219,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
         ai_monitoring_level_list->Append(level_option);
     }
 
+    if (ai_monitoring_level_list->GetCount() > 0) {
+        ai_monitoring_level_list->SetSelection(0);
+    }
+    
+
     line_sizer->Add(FromDIP(30), 0, 0, 0);
     line_sizer->Add(text_ai_monitoring_caption, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add( ai_monitoring_level_list, 0, wxEXPAND|wxALL, FromDIP(5) );

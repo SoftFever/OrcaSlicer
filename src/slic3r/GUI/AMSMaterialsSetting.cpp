@@ -484,8 +484,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
 
-            auto filament_id = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
-
+            auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+            std::string filament_id = filament_item.filament_id;
             if (it->filament_id.compare(filament_id) == 0) {
 
 
@@ -806,15 +806,24 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
                             // name matched
                             if (filament_it->is_system) {
                                 filament_items.push_back(filament_it->alias);
-                                map_filament_items[filament_it->alias] = filament_it->filament_id;
+                                FilamentInfos filament_infos;
+                                filament_infos.filament_id             = filament_it->filament_id;
+                                filament_infos.setting_id              = filament_it->setting_id;
+                                map_filament_items[filament_it->alias] = filament_infos;
                             }
                             else {
                                 char target = '@';
                                 size_t pos = filament_it->name.find(target);
                                 if (pos != std::string::npos) {
                                     std::string user_preset_alias = filament_it->name.substr(0, pos-1);
+                                    wxString  wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
+                                    user_preset_alias = wx_user_preset_alias.ToStdString();
+
                                     filament_items.push_back(user_preset_alias);
-                                    map_filament_items[user_preset_alias] = filament_it->filament_id;
+                                    FilamentInfos filament_infos;
+                                    filament_infos.filament_id            = filament_it->filament_id;
+                                    filament_infos.setting_id             = filament_it->setting_id;
+                                    map_filament_items[user_preset_alias] = filament_infos;
                                 }
                                 
                             }
@@ -930,7 +939,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (!m_comboBox_filament->GetValue().IsEmpty()) {
-                auto filament_id = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+                auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+                std::string filament_id   = filament_item.filament_id;
                 if (it->filament_id.compare(filament_id) == 0) {
 
                     // ) if nozzle_temperature_range is found
@@ -1004,6 +1014,13 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
+            auto itor = map_filament_items.find(m_comboBox_filament->GetValue().ToStdString());
+            if ( itor != map_filament_items.end()) {
+                ams_filament_id = itor->second.filament_id;
+                ams_setting_id  = itor->second.setting_id;
+                break;
+            }
+
             if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
                 ams_filament_id = it->filament_id;
                 ams_setting_id = it->setting_id;

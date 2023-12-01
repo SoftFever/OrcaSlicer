@@ -91,12 +91,14 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
+    /* m_browser->GetUserAgent() may lead crash
     if (wxGetApp().get_mode() == comDevelop) {
         wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
             wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
     }
+    */
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();

@@ -1460,9 +1460,8 @@ void GUI::CalibrateFilamentComboBox::update()
 
     const Preset* selected_filament_preset = nullptr;
 
-    std::map<wxString, wxBitmap*> nonsys_presets;
-    std::map<wxString, wxBitmap*>  project_embedded_presets;
-    std::map<wxString, wxBitmap*>  system_presets;
+    m_nonsys_presets.clear();
+    m_system_presets.clear();
 
     wxString selected_preset = m_selected_preset ? get_preset_name(*m_selected_preset) : GetValue();
 
@@ -1472,7 +1471,7 @@ void GUI::CalibrateFilamentComboBox::update()
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
     {
         const Preset& preset = presets[i];
-        auto name = get_preset_name(preset);
+        auto display_name = get_preset_name(preset);
         bool          is_selected   = m_selected_preset == &preset;
         if (m_preset_bundle->calibrate_filaments.empty()) {
             Thaw();
@@ -1490,27 +1489,28 @@ void GUI::CalibrateFilamentComboBox::update()
         wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
-        if (preset.is_default || preset.is_system)
-            system_presets.emplace(name, bmp);
-        else if (preset.is_project_embedded)
-            project_embedded_presets.emplace(name, bmp);
-        else
-            nonsys_presets.emplace(name, bmp);
+        if (preset.is_default || preset.is_system) {
+            m_system_presets.emplace(display_name, std::make_pair( preset.name, bmp ));
+        }
+        else {
+            m_nonsys_presets.emplace(display_name, std::make_pair( preset.name, bmp ));
+        }
+
     }
 
-    if (!nonsys_presets.empty())
+    if (!m_nonsys_presets.empty())
     {
         set_label_marker(Append(separator(L("User presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
-            Append(it->first, *it->second);
+        for (auto it = m_nonsys_presets.begin(); it != m_nonsys_presets.end(); ++it) {
+            Append(it->first, *(it->second.second));
             validate_selection(it->first == selected_preset);
         }
     }
-    if (!system_presets.empty())
+    if (!m_system_presets.empty())
     {
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
-        for (std::map<wxString, wxBitmap*>::iterator it = system_presets.begin(); it != system_presets.end(); ++it) {
-            Append(it->first, *it->second);
+        for (auto it = m_system_presets.begin(); it != m_system_presets.end(); ++it) {
+            Append(it->first, *(it->second.second));
             validate_selection(it->first == selected_preset);
         }
     }
@@ -1537,14 +1537,23 @@ void GUI::CalibrateFilamentComboBox::OnSelect(wxCommandEvent &evt)
     auto marker = reinterpret_cast<Marker>(this->GetClientData(evt.GetSelection()));
     if (marker >= LABEL_ITEM_DISABLED && marker < LABEL_ITEM_MAX) {
         this->SetSelection(evt.GetSelection() + 1);
+        wxCommandEvent event(wxEVT_COMBOBOX);
+        event.SetInt(evt.GetSelection() + 1);
+        event.SetString(GetString(evt.GetSelection() + 1));
+        wxPostEvent(this, event);
         return;
     }
     m_is_compatible = true;
     static_cast<FilamentComboBox*>(m_parent)->Enable(true);
 
-    std::string selected_name = evt.GetString().ToUTF8().data();
-    selected_name             = Preset::remove_suffix_modified(selected_name);
-    std::string preset_name = m_collection->get_preset_name_by_alias(selected_name);
+    wxString display_name = evt.GetString();
+    std::string preset_name;
+    if (m_system_presets.find(evt.GetString()) != m_system_presets.end()) {
+        preset_name = m_system_presets.at(display_name).first;
+    }
+    else if (m_nonsys_presets.find(evt.GetString()) != m_nonsys_presets.end()) {
+        preset_name = m_nonsys_presets.at(display_name).first;
+    }
     m_selected_preset       = m_collection->find_preset(preset_name);
 
     // if the selected preset is null, do not send tray_change event
