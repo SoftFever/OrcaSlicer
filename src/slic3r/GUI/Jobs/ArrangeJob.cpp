@@ -96,6 +96,7 @@ void ArrangeJob::clear_input()
     m_unprintable.clear();
     m_locked.clear();
     m_unarranged.clear();
+    m_uncompatible_plates.clear();
     m_selected.reserve(count + 1 /* for optional wti */);
     m_unselected.reserve(count + 1 /* for optional wti */);
     m_unprintable.reserve(cunprint /* for optional wti */);
@@ -189,9 +190,19 @@ void ArrangeJob::prepare_selected() {
 }
 
 void ArrangeJob::prepare_all() {
-    PartPlateList& plate_list = m_plater->get_partplate_list();
-
     clear_input();
+
+    PartPlateList& plate_list = m_plater->get_partplate_list();    
+    for (size_t i = 0; i < plate_list.get_plate_count(); i++) {
+        PartPlate* plate = plate_list.get_plate(i);
+        bool same_as_global_print_seq = true;
+        plate->get_real_print_seq(&same_as_global_print_seq);
+        if (plate->is_locked() == false && !same_as_global_print_seq) {
+            plate->lock(true);
+            m_uncompatible_plates.push_back(i);
+        }
+    }
+
 
     Model &model = m_plater->model();
     bool selected_is_locked = false;
@@ -716,6 +727,10 @@ void ArrangeJob::finalize(bool canceled, std::exception_ptr &eptr) {
     else {
         plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
     }
+
+    // unlock the plates we just locked
+    for (int i : m_uncompatible_plates)
+        plate_list.get_plate(i)->lock(false);
 
     // BBS: update slice context and gcode result.
     m_plater->update_slicing_context_to_current_partplate();
