@@ -9,10 +9,13 @@
 
 #include <stdio.h>
 #include "nlohmann/json.hpp"
+
+#include <libslic3r/Utils.hpp>
+
 using namespace std;
 using json = nlohmann::json;
 
-int json_diff::diff_objects(json in, json &out, json &base)
+int json_diff::diff_objects(json const &in, json &out, json const &base)
 {
     for (auto& el: in.items()) {
         if (el.value().empty()) {
@@ -63,14 +66,49 @@ int json_diff::diff_objects(json in, json &out, json &base)
     return 0;
 }
 
-int json_diff::all2diff_base_reset(json &base)
+int json_diff::all2diff_base_reset(json const &base)
 {
     BOOST_LOG_TRIVIAL(trace) << "all2diff_base_reset";
     all2diff_base = base;
     return 0;
 }
 
-int json_diff::all2diff(json& in, json& out)
+bool json_diff::load_compatible_settings(std::string const &type, std::string const &version)
+{
+    // Reload on empty type and version
+    if (!type.empty() || !version.empty()) {
+        std::string type2    = type.empty() ? printer_type : type;
+        std::string version2 = version.empty() ? printer_version : version;
+        if (type2 == printer_type && version2 == printer_version)
+            return false;
+        printer_type    = type2;
+        printer_version = version2;
+    }
+    settings_base.clear();
+    std::string config_file = Slic3r::data_dir() + "/printers/" + printer_type + ".json";
+    boost::nowide::ifstream json_file(config_file.c_str());
+    try {
+        json versions;
+        if (json_file.is_open()) {
+            json_file >> versions;
+            for (auto iter = versions.begin(); iter != versions.end(); ++iter) {
+                if (iter.key() > printer_version)
+                    break;
+                merge_objects(*iter, settings_base);
+            }
+            if (!full_message.empty())
+                diff2all_base_reset(full_message);
+            return true;
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "load_compatible_settings failed, file = " << config_file;
+        }
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "load_compatible_settings failed, file = " << config_file;
+    }
+    return false;
+}
+
+int json_diff::all2diff(json const &in, json &out)
 {
     int ret = 0;
     if (all2diff_base.empty()) {
@@ -88,7 +126,7 @@ int json_diff::all2diff(json& in, json& out)
     return 0;
 }
 
-int json_diff::restore_objects(json in, json &out, json &base)
+int json_diff::restore_objects(json const &in, json &out, json const &base)
 {
     json jout;
 
@@ -145,7 +183,7 @@ int json_diff::restore_objects(json in, json &out, json &base)
     return 0;
 }
 
-int json_diff::restore_append_objects(json in, json &out)
+int json_diff::restore_append_objects(json const &in, json &out)
 {
     /*a new element comming, but be recoreded in base
       need be added to output*/
@@ -173,7 +211,22 @@ int json_diff::restore_append_objects(json in, json &out)
     return 0;
 }
 
-int json_diff::diff2all(json &in, json &out)
+void json_diff::merge_objects(json const &in, json &out)
+{
+    for (auto &el : in.items()) {
+        if (!out.contains(el.key())) {
+            out[el.key()] = el.value();
+            continue;
+        }
+        if (el.value().is_object()) {
+            merge_objects(el.value(), out[el.key()]);
+            continue;
+        }
+        out[el.key()] = el.value();
+    }
+}
+
+int json_diff::diff2all(json const &in, json &out)
 {
     if (!diff2all_base.empty()) {
         int ret = restore_objects(in, out, diff2all_base);
@@ -218,8 +271,13 @@ bool json_diff::is_need_request()
     return false;
 }
 
-int json_diff::diff2all_base_reset(json &base){
+int json_diff::diff2all_base_reset(json &base)
+{
     BOOST_LOG_TRIVIAL(trace) << "diff2all_base_reset";
+    full_message = base;
+    if (!settings_base.empty()) {
+        merge_objects(settings_base, base);
+    }
     diff2all_base = base;
     return 0;
 }

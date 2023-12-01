@@ -19,15 +19,16 @@ public:
 protected:
     CalibMode m_cali_mode;
 
-    wxBoxSizer*   m_top_sizer;
-    wxBoxSizer*   m_images_sizer;
-    Label*        m_when_title;
-    Label*        m_when_content;
-    Label*        m_about_title;
-    Label*        m_about_content;
+    wxBoxSizer*   m_top_sizer{ nullptr };
+    wxBoxSizer*   m_images_sizer{ nullptr };
+    Label*        m_when_title{ nullptr };
+    Label*        m_when_content{ nullptr };
+    Label*        m_about_title{ nullptr };
+    Label*        m_about_content{ nullptr };
     wxStaticBitmap* m_before_bmp{ nullptr };
     wxStaticBitmap* m_after_bmp{ nullptr };
     wxStaticBitmap* m_bmp_intro{ nullptr };
+    PAPageHelpPanel* m_help_panel{ nullptr };
 
     void create_when(wxWindow* parent, wxString title, wxString content);
     void create_about(wxWindow* parent, wxString title, wxString content);
@@ -49,6 +50,7 @@ public:
 
     void on_reset_page();
     void on_device_connected(MachineObject* obj);
+    void msw_rescale() override;
 };
 
 class CalibrationFlowRateStartPage : public CalibrationStartPage
@@ -63,6 +65,7 @@ public:
     void create_page(wxWindow* parent);
     void on_reset_page();
     void on_device_connected(MachineObject* obj);
+    void msw_rescale() override;
 };
 
 class CalibrationMaxVolumetricSpeedStartPage : public CalibrationStartPage
@@ -75,6 +78,7 @@ public:
         long style = wxTAB_TRAVERSAL);
 
     void create_page(wxWindow* parent);
+    void msw_rescale() override;
 };
 
 }} // namespace Slic3r::GUI

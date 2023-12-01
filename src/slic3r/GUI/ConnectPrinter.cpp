@@ -118,32 +118,22 @@ void ConnectPrinterDialog::init_bitmap()
     std::string language = config->get("language");
 
     if (m_obj) {
-        if (m_obj->printer_type == "C11" || m_obj->printer_type == "C12") {
-            m_diagram_bmp = create_scaled_bitmap("input_accesscode_help2", nullptr, 190);
-        }
-        else if (m_obj->printer_type == "BL-P001" || m_obj->printer_type == "BL-P002" || m_obj->printer_type == "C13") {
-            if (language == "zh_CN") {
-                m_diagram_bmp = create_scaled_bitmap("input_access_code_cn", nullptr, 190);
-            }
-            else {
-                m_diagram_bmp = create_scaled_bitmap("input_access_code_en", nullptr, 190);
-            }
-        }
-        else if (m_obj->printer_type == "N1") {
-            if (language == "zh_CN") {
-                m_diagram_bmp = create_scaled_bitmap("input_access_code_n1_cn", nullptr, 250);
-            }
-            else {
-                m_diagram_bmp = create_scaled_bitmap("input_access_code_n1_en", nullptr, 250);
-            }
-        }
-    }
-    else {
+        std::string img_str = DeviceManager::get_printer_diagram_img(m_obj->printer_type);
+        if(img_str.empty()){img_str = "input_access_code_x1"; }
+
         if (language == "zh_CN") {
-            m_diagram_bmp = create_scaled_bitmap("input_access_code_cn", nullptr, 190);
+            m_diagram_bmp = create_scaled_bitmap(img_str+"_cn", nullptr, 190);
         }
         else {
-            m_diagram_bmp = create_scaled_bitmap("input_access_code_en", nullptr, 190);
+            m_diagram_bmp = create_scaled_bitmap(img_str+"_en", nullptr, 190);
+        }
+    }
+    else{
+        if (language == "zh_CN") {
+            m_diagram_bmp = create_scaled_bitmap("input_access_code_x1_cn", nullptr, 190);
+        }
+        else {
+            m_diagram_bmp = create_scaled_bitmap("input_access_code_x1_en", nullptr, 190);
         }
     }
     m_diagram_img = m_diagram_bmp.ConvertToImage();

@@ -308,6 +308,7 @@ ConfigOption* ConfigOptionDef::create_default_option() const
                 opt->keys_map = this->enum_keys_map;
                 return opt;
             }
+            delete dft;
         }
 
         return this->default_value->clone();
@@ -782,6 +783,8 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
     json j;
     std::list<std::string> different_settings_append;
     std::string new_support_style;
+    std::string is_infill_first;
+    std::string get_wall_sequence;
     bool is_project_settings = false;
 
     CNumericLocalesSetter locales_setter;
@@ -844,6 +847,16 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                             different_settings_append.push_back(opt_key);
                             different_settings_append.push_back("support_style");
                             new_support_style = "tree_hybrid";
+                        }
+                    } else if (opt_key == "wall_infill_order") {
+                        //BBS: check wall_infill order to decide if it be different and append to diff_setting_append
+                        if (it.value() == "outer wall/inner wall/infill" || it.value() == "infill/outer wall/inner wall" || it.value() == "inner-outer-inner wall/infill") {
+                            get_wall_sequence = "wall_seq_diff_to_system";
+                        }
+
+                        if (it.value() == "infill/outer wall/inner wall" || it.value() == "infill/inner wall/outer wall") {
+                            different_settings_append.push_back("is_infill_first");
+                            is_infill_first = "true";
                         }
                     }
                 }
@@ -916,6 +929,12 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 ConfigOptionEnum<SupportMaterialStyle>* opt = this->option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
                 opt->value = smsTreeHybrid;
             }
+
+            if (!is_infill_first.empty()) {
+                ConfigOptionBool *opt = this->option<ConfigOptionBool>("is_infill_first", true);
+                opt->value = true;
+            }
+
             if (is_project_settings) {
                 std::vector<std::string>& different_settings = this->option<ConfigOptionStrings>("different_settings_to_system", true)->values;
                 size_t size = different_settings.size();
@@ -932,6 +951,25 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         is_first[index] = true;
                     }
                     else {
+                        // remove unneeded key
+                        if (get_wall_sequence.empty()) {
+                            std::string wall_sqe_string = "wall_sequence";
+                            int pos=different_settings[index].find(wall_sqe_string);
+
+                            if (pos != different_settings[index].npos) {
+                                int erase_len = wall_sqe_string.size();
+                                if (pos + erase_len < different_settings[index].size() && different_settings[index][pos + erase_len] == ';')
+                                    erase_len++;
+                                different_settings[index].erase(pos, erase_len);
+                            }
+
+                        }
+
+                        if (different_settings[index].empty()) {
+                            is_first[index] = true;
+                            continue;
+                        }
+
                         Slic3r::unescape_strings_cstyle(different_settings[index], original_diffs[index]);
                     }
                 }
@@ -944,6 +982,8 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                     if (diff_key == "support_type")
                         index = 0;
                     else if (diff_key == "support_style")
+                        index = 0;
+                    else if (diff_key == "is_infill_first")
                         index = 0;
 
                     //check whether exist firstly
