@@ -30,6 +30,18 @@ WX_DEFINE_LIST(RadioSelectorList);
 wxDEFINE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
 
+class MyscrolledWindow : public wxScrolledWindow {
+public:
+    MyscrolledWindow(wxWindow* parent,
+        wxWindowID id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxVSCROLL) : wxScrolledWindow(parent, id, pos, size, style) {}
+
+    bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; }
+};
+
+
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
@@ -147,16 +159,19 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
             language_name = wxString::FromUTF8("\xED\x95\x9C\xEA\xB5\xAD\xEC\x96\xB4");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_RUSSIAN)) {
-            language_name = wxString::FromUTF8("\xd0\xa0\xd1\x83\xd1\x81\xd1\x81\xd0\xba\xd0\xb8\xd0\xb9");
+            language_name = wxString::FromUTF8("\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CZECH)) {
+            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_UKRAINIAN)) {
-            language_name = wxString::FromUTF8("Ukrainian");
+            language_name = wxString::FromUTF8("\xC4\x8D\x65\xC5\xA1\x74\x69\x6E\x61");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_TURKISH)) {
-            language_name = wxString::FromUTF8("Turkish");
+            language_name = wxString::FromUTF8("\xD1\x83\xD0\xBA\xD1\x80\xD0\xB0\xD1\x97\xD1\x9D\xD1\x81\xD1\x8C\xD0\xBA\xD0\xB0");
         }
 
-        if (app_config->get(param) == vlist[i]->CanonicalName) {
+        if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
         }
         combobox->Append(language_name);
@@ -465,6 +480,8 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->GetTextCtrl()->SetValidator(validator);
 
 
     auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
@@ -485,23 +502,22 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
         e.Skip();
     });
 
-    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, param, input](wxCommandEvent &e) {
+    std::function<void()> backup_interval = [this, param, input]() {
         m_backup_interval_time = input->GetTextCtrl()->GetValue();
         app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
         app_config->save();
         long backup_interval = 0;
         m_backup_interval_time.ToLong(&backup_interval);
         Slic3r::set_backup_interval(backup_interval);
+    };
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [backup_interval](wxCommandEvent &e) {
+        backup_interval();
         e.Skip();
     });
 
-     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, param, input](wxFocusEvent &e) {
-        m_backup_interval_time = input->GetTextCtrl()->GetValue();
-        app_config->set("backup_interval", std::string(m_backup_interval_time.mb_str()));
-        app_config->save();
-        long backup_interval = 0;
-        m_backup_interval_time.ToLong(&backup_interval);
-        Slic3r::set_backup_interval(backup_interval);
+     input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [backup_interval](wxFocusEvent &e) {
+        backup_interval();
         e.Skip();
     });
 
@@ -620,7 +636,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox_title->SetFont(::Label::Body_13);
 
     auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(4), -1));
+    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
     checkbox_title->Wrap(-1);
     m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
 
@@ -681,15 +697,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
-        if (param == "show_gcode_window") {
-            bool pbool = app_config->get("show_gcode_window") == "true" ? true : false;
-            wxGetApp().set_show_gcode_window(pbool);
-        }
-
         #endif // __WXMSW__
 
-        if (param == "developer_mode") 
-        { 
+        if (param == "developer_mode")
+        {
             m_developer_mode_def = app_config->get("developer_mode");
             if (m_developer_mode_def == "true") {
                 Slic3r::GUI::wxGetApp().save_mode(comDevelop);
@@ -698,7 +709,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             }
         }
 
-        // webview  dump_vedio  
+        // webview  dump_vedio
         if (param == "internal_developer_mode") {
             m_internal_developer_mode_def = app_config->get("internal_developer_mode");
             if (m_internal_developer_mode_def == "true") {
@@ -837,6 +848,19 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     SetBackgroundColour(*wxWHITE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
+        try {
+            NetworkAgent* agent = GUI::wxGetApp().getAgent();
+            if (agent) {
+                json j;
+                std::string value;
+                value = wxGetApp().app_config->get("auto_calculate");
+                j["auto_flushing"] = value;
+                agent->track_event("preferences_changed", j.dump());
+            }
+        } catch(...) {}
+        event.Skip();
+        });
 }
 
 void PreferencesDialog::create()
@@ -851,7 +875,7 @@ void PreferencesDialog::create()
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_scrolledWindow = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_scrolledWindow = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_scrolledWindow->SetScrollRate(5, 5);
 
     m_sizer_body = new wxBoxSizer(wxVERTICAL);
@@ -987,8 +1011,8 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_show_splash_screen = create_item_checkbox(_L("Show splash screen"), page, _L("Show the splash screen during startup."), 50, "show_splash_screen");
     auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
-    auto item_gcode_window = create_item_checkbox(_L("Show g-code window"), page, _L("If enabled, g-code window will be displayed."), 50, "show_gcode_window");
 
+    auto item_calc_mode = create_item_checkbox(_L("Flushing volumes: Auto-calculate everytime the color changed."), page, _L("If enabled, auto-calculate everytime the color changed."), 50, "auto_calculate");
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Update built-in Presets automatically."), page, _L("System Sync"), 50, "sync_system_preset");
@@ -1022,6 +1046,7 @@ wxWindow* PreferencesDialog::create_general_page()
         wxGetApp().app_config->set("save_project_choise", "");
     });
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
+    auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), page,_L("No warnings when loading 3MF with modified G-codes"), 50, "no_warn_when_modified_gcodes");
     auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
 
@@ -1048,9 +1073,9 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_use_free_camera_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_splash_screen, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_gcode_window, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_stealth_mode, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_calc_mode, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_presets, 0, wxTOP, FromDIP(3));
@@ -1075,6 +1100,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
@@ -1218,6 +1244,7 @@ wxWindow* PreferencesDialog::create_debug_page()
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
+        dialog.SetSize(400,-1);
         switch (dialog.ShowModal()) {
         case wxID_NO: {
             //if (m_developer_mode_def != app_config->get("developer_mode")) {

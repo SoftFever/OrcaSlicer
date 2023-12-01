@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2019 - 2023 Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GLGizmoSeam_hpp_
 #define slic3r_GLGizmoSeam_hpp_
 
@@ -10,7 +14,7 @@ class GLGizmoSeam : public GLGizmoPainterBase
 public:
     GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
-    void render_painter_gizmo() const override;
+    void render_painter_gizmo() override;
 
     //BBS
     bool on_key_down_select_tool_type(int keyCode);
@@ -32,9 +36,9 @@ protected:
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 
-    std::string get_gizmo_entering_text() const override { return "Entering Seam painting"; }
-    std::string get_gizmo_leaving_text() const override { return "Leaving Seam painting"; }
-    std::string get_action_snapshot_name() override { return "Paint-on seam editing"; }
+    std::string get_gizmo_entering_text() const override { return _u8L("Entering Seam painting"); }
+    std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Seam painting"); }
+    std::string get_action_snapshot_name() const override { return _u8L("Paint-on seam editing"); }
     static const constexpr float      CursorRadiusMin = 0.05f; // cannot be zero
 
     const float get_cursor_radius_min() const override { return CursorRadiusMin; }

@@ -21,6 +21,7 @@
 #include "3DScene.hpp"
 #include "GLModel.hpp"
 #include "3DBed.hpp"
+#include "MeshUtils.hpp"
 
 class GLUquadric;
 typedef class GLUquadric GLUquadricObject;
@@ -46,6 +47,15 @@ inline int compute_colum_count(int count)
 
     return cols;
 }
+
+
+extern const float WIPE_TOWER_DEFAULT_X_POS;
+extern const float WIPE_TOWER_DEFAULT_Y_POS;  // Max y
+
+extern const float I3_WIPE_TOWER_DEFAULT_X_POS;
+extern const float I3_WIPE_TOWER_DEFAULT_Y_POS; // Max y
+
+
 
 namespace Slic3r {
 
@@ -115,31 +125,22 @@ private:
     Transform3d m_grabber_trans_matrix;
     Slic3r::Geometry::Transformation position;
     std::vector<Vec3f> positions;
-    unsigned int m_vbo_id{ 0 };
-    GeometryBuffer m_triangles;
-    GeometryBuffer m_exclude_triangles;
-    GeometryBuffer m_logo_triangles;
-    GeometryBuffer m_gridlines;
-    GeometryBuffer m_gridlines_bolder;
-    GeometryBuffer m_height_limit_common;
-    GeometryBuffer m_height_limit_bottom;
-    GeometryBuffer m_height_limit_top;
-    GeometryBuffer m_del_icon;
-    //GeometryBuffer m_del_and_background_icon;
-    mutable unsigned int m_del_vbo_id{ 0 };
-    GeometryBuffer m_arrange_icon;
-    mutable unsigned int m_arrange_vbo_id{ 0 };
-    GeometryBuffer m_orient_icon;
-    mutable unsigned int m_orient_vbo_id{ 0 };
-    GeometryBuffer m_lock_icon;
-    mutable unsigned int m_lock_vbo_id{ 0 };
-    GeometryBuffer m_plate_settings_icon;
-    mutable unsigned int m_plate_settings_vbo_id{ 0 };
-    GeometryBuffer m_plate_idx_icon;
-    mutable unsigned int m_plate_idx_vbo_id{ 0 };
+    PickingModel m_triangles;
+    GLModel m_exclude_triangles;
+    GLModel m_logo_triangles;
+    GLModel m_gridlines;
+    GLModel m_gridlines_bolder;
+    GLModel m_height_limit_common;
+    GLModel m_height_limit_bottom;
+    GLModel m_height_limit_top;
+    PickingModel m_del_icon;
+    PickingModel m_arrange_icon;
+    PickingModel m_orient_icon;
+    PickingModel m_lock_icon;
+    PickingModel m_plate_settings_icon;
+    GLModel m_plate_idx_icon;
     GLTexture m_texture;
 
-    mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -152,8 +153,7 @@ private:
     // SoftFever
     // part plate name
     std::string m_name;
-    GeometryBuffer m_plate_name_icon;
-    mutable unsigned int m_plate_name_vbo_id{ 0 };
+    GLModel m_plate_name_icon;
     GLTexture m_name_texture;
     wxCoord m_name_texture_width;
     wxCoord m_name_texture_height;
@@ -168,48 +168,46 @@ private:
     void calc_exclude_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
-    void calc_vertex_for_number(int index, bool one_number, GeometryBuffer &buffer);
-    void calc_vertex_for_icons(int index, GeometryBuffer &buffer);
-    void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
-    void render_background(bool force_default_color = false) const;
-    void render_logo(bool bottom, bool render_cali = true) const;
-    void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
-    void render_exclude_area(bool force_default_color) const;
-    //void render_background_for_picking(const float* render_color) const;
-    void render_grid(bool bottom) const;
-    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH) const;
-    void render_label(GLCanvas3D& canvas) const;
-    void render_grabber(const float* render_color, bool use_lighting) const;
-    void render_face(float x_size, float y_size) const;
-    void render_arrows(const float* render_color, bool use_lighting) const;
-    void render_left_arrow(const float* render_color, bool use_lighting) const;
-    void render_right_arrow(const float* render_color, bool use_lighting) const;
-    void render_icon_texture(int position_id, int tex_coords_id, const GeometryBuffer &buffer, GLTexture &texture, unsigned int &vbo_id) const;
+    void calc_vertex_for_number(int index, bool one_number, GLModel &buffer);
+    void calc_vertex_for_icons(int index, PickingModel &model);
+    // void calc_vertex_for_icons_background(int icon_count, GLModel &buffer);
+    void render_background(bool force_default_color = false);
+    void render_logo(bool bottom, bool render_cali = true);
+    void render_logo_texture(GLTexture &logo_texture, GLModel &logo_buffer, bool bottom);
+    void render_exclude_area(bool force_default_color);
+    //void render_background_for_picking(const ColorRGBA render_color) const;
+    void render_grid(bool bottom);
+    void render_height_limit(PartPlate::HeightLimitMode mode = HEIGHT_LIMIT_BOTH);
+    // void render_label(GLCanvas3D& canvas) const;
+    // void render_grabber(const ColorRGBA render_color, bool use_lighting) const;
+    // void render_face(float x_size, float y_size) const;
+    // void render_arrows(const ColorRGBA render_color, bool use_lighting) const;
+    // void render_left_arrow(const ColorRGBA render_color, bool use_lighting) const;
+    // void render_right_arrow(const ColorRGBA render_color, bool use_lighting) const;
+    void render_icon_texture(GLModel &buffer, GLTexture &texture);
     void show_tooltip(const std::string tooltip);
     void render_icons(bool bottom, bool only_name = false, int hover_id = -1);
-    void render_only_numbers(bool bottom) const;
-    void render_plate_name_texture(int position_id, int tex_coords_id);
-    void render_rectangle_for_picking(const GeometryBuffer &buffer, const float* render_color) const;
-    void on_render_for_picking() const;
-    std::array<float, 4> picking_color_component(int idx) const;
-    void release_opengl_resource();
+    void render_only_numbers(bool bottom);
+    void render_plate_name_texture();
+    void register_raycasters_for_picking(GLCanvas3D& canvas);
+    int picking_id_component(int idx) const;
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
     static const unsigned int PLATE_NAME_HOVER_ID = 6;
     static const unsigned int GRABBER_COUNT = 7;
 
-    static std::array<float, 4> SELECT_COLOR;
-    static std::array<float, 4> UNSELECT_COLOR;
-    static std::array<float, 4> UNSELECT_DARK_COLOR;
-    static std::array<float, 4> DEFAULT_COLOR;
-    static std::array<float, 4> LINE_BOTTOM_COLOR;
-    static std::array<float, 4> LINE_TOP_COLOR;
-    static std::array<float, 4> LINE_TOP_DARK_COLOR;
-    static std::array<float, 4> LINE_TOP_SEL_COLOR;
-    static std::array<float, 4> LINE_TOP_SEL_DARK_COLOR;
-    static std::array<float, 4> HEIGHT_LIMIT_BOTTOM_COLOR;
-    static std::array<float, 4> HEIGHT_LIMIT_TOP_COLOR;
+    static ColorRGBA SELECT_COLOR;
+    static ColorRGBA UNSELECT_COLOR;
+    static ColorRGBA UNSELECT_DARK_COLOR;
+    static ColorRGBA DEFAULT_COLOR;
+    static ColorRGBA LINE_BOTTOM_COLOR;
+    static ColorRGBA LINE_TOP_COLOR;
+    static ColorRGBA LINE_TOP_DARK_COLOR;
+    static ColorRGBA LINE_TOP_SEL_COLOR;
+    static ColorRGBA LINE_TOP_SEL_DARK_COLOR;
+    static ColorRGBA HEIGHT_LIMIT_BOTTOM_COLOR;
+    static ColorRGBA HEIGHT_LIMIT_TOP_COLOR;
 
     static void update_render_colors();
     static void load_render_colors();
@@ -235,8 +233,11 @@ public:
     // Get the real effective print sequence of current plate.
     // If curr_plate's print_seq is ByDefault, use the global sequence
     // @return PrintSequence::{ByLayer,ByObject}
-    PrintSequence get_real_print_seq() const;
+    PrintSequence get_real_print_seq(bool* plate_same_as_global=nullptr) const;
 
+    bool has_spiral_mode_config() const;
+    bool get_spiral_vase_mode() const;
+    void set_spiral_vase_mode(bool spiral_mode, bool as_global);
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
@@ -283,14 +284,16 @@ public:
     Vec3d get_center_origin();
     /* size and position related functions*/
     //set position and size
-    void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move);
+    void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move, bool do_clear = true);
 
     // BBS
+    Vec2d get_size() const { return Vec2d(m_width, m_depth); }
     ModelObjectPtrs get_objects() { return m_model->objects; }
     ModelInstance* get_instance(int obj_id, int instance_id);
 
     Vec3d get_origin() { return m_origin; }
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size = 0) const;
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double d, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, int plate_extruder_size = 0, bool use_global_objects = false) const;
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
     std::vector<int> get_extruders_under_cli(bool conside_custom_gcode, DynamicPrintConfig& full_config) const;
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
@@ -350,8 +353,8 @@ public:
     bool contains(const BoundingBoxf3& bb) const;
     bool intersects(const BoundingBoxf3& bb) const;
 
-    void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
-    void render_for_picking() const { on_render_for_picking(); }
+    void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false);
+
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
@@ -412,6 +415,12 @@ public:
         if (result)
             result = m_gcode_result ? (!m_gcode_result->toolpath_outside) : false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
+    }
+
+    // check whether plate's slice result valid for export to file
+    bool is_slice_result_ready_for_export()
+    {
+        return is_slice_result_ready_for_print() && has_printable_instances();
     }
 
     //invalid sliced result
@@ -555,6 +564,8 @@ class PartPlateList : public ObjectBase
     void generate_icon_textures();
     void release_icon_textures();
 
+    void set_default_wipe_tower_pos_for_plate(int plate_idx);
+
     friend class cereal::access;
     friend class UndoRedo::StackImpl;
     friend class PartPlate;
@@ -569,18 +580,16 @@ public:
             float y;
             float w;
             float h;
-            unsigned int vbo_id;
             std::string filename;
             GLTexture* texture { nullptr };
             Vec2d offset;
-            GeometryBuffer* buffer { nullptr };
+            GLModel* buffer { nullptr };
             TexturePart(float xx, float yy, float ww, float hh, std::string file){
                 x = xx; y = yy;
                 w = ww; h = hh;
                 filename = file;
                 texture = nullptr;
                 buffer = nullptr;
-                vbo_id = 0;
                 offset = Vec2d(0, 0);
             }
 
@@ -593,7 +602,6 @@ public:
                 this->buffer    = part.buffer;
                 this->filename  = part.filename;
                 this->texture   = part.texture;
-                this->vbo_id    = part.vbo_id;
             }
 
             void update_buffer();
@@ -678,9 +686,12 @@ public:
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
 
+    //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }
+
+    std::set<int> get_extruders(bool conside_custom_gcode = false) const;
 
     //select plate
     int select_plate(int index);
@@ -691,7 +702,7 @@ public:
     //update the plate cols due to plate count change
     void update_plate_cols();
 
-    void update_all_plates_pos_and_size(bool adjust_position = true, bool with_unprintable_move = true);
+    void update_all_plates_pos_and_size(bool adjust_position = true, bool with_unprintable_move = true, bool switch_plate_type = false, bool do_clear = true);
 
     //get the plate cols
     int get_plate_cols() { return m_plate_cols; }
@@ -752,10 +763,14 @@ public:
 
     /*rendering related functions*/
     void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
-    void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
-    void render_for_picking_pass();
+    void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current = false, bool only_body = false, int hover_id = -1, bool render_cali = false);
     void set_render_option(bool bedtype_texture, bool plate_settings);
     void set_render_cali(bool value = true) { render_cali_logo = value; }
+    void register_raycasters_for_picking(GLCanvas3D& canvas)
+    {
+        for (auto plate : m_plate_list)
+            plate->register_raycasters_for_picking(canvas);
+    }
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);
@@ -767,6 +782,8 @@ public:
     bool intersects(const BoundingBoxf3 &bb);
     bool contains(const BoundingBoxf3 &bb);
 
+    const std::string &get_logo_texture_filename() { return m_logo_texture_filename; }
+    void               update_logo_texture_filename(const std::string &texture_filename);
     /*slice related functions*/
     //update current slice context into backgroud slicing process
     void update_slice_context_to_current_plate(BackgroundSlicingProcess& process);
@@ -785,6 +802,7 @@ public:
     bool is_all_slice_results_valid() const;
     bool is_all_slice_results_ready_for_print() const;
     bool is_all_plates_ready_for_slice() const;
+    bool is_all_slice_result_ready_for_export() const;
     void print() const;
 
     //get the all the sliced result

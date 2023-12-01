@@ -68,7 +68,6 @@ using namespace std::literals;
 #endif
 
 // #define SLIC3R_DEBUG
-
 // Make assert active if SLIC3R_DEBUG
 #ifdef SLIC3R_DEBUG
     #undef NDEBUG
@@ -912,7 +911,8 @@ bool PrintObject::invalidate_state_by_config_options(
             }
         } else if (
                opt_key == "wall_loops"
-            || opt_key == "only_one_wall_top"
+            || opt_key == "top_one_wall_type"
+            || opt_key == "min_width_top_surface"
             || opt_key == "only_one_wall_first_layer"
             || opt_key == "extra_perimeters_on_overhangs"
             || opt_key == "initial_layer_line_width"
@@ -945,6 +945,8 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "layer_height"
+            || opt_key == "mmu_segmented_region_max_width"
+            || opt_key == "mmu_segmented_region_interlocking_depth"
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
@@ -995,6 +997,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_interface_pattern"
             || opt_key == "support_interface_loop_pattern"
             || opt_key == "support_interface_filament"
+            || opt_key == "support_interface_not_for_body"
             || opt_key == "support_interface_spacing"
             || opt_key == "support_bottom_interface_spacing" //BBS
             || opt_key == "support_base_pattern"
@@ -1095,8 +1098,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
+            || opt_key == "fuzzy_skin_first_layer"
             || opt_key == "detect_overhang_wall"
             || opt_key == "overhang_reverse"
+            || opt_key == "overhang_reverse_internal_only"
             || opt_key == "overhang_reverse_threshold"
             //BBS
             || opt_key == "enable_overhang_speed"
@@ -1105,7 +1110,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "overhang_speed_classic") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
-        } else if (opt_key == "bridge_flow") {
+        } else if (opt_key == "bridge_flow" || opt_key == "internal_bridge_flow") {
             if (m_config.support_top_z_distance > 0.) {
             	// Only invalidate due to bridging if bridging is enabled.
             	// If later "support_top_z_distance" is modified, the complete PrintObject is invalidated anyway.
@@ -3313,6 +3318,13 @@ void PrintObject::combine_infill()
         const bool enable_combine_infill = region.config().infill_combination.value;
         if (enable_combine_infill == false || region.config().sparse_infill_density == 0.)
             continue;
+
+        // Support internal solid infill when sparse_infill_density is 100%
+        const bool          use_solid_infill = fabs(region.config().sparse_infill_density.value - 100.) < EPSILON;
+        const SurfaceType   surface_type     = use_solid_infill ? stInternalSolid : stInternal;
+        const InfillPattern infill_pattern   = use_solid_infill ? region.config().internal_solid_infill_pattern :
+                                                                  region.config().sparse_infill_pattern;
+
         // Limit the number of combined layers to the maximum height allowed by this regions' nozzle.
         //FIXME limit the layer height to max_layer_height
         double nozzle_diameter = std::min(
@@ -3359,10 +3371,10 @@ void PrintObject::combine_infill()
                 layerms.emplace_back(m_layers[i]->regions()[region_id]);
             // We need to perform a multi-layer intersection, so let's split it in pairs.
             // Initialize the intersection with the candidates of the lowest layer.
-            ExPolygons intersection = to_expolygons(layerms.front()->fill_surfaces.filter_by_type(stInternal));
+            ExPolygons intersection = to_expolygons(layerms.front()->fill_surfaces.filter_by_type(surface_type));
             // Start looping from the second layer and intersect the current intersection with it.
             for (size_t i = 1; i < layerms.size(); ++ i)
-                intersection = intersection_ex(layerms[i]->fill_surfaces.filter_by_type(stInternal), intersection);
+                intersection = intersection_ex(layerms[i]->fill_surfaces.filter_by_type(surface_type), intersection);
             double area_threshold = layerms.front()->infill_area_threshold();
             if (! intersection.empty() && area_threshold > 0.)
                 intersection.erase(std::remove_if(intersection.begin(), intersection.end(),
@@ -3382,21 +3394,21 @@ void PrintObject::combine_infill()
                 0.5f * layerms.back()->flow(frPerimeter).scaled_width() +
              // Because fill areas for rectilinear and honeycomb are grown
              // later to overlap perimeters, we need to counteract that too.
-                ((region.config().sparse_infill_pattern == ipRectilinear   ||
-                  region.config().sparse_infill_pattern == ipMonotonic     ||
-                  region.config().sparse_infill_pattern == ipGrid          ||
-                  region.config().sparse_infill_pattern == ipLine          ||
-                  region.config().sparse_infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
+                ((infill_pattern == ipRectilinear   ||
+                  infill_pattern == ipMonotonic     ||
+                  infill_pattern == ipGrid          ||
+                  infill_pattern == ipLine          ||
+                  infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();
             for (ExPolygon &expoly : intersection)
                 polygons_append(intersection_with_clearance, offset(expoly, clearance_offset));
             for (LayerRegion *layerm : layerms) {
-                Polygons internal = to_polygons(std::move(layerm->fill_surfaces.filter_by_type(stInternal)));
-                layerm->fill_surfaces.remove_type(stInternal);
-                layerm->fill_surfaces.append(diff_ex(internal, intersection_with_clearance), stInternal);
+                Polygons internal = to_polygons(std::move(layerm->fill_surfaces.filter_by_type(surface_type)));
+                layerm->fill_surfaces.remove_type(surface_type);
+                layerm->fill_surfaces.append(diff_ex(internal, intersection_with_clearance), surface_type);
                 if (layerm == layerms.back()) {
                     // Apply surfaces back with adjusted depth to the uppermost layer.
-                    Surface templ(stInternal, ExPolygon());
+                    Surface templ(surface_type, ExPolygon());
                     templ.thickness = 0.;
                     for (LayerRegion *layerm2 : layerms)
                         templ.thickness += layerm2->layer()->height;

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-10 14:54+0800\n"
+"POT-Creation-Date: 2023-11-24 18:09+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -101,6 +101,9 @@ msgstr "No auto support"
 msgid "Support Generated"
 msgstr "Support generated"
 
+msgid "Gizmo-Place on Face"
+msgstr ""
+
 msgid "Lay on face"
 msgstr "Lay on Face"
 
@@ -148,8 +151,8 @@ msgstr "Bucket fill"
 msgid "Height range"
 msgstr "Height range"
 
-msgid "Ctrl + Shift + Enter"
-msgstr "Ctrl + Shift + Enter"
+msgid "Alt + Shift + Enter"
+msgstr ""
 
 msgid "Toggle Wireframe"
 msgstr "Toggle Wireframe"
@@ -179,8 +182,14 @@ msgstr "Painted using: Filament %1%"
 msgid "Move"
 msgstr "Move"
 
+msgid "Gizmo-Move"
+msgstr ""
+
 msgid "Rotate"
 msgstr "Rotate"
+
+msgid "Gizmo-Rotate"
+msgstr ""
 
 msgid "Optimize orientation"
 msgstr "Optimize orientation"
@@ -191,11 +200,11 @@ msgstr "Apply"
 msgid "Scale"
 msgstr "Scale"
 
+msgid "Gizmo-Scale"
+msgstr ""
+
 msgid "Error: Please close all toolbar menus first"
 msgstr "Error: Please close all toolbar menus first"
-
-msgid "Tool-Lay on Face"
-msgstr "Tool-Lay on Face"
 
 msgid "in"
 msgstr "in"
@@ -491,6 +500,15 @@ msgstr "Seam painting"
 msgid "Remove selection"
 msgstr "Remove selection"
 
+msgid "Entering Seam painting"
+msgstr ""
+
+msgid "Leaving Seam painting"
+msgstr ""
+
+msgid "Paint-on seam editing"
+msgstr ""
+
 msgid "Font"
 msgstr "Font"
 
@@ -693,6 +711,14 @@ msgstr ""
 msgid "Privacy Policy Update"
 msgstr "Privacy Policy Update"
 
+msgid ""
+"The number of user presets cached in the cloud has exceeded the upper limit, "
+"newly created user presets can only be used locally."
+msgstr ""
+
+msgid "Sync user presets"
+msgstr ""
+
 msgid "Loading"
 msgstr "Loading"
 
@@ -886,8 +912,11 @@ msgstr "Printable"
 msgid "Fix model"
 msgstr "Fix Model"
 
-msgid "Export as STL"
-msgstr "Export as STL"
+msgid "Export as one STL"
+msgstr ""
+
+msgid "Export as STLs"
+msgstr ""
 
 msgid "Reload from disk"
 msgstr "Reload from disk"
@@ -1141,6 +1170,9 @@ msgstr "Click the icon to edit color painting for the object"
 
 msgid "Click the icon to shift this object to the bed"
 msgstr "Click the icon to shift this object to the bed"
+
+msgid " search results"
+msgstr ""
 
 msgid "Loading file"
 msgstr "Loading file"
@@ -1399,6 +1431,18 @@ msgstr "Open next tip"
 msgid "Open Documentation in web browser."
 msgstr "Open documentation in web browser"
 
+msgid "Color"
+msgstr "Color"
+
+msgid "Pause"
+msgstr "Pause"
+
+msgid "Template"
+msgstr ""
+
+msgid "Custom"
+msgstr "Custom"
+
 msgid "Pause:"
 msgstr "Pause:"
 
@@ -1474,8 +1518,8 @@ msgstr ""
 msgid "Failed to connect to the server"
 msgstr "Failed to connect to the server"
 
-msgid "Check cloud service status"
-msgstr "Check cloud service status"
+msgid "Check the status of current system services"
+msgstr "Check the status of current system services"
 
 msgid "code"
 msgstr "code"
@@ -1737,6 +1781,14 @@ msgstr "Sending print job over LAN"
 msgid "Sending print job through cloud service"
 msgstr "Sending print job through cloud service"
 
+msgid "Print task sending times out."
+msgstr ""
+
+msgid ""
+"The printer timed out while receiving a print job. Please check if the "
+"network is functioning properly and send the print again."
+msgstr ""
+
 msgid "Service Unavailable"
 msgstr "Service Unavailable"
 
@@ -1957,11 +2009,11 @@ msgstr "Are you sure you want to clear the filament information?"
 msgid "You need to select the material type and color first."
 msgstr "You need to select the material type and color first."
 
-msgid "Please input a valid value (K in 0~0.5)"
-msgstr "Please input a valid value (K in 0~0.5)"
+msgid "Please input a valid value (K in 0~0.3)"
+msgstr ""
 
-msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-msgstr "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
+msgstr ""
 
 msgid "Other Color"
 msgstr "Other Color"
@@ -2343,9 +2395,6 @@ msgstr "Rectangular"
 
 msgid "Circular"
 msgstr "Circular"
-
-msgid "Custom"
-msgstr "Custom"
 
 msgid "Load shape from STL..."
 msgstr "Load shape from STL..."
@@ -2832,6 +2881,9 @@ msgstr "Flushed"
 msgid "Total"
 msgstr "Total"
 
+msgid "Tower"
+msgstr ""
+
 msgid "Total Estimation"
 msgstr "Total estimation"
 
@@ -2919,14 +2971,17 @@ msgstr "Color change"
 msgid "Print"
 msgstr "Print"
 
-msgid "Pause"
-msgstr "Pause"
-
 msgid "Printer"
 msgstr "Printer"
 
 msgid "Print settings"
 msgstr "Print settings"
+
+msgid "Custom g-code"
+msgstr ""
+
+msgid "ToolChange"
+msgstr ""
 
 msgid "Time Estimation"
 msgstr "Time Estimation"
@@ -3096,7 +3151,7 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Size:"
 
-#, c-format, boost-format
+#, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -3157,14 +3212,14 @@ msgstr "Calibration Flow"
 msgid "Start Calibration"
 msgstr "Start Calibration"
 
-msgid "No step selected"
-msgstr ""
-
 msgid "Completed"
 msgstr "Completed"
 
 msgid "Calibrating"
 msgstr "Calibrating"
+
+msgid "No step selected"
+msgstr ""
 
 msgid "Auto-record Monitoring"
 msgstr "Auto-record Monitoring"
@@ -3380,8 +3435,11 @@ msgstr "Load configs"
 msgid "Import"
 msgstr "Import"
 
-msgid "Export all objects as STL"
-msgstr "Export All Objects as STL"
+msgid "Export all objects as one STL"
+msgstr ""
+
+msgid "Export all objects as STLs"
+msgstr ""
 
 msgid "Export Generic 3MF"
 msgstr "Export Generic 3MF"
@@ -3655,9 +3713,6 @@ msgstr "Initialization failed (No Camera Device)!"
 msgid "Printer is busy downloading, Please wait for the downloading to finish."
 msgstr "Printer is busy downloading; please wait for the download to finish."
 
-msgid "Loading..."
-msgstr "Loading..."
-
 msgid "Initialize failed (Not supported on the current printer version)!"
 msgstr ""
 
@@ -3719,6 +3774,9 @@ msgstr "Playing..."
 #, c-format, boost-format
 msgid "Load failed [%d]!"
 msgstr "Loading failed [%d]!"
+
+msgid "Loading..."
+msgstr "Loading..."
 
 msgid "Year"
 msgstr "Year"
@@ -3837,10 +3895,23 @@ msgstr "Download finished"
 msgid "Downloading %d%%..."
 msgstr "Downloading %d%%..."
 
+msgid "Connection lost. Please retry."
+msgstr ""
+
+msgid "File not exists."
+msgstr ""
+
+msgid "File checksum error. Please retry."
+msgstr ""
+
 msgid "Not supported on the current printer version."
 msgstr ""
 
 msgid "Storage unavailable, insert SD card."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error code: %d"
 msgstr ""
 
 msgid "Speed:"
@@ -4173,6 +4244,12 @@ msgstr "New network plug-in available"
 msgid "Details"
 msgstr "Details"
 
+msgid "New printer config available."
+msgstr ""
+
+msgid "Wiki"
+msgstr ""
+
 msgid "Undo integration failed."
 msgstr "Undo integration failed."
 
@@ -4220,9 +4297,6 @@ msgstr "COMPLETED"
 
 msgid "Cancel upload"
 msgstr "Cancel upload"
-
-msgid "Slice ok."
-msgstr "Slice complete"
 
 msgid "Jump to"
 msgstr "Jump to"
@@ -4329,6 +4403,9 @@ msgstr "Auto-recover from step loss"
 msgid "Allow Prompt Sound"
 msgstr ""
 
+msgid "Fliament Tangle Detect"
+msgstr ""
+
 msgid "Global"
 msgstr "Global"
 
@@ -4422,6 +4499,9 @@ msgstr "Synchronize filament list from AMS"
 
 msgid "Set filaments to use"
 msgstr "Set filaments to use"
+
+msgid "Search plate, object and part."
+msgstr ""
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -4520,26 +4600,29 @@ msgid "The 3mf is generated by old Orca Slicer, load geometry data only."
 msgstr ""
 
 #, c-format, boost-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+msgid "This slicer file version %s is newer than %s's version:"
 msgstr ""
-"The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
 
-msgid "You'd better upgrade your software.\n"
-msgstr "You should update your software.\n"
+msgid ""
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?\n"
+msgstr ""
 
 msgid "Newer 3mf version"
 msgstr "Newer 3mf version"
 
+msgid ""
+"you can always update Bambu Studio at your convenience. The slicer file will "
+"now be loaded without full functionality."
+msgstr ""
+
 #, c-format, boost-format
 msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
+"This slicer file version %s is newer than %s's version.\n"
+"\n"
+"Would you like to update your Bambu Studio software to enable all "
+"functionality in this slicer file?"
 msgstr ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
 
 msgid "Invalid values found in the 3mf:"
 msgstr "Invalid values found in the 3mf:"
@@ -4547,11 +4630,27 @@ msgstr "Invalid values found in the 3mf:"
 msgid "Please correct them in the param tabs"
 msgstr "Please correct them in the Param tabs"
 
-msgid "The 3mf is not compatible, load geometry data only!"
-msgstr "The 3mf is not compatible, loading geometry data only!"
+msgid "The 3mf has following modified G-codes in filament or printer presets:"
+msgstr ""
 
-msgid "Incompatible 3mf"
-msgstr "Incompatible 3mf"
+msgid ""
+"Please confirm that these modified G-codes are safe to prevent any damage to "
+"the machine!"
+msgstr ""
+
+msgid "Modified G-codes"
+msgstr ""
+
+msgid "The 3mf has following customized filament or printer presets:"
+msgstr ""
+
+msgid ""
+"Please confirm that the G-codes within these presets are safe to prevent any "
+"damage to the machine!"
+msgstr ""
+
+msgid "Customized Preset"
+msgstr ""
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Component name(s) inside step file not in UTF8 format!"
@@ -4623,6 +4722,15 @@ msgstr "Save file as"
 msgid "Export OBJ file:"
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"The file %s already exists\n"
+"Do you want to replace it?"
+msgstr ""
+
+msgid "Comfirm Save As"
+msgstr ""
+
 msgid "Delete object which is a part of cut object"
 msgstr "Delete object which is a part of cut object"
 
@@ -4641,14 +4749,14 @@ msgstr "The selected object couldn't be split."
 msgid "Another export job is running."
 msgstr "Another export job is running."
 
-msgid "Replace from:"
-msgstr ""
-
 msgid "Unable to replace with more than one volume"
 msgstr ""
 
 msgid "Error during replace"
 msgstr "Error during replacement"
+
+msgid "Replace from:"
+msgstr ""
 
 msgid "Select a new file"
 msgstr "Select a new file"
@@ -5018,6 +5126,12 @@ msgstr ""
 msgid "If enabled, g-code window will be displayed."
 msgstr ""
 
+msgid "Flushing volumes: Auto-calculate everytime the color changed."
+msgstr ""
+
+msgid "If enabled, auto-calculate everytime the color changed."
+msgstr ""
+
 msgid "Presets"
 msgstr "Presets"
 
@@ -5071,6 +5185,9 @@ msgstr "Maximum count of recent projects"
 
 msgid "Clear my choice on the unsaved projects."
 msgstr "Clear my choice on the unsaved projects."
+
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr ""
 
 msgid "Auto-Backup"
 msgstr "Auto-Backup"
@@ -5225,8 +5342,11 @@ msgstr "Add/Remove filament"
 msgid "Add/Remove materials"
 msgstr "Add/Remove materials"
 
-msgid "Add/Remove printers"
-msgstr "Add/Remove printers"
+msgid "Select/Remove printers(system presets)"
+msgstr ""
+
+msgid "Create printer"
+msgstr ""
 
 msgid "Incompatible"
 msgstr "Incompatible"
@@ -5409,16 +5529,16 @@ msgstr "Bambu Cool Plate"
 msgid "PLA Plate"
 msgstr "PLA Plate"
 
-msgid "Bambu Engineering Plate"
-msgstr ""
+msgid "Bamabu Engineering Plate"
+msgstr "Bambu Engineering Plate"
 
-msgid "Bambu Smooth PEI Plate"
+msgid "Bamabu Smooth PEI Plate"
 msgstr ""
 
 msgid "High temperature Plate"
 msgstr ""
 
-msgid "Bambu Textured PEI Plate"
+msgid "Bamabu Textured PEI Plate"
 msgstr ""
 
 msgid "Send print job to"
@@ -5441,9 +5561,6 @@ msgstr "Send complete"
 
 msgid "Error code"
 msgstr "Error code"
-
-msgid "Check the status of current system services"
-msgstr "Check the status of current system services"
 
 msgid "Printer local connection failed, please try again."
 msgstr "Printer local connection failed; please try again."
@@ -5548,8 +5665,7 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When print by object, machines with I3 structure will not generate timelapse "
-"videos."
+"Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
 
 msgid "Errors"
@@ -5567,10 +5683,6 @@ msgstr ""
 "currently selected printer. It is recommended that you use the same printer "
 "type for slicing."
 
-#, c-format, boost-format
-msgid "%s is not supported by AMS."
-msgstr "%s is not supported by the AMS."
-
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
 "they are the required filaments. If they are okay, press \"Confirm\" to "
@@ -5580,10 +5692,33 @@ msgstr ""
 "they are the required filaments. If they are okay, click \"Confirm\" to "
 "start printing."
 
+#, c-format, boost-format
+msgid "nozzle in preset: %s %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "nozzle memorized: %.1f %s"
+msgstr ""
+
+msgid ""
+"Your nozzle diameter in preset is not consistent with memorized nozzle "
+"diameter. Did you change your nozzle lately?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "*Printing %s material with %s may cause nozzle damage"
+msgstr ""
+
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr ""
 "Please click the confirm button if you still want to proceed with printing."
+
+msgid "Hardened Steel"
+msgstr ""
+
+msgid "Stainless Steel"
+msgstr ""
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5767,6 +5902,9 @@ msgid ""
 msgstr ""
 "A prime tower is required for smooth timelapse mode. There may be flaws on "
 "the model without prime tower. Do you want to enable the prime tower?"
+
+msgid "Still print by object?"
+msgstr ""
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -6075,6 +6213,9 @@ msgstr "Machine start G-code"
 msgid "Machine end G-code"
 msgstr "Machine end G-code"
 
+msgid "Printing by object G-code"
+msgstr ""
+
 msgid "Before layer change G-code"
 msgstr "Before layer change G-code"
 
@@ -6141,6 +6282,25 @@ msgstr ""
 msgid "Detached"
 msgstr "Detached"
 
+#, c-format, boost-format
+msgid ""
+"%d Filament Preset and %d Process Preset is attached to this printer. Those "
+"presets would be deleted if the printer is deleted."
+msgstr ""
+
+msgid "Presets inherited by other presets can not be deleted!"
+msgstr ""
+
+msgid "The following presets inherit this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRN  Remove/Delete
+#, boost-format
+msgid "%1% Preset"
+msgstr "%1% Preset"
+
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "The following preset will be deleted too:"
@@ -6149,11 +6309,6 @@ msgstr[1] "The following presets will be deleted too:"
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Are you sure you want to %1% the selected preset?"
-
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% Preset"
 
 msgid "All"
 msgstr "All"
@@ -6395,11 +6550,17 @@ msgstr ""
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
 
+msgid "Re-calculate"
+msgstr ""
+
 msgid "Flushing volumes for filament change"
 msgstr "Flushing volumes for filament change"
 
-msgid "Multiplier"
-msgstr "Multiplier"
+msgid ""
+"Studio would re-calculate your flushing volumes everytime the filaments "
+"color changed. You could disable the auto-calculate in Bambu Studio > "
+"Preferences"
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Flushing volume (mm³) for each filament pair."
@@ -6411,6 +6572,9 @@ msgstr "Suggestion: Flushing Volume in range [%d, %d]"
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr "The multiplier should be in range [%.2f, %.2f]."
+
+msgid "Multiplier"
+msgstr "Multiplier"
 
 msgid "unloaded"
 msgstr "unloaded"
@@ -6426,6 +6590,12 @@ msgstr "From"
 
 msgid "To"
 msgstr "To"
+
+msgid "Bambu Network plug-in not detected."
+msgstr ""
+
+msgid "Click here to download it."
+msgstr ""
 
 msgid "Login"
 msgstr "Login"
@@ -6459,6 +6629,9 @@ msgstr "Paste from clipboard"
 
 msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "Show/Hide 3Dconnexion devices settings dialog"
+
+msgid "Switch table page"
+msgstr ""
 
 msgid "Show keyboard shortcuts list"
 msgstr "Show keyboard shortcuts list"
@@ -6710,11 +6883,14 @@ msgstr "A new network plug-in (%s) is available. Do you want to install it?"
 msgid "New version of Orca Slicer"
 msgstr "New version of Orca Slicer"
 
-msgid "Don't remind me of this version again"
-msgstr "Don't remind me about this version again."
+msgid "Skip this Version"
+msgstr ""
 
 msgid "Done"
 msgstr "Done"
+
+msgid "Confirm and Update Nozzle"
+msgstr ""
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN Connection Failed (Sending print file)"
@@ -6740,8 +6916,22 @@ msgstr "Access Code"
 msgid "Where to find your printer's IP and Access Code?"
 msgstr "Where to find your printer's IP and Access Code?"
 
-msgid "Error: IP or Access Code are not correct"
-msgstr "Error: IP or Access Code are not correct"
+msgid "Step 3: Ping the IP address to check for packet loss and latency."
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr ""
+
+msgid "Connection failed, please double check IP and Access Code"
+msgstr ""
+
+msgid ""
+"Connection failed! If your IP and Access Code is correct, \n"
+"please move to step 3 for troubleshooting network issues"
+msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
@@ -7196,6 +7386,11 @@ msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Layer height cannot exceed nozzle diameter."
 
 msgid ""
+"Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
+"Layer height limits"
+msgstr ""
+
+msgid ""
 "Relative extruder addressing requires resetting the extruder position at "
 "each layer to prevent loss of floating point accuracy. Add \"G92 E0\" to "
 "layer_gcode."
@@ -7640,7 +7835,28 @@ msgstr ""
 msgid ""
 "Extrude perimeters that have a part over an overhang in the reverse "
 "direction on odd layers. This alternating pattern can drastically improve "
-"steep overhang."
+"steep overhangs.\n"
+"\n"
+"This setting can also help reduce part warping due to the reduction of "
+"stresses in the part walls."
+msgstr ""
+
+msgid "Reverse only internal perimeters"
+msgstr ""
+
+msgid ""
+"Apply the reverse perimeters logic only on internal perimeters. \n"
+"\n"
+"This setting greatly reduces part stresses as they are now distributed in "
+"alternating directions. This should reduce part warping while also "
+"maintaining external wall quality. This feature can be very useful for warp "
+"prone material, like ABS/ASA, and also for elastic filaments, like TPU and "
+"Silk PLA. It can also help reduce warping on floating regions over "
+"supports.\n"
+"\n"
+"For this setting to be the most effective, it is recomended to set the "
+"Reverse Threshold to 0 so that all internal walls print in alternating "
+"directions on odd layers irrespective of their overhang degree."
 msgstr ""
 
 msgid "Reverse threshold"
@@ -7881,6 +8097,14 @@ msgstr "End G-code"
 msgid "End G-code when finish the whole printing"
 msgstr "Add end G-Code when finishing the entire print."
 
+msgid "Between Object Gcode"
+msgstr ""
+
+msgid ""
+"Insert Gcode between objects. This parameter will only come into effect when "
+"you print your models object by object"
+msgstr ""
+
 msgid "End G-code when finish the printing of this filament"
 msgstr "Add end G-code when finishing the printing of this filament."
 
@@ -7969,26 +8193,26 @@ msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr ""
 
-msgid "Order of inner wall/outer wall/infil"
-msgstr "Order of inner wall/outer wall/infill"
+msgid "Order of walls"
+msgstr ""
 
-msgid "Print sequence of inner wall, outer wall and infill. "
-msgstr "This is the print sequence of inner walls, outer walls, and infill."
+msgid "Print sequence of inner wall and outer wall. "
+msgstr ""
 
-msgid "inner/outer/infill"
-msgstr "inner/outer/infill"
+msgid "inner/outer"
+msgstr ""
 
-msgid "outer/inner/infill"
-msgstr "outer/inner/infill"
+msgid "outer/inner"
+msgstr ""
 
-msgid "infill/inner/outer"
-msgstr "infill/inner/outer"
+msgid "inner wall/outer wall/inner wall"
+msgstr ""
 
-msgid "infill/outer/inner"
-msgstr "infill/outer/inner"
+msgid "Print infill first"
+msgstr ""
 
-msgid "inner-outer-inner/infill"
-msgstr "inner-outer-inner/infill"
+msgid "Order of wall/infill. false means print wall first. "
+msgstr ""
 
 msgid "Height to rod"
 msgstr "Height to rod"
@@ -8086,9 +8310,6 @@ msgstr "Default color"
 
 msgid "Default filament color"
 msgstr "Default filament color"
-
-msgid "Color"
-msgstr "Color"
 
 msgid "Filament notes"
 msgstr ""
@@ -8470,10 +8691,6 @@ msgid ""
 "Klipper's max_accel_to_decel will be adjusted to this %% of acceleration"
 msgstr ""
 
-#, c-format, boost-format
-msgid "%%"
-msgstr ""
-
 msgid "Jerk of outer walls"
 msgstr ""
 
@@ -8833,6 +9050,18 @@ msgid ""
 "Force the generation of solid shells between adjacent materials/volumes. "
 "Useful for multi-extruder prints with translucent materials or manual "
 "soluble support material"
+msgstr ""
+
+msgid "Maximum width of a segmented region"
+msgstr ""
+
+msgid "Maximum width of a segmented region. Zero disables this feature."
+msgstr ""
+
+msgid "Interlocking depth of a segmented region"
+msgstr ""
+
+msgid "Interlocking depth of a segmented region. Zero disables this feature."
 msgstr ""
 
 msgid "Ironing Type"
@@ -9373,6 +9602,22 @@ msgstr ""
 "hitting the print when traveling more. Using spiral lines to lift z can "
 "prevent stringing."
 
+msgid "Z hop lower boundary"
+msgstr ""
+
+msgid ""
+"Z hop will only come into effect when Z is above this value and is below the "
+"parameter: \"Z hop upper boundary\""
+msgstr ""
+
+msgid "Z hop upper boundary"
+msgstr ""
+
+msgid ""
+"If this value is positive, Z hop will only come into effect when Z is above "
+"the parameter: \"Z hop lower boundary\" and is below this value"
+msgstr ""
+
 msgid "Z hop type"
 msgstr ""
 
@@ -9789,6 +10034,12 @@ msgstr ""
 "Filament to print support bases and rafts. \"Default\" means no specific "
 "filament for support, and current filament is used"
 
+msgid "No interface filament for body"
+msgstr ""
+
+msgid "Don't use support interface filament to print support body"
+msgstr ""
+
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
 "nozzle diameter."
@@ -9821,6 +10072,12 @@ msgstr "This is the number of top interface layers."
 
 msgid "Bottom interface layers"
 msgstr "Bottom interface layers"
+
+msgid "Number of bottom interface layers"
+msgstr ""
+
+msgid "Same as top"
+msgstr ""
 
 msgid "Top interface spacing"
 msgstr "Top interface spacing"
@@ -10475,68 +10732,11 @@ msgstr "too large line width "
 msgid " not in range "
 msgstr " not in range "
 
-msgid "Export 3MF"
-msgstr "Export 3mf"
-
-msgid "Export project as 3MF."
-msgstr "This exports the project as a 3mf file."
-
-msgid "Export slicing data"
-msgstr "Export slicing data"
-
-msgid "Export slicing data to a folder."
-msgstr "Export slicing data to a folder"
-
-msgid "Load slicing data"
-msgstr "Load slicing data"
-
-msgid "Load cached slicing data from directory"
-msgstr "Load cached slicing data from directory"
-
-msgid "Export STL"
-msgstr ""
-
-msgid "Export the objects as multiple STL."
-msgstr ""
-
-msgid "Slice"
-msgstr "Slice"
-
-msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
-msgstr "Slice the plates: 0-all plates, i-plate i, others-invalid"
-
-msgid "Show command help."
-msgstr "This shows command help."
-
-msgid "UpToDate"
-msgstr "UpToDate"
-
-msgid "Update the configs values of 3mf to latest."
-msgstr "Update the configs values of 3mf to latest."
-
-msgid "Load default filaments"
-msgstr ""
-
-msgid "Load first filament as default for those not loaded"
-msgstr ""
-
 msgid "Minimum save"
 msgstr ""
 
 msgid "export 3mf with minimum size."
 msgstr ""
-
-msgid "mtcpp"
-msgstr "mtcpp"
-
-msgid "max triangle count per plate for slicing."
-msgstr "max triangle count per plate for slicing"
-
-msgid "mstpp"
-msgstr "mstpp"
-
-msgid "max slicing time per plate in seconds."
-msgstr "max slicing time per plate in seconds"
 
 msgid "No check"
 msgstr "No check"
@@ -10544,54 +10744,12 @@ msgstr "No check"
 msgid "Do not run any validity checks, such as gcode path conflicts check."
 msgstr "Do not run any validity checks, such as G-code path conflicts check."
 
-msgid "Normative check"
-msgstr "Normative check"
-
-msgid "Check the normative items."
-msgstr "Check the normative items."
-
-msgid "Output Model Info"
-msgstr "Output Model Info"
-
-msgid "Output the model's information."
-msgstr "This outputs the model’s information."
-
-msgid "Export Settings"
-msgstr "Export Settings"
-
-msgid "Export settings to a file."
-msgstr "This exports settings to a file."
-
-msgid "Send progress to pipe"
-msgstr "Send progress to pipe"
-
-msgid "Send progress to pipe."
-msgstr "Send progress to pipe."
-
-msgid "Arrange Options"
-msgstr "Arrange Options"
-
-msgid "Arrange options: 0-disable, 1-enable, others-auto"
-msgstr "Arrange options: 0-disable, 1-enable, others-auto"
-
-msgid "Repetions count"
-msgstr ""
-
-msgid "Repetions count of the whole model"
-msgstr ""
-
 msgid "Ensure on bed"
 msgstr ""
 
 msgid ""
 "Lift the object above the bed when it is partially below. Disabled by default"
 msgstr ""
-
-msgid "Convert Unit"
-msgstr "Convert Unit"
-
-msgid "Convert the units of model"
-msgstr "Convert the units of model"
 
 msgid "Orient Options"
 msgstr ""
@@ -10602,45 +10760,10 @@ msgstr ""
 msgid "Rotation angle around the Z axis in degrees."
 msgstr ""
 
-msgid "Rotate around X"
-msgstr ""
-
-msgid "Rotation angle around the X axis in degrees."
-msgstr ""
-
 msgid "Rotate around Y"
 msgstr ""
 
 msgid "Rotation angle around the Y axis in degrees."
-msgstr ""
-
-msgid "Scale the model by a float factor"
-msgstr "Scale the model by a float factor"
-
-msgid "Load General Settings"
-msgstr "Load General Settings"
-
-msgid "Load process/machine settings from the specified file"
-msgstr "Load process/machine settings from the specified file"
-
-msgid "Load Filament Settings"
-msgstr "Load Filament Settings"
-
-msgid "Load filament settings from the specified file list"
-msgstr "Load filament settings from the specified file list"
-
-msgid "Skip Objects"
-msgstr "Skip Objects"
-
-msgid "Skip some objects in this print"
-msgstr "Skip some objects in this print"
-
-msgid "load uptodate process/machine settings when using uptodate"
-msgstr ""
-
-msgid ""
-"load uptodate process/machine settings from the specified file when using "
-"uptodate"
 msgstr ""
 
 msgid "Data directory"
@@ -10651,22 +10774,6 @@ msgid ""
 "maintaining different profiles or including configurations from a network "
 "storage."
 msgstr ""
-
-msgid "Output directory"
-msgstr "Output directory"
-
-msgid "Output directory for the exported files."
-msgstr "This is the output directory for exported files."
-
-msgid "Debug level"
-msgstr "Debug level"
-
-msgid ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
-msgstr ""
-"Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
-"trace\n"
 
 msgid "Load custom gcode"
 msgstr ""
@@ -10831,9 +10938,6 @@ msgstr ""
 msgid "Finish"
 msgstr "Finish"
 
-msgid "Wiki"
-msgstr ""
-
 msgid "How to use calibration result?"
 msgstr ""
 
@@ -10847,6 +10951,12 @@ msgid ""
 msgstr ""
 
 msgid "Calibration not supported"
+msgstr ""
+
+msgid "Error desc"
+msgstr ""
+
+msgid "Extra info"
 msgstr ""
 
 msgid "Flow Dynamics"
@@ -10876,8 +10986,8 @@ msgstr ""
 msgid "The name cannot be empty."
 msgstr ""
 
-#, boost-format
-msgid "The selected preset: %1% is not found."
+#, c-format, boost-format
+msgid "The selected preset: %s is not found."
 msgstr ""
 
 msgid "The name cannot be the same as the system preset name."
@@ -11157,12 +11267,6 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)"
 msgstr ""
 
-msgid "Error desc"
-msgstr ""
-
-msgid "Extra info"
-msgstr ""
-
 msgid "Pattern"
 msgstr ""
 
@@ -11249,101 +11353,6 @@ msgstr ""
 msgid ""
 "There are several IP addresses resolving to hostname %1%.\n"
 "Please select one that should be used."
-msgstr ""
-
-msgid "Unable to perform boolean operation on selected parts"
-msgstr ""
-
-msgid "Mesh Boolean"
-msgstr ""
-
-msgid "Union"
-msgstr ""
-
-msgid "Difference"
-msgstr ""
-
-msgid "Intersection"
-msgstr ""
-
-msgid "Source Volume"
-msgstr ""
-
-msgid "Tool Volume"
-msgstr ""
-
-msgid "Subtract from"
-msgstr ""
-
-msgid "Subtract with"
-msgstr ""
-
-msgid "selected"
-msgstr ""
-
-msgid "Part 1"
-msgstr ""
-
-msgid "Part 2"
-msgstr ""
-
-msgid "Delete input"
-msgstr ""
-
-msgid "Send G-Code to printer host"
-msgstr ""
-
-msgid "Upload to Printer Host with the following filename:"
-msgstr ""
-
-msgid "Use forward slashes ( / ) as a directory separator if needed."
-msgstr ""
-
-msgid "Upload to storage"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
-msgstr ""
-
-msgid "Upload"
-msgstr ""
-
-msgid "Print host upload queue"
-msgstr ""
-
-msgid "ID"
-msgstr ""
-
-msgid "Progress"
-msgstr ""
-
-msgid "Host"
-msgstr ""
-
-msgctxt "OfFile"
-msgid "Size"
-msgstr ""
-
-msgid "Filename"
-msgstr ""
-
-msgid "Cancel selected"
-msgstr ""
-
-msgid "Show error message"
-msgstr ""
-
-msgid "Enqueued"
-msgstr ""
-
-msgid "Uploading"
-msgstr "Uploading"
-
-msgid "Cancelling"
-msgstr ""
-
-msgid "Error uploading to print host"
 msgstr ""
 
 msgid "PA Calibration"
@@ -11470,66 +11479,106 @@ msgstr ""
 msgid "mm/mm"
 msgstr ""
 
-#, fuzzy
-msgid "Physical Printer"
-msgstr "Printer"
-
-msgid "Print Host upload"
+msgid "Send G-Code to printer host"
 msgstr ""
 
-msgid "Test"
+msgid "Upload to Printer Host with the following filename:"
 msgstr ""
 
-msgid "Could not get a valid Printer Host reference"
+msgid "Use forward slashes ( / ) as a directory separator if needed."
 msgstr ""
 
-msgid "Success!"
-msgstr ""
-
-msgid "Refresh Printers"
-msgstr ""
-
-msgid ""
-"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-"signed certificate."
-msgstr ""
-
-msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-msgstr ""
-
-msgid "Open CA certificate file"
+msgid "Upload to storage"
 msgstr ""
 
 #, c-format, boost-format
+msgid "Upload filename doesn't end with \"%s\". Do you wish to continue?"
+msgstr ""
+
+msgid "Upload"
+msgstr ""
+
+msgid "Print host upload queue"
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Progress"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgctxt "OfFile"
+msgid "Size"
+msgstr ""
+
+msgid "Filename"
+msgstr ""
+
+msgid "Cancel selected"
+msgstr ""
+
+msgid "Show error message"
+msgstr ""
+
+msgid "Enqueued"
+msgstr ""
+
+msgid "Uploading"
+msgstr "Uploading"
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Error uploading to print host"
+msgstr ""
+
+msgid "Unable to perform boolean operation on selected parts"
+msgstr ""
+
+msgid "Mesh Boolean"
+msgstr ""
+
+msgid "Union"
+msgstr ""
+
+msgid "Difference"
+msgstr ""
+
+msgid "Intersection"
+msgstr ""
+
+msgid "Source Volume"
+msgstr ""
+
+msgid "Tool Volume"
+msgstr ""
+
+msgid "Subtract from"
+msgstr ""
+
+msgid "Subtract with"
+msgstr ""
+
+msgid "selected"
+msgstr ""
+
+msgid "Part 1"
+msgstr ""
+
+msgid "Part 2"
+msgstr ""
+
+msgid "Delete input"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
-"On this system, %s uses HTTPS certificates from the system Certificate Store "
-"or Keychain."
-msgstr ""
-
-msgid ""
-"To use a custom CA file, please import your CA file into Certificate Store / "
-"Keychain."
-msgstr ""
-
-msgid "Connection to printers connected via the print host failed."
-msgstr ""
-
-msgid "The start, end or step is not valid value."
-msgstr ""
-
-msgid ""
-"Unable to calibrate: maybe because the set calibration value range is too "
-"large, or the step is too small"
-msgstr ""
-
-msgid "Need select printer"
-msgstr ""
-
-#: resources/data/hints.ini: [hint:3D Scene Operations]
-msgid ""
-"3D Scene Operations\n"
-"Did you know how to control view and object/part selection with mouse and "
-"touchpanel in the 3D scene?"
+"How to use keyboard shortcuts\n"
+"Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
+"3D scene operations."
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Cut Tool]
@@ -11543,7 +11592,7 @@ msgstr ""
 msgid ""
 "Fix Model\n"
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
-"problems?"
+"problems on the Windows system?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Timelapse]
@@ -11578,6 +11627,13 @@ msgid ""
 "Object List\n"
 "Did you know that you can view all objects/parts in a list and change "
 "settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Search Functionality]
+msgid ""
+"Search Functionality\n"
+"Did you know that you use the Search tool to quickly find a specific Orca "
+"Slicer setting?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:Simplify Model]
@@ -11713,10 +11769,223 @@ msgstr ""
 #: opened]
 msgid ""
 "When need to print with the printer door opened\n"
-"Opening the printer door can reduce the probability of extruder/hotend "
-"clogging when printing lower temperature filament with a higher enclosure "
-"temperature. More info about this in the Wiki."
+"Did you know that opening the printer door can reduce the probability of "
+"extruder/hotend clogging when printing lower temperature filament with a "
+"higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+
+#: resources/data/hints.ini: [hint:Avoid warping]
+msgid ""
+"Avoid warping\n"
+"Did you know that when printing materials that are prone to warping such as "
+"ABS, appropriately increasing the heatbed temperature can reduce the "
+"probability of warping."
+msgstr ""
+
+#~ msgid "Ctrl + Shift + Enter"
+#~ msgstr "Ctrl + Shift + Enter"
+
+#~ msgid "Tool-Lay on Face"
+#~ msgstr "Tool-Lay on Face"
+
+#~ msgid "Export as STL"
+#~ msgstr "Export as STL"
+
+#~ msgid "Check cloud service status"
+#~ msgstr "Check cloud service status"
+
+#~ msgid "Please input a valid value (K in 0~0.5)"
+#~ msgstr "Please input a valid value (K in 0~0.5)"
+
+#~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+#~ msgstr "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+
+#~ msgid "Export all objects as STL"
+#~ msgstr "Export All Objects as STL"
+
+#~ msgid "Slice ok."
+#~ msgstr "Slice complete"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+#~ msgstr ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:"
+
+#~ msgid "You'd better upgrade your software.\n"
+#~ msgstr "You should update your software.\n"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+#~ msgstr ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software."
+
+#~ msgid "The 3mf is not compatible, load geometry data only!"
+#~ msgstr "The 3mf is not compatible, loading geometry data only!"
+
+#~ msgid "Incompatible 3mf"
+#~ msgstr "Incompatible 3mf"
+
+#~ msgid "Add/Remove printers"
+#~ msgstr "Add/Remove printers"
+
+#, c-format, boost-format
+#~ msgid "%s is not supported by AMS."
+#~ msgstr "%s is not supported by the AMS."
+
+#~ msgid "Don't remind me of this version again"
+#~ msgstr "Don't remind me about this version again."
+
+#~ msgid "Error: IP or Access Code are not correct"
+#~ msgstr "Error: IP or Access Code are not correct"
+
+#~ msgid "Order of inner wall/outer wall/infil"
+#~ msgstr "Order of inner wall/outer wall/infill"
+
+#~ msgid "Print sequence of inner wall, outer wall and infill. "
+#~ msgstr "This is the print sequence of inner walls, outer walls, and infill."
+
+#~ msgid "inner/outer/infill"
+#~ msgstr "inner/outer/infill"
+
+#~ msgid "outer/inner/infill"
+#~ msgstr "outer/inner/infill"
+
+#~ msgid "infill/inner/outer"
+#~ msgstr "infill/inner/outer"
+
+#~ msgid "infill/outer/inner"
+#~ msgstr "infill/outer/inner"
+
+#~ msgid "inner-outer-inner/infill"
+#~ msgstr "inner-outer-inner/infill"
+
+#~ msgid "Export 3MF"
+#~ msgstr "Export 3mf"
+
+#~ msgid "Export project as 3MF."
+#~ msgstr "This exports the project as a 3mf file."
+
+#~ msgid "Export slicing data"
+#~ msgstr "Export slicing data"
+
+#~ msgid "Export slicing data to a folder."
+#~ msgstr "Export slicing data to a folder"
+
+#~ msgid "Load slicing data"
+#~ msgstr "Load slicing data"
+
+#~ msgid "Load cached slicing data from directory"
+#~ msgstr "Load cached slicing data from directory"
+
+#~ msgid "Slice"
+#~ msgstr "Slice"
+
+#~ msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
+#~ msgstr "Slice the plates: 0-all plates, i-plate i, others-invalid"
+
+#~ msgid "Show command help."
+#~ msgstr "This shows command help."
+
+#~ msgid "UpToDate"
+#~ msgstr "UpToDate"
+
+#~ msgid "Update the configs values of 3mf to latest."
+#~ msgstr "Update the configs values of 3mf to latest."
+
+#~ msgid "mtcpp"
+#~ msgstr "mtcpp"
+
+#~ msgid "max triangle count per plate for slicing."
+#~ msgstr "max triangle count per plate for slicing"
+
+#~ msgid "mstpp"
+#~ msgstr "mstpp"
+
+#~ msgid "max slicing time per plate in seconds."
+#~ msgstr "max slicing time per plate in seconds"
+
+#~ msgid "Normative check"
+#~ msgstr "Normative check"
+
+#~ msgid "Check the normative items."
+#~ msgstr "Check the normative items."
+
+#~ msgid "Output Model Info"
+#~ msgstr "Output Model Info"
+
+#~ msgid "Output the model's information."
+#~ msgstr "This outputs the model’s information."
+
+#~ msgid "Export Settings"
+#~ msgstr "Export Settings"
+
+#~ msgid "Export settings to a file."
+#~ msgstr "This exports settings to a file."
+
+#~ msgid "Send progress to pipe"
+#~ msgstr "Send progress to pipe"
+
+#~ msgid "Send progress to pipe."
+#~ msgstr "Send progress to pipe."
+
+#~ msgid "Arrange Options"
+#~ msgstr "Arrange Options"
+
+#~ msgid "Arrange options: 0-disable, 1-enable, others-auto"
+#~ msgstr "Arrange options: 0-disable, 1-enable, others-auto"
+
+#~ msgid "Convert Unit"
+#~ msgstr "Convert Unit"
+
+#~ msgid "Convert the units of model"
+#~ msgstr "Convert the units of model"
+
+#~ msgid "Scale the model by a float factor"
+#~ msgstr "Scale the model by a float factor"
+
+#~ msgid "Load General Settings"
+#~ msgstr "Load General Settings"
+
+#~ msgid "Load process/machine settings from the specified file"
+#~ msgstr "Load process/machine settings from the specified file"
+
+#~ msgid "Load Filament Settings"
+#~ msgstr "Load Filament Settings"
+
+#~ msgid "Load filament settings from the specified file list"
+#~ msgstr "Load filament settings from the specified file list"
+
+#~ msgid "Skip Objects"
+#~ msgstr "Skip Objects"
+
+#~ msgid "Skip some objects in this print"
+#~ msgstr "Skip some objects in this print"
+
+#~ msgid "Output directory"
+#~ msgstr "Output directory"
+
+#~ msgid "Output directory for the exported files."
+#~ msgstr "This is the output directory for exported files."
+
+#~ msgid "Debug level"
+#~ msgstr "Debug level"
+
+#~ msgid ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+#~ msgstr ""
+#~ "Sets debug logging level. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:"
+#~ "trace\n"
+
+#, fuzzy
+#~ msgid "Physical Printer"
+#~ msgstr "Printer"
 
 #~ msgid "Embeded"
 #~ msgstr "Embedded"
@@ -11811,9 +12080,6 @@ msgstr ""
 
 #~ msgid "Score"
 #~ msgstr "Score"
-
-#~ msgid "Bamabu Engineering Plate"
-#~ msgstr "Bambu Engineering Plate"
 
 #~ msgid "Bamabu High Temperature Plate"
 #~ msgstr "Bambu High Temperature Plate"

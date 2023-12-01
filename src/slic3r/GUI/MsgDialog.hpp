@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2022 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Bubník @bubnikv, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_MsgDialog_hpp_
 #define slic3r_MsgDialog_hpp_
 
@@ -127,6 +131,8 @@ public:
 	WarningDialog &operator=(const WarningDialog&) = delete;
 	virtual ~WarningDialog() = default;
 };
+
+wxString get_wraped_wxString(const wxString& text_in, size_t line_len = 80);
 
 #if 1
 // Generic static line, used intead of wxStaticLine
@@ -372,6 +378,19 @@ private:
     wxString msg;
 };
 
+class DeleteConfirmDialog : public DPIDialog
+{
+public:
+    DeleteConfirmDialog(wxWindow *parent, const wxString &title, const wxString &msg);
+    ~DeleteConfirmDialog();
+    virtual void on_dpi_changed(const wxRect &suggested_rect);
+
+private:
+    wxString      msg;
+    Button *      m_del_btn    = nullptr;
+    Button *      m_cancel_btn = nullptr;
+    wxStaticText *m_msg_text   = nullptr;
+};
 
 }
 }

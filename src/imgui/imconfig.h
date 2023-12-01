@@ -161,6 +161,7 @@ namespace ImGui
     const wchar_t ClippyMarker             = 0x0802;
     const wchar_t InfoMarker               = 0x0803;
     const wchar_t SliderFloatEditBtnIcon   = 0x0804;
+    const wchar_t ClipboardBtnIcon         = 0x0805;
 
     // BBS
     const wchar_t CircleButtonIcon         = 0x0810;
@@ -171,6 +172,7 @@ namespace ImGui
     const wchar_t UnfoldButtonIcon         = 0x0815;
     const wchar_t SphereButtonIcon         = 0x0816;
     const wchar_t GapFillIcon              = 0x0817;
+    const wchar_t ConfirmIcon              = 0x0818;
 
     const wchar_t MinimalizeDarkButton           = 0x081C;
     const wchar_t MinimalizeHoverDarkButton      = 0x081D;
@@ -185,6 +187,7 @@ namespace ImGui
     const wchar_t HeightRangeDarkIcon      = 0x0825;
     const wchar_t SphereButtonDarkIcon     = 0x0826;
     const wchar_t GapFillDarkIcon          = 0x0827;
+    const wchar_t ConfirmDarkIcon          = 0x0828;
 
     const wchar_t TextSearchIcon           = 0x0828;
     const wchar_t TextSearchCloseIcon      = 0x0829;
@@ -196,6 +199,16 @@ namespace ImGui
     const wchar_t CloseBlockNotifButton      = 0x0833;
     const wchar_t CloseBlockNotifHoverButton = 0x0834;
     const wchar_t BlockNotifErrorIcon        = 0x0835;
+    const wchar_t ClipboardBtnDarkIcon       = 0x0836;
+
+    const wchar_t PrevArrowBtnIcon         = 0x0836; 
+    const wchar_t PrevArrowHoverBtnIcon    = 0x0837; 
+    const wchar_t NextArrowBtnIcon         = 0x0838;
+    const wchar_t NextArrowHoverBtnIcon    = 0x0839;
+    const wchar_t OpenArrowIcon            = 0x0840;
+    const wchar_t CollapseArrowIcon        = 0x0841;
+    const wchar_t ExpandArrowIcon          = 0x0842;
+    const wchar_t CompleteIcon             = 0x0843;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }

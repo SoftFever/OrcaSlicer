@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2022 Enrico Turri @enricoturri1966, Lukáš Matěna @lukasmatena, Lukáš Hejl @hejllukas, Oleksandra Iushchenko @YuSanka, Vojtěch Bubník @bubnikv
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "GLGizmoSeam.hpp"
 
 #include "libslic3r/Model.hpp"
@@ -62,7 +66,7 @@ std::string GLGizmoSeam::on_get_name() const
 
 
 
-void GLGizmoSeam::render_painter_gizmo() const
+void GLGizmoSeam::render_painter_gizmo()
 {
     const Selection& selection = m_parent.get_selection();
 
@@ -120,8 +124,12 @@ void GLGizmoSeam::render_triangles(const Selection& selection) const
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CW));
 
-        glsafe(::glPushMatrix());
-        glsafe(::glMultMatrixd(trafo_matrix.data()));
+        const Camera& camera = wxGetApp().plater()->get_camera();
+        const Transform3d& view_matrix = camera.get_view_matrix();
+        shader->set_uniform("view_model_matrix", view_matrix * trafo_matrix);
+        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+        const Matrix3d view_normal_matrix = view_matrix.matrix().block(0, 0, 3, 3) * trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose();
+        shader->set_uniform("view_normal_matrix", view_normal_matrix);
 
         float normal_z = -::cos(Geometry::deg2rad(m_highlight_by_angle_threshold_deg));
         Matrix3f normal_matrix = static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>());
@@ -129,11 +137,10 @@ void GLGizmoSeam::render_triangles(const Selection& selection) const
         shader->set_uniform("volume_world_matrix", trafo_matrix);
         shader->set_uniform("volume_mirrored", is_left_handed);
         shader->set_uniform("slope.actived", m_parent.is_using_slope());
-        shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(trafo_matrix.matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
+        shader->set_uniform("slope.volume_world_normal_matrix", normal_matrix);
         shader->set_uniform("slope.normal_z", normal_z);
-        m_triangle_selectors[mesh_id]->render(m_imgui);
+        m_triangle_selectors[mesh_id]->render(m_imgui, trafo_matrix);
 
-        glsafe(::glPopMatrix());
         if (is_left_handed)
             glsafe(::glFrontFace(GL_CCW));
     }
@@ -295,8 +302,8 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     }
     else {
         if (m_imgui->button(m_desc.at("reset_direction"))) {
-            wxGetApp().CallAfter([this]() {
-                m_c->object_clipper()->set_position(-1., false);
+            wxGetApp().CallAfter([this](){
+                    m_c->object_clipper()->set_position_by_ratio(-1., false);
                 });
         }
     }
@@ -310,7 +317,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
-    if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
+    if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position_by_ratio(clp_dist, true); }
 
     ImGui::Separator();
     m_imgui->bbl_checkbox(_L("Vertical"), m_vertical_only);
@@ -388,7 +395,7 @@ void GLGizmoSeam::update_from_model_object(bool first_update)
     m_triangle_selectors.clear();
 
     int volume_id = -1;
-    std::vector<std::array<float, 4>> ebt_colors;
+    std::vector<ColorRGBA> ebt_colors;
     ebt_colors.push_back(GLVolume::NEUTRAL_COLOR);
     ebt_colors.push_back(TriangleSelectorGUI::enforcers_color);
     ebt_colors.push_back(TriangleSelectorGUI::blockers_color);

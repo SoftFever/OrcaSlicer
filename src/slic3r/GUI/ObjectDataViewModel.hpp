@@ -302,6 +302,7 @@ public:
     bool        has_warning_icon() const { return !m_warning_icon_name.empty(); }
     std::string warning_icon_name() const { return m_warning_icon_name; }
     bool        has_lock() const { return m_has_lock; }
+    void        sys_color_changed();
 
 private:
     friend class ObjectDataViewModel;
@@ -329,6 +330,9 @@ class ObjectDataViewModel :public wxDataViewModel
     ObjectDataViewModelNode*                    m_plate_outside;
 
     wxDataViewCtrl*                             m_ctrl { nullptr };
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> assembly_name_list;
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> search_found_list;
+
 public:
     ObjectDataViewModel();
     ~ObjectDataViewModel();
@@ -370,6 +374,7 @@ public:
     wxDataViewItem GetItemByLayerRange(const int obj_idx, const t_layer_height_range& layer_range);
     int  GetItemIdByLayerRange(const int obj_idx, const t_layer_height_range& layer_range);
     int  GetIdByItem(const wxDataViewItem& item) const;
+    int  GetPlateIdByItem(const wxDataViewItem& item) const;
     int  GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
     int  GetObjectIdByItem(const wxDataViewItem& item) const;
     int  GetVolumeIdByItem(const wxDataViewItem& item) const;
@@ -482,6 +487,14 @@ public:
 
     // BBS
     void        UpdateItemNames();
+
+    void        assembly_name(ObjectDataViewModelNode* item, wxString name);
+    void        assembly_name();
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_assembly_name_list() { return assembly_name_list; }
+    void        search_object(wxString search_text);
+    std::vector<std::pair<ObjectDataViewModelNode*, wxString>> get_found_list() { return search_found_list; }
+
+    void        sys_color_changed();
 
 private:
     wxDataViewItem  AddRoot(const wxDataViewItem& parent_item, const ItemType root_type);

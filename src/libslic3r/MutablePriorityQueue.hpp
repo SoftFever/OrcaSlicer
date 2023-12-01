@@ -3,7 +3,7 @@
 
 #include <assert.h>
 #include <type_traits>
-
+constexpr auto InvalidQueueID = std::numeric_limits<size_t>::max();
 template<typename T, typename IndexSetter, typename LessPredicate, const bool ResetIndexWhenRemoved = false>
 class MutablePriorityQueue
 {

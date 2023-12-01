@@ -28,6 +28,7 @@ namespace Slic3r {
 
 wxDEFINE_EVENT(wxCUSTOMEVT_JUMP_TO_OPTION, wxCommandEvent);
 wxDEFINE_EVENT(wxCUSTOMEVT_EXIT_SEARCH, wxCommandEvent);
+wxDEFINE_EVENT(wxCUSTOMEVT_JUMP_TO_OBJECT, wxCommandEvent);
 
 using GUI::from_u8;
 using GUI::into_u8;
@@ -394,10 +395,11 @@ void OptionsSearcher::add_key(const std::string &opt_key, Preset::Type type, con
 //          SearchItem
 //------------------------------------------
 
-SearchItem::SearchItem(wxWindow *parent, wxString text, int index, SearchDialog* sdialog)
+SearchItem::SearchItem(wxWindow *parent, wxString text, int index, SearchDialog* sdialog, SearchObjectDialog* search_dialog)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(parent->GetSize().GetWidth(), 3 * GUI::wxGetApp().em_unit()))
 {
     m_sdialog = sdialog;
+    m_search_object_dialog = search_dialog;
     m_text  = text;
     m_index = index;
 
@@ -511,10 +513,19 @@ void SearchItem::on_mouse_left_up(wxMouseEvent &evt)
 
     //if (m_sdialog->prevent_list_events) return;
     // if (wxGetMouseState().LeftIsDown())
-    m_sdialog->Die();
-    wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OPTION);
-    event.SetInt(m_index);
-    wxPostEvent(GUI::wxGetApp().plater(), event);
+    if (m_sdialog) {
+        m_sdialog->Die();
+        wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OPTION);
+        event.SetInt(m_index);
+        wxPostEvent(GUI::wxGetApp().plater(), event);
+    }
+
+    if (m_search_object_dialog) {
+        m_search_object_dialog->Dismiss();
+        wxCommandEvent event(wxCUSTOMEVT_JUMP_TO_OBJECT);
+        event.SetClientData(m_item);
+        wxPostEvent(GUI::wxGetApp().plater(), event);
+    }
 }
 
 //------------------------------------------
@@ -892,6 +903,121 @@ void SearchListModel::GetValueByRow(wxVariant &variant, unsigned int row, unsign
     case colMax: wxFAIL_MSG("invalid column");
     default: break;
     }
+}
+
+SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent)
+    : PopupWindow(parent, wxBORDER_NONE), m_object_list(object_list)
+{
+    Freeze();
+    SetBackgroundColour(wxColour(238, 238, 238));
+
+    em = GUI::wxGetApp().em_unit();
+
+    m_text_color = wxColour(38, 46, 48);
+    m_bg_color = wxColour(255, 255, 255);
+    m_thumb_color = wxColour(196, 196, 196);
+
+    SetFont(GUI::wxGetApp().normal_font());
+    SetSizeHints(wxDefaultSize, wxDefaultSize);
+
+    m_sizer_border = new wxBoxSizer(wxVERTICAL);
+    m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    m_sizer_body = new wxBoxSizer(wxVERTICAL);
+
+    // border
+    m_border_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
+    m_border_panel->SetBackgroundColour(m_bg_color);
+
+    // client
+    m_client_panel = new wxPanel(m_border_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em, POPUP_HEIGHT * em), wxTAB_TRAVERSAL);
+    m_client_panel->SetBackgroundColour(m_bg_color);
+
+    // scroll window
+    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
+    m_scrolledWindow->SetMarginColor(m_bg_color);
+    m_scrolledWindow->SetScrollbarColor(m_thumb_color);
+    m_scrolledWindow->SetBackgroundColour(m_bg_color);
+    auto m_listsizer = new wxBoxSizer(wxVERTICAL);
+    auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);
+    m_listPanel->SetBackgroundColour(m_bg_color);
+    m_listPanel->SetSize(wxSize(m_scrolledWindow->GetSize().GetWidth(), -1));
+
+    m_listPanel->SetSizer(m_listsizer);
+    m_listPanel->Fit();
+    m_scrolledWindow->SetScrollbars(1, 1, 0, m_listPanel->GetSize().GetHeight());
+
+    m_sizer_body->Add(m_scrolledWindow, 0, wxEXPAND | wxALL, em);
+
+    m_client_panel->SetSizer(m_sizer_body);
+    m_client_panel->Layout();
+    m_sizer_body->Fit(m_client_panel);
+    m_sizer_main->Add(m_client_panel, 1, wxEXPAND, 0);
+
+    m_border_panel->SetSizer(m_sizer_main);
+    m_border_panel->Layout();
+    m_sizer_border->Add(m_border_panel, 1, wxEXPAND | wxALL, 1);
+
+    SetSizer(m_sizer_border);
+    Layout();
+    m_sizer_border->Fit(this);
+    Thaw();
+
+    GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+SearchObjectDialog::~SearchObjectDialog() {}
+
+void SearchObjectDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
+{
+    update_list();
+    PopupWindow::Popup();
+}
+
+void SearchObjectDialog::Dismiss()
+{
+    auto focus_window = this->GetParent()->HasFocus();
+    if (!focus_window)
+        PopupWindow::Dismiss();
+}
+
+void SearchObjectDialog::update_list()
+{
+#ifndef __WXGTK__
+    Freeze();
+#endif
+    m_scrolledWindow->Destroy();
+
+    m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
+    m_scrolledWindow->SetMarginColor(StateColor::darkModeColorFor(m_bg_color));
+    m_scrolledWindow->SetScrollbarColor(StateColor::darkModeColorFor(m_thumb_color));
+    m_scrolledWindow->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_color));
+
+    auto m_listsizer = new wxBoxSizer(wxVERTICAL);
+    auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);
+    m_listPanel->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_color));
+    m_listPanel->SetSize(wxSize(m_scrolledWindow->GetSize().GetWidth(), -1));
+
+    const std::vector<std::pair<GUI::ObjectDataViewModelNode*, wxString>>& found = m_object_list->GetModel()->get_found_list();
+    auto                            index = 0;
+    for (const auto& item : found) {
+        GUI::ObjectDataViewModelNode* data_item = item.first;
+        wxString data_str = item.second;
+        auto     tmp = new SearchItem(m_listPanel, data_str, index, nullptr, this);
+        tmp->m_item = data_item;
+        m_listsizer->Add(tmp, 0, wxEXPAND, 0);
+        index++;
+    }
+
+    m_listPanel->SetSizer(m_listsizer);
+    m_listPanel->Fit();
+    m_scrolledWindow->SetScrollbars(1, 1, 0, m_listPanel->GetSize().GetHeight());
+
+    m_sizer_body->Add(m_scrolledWindow, 0, wxEXPAND | wxALL, em);
+    m_sizer_body->Fit(m_client_panel);
+    m_sizer_body->Layout();
+#ifndef __WXGTK__
+    Thaw();
+#endif
 }
 
 } // namespace Search

@@ -5,8 +5,8 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SET_BED_TYPE_CONFIRM, wxCommandEvent);
 
-PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-:DPIDialog(parent, id, title, pos, size, style)
+PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title, bool only_first_layer_seq, const wxPoint& pos, const wxSize& size, long style)
+:DPIDialog(parent, wxID_ANY, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -140,6 +140,18 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, wxWindowID id, const 
     CenterOnParent();
 
     wxGetApp().UpdateDlgDarkUI(this);
+
+    if (only_first_layer_seq) {
+        for (auto item : top_sizer->GetChildren()) {
+            if (item->GetWindow())
+                item->GetWindow()->Show(false);
+        }
+        first_layer_txt->Show();
+        m_first_layer_print_seq_choice->Show();
+        m_drag_canvas->Show();
+        Layout();
+        Fit();
+    }
 }
 
 PlateSettingsDialog::~PlateSettingsDialog()
@@ -174,6 +186,21 @@ void PlateSettingsDialog::sync_first_layer_print_seq(int selection, const std::v
         event.SetInt(selection);
         event.SetEventObject(m_first_layer_print_seq_choice);
         wxPostEvent(m_first_layer_print_seq_choice, event);
+    }
+}
+
+void PlateSettingsDialog::sync_spiral_mode(bool spiral_mode, bool as_global)
+{
+    if (m_spiral_mode_choice) {
+        if (as_global) {
+            m_spiral_mode_choice->SetSelection(0);
+        }
+        else {
+            if (spiral_mode)
+                m_spiral_mode_choice->SetSelection(1);
+            else
+                m_spiral_mode_choice->SetSelection(2);
+        }
     }
 }
 
@@ -241,6 +268,12 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
     auto plate_name_txt = new wxStaticText(this, wxID_ANY, _L("Plate name"));
     plate_name_txt->SetFont(Label::Body_14);
     m_ti_plate_name = new TextInput(this, wxString::FromDouble(0.0), "", "", wxDefaultPosition, wxSize(FromDIP(240), -1), wxTE_PROCESS_ENTER);
+    m_ti_plate_name->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
+        if (this->IsModal())
+            EndModal(wxID_YES);
+        else
+            this->Close();
+    });
     top_sizer->Add(plate_name_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_ti_plate_name, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     m_ti_plate_name->GetTextCtrl()->SetMaxLength(250);
@@ -263,9 +296,6 @@ PlateNameEditDialog::PlateNameEditDialog(wxWindow *parent, wxWindowID id, const 
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        wxCommandEvent evt(EVT_SET_BED_TYPE_CONFIRM, GetId());
-        e.SetEventObject(this);
-        GetEventHandler()->ProcessEvent(evt);
         if (this->IsModal())
             EndModal(wxID_YES);
         else
@@ -313,6 +343,10 @@ void PlateNameEditDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 wxString PlateNameEditDialog::get_plate_name() const { return m_ti_plate_name->GetTextCtrl()->GetValue(); }
 
-void PlateNameEditDialog::set_plate_name(const wxString &name) { m_ti_plate_name->GetTextCtrl()->SetValue(name); }
+void PlateNameEditDialog::set_plate_name(const wxString &name) {
+    m_ti_plate_name->GetTextCtrl()->SetValue(name);
+    m_ti_plate_name->GetTextCtrl()->SetFocus();
+    m_ti_plate_name->GetTextCtrl()->SetInsertionPointEnd();
+}
 
 }} // namespace Slic3r::GUI

@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2018 - 2023 Oleksandra Iushchenko @YuSanka, Lukáš Matěna @lukasmatena, Vojtěch Bubník @bubnikv, Enrico Turri @enricoturri1966, David Kocík @kocikdav, Lukáš Hejl @hejllukas, Vojtěch Král @vojtechkral
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "MsgDialog.hpp"
 
 #include <wx/settings.h>
@@ -14,6 +18,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Color.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
 //#include "ConfigWizard.hpp"
@@ -55,12 +60,11 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     topsizer->Add(LOGO_GAP, 0, 0, wxEXPAND, 0);
 	topsizer->Add(rightsizer, 1, wxTOP | wxEXPAND, BORDER);
 
-    btn_sizer->AddStretchSpacer();
-
     main_sizer->Add(topsizer, 1, wxEXPAND);
 
     m_dsa_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->Add(m_dsa_sizer,1,wxEXPAND,0);
+    btn_sizer->Add(0, 0, 0, wxLEFT, FromDIP(120));
+    btn_sizer->Add(m_dsa_sizer, 0, wxEXPAND,0);
     btn_sizer->Add(0, 0, 1, wxEXPAND, 5);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
@@ -264,9 +268,9 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
     wxColour    text_clr = wxGetApp().get_label_clr_default();
-    wxColour    bgr_clr = parent->GetBackgroundColour(); //wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-    auto        text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
-    auto        bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+    wxColour    bgr_clr = parent->GetBackgroundColour();
+    auto        text_clr_str = encode_color(ColorRGB(text_clr.Red(), text_clr.Green(), text_clr.Blue()));
+    auto        bgr_clr_str = encode_color(ColorRGB(bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue()));
     const int   font_size = font.GetPointSize();
     int         size[] = { font_size, font_size, font_size, font_size, font_size, font_size, font_size };
     html->SetFonts(font.GetFaceName(), monospace.GetFaceName(), size);
@@ -410,6 +414,58 @@ InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& 
     finalize();
 }
 
+wxString get_wraped_wxString(const wxString& in, size_t line_len /*=80*/)
+{
+    wxString out;
+
+    for (size_t i = 0; i < in.size();) {
+        // Overwrite the character (space or newline) starting at ibreak?
+        bool   overwrite = false;
+        // UTF8 representation of wxString.
+        // Where to break the line, index of character at the start of a UTF-8 sequence.
+        size_t ibreak    = size_t(-1);
+        // Overwrite the character at ibreak (it is a whitespace) or not?
+        size_t j = i;
+        for (size_t cnt = 0; j < in.size();) {
+            if (bool newline = in[j] == '\n'; in[j] == ' ' || in[j] == '\t' || newline) {
+                // Overwrite the whitespace.
+                ibreak    = j ++;
+                overwrite = true;
+                if (newline)
+                    break;
+            } else if (in[j] == '/'
+#ifdef _WIN32
+                 || in[j] == '\\'
+#endif // _WIN32
+                 ) {
+                // Insert after the slash.
+                ibreak    = ++ j;
+                overwrite = false;
+            } else
+                j += get_utf8_sequence_length(in.c_str() + j, in.size() - j);
+            if (++ cnt == line_len) {
+                if (ibreak == size_t(-1)) {
+                    ibreak    = j;
+                    overwrite = false;
+                }
+                break;
+            }
+        }
+        if (j == in.size()) {
+            out.append(in.begin() + i, in.end());
+            break;
+        }
+        assert(ibreak != size_t(-1));
+        out.append(in.begin() + i, in.begin() + ibreak);
+        out.append('\n');
+        i = ibreak;
+        if (overwrite)
+            ++ i;
+    }
+
+    return out;
+}
+
 // InfoDialog
 DownloadDialog::DownloadDialog(wxWindow *parent, const wxString &msg, const wxString &title, bool is_marked_msg /* = false*/, long style /* = wxOK | wxICON_INFORMATION*/)
     : MsgDialog(parent, title, msg, style), msg(msg)
@@ -428,4 +484,65 @@ void DownloadDialog::SetExtendedMessage(const wxString &extendedMessage)
     Fit();
 }
 
-}} // namespace Slic3r::GUI
+DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title, const wxString &msg)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    this->SetBackgroundColour(*wxWHITE);
+    this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    // top line
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
+    m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
+    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    m_msg_text = new wxStaticText(this, wxID_ANY, msg);
+    m_main_sizer->Add(m_msg_text, 0, wxEXPAND | wxALL, FromDIP(10));
+
+    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
+    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    m_cancel_btn = new Button(this, _L("Cancel"));
+    m_cancel_btn->SetBackgroundColor(btn_bg_white);
+    m_cancel_btn->SetBorderColor(*wxBLACK);
+    m_cancel_btn->SetTextColor(wxColour(*wxBLACK));
+    m_cancel_btn->SetFont(Label::Body_12);
+    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
+    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
+
+
+    m_del_btn = new Button(this, _L("Delete"));
+    m_del_btn->SetBackgroundColor(*wxRED);
+    m_del_btn->SetBorderColor(*wxWHITE);
+    m_del_btn->SetTextColor(wxColour(0xFFFFFE));
+    m_del_btn->SetFont(Label::Body_12);
+    m_del_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_btn->SetCornerRadius(FromDIP(12));
+    bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
+
+    m_main_sizer->Add(bSizer_button, 0, wxEXPAND, 0);
+    m_del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
+    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
+
+    SetSizer(m_main_sizer);
+    Layout();
+    Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+DeleteConfirmDialog::~DeleteConfirmDialog() {}
+
+
+void DeleteConfirmDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+
+
+} // namespace GUI
+
+} // namespace Slic3r

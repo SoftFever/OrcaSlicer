@@ -141,11 +141,12 @@ void DropDown::SetSelectorBackgroundColor(StateColor const &color)
     paintNow();
 }
 
-void DropDown::SetUseContentWidth(bool use)
+void DropDown::SetUseContentWidth(bool use, bool limit_max_content_width)
 {
     if (use_content_width == use)
         return;
     use_content_width = use;
+    this->limit_max_content_width = limit_max_content_width;
     need_sync = true;
     messureSize();
 }
@@ -350,6 +351,13 @@ void DropDown::messureSize()
             szContent.x = x;
     }
     rowSize = szContent;
+    if (limit_max_content_width) {
+        wxSize parent_size = GetParent()->GetSize();
+        if (rowSize.x > parent_size.x * 2) {
+            rowSize.x = 2 * parent_size.x;
+            szContent = rowSize;
+        }
+    }
     szContent.y *= std::min((size_t)15, texts.size());
     szContent.y += texts.size() > 15 ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);

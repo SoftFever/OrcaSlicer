@@ -23,7 +23,7 @@ class SendJob : public PlaterJob
     bool                m_is_check_mode{false};
     bool                m_check_and_continue{false};
     std::function<void()> m_success_fun{nullptr};
-    std::function<void()> m_enter_ip_address_fun_fail{nullptr};
+    std::function<void(int)> m_enter_ip_address_fun_fail{nullptr};
     std::function<void()> m_enter_ip_address_fun_success{nullptr};
 
 protected:
@@ -60,7 +60,7 @@ public:
     bool is_finished() { return m_job_finished;  }
     void process() override;
     void on_success(std::function<void()> success);
-    void on_check_ip_address_fail(std::function<void()> func);
+    void on_check_ip_address_fail(std::function<void(int)> func);
     void on_check_ip_address_success(std::function<void()> func);
     void finalize() override;
     void set_project_name(std::string name);

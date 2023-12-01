@@ -586,8 +586,8 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     };
     //draw main colored band
     const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
-    std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
-    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+    ColorRGBA rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
+    ImU32     band_clr          = ImGuiWrapper::to_ImU32(rgba);
     draw_main_band(band_clr);
 
     static float tick_pos;
@@ -605,8 +605,8 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
                 const std::string clr_str = m_mode == SingleExtruder ? tick_it->color : get_color_for_tool_change_tick(tick_it);
 
                 if (!clr_str.empty()) {
-                    std::array<float, 4>rgba = decode_color_to_float_array(clr_str);
-                    ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                    ColorRGBA rgba = decode_color_to_float_array(clr_str);
+                    ImU32     band_clr = ImGuiWrapper::to_ImU32(rgba);
                     if (tick_it->tick == 0)
                         draw_main_band(band_clr);
                     else
@@ -616,6 +616,43 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
         }
         tick_it++;
     }
+}
+
+void IMSlider::draw_custom_label_block(const ImVec2 anchor, Type type)
+{
+    wxString label;
+    switch (type)
+    {
+    case ColorChange:
+        label = _L("Color");
+        break;
+    case PausePrint:
+        label = _L("Pause");
+        break;
+    case ToolChange:
+        label = _L("Color");
+        break;
+    case Template:
+        label = _L("Template");
+        break;
+    case Custom:
+        label = _L("Custom");
+        break;
+    case Unknown:
+        break;
+    default:
+        break;
+    }
+    const ImVec2 text_size = ImGui::CalcTextSize(into_u8(label).c_str());
+    const ImVec2 padding = ImVec2(4, 2) * m_scale;
+    const ImU32  clr = IM_COL32(255, 111, 0, 255);
+    const float  rounding = 2.0f * m_scale;
+    ImVec2 block_pos = { anchor.x - text_size.x - padding.x * 2, anchor.y - text_size.y / 2 - padding.y };
+    ImVec2 block_size = { text_size.x + padding.x * 2, text_size.y + padding.y * 2 };
+    ImGui::RenderFrame(block_pos, block_pos + block_size, clr, false, rounding);
+    ImGui::PushStyleColor(ImGuiCol_Text, { 1,1,1,1 });
+    ImGui::RenderText(block_pos + padding, into_u8(label).c_str());
+    ImGui::PopStyleColor();
 }
 
 void IMSlider::draw_ticks(const ImRect& slideable_region) {
@@ -691,6 +728,11 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
             ImVec2      icon_pos = ImVec2(slideable_region.GetCenter().x + icon_offset.x, tick_pos - icon_offset.y);
             button_with_pos(custom_icon_id, icon_size, icon_pos);
         }
+
+        //draw label block
+        ImVec2 label_block_anchor = ImVec2(slideable_region.GetCenter().x - tick_offset.y, tick_pos);
+        draw_custom_label_block(label_block_anchor, tick_it->type);
+
         ++tick_it;
     }
 
@@ -698,6 +740,10 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
               GetSelection() == ssLower  ? m_ticks.ticks.find(TickCode{this->GetLowerValue()}) :
                                            m_ticks.ticks.end();
     if (tick_it != m_ticks.ticks.end()) {
+        //draw label block again, to keep it in front
+        ImVec2 label_block_anchor = ImVec2(slideable_region.GetCenter().x - tick_offset.y, get_tick_pos(tick_it->tick));
+        draw_custom_label_block(label_block_anchor, tick_it->type);
+
         // draw delete icon
         ImVec2      icon_pos       = ImVec2(slideable_region.GetCenter().x + icon_offset.x, get_tick_pos(tick_it->tick) - icon_offset.y);
         button_with_pos(m_delete_icon_id, icon_size, icon_pos);
@@ -1128,9 +1174,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
         }
         const int text_height = 6;
 
-        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height), ImGuiInputTextFlags_CallbackAlways, [](ImGuiInputTextCallbackData* data) { 
-            return data->CursorPos = data->BufTextLen;
-            });
+        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
 
         ImGui::NewLine();
         ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
@@ -1323,9 +1367,9 @@ void IMSlider::render_add_menu()
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
-                    std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
-                    ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                    if (rgba[3] == 0)
+                    ColorRGBA rgba     = decode_color_to_float_array(m_extruder_colors[i]);
+                    ImU32                icon_clr = ImGuiWrapper::to_ImU32(rgba);
+                    if (rgba.a() == 0)
                         icon_clr = 0;
                     if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr, false, true, &hovered)) add_code_as_tick(ToolChange, i + 1);
                     if (hovered) { show_tooltip(_u8L("Change filament at the beginning of this layer.")); }
@@ -1373,8 +1417,8 @@ void IMSlider::render_edit_menu(const TickCode& tick)
                 }
                 else if (begin_menu(_u8L("Change Filament").c_str())) {
                     for (int i = 0; i < extruder_num; i++) {
-                        std::array<float, 4> rgba = decode_color_to_float_array(m_extruder_colors[i]);
-                        ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
+                        ColorRGBA rgba = decode_color_to_float_array(m_extruder_colors[i]);
+                        ImU32     icon_clr = ImGuiWrapper::to_ImU32(rgba);
                         if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
                     }
                     end_menu();
