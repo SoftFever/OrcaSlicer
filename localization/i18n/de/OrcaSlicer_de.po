@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-11-24 18:09+0100\n"
+"POT-Creation-Date: 2023-12-02 13:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -1215,9 +1215,6 @@ msgid "Click the icon to shift this object to the bed"
 msgstr ""
 "Klicken Sie auf das Symbol, um dieses Objekt auf das Bett zu verschieben."
 
-msgid " search results"
-msgstr " Suchergebnisse"
-
 msgid "Loading file"
 msgstr "Lade Datei"
 
@@ -1757,8 +1754,8 @@ msgstr "Ausrichten..."
 msgid "Orienting"
 msgstr "Ausrichten"
 
-msgid "Filling bed "
-msgstr "Bett füllen"
+msgid "Filling"
+msgstr ""
 
 msgid "Bed filling canceled."
 msgstr "Bettfüllung abgebrochen."
@@ -2690,19 +2687,6 @@ msgstr ""
 "JA - Reinigungsturm beibehalten\n"
 "NEIN - unabhängige Stütz-Schichthöhen beibehalten"
 
-#, boost-format
-msgid "%1% infill pattern doesn't support 100%% density."
-msgstr "Das %1% Füllmuster unterstützt keine 100%% Dichte."
-
-msgid ""
-"Switch to rectilinear pattern?\n"
-"Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly"
-msgstr ""
-"Zu geradlinigen Mustern wechseln?\n"
-"Ja - Automatisches auf das geradlinige Muster wechseln\n"
-"Nein - Dichte automatisch auf den Standardwert unter 100% zurücksetzen"
-
 msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, reset the skirt layer to 1 to avoid that."
@@ -2804,6 +2788,18 @@ msgstr "Pausiert durch den vom Benutzer eingefügten G-Code"
 
 msgid "Motor noise showoff"
 msgstr "Motorgeräusch-Showoff"
+
+msgid "Nozzle filament covered detected pause"
+msgstr ""
+
+msgid "Cutter error pause"
+msgstr ""
+
+msgid "First layer error pause"
+msgstr ""
+
+msgid "Nozzle clog pause"
+msgstr ""
 
 msgid "MC"
 msgstr "MC"
@@ -3282,7 +3278,7 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Größe:"
 
-#, boost-format
+#, c-format, boost-format
 msgid ""
 "Conflicts of gcode paths have been found at layer %d, z = %.2lf mm. Please "
 "separate the conflicted objects farther (%s <-> %s)."
@@ -3663,6 +3659,12 @@ msgstr "Perspektivische Ansicht verwenden"
 
 msgid "Use Orthogonal View"
 msgstr "Orthogonale Ansicht verwenden"
+
+msgid "Show &G-code Window"
+msgstr ""
+
+msgid "Show g-code window in Previce scene"
+msgstr ""
 
 msgid "Show &Labels"
 msgstr "&Bezeichnung anzeigen"
@@ -4054,6 +4056,9 @@ msgstr "%d%% wird heruntergeladen..."
 msgid "Connection lost. Please retry."
 msgstr "Verbindung verloren. Bitte versuchen Sie es erneut."
 
+msgid "The device cannot handle more conversations. Please retry later."
+msgstr ""
+
 msgid "File not exists."
 msgstr "Datei existiert nicht."
 
@@ -4214,9 +4219,10 @@ msgstr "Schicht: %s"
 msgid "Layer: %d/%d"
 msgstr "Schicht: %d/%d"
 
-msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgid ""
+"Please heat the nozzle to above 170 degree before loading or unloading "
+"filament."
 msgstr ""
-"Bitte heizen Sie die Düse auf über 170 Grad auf, bevor Sie Filament laden."
 
 msgid "Still unload"
 msgstr "Entlade immer noch"
@@ -4795,37 +4801,6 @@ msgstr ""
 "Die 3mf wurde mit einer alten Version von OrcaSlicer generiert, lade nur die "
 "Geometriedaten."
 
-#, c-format, boost-format
-msgid "This slicer file version %s is newer than %s's version:"
-msgstr "Diese Slicer-Dateiversion %s ist neuer als die Version von %s:"
-
-msgid ""
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?\n"
-msgstr ""
-"Möchten Sie Ihre Software aktualisieren, um alle Funktionen in dieser Slicer-"
-"Datei zu aktivieren?\n"
-
-msgid "Newer 3mf version"
-msgstr "Neuere 3mf-Version"
-
-msgid ""
-"you can always update Bambu Studio at your convenience. The slicer file will "
-"now be loaded without full functionality."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"This slicer file version %s is newer than %s's version.\n"
-"\n"
-"Would you like to update your Bambu Studio software to enable all "
-"functionality in this slicer file?"
-msgstr ""
-"Diese Slicer-Dateiversion %s ist neuer als die Version von %s.\n"
-"\n"
-"Möchten Sie Ihre Software aktualisieren, um alle Funktionen in dieser Slicer-"
-"Datei zu aktivieren?"
-
 msgid "Invalid values found in the 3mf:"
 msgstr "Ungültige Werte in der 3MF-Datei gefunden:"
 
@@ -5349,13 +5324,6 @@ msgstr "Benachrichtigung \"Tipp des Tages\" nach dem Start anzeigen"
 msgid "If enabled, useful hints are displayed at startup."
 msgstr "Wenn aktiviert, werden beim Start nützliche Hinweise angezeigt."
 
-msgid "Show g-code window"
-msgstr "Zeige G-Code Fenster"
-
-#, fuzzy
-msgid "If enabled, g-code window will be displayed."
-msgstr "Wenn aktiviert, werden beim Start nützliche Hinweise angezeigt."
-
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr "Reinigungsvolumen: Auto-Berechnung bei jeder Farbänderung."
 
@@ -5733,6 +5701,9 @@ msgstr "Auftrag abgebrochen"
 msgid "(LAN)"
 msgstr "(LAN)"
 
+msgid "Search"
+msgstr ""
+
 msgid "My Device"
 msgstr "Mein Gerät"
 
@@ -5915,8 +5886,8 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
-"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach "
-"Objekt\" eingestellt ist."
+"Zeitraffer wird nicht unterstützt, da die Druckreihenfolge auf \"Nach Objekt"
+"\" eingestellt ist."
 
 msgid "Errors"
 msgstr "Fehler"
@@ -6019,6 +5990,12 @@ msgstr "Der Drucker muss sich im selben LAN befinden wie Orca Slicer."
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 "Der Drucker unterstützt nicht das Senden an die MicroSD-Karte des Druckers."
+
+msgid "Slice ok."
+msgstr "Slice ok."
+
+msgid "View all Daily tips"
+msgstr ""
 
 msgid "Failed to create socket"
 msgstr "Socket konnte nicht erstellt werden"
@@ -6220,15 +6197,29 @@ msgstr ""
 "height)."
 
 msgid ""
+"Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
+"height limits ,this may cause printing quality issues."
+msgstr ""
+
+msgid "Adjust to the set range automatically? \n"
+msgstr ""
+
+msgid "Adjust"
+msgstr ""
+
+msgid "Ignore"
+msgstr ""
+
+msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add "
-"Primitive\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "Wenn Sie einen Zeitraffer ohne Werkzeugkopf aufnehmen, wird empfohlen, einen "
 "\"Timelapse Wischturm\" hinzuzufügen, indem Sie mit der rechten Maustaste "
-"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"-"
-">\"Timelapse Wischturm\" wählen."
+"auf die leere Position der Bauplatte klicken und \"Primitiv hinzufügen\"->"
+"\"Timelapse Wischturm\" wählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -6598,6 +6589,12 @@ msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "Das folgende Profil wird ebenfalls gelöscht."
 msgstr[1] "Die folgenden Profile werden ebenfalls gelöscht."
+
+msgid ""
+"Are you sure to delete the selected preset? \n"
+"If the preset corresponds to a filament currently in use on your printer, "
+"please reset the filament information for that slot."
+msgstr ""
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -7649,6 +7646,25 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr ""
 "Variable Schichthöhe wird nicht mit organischen Stützstrukturen unterstützt."
 
+msgid ""
+"Different nozzle diameters and different filament diameters is not allowed "
+"when prime tower is enabled."
+msgstr ""
+
+msgid ""
+"The Wipe Tower is currently only supported with the relative extruder "
+"addressing (use_relative_e_distances=1)."
+msgstr ""
+
+msgid ""
+"Ooze prevention is currently not supported with the prime tower enabled."
+msgstr ""
+
+msgid ""
+"The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
+"RepRapFirmware and Repetier G-code flavors."
+msgstr ""
+
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Der Reinigungsturm wird im \"Nach Objekt\"-Druck nicht unterstützt."
 
@@ -7731,13 +7747,6 @@ msgstr ""
 
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Schichthöhe darf den Düsendurchmesser nicht überschreiten."
-
-msgid ""
-"Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
-"Layer height limits"
-msgstr ""
-"Die Schichthöhe darf das Limit in Druckereinstellungen -> Extruder -> "
-"Schichthöhenlimits nicht überschreiten"
 
 msgid ""
 "Relative extruder addressing requires resetting the extruder position at "
@@ -8139,6 +8148,15 @@ msgstr ""
 "Verringern Sie diesen Wert geringfügig (z. B. 0,9), um die Materialmenge für "
 "die Brücke zu verringern und den Durchhang zu minimieren"
 
+msgid "Internal bridge flow"
+msgstr ""
+
+msgid ""
+"This value governs the thickness of the internal bridge layer. This is the "
+"first layer over sparse infill. Decrease this value slightly (for example "
+"0.9) to improve surface quality over sparse infill."
+msgstr ""
+
 msgid "Top surface flow ratio"
 msgstr "Durchflussverhältnis obere Fläche"
 
@@ -8513,6 +8531,15 @@ msgstr ""
 "größere Entfernungen überbrücken, sehen aber möglicherweise schlechter aus. "
 "Wenn deaktiviert, sehen Brücken besser aus, sind aber nur für kürzere "
 "Entfernungen zuverlässig."
+
+msgid "Thick internal bridges"
+msgstr ""
+
+msgid ""
+"If enabled, thick internal bridges will be used. It's usually recommended to "
+"have this feature turned on. However, consider turning it off if you are "
+"using large nozzles."
+msgstr ""
 
 msgid "Max bridge length"
 msgstr "Max Überbrückungslänge"
@@ -9051,9 +9078,11 @@ msgstr "Winkel des Füllmusters, das die Richtung der Linien bestimmt."
 msgid "Sparse infill density"
 msgstr "Fülldichte"
 
-#, c-format
-msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "Dichte der inneren Füllung, 100%% bedeuten eine solide Füllung"
+#, c-format, boost-format
+msgid ""
+"Density of internal sparse infill, 100% turns all sparse infill into solid "
+"infill and internal solid infill pattern will be used"
+msgstr ""
 
 msgid "Sparse infill pattern"
 msgstr "Füllmuster"
@@ -9300,13 +9329,13 @@ msgstr "Volle Lüfterdrehzahl ab Schicht"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer "
-"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
-"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
-"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
+"\". \"full_fan_speed_layer\" will be ignored if lower than "
+"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
+"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
-"Die Lüftergeschwindigkeit wird linear von Null bei der "
-"Schicht\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
+"Die Lüftergeschwindigkeit wird linear von Null bei der Schicht"
+"\"close_fan_the_first_x_layers\" auf das Maximum bei der Schicht "
 "\"full_fan_speed_layer\" erhöht. \"full_fan_speed_layer\" wird ignoriert, "
 "wenn es niedriger ist als \"close_fan_the_first_x_layers\",in diesem Fall "
 "läuft der Lüfter bei Schicht \"close_fan_the_first_x_layers\"+ 1 mit maximal "
@@ -9365,6 +9394,12 @@ msgid ""
 msgstr ""
 "Der durchschnittliche Abstand zwischen den auf jedem Linienabschnitt "
 "eingeführten Zufallspunkten"
+
+msgid "Apply fuzzy skin to first layer"
+msgstr ""
+
+msgid "Whether to apply fuzzy skin on the first layer"
+msgstr ""
 
 msgid "Filter out tiny gaps"
 msgstr "Filtert winzige Lücken aus"
@@ -10772,13 +10807,11 @@ msgstr ""
 "kein spezielles Filament für die Stützen verwendet wird, sondern das "
 "aktuelle Filament."
 
-msgid "No interface filament for body"
-msgstr "Kein Filament für die Schnittstelle des Körpers"
-
-msgid "Don't use support interface filament to print support body"
+msgid "Reduce interface filament for base"
 msgstr ""
-"verwende kein Filament für die Stützstruktur-Schnittstelle um den Körper zu "
-"drucken"
+
+msgid "Avoid using support interface filament to print support base"
+msgstr ""
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -11059,11 +11092,11 @@ msgstr ""
 "diesem Durchmesser, werden mit doppelten Wänden für die Stabilität gedruckt. "
 "Setzen Sie diesen Wert auf Null, um keine doppelten Wände zu erhalten."
 
-msgid "Tree support wall loops"
-msgstr "Wandschleifen für Baumstützen"
+msgid "Support wall loops"
+msgstr ""
 
-msgid "This setting specify the count of walls around tree support"
-msgstr "Diese Einstellung gibt die Anzahl der Wände um die Baumstütze an."
+msgid "This setting specify the count of walls around support"
+msgstr ""
 
 msgid "Tree support with infill"
 msgstr "Baumsupport mit Füllung"
@@ -11545,10 +11578,6 @@ msgstr ""
 
 msgid "invalid value "
 msgstr "Ungültiger Wert"
-
-#, c-format, boost-format
-msgid " doesn't work at 100%% density "
-msgstr " doesn't work at 100%% density "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Ungültiger Wert, wenn der Spiral-Vase-Modus aktiviert ist: "
@@ -12539,6 +12568,691 @@ msgstr "Teil 2"
 msgid "Delete input"
 msgstr "Eingabe löschen"
 
+msgid "Network Test"
+msgstr ""
+
+msgid "Start Test Multi-Thread"
+msgstr ""
+
+msgid "Start Test Single-Thread"
+msgstr ""
+
+msgid "Export Log"
+msgstr ""
+
+msgid "Studio Version:"
+msgstr ""
+
+msgid "System Version:"
+msgstr ""
+
+msgid "DNS Server:"
+msgstr ""
+
+msgid "Test BambuLab"
+msgstr ""
+
+msgid "Test BambuLab:"
+msgstr ""
+
+msgid "Test Bing.com"
+msgstr ""
+
+msgid "Test bing.com:"
+msgstr ""
+
+msgid "Test HTTP"
+msgstr ""
+
+msgid "Test HTTP Service:"
+msgstr ""
+
+msgid "Test storage"
+msgstr ""
+
+msgid "Test Storage Upload:"
+msgstr ""
+
+msgid "Test storage upgrade"
+msgstr ""
+
+msgid "Test Storage Upgrade:"
+msgstr ""
+
+msgid "Test storage download"
+msgstr ""
+
+msgid "Test Storage Download:"
+msgstr ""
+
+msgid "Test plugin download"
+msgstr ""
+
+msgid "Test Plugin Download:"
+msgstr ""
+
+msgid "Test Storage Upload"
+msgstr ""
+
+msgid "Log Info"
+msgstr ""
+
+msgid "Select filament preset"
+msgstr ""
+
+msgid "Create Filament"
+msgstr ""
+
+msgid "Create Based on Current Filament"
+msgstr ""
+
+msgid "Copy Current Filament Preset "
+msgstr ""
+
+msgid "Basic Information"
+msgstr ""
+
+msgid "Add Filament Preset under this filament"
+msgstr ""
+
+msgid "We could create the filament presets for your following printer:"
+msgstr ""
+
+msgid "Select Vendor"
+msgstr ""
+
+msgid "Input Custom Vendor"
+msgstr ""
+
+msgid "Can't find vendor I want"
+msgstr ""
+
+msgid "Select Type"
+msgstr ""
+
+msgid "Select Filament Preset"
+msgstr ""
+
+msgid "Serial"
+msgstr ""
+
+msgid "e.g. Basic, Matte, Silk, Marble"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Vendor is not selected, please reselect vendor."
+msgstr ""
+
+msgid "Custom vendor is not input, please input custom vendor."
+msgstr ""
+
+msgid ""
+"\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
+msgstr ""
+
+msgid "Filament type is not selected, please reselect type."
+msgstr ""
+
+msgid "Filament serial is not inputed, please input serial."
+msgstr ""
+
+msgid ""
+"There may be escape characters in the vendor or serial input of filament. "
+"Please delete and re-enter."
+msgstr ""
+
+msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
+msgstr ""
+
+msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgstr ""
+
+msgid ""
+"You have not selected a printer or preset yet. Please select at least one."
+msgstr ""
+
+msgid "Some existing presets have failed to be created, as follows:\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Do you want to rewrite it?"
+msgstr ""
+
+msgid ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
+msgstr ""
+
+msgid "Create Printer/Nozzle"
+msgstr ""
+
+msgid "Create Printer"
+msgstr ""
+
+msgid "Create Nozzle for Existing Printer"
+msgstr ""
+
+msgid "Create from Template"
+msgstr ""
+
+msgid "Create Based on Current Printer"
+msgstr ""
+
+msgid "wiki"
+msgstr ""
+
+msgid "Improt Preset"
+msgstr ""
+
+msgid "Create Type"
+msgstr ""
+
+msgid "The model is not fond, place reselect vendor."
+msgstr ""
+
+msgid "Select Model"
+msgstr ""
+
+msgid "Select Printer"
+msgstr ""
+
+msgid "Input Custom Model"
+msgstr ""
+
+msgid "Can't find my printer model"
+msgstr ""
+
+msgid "Rectangle"
+msgstr ""
+
+msgid "Printable Space"
+msgstr ""
+
+msgid "X"
+msgstr ""
+
+msgid "Y"
+msgstr ""
+
+msgid "Hot Bed STL"
+msgstr ""
+
+msgid "Load stl"
+msgstr ""
+
+msgid "Hot Bed SVG"
+msgstr ""
+
+msgid "Load svg"
+msgstr ""
+
+msgid "Max Print Height"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The file exceeds %d MB, please import again."
+msgstr ""
+
+msgid "Exception in obtaining file size, please import again."
+msgstr ""
+
+msgid "Preset path is not find, please reselect vendor."
+msgstr ""
+
+msgid "The printer model was not found, please reselect."
+msgstr ""
+
+msgid "The nozzle diameter is not fond, place reselect."
+msgstr ""
+
+msgid "The printer preset is not fond, place reselect."
+msgstr ""
+
+msgid "Printer Preset"
+msgstr ""
+
+msgid "Filament Preset Template"
+msgstr ""
+
+msgid "Deselect All"
+msgstr ""
+
+msgid "Process Preset Template"
+msgstr ""
+
+msgid "Back Page 1"
+msgstr ""
+
+msgid ""
+"You have not yet chosen which printer preset to create based on. Please "
+"choose the vendor and model of the printer"
+msgstr ""
+
+msgid ""
+"You have entered an illegal input in the printable area section on the first "
+"page. Please check before creating it."
+msgstr ""
+
+msgid "The custom printer or model is not inputed, place input."
+msgstr ""
+
+msgid ""
+"The printer preset you created already has a preset with the same name. Do "
+"you want to overwrite it?\n"
+"\tYes: Overwrite the printer preset with the same name, and filament and "
+"process presets with the same preset name will be recreated \n"
+"and filament and process presets without the same preset name will be "
+"reserve.\n"
+"\tCancel: Do not create a preset, return to the creation interface."
+msgstr ""
+
+msgid "You need to select at least one filament preset."
+msgstr ""
+
+msgid "You need to select at least one process preset."
+msgstr ""
+
+msgid "Create filament presets failed. As follows:\n"
+msgstr ""
+
+msgid "Create process presets failed. As follows:\n"
+msgstr ""
+
+msgid "Vendor is not find, please reselect."
+msgstr ""
+
+msgid "Current vendor has no models, please reselect."
+msgstr ""
+
+msgid ""
+"You have not selected the vendor and model or inputed the custom vendor and "
+"model."
+msgstr ""
+
+msgid ""
+"There may be escape characters in the custom printer vendor or model. Please "
+"delete and re-enter."
+msgstr ""
+
+msgid ""
+"All inputs in the custom printer vendor or model are spaces. Please re-enter."
+msgstr ""
+
+msgid "Please check bed printable shape and origin input."
+msgstr ""
+
+msgid ""
+"You have not yet selected the printer to replace the nozzle, please choose."
+msgstr ""
+
+msgid "Create Printer Successful"
+msgstr ""
+
+msgid "Create Filament Successful"
+msgstr ""
+
+msgid "Printer Created"
+msgstr ""
+
+msgid "Please go to printer settings to edit your presets"
+msgstr ""
+
+msgid "Filament Created"
+msgstr ""
+
+msgid ""
+"Please go to filament setting to edit your presets if you need.\n"
+"Please note that nozzle temperature, hot bed temperature, and maximum "
+"volumetric speed have a significant impact on printing quality. Please set "
+"them carefully."
+msgstr ""
+
+msgid "Printer Setting"
+msgstr ""
+
+msgid "Export Configs"
+msgstr ""
+
+msgid "Printer config bundle(.bbscfg)"
+msgstr ""
+
+msgid "Filament bundle(.bbsflmt)"
+msgstr ""
+
+msgid "Printer presets(.zip)"
+msgstr ""
+
+msgid "Filament presets(.zip)"
+msgstr ""
+
+msgid "Process presets(.zip)"
+msgstr ""
+
+msgid "initialize fail"
+msgstr ""
+
+msgid "add file fail"
+msgstr ""
+
+msgid "add bundle structure file fail"
+msgstr ""
+
+msgid "finalize fail"
+msgstr ""
+
+msgid "open zip written fail"
+msgstr ""
+
+msgid "Export successful"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"The '%s' folder already exists in the current directory. Do you want to "
+"clear it and rebuild it.\n"
+"If not, a time suffix will be added, and you can modify the name after "
+"creation."
+msgstr ""
+
+msgid ""
+"Printer and all the filament&process presets that belongs to the printer. \n"
+"Can be shared with others."
+msgstr ""
+
+msgid ""
+"User's fillment preset set. \n"
+"Can be shared with others."
+msgstr ""
+
+msgid ""
+"Only display printer names with changes to printer, filament, and process "
+"presets."
+msgstr ""
+
+msgid "Only display the filament names with changes to filament presets."
+msgstr ""
+
+msgid ""
+"Only printer names with user printer presets will be displayed, and each "
+"preset you choose will be exported as a zip."
+msgstr ""
+
+msgid ""
+"Only the filament names with user filament presets will be displayed, \n"
+"and all user filament presets in each filament name you select will be "
+"exported as a zip."
+msgstr ""
+
+msgid ""
+"Only printer names with changed process presets will be displayed, \n"
+"and all user process presets in each printer name you select will be "
+"exported as a zip."
+msgstr ""
+
+msgid "Please select at least one printer or filament."
+msgstr ""
+
+msgid "Please select a type you want to export"
+msgstr ""
+
+msgid "Edit Filament"
+msgstr ""
+
+msgid "Filament presets under this filament"
+msgstr ""
+
+msgid ""
+"Note: If the only preset under this filament is deleted, the filament will "
+"be deleted after exiting the dialog."
+msgstr ""
+
+msgid "Presets inherited by other presets can not be deleted"
+msgstr ""
+
+msgid "The following presets inherits this preset."
+msgid_plural "The following preset inherits this preset."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Delete Preset"
+msgstr ""
+
+msgid "Are you sure to delete the selected preset?"
+msgstr ""
+
+msgid "Delete preset"
+msgstr ""
+
+msgid "+ Add Preset"
+msgstr ""
+
+msgid "Delete Filament"
+msgstr ""
+
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament "
+"information for that slot."
+msgstr ""
+
+msgid "Delete filament"
+msgstr ""
+
+msgid "Add Preset"
+msgstr ""
+
+msgid "Add preset for new printer"
+msgstr ""
+
+msgid "Copy preset from filament"
+msgstr ""
+
+msgid "The filament choice not find filament preset, please reselect it"
+msgstr ""
+
+msgid "Edit Preset"
+msgstr ""
+
+msgid "For more information, please check out Wiki"
+msgstr ""
+
+msgid "Collapse"
+msgstr ""
+
+msgid "Daily Tips"
+msgstr ""
+
+msgid "Need select printer"
+msgstr "Drucker auswählen"
+
+msgid "The start, end or step is not valid value."
+msgstr "Der Start, das Ende oder der Schritt ist kein gültiger Wert."
+
+msgid ""
+"Unable to calibrate: maybe because the set calibration value range is too "
+"large, or the step is too small"
+msgstr ""
+"Kalibrierung nicht möglich: Möglicherweise, weil der eingestellte "
+"Kalibrierungswertebereich zu groß ist oder der Schritt zu klein ist"
+
+#, fuzzy
+msgid "Physical Printer"
+msgstr "Drucker"
+
+msgid "Print Host upload"
+msgstr "Hochladen zum Druck-Host"
+
+msgid "Could not get a valid Printer Host reference"
+msgstr "Konnte keine gültige Referenz zum Druck-Host erhalten"
+
+msgid "Success!"
+msgstr "Erfolgreich!"
+
+msgid "Refresh Printers"
+msgstr "Drucker aktualisieren"
+
+msgid ""
+"HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
+"signed certificate."
+msgstr ""
+"Die HTTPS-CA-Datei ist optional. Sie wird nur benötigt, wenn Sie HTTPS mit "
+"einem selbstsignierten Zertifikat verwenden."
+
+msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
+msgstr "Zertifikatdateien (*.crt, *.pem)|*.crt;*.pem|Alle Dateien|*.*"
+
+msgid "Open CA certificate file"
+msgstr "Öffnen Sie die CA-Zertifikatsdatei."
+
+#, c-format, boost-format
+msgid ""
+"On this system, %s uses HTTPS certificates from the system Certificate Store "
+"or Keychain."
+msgstr ""
+"Auf diesem System verwendet %s HTTPS-Zertifikate aus dem "
+"Systemzertifikatspeicher oder dem Schlüsselbund."
+
+msgid ""
+"To use a custom CA file, please import your CA file into Certificate Store / "
+"Keychain."
+msgstr ""
+"Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte Ihre "
+"CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
+
+msgid "Connection to printers connected via the print host failed."
+msgstr ""
+"Die Verbindung zu den über den Druck-Host verbundenen Druckern ist "
+"fehlgeschlagen."
+
+#, c-format, boost-format
+msgid "Mismatched type of print host: %s"
+msgstr ""
+
+msgid "Connection to AstroBox works correctly."
+msgstr ""
+
+msgid "Could not connect to AstroBox"
+msgstr ""
+
+msgid "Note: AstroBox version at least 1.1.0 is required."
+msgstr ""
+
+msgid "Connection to Duet works correctly."
+msgstr ""
+
+msgid "Could not connect to Duet"
+msgstr ""
+
+msgid "Unknown error occured"
+msgstr ""
+
+msgid "Wrong password"
+msgstr ""
+
+msgid "Could not get resources to create a new connection"
+msgstr ""
+
+msgid "Upload not enabled on FlashAir card."
+msgstr ""
+
+msgid "Connection to FlashAir works correctly and upload is enabled."
+msgstr ""
+
+msgid "Could not connect to FlashAir"
+msgstr ""
+
+msgid ""
+"Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
+"is required."
+msgstr ""
+
+msgid "Connection to MKS works correctly."
+msgstr ""
+
+msgid "Could not connect to MKS"
+msgstr ""
+
+msgid "Connection to OctoPrint works correctly."
+msgstr ""
+
+msgid "Could not connect to OctoPrint"
+msgstr ""
+
+msgid "Note: OctoPrint version at least 1.1.0 is required."
+msgstr ""
+
+msgid "Connection to Prusa SL1 / SL1S works correctly."
+msgstr ""
+
+msgid "Could not connect to Prusa SLA"
+msgstr ""
+
+msgid "Connection to PrusaLink works correctly."
+msgstr ""
+
+msgid "Could not connect to PrusaLink"
+msgstr ""
+
+msgid "Storages found"
+msgstr ""
+
+#. TRN %1% = storage path
+#, boost-format
+msgid "%1% : read only"
+msgstr ""
+
+#. TRN %1% = storage path
+#, boost-format
+msgid "%1% : no free space"
+msgstr ""
+
+#. TRN %1% = host
+#, boost-format
+msgid "Upload has failed. There is no suitable storage found at %1%."
+msgstr ""
+
+msgid "Connection to Prusa Connect works correctly."
+msgstr ""
+
+msgid "Could not connect to Prusa Connect"
+msgstr ""
+
+msgid "Connection to Repetier works correctly."
+msgstr ""
+
+msgid "Could not connect to Repetier"
+msgstr ""
+
+msgid "Note: Repetier version at least 0.90.0 is required."
+msgstr ""
+
+#, boost-format
+msgid ""
+"HTTP status: %1%\n"
+"Message body: \"%2%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Parsing of host response failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr ""
+
+#, boost-format
+msgid ""
+"Enumeration of host printers failed.\n"
+"Message body: \"%1%\"\n"
+"Error: \"%2%\""
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -12830,6 +13544,91 @@ msgid ""
 "probability of warping."
 msgstr ""
 
+#~ msgid " search results"
+#~ msgstr " Suchergebnisse"
+
+#~ msgid "Filling bed "
+#~ msgstr "Bett füllen"
+
+#, boost-format
+#~ msgid "%1% infill pattern doesn't support 100%% density."
+#~ msgstr "Das %1% Füllmuster unterstützt keine 100%% Dichte."
+
+#~ msgid ""
+#~ "Switch to rectilinear pattern?\n"
+#~ "Yes - switch to rectilinear pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly"
+#~ msgstr ""
+#~ "Zu geradlinigen Mustern wechseln?\n"
+#~ "Ja - Automatisches auf das geradlinige Muster wechseln\n"
+#~ "Nein - Dichte automatisch auf den Standardwert unter 100% zurücksetzen"
+
+#~ msgid "Please heat the nozzle to above 170 degree before loading filament."
+#~ msgstr ""
+#~ "Bitte heizen Sie die Düse auf über 170 Grad auf, bevor Sie Filament laden."
+
+#, c-format, boost-format
+#~ msgid "This slicer file version %s is newer than %s's version:"
+#~ msgstr "Diese Slicer-Dateiversion %s ist neuer als die Version von %s:"
+
+#~ msgid ""
+#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "functionality in this slicer file?\n"
+#~ msgstr ""
+#~ "Möchten Sie Ihre Software aktualisieren, um alle Funktionen in dieser "
+#~ "Slicer-Datei zu aktivieren?\n"
+
+#~ msgid "Newer 3mf version"
+#~ msgstr "Neuere 3mf-Version"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "This slicer file version %s is newer than %s's version.\n"
+#~ "\n"
+#~ "Would you like to update your Bambu Studio software to enable all "
+#~ "functionality in this slicer file?"
+#~ msgstr ""
+#~ "Diese Slicer-Dateiversion %s ist neuer als die Version von %s.\n"
+#~ "\n"
+#~ "Möchten Sie Ihre Software aktualisieren, um alle Funktionen in dieser "
+#~ "Slicer-Datei zu aktivieren?"
+
+#~ msgid "Show g-code window"
+#~ msgstr "Zeige G-Code Fenster"
+
+#, fuzzy
+#~ msgid "If enabled, g-code window will be displayed."
+#~ msgstr "Wenn aktiviert, werden beim Start nützliche Hinweise angezeigt."
+
+#~ msgid ""
+#~ "Layer height cannot exceed the limit in Printer Settings -> Extruder -> "
+#~ "Layer height limits"
+#~ msgstr ""
+#~ "Die Schichthöhe darf das Limit in Druckereinstellungen -> Extruder -> "
+#~ "Schichthöhenlimits nicht überschreiten"
+
+#, c-format
+#~ msgid "Density of internal sparse infill, 100% means solid throughout"
+#~ msgstr "Dichte der inneren Füllung, 100%% bedeuten eine solide Füllung"
+
+#~ msgid "No interface filament for body"
+#~ msgstr "Kein Filament für die Schnittstelle des Körpers"
+
+#~ msgid "Don't use support interface filament to print support body"
+#~ msgstr ""
+#~ "verwende kein Filament für die Stützstruktur-Schnittstelle um den Körper "
+#~ "zu drucken"
+
+#~ msgid "Tree support wall loops"
+#~ msgstr "Wandschleifen für Baumstützen"
+
+#~ msgid "This setting specify the count of walls around tree support"
+#~ msgstr "Diese Einstellung gibt die Anzahl der Wände um die Baumstütze an."
+
+#, c-format, boost-format
+#~ msgid " doesn't work at 100%% density "
+#~ msgstr " doesn't work at 100%% density "
+
 #~ msgid "Ctrl + Shift + Enter"
 #~ msgstr "Strg + Umschalt + Eingabetaste"
 
@@ -12853,9 +13652,6 @@ msgstr ""
 
 #~ msgid "Export all objects as STL"
 #~ msgstr "Alle Objekte als STL exportieren"
-
-#~ msgid "Slice ok."
-#~ msgstr "Slice ok."
 
 #, c-format, boost-format
 #~ msgid ""
@@ -13104,68 +13900,6 @@ msgstr ""
 #, boost-format
 #~ msgid "The selected preset: %1% is not found."
 #~ msgstr "Die ausgewählte Voreinstellung: %1% wurde nicht gefunden."
-
-#, fuzzy
-#~ msgid "Physical Printer"
-#~ msgstr "Drucker"
-
-#~ msgid "Print Host upload"
-#~ msgstr "Hochladen zum Druck-Host"
-
-#~ msgid "Could not get a valid Printer Host reference"
-#~ msgstr "Konnte keine gültige Referenz zum Druck-Host erhalten"
-
-#~ msgid "Success!"
-#~ msgstr "Erfolgreich!"
-
-#~ msgid "Refresh Printers"
-#~ msgstr "Drucker aktualisieren"
-
-#~ msgid ""
-#~ "HTTPS CA file is optional. It is only needed if you use HTTPS with a self-"
-#~ "signed certificate."
-#~ msgstr ""
-#~ "Die HTTPS-CA-Datei ist optional. Sie wird nur benötigt, wenn Sie HTTPS "
-#~ "mit einem selbstsignierten Zertifikat verwenden."
-
-#~ msgid "Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"
-#~ msgstr "Zertifikatdateien (*.crt, *.pem)|*.crt;*.pem|Alle Dateien|*.*"
-
-#~ msgid "Open CA certificate file"
-#~ msgstr "Öffnen Sie die CA-Zertifikatsdatei."
-
-#, c-format, boost-format
-#~ msgid ""
-#~ "On this system, %s uses HTTPS certificates from the system Certificate "
-#~ "Store or Keychain."
-#~ msgstr ""
-#~ "Auf diesem System verwendet %s HTTPS-Zertifikate aus dem "
-#~ "Systemzertifikatspeicher oder dem Schlüsselbund."
-
-#~ msgid ""
-#~ "To use a custom CA file, please import your CA file into Certificate "
-#~ "Store / Keychain."
-#~ msgstr ""
-#~ "Um eine benutzerdefinierte CA-Datei zu verwenden, importieren Sie bitte "
-#~ "Ihre CA-Datei in den Zertifikatspeicher / das Schlüsselbund."
-
-#~ msgid "Connection to printers connected via the print host failed."
-#~ msgstr ""
-#~ "Die Verbindung zu den über den Druck-Host verbundenen Druckern ist "
-#~ "fehlgeschlagen."
-
-#~ msgid "The start, end or step is not valid value."
-#~ msgstr "Der Start, das Ende oder der Schritt ist kein gültiger Wert."
-
-#~ msgid ""
-#~ "Unable to calibrate: maybe because the set calibration value range is too "
-#~ "large, or the step is too small"
-#~ msgstr ""
-#~ "Kalibrierung nicht möglich: Möglicherweise, weil der eingestellte "
-#~ "Kalibrierungswertebereich zu groß ist oder der Schritt zu klein ist"
-
-#~ msgid "Need select printer"
-#~ msgstr "Drucker auswählen"
 
 #~ msgid ""
 #~ "3D Scene Operations\n"
