@@ -472,11 +472,6 @@ void GLVolume::render_with_outline(const Transform3d &view_model_matrix)
 //BBS add render for simple case
 void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_objects, std::vector<ColorRGBA> extruder_colors)
 {
-    if (this->is_left_handed())
-        glFrontFace(GL_CW);
-    glsafe(::glCullFace(GL_BACK));
-
-    glsafe(::glPolygonMode(GL_BACK, GL_LINE));
     bool color_volume = false;
     ModelObject* model_object = nullptr;
     ModelVolume* model_volume = nullptr;
@@ -505,6 +500,7 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
         }
     } while (0);
 
+    auto r = [&]() {
     if (color_volume && !picking) {
         // when force_transparent, we need to keep the alpha
         if (force_native_color && render_color.is_transparent()) {
@@ -546,9 +542,32 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
         else
             model.render(this->tverts_range);
     }
+    };
+
+    if (this->is_left_handed())
+        glFrontFace(GL_CW);
+
+    GLboolean cull_face = GL_FALSE;
+    ::glGetBooleanv(GL_CULL_FACE, &cull_face);
+    glsafe(::glEnable(GL_CULL_FACE));
+
+    // Render front faces
+    glsafe(::glCullFace(GL_BACK));
+    r();
+
+    // Then render back faces in line mode to add an outline
+    glsafe(::glCullFace(GL_FRONT));
+    glsafe(::glPolygonMode(GL_BACK, GL_LINE));
+    r();
+
+    // Reset mode
+    glsafe(::glPolygonMode(GL_BACK, GL_FILL));
+    glsafe(::glCullFace(GL_BACK));
+    if (!cull_face)
+        glsafe(::glDisable(GL_CULL_FACE));
+
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
-    glsafe(::glPolygonMode(GL_BACK, GL_FILL));
 }
 
 bool GLVolume::is_sla_support() const { return this->composite_id.volume_id == -int(slaposSupportTree); }
