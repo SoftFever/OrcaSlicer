@@ -83,7 +83,7 @@
 	"use_relative_e_distances": "1",
 	"wipe": ["1"],
     "wipe_distance": ["1"],
-    "z_hop": ["0.0"],
+    "z_hop": ["0.4"],
     "z_hop_types": ["Normal Lift"],
 	"change_filament_gcode": "",
 	"machine_pause_gcode": "M0",
