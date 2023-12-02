@@ -2566,6 +2566,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , partplate_list(this->q, &model)
 {
     m_aui_mgr.SetManagedWindow(q);
+    m_aui_mgr.SetDockSizeConstraint(1, 1);
     //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
     //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
     m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 18);
