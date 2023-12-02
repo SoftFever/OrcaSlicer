@@ -547,15 +547,14 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     if (this->is_left_handed())
         glFrontFace(GL_CW);
 
-    GLboolean cull_face = GL_FALSE;
-    ::glGetBooleanv(GL_CULL_FACE, &cull_face);
-    glsafe(::glEnable(GL_CULL_FACE));
-
     // Render front faces
     glsafe(::glCullFace(GL_BACK));
     r();
 
     // Then render back faces in line mode to add an outline
+    GLboolean cull_face = GL_FALSE;
+    ::glGetBooleanv(GL_CULL_FACE, &cull_face);
+    glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glCullFace(GL_FRONT));
     glsafe(::glPolygonMode(GL_BACK, GL_LINE));
     r();
@@ -865,6 +864,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
     }
 
     glsafe(::glCullFace(GL_BACK));
+    glsafe(::glEnable(GL_CULL_FACE));
     if (disable_cullface)
         glsafe(::glDisable(GL_CULL_FACE));
 
