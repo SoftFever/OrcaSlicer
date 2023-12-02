@@ -547,6 +547,10 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     if (this->is_left_handed())
         glFrontFace(GL_CW);
 
+    GLboolean cull_face = GL_FALSE;
+    ::glGetBooleanv(GL_CULL_FACE, &cull_face);
+    glsafe(::glEnable(GL_CULL_FACE));
+
     // Render front faces
     glsafe(::glCullFace(GL_BACK));
     r();
@@ -559,6 +563,8 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     // Reset mode
     glsafe(::glPolygonMode(GL_BACK, GL_FILL));
     glsafe(::glCullFace(GL_BACK));
+    if (!cull_face)
+        glsafe(::glDisable(GL_CULL_FACE));
 
     if (this->is_left_handed())
         glFrontFace(GL_CCW);
