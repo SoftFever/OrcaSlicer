@@ -60,6 +60,7 @@
 #endif
 #include <wx/clrpicker.h>
 #include <wx/tokenzr.h>
+#include <wx/aui/aui.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
@@ -1950,6 +1951,28 @@ enum ExportingStatus{
     EXPORTING_TO_LOCAL
 };
 
+
+// TODO: listen on dark ui change
+class FloatFrame : public wxAuiFloatingFrame
+{
+public:
+    FloatFrame(wxWindow* parent, wxAuiManager* ownerMgr, const wxAuiPaneInfo& pane) : wxAuiFloatingFrame(parent, ownerMgr, pane)
+    {
+        wxGetApp().UpdateFrameDarkUI(this);
+    }
+};
+
+class AuiMgr : public wxAuiManager
+{
+public:
+    AuiMgr() : wxAuiManager(){}
+
+    virtual wxAuiFloatingFrame* CreateFloatingFrame(wxWindow* parent, const wxAuiPaneInfo& p) override
+    {
+        return new FloatFrame(parent, this, p);
+    }
+};
+
 // Plater / private
 struct Plater::priv
 {
@@ -1972,7 +1995,7 @@ struct Plater::priv
     Slic3r::GCodeProcessorResult gcode_result;
 
     // GUI elements
-    wxSizer* panel_sizer{ nullptr };
+    AuiMgr m_aui_mgr;
     wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
     Sidebar *sidebar;
@@ -2382,6 +2405,7 @@ struct Plater::priv
     //BBS: change dark/light mode
     void on_change_color_mode(SimpleEvent& evt);
     void on_apple_change_color_mode(wxSysColourChangedEvent& evt);
+    void apply_color_mode();
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_started(SimpleEvent&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
@@ -2541,6 +2565,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
 {
+    m_aui_mgr.SetManagedWindow(q);
+    //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
+    //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_SASH_SIZE, 2);
+    m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_CAPTION_SIZE, 18);
+    m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
+
     this->q->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
     //BBS: use the first partplate's print for background process
@@ -2582,11 +2612,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_CREATE_FILAMENT, &priv::on_create_filament, this);
     this->q->Bind(EVT_MODIFY_FILAMENT, &priv::on_modify_filament, this);
 
-    view3D = new View3D(q, bed, &model, config, &background_process);
+    auto* panel_3d = new wxPanel(q);
+    view3D = new View3D(panel_3d, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
-    preview = new Preview(q, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
+    preview = new Preview(panel_3d, bed, &model, config, &background_process, partplate_list.get_current_slice_result(), [this]() { schedule_background_process(); });
 
-    assemble_view = new AssembleView(q, bed, &model, config, &background_process);
+    assemble_view = new AssembleView(panel_3d, bed, &model, config, &background_process);
 
 #ifdef __APPLE__
     // BBS
@@ -2607,23 +2638,22 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     update();
 
-    auto* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    auto* vsizer = new wxBoxSizer(wxVERTICAL);
+    // Orca: Make sidebar dockable
+    m_aui_mgr.AddPane(sidebar, wxAuiPaneInfo()
+                                   .Name("sidebar")
+                                   .Left()
+                                   .CloseButton(false)
+                                   .TopDockable(false)
+                                   .BottomDockable(false)
+                                   .Floatable(true)
+                                   .BestSize(wxSize(42 * wxGetApp().em_unit(), 90 * wxGetApp().em_unit())));
 
-    // BBS: move sidebar to left side
-    hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
-    auto spliter_1 = new ::StaticLine(q, true);
-    spliter_1->SetLineColour("#A6A9AA");
-    hsizer->Add(spliter_1, 0, wxEXPAND);
-
-    panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(preview, 1, wxEXPAND | wxALL, 0);
     panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
-    vsizer->Add(panel_sizer, 1, wxEXPAND | wxALL, 0);
-    hsizer->Add(vsizer, 1, wxEXPAND | wxALL, 0);
-
-    q->SetSizer(hsizer);
+    panel_3d->SetSizer(panel_sizer);
+    m_aui_mgr.AddPane(panel_3d, wxAuiPaneInfo().Name("main").CenterPane().PaneBorder(false));
 
     menus.init(q);
 
@@ -2828,6 +2858,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
     q->Layout();
 
+    apply_color_mode();
+
     set_current_panel(wxGetApp().is_editor() ? static_cast<wxPanel*>(view3D) : static_cast<wxPanel*>(preview));
 
     // updates camera type from .ini file
@@ -2999,6 +3031,8 @@ void Plater::priv::update(unsigned int flags)
     if (get_config("autocenter") == "true" && this->sidebar->obj_manipul()->IsShown())
         this->sidebar->obj_manipul()->UpdateAndShow(true);
 #endif
+
+    m_aui_mgr.Update();
 }
 
 void Plater::priv::select_view(const std::string& direction)
@@ -5776,7 +5810,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             p->Hide();
     }
 
-    panel_sizer->Layout();
+    m_aui_mgr.Update();
 
     if (wxGetApp().plater()) {
         Camera& cam = wxGetApp().plater()->get_camera();
@@ -6827,6 +6861,8 @@ void Plater::priv::on_apple_change_color_mode(wxSysColourChangedEvent& evt) {
         preview->get_canvas3d()->on_change_color_mode(m_is_dark);
         assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
     }
+
+    apply_color_mode();
 }
 
 void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
@@ -6835,6 +6871,37 @@ void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
     preview->get_canvas3d()->on_change_color_mode(m_is_dark);
     assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
     if (m_send_to_sdcard_dlg) m_send_to_sdcard_dlg->on_change_color_mode();
+
+    apply_color_mode();
+}
+
+void Plater::priv::apply_color_mode()
+{
+    const bool is_dark         = wxGetApp().dark_mode();
+    wxColour   orca_color      = wxColour(59, 68, 70);//wxColour(ColorRGBA::ORCA().r_uchar(), ColorRGBA::ORCA().g_uchar(), ColorRGBA::ORCA().b_uchar());
+    orca_color                 = is_dark ? StateColor::darkModeColorFor(orca_color) : StateColor::lightModeColorFor(orca_color);
+    wxColour sash_color = is_dark ? wxColour(38, 46, 48) : wxColour(206, 206, 206);
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR, sash_color);
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR, *wxWHITE);
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_SASH_COLOUR, sash_color);
+    m_aui_mgr.GetArtProvider()->SetColour(wxAUI_DOCKART_BORDER_COLOUR, is_dark ? *wxBLACK : wxColour(165, 165, 165));
+    m_aui_mgr.Update();
+}
+
+static void get_position(wxWindowBase* child, wxWindowBase* until_parent, int& x, int& y) {
+    int res_x = 0, res_y = 0;
+
+    while (child != until_parent && child != nullptr) {
+        int _x, _y;
+        child->GetPosition(&_x, &_y);
+        res_x += _x;
+        res_y += _y;
+
+        child = child->GetParent();
+    }
+
+    x = res_x;
+    y = res_y;
 }
 
 void Plater::priv::on_right_click(RBtnEvent& evt)
@@ -6896,8 +6963,8 @@ void Plater::priv::on_right_click(RBtnEvent& evt)
 #else
         //BBS: GUI refactor: move sidebar to the left
         int x, y;
-        current_panel->GetPosition(&x, &y);
-        q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
+        get_position(current_panel, wxGetApp().mainframe, x, y);
+        q->PopupMenu(menu, (int) evt.data.first.x() + x, (int) evt.data.first.y() + y);
         //q->PopupMenu(menu);
 #endif
     }
@@ -6913,8 +6980,8 @@ void Plater::priv::on_plate_right_click(RBtnPlateEvent& evt)
 #else
     //BBS: GUI refactor: move sidebar to the left
     int x, y;
-    current_panel->GetPosition(&x, &y);
-    q->PopupMenu(menu, (int)evt.data.first.x() + x, (int)evt.data.first.y());
+    get_position(current_panel, wxGetApp().mainframe, x, y);
+    q->PopupMenu(menu, (int) evt.data.first.x() + x, (int) evt.data.first.y() + y);
     //q->PopupMenu(menu);
 #endif
 }
