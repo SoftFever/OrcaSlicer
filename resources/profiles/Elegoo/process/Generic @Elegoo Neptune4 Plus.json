@@ -35,6 +35,7 @@
     "travel_acceleration": "8000",
     "inner_wall_acceleration": "8000",
     "outer_wall_acceleration": "8000",
+    "accel_to_decel_factor": "62%",
     "initial_layer_line_width": "0.22",
     "initial_layer_print_height": "0.2",
     "infill_combination": "0",
