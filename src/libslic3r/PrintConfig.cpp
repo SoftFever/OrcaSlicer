@@ -796,7 +796,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(100));
 
     def = this->add("bridge_flow", coFloat);
-    def->label = L("Bridge flow");
+    def->label = L("Bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag");
@@ -806,7 +806,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("internal_bridge_flow", coFloat);
-    def->label = L("Internal bridge flow");
+    def->label = L("Internal bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
     def->min = 0;
