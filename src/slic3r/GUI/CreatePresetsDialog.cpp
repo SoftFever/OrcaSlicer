@@ -1483,7 +1483,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_step_switch_item()
     horizontal_sizer->Add(divider_line, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
     m_step_2 = new wxStaticBitmap(step_switch_panel, wxID_ANY, create_scaled_bitmap("step_2_ready", nullptr, FromDIP(20)), wxDefaultPosition, wxDefaultSize);
     horizontal_sizer->Add(m_step_2, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
-    wxStaticText *static_improt_presets_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Improt Preset"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_improt_presets_text = new wxStaticText(step_switch_panel, wxID_ANY, _L("Import Preset"), wxDefaultPosition, wxDefaultSize);
     horizontal_sizer->Add(static_improt_presets_text, 0, wxEXPAND | wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
     horizontal_sizer->Add(0, 0, 1, wxEXPAND, 0);
 

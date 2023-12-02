@@ -11083,7 +11083,7 @@ msgstr ""
 msgid "wiki"
 msgstr ""
 
-msgid "Improt Preset"
+msgid "Import Preset"
 msgstr ""
 
 msgid "Create Type"
