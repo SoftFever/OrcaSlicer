@@ -2914,14 +2914,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode"));
 
     def = this->add("make_overhang_printable", coBool);
-    def->label = L("Make overhang printable");
+    def->label = L("Make overhangs printable");
     def->category = L("Quality");
     def->tooltip = L("Modify the geometry to print overhangs without support material.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("make_overhang_printable_angle", coFloat);
-    def->label = L("Make overhang printable - Maximum angle");
+    def->label = L("Make overhangs printable - Maximum angle");
     def->category = L("Quality");
     def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
                      "90° will not change the model at all and allow any overhang, while 0 will "
@@ -2933,7 +2933,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(55.));
 
     def = this->add("make_overhang_printable_hole_size", coFloat);
-    def->label = L("Make overhang printable - Hole area");
+    def->label = L("Make overhangs printable - Hole area");
     def->category = L("Quality");
     def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
                      "A value of 0 will fill all the holes in the model base.");
