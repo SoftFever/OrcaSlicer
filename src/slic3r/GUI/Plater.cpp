@@ -1985,6 +1985,7 @@ struct Plater::priv
 
     // GUI elements
     AuiMgr m_aui_mgr;
+    wxString m_default_window_layout;
     wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
     bool is_sidebar_collapsed{false};
@@ -2181,6 +2182,7 @@ struct Plater::priv
     }
 
     void collapse_sidebar(bool collapse);
+    void reset_window_layout();
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
@@ -2648,6 +2650,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panel_sizer->Add(assemble_view, 1, wxEXPAND | wxALL, 0);
     panel_3d->SetSizer(panel_sizer);
     m_aui_mgr.AddPane(panel_3d, wxAuiPaneInfo().Name("main").CenterPane().PaneBorder(false));
+
+    m_default_window_layout = m_aui_mgr.SavePerspective();
 
     menus.init(q);
 
@@ -3160,6 +3164,7 @@ void Plater::priv::collapse_sidebar(bool collapse)
     notification_manager->set_sidebar_collapsed(collapse);
 }
 
+void Plater::priv::reset_window_layout() { m_aui_mgr.LoadPerspective(m_default_window_layout); }
 
 void Plater::priv::reset_all_gizmos()
 {
@@ -10102,6 +10107,8 @@ void Plater::show_view3D_overhang(bool show)  {  p->show_view3D_overhang(show); 
 
 bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed; }
 void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
+
+void Plater::reset_window_layout() { p->reset_window_layout(); }
 
 //BBS
 void Plater::select_curr_plate_all() { p->select_curr_plate_all(); }

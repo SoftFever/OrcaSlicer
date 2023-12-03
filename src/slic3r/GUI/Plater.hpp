@@ -316,6 +316,8 @@ public:
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool show);
 
+    void reset_window_layout();
+
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();

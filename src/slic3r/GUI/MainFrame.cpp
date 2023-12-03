@@ -2531,6 +2531,15 @@ void MainFrame::init_menubar_as_editor()
             this, [this]() { return m_plater->is_preview_shown(); },
             [this]() { return wxGetApp().show_gcode_window(); }, this);
 
+        append_menu_item(
+            viewMenu, wxID_ANY, _L("Reset Window Layout"), _L("Reset to default window layout"),
+            [this](wxCommandEvent&) { m_plater->reset_window_layout(); }, "", this,
+            [this]() {
+                return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) &&
+                       !m_plater->is_sidebar_collapsed();
+            },
+            this);
+
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Labels") + "\t" + ctrl + "E", _L("Show object labels in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
