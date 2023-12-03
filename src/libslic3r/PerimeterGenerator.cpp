@@ -1729,9 +1729,7 @@ void PerimeterGenerator::process_classic()
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
-            bool is_outer_wall_first =
-                this->object_config->wall_sequence == WallSequence::OuterInner ||
-                this->object_config->wall_sequence == WallSequence::InnerOuterInner;
+            bool is_outer_wall_first = this->object_config->wall_sequence == WallSequence::OuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
@@ -1937,24 +1935,22 @@ void PerimeterGenerator::process_arachne()
     // extra perimeters for each one
     for (const Surface& surface : this->slices->surfaces) {
         coord_t bead_width_0 = ext_perimeter_spacing;
-        if (config->precise_outer_wall)
-            bead_width_0 = ext_perimeter_width + this->perimeter_flow.scaled_width() - perimeter_spacing;
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
         if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
             loop_number = 0;
-        // BBS: set the topmost layer to be one wall
+        // Orca: set the topmost layer to be one wall according to the config
         if (loop_number > 0 && config->only_one_wall_top && this->upper_slices == nullptr)
             loop_number = 0;
+        // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
         ExPolygons last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
-                      config->precise_outer_wall ? -float(ext_perimeter_width / 2. - bead_width_0 / 2.)
+                      config->precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing )
                                                  : -float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
         
         Arachne::WallToolPathsParams input_params = Arachne::make_paths_params(this->layer_id, *object_config, *print_config);
         coord_t wall_0_inset = 0;
-        //if (config->precise_outer_wall)
-        //    wall_0_inset = 0.5 * (ext_perimeter_width + this->perimeter_flow.scaled_width() - ext_perimeter_spacing -
-        //                           perimeter_spacing);
+        if (config->precise_outer_wall)
+           wall_0_inset = -coord_t(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
 
         std::vector<Arachne::VariableWidthLines> out_shell;
         ExPolygons top_fills;
@@ -2169,7 +2165,7 @@ void PerimeterGenerator::process_arachne()
         }
 
        // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill && layer_id > 0) { // only enable inner outer inner algorithm after first layer
+        if (this->object_config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
                 int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
                 int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops

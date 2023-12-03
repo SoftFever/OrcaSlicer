@@ -1,0 +1,12 @@
+{
+    "type": "process",
+    "setting_id": "GP004",
+    "name": "0.16mm Optimal @Creality Ender5Pro (2019) 0.2",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_creality_common_0_2",
+    "bottom_shell_layers": "5",
+    "top_shell_layers": "7",
+    "layer_height": "0.16",
+    "bridge_flow": "0.85"
+}

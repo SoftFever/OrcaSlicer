@@ -741,7 +741,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<SupportMaterialStyle>, support_style))
     // BBS
     //((ConfigOptionBool,                independent_support_layer_height))
+    // Orca internal thick bridge
     ((ConfigOptionBool,                thick_bridges))
+    ((ConfigOptionBool,                thick_internal_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
     ((ConfigOptionFloat,               support_object_xy_distance))
@@ -1014,6 +1016,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionFloatOrPercent,      initial_layer_travel_speed))
     ((ConfigOptionBool,                bbl_calib_mark_logo))
+    ((ConfigOptionBool,                disable_m73))
 
     // Orca: mmu
     ((ConfigOptionFloat,               cooling_tube_retraction))

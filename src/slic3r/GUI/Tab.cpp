@@ -1918,7 +1918,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("xy_contour_compensation", "xy-hole-contour-compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation_layers");
-        optgroup->append_single_option_line("precise_outer_wall");
+        optgroup->append_single_option_line("precise_outer_wall", "Precise-wall");
         optgroup->append_single_option_line("hole_to_polyhole");
         optgroup->append_single_option_line("hole_to_polyhole_threshold");
         optgroup->append_single_option_line("hole_to_polyhole_twisted");
@@ -1946,9 +1946,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("wall_sequence");
         optgroup->append_single_option_line("is_infill_first");
         optgroup->append_single_option_line("bridge_flow");
-	optgroup->append_single_option_line("internal_bridge_flow");
+	    optgroup->append_single_option_line("internal_bridge_flow");
         optgroup->append_single_option_line("bridge_density");
         optgroup->append_single_option_line("thick_bridges");
+        optgroup->append_single_option_line("thick_internal_bridges");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
         optgroup->append_single_option_line("bottom_solid_infill_flow_ratio");
         optgroup->append_single_option_line("only_one_wall_top");
@@ -3401,6 +3402,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);

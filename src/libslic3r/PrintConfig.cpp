@@ -1202,6 +1202,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("thick_internal_bridges", coBool);
+    def->label = L("Thick internal bridges");
+    def->category = L("Quality");
+    def->tooltip  = L("If enabled, thick internal bridges will be used. It's usually recommended to have this feature turned on. However, "
+                       "consider turning it off if you are using large nozzles.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+
     def = this->add("max_bridge_length", coFloat);
     def->label = L("Max bridge length");
     def->category = L("Support");
@@ -3243,6 +3252,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->tooltip = "";
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("disable_m73", coBool);
+    def->label = L("Disable set remaining print time");
+    def->tooltip = "Disable generating of the M73: Set remaining print time in the final gcode";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
