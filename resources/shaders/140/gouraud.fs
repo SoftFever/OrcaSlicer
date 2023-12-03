@@ -56,6 +56,11 @@ in vec3 eye_normal;
 
 out vec4 out_color;
 
+vec3 getBackfaceColor(vec3 fill) {
+    float brightness = 0.2126 * fill.r + 0.7152 * fill.g + 0.0722 * fill.b;
+    return (brightness > 0.75) ? vec3(0.11, 0.165, 0.208) : vec3(0.988, 0.988, 0.988);
+}
+
 void main()
 {
     if (any(lessThan(clipping_planes_dots, ZERO)))
@@ -97,8 +102,11 @@ void main()
 	}
 	color.rgb = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color.rgb, ZERO, 0.3333) : color.rgb;
 	
+    // Orca: add backface outline
+    if (!gl_FrontFacing)
+        out_color = vec4(getBackfaceColor(color.rgb), 1.0);
     //BBS: add outline_color
-    if (is_outline)
+    else if (is_outline)
         out_color = uniform_color;
 #ifdef ENABLE_ENVIRONMENT_MAP
     else if (use_environment_tex)
