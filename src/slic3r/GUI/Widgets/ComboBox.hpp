@@ -17,7 +17,6 @@ class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
     DropDown               drop;
     bool     drop_down = false;
     bool     text_off = false;
-    bool m_is_enabled = true;
 
 public:
     ComboBox(wxWindow *      parent,
