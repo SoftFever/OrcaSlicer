@@ -373,7 +373,6 @@ struct Sidebar::priv
     //ScalableButton *btn_eject_device;
     ScalableButton* btn_export_gcode_removable; //exports to removable drives (appears only if removable drive is connected)
 
-    bool                is_collapsed {false};
     Search::OptionsSearcher     searcher;
     std::string ams_list_device;
 
@@ -1761,19 +1760,9 @@ void Sidebar::update_mode()
     Layout();
 }
 
-bool Sidebar::is_collapsed() { return p->is_collapsed; }
+bool Sidebar::is_collapsed() { return p->plater->is_sidebar_collapsed(); }
 
-void Sidebar::collapse(bool collapse)
-{
-    p->is_collapsed = collapse;
-
-    this->Show(!collapse);
-    p->plater->Layout();
-
-    // save collapsing state to the AppConfig
-    //if (wxGetApp().is_editor())
-    //    wxGetApp().app_config->set_bool("collapsed_sidebar", collapse);
-}
+void Sidebar::collapse(bool collapse) { p->plater->collapse_sidebar(collapse); }
 
 #ifdef _MSW_DARK_MODE
 void Sidebar::show_mode_sizer(bool show)
@@ -1998,6 +1987,7 @@ struct Plater::priv
     AuiMgr m_aui_mgr;
     wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
+    bool is_sidebar_collapsed{false};
     Sidebar *sidebar;
     Bed3D bed;
     Camera camera;
@@ -2190,7 +2180,6 @@ struct Plater::priv
         if (current_panel == view3D) view3D->get_canvas3d()->show_overhang(show);
     }
 
-    bool is_sidebar_collapsed() const   { return sidebar->is_collapsed(); }
     void collapse_sidebar(bool collapse);
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
@@ -3155,7 +3144,14 @@ void Plater::priv::collapse_sidebar(bool collapse)
 {
     if (q->m_only_gcode && !collapse)
         return;
-    sidebar->collapse(collapse);
+
+    is_sidebar_collapsed = collapse;
+    if (collapse)
+        m_aui_mgr.GetPane(sidebar).Hide();
+    else
+        m_aui_mgr.GetPane(sidebar).Show();
+    m_aui_mgr.Update();
+
     notification_manager->set_sidebar_collapsed(collapse);
 }
 
@@ -10083,7 +10079,7 @@ void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
 bool Plater::is_view3D_overhang_shown() const { return p->is_view3D_overhang_shown(); }
 void Plater::show_view3D_overhang(bool show)  {  p->show_view3D_overhang(show); }
 
-bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed(); }
+bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed; }
 void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
 
 //BBS
