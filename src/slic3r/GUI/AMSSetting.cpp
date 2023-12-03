@@ -192,8 +192,8 @@ void AMSSetting::create()
     wxPanel* m_panel_img = new wxPanel(m_panel_body, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_panel_img->SetBackgroundColour(AMS_SETTING_GREY200);
     wxBoxSizer *m_sizer_img = new wxBoxSizer(wxVERTICAL);
-    ams_img = new wxStaticBitmap(m_panel_img, wxID_ANY, create_scaled_bitmap("ams_icon", nullptr, 126), wxDefaultPosition, wxDefaultSize);
-    m_sizer_img->Add(ams_img, 0, wxALIGN_CENTER | wxTOP, 26);
+    m_am_img = new wxStaticBitmap(m_panel_img, wxID_ANY, create_scaled_bitmap("ams_icon", nullptr, 126), wxDefaultPosition, wxDefaultSize);
+    m_sizer_img->Add(m_am_img, 0, wxALIGN_CENTER | wxTOP, 26);
     m_sizer_img->Add(0, 0, 0, wxTOP, 18);
     m_panel_img->SetSizer(m_sizer_img);
     m_panel_img->Layout();
@@ -262,17 +262,9 @@ void AMSSetting::update_insert_material_read_mode(bool selected)
     Fit();
 }
 
-void AMSSetting::update_image(std::string ams_type)
+void AMSSetting::update_ams_img(std::string ams_icon_str)
 {
-    if (ams_type == m_current_ams_type) return;
-    if (ams_type == "generic") {
-        ams_img->SetBitmap(create_scaled_bitmap("monitor_upgrade_f1", nullptr, 126));
-    }
-    else {
-        ams_img->SetBitmap(create_scaled_bitmap("ams_icon", nullptr, 126));
-    }
-    m_current_ams_type = ams_type;
-    Layout();
+    m_am_img->SetBitmap(create_scaled_bitmap(ams_icon_str, nullptr, 126));
 }
 
 void AMSSetting::update_starting_read_mode(bool selected)
@@ -292,12 +284,24 @@ void AMSSetting::update_starting_read_mode(bool selected)
 
 void AMSSetting::update_remain_mode(bool selected)
 {
+    if (obj->is_support_update_remain) {
+        m_checkbox_remain->Show();
+        m_title_remain->Show();
+        m_tip_remain_line1->Show();
+        Layout();
+    }
+    else {
+        m_checkbox_remain->Hide();
+        m_title_remain->Hide();
+        m_tip_remain_line1->Hide();
+        Layout();
+    }
     m_checkbox_remain->SetValue(selected);
 }
 
 void AMSSetting::update_switch_filament(bool selected)
 {
-    if (obj->is_function_supported(PrinterFunction::FUNC_AUTO_SWITCH_FILAMENT)) {
+    if (obj->is_support_filament_backup) {
         m_checkbox_switch_filament->Show();
         m_title_switch_filament->Show();
         m_tip_switch_filament_line1->Show();

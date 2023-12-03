@@ -72,7 +72,7 @@ public:
 
     Flow    flow(FlowRole role) const;
     Flow    flow(FlowRole role, double layer_height) const;
-    Flow    bridging_flow(FlowRole role, bool thick_bridge = false, bool internal_bridge = false) const;
+    Flow    bridging_flow(FlowRole role, bool thick_bridge = false) const;
 
     void    slices_to_fill_surfaces_clipped();
     void    prepare_fill_surfaces();
@@ -277,6 +277,7 @@ public:
 
     // for tree supports
     ExPolygons base_areas;
+    ExPolygons                                overhang_areas;
 
 
     // Is there any valid extrusion assigned to this LayerRegion?
@@ -300,7 +301,6 @@ protected:
     size_t m_interface_id;
 
     // for tree support
-    ExPolygons                                overhang_areas;
     ExPolygons                                roof_areas;
     ExPolygons                                roof_1st_layer; // the layer just below roof. When working with PolySupport, this layer should be printed with regular material
     ExPolygons                                floor_areas;
@@ -312,6 +312,7 @@ protected:
         int        type;
         coordf_t   dist_to_top; // mm dist to top
         bool need_infill = false;
+        bool need_extra_wall = false;
         AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
     enum OverhangType { Detected = 0, Enforced };

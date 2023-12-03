@@ -129,14 +129,12 @@ enum CaliPresetPageStatus
 {
     CaliPresetStatusInit = 0,
     CaliPresetStatusNormal,
-    CaliPresetStatusSending,
     CaliPresetStatusNoUserLogin,
     CaliPresetStatusInvalidPrinter,
     CaliPresetStatusConnectingServer,
     CaliPresetStatusInUpgrading,
     CaliPresetStatusInSystemPrinting,
     CaliPresetStatusInPrinting,
-    CaliPresetStatusSendingCanceled,
     CaliPresetStatusLanModeNoSdcard,
     CaliPresetStatusNoSdcard,
     CaliPresetStatusNeedForceUpgrading,
@@ -167,9 +165,7 @@ public:
 
     void on_device_connected(MachineObject* obj) override;
 
-    void update_print_error_info(int code, const std::string& msg, const std::string& extra);
-
-    void show_send_failed_info(bool show, int code = 0, wxString description = wxEmptyString, wxString extra = wxEmptyString);
+    void update_print_error_info(int code, const std::string& msg, const std::string& extra) { m_sending_panel->update_print_error_info(code, msg, extra); }
 
     void set_cali_filament_mode(CalibrationFilamentMode mode) override;
 
@@ -178,6 +174,8 @@ public:
     void on_cali_start_job();
 
     void on_cali_finished_job();
+
+    void on_cali_cancel_job();
 
     void init_with_machine(MachineObject* obj);
 
@@ -197,7 +195,7 @@ public:
     void get_cali_stage(CaliPresetStage& stage, float& value);
 
     std::shared_ptr<ProgressIndicator> get_sending_progress_bar() {
-        return m_send_progress_bar;
+        return m_sending_panel->get_sending_progress_bar();
     }
 
     Preset* get_printer_preset(MachineObject* obj, float nozzle_value);
@@ -208,11 +206,14 @@ public:
     CalibMode     get_pa_cali_method();
 
     CaliPresetPageStatus get_page_status() { return m_page_status; }
+
+    void msw_rescale() override;
+    void on_sys_color_changed() override;
+
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
     void create_ext_spool_panel(wxWindow* parent);
-    void create_sending_panel(wxWindow* parent);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
@@ -244,8 +245,6 @@ protected:
     void update_show_status();
     void show_status(CaliPresetPageStatus status);
     void Enable_Send_Button(bool enable);
-    void prepare_mode();
-    void sending_mode();
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
     
@@ -263,7 +262,7 @@ protected:
     CaliPresetWarningPanel*   m_warning_panel { nullptr };
     CaliPresetCustomRangePanel* m_custom_range_panel { nullptr };
     CaliPresetTipsPanel*      m_tips_panel { nullptr };
-    wxPanel*                  m_sending_panel { nullptr };
+    CaliPageSendingPanel*     m_sending_panel { nullptr };
 
     wxBoxSizer* m_top_sizer;
 
@@ -279,15 +278,6 @@ protected:
     FilamentComboBoxList m_filament_comboBox_list;
     FilamentComboBox*    m_virtual_tray_comboBox;
 
-    // m_sending panel widgets
-    std::shared_ptr<BBLStatusBarSend> m_send_progress_bar;
-    wxScrolledWindow*                 m_sw_print_failed_info { nullptr };
-    Label*                            m_st_txt_error_code { nullptr };
-    Label*                            m_st_txt_error_desc { nullptr };
-    Label*                            m_st_txt_extra_info { nullptr };
-    int                               m_print_error_code;
-    std::string                       m_print_error_msg;
-    std::string                       m_print_error_extra;
     
     std::vector<AMSItem*> m_ams_item_list;
 
@@ -295,6 +285,7 @@ protected:
     std::map<int, DynamicPrintConfig> filament_ams_list;
 
     CaliPresetPageStatus    m_page_status { CaliPresetPageStatus::CaliPresetStatusInit };
+    bool                    m_stop_update_page_status{ false };
 
     bool m_show_custom_range { false };
     bool m_has_filament_incompatible { false };

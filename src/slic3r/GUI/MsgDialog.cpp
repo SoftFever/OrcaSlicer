@@ -60,12 +60,11 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     topsizer->Add(LOGO_GAP, 0, 0, wxEXPAND, 0);
 	topsizer->Add(rightsizer, 1, wxTOP | wxEXPAND, BORDER);
 
-    btn_sizer->AddStretchSpacer();
-
     main_sizer->Add(topsizer, 1, wxEXPAND);
 
     m_dsa_sizer = new wxBoxSizer(wxHORIZONTAL);
-    btn_sizer->Add(m_dsa_sizer,1,wxEXPAND,0);
+    btn_sizer->Add(0, 0, 0, wxLEFT, FromDIP(120));
+    btn_sizer->Add(m_dsa_sizer, 0, wxEXPAND,0);
     btn_sizer->Add(0, 0, 1, wxEXPAND, 5);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
@@ -485,4 +484,65 @@ void DownloadDialog::SetExtendedMessage(const wxString &extendedMessage)
     Fit();
 }
 
-}} // namespace Slic3r::GUI
+DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title, const wxString &msg)
+    : DPIDialog(parent ? parent : nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    this->SetBackgroundColour(*wxWHITE);
+    this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
+    std::string icon_path = (boost::format("%1%/images/OrcaSlicerTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
+    // top line
+    auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line_top->SetBackgroundColour(wxColour(0xA6, 0xa9, 0xAA));
+    m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
+    m_main_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    m_msg_text = new wxStaticText(this, wxID_ANY, msg);
+    m_main_sizer->Add(m_msg_text, 0, wxEXPAND | wxALL, FromDIP(10));
+
+    wxBoxSizer *bSizer_button = new wxBoxSizer(wxHORIZONTAL);
+    bSizer_button->Add(0, 0, 1, wxEXPAND, 0);
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    m_cancel_btn = new Button(this, _L("Cancel"));
+    m_cancel_btn->SetBackgroundColor(btn_bg_white);
+    m_cancel_btn->SetBorderColor(*wxBLACK);
+    m_cancel_btn->SetTextColor(wxColour(*wxBLACK));
+    m_cancel_btn->SetFont(Label::Body_12);
+    m_cancel_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_cancel_btn->SetCornerRadius(FromDIP(12));
+    bSizer_button->Add(m_cancel_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
+
+
+    m_del_btn = new Button(this, _L("Delete"));
+    m_del_btn->SetBackgroundColor(*wxRED);
+    m_del_btn->SetBorderColor(*wxWHITE);
+    m_del_btn->SetTextColor(wxColour(0xFFFFFE));
+    m_del_btn->SetFont(Label::Body_12);
+    m_del_btn->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_del_btn->SetCornerRadius(FromDIP(12));
+    bSizer_button->Add(m_del_btn, 0, wxRIGHT | wxBOTTOM, FromDIP(10));
+
+    m_main_sizer->Add(bSizer_button, 0, wxEXPAND, 0);
+    m_del_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_OK); });
+    m_cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { EndModal(wxID_CANCEL); });
+
+    SetSizer(m_main_sizer);
+    Layout();
+    Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+DeleteConfirmDialog::~DeleteConfirmDialog() {}
+
+
+void DeleteConfirmDialog::on_dpi_changed(const wxRect &suggested_rect) {}
+
+
+} // namespace GUI
+
+} // namespace Slic3r

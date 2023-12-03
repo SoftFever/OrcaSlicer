@@ -582,6 +582,8 @@ private:
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
     bool m_render_sla_auxiliaries;
 
+    std::string m_color_by;
+
     bool m_reload_delayed;
 
     RenderStats m_render_stats;
@@ -629,7 +631,7 @@ private:
     int split_to_objects_count = 0;
     int split_to_part_count = 0;
     int custom_height_count = 0;
-    int custom_painting_count = 0;
+    int assembly_view_count = 0;
 
 public:
     OrientSettings& get_orient_settings()
@@ -812,6 +814,7 @@ public:
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2>& colors) { m_volumes.set_color_clip_plane_colors(colors); }
 
     void refresh_camera_scene_box();
+    void set_color_by(const std::string& value);
 
     BoundingBoxf3 volumes_bounding_box(bool current_plate_only = false) const;
     BoundingBoxf3 scene_bounding_box() const;
@@ -902,6 +905,7 @@ public:
 
     //BBS
     void select_curr_plate_all();
+    void select_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate_all();
     void update_plate_thumbnails();
 
@@ -967,6 +971,7 @@ public:
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_center();
+    void do_center_plate(const int plate_idx);
     void do_mirror(const std::string& snapshot_type);
 
     void update_gizmos_on_off_state();
@@ -1107,9 +1112,6 @@ public:
     Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
 
     bool make_current_for_postinit();
-
-    //BBS
-    Points estimate_wipe_tower_points(int plate_index, bool global = true) const;
 
 private:
     bool _is_shown_on_screen() const;

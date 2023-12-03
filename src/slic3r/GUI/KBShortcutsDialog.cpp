@@ -197,6 +197,8 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "P", L("Preferences") },
             //3D control
             { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            // Switch table page
+            { ctrl + "Tab", L("Switch table page")},
             //DEL
             #ifdef __APPLE__
                 {"fn+⌫", L("Delete selected")},
@@ -282,7 +284,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "V", L("Paste from clipboard")},
             {ctrl + "X", L("Cut")},
             {ctrl + "A", L("Select all objects")},
-            {ctrl + "M", L("Clone selected")},
+            {ctrl + "K", L("Clone selected")},
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             {L("Space"), L("Select the object/part and press space to change the name")},

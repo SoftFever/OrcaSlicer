@@ -219,9 +219,11 @@ public:
 
     //BBS
     void add_curr_plate();
+    void add_object_from_idx(std::vector<int>& object_idxs);
     void remove_curr_plate();
     void clone(int numbers = 1);
     void center();
+    void center_plate(const int plate_idx);
     void set_printable(bool printable);
 
     void add_all();
@@ -280,7 +282,6 @@ public:
     const IndicesList& get_volume_idxs() const { return m_list; }
     const GLVolume* get_volume(unsigned int volume_idx) const;
     const GLVolume* get_first_volume() const { return get_volume(*m_list.begin()); }
-
     const ObjectIdxsToInstanceIdxsMap& get_content() const { return m_cache.content; }
 
     unsigned int volumes_count() const { return (unsigned int)m_list.size(); }

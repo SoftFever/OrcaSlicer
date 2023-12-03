@@ -179,6 +179,9 @@ protected:
      */
     bool                    m_is_default_preset {false};
 
+	// just be used for edit filament dialog
+    bool m_just_edit{false};
+
 	ScalableButton*			m_undo_btn;
 	ScalableButton*			m_undo_to_sys_btn;
 	//ScalableButton*			m_question_btn;
@@ -405,6 +408,7 @@ public:
 	static bool validate_custom_gcode(const wxString& title, const std::string& gcode);
 	bool        validate_custom_gcodes();
     bool        validate_custom_gcodes_was_shown{ false };
+    void        set_just_edit(bool just_edit);
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const std::string& path, widget_t widget);
@@ -477,13 +481,29 @@ protected:
 	virtual void	update_custom_dirty() override;
 
 protected:
-	std::vector<std::string> const m_keys;
+	std::vector<std::string> m_keys;
 	PresetCollection m_prints;
 	Tab * m_parent_tab;
 	std::map<ObjectBase *, ModelConfig *> m_object_configs;
 	std::vector<std::string> m_all_keys;
 	std::vector<std::string> m_null_keys;
 	bool m_back_to_sys = false;
+};
+
+
+class TabPrintPlate : public TabPrintModel
+{
+public:
+	//BBS: GUI refactor
+	TabPrintPlate(ParamsPanel* parent);
+	~TabPrintPlate() {}
+	void build() override;
+	void reset_model_config() override;
+
+protected:
+	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;
+	virtual void    notify_changed(ObjectBase* object) override;
+	virtual void	update_custom_dirty() override;
 };
 
 class TabPrintObject : public TabPrintModel

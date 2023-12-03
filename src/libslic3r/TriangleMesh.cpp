@@ -23,6 +23,7 @@
 #include "Point.hpp"
 #include "Execution/ExecutionTBB.hpp"
 #include "Execution/ExecutionSeq.hpp"
+#include "CutUtils.hpp"
 #include "Utils.hpp"
 #include "Format/STL.hpp"
 #include <libqhullcpp/Qhull.h>

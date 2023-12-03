@@ -772,6 +772,7 @@ private:
     std::vector<EMoveType> options_items;
 
     bool m_legend_enabled{ true };
+    float m_legend_height;
     PrintEstimatedStatistics m_print_statistics;
     PrintEstimatedStatistics::ETimeMode m_time_estimate_mode{ PrintEstimatedStatistics::ETimeMode::Normal };
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -810,7 +811,7 @@ public:
     void reset();
     //BBS: always load shell at preview
     void reset_shell();
-    void load_shells(const Print& print, bool force_previewing = false);
+    void load_shells(const Print& print, bool initialized, bool force_previewing = false);
     void set_shells_on_preview(bool is_previewing) { m_shells.previewing = is_previewing; }
     //BBS: add all plates filament statistics
     void render_all_plates_stats(const std::vector<const GCodeProcessorResult*>& gcode_result_list, bool show = true) const;
@@ -877,6 +878,7 @@ public:
 
     bool is_legend_enabled() const { return m_legend_enabled; }
     void enable_legend(bool enable) { m_legend_enabled = enable; }
+    float get_legend_height() { return m_legend_height; }
 
     void export_toolpaths_to_obj(const char* filename) const;
 

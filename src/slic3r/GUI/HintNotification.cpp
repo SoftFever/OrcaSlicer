@@ -303,10 +303,22 @@ void HintDatabase::uninit()
 	m_used_ids.clear();
 	m_used_ids_loaded = false;
 }
+void HintDatabase::reinit()
+{
+	if (m_initialized)
+		uninit();
+	init();
+}
 void HintDatabase::init()
 {
 	load_hints_from_file(std::move(boost::filesystem::path(resources_dir()) / "data" / "hints.ini"));
 	m_initialized = true;
+	init_random_hint_id();
+}
+void HintDatabase::init_random_hint_id()
+{
+	srand(time(NULL));
+	m_hint_id = rand() % m_loaded_hints.size();
 }
 void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 {
@@ -340,6 +352,7 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 			std::string enabled_tags;
 			// optional link to documentation (accessed from button)
 			std::string documentation_link;
+			std::string img_url;
 			// randomized weighted order variables
 			size_t      weight = 1;
 			bool		was_displayed = is_used(id_string);
@@ -404,6 +417,9 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 			if (dict.find("documentation_link") != dict.end()) {
 				documentation_link = dict["documentation_link"];
 			}
+			if (dict.find("image") != dict.end()) {
+				img_url = dict["image"];
+			}
 
 			if (dict.find("weight") != dict.end()) {
 				weight = (size_t)std::max(1, std::atoi(dict["weight"].c_str()));
@@ -414,7 +430,7 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				//link to internet
 				if (dict["hypertext_type"] == "link") {
 					std::string	hypertext_link = dict["hypertext_link"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); } };
 					m_loaded_hints.emplace_back(hint_data);
 					// highlight settings
 				}
@@ -422,28 +438,28 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 					std::string		opt = dict["hypertext_settings_opt"];
 					Preset::Type	type = static_cast<Preset::Type>(std::atoi(dict["hypertext_settings_type"].c_str()));
 					std::wstring	category = boost::nowide::widen(dict["hypertext_settings_category"]);
-					HintData		hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
+					HintData		hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
 					m_loaded_hints.emplace_back(hint_data);
 					// open preferences
 				}
 				else if (dict["hypertext_type"] == "preferences") {
 					std::string	page = dict["hypertext_preferences_page"];
 					std::string	item = dict["hypertext_preferences_item"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [page, item]() { wxGetApp().open_preferences(1, page); } };// 1 is to modify
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, [page, item]() { wxGetApp().open_preferences(1, page); } };// 1 is to modify
 					m_loaded_hints.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "plater") {
 					std::string	item = dict["hypertext_plater_item"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gizmo") {
 					std::string	item = dict["hypertext_gizmo_item"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gallery") {
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, []() {
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, []() {
 						// Deselect all objects, otherwise gallery wont show.
 						wxGetApp().plater()->canvas3D()->deselect_all();
 						//wxGetApp().obj_list()->load_shape_object_from_gallery(); }
@@ -453,23 +469,23 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				else if (dict["hypertext_type"] == "menubar") {
 					wxString menu(_("&" + dict["hypertext_menubar_menu_name"]));
 					wxString item(_(dict["hypertext_menubar_item_name"]));
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
 					m_loaded_hints.emplace_back(hint_data);
 				}
 			}
 			else {
 				// plain text without hypertext
-				HintData hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link };
+				HintData hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url };
 				m_loaded_hints.emplace_back(hint_data);
 			}
 		}
 	}
 }
-HintData* HintDatabase::get_hint(bool new_hint/* = true*/)
+HintData* HintDatabase::get_hint(HintDataNavigation nav)
 {
 	if (!m_initialized) {
 		init();
-		new_hint = true;
+		nav = HintDataNavigation::Random;
 	}
 	if (m_loaded_hints.empty())
 	{
@@ -479,20 +495,34 @@ HintData* HintDatabase::get_hint(bool new_hint/* = true*/)
 
 	try
 	{
-		if (new_hint)
-			m_hint_id = get_next();
+		if (nav == HintDataNavigation::Next)
+			m_hint_id = get_next_hint_id();
+		if(nav == HintDataNavigation::Prev)
+			m_hint_id = get_prev_hint_id();
+		if (nav == HintDataNavigation::Curr)
+			;
+		if (nav == HintDataNavigation::Random)
+			init_random_hint_id();
 	}
 	catch (const std::exception&)
 	{
 		return nullptr;
 	}
 
-
-
 	return &m_loaded_hints[m_hint_id];
 }
 
-size_t HintDatabase::get_next()
+size_t HintDatabase::get_next_hint_id()
+{
+	return m_hint_id < m_loaded_hints.size() - 1 ? m_hint_id + 1 : 0;
+}
+
+size_t HintDatabase::get_prev_hint_id()
+{
+	return m_hint_id > 0 ? m_hint_id - 1 : m_loaded_hints.size() - 1;
+}
+
+size_t HintDatabase::get_random_next()
 {
 	if (!m_sorted_hints)
 	{
@@ -1110,7 +1140,7 @@ void NotificationManager::HintNotification::open_documentation()
 }
 void NotificationManager::HintNotification::retrieve_data(bool new_hint/* = true*/)
 {
-	HintData* hint_data = HintDatabase::get_instance().get_hint(new_hint);
+	HintData* hint_data = HintDatabase::get_instance().get_hint(new_hint ? HintDataNavigation::Next : HintDataNavigation::Curr);
 	if (hint_data == nullptr)
 		close();
 

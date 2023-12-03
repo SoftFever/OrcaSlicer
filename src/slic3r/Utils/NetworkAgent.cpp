@@ -43,6 +43,7 @@ func_set_on_printer_connected_fn    NetworkAgent::set_on_printer_connected_fn_pt
 func_set_on_server_connected_fn     NetworkAgent::set_on_server_connected_fn_ptr = nullptr;
 func_set_on_http_error_fn           NetworkAgent::set_on_http_error_fn_ptr = nullptr;
 func_set_get_country_code_fn        NetworkAgent::set_get_country_code_fn_ptr = nullptr;
+func_set_on_subscribe_failure_fn    NetworkAgent::set_on_subscribe_failure_fn_ptr = nullptr;
 func_set_on_message_fn              NetworkAgent::set_on_message_fn_ptr = nullptr;
 func_set_on_local_connect_fn        NetworkAgent::set_on_local_connect_fn_ptr = nullptr;
 func_set_on_local_message_fn        NetworkAgent::set_on_local_message_fn_ptr = nullptr;
@@ -80,6 +81,7 @@ func_get_user_presets               NetworkAgent::get_user_presets_ptr = nullptr
 func_request_setting_id             NetworkAgent::request_setting_id_ptr = nullptr;
 func_put_setting                    NetworkAgent::put_setting_ptr = nullptr;
 func_get_setting_list               NetworkAgent::get_setting_list_ptr = nullptr;
+func_get_setting_list2              NetworkAgent::get_setting_list2_ptr = nullptr;
 func_delete_setting                 NetworkAgent::delete_setting_ptr = nullptr;
 func_get_studio_info_url            NetworkAgent::get_studio_info_url_ptr = nullptr;
 func_set_extra_http_header          NetworkAgent::set_extra_http_header_ptr = nullptr;
@@ -114,12 +116,12 @@ func_put_rating_picture_oss         NetworkAgent::put_rating_picture_oss_ptr = n
 func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_ptr  = nullptr;
 
 
-NetworkAgent::NetworkAgent()
+NetworkAgent::NetworkAgent(std::string log_dir)
 {
     if (create_agent_ptr) {
-        network_agent = create_agent_ptr();
+        network_agent = create_agent_ptr(log_dir);
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, create_agent_ptr=%3%")%this %network_agent %create_agent_ptr;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, create_agent_ptr=%3%, log_dir=%4%")%this %network_agent %create_agent_ptr %log_dir;
 }
 
 NetworkAgent::~NetworkAgent()
@@ -200,6 +202,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     set_on_server_connected_fn_ptr    =  reinterpret_cast<func_set_on_server_connected_fn>(get_network_function("bambu_network_set_on_server_connected_fn"));
     set_on_http_error_fn_ptr          =  reinterpret_cast<func_set_on_http_error_fn>(get_network_function("bambu_network_set_on_http_error_fn"));
     set_get_country_code_fn_ptr       =  reinterpret_cast<func_set_get_country_code_fn>(get_network_function("bambu_network_set_get_country_code_fn"));
+    set_on_subscribe_failure_fn_ptr   =  reinterpret_cast<func_set_on_subscribe_failure_fn>(get_network_function("bambu_network_set_on_subscribe_failure_fn"));
     set_on_message_fn_ptr             =  reinterpret_cast<func_set_on_message_fn>(get_network_function("bambu_network_set_on_message_fn"));
     set_on_local_connect_fn_ptr       =  reinterpret_cast<func_set_on_local_connect_fn>(get_network_function("bambu_network_set_on_local_connect_fn"));
     set_on_local_message_fn_ptr       =  reinterpret_cast<func_set_on_local_message_fn>(get_network_function("bambu_network_set_on_local_message_fn"));
@@ -236,7 +239,8 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_user_presets_ptr              =  reinterpret_cast<func_get_user_presets>(get_network_function("bambu_network_get_user_presets"));
     request_setting_id_ptr            =  reinterpret_cast<func_request_setting_id>(get_network_function("bambu_network_request_setting_id"));
     put_setting_ptr                   =  reinterpret_cast<func_put_setting>(get_network_function("bambu_network_put_setting"));
-    get_setting_list_ptr              =  reinterpret_cast<func_get_setting_list>(get_network_function("bambu_network_get_setting_list"));
+    get_setting_list_ptr              = reinterpret_cast<func_get_setting_list>(get_network_function("bambu_network_get_setting_list"));
+    get_setting_list2_ptr             = reinterpret_cast<func_get_setting_list2>(get_network_function("bambu_network_get_setting_list2"));
     delete_setting_ptr                =  reinterpret_cast<func_delete_setting>(get_network_function("bambu_network_delete_setting"));
     get_studio_info_url_ptr           =  reinterpret_cast<func_get_studio_info_url>(get_network_function("bambu_network_get_studio_info_url"));
     set_extra_http_header_ptr         =  reinterpret_cast<func_set_extra_http_header>(get_network_function("bambu_network_set_extra_http_header"));
@@ -311,6 +315,7 @@ int NetworkAgent::unload_network_module()
     set_on_server_connected_fn_ptr    =  nullptr;
     set_on_http_error_fn_ptr          =  nullptr;
     set_get_country_code_fn_ptr       =  nullptr;
+    set_on_subscribe_failure_fn_ptr   =  nullptr;
     set_on_message_fn_ptr             =  nullptr;
     set_on_local_connect_fn_ptr       =  nullptr;
     set_on_local_message_fn_ptr       =  nullptr;
@@ -348,6 +353,7 @@ int NetworkAgent::unload_network_module()
     request_setting_id_ptr            =  nullptr;
     put_setting_ptr                   =  nullptr;
     get_setting_list_ptr              =  nullptr;
+    get_setting_list2_ptr             =  nullptr;
     delete_setting_ptr                =  nullptr;
     get_studio_info_url_ptr           =  nullptr;
     set_extra_http_header_ptr         =  nullptr;
@@ -589,6 +595,17 @@ int NetworkAgent::set_get_country_code_fn(GetCountryCodeFn fn)
         ret = set_get_country_code_fn_ptr(network_agent, fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_subscribe_failure_fn(GetSubscribeFailureFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_subscribe_failure_fn_ptr) {
+        ret = set_on_subscribe_failure_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }
@@ -974,8 +991,19 @@ int NetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn
     int ret = 0;
     if (network_agent && get_setting_list_ptr) {
         ret = get_setting_list_ptr(network_agent, bundle_version, pro_fn, cancel_fn);
-        if (ret)
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, bundle_version=%3%")%network_agent %ret %bundle_version ;
+        if (ret) BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, bundle_version=%3%") % network_agent % ret % bundle_version;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_setting_list2(std::string bundle_version, CheckFn chk_fn, ProgressFn pro_fn, WasCancelledFn cancel_fn)
+{
+    int ret = 0;
+    if (network_agent && get_setting_list2_ptr) {
+        ret = get_setting_list2_ptr(network_agent, bundle_version, chk_fn, pro_fn, cancel_fn);
+        if (ret) BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, bundle_version=%3%") % network_agent % ret % bundle_version;
+    } else {
+        ret = get_setting_list(bundle_version, pro_fn, cancel_fn);
     }
     return ret;
 }

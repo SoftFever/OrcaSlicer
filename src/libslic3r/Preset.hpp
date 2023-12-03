@@ -20,6 +20,10 @@
 #define PRESET_PRINTER_NAME     "machine"
 #define PRESET_SLA_PRINT_NAME  "sla_print"
 #define PRESET_SLA_MATERIALS_NAME "sla_materials"
+#define PRESET_PROFILES_DIR "profiles"
+#define PRESET_PROFILES_TEMOLATE_DIR "profiles_template"
+#define PRESET_TEMPLATE_DIR "Template"
+#define PRESET_CUSTOM_VENDOR "Custom"
 
 //BBS: iot preset type strings
 #define PRESET_IOT_PRINTER_TYPE     "printer"
@@ -56,6 +60,8 @@
 #define BBL_JSON_KEY_HOTEND_MODEL               "hotend_model"
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
+
+//BBL: json path
 
 
 namespace Slic3r {
@@ -171,6 +177,8 @@ public:
         // This type is here to support PresetConfigSubstitutions for physical printers, however it does not belong to the Preset class,
         // PhysicalPrinter class is used instead.
         TYPE_PHYSICAL_PRINTER,
+        // BBS: plate config
+        TYPE_PLATE,
         // BBS: model config
         TYPE_MODEL,
     };
@@ -245,6 +253,7 @@ public:
     //BBS: add logic for only difference save
     //if parent_config is null, save all keys, otherwise, only save difference
     void                save(DynamicPrintConfig* parent_config);
+    void                reload(Preset const & parent);
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
     std::string         label(bool no_alias) const;
@@ -300,6 +309,8 @@ public:
     std::string get_filament_type(std::string &display_filament_type);
     std::string get_printer_type(PresetBundle *preset_bundle); // get edited preset type
     std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
+
+    bool has_lidar(PresetBundle *preset_bundle);
     bool is_custom_defined();
 
     BedType get_default_bed_type(PresetBundle *preset_bundle);
@@ -386,8 +397,8 @@ public:
     typedef std::function<void(Preset* preset, std::string sync_info)> SyncFunc;
     //BBS get m_presets begin
     Iterator        lbegin() { return m_presets.begin(); }
-    //BBS: validate_printers
-    bool            validate_printers(const std::string &name, DynamicPrintConfig& config, std::string &inherit);
+    //BBS: validate_preset
+    bool            validate_preset(const std::string &name, std::string &inherit);
 
     Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
     ConstIterator   begin() const { return m_presets.cbegin() + m_num_default_presets; }
@@ -425,8 +436,9 @@ public:
     bool            load_user_preset(std::string name, std::map<std::string, std::string> preset_values, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule);
     void            update_after_user_presets_loaded();
     //BBS: get user presets
-    int             get_user_presets(std::vector<Preset>& result_presets);
-    void             set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo);
+    int  get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets);
+    void set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time);
+    bool need_sync(std::string name, std::string setting_id, long long update_time);
 
     //BBS: add function to generate differed preset for save
     //the pointer should be freed by the caller
@@ -443,6 +455,20 @@ public:
     // and select it, losing previous modifications.
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
+
+    bool clone_presets(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::function<void(Preset &, Preset::Type &)> modifier, bool force_rewritten = false);
+    bool clone_presets_for_printer(std::vector<Preset const *> const &presets, std::vector<std::string> &failures, std::string const &printer, bool force_rewritten = false);
+    bool create_presets_from_template_for_printer(
+        std::vector<Preset const *> const &templates, std::vector<std::string> &failures, std::string const &printer, std::function <std::string(std::string)> create_filament_id, bool force_rewritten = false);
+    bool clone_presets_for_filament(Preset const *const &     preset,
+                                    std::vector<std::string> &failures,
+                                    std::string const &       filament_name,
+                                    std::string const &       filament_id,
+                                    const DynamicConfig &     dynamic_config,
+                                    const std::string &       compatible_printers,
+                                    bool                      force_rewritten = false);
+
+    std::map<std::string, std::vector<Preset const *>> get_filament_presets() const;
 
     // Returns a loaded preset, returns true if an existing preset was selected AND modified from config.
     // In that case the successive filament loaded for a multi material printer should not be modified, but
@@ -514,6 +540,7 @@ public:
 	// Get parent preset for a child preset, based on the "inherits" field of a child,
 	// where the "inherits" profile name is searched for in both m_presets and m_map_system_profile_renamed.
 	const Preset*	get_preset_parent(const Preset& child) const;
+	const Preset*	get_preset_base(const Preset& child) const;
 	// Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }
@@ -648,7 +675,8 @@ public:
     bool            select_preset_by_name(const std::string &name, bool force);
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
-    std::string     path_from_name(const std::string &new_name) const;
+    std::string     path_from_name(const std::string &new_name, bool detach = false) const;
+    std::string     path_for_preset(const Preset & preset) const;
 
     size_t num_default_presets() { return m_num_default_presets; }
 
@@ -754,6 +782,7 @@ public:
     const Preset&   default_preset_for(const DynamicPrintConfig &config) const override;
 
     const Preset*   find_system_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
+    const Preset*   find_custom_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
 
     bool            only_default_printers() const;
 private:

@@ -176,12 +176,13 @@ bool MeshClipper::has_valid_contour() const
     return m_result && std::any_of(m_result->cut_islands.begin(), m_result->cut_islands.end(), [](const CutIsland& isl) { return !isl.expoly.empty(); });
 }
 
-std::vector<Vec3d> MeshClipper::point_per_contour() const
-{
-    assert(m_result);
+std::vector<Vec3d> MeshClipper::point_per_contour() const {
     std::vector<Vec3d> out;
-    
-    for (const CutIsland& isl : m_result->cut_islands) {
+    if (m_result == std::nullopt) {
+        return out;
+    }
+    assert(m_result);
+    for (auto isl : m_result->cut_islands) {
         assert(isl.expoly.contour.size() > 2);
         // Now return a point lying inside the contour but not in a hole.
         // We do this by taking a point lying close to the edge, repeating

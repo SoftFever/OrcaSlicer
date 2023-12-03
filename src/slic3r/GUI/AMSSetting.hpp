@@ -27,8 +27,8 @@ public:
     ~AMSSetting();
     void create();
 
-	void          update_insert_material_read_mode(bool selected);
-    void          update_image(std::string ams_type);
+    void          update_insert_material_read_mode(bool selected);
+    void          update_ams_img(std::string ams_icon_str);
     void          update_starting_read_mode(bool selected);
     void          update_remain_mode(bool selected);
     void          update_switch_filament(bool selected);
@@ -41,13 +41,13 @@ public:
     wxStaticText *append_text(wxString text);
     MachineObject *obj{nullptr};
     bool           ams_support_remain{false};
+    wxStaticBitmap* m_am_img;
     int            ams_id { 0 };
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 protected:
-    std::string   m_current_ams_type;
     wxPanel *     m_panel_body;
     CheckBox *    m_checkbox_Insert_material_auto_read;
     wxStaticText *m_title_Insert_material_auto_read;
@@ -70,7 +70,7 @@ protected:
 
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;
-    wxStaticBitmap* ams_img;
+
     wxBoxSizer *m_sizer_Insert_material_tip_inline;
     wxBoxSizer *m_sizer_starting_tip_inline;
     wxBoxSizer *m_sizer_remain_inline;
