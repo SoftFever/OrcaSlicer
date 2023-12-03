@@ -1921,7 +1921,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("xy_contour_compensation", "xy-hole-contour-compensation");
         optgroup->append_single_option_line("elefant_foot_compensation");
         optgroup->append_single_option_line("elefant_foot_compensation_layers");
-        optgroup->append_single_option_line("precise_outer_wall");
+        optgroup->append_single_option_line("precise_outer_wall", "Precise-wall");
         optgroup->append_single_option_line("hole_to_polyhole");
         optgroup->append_single_option_line("hole_to_polyhole_threshold");
         optgroup->append_single_option_line("hole_to_polyhole_twisted");
