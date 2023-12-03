@@ -877,7 +877,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "use_firmware_retraction", "use_relative_e_distances", "printer_notes",
     "cooling_tube_retraction",
     "cooling_tube_length", "high_current_on_filament_swap", "parking_pos_retraction", "extra_loading_move", "purge_in_prime_tower", "enable_filament_ramming",
-    "z_offset"
+    "z_offset",
+    "disable_m73",
     };
 
 static std::vector<std::string> s_Preset_sla_print_options {

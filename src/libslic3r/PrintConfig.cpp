@@ -3253,6 +3253,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("disable_m73", coBool);
+    def->label = L("Disable set remaining print time");
+    def->tooltip = "Disable generating of the M73: Set remaining print time in the final gcode";
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("seam_position", coEnum);
     def->label = L("Seam position");
     def->category = L("Quality");
