@@ -2528,7 +2528,7 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().toggle_show_gcode_window();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
-            this, [this]() { return m_plater->is_preview_shown(); },
+            this, [this]() { return m_tabpanel->GetSelection() == tpPreview; },
             [this]() { return wxGetApp().show_gcode_window(); }, this);
 
         append_menu_item(
