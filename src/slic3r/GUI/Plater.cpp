@@ -2653,6 +2653,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     m_default_window_layout = m_aui_mgr.SavePerspective();
 
+    // Load previous window layout
+    {
+        const auto cfg    = wxGetApp().app_config;
+        wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
+        if (!layout.empty()) {
+            m_aui_mgr.LoadPerspective(layout, false);
+        }
+    }
+
     menus.init(q);
 
 
@@ -4577,6 +4586,12 @@ void Plater::priv::reset(bool apply_presets_change)
 
     // BBS
     m_saved_timestamp = m_backup_timestamp = size_t(-1);
+
+    // Save window layout
+    if (!is_sidebar_collapsed) {
+        auto layout = m_aui_mgr.SavePerspective();
+        wxGetApp().app_config->set("window_layout", layout.utf8_string());
+    }
 }
 
 void Plater::priv::center_selection()
