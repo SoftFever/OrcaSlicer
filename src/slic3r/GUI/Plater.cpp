@@ -490,7 +490,7 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 
 static struct DynamicFilamentList : DynamicList
 {
-    std::vector<std::pair<wxString, wxBitmap *>> items;
+    std::vector<std::pair<wxString, wxBitmapBundle *>> items;
 
     void apply_on(Choice *c) override
     {
@@ -529,7 +529,8 @@ static struct DynamicFilamentList : DynamicList
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
-            items.push_back({str, icons[i]});
+            wxBitmapBundle* bmp = icons[i];
+            items.push_back({str, bmp});
         }
         DynamicList::update();
     }
@@ -813,9 +814,7 @@ Sidebar::Sidebar(Plater *parent)
 
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
-                std::vector<float> extruders = dlg.get_extruders();
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 
                 wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -876,7 +875,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
-                                                 wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+                                                 wxBU_EXACTFIT | wxNO_BORDER, 18);
     ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         sync_ams_list();
@@ -1338,20 +1337,20 @@ void Sidebar::msw_rescale()
     p->m_panel_printer_title->GetSizer()->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_panel_filament_title->GetSizer()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
-    p->m_printer_icon->msw_rescale();
-    p->m_printer_setting->msw_rescale();
-    p->m_filament_icon->msw_rescale();
-    p->m_bpButton_add_filament->msw_rescale();
-    p->m_bpButton_del_filament->msw_rescale();
-    p->m_bpButton_ams_filament->msw_rescale();
-    p->m_bpButton_set_filament->msw_rescale();
+    p->m_printer_icon->sys_color_changed();
+    p->m_printer_setting->sys_color_changed();
+    p->m_filament_icon->sys_color_changed();
+    p->m_bpButton_add_filament->sys_color_changed();
+    p->m_bpButton_del_filament->sys_color_changed();
+    p->m_bpButton_ams_filament->sys_color_changed();
+    p->m_bpButton_set_filament->sys_color_changed();
     p->m_flushing_volume_btn->Rescale();
     //BBS
     m_bed_type_list->Rescale();
     m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
 #if 0
     if (p->mode_sizer)
-        p->mode_sizer->msw_rescale();
+        p->mode_sizer->sys_color_changed();
 #endif
 
     //for (PlaterPresetComboBox* combo : std::vector<PlaterPresetComboBox*> { p->combo_print,
@@ -1370,15 +1369,14 @@ void Sidebar::msw_rescale()
     // BBS TODO: add msw_rescale for newly added windows
     // BBS
     //p->object_manipulation->msw_rescale();
-    p->object_settings->msw_rescale();
 
     // BBS
 #if 0
     p->object_info->msw_rescale();
 
-    p->btn_send_gcode->msw_rescale();
+    p->btn_send_gcode->sys_color_changed();
 //    p->btn_eject_device->msw_rescale();
-    p->btn_export_gcode_removable->msw_rescale();
+    p->btn_export_gcode_removable->sys_color_changed();
 #ifdef _WIN32
     const int scaled_height = p->btn_export_gcode_removable->GetBitmapHeight();
 #else
@@ -1399,26 +1397,26 @@ void Sidebar::sys_color_changed()
 #if 0
     for (wxWindow* win : std::vector<wxWindow*>{ this, p->sliced_info->GetStaticBox(), p->object_info->GetStaticBox(), p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(win);
-    p->object_info->msw_rescale();
+    p->object_info->sys_color_changed();
 
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
 #endif
     //for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
     //    wxGetApp().UpdateDarkUI(btn, true);
-    p->m_printer_icon->msw_rescale();
-    p->m_printer_setting->msw_rescale();
-    p->m_filament_icon->msw_rescale();
-    p->m_bpButton_add_filament->msw_rescale();
-    p->m_bpButton_del_filament->msw_rescale();
-    p->m_bpButton_ams_filament->msw_rescale();
-    p->m_bpButton_set_filament->msw_rescale();
+    p->m_printer_icon->sys_color_changed();
+    p->m_printer_setting->sys_color_changed();
+    p->m_filament_icon->sys_color_changed();
+    p->m_bpButton_add_filament->sys_color_changed();
+    p->m_bpButton_del_filament->sys_color_changed();
+    p->m_bpButton_ams_filament->sys_color_changed();
+    p->m_bpButton_set_filament->sys_color_changed();
     p->m_flushing_volume_btn->Rescale();
 
     // BBS
 #if 0
     if (p->mode_sizer)
-        p->mode_sizer->msw_rescale();
+        p->mode_sizer->sys_color_changed();
     p->frequently_changed_parameters->sys_color_changed();
 #endif
     p->object_settings->sys_color_changed();
@@ -1446,6 +1444,7 @@ void Sidebar::sys_color_changed()
     //p->btn_export_gcode_removable->msw_rescale();
 
     p->scrolled->Layout();
+    p->scrolled->Refresh();
 
     p->searcher.dlg_sys_color_changed();
 }
@@ -12160,8 +12159,6 @@ void Plater::msw_rescale()
     p->view3D->get_canvas3d()->msw_rescale();
 
     p->sidebar->msw_rescale();
-
-    p->menus.msw_rescale();
 
     Layout();
     GetParent()->Layout();

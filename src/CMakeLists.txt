@@ -94,7 +94,10 @@ if (SLIC3R_GUI)
     # wrong libs for opengl in the link line and it does not link to it by himself.
     # libslic3r_gui will link to opengl anyway, so lets override wx
     list(FILTER wxWidgets_LIBRARIES EXCLUDE REGEX OpenGL)
-
+    
+    if (UNIX AND NOT APPLE)
+        list(APPEND wxWidgets_LIBRARIES X11 wayland-client wayland-egl EGL)
+    endif ()
 #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
     message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
 

@@ -110,12 +110,12 @@ void ImageSwitchButton::render(wxDC& dc)
 	wxSize szContent = textSize;
     ScalableBitmap &icon      = GetValue() ? m_on : m_off;
 	
-	int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
+	int content_height = icon.GetHeight() + textSize.y + m_padding;
 
-	wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
+	wxPoint pt = wxPoint((size.x - icon.GetWidth()) / 2, (size.y - content_height) / 2);
 	if (icon.bmp().IsOk()) {
-		dc.DrawBitmap(icon.bmp(), pt);
-		pt.y += m_padding + icon.GetBmpHeight();
+		dc.DrawBitmap(icon.get_bitmap(), pt);
+		pt.y += m_padding + icon.GetHeight();
 	}
 	pt.x = (size.x - textSize.x) / 2;
 	dc.SetFont(GetFont());
@@ -273,7 +273,7 @@ void FanSwitchButton::render(wxDC& dc)
     //int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
     int content_height = m_padding;
 
-    wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
+    wxPoint pt = wxPoint((size.x - icon.GetWidth()) / 2, (size.y - content_height) / 2);
 
     pt.x = (size.x - textSize.x) / 2;
     dc.SetFont(GetFont());
@@ -298,10 +298,10 @@ void FanSwitchButton::render(wxDC& dc)
         dc.DrawText(fina_txt,  wxPoint(pt.x, content_height));
     }
 
-    pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, content_height + textSize.y);
+    pt = wxPoint((size.x - icon.GetWidth()) / 2, content_height + textSize.y);
     if (icon.bmp().IsOk()) {
-        dc.DrawBitmap(icon.bmp(), pt);
-        pt.y += m_padding + icon.GetBmpHeight();
+        dc.DrawBitmap(icon.get_bitmap(), pt);
+        pt.y += m_padding + icon.GetHeight();
     }
 
     auto speed = wxString::Format("%d%%", m_speed);

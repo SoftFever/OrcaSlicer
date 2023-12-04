@@ -64,7 +64,7 @@ class OG_CustomCtrl :public wxPanel
         void    render(wxDC& dc, wxCoord h_pos, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url = false, bool is_main = false);
         wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking);
-        wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id = 0);
+        wxCoord draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmapBundle& bmp_undo_to_sys, const wxBitmapBundle& bmp_undo, bool is_blinking, size_t rect_id = 0);
         bool    launch_browser() const;
         bool    is_separator() const { return og_line.is_separator(); }
 

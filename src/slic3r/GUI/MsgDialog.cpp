@@ -227,10 +227,10 @@ void MsgDialog::apply_style(long style)
     if (style & wxNO)       add_button(wxID_NO, false,_L("No"));
     if (style & wxCANCEL)   add_button(wxID_CANCEL, false, _L("Cancel"));
 
-    logo->SetBitmap( create_scaled_bitmap(style & wxAPPLY        ? "completed" :
+    logo->SetBitmap( *get_bmp_bundle(style & wxAPPLY        ? "completed" :
                                           style & wxICON_WARNING        ? "obj_warning" :
                                           style & wxICON_INFORMATION    ? "info"        :
-                                          style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", this, 64, style & wxICON_ERROR));
+                                          style & wxICON_QUESTION       ? "question"    : "OrcaSlicer", 64));
 }
 
 void MsgDialog::finalize()
@@ -339,7 +339,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_
     add_msg_content(this, content_sizer, msg, monospaced_font);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
-	logo->SetBitmap(create_scaled_bitmap("OrcaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
+	logo->SetBitmap(*get_bmp_bundle("OrcaSlicer_192px_grayscale.png", monospaced_font ? 48 : /*1*/84));
 
     SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT*wxGetApp().em_unit()));
 

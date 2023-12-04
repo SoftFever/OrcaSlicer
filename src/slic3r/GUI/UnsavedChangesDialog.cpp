@@ -117,29 +117,21 @@ wxIcon ModelNode::get_bitmap(const wxString& color)
 wxBitmap ModelNode::get_bitmap(const wxString& color)
 #endif // __linux__
 {
-    /* It's supposed that standard size of an icon is 48px*16px for 100% scaled display.
-     * So set sizes for solid_colored icons used for filament preset
-     * and scale them in respect to em_unit value
-     */
-    const double em = em_unit(m_parent_win);
-    const int icon_width    = lround(6.4 * em);
-    const int icon_height   = lround(1.6 * em);
-
-    BitmapCache bmp_cache;
-    ColorRGB rgb;
-    decode_color(into_u8(color), rgb);
-    // there is no need to scale created solid bitmap
+    wxBitmap bmp = get_solid_bmp_bundle(64, 16, into_u8(color))->GetBitmapFor(m_parent_win);
+    if (!m_toggle)
+        bmp = bmp.ConvertToDisabled();
 #ifndef __linux__
-    return bmp_cache.mksolid(icon_width, icon_height, rgb, true);
+    return bmp;
 #else
     wxIcon icon;
-    icon.CopyFromBitmap(bmp_cache.mksolid(icon_width, icon_height, rgb, true));
+    icon.CopyFromBitmap(bmp);
     return icon;
 #endif // __linux__
 }
 
 // option node
 ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& old_value, const wxString& new_value) :
+    m_parent_win(parent->m_parent_win),
     m_parent(parent),
     m_old_color(old_value.StartsWith("#") ? old_value : ""),
     m_new_color(new_value.StartsWith("#") ? new_value : ""),
@@ -204,18 +196,22 @@ void ModelNode::UpdateIcons()
 {
     // update icons for the colors, if any exists
     if (!m_old_color.IsEmpty())
-        m_old_color_bmp = get_bitmap(m_toggle ? m_old_color : wxString::FromUTF8(grey.c_str()));
+        m_old_color_bmp = get_bitmap(m_old_color);
     if (!m_new_color.IsEmpty())
-        m_new_color_bmp = get_bitmap(m_toggle ? m_new_color : wxString::FromUTF8(grey.c_str()));
+        m_new_color_bmp = get_bitmap(m_new_color);
 
     // update main icon, if any exists
     if (m_icon_name.empty())
         return;
 
+    wxBitmap bmp = get_bmp_bundle(m_icon_name)->GetBitmapFor(m_parent_win);
+    if (!m_toggle)
+        bmp = bmp.ConvertToDisabled();
+
 #ifdef __linux__
-    m_icon.CopyFromBitmap(create_scaled_bitmap(m_icon_name, m_parent_win, 16, !m_toggle));
+    m_icon.CopyFromBitmap(bmp);
 #else
-    m_icon = create_scaled_bitmap(m_icon_name, m_parent_win, 16, !m_toggle);
+    m_icon = bmp;
 #endif //__linux__
 }
 
@@ -1021,7 +1017,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
     // "Save" button
     if (ActionButtons::SAVE & m_buttons) add_btn(&m_save_btn, m_save_btn_id, "save", Action::Save, _L("Save"), false);
 
-    /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, true, 24);
+    /* ScalableButton *cancel_btn = new ScalableButton(this, wxID_CANCEL, "cross", _L("Cancel"), wxDefaultSize, wxDefaultPosition, wxBORDER_DEFAULT, 24);
       buttons->Add(cancel_btn, 1, wxLEFT | wxRIGHT, 5);
       cancel_btn->SetFont(btn_font);*/
     /* m_cancel_btn = new Button(this, _L("Cancel"));
@@ -1708,7 +1704,7 @@ void UnsavedChangesDialog::on_dpi_changed(const wxRect& suggested_rect)
 void UnsavedChangesDialog::on_sys_color_changed()
 {
     //for (auto btn : { m_save_btn, m_transfer_btn, m_discard_btn } )
-        //btn->msw_rescale();
+        //btn->sys_color_changed();
     // msw_rescale updates just icons, so use it
     //m_tree->Rescale();
 
@@ -2115,10 +2111,16 @@ void DiffPresetDialog::on_dpi_changed(const wxRect&)
     const wxSize& size = wxSize(80 * em, 30 * em);
     SetMinSize(size);
 
+    auto rescale = [em](PresetComboBox* pcb) {
+        pcb->msw_rescale();
+        wxSize sz = wxSize(35 * em, -1);
+        pcb->SetMinSize(sz);
+        pcb->SetSize(sz);
+    };
+
     for (auto preset_combos : m_preset_combos) {
-        preset_combos.presets_left->msw_rescale();
-        preset_combos.equal_bmp->msw_rescale();
-        preset_combos.presets_right->msw_rescale();
+        rescale(preset_combos.presets_left);
+        rescale(preset_combos.presets_right);
     }
 
     m_tree->Rescale(em);
@@ -2136,9 +2138,9 @@ void DiffPresetDialog::on_sys_color_changed()
 #endif
 
     for (auto preset_combos : m_preset_combos) {
-        preset_combos.presets_left->msw_rescale();
-        preset_combos.equal_bmp->msw_rescale();
-        preset_combos.presets_right->msw_rescale();
+        preset_combos.presets_left->sys_color_changed();
+        preset_combos.equal_bmp->sys_color_changed();
+        preset_combos.presets_right->sys_color_changed();
     }
     // msw_rescale updates just icons, so use it
     m_tree->Rescale();

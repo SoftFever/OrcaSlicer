@@ -510,7 +510,7 @@ private:
     ssize_t item_hover;
     size_t last_page;
 
-    int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
+    int item_height() const { return std::max(bullet_black.GetHeight(), em_w) + em_w; }
 
     void on_paint(wxPaintEvent &evt);
     void on_mouse_move(wxMouseEvent &evt);

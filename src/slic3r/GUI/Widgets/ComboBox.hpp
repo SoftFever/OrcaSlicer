@@ -10,7 +10,7 @@
 class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
 {
     std::vector<wxString>         texts;
-    std::vector<wxBitmap>         icons;
+    std::vector<wxBitmapBundle>   icons;
     std::vector<void *>           datas;
     std::vector<wxClientDataType> types;
 
@@ -32,10 +32,9 @@ public:
 
     virtual bool SetFont(wxFont const & font) override;
 
-public:
-    int Append(const wxString &item, const wxBitmap &bitmap = wxNullBitmap);
+    int Append(const wxString &item, const wxBitmapBundle &bitmap = wxNullBitmap);
 
-    int Append(const wxString &item, const wxBitmap &bitmap, void *clientData);
+    int Append(const wxString &item, const wxBitmapBundle &bitmap, void *clientData);
 
     unsigned int GetCount() const override;
 
@@ -60,7 +59,11 @@ public:
     void     SetString(unsigned int n, wxString const &value) override;
 
     wxBitmap GetItemBitmap(unsigned int n);
-    void     SetItemBitmap(unsigned int n, wxBitmap const &bitmap);
+    void     SetItemBitmap(unsigned int n, wxBitmapBundle const &bitmap);
+
+    void ToggleDropDown();
+    bool Enable(bool enable = true) override;
+    void SetIcon(const wxBitmapBundle &icon) override;
 
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,

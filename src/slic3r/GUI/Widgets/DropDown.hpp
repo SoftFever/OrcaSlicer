@@ -15,7 +15,7 @@ wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 class DropDown : public PopupWindow
 {
     std::vector<wxString> &       texts;
-    std::vector<wxBitmap> &     icons;
+    std::vector<wxBitmapBundle> &     icons;
     bool                          need_sync  = false;
     int                         selection = -1;
     int                         hover_item = -1;
@@ -44,11 +44,11 @@ class DropDown : public PopupWindow
 
 public:
     DropDown(std::vector<wxString> &texts,
-             std::vector<wxBitmap> &icons);
+             std::vector<wxBitmapBundle> &icons);
     
     DropDown(wxWindow *     parent,
              std::vector<wxString> &texts,
-             std::vector<wxBitmap> &icons,
+             std::vector<wxBitmapBundle> &icons,
              long           style     = 0);
     
     void Create(wxWindow *     parent,

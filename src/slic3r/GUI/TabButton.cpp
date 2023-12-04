@@ -148,7 +148,7 @@ void TabButton::render(wxDC &dc)
             // BBS norrow size between text and icon
             szContent.x += 5;
         }
-        szIcon = icon.GetBmpSize();
+        szIcon = icon.GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y) szContent.y = szIcon.y;
     }
@@ -169,9 +169,9 @@ void TabButton::render(wxDC &dc)
     }
 
     if (icon.bmp().IsOk()) {
-        pt.x = size.x - icon.GetBmpWidth() - paddingSize.y;
-        pt.y = (size.y - icon.GetBmpHeight()) / 2;
-        dc.DrawBitmap(icon.bmp(), pt);
+        pt.x = size.x - icon.GetWidth() - paddingSize.y;
+        pt.y = (size.y - icon.GetHeight()) / 2;
+        dc.DrawBitmap(icon.get_bitmap(), pt);
     }
 }
 
@@ -189,7 +189,7 @@ void TabButton::messureSize()
             // BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->icon.GetBmpSize();
+        wxSize szIcon = this->icon.GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y) szContent.y = szIcon.y;
     }

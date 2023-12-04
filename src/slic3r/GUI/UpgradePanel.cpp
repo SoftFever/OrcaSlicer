@@ -322,15 +322,15 @@ void MachineInfoPanel::init_bitmaps()
 
 void MachineInfoPanel::rescale_bitmaps()
 {
-    m_img_printer.msw_rescale();
+    m_img_printer.sys_color_changed();
     m_printer_img->SetBitmap(m_img_printer.bmp());
-    m_img_monitor_ams.msw_rescale();
+    m_img_monitor_ams.sys_color_changed();
     m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
-    m_img_ext.msw_rescale();
+    m_img_ext.sys_color_changed();
     m_ext_img->SetBitmap(m_img_ext.bmp());
-    upgrade_green_icon.msw_rescale();
-    upgrade_gray_icon.msw_rescale();
-    upgrade_yellow_icon.msw_rescale();
+    upgrade_green_icon.sys_color_changed();
+    upgrade_gray_icon.sys_color_changed();
+    upgrade_yellow_icon.sys_color_changed();
     m_ota_new_version_img->SetBitmap(upgrade_green_icon.bmp());
 }
 
@@ -1160,8 +1160,8 @@ bool UpgradePanel::Show(bool show)
 
  }
 
- void AmsPanel::msw_rescale() { 
-     upgrade_green_icon.msw_rescale();
+ void AmsPanel::msw_rescale() {
+     upgrade_green_icon.sys_color_changed();
      m_ams_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
 
@@ -1234,8 +1234,8 @@ bool UpgradePanel::Show(bool show)
  }
 
  void ExtensionPanel::msw_rescale() 
- { 
-     upgrade_green_icon.msw_rescale();
+ {
+     upgrade_green_icon.sys_color_changed();
      m_ext_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
 
