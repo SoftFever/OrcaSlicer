@@ -7643,7 +7643,7 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
     update_ui_from_settings();
     sidebar->update_all_preset_comboboxes();
     if (wxID_EDIT == res) {
-        wxGetApp().params_dialog()->Popup(true);
+        wxGetApp().params_dialog()->Popup();
     }
 }
 
