@@ -4744,7 +4744,6 @@ int CLI::run(int argc, char **argv)
                         }
                     }
 
-                    ThumbnailsParams thumbnail_params;
                     GLShaderProgram* shader = opengl_mgr.get_shader("thumbnail");
                     if (!shader) {
                         BOOST_LOG_TRIVIAL(error) << boost::format("can not get shader for rendering thumbnail");

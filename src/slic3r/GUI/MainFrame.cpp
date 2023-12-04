@@ -1968,11 +1968,6 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     m_monitor->msw_rescale();
     m_calibration->msw_rescale();
 
-    // BBS
-#if 0
-    for (size_t id = 0; id < m_menubar->GetMenuCount(); id++)
-        msw_rescale_menu(m_menubar->GetMenu(id));
-#endif
 
     // Workarounds for correct Window rendering after rescale
 
@@ -2014,7 +2009,7 @@ void MainFrame::on_sys_color_changed()
 #ifdef _MSW_DARK_MODE
     // update common mode sizer
     if (!wxGetApp().tabs_as_menu())
-        dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
+        dynamic_cast<Notebook*>(m_tabpanel)->OnColorsChanged();
 #endif
 #endif
 

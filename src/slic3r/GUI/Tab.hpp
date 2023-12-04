@@ -154,7 +154,6 @@ protected:
 	//wxBoxSizer*			m_hsizer;
 	//wxBoxSizer*			m_left_sizer;
 	TabCtrl*			m_tabctrl;
-	wxImageList*		m_icons;
 
 	wxScrolledWindow*	m_page_view {nullptr};
 	//wxBoxSizer*			m_page_sizer {nullptr};
@@ -189,10 +188,6 @@ protected:
     StaticBox *				m_search_item;
     TextInput *				m_search_input;
 
-	// Cached bitmaps.
-	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
-	ScalableBitmap			m_bmp_show_incompatible_presets;
-	ScalableBitmap			m_bmp_hide_incompatible_presets;
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
 	ScalableBitmap 			m_bmp_value_lock;
 	ScalableBitmap 			m_bmp_value_unlock;
@@ -610,7 +605,6 @@ public:
 	void		build_unregular_pages(bool from_initial_build = false);
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
-	void		msw_rescale() override;
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
