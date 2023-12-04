@@ -1925,7 +1925,7 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
     if (abort_dlg == nullptr) {
         abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
         abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
-            if (obj) { 
+            if (obj) {
                 BOOST_LOG_TRIVIAL(info) << "monitor: stop current print task dev_id =" << obj->dev_id;
                 obj->command_task_abort(); 
             }
@@ -1956,10 +1956,12 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
     BOOST_LOG_TRIVIAL(trace) << "monitor: monitor_panel web request state = " << evt.GetState();
     switch (evt.GetState()) {
     case wxWebRequest::State_Completed: {
-        wxImage img(*evt.GetResponse().GetStream());
-        img_list.insert(std::make_pair(m_request_url, img));
-        wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y, wxIMAGE_QUALITY_HIGH);
-        m_project_task_panel->set_thumbnail_img(resize_img);
+        if (m_current_print_mode != PrintingTaskType::CALIBRATION ||(m_calib_mode == CalibMode::Calib_Flow_Rate && m_calib_method == CalibrationMethod::CALI_METHOD_MANUAL)) {
+            wxImage img(*evt.GetResponse().GetStream());
+            img_list.insert(std::make_pair(m_request_url, img));
+            wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y, wxIMAGE_QUALITY_HIGH);
+            m_project_task_panel->set_thumbnail_img(resize_img);
+        }
         if (obj) {
             m_project_task_panel->set_plate_index(obj->m_plate_index);
         } else {
@@ -2022,7 +2024,6 @@ bool StatusPanel::is_task_changed(MachineObject* obj)
 void StatusPanel::update(MachineObject *obj)
 {
     if (!obj) return;
-
     m_project_task_panel->Freeze();
     update_subtask(obj);
     m_project_task_panel->Thaw();
@@ -2836,6 +2837,14 @@ void StatusPanel::update_cali(MachineObject *obj)
     }
 }
 
+void StatusPanel::update_calib_bitmap() {
+    m_current_print_mode = PrintingTaskType::NOT_CLEAR;  //printing task might be changed when updating.
+    if (calib_bitmap != nullptr) {
+        delete calib_bitmap;
+        calib_bitmap = nullptr;
+    }
+}
+
 void StatusPanel::update_basic_print_data(bool def)
 {
     if (def) {
@@ -2881,7 +2890,52 @@ void StatusPanel::update_model_info()
 void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
+    if (m_current_print_mode != PRINGINT) {
+        if (calib_bitmap == nullptr) {
+            m_calib_mode = get_obj_calibration_mode(obj, m_calib_method, cali_stage);
+            if (m_calib_mode == CalibMode::Calib_None)
+                m_current_print_mode = PRINGINT;
+            // the printing task is calibrattion, not normal printing.
+            else if (m_calib_mode != CalibMode::Calib_None) {
+                m_current_print_mode = CALIBRATION;
+                auto get_bitmap = [](wxString& png_path, int width, int height) {
+                    wxImage image(width, height);
+                    image.LoadFile(png_path, wxBITMAP_TYPE_PNG);
+                    image = image.Scale(width, height, wxIMAGE_QUALITY_NORMAL);
+                    return wxBitmap(image);
+                };
+                wxString png_path = "";
+                int width = m_project_task_panel->get_bitmap_thumbnail()->GetSize().x;
+                int height = m_project_task_panel->get_bitmap_thumbnail()->GetSize().y;
+                if (m_calib_method == CALI_METHOD_AUTO) {
+                    if (m_calib_mode == CalibMode::Calib_PA_Line) {
+                        png_path = (boost::format("%1%/images/fd_calibration_auto.png") % resources_dir()).str();
+                    }
+                    else if (m_calib_mode == CalibMode::Calib_Flow_Rate) {
+                        png_path = (boost::format("%1%/images/flow_rate_calibration_auto.png") % resources_dir()).str();
+                    }
 
+                }
+                else if (m_calib_method == CALI_METHOD_MANUAL) {
+                    if (m_calib_mode== CalibMode::Calib_PA_Line) {
+                        if (cali_stage == 0) {  // Line mode
+                            png_path = (boost::format("%1%/images/fd_calibration_manual.png") % resources_dir()).str();
+                        }
+                        else if (cali_stage == 1) { // Pattern mode
+                            png_path = (boost::format("%1%/images/fd_pattern_manual_device.png") % resources_dir()).str();
+                        }
+                    }
+                }
+                if (png_path != "") {
+                    calib_bitmap = new wxBitmap;
+                    *calib_bitmap = get_bitmap(png_path, width, height);
+                }
+            }
+        }
+        if (calib_bitmap != nullptr)
+            m_project_task_panel->set_thumbnail_img(*calib_bitmap);
+    }
+    
     if (obj->is_support_layer_num) {
         m_project_task_panel->update_layers_num(true);
     }
@@ -3039,15 +3093,18 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
     }
 
     if (m_start_loading_thumbnail) {
+        update_calib_bitmap();
         if (obj->slice_info) {
             m_request_url = wxString(obj->slice_info->thumbnail_url);
             if (!m_request_url.IsEmpty()) {
                 wxImage                               img;
                 std::map<wxString, wxImage>::iterator it = img_list.find(m_request_url);
                 if (it != img_list.end()) {
-                    img                = it->second;
-                    wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y);
-                    m_project_task_panel->set_thumbnail_img(resize_img);
+                    if (m_current_print_mode != PrintingTaskType::CALIBRATION  ||(m_calib_mode == CalibMode::Calib_Flow_Rate && m_calib_method == CalibrationMethod::CALI_METHOD_MANUAL)) {
+                        img = it->second;
+                        wxImage resize_img = img.Scale(m_project_task_panel->get_bitmap_thumbnail()->GetSize().x, m_project_task_panel->get_bitmap_thumbnail()->GetSize().y);
+                        m_project_task_panel->set_thumbnail_img(resize_img);
+                    }
                     if (this->obj) {
                         m_project_task_panel->set_plate_index(obj->m_plate_index);
                     } else {
@@ -3071,7 +3128,10 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
     if (!obj) return;
 
     if (!m_load_sdcard_thumbnail) {
-        m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_sdcard.bmp());
+        update_calib_bitmap();
+        if (m_current_print_mode != PrintingTaskType::CALIBRATION) {
+            m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_sdcard.bmp());
+        }
         task_thumbnail_state = ThumbnailState::SDCARD_THUMBNAIL;
         m_load_sdcard_thumbnail = true;
     }
@@ -3092,7 +3152,7 @@ void StatusPanel::reset_printing_values()
     update_basic_print_data(false);
     m_project_task_panel->update_left_time(NA_STR);
     m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
-    
+    update_calib_bitmap();
     
     task_thumbnail_state = ThumbnailState::PLACE_HOLDER;
     m_start_loading_thumbnail = false;

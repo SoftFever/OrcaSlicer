@@ -17,6 +17,7 @@
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
 #include "Calibration.hpp"
+#include "CalibrationWizardPage.hpp"
 #include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "ExtrusionCalibration.hpp"
@@ -58,6 +59,7 @@ enum CameraTimelapseStatus {
 enum PrintingTaskType {
     PRINGINT,
     CALIBRATION,
+    NOT_CLEAR
 };
 
 struct ScoreData
@@ -212,7 +214,7 @@ public:
     void show_error_msg(wxString msg);
     void reset_printing_value();
     void msw_rescale();
-    
+
 public:
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
@@ -504,6 +506,11 @@ protected:
     std::vector<Button *>       m_buttons;
     int last_status;
     ScoreData *m_score_data;
+    wxBitmap* calib_bitmap = nullptr;
+    CalibMode m_calib_mode;
+    CalibrationMethod m_calib_method;
+    int cali_stage;
+    PrintingTaskType m_current_print_mode = PrintingTaskType::NOT_CLEAR;
 
     void init_scaled_buttons();
     void create_tasklist_info();
@@ -594,6 +601,7 @@ protected:
     void update_extruder_status(MachineObject* obj);
     void update_ams_control_state(bool is_curr_tray_selected);
     void update_cali(MachineObject* obj);
+    void update_calib_bitmap();
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
