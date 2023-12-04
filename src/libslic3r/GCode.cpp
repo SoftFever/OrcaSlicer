@@ -1991,6 +1991,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
         }
 
+        if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
+            m_placeholder_parser.set("scan_first_layer", new ConfigOptionBool(false));
+        }
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
     if (print.config().gcode_flavor != gcfKlipper) {
