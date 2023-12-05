@@ -1749,7 +1749,7 @@ int CLI::run(int argc, char **argv)
     if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1))
     {
         disable_wipe_tower_after_mapping = true;
-        BOOST_LOG_TRIVIAL(warning) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
     }
 
     //load system config if needed
@@ -2495,6 +2495,19 @@ int CLI::run(int argc, char **argv)
             selected_filament_colors = selected_filament_colors_option->values;
             //erase here
             m_extra_config.erase("filament_colour");
+
+            if (disable_wipe_tower_after_mapping) {
+                std::set<std::string> filament_color_set(selected_filament_colors.begin(), selected_filament_colors.end());
+
+                if (filament_color_set.size() > 1) {
+                    disable_wipe_tower_after_mapping = false;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("different filament colours,  switch disable_wipe_tower_after_mapping back to false");
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format("only %1% filament colour,  finally set disable_wipe_tower_after_mapping to true")%filament_color_set.size();
+                }
+
+            }
         }
 
         std::vector<std::string>  &project_filament_colors = project_filament_colors_option->values;
