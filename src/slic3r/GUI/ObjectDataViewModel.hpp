@@ -141,7 +141,7 @@ public:
     ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                             const t_layer_height_range& layer_range,
                             const int idx = -1,
-                            const wxString extruder = "" );
+                            const wxString& extruder = wxEmptyString );
 
     ObjectDataViewModelNode(PartPlate* part_plate, wxString name);
 
@@ -232,8 +232,8 @@ public:
     void            SetBitmap(const wxBitmapBundle &icon) { m_bmp = icon; }
     void            SetExtruder(const wxString &extruder) { m_extruder = extruder; }
     void            SetWarningIconName(const std::string& warning_icon_name) { m_warning_icon_name = warning_icon_name; }
-    void            SetLock(bool has_lock) { m_has_lock = has_lock; }
-    const wxBitmapBundle& GetBitmap() const               { return m_bmp; }
+    void            SetLock(bool has_lock)                                   { m_has_lock = has_lock; }
+    const wxBitmapBundle& GetBitmap() const         { return m_bmp; }
     const wxString& GetName() const                 { return m_name; }
     ItemType        GetType() const                 { return m_type; }
     InfoItemType    GetInfoItemType() const         { return m_info_item_type; }

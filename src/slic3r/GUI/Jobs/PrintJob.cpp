@@ -438,7 +438,7 @@ void PrintJob::process(Ctl &ctl)
                     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
                 }
                 //this->update_status(curr_percent, _L("Print task sending times out."));
-                m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
+                m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish, desc_wait_sending_finish);
                 BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
                 /* handle tiemout */
                 obj->command_task_cancel(curr_job_id);

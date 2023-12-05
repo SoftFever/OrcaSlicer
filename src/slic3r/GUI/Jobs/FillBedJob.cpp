@@ -231,7 +231,7 @@ void FillBedJob::process(Ctl &ctl)
 
     params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(st * 100 / status_range(), statustxt + " " + wxString::FromUTF8(str));
+             ctl.update_status(st * 100 / status_range(), statustxt + " " + str);
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {

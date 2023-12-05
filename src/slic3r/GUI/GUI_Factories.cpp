@@ -438,10 +438,8 @@ std::vector<wxBitmapBundle*> MenuFactory::get_volume_bitmaps()
 {
     std::vector<wxBitmapBundle*> volume_bmps;
     volume_bmps.reserve(ADD_VOLUME_MENU_ITEMS.size());
-    for (const auto& item : ADD_VOLUME_MENU_ITEMS){
-            //volume_bmps.push_back(create_menu_bitmap(item.second));
-            volume_bmps.push_back(get_bmp_bundle(item.second));
-    }
+    for (const auto& item : ADD_VOLUME_MENU_ITEMS)
+        volume_bmps.push_back(get_bmp_bundle(item.second));
     return volume_bmps;
 }
 
@@ -456,7 +454,7 @@ std::vector<wxBitmapBundle*> MenuFactory::get_text_volume_bitmaps()
 
 std::vector<wxBitmapBundle*> MenuFactory::get_svg_volume_bitmaps()
 {
-    std::vector<wxBitmapBundle*> volume_bmps;
+    std::vector<wxBitmapBundle *> volume_bmps;
     volume_bmps.reserve(SVG_VOLUME_ICONS.size());
     for (const auto &item : SVG_VOLUME_ICONS)
         volume_bmps.push_back(get_bmp_bundle(item.second));

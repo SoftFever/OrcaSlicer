@@ -17,11 +17,22 @@
 #include <wx/bmpcbox.h>
 #include <wx/dc.h>
 
+
 namespace Slic3r {
+
 namespace GUI {
+
 wxDEFINE_EVENT(wxCUSTOMEVT_LAST_VOLUME_IS_DELETED, wxCommandEvent);
 
 BitmapCache* m_bitmap_cache = nullptr;
+
+wxBitmapBundle* find_bndl(const std::string& bmp_name)
+{
+    if (!m_bitmap_cache)
+        m_bitmap_cache = new BitmapCache;
+
+    return m_bitmap_cache->find_bndl(bmp_name);
+}
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
@@ -140,7 +151,7 @@ ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent
 ObjectDataViewModelNode::ObjectDataViewModelNode(ObjectDataViewModelNode* parent,
                                                  const t_layer_height_range& layer_range,
                                                  const int idx /*= -1 */,
-                                                 const wxString extruder) :
+                                                 const wxString& extruder) :
     m_parent(parent),
     m_type(itLayer),
     m_idx(idx),
@@ -276,7 +287,7 @@ void ObjectDataViewModelNode::update_settings_digest_bitmaps()
     std::string scaled_bitmap_name = m_name.ToUTF8().data();
     scaled_bitmap_name += (wxGetApp().dark_mode() ? "-dm" : "");
 
-    wxBitmapBundle *bmp = m_bitmap_cache->find_bndl(scaled_bitmap_name);
+    wxBitmapBundle *bmp = find_bndl(scaled_bitmap_name);
     if (bmp == nullptr) {
         std::vector<wxBitmapBundle*> bmps;
         for (auto& category : m_opt_categories)
@@ -527,22 +538,22 @@ void ObjectDataViewModel::UpdateBitmapForNode(ObjectDataViewModelNode *node)
 
     if (!node->has_warning_icon() && !node->has_lock()) {
         node->SetBitmap(is_volume_node ? (
-            node->is_text_volume() ? m_text_volume_bmps.at(vol_type) : 
-            node->is_svg_volume() ? m_svg_volume_bmps.at(vol_type) : 
-		    m_volume_bmps.at(vol_type)) : m_empty_bmp);
+            node->is_text_volume() ? *m_text_volume_bmps.at(vol_type) : 
+            node->is_svg_volume() ? *m_svg_volume_bmps.at(vol_type) : 
+            *m_volume_bmps.at(vol_type)) : m_empty_bmp);
         return;
     }
 
     std::string scaled_bitmap_name = std::string();
     if (node->has_warning_icon())
         scaled_bitmap_name += node->warning_icon_name();
-    if (node->has_lock())
+    if (node->has_lock()) 
         scaled_bitmap_name += LockIcon;
     if (is_volume_node)
         scaled_bitmap_name += std::to_string(vol_type);
     scaled_bitmap_name += (wxGetApp().dark_mode() ? "-dm" : "-lm");
 
-    wxBitmapBundle *bmp = m_bitmap_cache->find_bndl(scaled_bitmap_name);
+    wxBitmapBundle* bmp = find_bndl(scaled_bitmap_name);
     if (!bmp) {
         std::vector<wxBitmapBundle*> bmps;
         if (node->has_warning_icon())

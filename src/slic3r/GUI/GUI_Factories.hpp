@@ -51,9 +51,9 @@ struct SettingsFactory
 class MenuFactory
 {
 public:
-    static std::vector<wxBitmapBundle*>    get_volume_bitmaps();
-	static std::vector<wxBitmapBundle*>    get_text_volume_bitmaps();
-	static std::vector<wxBitmapBundle*>    get_svg_volume_bitmaps();
+	static std::vector<wxBitmapBundle*> get_volume_bitmaps();
+	static std::vector<wxBitmapBundle*> get_text_volume_bitmaps();
+	static std::vector<wxBitmapBundle*> get_svg_volume_bitmaps();
 
     MenuFactory();
     ~MenuFactory() = default;
