@@ -1513,7 +1513,7 @@ msgid "Insert a pause command at the beginning of this layer."
 msgstr "Вставить команду паузы в начале этого слоя."
 
 msgid "Add Custom G-code"
-msgstr "Добавить пользовательской G-код"
+msgstr "Добавить пользовательский G-код"
 
 msgid "Insert custom G-code at the beginning of this layer."
 msgstr "Вставить пользовательский G-код в начале этого слоя."
@@ -8067,7 +8067,7 @@ msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
 msgstr ""
 "Плотность наружных мостов. 100% - сплошной мост. По умолчанию задано 100%."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Поток при печати мостов"
 
 msgid ""
@@ -8079,7 +8079,7 @@ msgstr ""
 "печати некоторых моделей уменьшение параметра может сократить провисание "
 "пластика при печати мостов."
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8528,7 +8528,7 @@ msgid "Internal solid infill pattern"
 msgstr "Шаблон сплошного заполнения"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Шаблон печати внутреннего сплошного заполнения. Если включена функция "
@@ -8571,19 +8571,19 @@ msgid ""
 msgstr ""
 "Пороговое значение длины маленьких периметров. Значение по умолчанию - 0 мм."
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -10031,13 +10031,13 @@ msgstr "Формат имени файла"
 msgid "User can self-define the project file name when export"
 msgstr "Пользователь может сам задать имя файла проекта при экспорте."
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Делать нависания пригодными для печати"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr "Изменение геометрии модели для печати нависающих части без поддержки."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Делать нависания пригодными для печати под максимальным углом"
 
 msgid ""
@@ -10049,7 +10049,7 @@ msgstr ""
 "нависаний. При 90°не происходит изменения формы модели. При 0° же, все "
 "нависания заменяются материалом конической геометрии."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Делать нависания отверстий пригодными для печати"
 
 msgid ""

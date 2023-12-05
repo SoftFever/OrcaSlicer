@@ -7845,7 +7845,7 @@ msgstr ""
 "Щільність зовнішніх мостів. 100% означає суцільний міст. Значення по за "
 "замовчуванням - 100%."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Потік мосту"
 
 msgid ""
@@ -7855,7 +7855,7 @@ msgstr ""
 "Трохи зменшіть це значення (наприклад, 0.9), щоб зменшити кількість "
 "матеріалу для мосту, щоб покращити провисання"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8274,7 +8274,7 @@ msgid "Internal solid infill pattern"
 msgstr ""
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 
@@ -8315,19 +8315,19 @@ msgstr ""
 "При цьому встановлюється поріг для невеликої довжини периметра. Порігове за "
 "замовчуванням - 0 мм"
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -9649,13 +9649,13 @@ msgid "User can self-define the project file name when export"
 msgstr ""
 "Користувач може самостійно визначити ім'я файлу проекту під час експорту"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr ""
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr ""
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr ""
 
 msgid ""
@@ -9664,7 +9664,7 @@ msgid ""
 "0 will replace all overhangs with conical material."
 msgstr ""
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr ""
 
 msgid ""

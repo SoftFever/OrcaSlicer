@@ -7994,7 +7994,7 @@ msgstr ""
 "Densità di ponti esterni. 100% significa solido ponte. L'impostazione "
 "predefinita è al 100%."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Flusso del Bridge"
 
 msgid ""
@@ -8004,8 +8004,8 @@ msgstr ""
 "Diminuire leggermente questo valore (ad esempio 0.9) per ridurre la quantità di "
 "materiale per il ponte e migliorare l'abbassamento dello stesso"
 
-msgid "Internal bridge flow"
-msgstr "Flusso del ponte interno "
+msgid "Internal bridge flow ratio"
+msgstr "Rapporto Flusso del ponte interno"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the first "
@@ -8478,7 +8478,7 @@ msgid "Internal solid infill pattern"
 msgstr "Schema di riempimento solido interno"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Modello di linea del riempimento solido interno. Se l'opzione Rileva riempimento "
@@ -8523,20 +8523,21 @@ msgstr ""
 "In questo modo viene impostata la soglia per la lunghezza del perimetro ridotta. "
 "La soglia predefinita è 0 mm"
 
-msgid "Order of walls"
-msgstr "Ordine delle pareti"
+
+msgid "Walls printing order"
+msgstr "Ordine Stampa Pareti"
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr "Stampa la sequenza della parete interna e della parete esterna. "
 
-msgid "inner/outer"
-msgstr "interno/esterno"
+msgid "Inner/Outer"
+msgstr "Interno/Esterno"
 
-msgid "outer/inner"
-msgstr "esterno/interno"
+msgid "Outer/Inner"
+msgstr "Esterno/Interno"
 
-msgid "inner wall/outer wall/inner wall"
-msgstr "parete interna/parete esterna/parete interna"
+msgid "Inner/Outer/Inner"
+msgstr "Interna/Esterna/Interna"
 
 msgid "Print infill first"
 msgstr "Stampa prima il riempimento"
@@ -8931,7 +8932,6 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Densità riempimento"
 
-#, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -9976,14 +9976,14 @@ msgstr "Formato nome file"
 msgid "User can self-define the project file name when export"
 msgstr "Gli utenti possono decidere i nomi dei file progetto nell'esportazione."
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Rendi stampabile la sporgenza"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr ""
 "Modificare la geometria per stampare sporgenze senza materiale di supporto."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Rendi la sporgenza stampabile angolo massimo"
 
 msgid ""
@@ -9995,7 +9995,7 @@ msgstr ""
 "più ripide.90° non cambierà affatto il modello e consentirà alcuna sporgenza, "
 "mentre 0 sostituirà tutte le sporgenze con materiale conico."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Rendere stampabile l'area del foro sporgente"
 
 msgid ""
