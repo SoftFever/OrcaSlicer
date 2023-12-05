@@ -2794,7 +2794,8 @@ int CLI::run(int argc, char **argv)
     if ((old_printable_width > 0)&&(old_printable_depth > 0)&&(old_printable_height > 0))
     {
         //check the printable size logic
-        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        //if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth) || (old_printable_height > current_printable_height))
+        if ((old_printable_width > current_printable_width) || (old_printable_depth > current_printable_depth))
         {
             BOOST_LOG_TRIVIAL(error) << boost::format("old printable size {%1%, %2%, %3%} is larger than new printable size {%4%, %5%, %6%}, can not print")
                 %old_printable_width %old_printable_depth %old_printable_height %current_printable_width %current_printable_depth %current_printable_height;
