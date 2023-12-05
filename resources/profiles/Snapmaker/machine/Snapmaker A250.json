@@ -1,12 +1,11 @@
 {
-    "type": "machine_model",
-    "name": "Snapmaker A250",
-    "model_id": "SnapmakerA250",
-    "nozzle_diameter": "0.4",
-    "machine_tech": "FFF",
-    "family": "Snapmaker",
-    "bed_model": "",
-    "bed_texture": "",
-    "hotend_model": "",
-    "default_materials": "Snapmaker Generic ABS;Snapmaker Generic PLA;Snapmaker Generic PLA-CF;Snapmaker Generic PETG;Snapmaker Generic TPU;Snapmaker Generic ASA;Snapmaker Generic PC;Snapmaker Generic PVA;Snapmaker Generic PA;Snapmaker Generic PA-CF"
+  "type": "machine_model",
+  "machine_tech": "FFF",
+  "family": "Snapmaker",
+  "name": "Snapmaker A250",
+  "url": "https://github.com/macdylan",
+  "model_id": "261851393",
+  "bed_model": "Snapmaker A250_bed.stl",
+  "bed_texture": "Snapmaker A250_texture.svg",
+  "nozzle_diameter": "0.2;0.4;0.6;0.8"
 }

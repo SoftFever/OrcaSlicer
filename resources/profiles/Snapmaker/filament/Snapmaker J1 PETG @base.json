@@ -1,0 +1,53 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "false",
+  "name": "Snapmaker J1 PETG @base",
+  "filament_id": "1172603684",
+  "inherits": "fdm_filament_petg",
+  "filament_density": [
+    "1.25"
+  ],
+  "filament_max_volumetric_speed": [
+    "14"
+  ],
+  "filament_z_hop_types": [
+    "Spiral Lift"
+  ],
+  "filament_retraction_speed": [
+    "35"
+  ],
+  "nozzle_temperature": [
+    "255"
+  ],
+  "temperature_vitrification": [
+    "178"
+  ],
+  "fan_max_speed": [
+    "40"
+  ],
+  "fan_min_speed": [
+    "10"
+  ],
+  "cool_plate_temp": [
+    "70"
+  ],
+  "eng_plate_temp": [
+    "70"
+  ],
+  "textured_plate_temp": [
+    "70"
+  ],
+  "cool_plate_temp_initial_layer": [
+    "70"
+  ],
+  "eng_plate_temp_initial_layer": [
+    "70"
+  ],
+  "textured_plate_temp_initial_layer": [
+    "70"
+  ],
+  "nozzle_temperature_range_low": [
+    "240"
+  ]
+}

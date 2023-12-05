@@ -248,47 +248,14 @@ void ObjectLayers::UpdateAndShow(const bool show)
 
 void ObjectLayers::msw_rescale()
 {
-    m_bmp_delete.msw_rescale();
-    m_bmp_add.msw_rescale();
-
-    m_grid_sizer->SetHGap(wxGetApp().em_unit());
-
-    // rescale edit-boxes
-    const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
-    for (int i = 0; i < cells_cnt; ++i) {
-        const wxSizerItem* item = m_grid_sizer->GetItem(i);
-        if (item->IsWindow()) {
-            LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(item->GetWindow());
-            if (editor != nullptr)
-                editor->msw_rescale();
-        }
-        else if (item->IsSizer()) // case when we have editor with buttons
-        {
-            wxSizerItem* e_item = item->GetSizer()->GetItem(size_t(0)); // editor
-            if (e_item->IsWindow()) {
-                LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(e_item->GetWindow());
-                if (editor != nullptr)
-                    editor->msw_rescale();
-            }
-
-            if (item->GetSizer()->GetItemCount() > 2) // if there are Add/Del buttons
-                for (size_t btn : {2, 3}) { // del_btn, add_btn
-                    wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
-                    if (b_item->IsWindow()) {
-                        auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
-                        if (button != nullptr)
-                            button->msw_rescale();
-                    }
-                }
-        }
-    }
+    //Orca: deleted what PS commented out
     m_grid_sizer->Layout();
 }
 
 void ObjectLayers::sys_color_changed()
 {
-    m_bmp_delete.msw_rescale();
-    m_bmp_add.msw_rescale();
+    m_bmp_delete.sys_color_changed();
+    m_bmp_add.sys_color_changed();
 
     // rescale edit-boxes
     const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
@@ -300,7 +267,7 @@ void ObjectLayers::sys_color_changed()
                 if (b_item && b_item->IsWindow()) {
                     auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
                     if (button != nullptr)
-                        button->msw_rescale();
+                        button->sys_color_changed();
                 }
             }
         }

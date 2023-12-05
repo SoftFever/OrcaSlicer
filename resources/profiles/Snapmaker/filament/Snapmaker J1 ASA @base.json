@@ -1,0 +1,17 @@
+{
+  "type": "filament",
+  "from": "system",
+  "instantiation": "false",
+  "name": "Snapmaker J1 ASA @base",
+  "filament_id": "144877656",
+  "inherits": "fdm_filament_asa",
+  "overhang_fan_speed": [
+    "20"
+  ],
+  "fan_max_speed": [
+    "20"
+  ],
+  "fan_min_speed": [
+    "0"
+  ]
+}

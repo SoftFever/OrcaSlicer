@@ -173,7 +173,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
 
             
             btn->SetBitmapFocus(m_bmp_reset_focus.bmp());
-            btn->SetBitmapHover(m_bmp_reset_focus.bmp());
+            btn->SetBitmapHover(m_bmp_reset_focus.get_bitmap());
 
             #ifdef __WINDOWS__
             btn->SetBitmapDisabled(m_bmp_reset_disable.bmp());
@@ -236,7 +236,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
                 return;
             ctrl->SetBitmap_(m_bmp_reset);
             ctrl->SetBitmapFocus(m_bmp_reset_focus.bmp()); 
-            ctrl->SetBitmapHover(m_bmp_reset_focus.bmp());
+            ctrl->SetBitmapHover(m_bmp_reset_focus.get_bitmap());
             #ifdef __WINDOWS__  
             ctrl->SetBitmapDisabled(m_bmp_reset_disable.bmp());
             #endif

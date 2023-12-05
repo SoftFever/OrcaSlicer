@@ -43,9 +43,8 @@
 #include "GUI_App.hpp"
 
 #include "../Utils/MacDarkMode.hpp"
-
-#include "nanosvg/nanosvg.h"
-#include "nanosvg/nanosvgrast.h"
+#include <nanosvg/nanosvg.h>
+#include <nanosvg/nanosvgrast.h>
 #include "OpenGLManager.hpp"
 #include "GUI_App.hpp"
 

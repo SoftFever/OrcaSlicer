@@ -236,6 +236,7 @@ endif ()
 
 include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
+include(NanoSVG/NanoSVG.cmake)
 include(wxWidgets/wxWidgets.cmake)
 include(OCCT/OCCT.cmake)
 include(FREETYPE/FREETYPE.cmake)
