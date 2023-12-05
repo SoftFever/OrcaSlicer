@@ -28,12 +28,12 @@ static bool is_point_in_rect(const wxPoint& pt, const wxRect& rect)
             rect.GetTop() <= pt.y && pt.y <= rect.GetBottom();
 }
 
-static wxSize get_bitmap_size(const wxBitmap& bmp)
+static wxSize get_bitmap_size(const wxBitmapBundle* bmp, wxWindow* parent)
 {
-#ifdef __APPLE__
-    return bmp.GetScaledSize();
+#ifndef __WIN32__
+    return bmp->GetBitmapFor(parent).GetSize();
 #else
-    return bmp.GetSize();
+    return bmp->GetDefaultSize();
 #endif
 }
 
@@ -58,8 +58,8 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_v_gap2  = lround(0.8 * m_em_unit);
     m_h_gap   = lround(0.2 * m_em_unit);
 
-    //m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
-    m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("blank_16", this));
+    //m_bmp_mode_sz       = get_bitmap_size(get_bmp_bundle("mode_simple", wxOSX ? 10 : 12), this);
+    m_bmp_blinking_sz   = get_bitmap_size(get_bmp_bundle("blank_16"), this);
 
     init_ctrl_lines();// from og.lines()
 
@@ -572,8 +572,8 @@ void OG_CustomCtrl::msw_rescale()
     m_v_gap2     = lround(0.8 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
 
-    //m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
-    m_bmp_blinking_sz = create_scaled_bitmap("blank_16", this).GetSize();
+    //m_bmp_mode_sz       = get_bitmap_size(get_bmp_bundle("mode_simple", wxOSX ? 10 : 12), this);
+    m_bmp_blinking_sz = get_bitmap_size(get_bmp_bundle("blank_16"), this);
 
     m_max_win_width = 0;
 
@@ -666,7 +666,7 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
 {
     // if we have a single option with no label, no sidetext
     if (draw_just_act_buttons)
-        height = get_bitmap_size(create_scaled_bitmap("empty")).GetHeight();
+        height = get_bitmap_size(get_bmp_bundle("empty"), ctrl).GetHeight();
 
     if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
@@ -748,7 +748,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         if (field && field->undo_bitmap())
         //if (field)
             // BBS: new layout
-            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink());
+            draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->get_bitmap(), field->undo_bitmap()->get_bitmap(), field->blink());
         return;
     }
 
@@ -802,7 +802,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 
     auto draw_buttons = [&h_pos, &dc, &v_pos, this](Field* field, size_t bmp_rect_id = 0) {
         if (field && field->undo_to_sys_bitmap()) {
-            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->bmp(), field->undo_bitmap()->bmp(), field->blink(), bmp_rect_id);
+            h_pos = draw_act_bmps(dc, wxPoint(h_pos, v_pos), field->undo_to_sys_bitmap()->get_bitmap(), field->undo_bitmap()->get_bitmap(), field->blink(), bmp_rect_id);
         }
 #ifndef DISABLE_BLINKING
         else if (field && !field->undo_to_sys_bitmap() && field->blink()) 
@@ -933,19 +933,19 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_text(wxDC &dc, wxPoint pos, const wxString
 
 wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking)
 {
-    wxBitmap bmp_blinking = create_scaled_bitmap(is_blinking ? "blank_16" : "empty", ctrl);
+    wxBitmapBundle* bmp_blinking = get_bmp_bundle(is_blinking ? "blank_16" : "empty");
     wxCoord h_pos = pos.x;
-    wxCoord v_pos = pos.y + lround((height - get_bitmap_size(bmp_blinking).GetHeight()) / 2);
+    wxCoord v_pos = pos.y + lround((height - get_bitmap_size(bmp_blinking, ctrl).GetHeight()) / 2);
 
-    dc.DrawBitmap(bmp_blinking, h_pos, v_pos);
+    dc.DrawBitmap(bmp_blinking->GetBitmapFor(ctrl), h_pos, v_pos);
 
-    int bmp_dim = get_bitmap_size(bmp_blinking).GetWidth();
+    int bmp_dim = get_bitmap_size(bmp_blinking, ctrl).GetWidth();
 
     h_pos += bmp_dim + ctrl->m_h_gap;
     return wxPoint(h_pos, v_pos);
 }
 
-wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
+wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmapBundle& bmp_undo_to_sys, const wxBitmapBundle& bmp_undo, bool is_blinking, size_t rect_id)
 {
 #ifndef DISABLE_BLINKING
     pos = draw_blinking_bmp(dc, pos, is_blinking);
@@ -953,11 +953,11 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
     if (ctrl->opt_group->split_multi_line) { // BBS
         const std::vector<Option> &option_set = og_line.get_options();
         if (option_set.size() > 1)
-            pos.y += lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+            pos.y += lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - get_bitmap_size(&bmp_undo, ctrl).GetHeight()) / 2);
         else
-            pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+            pos.y += lround((height - get_bitmap_size(&bmp_undo, ctrl).GetHeight()) / 2);
     } else {
-        pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+        pos.y += lround((height - get_bitmap_size(&bmp_undo, ctrl).GetHeight()) / 2);
     }
 #endif
     wxCoord h_pos = pos.x;
@@ -965,16 +965,16 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
 #ifndef DISABLE_UNDO_SYS
     //BBS: GUI refactor
-    dc.DrawBitmap(bmp_undo_to_sys, h_pos, v_pos);
+    dc.DrawBitmap(bmp_undo_to_sys.GetBitmapFor(ctrl), h_pos, v_pos);
 
-    int bmp_dim = get_bitmap_size(bmp_undo_to_sys).GetWidth();
+    int bmp_dim = get_bitmap_size(&bmp_undo_to_sys, ctrl).GetWidth();
     rects_undo_to_sys_icon[rect_id] = wxRect(h_pos, v_pos, bmp_dim, bmp_dim);
 
     h_pos += bmp_dim + ctrl->m_h_gap;
 #endif
-    dc.DrawBitmap(og_line.undo_to_sys ? bmp_undo_to_sys : bmp_undo, h_pos, v_pos);
+    dc.DrawBitmap(og_line.undo_to_sys ? bmp_undo_to_sys.GetBitmapFor(ctrl) : bmp_undo.GetBitmapFor(ctrl), h_pos, v_pos);
 
-    int bmp_dim2 = get_bitmap_size(bmp_undo).GetWidth();
+    int bmp_dim2 = get_bitmap_size(&bmp_undo, ctrl).GetWidth();
     (og_line.undo_to_sys ? rects_undo_to_sys_icon[rect_id] : rects_undo_icon[rect_id]) = wxRect(h_pos, v_pos, bmp_dim2, bmp_dim2);
 
     h_pos += bmp_dim2 + ctrl->m_h_gap;

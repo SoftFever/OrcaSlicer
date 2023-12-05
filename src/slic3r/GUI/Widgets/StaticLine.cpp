@@ -46,7 +46,7 @@ void StaticLine::SetLineColour(wxColour color)
 void StaticLine::Rescale()
 {
     if (this->icon.bmp().IsOk())
-        this->icon.msw_rescale();
+        this->icon.sys_color_changed();
     messureSize();
 }
 
@@ -67,7 +67,7 @@ void StaticLine::messureSize()
             // BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->icon.GetBmpSize();
+        wxSize szIcon = this->icon.GetSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y) szContent.y = szIcon.y;
     }
@@ -90,13 +90,13 @@ void StaticLine::render(wxDC& dc)
     auto   label = GetLabel();
     if (!label.IsEmpty()) textSize = dc.GetTextExtent(label);
     wxRect titleRect{{0, 0}, size};
-    titleRect.height = wxMax(icon.GetBmpHeight(), textSize.GetHeight());
-    int contentWidth = icon.GetBmpWidth() + ((icon.bmp().IsOk() && textSize.GetWidth() > 0) ? 5 : 0) +
+    titleRect.height = wxMax(icon.GetHeight(), textSize.GetHeight());
+    int contentWidth = icon.GetWidth() + ((icon.bmp().IsOk() && textSize.GetWidth() > 0) ? 5 : 0) +
                 textSize.GetWidth();
     if (vertical) titleRect.Deflate((size.GetWidth() - contentWidth) / 2, 0);
     if (icon.bmp().IsOk()) {
-        dc.DrawBitmap(icon.bmp(), {0, (size.y - icon.GetBmpHeight()) / 2});
-        titleRect.x += icon.GetBmpWidth() + 5;
+        dc.DrawBitmap(icon.get_bitmap(), {0, (size.y - icon.GetHeight()) / 2});
+        titleRect.x += icon.GetWidth() + 5;
     }
     if (!label.IsEmpty()) {
         dc.SetTextForeground(StateColor::darkModeColorFor(GetForegroundColour()));

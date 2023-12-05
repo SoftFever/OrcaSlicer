@@ -82,10 +82,10 @@ public:
     GridCellFilamentsEditor(size_t count = 0,
                            const wxString choices[] = NULL,
                            bool allowOthers = false,
-                           std::vector<wxBitmap*>* bitmaps = NULL);
+                           std::vector<wxBitmapBundle*>* bitmaps = NULL);
     GridCellFilamentsEditor(const wxArrayString& choices,
                            bool allowOthers = false,
-                           std::vector<wxBitmap*>* bitmaps = NULL);
+                           std::vector<wxBitmapBundle*>* bitmaps = NULL);
 
     virtual void Create(wxWindow* parent,
                         wxWindowID id,
@@ -105,7 +105,7 @@ protected:
     ::ComboBox *Combo() const { return (::ComboBox *)m_control; }
     void OnComboCloseUp(wxCommandEvent& evt);
 
-    std::vector<wxBitmap*>* m_icons;
+    std::vector<wxBitmapBundle*>* m_icons;
 
     wxDECLARE_NO_COPY_CLASS(GridCellFilamentsEditor);
 private:
@@ -498,8 +498,8 @@ public:
     void update_filament_to_config(ModelConfig* config, std::string& key, ConfigOption& new_value,  ConfigOption& ori_value, bool is_object);
     void update_volume_values_from_object(int row, int col);
     void update_value_to_object(Model* model, ObjectGridRow* grid_row, int col);
-    wxBitmap& get_undo_bitmap(bool selected = false);
-    wxBitmap* get_color_bitmap(int color_index);
+    wxBitmapBundle& get_undo_bitmap(bool selected = false);
+    wxBitmapBundle* get_color_bitmap(int color_index);
     bool OnCellLeftClick(int row, int col, ConfigOptionType &type);
     void OnSelectCell(int row, int col);
     void OnRangeSelected(int row, int col, int row_count, int col_count);
@@ -610,10 +610,10 @@ private:
     int init_filaments_and_colors();
 
     wxFloatingPointValidator<float> m_float_validator;
-    wxBitmap           m_undo_bitmap;
-    std::vector<wxBitmap*> m_color_bitmaps;
-    ScalableBitmap     m_bmp_reset;
-    ScalableBitmap     m_bmp_reset_disable;
+    wxBitmapBundle           m_undo_bitmap;
+    std::vector<wxBitmapBundle*> m_color_bitmaps;
+    wxBitmapBundle     m_bmp_reset;
+    wxBitmapBundle     m_bmp_reset_disable;
 private:
     wxDECLARE_ABSTRACT_CLASS(ObjectGrid);
     wxDECLARE_EVENT_TABLE();

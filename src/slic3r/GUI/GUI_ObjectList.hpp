@@ -321,7 +321,7 @@ public:
     void                delete_all_connectors_for_selection();
     void                delete_all_connectors_for_object(int obj_idx);
 
-    wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
+    wxPoint             get_mouse_position_in_control() const;
     int                 get_selected_obj_idx() const;
     ModelConfig&        get_item_config(const wxDataViewItem& item) const;
 

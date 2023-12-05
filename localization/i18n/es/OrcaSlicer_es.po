@@ -8051,7 +8051,7 @@ msgstr ""
 "Densidad de puentes externos. 100% significa puente sólido. Por defecto es "
 "100%."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Ratio de caudal en puentes"
 
 msgid ""
@@ -8061,7 +8061,7 @@ msgstr ""
 "Disminuya este valor ligeramente (por ejemplo 0,9) para reducir la cantidad "
 "de material para el puente, para mejorar el hundimiento"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8516,7 +8516,7 @@ msgid "Internal solid infill pattern"
 msgstr "Patrón de relleno sólido interno"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Patrón lineal de relleno sólido interno, si se activa la detección de "
@@ -8561,19 +8561,19 @@ msgstr ""
 "Esto configura el umbral para longitud de perímetro pequeño. El umbral por "
 "defecto es 0mm"
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -10031,13 +10031,13 @@ msgstr ""
 "El usuario puede definir por sí mismo el nombre del archivo del proyecto al "
 "exportarlo"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Voladizos imprimibles sin soporte"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr "Modificar la geometría para imprimir voladizos sin soportes."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Máximo ángulo de impresión de voladizos imprimibles sin soporte"
 
 msgid ""
@@ -10049,7 +10049,7 @@ msgstr ""
 "cambiará el modelo del todo y permitirá cualquier voladizo, mientras que 0 "
 "reemplazará todos lo voladizos con material cónico."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Área hueca del voladizo imprimible sin soporte"
 
 msgid ""

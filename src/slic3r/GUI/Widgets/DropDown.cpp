@@ -29,7 +29,7 @@ END_EVENT_TABLE()
  */
 
 DropDown::DropDown(std::vector<wxString> &texts,
-                   std::vector<wxBitmap> &icons)
+                   std::vector<wxBitmapBundle> &icons)
     : texts(texts)
     , icons(icons)
     , state_handler(this)
@@ -44,7 +44,7 @@ DropDown::DropDown(std::vector<wxString> &texts,
 
 DropDown::DropDown(wxWindow *             parent,
                    std::vector<wxString> &texts,
-                   std::vector<wxBitmap> &icons,
+                   std::vector<wxBitmapBundle> &icons,
                    long           style)
     : DropDown(texts, icons)
 {
@@ -188,15 +188,6 @@ void DropDown::paintNow()
     Refresh();
 }
 
-static wxSize GetBmpSize(wxBitmap & bmp)
-{
-#ifdef __APPLE__
-    return bmp.GetScaledSize();
-#else
-    return bmp.GetSize();
-#endif
-}
-
 /*
  * Here we do the actual rendering. I put it in a separate
  * method so that it can work no matter what type of DC
@@ -265,13 +256,13 @@ void DropDown::render(wxDC &dc)
     rcContent.x += 5;
     rcContent.width -= 5;
     if (check_bitmap.bmp().IsOk()) {
-        auto szBmp = check_bitmap.GetBmpSize();
+        auto szBmp = check_bitmap.GetSize();
         if (selection >= 0) {
             wxPoint pt = rcContent.GetLeftTop();
             pt.y += (rcContent.height - szBmp.y) / 2;
             pt.y += rowSize.y * selection;
             if (pt.y + szBmp.y > 0 && pt.y < size.y)
-                dc.DrawBitmap(check_bitmap.bmp(), pt);
+                dc.DrawBitmap(check_bitmap.get_bitmap(), pt);
         }
         rcContent.x += szBmp.x + 5;
         rcContent.width -= szBmp.x + 5;
@@ -286,17 +277,17 @@ void DropDown::render(wxDC &dc)
         if (rcContent.y > size.y) break;
         wxPoint pt   = rcContent.GetLeftTop();
         auto & icon = icons[i];
-        auto size2 = GetBmpSize(icon);
+        auto size2 = get_preferred_size(icon, m_parent);
         if (iconSize.x > 0) {
             if (icon.IsOk()) {
                 pt.y += (rcContent.height - size2.y) / 2;
-                dc.DrawBitmap(icon, pt);
+                dc.DrawBitmap(icon.GetBitmapFor(m_parent), pt);
             }
             pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
         } else if (icon.IsOk()) {
             pt.y += (rcContent.height - size2.y) / 2;
-            dc.DrawBitmap(icon, pt);
+            dc.DrawBitmap(icon.GetBitmapFor(m_parent), pt);
             pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
@@ -326,7 +317,7 @@ void DropDown::messureSize()
     for (size_t i = 0; i < texts.size(); ++i) {
         wxSize size1 = text_off ? wxSize() : dc.GetMultiLineTextExtent(texts[i]);
         if (icons[i].IsOk()) {
-            wxSize size2 = GetBmpSize(icons[i]);
+            wxSize size2 = get_preferred_size(icons[i], m_parent);
             if (size2.x > iconSize.x) iconSize = size2;
             if (!align_icon) {
                 size1.x += size2.x + (text_off ? 0 : 5);
@@ -338,7 +329,7 @@ void DropDown::messureSize()
     wxSize szContent = textSize;
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
-        auto szBmp = check_bitmap.GetBmpSize();
+        auto szBmp = check_bitmap.GetSize();
         szContent.x += szBmp.x + 5;
     }
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);

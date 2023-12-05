@@ -7925,7 +7925,7 @@ msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
 msgstr ""
 "Hustota externích mostů. 100 % znamená pevný most. Výchozí hodnota je 100 %."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Průtok mostu"
 
 msgid ""
@@ -7935,7 +7935,7 @@ msgstr ""
 "Snižte tuto hodnotu mírně (například 0,9), abyste snížili množství materiálu "
 "pro most a zlepšili prověšení"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8373,7 +8373,7 @@ msgid "Internal solid infill pattern"
 msgstr "Vzor vnitřní plné výplně"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Čárový vzor vnitřní plné výplně. Pokud je povolena detekce úzké vnitřní plné "
@@ -8416,19 +8416,19 @@ msgstr ""
 "Toto nastavuje hraniční hodnotu pro malou délku obvodu. Výchozí hranice je 0 "
 "mm"
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -9831,13 +9831,13 @@ msgstr "Formát názvu souboru"
 msgid "User can self-define the project file name when export"
 msgstr "Uživatel může sám definovat název souboru projektu při exportu"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Umožnit tisk převisů"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr "Upravit geometrii pro tisk převisů bez podpůrného materiálu."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Umožnit tisk převisů maximálního úhlu"
 
 msgid ""
@@ -9849,7 +9849,7 @@ msgstr ""
 "převisů. 90° nezmění model vůbec a umožní jakýkoli převis, zatímco 0 nahradí "
 "všechny převisy kuželovým materiálem."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Oblast otvoru pro tisk převisu bez podpěr"
 
 msgid ""

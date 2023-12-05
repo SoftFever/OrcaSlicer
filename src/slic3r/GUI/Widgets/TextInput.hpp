@@ -40,7 +40,7 @@ public:
 
     void SetLabel(const wxString& label);
 
-    void SetIcon(const wxBitmap & icon);
+    virtual void SetIcon(const wxBitmapBundle & icon);
 
     void SetLabelColor(StateColor const &color);
 

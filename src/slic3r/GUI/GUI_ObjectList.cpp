@@ -1359,12 +1359,11 @@ void ObjectList::extruder_editing()
     if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
         return;
 
-    const int column_width = GetColumn(colFilament)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
-
-    wxPoint pos = this->get_mouse_position_in_control();
-    wxSize size = wxSize(column_width, -1);
-    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
-    pos.y -= GetTextExtent("m").y;
+    wxRect rect = this->GetItemRect(item, GetColumn(colFilament));
+    wxPoint pos = rect.GetPosition();
+    pos.y -= 4;
+    wxSize size = rect.GetSize();
+    size.SetWidth(size.GetWidth() + 8);
 
     apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
 
@@ -3194,6 +3193,21 @@ bool ObjectList::can_merge_to_single_object() const
 
     // selected object should be multipart
     return (*m_objects)[obj_idx]->volumes.size() > 1;
+}
+
+wxPoint ObjectList::get_mouse_position_in_control() const
+{
+    wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
+
+#ifdef __APPLE__
+    // Workaround for OSX. From wxWidgets 3.1.6 Hittest doesn't respect to the header of wxDataViewCtrl
+    if (wxDataViewItem top_item = this->GetTopItem(); top_item.IsOk()) {
+        auto rect = this->GetItemRect(top_item, this->GetColumn(0));
+        pt.y -= rect.y;
+    }
+#endif // __APPLE__
+
+    return pt;
 }
 
 bool ObjectList::can_mesh_boolean() const
@@ -5505,17 +5519,17 @@ void ObjectList::msw_rescale()
     GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
-    // rescale/update existing items with bitmaps
-    m_objects_model->Rescale();
-
     Layout();
 }
 
 void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-    
-    msw_rescale();
+
+    // rescale/update existing items with bitmaps
+    m_objects_model->UpdateBitmaps();
+
+    Layout();
 
     if (m_objects_model) { m_objects_model->sys_color_changed(); }
 }
@@ -5552,6 +5566,12 @@ void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
+    // Orca: Automatically show drop down on editing start and finish editing when the combobox is closed
+    if (event.GetColumn() == colFilament) {
+        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
+        c->ToggleDropDown();
+        c->Bind(wxEVT_COMBOBOX_CLOSEUP, [event](wxCommandEvent& evt){ event.GetDataViewColumn()->GetRenderer()->FinishEditing(); });
+    }
 #ifdef __WXMSW__
 	m_last_selected_column = -1;
 #else

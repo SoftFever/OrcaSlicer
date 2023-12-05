@@ -98,6 +98,13 @@ void ComboBox::Rescale()
     drop.Rescale();
 }
 
+bool ComboBox::Enable(bool enable) {
+    bool ret = TextInput::Enable(enable);
+    if (ret && drop.selection >= 0 && drop.iconSize.y > 0)
+        SetIcon(icons[drop.selection]);
+    return ret;
+}
+
 wxString ComboBox::GetValue() const
 {
     return drop.GetSelection() >= 0 ? drop.GetValue() : GetLabel();
@@ -145,13 +152,17 @@ bool ComboBox::SetFont(wxFont const& font)
         return TextInput::SetFont(font);
 }
 
-int ComboBox::Append(const wxString &item, const wxBitmap &bitmap)
+void ComboBox::SetIcon(const wxBitmapBundle &icon) {
+    TextInput::SetIcon(m_isEnabled ? icon : icon.GetBitmapFor(this).ConvertToDisabled(128));
+}
+
+int ComboBox::Append(const wxString &item, const wxBitmapBundle &bitmap)
 {
     return Append(item, bitmap, nullptr);
 }
 
 int ComboBox::Append(const wxString &item,
-                     const wxBitmap &bitmap,
+                     const wxBitmapBundle &bitmap,
                      void *          clientData)
 {
     texts.push_back(item);
@@ -196,9 +207,9 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
     if (n == drop.GetSelection()) SetLabel(value);
 }
 
-wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
+wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n].GetBitmapFor(m_parent); }
 
-void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
+void ComboBox::SetItemBitmap(unsigned int n, wxBitmapBundle const &bitmap)
 {
     if (n >= texts.size()) return;
     icons[n] = bitmap;
@@ -230,9 +241,7 @@ void ComboBox::DoSetItemClientData(unsigned int n, void *data)
         datas[n] = data;
 }
 
-void ComboBox::mouseDown(wxMouseEvent &event)
-{
-    SetFocus();
+void ComboBox::ToggleDropDown(){
     if (drop_down) {
         drop.Hide();
     } else if (drop.HasDismissLongTime()) {
@@ -242,6 +251,12 @@ void ComboBox::mouseDown(wxMouseEvent &event)
         wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
         GetEventHandler()->ProcessEvent(e);
     }
+}
+
+void ComboBox::mouseDown(wxMouseEvent &event)
+{
+    SetFocus();
+    ToggleDropDown();
 }
 
 void ComboBox::mouseWheelMoved(wxMouseEvent &event)
@@ -261,15 +276,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
     switch (event.GetKeyCode()) {
         case WXK_RETURN:
         case WXK_SPACE:
-            if (drop_down) {
-                drop.DismissAndNotify();
-            } else if (drop.HasDismissLongTime()) {
-                drop.autoPosition();
-                drop_down = true;
-                drop.Popup();
-                wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
-                GetEventHandler()->ProcessEvent(e);
-            }
+            ToggleDropDown();
             break;
         case WXK_UP:
         case WXK_DOWN:
