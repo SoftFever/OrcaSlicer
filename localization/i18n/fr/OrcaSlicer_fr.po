@@ -8495,7 +8495,7 @@ msgid "Internal solid infill pattern"
 msgstr "Motif de remplissage interne solide"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 

@@ -8373,7 +8373,7 @@ msgid "Internal solid infill pattern"
 msgstr "Vzor vnitřní plné výplně"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Čárový vzor vnitřní plné výplně. Pokud je povolena detekce úzké vnitřní plné "

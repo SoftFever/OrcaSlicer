@@ -8528,7 +8528,7 @@ msgid "Internal solid infill pattern"
 msgstr "Шаблон сплошного заполнения"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Шаблон печати внутреннего сплошного заполнения. Если включена функция "

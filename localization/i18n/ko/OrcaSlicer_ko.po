@@ -8226,7 +8226,7 @@ msgid "Internal solid infill pattern"
 msgstr "내부 꽉찬 내부 채움 패턴"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "내부 꽉찬 내부 채움의 선 패턴. 좁은 내부 꽉찬 내부 채움 감지가 활성화된 경우 "

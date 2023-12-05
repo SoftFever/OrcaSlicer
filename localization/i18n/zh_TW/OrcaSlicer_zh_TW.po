@@ -8462,7 +8462,7 @@ msgid "Internal solid infill pattern"
 msgstr "內部實心填充圖案"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "內部實心填充的線型圖案。如果啟用了偵測狹窄的內部實心填充，將使用同心圓圖案來"
