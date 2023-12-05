@@ -213,17 +213,23 @@ void ObjectLayers::update_layers_list()
     m_object = objects_ctrl->object(obj_idx);
     if (!m_object || m_object->layer_config_ranges.empty()) return;
 
-    // Delete all controls from options group
-    m_grid_sizer->Clear(true);
+    auto range = objects_ctrl->GetModel()->GetLayerRangeByItem(item);
 
-    // Add new control according to the selected item  
+    // only call sizer->Clear(true) via CallAfter, otherwise crash happens in Linux when press enter in Height Range
+    // because an element cannot be destroyed while there are pending events for this element.(https://github.com/wxWidgets/Phoenix/issues/1854)
+    wxGetApp().CallAfter([this, type, objects_ctrl, range]() {
+        // Delete all controls from options group
+        m_grid_sizer->Clear(true);
 
-    if (type & itLayerRoot)
-        create_layers_list();
-    else
-        create_layer(objects_ctrl->GetModel()->GetLayerRangeByItem(item), nullptr, nullptr);
+        // Add new control according to the selected item  
 
-    m_parent->Layout();
+        if (type & itLayerRoot)
+            create_layers_list();
+        else
+            create_layer(range, nullptr, nullptr);
+
+        m_parent->Layout();
+        });
 }
 
 void ObjectLayers::update_scene_from_editor_selection() const
@@ -242,47 +248,14 @@ void ObjectLayers::UpdateAndShow(const bool show)
 
 void ObjectLayers::msw_rescale()
 {
-    m_bmp_delete.msw_rescale();
-    m_bmp_add.msw_rescale();
-
-    m_grid_sizer->SetHGap(wxGetApp().em_unit());
-
-    // rescale edit-boxes
-    const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
-    for (int i = 0; i < cells_cnt; ++i) {
-        const wxSizerItem* item = m_grid_sizer->GetItem(i);
-        if (item->IsWindow()) {
-            LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(item->GetWindow());
-            if (editor != nullptr)
-                editor->msw_rescale();
-        }
-        else if (item->IsSizer()) // case when we have editor with buttons
-        {
-            wxSizerItem* e_item = item->GetSizer()->GetItem(size_t(0)); // editor
-            if (e_item->IsWindow()) {
-                LayerRangeEditor* editor = dynamic_cast<LayerRangeEditor*>(e_item->GetWindow());
-                if (editor != nullptr)
-                    editor->msw_rescale();
-            }
-
-            if (item->GetSizer()->GetItemCount() > 2) // if there are Add/Del buttons
-                for (size_t btn : {2, 3}) { // del_btn, add_btn
-                    wxSizerItem* b_item = item->GetSizer()->GetItem(btn);
-                    if (b_item->IsWindow()) {
-                        auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
-                        if (button != nullptr)
-                            button->msw_rescale();
-                    }
-                }
-        }
-    }
+    //Orca: deleted what PS commented out
     m_grid_sizer->Layout();
 }
 
 void ObjectLayers::sys_color_changed()
 {
-    m_bmp_delete.msw_rescale();
-    m_bmp_add.msw_rescale();
+    m_bmp_delete.sys_color_changed();
+    m_bmp_add.sys_color_changed();
 
     // rescale edit-boxes
     const int cells_cnt = m_grid_sizer->GetCols() * m_grid_sizer->GetEffectiveRowsCount();
@@ -294,7 +267,7 @@ void ObjectLayers::sys_color_changed()
                 if (b_item && b_item->IsWindow()) {
                     auto button = dynamic_cast<PlusMinusButton*>(b_item->GetWindow());
                     if (button != nullptr)
-                        button->msw_rescale();
+                        button->sys_color_changed();
                 }
             }
         }

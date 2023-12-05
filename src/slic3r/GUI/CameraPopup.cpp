@@ -260,7 +260,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
     if (m_obj == nullptr)
         return;
     // function supported
-    if (m_obj->is_function_supported(PrinterFunction::FUNC_RECORDING) && m_obj->has_ipcam) {
+    if (m_obj->has_ipcam) {
         m_text_recording->Show();
         m_switch_recording->Show();
     } else {
@@ -268,7 +268,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
         m_switch_recording->Hide();
     }
 
-    if (m_obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA) && m_obj->has_ipcam) {
+    if (m_obj->virtual_camera && m_obj->has_ipcam) {
         m_text_vcamera->Show();
         m_switch_vcamera->Show();
         if (is_vcamera_show) {
@@ -282,7 +282,7 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
         link_underline->Hide();
     }
 
-    allow_alter_resolution = (m_obj->is_function_supported(PrinterFunction::FUNC_ALTER_RESOLUTION) && m_obj->has_ipcam);
+    allow_alter_resolution = ( (m_obj->camera_resolution_supported.size() > 1?true:false) && m_obj->has_ipcam);
 
     //check u2 version
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -470,8 +470,8 @@ CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover)
 CameraItem::~CameraItem() {}
 
 void CameraItem::msw_rescale() {
-    m_bitmap_normal.msw_rescale();
-    m_bitmap_hover.msw_rescale();
+    m_bitmap_normal.sys_color_changed();
+    m_bitmap_hover.sys_color_changed();
 }
 
 void CameraItem::on_enter_win(wxMouseEvent &evt)
@@ -519,9 +519,9 @@ void CameraItem::render(wxDC &dc)
 void CameraItem::doRender(wxDC &dc)
 {
     if (m_hover) {
-        dc.DrawBitmap(m_bitmap_hover.bmp(), wxPoint((GetSize().x - m_bitmap_hover.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_hover.GetBmpSize().y) / 2));
+        dc.DrawBitmap(m_bitmap_hover.get_bitmap(), wxPoint((GetSize().x - m_bitmap_hover.GetSize().x) / 2, (GetSize().y - m_bitmap_hover.GetSize().y) / 2));
     } else {
-        dc.DrawBitmap(m_bitmap_normal.bmp(), wxPoint((GetSize().x - m_bitmap_normal.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_normal.GetBmpSize().y) / 2));
+        dc.DrawBitmap(m_bitmap_normal.get_bitmap(), wxPoint((GetSize().x - m_bitmap_normal.GetSize().x) / 2, (GetSize().y - m_bitmap_normal.GetSize().y) / 2));
     }
 }
 

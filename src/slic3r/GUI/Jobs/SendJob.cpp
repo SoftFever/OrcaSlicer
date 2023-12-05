@@ -133,7 +133,7 @@ void SendJob::process(Ctl &ctl)
     result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr, nullptr);
     if (result != 0) {
         BOOST_LOG_TRIVIAL(error) << "access code is invalid";
-        m_enter_ip_address_fun_fail();
+        m_enter_ip_address_fun_fail(result);
         m_job_finished = true;
         return;
     }
@@ -221,9 +221,10 @@ void SendJob::process(Ctl &ctl)
     const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
         20,  // PrintingStageCreate
         30,  // PrintingStageUpload
-        99, // PrintingStageWaiting
-        99, // PrintingStageRecord
-        99, // PrintingStageSending
+        99,  // PrintingStageWaiting
+        99,  // PrintingStageRecord
+        99,  // PrintingStageSending
+        100, // PrintingStageFinished
         100  // PrintingStageFinished
     };
 
@@ -375,7 +376,7 @@ void SendJob::process(Ctl &ctl)
     else {
         BOOST_LOG_TRIVIAL(error) << "send_job: send ok.";
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
-        evt->SetString(params.project_name);
+        evt->SetString(from_u8(params.project_name));
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }
@@ -386,7 +387,7 @@ void SendJob::on_success(std::function<void()> success)
 	m_success_fun = success;
 }
 
-void SendJob::on_check_ip_address_fail(std::function<void()> func)
+void SendJob::on_check_ip_address_fail(std::function<void(int)> func)
 {
     m_enter_ip_address_fun_fail = func;
 }

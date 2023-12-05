@@ -15,13 +15,14 @@ wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 class DropDown : public PopupWindow
 {
     std::vector<wxString> &       texts;
-    std::vector<wxBitmap> &     icons;
+    std::vector<wxBitmapBundle> &     icons;
     bool                          need_sync  = false;
     int                         selection = -1;
     int                         hover_item = -1;
 
     double radius = 0;
     bool   use_content_width = false;
+    bool   limit_max_content_width = false;
     bool   align_icon        = false;
     bool   text_off          = false;
 
@@ -43,11 +44,11 @@ class DropDown : public PopupWindow
 
 public:
     DropDown(std::vector<wxString> &texts,
-             std::vector<wxBitmap> &icons);
+             std::vector<wxBitmapBundle> &icons);
     
     DropDown(wxWindow *     parent,
              std::vector<wxString> &texts,
-             std::vector<wxBitmap> &icons,
+             std::vector<wxBitmapBundle> &icons,
              long           style     = 0);
     
     void Create(wxWindow *     parent,
@@ -74,7 +75,7 @@ public:
 
     void SetSelectorBackgroundColor(StateColor const &color);
 
-    void SetUseContentWidth(bool use);
+    void SetUseContentWidth(bool use, bool limit_max_content_width = false);
 
     void SetAlignIcon(bool align);
     

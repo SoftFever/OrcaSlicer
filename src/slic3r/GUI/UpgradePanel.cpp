@@ -309,7 +309,12 @@ void MachineInfoPanel::init_bitmaps()
     m_img_printer        = ScalableBitmap(this, "printer_thumbnail", 160);
     m_img_monitor_ams    = ScalableBitmap(this, "monitor_upgrade_ams", 200);
     m_img_ext            = ScalableBitmap(this, "monitor_upgrade_ext", 200);
-    m_img_extra_ams      = ScalableBitmap(this, "monitor_upgrade_f1", 160);
+    if (wxGetApp().dark_mode()) {
+        m_img_extra_ams = ScalableBitmap(this, "extra_icon_dark", 160);
+    }
+    else {
+        m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
+    }
     upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
     upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
     upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);
@@ -317,15 +322,15 @@ void MachineInfoPanel::init_bitmaps()
 
 void MachineInfoPanel::rescale_bitmaps()
 {
-    m_img_printer.msw_rescale();
+    m_img_printer.sys_color_changed();
     m_printer_img->SetBitmap(m_img_printer.bmp());
-    m_img_monitor_ams.msw_rescale();
+    m_img_monitor_ams.sys_color_changed();
     m_ams_img->SetBitmap(m_img_monitor_ams.bmp());
-    m_img_ext.msw_rescale();
+    m_img_ext.sys_color_changed();
     m_ext_img->SetBitmap(m_img_ext.bmp());
-    upgrade_green_icon.msw_rescale();
-    upgrade_gray_icon.msw_rescale();
-    upgrade_yellow_icon.msw_rescale();
+    upgrade_green_icon.sys_color_changed();
+    upgrade_gray_icon.sys_color_changed();
+    upgrade_yellow_icon.sys_color_changed();
     m_ota_new_version_img->SetBitmap(upgrade_green_icon.bmp());
 }
 
@@ -342,10 +347,20 @@ void MachineInfoPanel::Update_printer_img(MachineObject* obj)
 {
     if (!obj) {return;}
     auto img = obj->get_printer_thumbnail_img_str();
-    if (wxGetApp().dark_mode()) {img += "_dark";}
+    if (wxGetApp().dark_mode()) {
+        img += "_dark";
+        m_img_extra_ams = ScalableBitmap(this, "extra_icon_dark", 160);
+    }
+    else {
+        m_img_extra_ams = ScalableBitmap(this, "extra_icon", 160);
+
+    }
     m_img_printer = ScalableBitmap(this, img, 160);
     m_printer_img->SetBitmap(m_img_printer.bmp());
     m_printer_img->Refresh();
+    m_extra_ams_img->SetBitmap(m_img_extra_ams.bmp());
+    m_extra_ams_img->Refresh();
+
 }
 
 void MachineInfoPanel::update(MachineObject* obj)
@@ -1145,8 +1160,8 @@ bool UpgradePanel::Show(bool show)
 
  }
 
- void AmsPanel::msw_rescale() { 
-     upgrade_green_icon.msw_rescale();
+ void AmsPanel::msw_rescale() {
+     upgrade_green_icon.sys_color_changed();
      m_ams_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
 
@@ -1219,8 +1234,8 @@ bool UpgradePanel::Show(bool show)
  }
 
  void ExtensionPanel::msw_rescale() 
- { 
-     upgrade_green_icon.msw_rescale();
+ {
+     upgrade_green_icon.sys_color_changed();
      m_ext_new_version_img->SetBitmap(upgrade_green_icon.bmp());
  }
 

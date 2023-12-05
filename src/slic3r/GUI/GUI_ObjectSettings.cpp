@@ -112,7 +112,7 @@ bool ObjectSettings::update_settings_list()
             btn->SetToolTip(_(L("Remove parameter")));
 
             btn->SetBitmapFocus(m_bmp_delete_focus.bmp());
-            btn->SetBitmapHover(m_bmp_delete_focus.bmp());
+            btn->SetBitmapCurrent(m_bmp_delete_focus.bmp());
 
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
                 wxGetApp().plater()->take_snapshot(from_u8((boost::format("Delete Option %s") % opt_key).str()).ToStdString());
@@ -146,7 +146,7 @@ bool ObjectSettings::update_settings_list()
                     return;
                 ctrl->SetBitmap_(m_bmp_delete);
                 ctrl->SetBitmapFocus(m_bmp_delete_focus.bmp()); 
-                ctrl->SetBitmapHover(m_bmp_delete_focus.bmp());
+                ctrl->SetBitmapCurrent(m_bmp_delete_focus.bmp());
             };
 
             const bool is_extruders_cat = cat.first == "Extruders";
@@ -199,7 +199,9 @@ bool ObjectSettings::update_settings_list()
     wxDataViewItemArray items;
     objects_ctrl->GetSelections(items);
 
-    std::map<ObjectBase *, ModelConfig *> object_configs;
+    std::map<ObjectBase *, ModelConfig*> plate_configs;
+    std::map<ObjectBase *, ModelConfig*> object_configs;
+    bool is_plate_settings = false;
     bool is_object_settings = false;
     bool is_volume_settings = false;
     bool is_layer_range_settings = false;
@@ -207,6 +209,22 @@ bool ObjectSettings::update_settings_list()
     ModelObject * parent_object = nullptr;
     for (auto item : items) {
         auto type = objects_model->GetItemType(item);
+        if (type == itPlate) {
+            is_plate_settings = true;
+
+            int plate_id = objects_model->GetPlateIdByItem(item);
+
+            static ModelConfig cfg;
+            PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
+
+            if (plate_id < 0 || plate_id >= ppl.get_plate_count()) {
+                plate_id = ppl.get_curr_plate_index();
+            }
+            assert(plate_id >= 0 && plate_id < ppl.get_plate_count());
+
+            cfg.assign_config(*ppl.get_plate(plate_id)->config());
+            plate_configs.emplace(ppl.get_plate(plate_id), &cfg);
+        }
         if (type != itObject && type != itVolume && type != itLayerRoot && type != itLayer) {
             continue;
         }
@@ -241,33 +259,45 @@ bool ObjectSettings::update_settings_list()
         }
     }
 
+    auto tab_plate = dynamic_cast<TabPrintPlate*>(wxGetApp().get_plate_tab());
     auto tab_object = dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab());
     auto tab_volume = dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(true));
     auto tab_layer = dynamic_cast<TabPrintModel*>(wxGetApp().get_layer_tab());
 
-    if (is_object_settings) {
+    if (is_plate_settings) {
+        tab_object->set_model_config({});
+        tab_volume->set_model_config({});
+        tab_layer->set_model_config({});
+        tab_plate->set_model_config(plate_configs);
+        ;// m_tab_active = tab_plate;
+    }
+    else if (is_object_settings) {
         tab_object->set_model_config(object_configs);
         tab_volume->set_model_config({});
         tab_layer->set_model_config({});
-        m_tab_active = tab_object;
+        tab_plate->set_model_config({});
+        //m_tab_active = tab_object;
     }   
     else if (is_volume_settings) {
         tab_object->set_model_config({ {parent_object, &parent_object->config} });
         tab_volume->set_model_config(object_configs);
         tab_layer->set_model_config({});
-        m_tab_active = tab_volume;
+        tab_plate->set_model_config({});
+        //m_tab_active = tab_volume;
     }
     else if (is_layer_range_settings) {
         tab_object->set_model_config({ {parent_object, &parent_object->config} });
         tab_volume->set_model_config({});
         tab_layer->set_model_config(object_configs);
-        m_tab_active = tab_layer;
+        tab_plate->set_model_config({});
+        //m_tab_active = tab_layer;
     }    
     else {
         tab_object->set_model_config({});
         tab_volume->set_model_config({});
         tab_layer->set_model_config({});
-        m_tab_active = nullptr;
+        tab_plate->set_model_config({});
+        //m_tab_active = nullptr;
     }
     ((ParamsPanel*) tab_object->GetParent())->set_active_tab(nullptr);
     return true;
@@ -385,21 +415,13 @@ void ObjectSettings::UpdateAndShow(const bool show)
 #endif
 }
 
-void ObjectSettings::msw_rescale()
-{
-#if !NEW_OBJECT_SETTING
-    m_bmp_delete.msw_rescale();
-    m_bmp_delete_focus.msw_rescale();
-
-    for (auto group : m_og_settings)
-        group->msw_rescale();
-#endif
-}
-
 void ObjectSettings::sys_color_changed()
 {
 #if !NEW_OBJECT_SETTING
-    m_og->sys_color_changed();
+    m_og->sys_color_changed(); // not in old msw_rescale. is it needed?
+    // moved from old msw_rescale
+    m_bmp_delete.sys_color_changed();
+    m_bmp_delete_focus.sys_color_changed();
 
     for (auto group : m_og_settings)
         group->sys_color_changed();

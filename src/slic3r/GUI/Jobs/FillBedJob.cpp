@@ -204,7 +204,7 @@ void FillBedJob::prepare()
 
 void FillBedJob::process(Ctl &ctl)
 {
-    auto statustxt = _u8L("Filling bed");
+    auto statustxt = _u8L("Filling");
     ctl.call_on_main_thread([this] { prepare(); }).wait();
     ctl.update_status(0, statustxt);
 
@@ -231,7 +231,7 @@ void FillBedJob::process(Ctl &ctl)
 
     params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(st * 100 / status_range(), statustxt);
+             ctl.update_status(st * 100 / status_range(), statustxt + " " + wxString::FromUTF8(str));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
@@ -300,6 +300,7 @@ void FillBedJob::finalize(bool canceled, std::exception_ptr &eptr)
         auto obj_list = m_plater->sidebar().obj_list();
         for (size_t i = oldSize; i < newSize; i++) {
             obj_list->add_object_to_list(i, true, true, false);
+            obj_list->update_printable_state(i, 0);
         }
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": paste_objects_into_list";

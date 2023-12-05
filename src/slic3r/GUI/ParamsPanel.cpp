@@ -233,11 +233,11 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         //m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
         //m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
 
-        m_compare_btn = new ScalableButton(m_top_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+        m_compare_btn = new ScalableButton(m_top_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
         m_compare_btn->SetToolTip(_L("Compare presets"));
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
 
-        m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+        m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
 
@@ -392,6 +392,10 @@ void ParamsPanel::create_layout()
         m_left_sizer->Add( m_tab_print, 0, wxEXPAND );
     }
 
+    if (m_tab_print_plate) {
+        m_left_sizer->Add(m_tab_print_plate, 0, wxEXPAND);
+    }
+
     if (m_tab_print_object) {
         m_left_sizer->Add( m_tab_print_object, 0, wxEXPAND );
     }
@@ -482,6 +486,7 @@ void ParamsPanel::refresh_tabs()
             }
         }
     if (m_top_panel) {
+        m_tab_print_plate = wxGetApp().get_plate_tab();
         m_tab_print_object = wxGetApp().get_model_tab();
         m_tab_print_part = wxGetApp().get_model_tab(true);
         m_tab_print_layer = wxGetApp().get_layer_tab();
@@ -558,6 +563,8 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             cur_tab = (Tab*)m_tab_print_layer;
         } else if (m_tab_print_object && ((TabPrintModel*) m_tab_print_object)->has_model_config()) {
             cur_tab = (Tab*) m_tab_print_object;
+        } else if (m_tab_print_plate && ((TabPrintPlate*)m_tab_print_plate)->has_model_config()) {
+            cur_tab = (Tab*)m_tab_print_plate;
         }
         Show(cur_tab != nullptr);
         wxGetApp().sidebar().show_object_list(m_mode_region->GetValue());
@@ -578,6 +585,7 @@ void ParamsPanel::set_active_tab(wxPanel* tab)
             {m_tab_print_object, m_staticline_print_object},
             {m_tab_print_part, m_staticline_print_part},
             {m_tab_print_layer, nullptr},
+            {m_tab_print_plate, nullptr},
             {m_tab_filament, m_staticline_filament},
             {m_tab_printer, m_staticline_printer}})) {
         if (!t.first) continue;
@@ -638,11 +646,11 @@ void ParamsPanel::update_mode()
 
 void ParamsPanel::msw_rescale()
 {
-    if (m_process_icon) m_process_icon->msw_rescale();
-    if (m_setting_btn) m_setting_btn->msw_rescale();
-    if (m_search_btn) m_search_btn->msw_rescale();
-    if (m_compare_btn) m_compare_btn->msw_rescale();
-    if (m_tips_arrow) m_tips_arrow->msw_rescale();
+    if (m_process_icon) m_process_icon->sys_color_changed();
+    if (m_setting_btn) m_setting_btn->sys_color_changed();
+    if (m_search_btn) m_search_btn->sys_color_changed();
+    if (m_compare_btn) m_compare_btn->sys_color_changed();
+    if (m_tips_arrow) m_tips_arrow->sys_color_changed();
     m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));
     if (m_mode_sizer)
         m_mode_sizer->SetMinSize(-1, 3 * em_unit(this));
@@ -650,7 +658,7 @@ void ParamsPanel::msw_rescale()
         ((SwitchButton* )m_mode_region)->Rescale();
     if (m_mode_view)
         ((SwitchButton* )m_mode_view)->Rescale();
-    for (auto tab : {m_tab_print, m_tab_print_object, m_tab_print_part, m_tab_print_layer, m_tab_filament, m_tab_printer}) {
+    for (auto tab : {m_tab_print, m_tab_print_plate, m_tab_print_object, m_tab_print_part, m_tab_print_layer, m_tab_filament, m_tab_printer}) {
         if (tab) dynamic_cast<Tab*>(tab)->msw_rescale();
     }
     //((Button*)m_export_to_file)->Rescale();

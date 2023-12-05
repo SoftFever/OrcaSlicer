@@ -60,8 +60,11 @@ static PrinterTechnology printer_technology()
 
 static const Selection& scene_selection()
 {
-    //BBS return current canvas3D return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
-    return wxGetApp().plater()->get_current_canvas3D()->get_selection();
+    //BBS AssembleView canvas has its own selection
+    if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView)
+        return wxGetApp().plater()->get_assmeble_canvas3D()->get_selection();
+    
+    return wxGetApp().plater()->get_view3D_canvas3D()->get_selection();
 }
 
 // Config from current edited printer preset
@@ -276,6 +279,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ObjectList::OnDropPossible,    this);
     Bind(wxEVT_DATAVIEW_ITEM_DROP,          &ObjectList::OnDrop,            this);
 
+    Bind(wxEVT_DATAVIEW_ITEM_START_EDITING, &ObjectList::OnStartEditing, this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_STARTED, &ObjectList::OnEditingStarted,  this);
     Bind(wxEVT_DATAVIEW_ITEM_EDITING_DONE,    &ObjectList::OnEditingDone,     this);
 
@@ -381,7 +385,8 @@ void ObjectList::create_objects_ctrl()
     // And Icon can be consisting of several bitmaps
     BitmapTextRenderer* bmp_text_renderer = new BitmapTextRenderer();
     bmp_text_renderer->set_can_create_editor_ctrl_function([this]() {
-        return m_objects_model->GetItemType(GetSelection()) & (itVolume | itObject);
+        auto type = m_objects_model->GetItemType(GetSelection());
+        return type & (itVolume | itObject | itPlate);
     });
 
     // BBS
@@ -792,6 +797,22 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     wxGetApp().plater()->update();
 }
 
+void ObjectList::assembly_plate_object_name()
+{
+    m_objects_model->assembly_name();
+}
+
+void ObjectList::selected_object(ObjectDataViewModelNode* item)
+{
+    if (!item) {
+        return;
+    }
+    this->SetFocus();
+    select_item(wxDataViewItem(item));
+    ensure_current_item_visible();
+    selection_changed();
+}
+
 void ObjectList::update_objects_list_filament_column(size_t filaments_count)
 {
     assert(filaments_count >= 1);
@@ -912,6 +933,20 @@ void ObjectList::update_filament_in_config(const wxDataViewItem& item)
 
 void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 {
+    if (m_objects_model->GetItemType(item) & itPlate) {
+        std::string name = m_objects_model->GetName(item).ToUTF8().data();
+        int plate_idx = -1;
+        const ItemType type0 = m_objects_model->GetItemType(item, plate_idx);
+        if (plate_idx >= 0) {
+            auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+            if (plate->get_plate_name() != name) {
+                plate->set_plate_name(name);
+            }
+            m_objects_model->SetCurSelectedPlateFullName(plate_idx, name);
+        }
+        return;
+    }
+
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
     if (obj_idx < 0) return;
     const int volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -1248,7 +1283,9 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 
             get_selected_item_indexes(obj_idx, vol_idx, item);
             //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
-            if (m_objects_model->GetItemType(item) & itLayer)
+            if (m_objects_model->GetItemType(item) & itPlate)
+                dynamic_cast<TabPrintPlate*>(wxGetApp().get_plate_tab())->reset_model_config();
+            else if (m_objects_model->GetItemType(item) & itLayer)
                 dynamic_cast<TabPrintLayer*>(wxGetApp().get_layer_tab())->reset_model_config();
             else
                 dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
@@ -1273,6 +1310,10 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 
 void ObjectList::show_context_menu(const bool evt_context_menu)
 {
+    // BBS Disable menu popup if current canvas is Preview
+    if (wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasPreview)
+        return;
+
     wxMenu* menu {nullptr};
     Plater* plater = wxGetApp().plater();
 
@@ -1327,12 +1368,11 @@ void ObjectList::extruder_editing()
     if (!item || !(m_objects_model->GetItemType(item) & (itVolume | itObject)))
         return;
 
-    const int column_width = GetColumn(colFilament)->GetWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X) + 5;
-
-    wxPoint pos = this->get_mouse_position_in_control();
-    wxSize size = wxSize(column_width, -1);
-    pos.x = GetColumn(colName)->GetWidth() + GetColumn(colPrint)->GetWidth() + 5;
-    pos.y -= GetTextExtent("m").y;
+    wxRect rect = this->GetItemRect(item, GetColumn(colFilament));
+    wxPoint pos = rect.GetPosition();
+    pos.y -= 4;
+    wxSize size = rect.GetSize();
+    size.SetWidth(size.GetWidth() + 8);
 
     apply_extruder_selector(&m_extruder_editor, this, "1", pos, size);
 
@@ -1463,7 +1503,7 @@ void ObjectList::key_event(wxKeyEvent& event)
         undo();
     else if (wxGetKeyState(wxKeyCode('X')) && wxGetKeyState(WXK_CONTROL))
         cut();
-    else if (wxGetKeyState(wxKeyCode('M')) && wxGetKeyState(WXK_CONTROL))
+    else if (wxGetKeyState(wxKeyCode('K')) && wxGetKeyState(WXK_CONTROL))
         clone();
     //else if (event.GetUnicodeKey() == '+')
     //    increase_instances();
@@ -3116,6 +3156,21 @@ bool ObjectList::can_merge_to_single_object() const
     return (*m_objects)[obj_idx]->volumes.size() > 1;
 }
 
+wxPoint ObjectList::get_mouse_position_in_control() const
+{
+    wxPoint pt = wxGetMousePosition() - this->GetScreenPosition();
+
+#ifdef __APPLE__
+    // Workaround for OSX. From wxWidgets 3.1.6 Hittest doesn't respect to the header of wxDataViewCtrl
+    if (wxDataViewItem top_item = this->GetTopItem(); top_item.IsOk()) {
+        auto rect = this->GetItemRect(top_item, this->GetColumn(0));
+        pt.y -= rect.y;
+    }
+#endif // __APPLE__
+
+    return pt;
+}
+
 bool ObjectList::can_mesh_boolean() const
 {
     int obj_idx = get_selected_obj_idx();
@@ -3331,6 +3386,8 @@ void ObjectList::part_selection_changed()
         wxGetApp().obj_settings()->get_og()->set_name(" " + og_name + " ");
 #endif
 
+    if (!this->IsShown())
+        update_and_show_layers = false;
     if (printer_technology() == ptSLA)
         update_and_show_layers = false;
     else if (update_and_show_layers) {
@@ -4496,12 +4553,15 @@ void ObjectList::update_selections()
 
 void ObjectList::update_selections_on_canvas()
 {
-    Selection& selection = wxGetApp().plater()->get_current_canvas3D()->get_selection();
+    auto canvas_type = wxGetApp().plater()->get_current_canvas3D()->get_canvas_type();
+    GLCanvas3D* canvas = canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView ? wxGetApp().plater()->get_current_canvas3D() : wxGetApp().plater()->get_view3D_canvas3D();
+    Selection& selection = canvas->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
     if (sel_cnt == 0) {
         selection.remove_all();
-        wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
+        if (canvas_type != GLCanvas3D::ECanvasType::CanvasPreview)
+            wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
         return;
     }
 
@@ -4605,7 +4665,8 @@ void ObjectList::update_selections_on_canvas()
         selection.add_volumes(mode, volume_idxs, single_selection);
     }
 
-    wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
+    if (canvas_type != GLCanvas3D::ECanvasType::CanvasPreview)
+        wxGetApp().plater()->get_current_canvas3D()->update_gizmos_on_off_state();
     wxGetApp().plater()->canvas3D()->render();
 }
 
@@ -5421,9 +5482,6 @@ void ObjectList::msw_rescale()
     GetColumn(colSinking)->SetWidth(3 * em);
     GetColumn(colEditing )->SetWidth( 3 * em);
 
-    // rescale/update existing items with bitmaps
-    m_objects_model->Rescale();
-
     Layout();
 }
 
@@ -5431,7 +5489,12 @@ void ObjectList::sys_color_changed()
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
 
-    msw_rescale();
+    // rescale/update existing items with bitmaps
+    m_objects_model->UpdateBitmaps();
+
+    Layout();
+
+    if (m_objects_model) { m_objects_model->sys_color_changed(); }
 }
 
 void ObjectList::ItemValueChanged(wxDataViewEvent &event)
@@ -5446,10 +5509,32 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
     }
 }
 
+void GUI::ObjectList::OnStartEditing(wxDataViewEvent &event)
+{
+    auto col  = event.GetColumn();
+    auto item = event.GetItem();
+    if (col == colName) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->GetType() & itPlate) {
+            int plate_idx = node->GetPlateIdx();
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetName(from_u8(plate->get_plate_name()), GetSelection());
+            }
+        }
+    }
+}
+
 // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 // Here the last active column is forgotten, so when leaving the editing mode, the next mouse click will not enter the editing mode of the newly selected column.
 void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 {
+    // Orca: Automatically show drop down on editing start and finish editing when the combobox is closed
+    if (event.GetColumn() == colFilament) {
+        ::ComboBox*c         = static_cast<::ComboBox *>(event.GetDataViewColumn()->GetRenderer()->GetEditorCtrl());
+        c->ToggleDropDown();
+        c->Bind(wxEVT_COMBOBOX_CLOSEUP, [event](wxCommandEvent& evt){ event.GetDataViewColumn()->GetRenderer()->FinishEditing(); });
+    }
 #ifdef __WXMSW__
 	m_last_selected_column = -1;
 #else
@@ -5520,6 +5605,17 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
 {
     if (event.GetColumn() != colName)
         return;
+
+    if (event.IsEditCancelled()) {
+        if (m_objects_model->GetItemType(event.GetItem()) & itPlate) {
+            int plate_idx = -1;
+            m_objects_model->GetItemType(event.GetItem(), plate_idx);
+            if (plate_idx >= 0) {
+                auto plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+                m_objects_model->SetCurSelectedPlateFullName(plate_idx, plate->get_plate_name());
+            }
+        }
+    }
 
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(colName)->GetRenderer());
 #if __WXOSX__

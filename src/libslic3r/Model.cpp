@@ -97,9 +97,14 @@ Model& Model::assign_copy(const Model &rhs)
         );
     }
 
+    if (rhs.calib_pa_pattern) {
+        this->calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(CalibPressureAdvancePattern(*rhs.calib_pa_pattern));
+    }
+
     // BBS: for design info
     this->design_info = rhs.design_info;
     this->model_info = rhs.model_info;
+    this->stl_design_id = rhs.stl_design_id;
     this->profile_info = rhs.profile_info;
 
     return *this;
@@ -130,6 +135,7 @@ Model& Model::assign_copy(Model &&rhs)
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
+    this->stl_design_id = rhs.stl_design_id;
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -927,6 +933,7 @@ void Model::load_from(Model& model)
     object_backup_id_map = model.object_backup_id_map;
     next_object_backup_id = model.next_object_backup_id;
     design_info = model.design_info;
+    stl_design_id = model.stl_design_id;
     model_info  = model.model_info;
     profile_info  = model.profile_info;
     model.design_info.reset();

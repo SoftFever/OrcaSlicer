@@ -301,6 +301,11 @@ void GLGizmosManager::reset_all_states()
     if (! m_enabled || m_serializing)
         return;
 
+    const EType current = get_current_type();
+    if (current != Undefined)
+        // close any open gizmo
+        open_gizmo(current);
+
     activate_gizmo(Undefined);
     // Orca: do not clear hover state, as Emboss gizmo can be used without selection
     //m_hover = Undefined;
@@ -1311,12 +1316,18 @@ std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
         return "Scale";
     case GLGizmosManager::EType::Flatten:
         return "Flatten";
+    case GLGizmosManager::EType::Cut:
+        return "Cut";
+    case GLGizmosManager::EType::MeshBoolean:
+        return "MeshBoolean";
     case GLGizmosManager::EType::FdmSupports:
         return "FdmSupports";
     case GLGizmosManager::EType::Seam:
         return "Seam";
     case GLGizmosManager::EType::Emboss:
         return "Text";
+    case GLGizmosManager::EType::MmuSegmentation:
+        return "Color Painting";
     default:
         return "";
     }

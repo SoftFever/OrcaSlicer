@@ -5,7 +5,7 @@
     "from": "system",
     "instantiation": "false",
     "elefant_foot_compensation": "0.15",
-    "top_shell_thickness": "0.6",
+    "top_shell_thickness": "1.0",
     "bridge_flow": "1",
     "initial_layer_speed": "50",
     "initial_layer_infill_speed": "105",
@@ -13,5 +13,6 @@
     "inner_wall_speed": "300",
     "sparse_infill_speed": "270",
     "internal_solid_infill_speed": "250",
-    "gap_infill_speed": "250"
+    "gap_infill_speed": "250",
+    "top_shell_layers": "5"
 }

@@ -93,9 +93,7 @@ void BBLTopbarArt::DrawButton(wxDC& dc, wxWindow* wnd, const wxAuiToolBarItem& i
     int bmpX = 0, bmpY = 0;
     int textX = 0, textY = 0;
 
-    const wxBitmap& bmp = item.GetState() & wxAUI_BUTTON_STATE_DISABLED
-        ? item.GetDisabledBitmap()
-        : item.GetBitmap();
+    const wxBitmap &bmp = item.GetCurrentBitmapFor(wnd);
 
     const wxSize bmpSize = bmp.IsOk() ? bmp.GetScaledSize() : wxSize(0, 0);
 
@@ -577,7 +575,7 @@ void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
     tb->SetToolSticky(evt.GetId(), true);
 
     if (!m_skip_popup_file_menu) {
-        this->PopupMenu(m_file_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
+        GetParent()->PopupMenu(m_file_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
     }
     else {
         m_skip_popup_file_menu = false;
@@ -594,7 +592,7 @@ void BBLTopbar::OnDropdownToolItem(wxAuiToolBarEvent& evt)
     tb->SetToolSticky(evt.GetId(), true);
 
     if (!m_skip_popup_dropdown_menu) {
-        PopupMenu(&m_top_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
+        GetParent()->PopupMenu(&m_top_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
     }
     else {
         m_skip_popup_dropdown_menu = false;
@@ -612,7 +610,7 @@ void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent &evt)
 
     if (!m_skip_popup_calib_menu) {
         auto rec = this->GetToolRect(ID_CALIB);
-        PopupMenu(&m_calib_menu, wxPoint(rec.GetLeft(), this->GetSize().GetHeight() - 2));
+        GetParent()->PopupMenu(&m_calib_menu, wxPoint(rec.GetLeft(), this->GetSize().GetHeight() - 2));
     } else {
         m_skip_popup_calib_menu = false;
     }

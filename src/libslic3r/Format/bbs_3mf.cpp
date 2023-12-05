@@ -286,6 +286,7 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* FIRST_LAYER_PRINT_SEQUENCE_ATTR = "first_layer_print_sequence";
+static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* TOP_FILE_ATTR = "top_file";
@@ -298,6 +299,8 @@ static constexpr const char* IDENTIFYID_ATTR = "identify_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
 static constexpr const char* PLATER_NAME_ATTR = "plater_name";
 static constexpr const char* PLATE_IDX_ATTR = "index";
+static constexpr const char* PRINTER_MODEL_ID_ATTR = "printer_model_id";
+static constexpr const char* NOZZLE_DIAMETERS_ATTR = "nozzle_diameters";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
 static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
@@ -1335,9 +1338,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // BBS: load relationships
         if (!_extract_xml_from_archive(archive, RELATIONSHIPS_FILE, _handle_start_relationships_element, _handle_end_relationships_element))
             return false;
-        if (m_thumbnail_small.empty()) m_thumbnail_small = m_thumbnail_path;
-        if (!m_thumbnail_small.empty()) {
-            return _extract_from_archive(archive, m_thumbnail_small, [&data](auto &archive, auto const &stat) -> bool {
+        if (m_thumbnail_middle.empty()) m_thumbnail_middle = m_thumbnail_path;
+        if (!m_thumbnail_middle.empty()) {
+            return _extract_from_archive(archive, m_thumbnail_middle, [&data](auto &archive, auto const &stat) -> bool {
                 data.resize(stat.m_uncomp_size);
                 return mz_zip_reader_extract_to_mem(&archive, stat.m_file_index, data.data(), data.size(), 0);
             });
@@ -1421,7 +1424,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_thumbnail_small.erase(m_thumbnail_small.begin());
         if (!m_thumbnail_middle.empty() && m_thumbnail_middle.front() == '/')
             m_thumbnail_middle.erase(m_thumbnail_middle.begin());
-        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_small);
+        m_model->model_info->metadata_items.emplace("Thumbnail", m_thumbnail_middle);
         m_model->model_info->metadata_items.emplace("Poster", m_thumbnail_middle);
 
         // we then loop again the entries to read other files stored in the archive
@@ -4088,6 +4091,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 };
                 m_curr_plater->config.set_key_value("first_layer_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
             }
+            else if (key == SPIRAL_VASE_MODE) {
+                bool spiral_mode = false;
+                std::istringstream(value) >> std::boolalpha >> spiral_mode;
+                m_curr_plater->config.set_key_value("spiral_mode", new ConfigOptionBool(spiral_mode));
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -5573,7 +5581,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             ~close_lock() {
                 if (filename) {
                     close_zip_writer(&archive);
-                    boost::filesystem::remove(*filename);
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(*filename, ec);
                 }
             }
         } lock{archive, &filepath_tmp};
@@ -5637,8 +5646,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string const * filename;
             ~close_lock() {
                 close_zip_writer(&archive);
-                if (filename)
-                boost::filesystem::remove(*filename);
+                if (filename) {
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(*filename, ec);
+                }
             }
         } lock{ archive, &filename};
 
@@ -5786,7 +5797,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 {
                     if (!_add_calibration_file_to_archive(archive, *calibration_data[index], index)) {
                         close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -5802,7 +5812,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (id_bboxes[index]->is_valid()) {
                     if (!_add_bbox_file_to_archive(archive, *id_bboxes[index], index)) {
                         close_zip_writer(&archive);
-                        boost::filesystem::remove(filename);
                         return false;
                     }
                 }
@@ -5829,7 +5838,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_height_profile_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
 
@@ -5846,7 +5854,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             // The index differes from the index of an object ID of an object instance of a 3MF file!
             if (!_add_layer_config_ranges_file_to_archive(archive, model)) {
                 close_zip_writer(&archive);
-                boost::filesystem::remove(filename);
                 return false;
             }
 
@@ -6615,7 +6622,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << COMPONENT_TAG << " objectid=\"" << volume_id;
             else
                 stream << "    <" << COMPONENT_TAG << " p:path=\"" << xml_escape(*ppath) << "\" objectid=\"" << volume_id; // << "\"/>\n";
-            stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) object_data.backup_id} << COMPONENT_UUID_SUFFIX;
+            if (m_production_ext)
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) (index + (object_data.backup_id << 16))} << COMPONENT_UUID_SUFFIX;
             const Transform3d &transf = volume->get_matrix();
             stream << "\" " << TRANSFORM_ATTR << "=\"";
             for (unsigned c = 0; c < 4; ++c) {
@@ -6713,7 +6721,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         char buf[256];
         unsigned int vertices_count = 0;
         //unsigned int triangles_count = 0;
-        for (ModelVolume* volume : object.volumes) {
+        for (unsigned int index = 0; index < object.volumes.size(); index++) {
+            ModelVolume *volume = object.volumes[index];
             if (volume == nullptr)
                 continue;
 
@@ -6740,7 +6749,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (m_production_ext) {
                 std::stringstream stream;
                 reset_stream(stream);
-                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) object_data.backup_id} << SUB_OBJECT_UUID_SUFFIX;
+                stream << "\" " << PUUID_ATTR << "=\"" << hex_wrap<boost::uint32_t>{(boost::uint32_t) (index + (object_data.backup_id << 16))} << SUB_OBJECT_UUID_SUFFIX;
                 //output_buffer += "\" ";
                 //output_buffer += PUUID_ATTR;
                 //output_buffer += "=\"";
@@ -7392,6 +7401,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "\"/>\n";
                 }
 
+                ConfigOption* spiral_mode_opt = plate_data->config.option("spiral_mode");
+                if (spiral_mode_opt)
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SPIRAL_VASE_MODE << "\" " << VALUE_ATTR << "=\"" << spiral_mode_opt->getBool() << "\"/>\n";
+
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";
                 if (!plate_data->gcode_file.empty()) {
@@ -7545,6 +7558,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         break;
                     }
                 }
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINTER_MODEL_ID_ATTR       << "\" " << VALUE_ATTR << "=\"" << plate_data->printer_model_id << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << NOZZLE_DIAMETERS_ATTR       << "\" " << VALUE_ATTR << "=\"" << plate_data->nozzle_diameters << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << timelapse_type << "\"/>\n";
                 //stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_ERROR_CODE_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->timelapse_warning_code << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
@@ -7888,10 +7903,12 @@ public:
 
     void set_interval(long n) {
         boost::lock_guard lock(m_mutex);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry, and last interval is: " << m_interval;
         m_next_backup -= boost::posix_time::seconds(m_interval);
         m_interval = n;
         m_next_backup += boost::posix_time::seconds(m_interval);
         m_cond.notify_all();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " exit, and new interval is: " << m_interval;
     }
 
     void put_other_changes()
@@ -7969,6 +7986,7 @@ private:
     };
 private:
     _BBS_Backup_Manager() {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inital and interval = " << m_interval;
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
         boost::unique_lock lock(m_mutex);
         m_thread = std::move(boost::thread(boost::ref(*this)));
@@ -7997,7 +8015,7 @@ private:
     }
 
     void process_ui_task(Task& t, bool canceled = false) {
-        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string();
+        BOOST_LOG_TRIVIAL(info) << "process_ui_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup: {
                 if (canceled)
@@ -8041,7 +8059,7 @@ private:
     }
 
     void process_task(Task& t) {
-        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string();
+        BOOST_LOG_TRIVIAL(info) << "process_task" << t.to_string() << " and interval = " << m_interval;
         switch (t.type) {
             case Backup:
                 // do it in response
@@ -8056,13 +8074,15 @@ private:
                 break;
             }
             case RemoveObject: {
-                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml");
+                boost::system::error_code ec;
+                boost::filesystem::remove(t.path + "/mesh_" + boost::lexical_cast<std::string>(t.id) + ".xml", ec);
                 t.type = None;
                 break;
             }
             case RemoveBackup: {
                 try {
-                    boost::filesystem::remove(t.path + "/.3mf");
+                    boost::system::error_code ec;
+                    boost::filesystem::remove(t.path + "/.3mf", ec);
                     // We Saved with SplitModel now, so we can safe delete these sub models.
                     boost::filesystem::remove_all(t.path + "/3D/Objects");
                     boost::filesystem::create_directory(t.path + "/3D/Objects");
