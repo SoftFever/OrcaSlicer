@@ -20,11 +20,11 @@
     "extruder_clearance_height_to_rod": "25",
     "extruder_clearance_max_radius": "73",
     "extruder_clearance_radius": "73",
-    "head_wrap_detect_zone" : [
-        "0x150",
-        "30x150",
-        "0x180",
-        "30x180"
+    "head_wrap_detect_zone": [
+        "156x156",
+        "180x156",
+        "180x180",
+        "156x180"
     ],
     "machine_load_filament_time": "28",
     "machine_max_acceleration_z": [
