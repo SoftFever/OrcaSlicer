@@ -1,12 +1,11 @@
 {
-    "type": "machine_model",
-    "name": "Snapmaker J1",
-    "model_id": "SnapmakerJ1",
-    "nozzle_diameter": "0.4;0.6",
-    "machine_tech": "FFF",
-    "family": "Snapmaker",
-    "bed_model": "",
-    "bed_texture": "j1_texture.svg",
-    "hotend_model": "",
-    "default_materials": "Snapmaker J1 ABS;Snapmaker J1 PLA;Snapmaker J1 PLA-CF;Snapmaker J1 PETG;Snapmaker J1 TPU;Snapmaker J1 ASA;Snapmaker J1 PC;Snapmaker J1 PVA;Snapmaker J1 PA;Snapmaker J1 PA-CF"
+  "type": "machine_model",
+  "machine_tech": "FFF",
+  "family": "Snapmaker",
+  "name": "Snapmaker J1",
+  "url": "https://github.com/macdylan",
+  "model_id": "199828459",
+  "bed_model": "Snapmaker J1_bed.stl",
+  "bed_texture": "Snapmaker J1_texture.svg",
+  "nozzle_diameter": "0.2;0.4;0.6;0.8"
 }
