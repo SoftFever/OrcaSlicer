@@ -1513,7 +1513,7 @@ msgid "Insert a pause command at the beginning of this layer."
 msgstr "Вставить команду паузы в начале этого слоя."
 
 msgid "Add Custom G-code"
-msgstr "Добавить пользовательской G-код"
+msgstr "Добавить пользовательский G-код"
 
 msgid "Insert custom G-code at the beginning of this layer."
 msgstr "Вставить пользовательский G-код в начале этого слоя."
