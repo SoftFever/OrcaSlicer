@@ -6140,6 +6140,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         }
     }
+    
+    if (wxGetApp().mainframe->m_printago != nullptr)
+        wxGetApp().mainframe->m_printago->OnProcessCompleted(evt);
+
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 

@@ -22,6 +22,7 @@
 #include "Auxiliary.hpp"
 #include "Project.hpp"
 #include "CalibrationPanel.hpp"
+#include "PrintagoPanel.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
@@ -223,8 +224,9 @@ public:
         tpMonitor       = 3,
         tpProject       = 4,
         tpCalibration   = 5,
-        tpAuxiliary     = 6,
-        toDebugTool     = 7,
+        tpPrintago      = 6,
+        tpAuxiliary     = 7,
+        toDebugTool     = 8,
     };
 
     //BBS: add slice&&print status update logic
@@ -360,6 +362,7 @@ public:
     //AuxiliaryPanel*       m_auxiliary{ nullptr };
     ProjectPanel*         m_project{ nullptr };
 
+    PrintagoPanel*        m_printago{ nullptr };
     CalibrationPanel*     m_calibration{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     PrinterWebView*       m_printer_view{nullptr};
