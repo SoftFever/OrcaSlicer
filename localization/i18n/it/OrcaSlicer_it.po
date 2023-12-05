@@ -8037,7 +8037,7 @@ msgstr ""
 "Densità di ponti esterni. 100% significa solido ponte. L'impostazione "
 "predefinita è al 100%."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Flusso del Bridge"
 
 msgid ""
@@ -8047,7 +8047,7 @@ msgstr ""
 "Diminuire leggermente questo valore (ad esempio 0.9) per ridurre la quantità "
 "di materiale per il ponte e migliorare l'abbassamento dello stesso"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8506,7 +8506,7 @@ msgid "Internal solid infill pattern"
 msgstr "Schema di riempimento solido interno"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Modello di linea del riempimento solido interno. Se l'opzione Rileva "
@@ -8551,19 +8551,19 @@ msgstr ""
 "In questo modo viene impostata la soglia per la lunghezza del perimetro "
 "ridotta. La soglia predefinita è 0 mm"
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -10023,14 +10023,14 @@ msgid "User can self-define the project file name when export"
 msgstr ""
 "Gli utenti possono decidere i nomi dei file progetto nell'esportazione."
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Rendi stampabile la sporgenza"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr ""
 "Modificare la geometria per stampare sporgenze senza materiale di supporto."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Rendi la sporgenza stampabile angolo massimo"
 
 msgid ""
@@ -10042,7 +10042,7 @@ msgstr ""
 "sporgenze più ripide.90° non cambierà affatto il modello e consentirà alcuna "
 "sporgenza, mentre 0 sostituirà tutte le sporgenze con materiale conico."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Rendere stampabile l'area del foro sporgente"
 
 msgid ""
