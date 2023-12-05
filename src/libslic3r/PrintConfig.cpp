@@ -796,7 +796,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(100));
 
     def = this->add("bridge_flow", coFloat);
-    def->label = L("Bridge flow");
+    def->label = L("Bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag");
@@ -806,7 +806,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("internal_bridge_flow", coFloat);
-    def->label = L("Internal bridge flow");
+    def->label = L("Internal bridge flow ratio");
     def->category = L("Quality");
     def->tooltip = L("This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill. Decrease this value slightly (for example 0.9) to improve surface quality over sparse infill.");
     def->min = 0;
@@ -1290,7 +1290,7 @@ void PrintConfigDef::init_fff_params()
 	def                = this->add("internal_solid_infill_pattern", coEnum);
     def->label         = L("Internal solid infill pattern");
     def->category      = L("Strength");
-    def->tooltip       = L("Line pattern of internal solid infill. if the detect nattow internal solid infill be enabled, the concentric pattern will be used for the small area.");
+    def->tooltip       = L("Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
@@ -1340,22 +1340,22 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("wall_sequence", coEnum);
-    def->label = L("Order of walls");
+    def->label = L("Walls printing order");
     def->category = L("Quality");
-    def->tooltip = L("Print sequence of inner wall and outer wall. ");
+    def->tooltip = L("Print sequence of the internal (inner) and external (outer) walls. \n\nUse Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n\nUse Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recomended against the Outer/Inner option in most cases. \n\nUse Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.\n\n ");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
     def->enum_values.push_back("inner wall/outer wall");
     def->enum_values.push_back("outer wall/inner wall");
     def->enum_values.push_back("inner-outer-inner wall");
-    def->enum_labels.push_back(L("inner/outer"));
-    def->enum_labels.push_back(L("outer/inner"));
-    def->enum_labels.push_back(L("inner wall/outer wall/inner wall"));
+    def->enum_labels.push_back(L("Inner/Outer"));
+    def->enum_labels.push_back(L("Outer/Inner"));
+    def->enum_labels.push_back(L("Inner/Outer/Inner"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 
     def = this->add("is_infill_first",coBool);
     def->label    = L("Print infill first");
-    def->tooltip  = L("Order of wall/infill. false means print wall first. ");
+    def->tooltip  = L("Order of wall/infill. When the tickbox is unchecked the walls are printed first, which works best in most cases.\n\nPrinting walls first may help with extreme overhangs as the walls have the neighbouring infill to adhere to. However, the infill will slighly push out the printed walls where it is attached to them, resulting in a worse external surface finish. It can also cause the infill to shine through the external surfaces of the part.");
     def->category = L("Quality");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool{false});
@@ -2914,14 +2914,14 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[initial_tool]}_{print_time}.gcode"));
 
     def = this->add("make_overhang_printable", coBool);
-    def->label = L("Make overhang printable");
+    def->label = L("Make overhangs printable");
     def->category = L("Quality");
     def->tooltip = L("Modify the geometry to print overhangs without support material.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("make_overhang_printable_angle", coFloat);
-    def->label = L("Make overhang printable maximum angle");
+    def->label = L("Make overhangs printable - Maximum angle");
     def->category = L("Quality");
     def->tooltip = L("Maximum angle of overhangs to allow after making more steep overhangs printable."
                      "90° will not change the model at all and allow any overhang, while 0 will "
@@ -2933,7 +2933,7 @@ def = this->add("filament_loading_speed", coFloats);
     def->set_default_value(new ConfigOptionFloat(55.));
 
     def = this->add("make_overhang_printable_hole_size", coFloat);
-    def->label = L("Make overhang printable hole area");
+    def->label = L("Make overhangs printable - Hole area");
     def->category = L("Quality");
     def->tooltip = L("Maximum area of a hole in the base of the model before it's filled by conical material."
                      "A value of 0 will fill all the holes in the model base.");

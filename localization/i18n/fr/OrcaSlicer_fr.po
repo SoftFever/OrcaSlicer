@@ -8052,7 +8052,7 @@ msgstr ""
 "Densité des ponts externes, Une valeur à 100%% signifie un pont solide. La "
 "valeur par défaut est 100%."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Débit des ponts"
 
 msgid ""
@@ -8062,7 +8062,7 @@ msgstr ""
 "Diminuez légèrement cette valeur (par exemple 0.9) pour réduire la quantité "
 "de matériaux pour le pont, pour améliorer l'affaissement"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8495,7 +8495,7 @@ msgid "Internal solid infill pattern"
 msgstr "Motif de remplissage interne solide"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 
@@ -8535,19 +8535,19 @@ msgstr ""
 "Cela définit le seuil pour une petite longueur de périmètre. Le seuil par "
 "défaut est de 0 mm"
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -9910,13 +9910,13 @@ msgstr ""
 "L'utilisateur peut définir lui-même le nom du fichier de projet lors de "
 "l'exportation"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr ""
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr ""
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr ""
 
 msgid ""
@@ -9925,7 +9925,7 @@ msgid ""
 "0 will replace all overhangs with conical material."
 msgstr ""
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr ""
 
 msgid ""
