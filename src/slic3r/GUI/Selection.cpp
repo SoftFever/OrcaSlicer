@@ -1315,6 +1315,81 @@ void Selection::flattening_rotate(const Vec3d& normal)
     this->set_bounding_boxes_dirty();
 }
 
+void Selection::scale_legacy(const Vec3d& scale, TransformationType transformation_type)
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list) {
+        GLVolume &v = *(*m_volumes)[i];
+        if (is_single_full_instance()) {
+            if (transformation_type.relative()) {
+                Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
+                Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
+                // extracts scaling factors from the composed transformation
+                Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
+                if (transformation_type.joint())
+                    v.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+
+                v.set_instance_scaling_factor(new_scale);
+            }
+            else {
+                if (transformation_type.world() && (std::abs(scale.x() - scale.y()) > EPSILON || std::abs(scale.x() - scale.z()) > EPSILON)) {
+                    // Non-uniform scaling. Transform the scaling factors into the local coordinate system.
+                    // This is only possible, if the instance rotation is mulitples of ninety degrees.
+                    assert(Geometry::is_rotation_ninety_degrees(v.get_instance_rotation()));
+                    v.set_instance_scaling_factor((v.get_instance_transformation().get_rotation_matrix().matrix().block<3, 3>(0, 0).transpose() * scale).cwiseAbs());
+                }
+                else
+                    v.set_instance_scaling_factor(scale);
+            }
+
+            // update the instance assemble transform
+            ModelObject* object = m_model->objects[v.object_idx()];
+            Geometry::Transformation assemble_transform = object->instances[v.instance_idx()]->get_assemble_transformation();
+            assemble_transform.set_scaling_factor(v.get_instance_scaling_factor());
+            object->instances[v.instance_idx()]->set_assemble_transformation(assemble_transform);
+        }
+        else if (is_single_volume() || is_single_modifier())
+            v.set_volume_scaling_factor(scale);
+        else {
+            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
+            if (m_mode == Instance) {
+                Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_instance_scale_matrix()).matrix().block(0, 0, 3, 3);
+                // extracts scaling factors from the composed transformation
+                Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
+                if (transformation_type.joint())
+                    v.set_instance_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center));
+
+                v.set_instance_scaling_factor(new_scale);
+            }
+            else if (m_mode == Volume) {
+                Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
+                // extracts scaling factors from the composed transformation
+                Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
+                if (transformation_type.joint()) {
+                    Vec3d offset = m * (m_cache.volumes_data[i].get_volume_position() + m_cache.volumes_data[i].get_instance_position() - m_cache.dragging_center);
+                    v.set_volume_offset(m_cache.dragging_center - m_cache.volumes_data[i].get_instance_position() + offset);
+                }
+                v.set_volume_scaling_factor(new_scale);
+            }
+        }
+    }
+
+#if !DISABLE_INSTANCES_SYNCH
+    if (m_mode == Instance)
+        // even if there is no rotation, we pass SyncRotationType::GENERAL to force
+        // synchronize_unselected_instances() to apply the scale to the other instances
+        synchronize_unselected_instances(SyncRotationType::GENERAL);
+    else if (m_mode == Volume)
+        synchronize_unselected_volumes();
+#endif // !DISABLE_INSTANCES_SYNCH
+
+    ensure_on_bed();
+    set_bounding_boxes_dirty();
+    wxGetApp().plater()->canvas3D()->requires_check_outside_state();
+}
+
 void Selection::scale(const Vec3d& scale, TransformationType transformation_type)
 {
     scale_and_translate(scale, Vec3d::Zero(), transformation_type);

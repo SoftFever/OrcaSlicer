@@ -378,7 +378,7 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
         scaling_factor = scale(axis) * Vec3d::Ones();
 
     selection.setup_cache();
-    selection.scale(scaling_factor * 0.01, transformation_type);
+    selection.scale_legacy(scaling_factor * 0.01, transformation_type);
     m_glcanvas.do_scale(L("Set Scale"));
 }
 

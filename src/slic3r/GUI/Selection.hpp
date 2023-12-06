@@ -347,6 +347,8 @@ public:
     void move_to_center(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
     void flattening_rotate(const Vec3d& normal);
+    [[deprecated("Only used by GizmoObjectManipulation")]]
+    void scale_legacy(const Vec3d& scale, TransformationType transformation_type);
     void scale(const Vec3d& scale, TransformationType transformation_type);
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
     void scale_to_fit_print_volume(const BuildVolume& volume);
