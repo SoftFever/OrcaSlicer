@@ -1,0 +1,25 @@
+{
+  "type": "process",
+  "from": "system",
+  "instantiation": "true",
+  "name": "0.28 Extra Draft @Snapmaker J1 (0.4 nozzle)",
+  "setting_id": "1784261617",
+  "inherits": "fdm_process_idex",
+  "compatible_printers": [
+    "Snapmaker J1 (0.4 nozzle)"
+  ],
+  "layer_height": "0.28",
+  "elefant_foot_compensation": "0.15",
+  "top_surface_line_width": "0.45",
+  "top_shell_layers": "3",
+  "top_shell_thickness": "0.6",
+  "support_threshold_angle": "40",
+  "initial_layer_infill_speed": "65",
+  "inner_wall_speed": "180",
+  "sparse_infill_speed": "160",
+  "top_surface_speed": "150",
+  "gap_infill_speed": "160",
+  "overhang_1_4_speed": "60",
+  "overhang_2_4_speed": "30",
+  "overhang_3_4_speed": "10"
+}

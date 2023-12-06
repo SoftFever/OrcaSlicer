@@ -1,4 +1,9 @@
 {
+    "type": "process",
+    "name": "fdm_process_comgrow_common",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_process_common",
     "accel_to_decel_enable": "1",
     "accel_to_decel_factor": "50%",
     "bottom_shell_layers": "2",

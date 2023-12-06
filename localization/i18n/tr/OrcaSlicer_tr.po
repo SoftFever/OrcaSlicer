@@ -7961,7 +7961,7 @@ msgstr ""
 "Dış köprülerin yoğunluğu. %100 sağlam köprü anlamına gelir. Varsayılan "
 "%100'dür."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Köprülerde akış oranı"
 
 msgid ""
@@ -7971,8 +7971,8 @@ msgstr ""
 "Köprü için malzeme miktarını azaltmak ve sarkmayı iyileştirmek için bu "
 "değeri biraz azaltın (örneğin 0,9)"
 
-msgid "Internal bridge flow"
-msgstr "İç köprü akışı"
+msgid "Internal bridge flow ratio"
+msgstr "İç köprü akış oranı"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the "
@@ -8429,7 +8429,7 @@ msgid "Internal solid infill pattern"
 msgstr "İç dolgu deseni"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "İç katı dolgunun çizgi deseni. doğal iç katı dolguyu tespit etme "
@@ -8470,20 +8470,20 @@ msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "Bu, küçük çevre uzunluğu için eşiği belirler. Varsayılan eşik 0 mm'dir"
 
-msgid "Order of walls"
-msgstr "Duvar sırası"
+msgid "Walls printing order"
+msgstr "Duvar baskı sırası"
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr "İç duvar ve dış duvarın yazdırma sırası."
 
-msgid "inner/outer"
-msgstr "iç/dış"
+msgid "Inner/Outer"
+msgstr "İç/Dış"
 
-msgid "outer/inner"
-msgstr "dış/iç"
+msgid "Outer/Inner"
+msgstr "Dış/İç"
 
-msgid "inner wall/outer wall/inner wall"
-msgstr "iç duvar/dış duvar/iç duvar"
+msgid "Inner/Outer/Inner"
+msgstr "İç/Dış/İç"
 
 msgid "Print infill first"
 msgstr "Önce dolguyu yazdır"
@@ -9901,14 +9901,14 @@ msgid "User can self-define the project file name when export"
 msgstr ""
 "Kullanıcı dışa aktarma sırasında proje dosyası adını kendisi tanımlayabilir"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Çıkıntılar yazdırılabilir"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr ""
 "Destek malzemesi olmadan çıkıntıları yazdırmak için geometriyi değiştirin."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Maksimum yazdırılabilir açı"
 
 msgid ""
@@ -9920,7 +9920,7 @@ msgstr ""
 "maksimum çıkıntı açısı. 90°, modeli hiçbir şekilde değiştirmez ve herhangi "
 "bir çıkıntıya izin vermez, 0 ise tüm çıkıntıları konik malzemeyle değiştirir."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Yazdırılabilir çıkıntı delik alanı oluşturun"
 
 msgid ""

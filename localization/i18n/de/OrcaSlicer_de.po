@@ -8154,7 +8154,7 @@ msgstr ""
 "Einstellung kann jedoch je nach Druckanforderungen und Objekt variieren und "
 "angepasst werden."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "Brücken Flussrate"
 
 msgid ""
@@ -8164,7 +8164,7 @@ msgstr ""
 "Verringern Sie diesen Wert geringfügig (z. B. 0,9), um die Materialmenge für "
 "die Brücke zu verringern und den Durchhang zu minimieren"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr "Interne Brücken Flussrate"
 
 msgid ""
@@ -8645,7 +8645,7 @@ msgid "Internal solid infill pattern"
 msgstr "Muster für das interne feste Füllmuster"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "Linienmuster des internen festen Füllmusters. Wenn die Erkennung von "
@@ -8691,19 +8691,19 @@ msgstr ""
 "Dies legt die Schwelle für eine kleine Umfangslänge fest. Der Standardwert "
 "für die Schwelle beträgt 0 mm."
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr "Anordnung der Wände"
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr "Druckreihenfolge der Innen- und Außenwand."
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr "Innen/Außen"
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr "Außen/Innen"
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr "Innenwand/Außenwand/Innenwand"
 
 msgid "Print infill first"
@@ -10157,13 +10157,13 @@ msgstr "Format des Dateinamens"
 msgid "User can self-define the project file name when export"
 msgstr "Der Benutzer kann den Projektdateinamen beim Export selbst bestimmen"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "Überhang druckbar machen"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr "Die Geometrie anpassen, um Überhänge ohne Stützmaterial zu drucken."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "Maximaler Winkel für druckbare Überhänge"
 
 msgid ""
@@ -10176,7 +10176,7 @@ msgstr ""
 "jeden Überhang erlauben, während 0 alle Überhänge durch konisches Material "
 "ersetzt."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "Flächenbereich für druckbare Überhänge von Löchern"
 
 msgid ""

@@ -7786,7 +7786,7 @@ msgid "Density of external bridges. 100% means solid bridge. Default is 100%."
 msgstr ""
 "외부 다리의 밀도. 100%는 단단한 다리를 의미합니다. 기본값은 100%입니다."
 
-msgid "Bridge flow"
+msgid "Bridge flow ratio"
 msgstr "다리 유량"
 
 msgid ""
@@ -7794,7 +7794,7 @@ msgid ""
 "material for bridge, to improve sag"
 msgstr "이 값을 약간(예: 0.9) 줄여 다리의 압출량을 줄여 처짐을 개선합니다"
 
-msgid "Internal bridge flow"
+msgid "Internal bridge flow ratio"
 msgstr ""
 
 msgid ""
@@ -8226,7 +8226,7 @@ msgid "Internal solid infill pattern"
 msgstr "내부 꽉찬 내부 채움 패턴"
 
 msgid ""
-"Line pattern of internal solid infill. if the detect nattow internal solid "
+"Line pattern of internal solid infill. if the detect narrow internal solid "
 "infill be enabled, the concentric pattern will be used for the small area."
 msgstr ""
 "내부 꽉찬 내부 채움의 선 패턴. 좁은 내부 꽉찬 내부 채움 감지가 활성화된 경우 "
@@ -8264,19 +8264,19 @@ msgid ""
 "This sets the threshold for small perimeter length. Default threshold is 0mm"
 msgstr "작은 둘레 길이에 대한 임계값을 설정합니다. 기본 임계값은 0mm입니다"
 
-msgid "Order of walls"
+msgid "Walls printing order"
 msgstr ""
 
 msgid "Print sequence of inner wall and outer wall. "
 msgstr ""
 
-msgid "inner/outer"
+msgid "Inner/Outer"
 msgstr ""
 
-msgid "outer/inner"
+msgid "Outer/Inner"
 msgstr ""
 
-msgid "inner wall/outer wall/inner wall"
+msgid "Inner/Outer/Inner"
 msgstr ""
 
 msgid "Print infill first"
@@ -9635,13 +9635,13 @@ msgstr "파일 이름 형식"
 msgid "User can self-define the project file name when export"
 msgstr "사용자가 내보낼 파일 이름을 자체 정의할 수 있습니다"
 
-msgid "Make overhang printable"
+msgid "Make overhangs printable"
 msgstr "돌출부 형상 변경"
 
 msgid "Modify the geometry to print overhangs without support material."
 msgstr "지지대 없이 돌출부를 출력하도록 형상을 수정합니다."
 
-msgid "Make overhang printable maximum angle"
+msgid "Make overhangs printable - Maximum angle"
 msgstr "돌출부 형상 변경 최대 각도"
 
 msgid ""
@@ -9653,7 +9653,7 @@ msgstr ""
 "전혀 변경하지 않고 돌출부를 허용하는 반면, 0은 모든 돌출부를 원뿔형 재료로 대"
 "체합니다."
 
-msgid "Make overhang printable hole area"
+msgid "Make overhangs printable - Hole area"
 msgstr "돌출부 형상 변경 구멍 영역"
 
 msgid ""
