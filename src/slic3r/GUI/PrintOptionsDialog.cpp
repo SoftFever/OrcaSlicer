@@ -313,7 +313,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     //filament tangle detect
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_filament_tangle = new CheckBox(parent);
-    text_filament_tangle = new wxStaticText(parent, wxID_ANY, _L("Fliament Tangle Detect"));
+    text_filament_tangle = new wxStaticText(parent, wxID_ANY, _L("Filament Tangle Detect"));
     text_filament_tangle->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_filament_tangle, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
