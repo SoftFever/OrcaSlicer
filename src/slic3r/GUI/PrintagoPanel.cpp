@@ -367,7 +367,6 @@ json PrintagoPanel::MachineObjectToJson(MachineObject* machine) {
         j["hardware"]["dev_name"] = machine->dev_name;
         j["hardware"]["nozzle_diameter"] = machine->nozzle_diameter;
 
-
         j["connection_info"]["dev_ip"] = machine->dev_ip;
         j["connection_info"]["dev_id"] = machine->dev_id;
         j["connection_info"]["dev_name"] = machine->dev_name;
@@ -419,6 +418,21 @@ json PrintagoPanel::MachineObjectToJson(MachineObject* machine) {
         j["current"]["cooling"]["fan_gear"] = machine->fan_gear;
     }
     return j;
+}
+
+json PrintagoPanel::GetMachineStatus(const wxString &printerId) {
+    json statusObject = json::object();
+    json machineList = json::array();
+
+    if (!devManager) return json::object();
+
+    statusObject["can_process_job"] = can_process_job();
+    statusObject["current_job_id"] = "";//add later from command.
+    statusObject["current_job_machine"] = jobPrinterId.ToStdString();
+
+    machineList.push_back(MachineObjectToJson(devManager->get_my_machine(printerId.ToStdString())));
+    statusObject["machines"] = machineList;
+    return statusObject;
 }
 
 json PrintagoPanel::GetAllStatus() {
@@ -608,6 +622,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
             wxString printagoFileUrl = parameters["url"];
             wxString decodedUrl = { "" };
             jobPrinterId = printerId;
+            set_can_process_job(false);
             if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(wxGetApp().plater());
             
             if(!can_process_job()) {

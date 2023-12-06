@@ -185,6 +185,8 @@ private:
     std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap& params, const wxString& prefix);
     
     json GetAllStatus();
+    json GetMachineStatus(const wxString &printerId);
+    
     wxString SavePrintagoFile(const wxString& url);
     wxString wxURLErrorToString(wxURLError error);
     static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
