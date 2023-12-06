@@ -8869,7 +8869,6 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Dolgu Yoğunluğu"
 
-#, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
@@ -11127,7 +11126,6 @@ msgstr ""
 msgid "Polyhole detection margin"
 msgstr "Çokgen delik tespiti marjı"
 
-#, c-format, boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
