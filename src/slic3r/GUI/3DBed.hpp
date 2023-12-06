@@ -154,7 +154,7 @@ private:
     //BBS: add partplate related logic
     // Calculate an extended bounding box from axes and current model for visualization purposes.
     BoundingBoxf3 calc_extended_bounding_box(bool consider_model_offset = true) const;
-    void update_model_offset() const;
+    void update_model_offset();
     //BBS: with offset
     void update_bed_triangles();
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
