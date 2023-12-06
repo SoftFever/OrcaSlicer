@@ -33,6 +33,15 @@ wxIMPLEMENT_DYNAMIC_CLASS(DataViewBitmapText, wxObject)
 
 IMPLEMENT_VARIANT_OBJECT(DataViewBitmapText)
 
+static wxSize get_size(const wxBitmap& icon)
+{
+#ifdef __WIN32__
+    return icon.GetSize();
+#else
+    return icon.GetScaledSize();
+#endif
+}
+
 // ---------------------------------------------------------
 // BitmapTextRenderer
 // ---------------------------------------------------------
@@ -124,11 +133,7 @@ bool BitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
     const wxBitmap& icon = m_value.GetBitmap();
     if (icon.IsOk())
     {
-#ifdef __APPLE__
-        wxSize icon_sz = icon.GetScaledSize();
-#else
-        wxSize icon_sz = icon.GetSize();
-#endif
+        wxSize icon_sz = get_size(icon);
         dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon_sz.y) / 2);
         xoffset = icon_sz.x + 4;
     }
@@ -270,11 +275,12 @@ bool BitmapChoiceRenderer::Render(wxRect rect, wxDC* dc, int state)
     const wxBitmap& icon = m_value.GetBitmap();
     if (icon.IsOk())
     {
-        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
-//        xoffset = icon.GetWidth() + 4;
+        wxSize icon_sz = get_size(icon);
+        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon_sz.GetHeight()) / 2);
+//        xoffset = icon_sz.GetWidth() + 4;
 
         if (rect.height == 0)
-          rect.height = icon.GetHeight();
+          rect.height = icon_sz.GetHeight();
     }
 
 #ifdef _WIN32
@@ -305,7 +311,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
     if (can_create_editor_ctrl && !can_create_editor_ctrl())
         return nullptr;
 
-    std::vector<wxBitmap*> icons = get_extruder_color_icons();
+    std::vector<wxBitmapBundle*> icons = get_extruder_color_icons();
     if (icons.empty())
         return nullptr;
 

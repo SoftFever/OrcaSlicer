@@ -112,7 +112,7 @@ bool ObjectSettings::update_settings_list()
             btn->SetToolTip(_(L("Remove parameter")));
 
             btn->SetBitmapFocus(m_bmp_delete_focus.bmp());
-            btn->SetBitmapHover(m_bmp_delete_focus.bmp());
+            btn->SetBitmapCurrent(m_bmp_delete_focus.bmp());
 
 			btn->Bind(wxEVT_BUTTON, [opt_key, config, this](wxEvent &event) {
                 wxGetApp().plater()->take_snapshot(from_u8((boost::format("Delete Option %s") % opt_key).str()).ToStdString());
@@ -146,7 +146,7 @@ bool ObjectSettings::update_settings_list()
                     return;
                 ctrl->SetBitmap_(m_bmp_delete);
                 ctrl->SetBitmapFocus(m_bmp_delete_focus.bmp()); 
-                ctrl->SetBitmapHover(m_bmp_delete_focus.bmp());
+                ctrl->SetBitmapCurrent(m_bmp_delete_focus.bmp());
             };
 
             const bool is_extruders_cat = cat.first == "Extruders";
@@ -415,21 +415,13 @@ void ObjectSettings::UpdateAndShow(const bool show)
 #endif
 }
 
-void ObjectSettings::msw_rescale()
-{
-#if !NEW_OBJECT_SETTING
-    m_bmp_delete.msw_rescale();
-    m_bmp_delete_focus.msw_rescale();
-
-    for (auto group : m_og_settings)
-        group->msw_rescale();
-#endif
-}
-
 void ObjectSettings::sys_color_changed()
 {
 #if !NEW_OBJECT_SETTING
-    m_og->sys_color_changed();
+    m_og->sys_color_changed(); // not in old msw_rescale. is it needed?
+    // moved from old msw_rescale
+    m_bmp_delete.sys_color_changed();
+    m_bmp_delete_focus.sys_color_changed();
 
     for (auto group : m_og_settings)
         group->sys_color_changed();

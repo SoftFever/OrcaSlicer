@@ -150,19 +150,19 @@ void SideToolsPanel::doRender(wxDC &dc)
         dc.SetBrush(SIDE_TOOLS_BRAND);
         dc.DrawRectangle(0, 0, size.x, size.y);
 
-        dc.DrawBitmap(m_none_printing_img.bmp(), left, (size.y - m_none_printing_img.GetBmpSize().y) / 2);
+        dc.DrawBitmap(m_none_printing_img.get_bitmap(), left, (size.y - m_none_printing_img.GetSize().y) / 2);
 
-        left += (m_none_printing_img.GetBmpSize().x + FromDIP(15));
-        dc.DrawBitmap(m_none_arrow_img.bmp(), left, (size.y - m_none_arrow_img.GetBmpSize().y) / 2);
+        left += (m_none_printing_img.GetSize().x + FromDIP(15));
+        dc.DrawBitmap(m_none_arrow_img.get_bitmap(), left, (size.y - m_none_arrow_img.GetSize().y) / 2);
 
-        left += (m_none_arrow_img.GetBmpSize().x + FromDIP(6));
+        left += (m_none_arrow_img.GetSize().x + FromDIP(6));
         dc.SetFont(::Label::Body_14);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.SetTextForeground(*wxWHITE);
 
         wxString no_printer_str = _L("No printer");
         auto sizet = dc.GetTextExtent(no_printer_str);
-        auto left_add_bitmap = size.x - FromDIP(30) - m_wifi_none_img.GetBmpSize().x - m_none_add_img.GetBmpSize().x;
+        auto left_add_bitmap = size.x - FromDIP(30) - m_wifi_none_img.GetSize().x - m_none_add_img.GetSize().x;
         auto size_width = left_add_bitmap - left;
 
         if (sizet.x > size_width) {
@@ -181,21 +181,21 @@ void SideToolsPanel::doRender(wxDC &dc)
 
         dc.DrawText(no_printer_str, wxPoint(left, (size.y - sizet.y) / 2));
 
-        left = size.x - FromDIP(30) - m_wifi_none_img.GetBmpSize().x;
-        dc.DrawBitmap(m_none_add_img.bmp(), left, (size.y - m_none_add_img.GetBmpSize().y) / 2);
+        left = size.x - FromDIP(30) - m_wifi_none_img.GetSize().x;
+        dc.DrawBitmap(m_none_add_img.get_bitmap(), left, (size.y - m_none_add_img.GetSize().y) / 2);
     } else {
-        dc.DrawBitmap(m_printing_img.bmp(), left, (size.y - m_printing_img.GetBmpSize().y) / 2);
+        dc.DrawBitmap(m_printing_img.get_bitmap(), left, (size.y - m_printing_img.GetSize().y) / 2);
 
-        left += (m_printing_img.GetBmpSize().x + FromDIP(5));
-        dc.DrawBitmap(m_arrow_img.bmp(), left, (size.y - m_arrow_img.GetBmpSize().y) / 2);
+        left += (m_printing_img.GetSize().x + FromDIP(5));
+        dc.DrawBitmap(m_arrow_img.get_bitmap(), left, (size.y - m_arrow_img.GetSize().y) / 2);
 
-        left += (m_arrow_img.GetBmpSize().x + FromDIP(6));
+        left += (m_arrow_img.GetSize().x + FromDIP(6));
         dc.SetFont(::Label::Body_14);
         dc.SetBackgroundMode(wxTRANSPARENT);
         dc.SetTextForeground(StateColor::darkModeColorFor(SIDE_TOOLS_GREY900));
 
         auto sizet = dc.GetTextExtent(m_dev_name);
-        auto text_end = size.x - m_wifi_none_img.GetBmpSize().x - 20;
+        auto text_end = size.x - m_wifi_none_img.GetSize().x - 20;
         
         std::string finally_name = m_dev_name.ToStdString();
         if (sizet.x > (text_end - left)) {
@@ -212,12 +212,12 @@ void SideToolsPanel::doRender(wxDC &dc)
 
         dc.DrawText(finally_name, wxPoint(left, (size.y - sizet.y) / 2));
 
-        left = size.x - FromDIP(18) - m_wifi_none_img.GetBmpSize().x;
-        if (m_wifi_type == WifiSignal::NONE) dc.DrawBitmap(m_wifi_none_img.bmp(), left, (size.y - m_wifi_none_img.GetBmpSize().y) / 2);
-        if (m_wifi_type == WifiSignal::WEAK) dc.DrawBitmap(m_wifi_weak_img.bmp(), left, (size.y - m_wifi_weak_img.GetBmpSize().y) / 2);
-        if (m_wifi_type == WifiSignal::MIDDLE) dc.DrawBitmap(m_wifi_middle_img.bmp(), left, (size.y - m_wifi_middle_img.GetBmpSize().y) / 2);
-        if (m_wifi_type == WifiSignal::STRONG) dc.DrawBitmap(m_wifi_strong_img.bmp(), left, (size.y - m_wifi_strong_img.GetBmpSize().y) / 2);
-        if (m_wifi_type == WifiSignal::WIRED)  dc.DrawBitmap(m_network_wired_img.bmp(), left, (size.y - m_network_wired_img.GetBmpSize().y) / 2);
+        left = size.x - FromDIP(18) - m_wifi_none_img.GetSize().x;
+        if (m_wifi_type == WifiSignal::NONE) dc.DrawBitmap(m_wifi_none_img.get_bitmap(), left, (size.y - m_wifi_none_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::WEAK) dc.DrawBitmap(m_wifi_weak_img.get_bitmap(), left, (size.y - m_wifi_weak_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::MIDDLE) dc.DrawBitmap(m_wifi_middle_img.get_bitmap(), left, (size.y - m_wifi_middle_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::STRONG) dc.DrawBitmap(m_wifi_strong_img.get_bitmap(), left, (size.y - m_wifi_strong_img.GetSize().y) / 2);
+        if (m_wifi_type == WifiSignal::WIRED)  dc.DrawBitmap(m_network_wired_img.get_bitmap(), left, (size.y - m_network_wired_img.GetSize().y) / 2);
     }
 
     if (m_hover) {

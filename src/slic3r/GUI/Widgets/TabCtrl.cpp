@@ -43,9 +43,7 @@ TabCtrl::TabCtrl(wxWindow *      parent,
 }
 
 TabCtrl::~TabCtrl()
-{
-    delete images;
-}
+{}
 
 int TabCtrl::GetSelection() const { return sel; }
 
@@ -165,13 +163,6 @@ void TabCtrl::SetItemData(unsigned int item, void* clientData)
 {
     if (item >= btns.size()) return;
     btns[item]->SetClientData(clientData);
-}
-
-void TabCtrl::AssignImageList(wxImageList* imageList)
-{
-    if (images == imageList) return;
-    delete images;
-    images = imageList;
 }
 
 void TabCtrl::SetItemTextColour(unsigned int item, const StateColor &col)

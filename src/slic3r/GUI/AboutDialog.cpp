@@ -19,7 +19,7 @@ AboutDialogLogo::AboutDialogLogo(wxWindow* parent)
 {
     this->SetBackgroundColour(*wxWHITE);
     this->logo = ScalableBitmap(this, Slic3r::var("OrcaSlicer_192px.png"), wxBITMAP_TYPE_PNG);
-    this->SetMinSize(this->logo.GetBmpSize());
+    this->SetMinSize(this->logo.GetSize());
 
     this->Bind(wxEVT_PAINT, &AboutDialogLogo::onRepaint, this);
 }
@@ -30,9 +30,9 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
     dc.SetBackgroundMode(wxTRANSPARENT);
 
     wxSize size = this->GetSize();
-    int logo_w = this->logo.GetBmpWidth();
-    int logo_h = this->logo.GetBmpHeight();
-    dc.DrawBitmap(this->logo.bmp(), (size.GetWidth() - logo_w)/2, (size.GetHeight() - logo_h)/2, true);
+    int logo_w = this->logo.GetWidth();
+    int logo_h = this->logo.GetHeight();
+    dc.DrawBitmap(this->logo.get_bitmap(), (size.GetWidth() - logo_w)/2, (size.GetHeight() - logo_h)/2, true);
 
     event.Skip();
 }
@@ -380,7 +380,7 @@ AboutDialog::AboutDialog()
 
 void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
-    m_logo_bitmap.msw_rescale();
+    m_logo_bitmap.sys_color_changed();
     m_logo->SetBitmap(m_logo_bitmap.bmp());
 
     const wxFont& font = GetFont();

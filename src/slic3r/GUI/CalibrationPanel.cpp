@@ -102,9 +102,9 @@ void MObjectPanel::doRender(wxDC& dc)
     if (m_state == PrinterState::IN_LAN) { dwbitmap = m_printer_in_lan; }
 
     // dc.DrawCircle(left, size.y / 2, 3);
-    dc.DrawBitmap(dwbitmap.bmp(), wxPoint(left, (size.y - dwbitmap.GetBmpSize().y) / 2));
+    dc.DrawBitmap(dwbitmap.get_bitmap(), wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
 
-    left += dwbitmap.GetBmpSize().x + 8;
+    left += dwbitmap.GetSize().x + 8;
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
