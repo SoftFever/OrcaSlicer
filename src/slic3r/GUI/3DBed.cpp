@@ -708,7 +708,7 @@ void Bed3D::render_custom(GLCanvas3D& canvas, const Transform3d& view_matrix, co
 
 void Bed3D::render_default(bool bottom, const Transform3d& view_matrix, const Transform3d& projection_matrix)
 {
-    m_texture.reset();
+    // m_texture.reset();
 
     update_bed_triangles();
 

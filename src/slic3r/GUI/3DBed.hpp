@@ -98,7 +98,7 @@ private:
     //Polygon m_polygon;
     GLModel m_triangles;
     //GLModel m_gridlines;
-    GLTexture m_texture;
+    // GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
     //GLTexture m_temp_texture;
     GLModel m_model;
