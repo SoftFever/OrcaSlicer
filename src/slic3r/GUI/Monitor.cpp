@@ -348,8 +348,8 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
-    m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
     m_upgrade_panel->update(obj);
+    m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
     m_media_file_panel->SetMachineObject(obj);
     m_side_tools->update_status(obj);
     
@@ -470,7 +470,6 @@ Freeze();
     m_status_info_panel->show_status(status);
     m_hms_panel->show_status(status);
     m_upgrade_panel->show_status(status);
-    m_media_file_panel->Enable(status == MonitorStatus::MONITOR_NORMAL);
 
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();

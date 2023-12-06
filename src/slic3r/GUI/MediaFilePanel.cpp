@@ -220,7 +220,8 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
         m_remote_support = false;
         m_model_download_support = false;
     }
-    if (machine == m_machine && m_image_grid->GetFileSystem()) {
+    Enable(obj && obj->is_connected() && obj->m_push_count > 0);
+    if (machine == m_machine && (m_image_grid->GetFileSystem() || (!m_local_support && !m_remote_support))) {
         if (m_waiting_enable && IsEnabled()) {
             auto fs = m_image_grid->GetFileSystem();
             if (fs) fs->Retry();
@@ -239,6 +240,8 @@ wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t le
     SetSelecting(false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
+    } else if (!IsEnabled()) {
+        m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Device connection not ready)!"));
     } else if (!m_local_support && !m_remote_support) {
         m_image_grid->SetStatus(m_bmp_failed, _L("Initialize failed (Not supported on the current printer version)!"));
     } else {

@@ -46,6 +46,8 @@ ImageGrid::ImageGrid(wxWindow * parent)
     , m_model_time_icon(this, "model_time", 14)
     , m_model_weight_icon(this, "model_weight", 14)
 {
+    m_cell_size.Set(396, 228);
+
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(0xEEEEEE);
     SetFont(Label::Head_20);
