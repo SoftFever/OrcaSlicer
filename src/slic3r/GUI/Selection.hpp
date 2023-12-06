@@ -378,7 +378,7 @@ public:
 
     void render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color, float scale) {
         m_scale_factor = scale;
-        render_bounding_box(box, color);
+        render_bounding_box(box, Transform3d::Identity(), color);
     }
 
     //BBS
@@ -421,7 +421,7 @@ private:
         m_bounding_sphere.reset();
     }
     void render_synchronized_volumes();
-    void render_bounding_box(const BoundingBoxf3& box, const ColorRGB& color);
+    void render_bounding_box(const BoundingBoxf3& box, const Transform3d& trafo, const ColorRGB& color);
     void render_sidebar_position_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix);
     void render_sidebar_rotation_hints(const std::string& sidebar_field, GLShaderProgram& shader, const Transform3d& matrix);
     //BBS: GUI refactor: add uniform_scale from gizmo
