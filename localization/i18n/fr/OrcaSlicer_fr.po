@@ -7207,7 +7207,7 @@ msgstr ""
 "La version du firmware est erronée. La réparation et la mise à jour sont "
 "nécessaires avant l'impression. Voulez-vous effectuer la mise à jour "
 "maintenant ? Vous pouvez également effectuer une mise à jour ultérieurement "
-"depuis l'imprimante ou lors du prochain démarrage de Bambu Studio."
+"depuis l'imprimante ou lors du prochain démarrage de OrcaSlicer."
 
 msgid "Extension Board"
 msgstr "Carte d'Extension"
