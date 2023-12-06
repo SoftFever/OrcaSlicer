@@ -22,6 +22,7 @@
 #include "wx/numdlg.h"
 #include "wx/infobar.h"
 #include "wx/filesys.h"
+#include "wx/filename.h"
 #include "wx/fs_arc.h"
 #include "wx/fs_mem.h"
 #include "wx/stdpaths.h"
@@ -48,8 +49,8 @@ public:
     PrintagoPanel(wxWindow *parent, wxString* url);
     virtual ~PrintagoPanel();
     void OnProcessCompleted(SlicingProcessCompletedEvent &event);
-
     void load_url(wxString& url);
+    bool m_can_process_job = true; //let's us know if we can clear/add files/slice/send.
 
     void UpdateState();
     void OnIdle(wxIdleEvent& evt);
@@ -109,7 +110,6 @@ public:
 
     void update_mode();
 private:
-
     wxWebView* m_browser;
     wxBoxSizer *bSizer_toolbar;
     wxButton *  m_button_back;
@@ -164,6 +164,11 @@ private:
 
     Slic3r::DeviceManager* devManager;
 
+    //we set this to true when we need to issue a 
+    //command that must block (e.g slicing/sending a print to a printer)
+    //no need to send this for commands like home/jog.
+    wxString jobPrinterId;
+
     void HandlePrintagoCommand(const wxString& commandType, const wxString& action, 
                                 wxStringToStringHashMap& parameters, const wxString& originalCommandStr);
 
@@ -172,16 +177,23 @@ private:
     void SendResponseMessage(const wxString& printer_id, const json& responseData, wxWebView* webView, const wxString& command = "");
     void SendErrorMessage(const wxString& printer_id, const json& errorData, wxWebView* webView,const wxString& command = "");
     void SendSuccessMessage(const wxString& printer_id, const wxString localCommand, wxWebView* webView, const wxString& command = "");
+    
+    //wraps sending and error response, and unblocks the server for job processing.
+    void SendErrorAndUnblock(const wxString& printer_id, const json& errorData, wxWebView* webView, const wxString& command);
+    
     wxStringToStringHashMap ParseQueryString(const wxString& queryString);
     std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap& params, const wxString& prefix);
     
-    json GetMachineList();
+    json GetAllStatus();
     wxString SavePrintagoFile(const wxString& url);
     wxString wxURLErrorToString(wxURLError error);
     static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream);
     bool DownloadFileFromURL(const wxString& url, const wxString& localPath);
 
     json MachineObjectToJson(MachineObject* machine);
+
+    void set_can_process_job(bool can_process_job);
+    bool can_process_job() { return m_can_process_job; };
 
     DECLARE_EVENT_TABLE()
 };

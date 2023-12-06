@@ -4074,6 +4074,9 @@ void SelectMachineDialog::update_lan_machine_list()
     BOOST_LOG_TRIVIAL(trace) << "SelectMachineDialog update_lan_devices end";
 }
 
+void SelectMachineDialog::setPrinterLastSelect(const std::string& printerLastSelect) {
+        m_printer_last_select = printerLastSelect;
+    }
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Modifying the device name"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
