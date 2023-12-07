@@ -295,6 +295,7 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
             obj->cali_finished    = back_info.cali_finished;
             obj->cache_flow_ratio = back_info.cache_flow_ratio;
             obj->selected_cali_preset = back_info.selected_presets;
+            obj->flow_ratio_calibration_type = back_info.cache_flow_rate_calibration_type;
         }
     }
 }
@@ -306,6 +307,7 @@ void CalibrationWizard::back_preset_info(MachineObject *obj, bool cali_finish, b
     printer_cali_info.cali_finished    = cali_finish;
     printer_cali_info.cache_flow_ratio = obj->cache_flow_ratio;
     printer_cali_info.selected_presets = obj->selected_cali_preset;
+    printer_cali_info.cache_flow_rate_calibration_type = obj->flow_ratio_calibration_type;
     wxGetApp().app_config->save_printer_cali_infos(printer_cali_info, back_cali_flag);
 }
 

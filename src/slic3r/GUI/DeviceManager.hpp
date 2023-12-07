@@ -133,6 +133,7 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+
 struct RatingInfo {
     bool        request_successful;
     int         http_code;
@@ -622,6 +623,7 @@ public:
     std::vector<CaliPresetInfo> selected_cali_preset;
     float                      cache_flow_ratio { 0.0 };
     bool                       cali_finished = true;
+    FlowRatioCalibrationType   flow_ratio_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
 
     ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
     bool                       has_get_pa_calib_tab{ false };

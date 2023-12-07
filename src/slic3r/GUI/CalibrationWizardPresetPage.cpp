@@ -35,16 +35,16 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
 
     m_complete_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Complete Calibration"));
     m_complete_radioBox->SetForegroundColour(*wxBLACK);
+    
     m_complete_radioBox->SetValue(true);
     m_stage = CALI_MANUAL_STAGE_1;
     m_top_sizer->Add(m_complete_radioBox);
     m_top_sizer->AddSpacer(FromDIP(10));
-
     m_fine_radioBox = new wxRadioButton(parent, wxID_ANY, _L("Fine Calibration based on flow ratio"));
     m_fine_radioBox->SetForegroundColour(*wxBLACK);
     m_top_sizer->Add(m_fine_radioBox);
 
-    auto input_panel = new wxPanel(parent);
+    input_panel = new wxPanel(parent);
     input_panel->Hide();
     auto input_sizer = new wxBoxSizer(wxHORIZONTAL);
     input_panel->SetSizer(input_sizer);
@@ -58,15 +58,16 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     m_top_sizer->Add(input_panel);
 
     m_top_sizer->AddSpacer(PRESET_GAP);
-
     // events
-    m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this, input_panel](auto& e) {
+    m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
+        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = COMPLETE_CALIBRATION;
         input_panel->Show(false);
         m_stage = CALI_MANUAL_STAGE_1;
         GetParent()->Layout();
         GetParent()->Fit();
         });
-    m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this, input_panel](auto& e) {
+    m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
+        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = FINE_CALIBRATION;
         input_panel->Show();
         m_stage = CALI_MANUAL_STAGE_2;
         GetParent()->Layout();
@@ -125,6 +126,19 @@ void CaliPresetCaliStagePanel::set_flow_ratio_value(float flow_ratio)
 {
     flow_ratio_input->GetTextCtrl()->SetValue(wxString::Format("%.2f", flow_ratio));
     m_flow_ratio_value = flow_ratio;
+}
+
+void CaliPresetCaliStagePanel::set_flow_ratio_calibration_type(FlowRatioCalibrationType type) {
+    if (type == COMPLETE_CALIBRATION) {
+        m_complete_radioBox->SetValue(true);
+        input_panel->Hide();
+    }
+    else if (type == FINE_CALIBRATION) {
+        m_fine_radioBox->SetValue(true);
+        input_panel->Show();
+    }
+    GetParent()->Layout();
+    GetParent()->Fit();
 }
 
 CaliComboBox::CaliComboBox(wxWindow* parent,
@@ -674,6 +688,7 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_step_panel, 0, wxEXPAND, 0);
 
     m_cali_stage_panel = new CaliPresetCaliStagePanel(parent);
+    m_cali_stage_panel->set_parent(this);
     m_top_sizer->Add(m_cali_stage_panel, 0);
 
     m_selection_panel = new wxPanel(parent);
@@ -1456,6 +1471,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 {
     if (!obj) return;
 
+    //set flow ratio calibration type
+    m_cali_stage_panel->set_flow_ratio_calibration_type(obj->flow_ratio_calibration_type);
     // set nozzle value from machine
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {

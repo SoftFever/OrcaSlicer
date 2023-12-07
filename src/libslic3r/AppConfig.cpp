@@ -562,6 +562,8 @@ std::string AppConfig::load()
                         cali_info.cali_finished = bool(calis_j["cali_finished"].get<int>());
                     if (calis_j.contains("flow_ratio"))
                         cali_info.cache_flow_ratio = calis_j["flow_ratio"].get<float>();
+                    if (calis_j.contains("cache_flow_rate_calibration_type"))
+                        cali_info.cache_flow_rate_calibration_type = static_cast<FlowRatioCalibrationType>(calis_j["cache_flow_rate_calibration_type"].get<int>());
                     if (calis_j.contains("presets")) {
                         cali_info.selected_presets.clear();
                         for (auto cali_it = calis_j["presets"].begin(); cali_it != calis_j["presets"].end(); cali_it++) {
@@ -684,6 +686,7 @@ void AppConfig::save()
         cali_json["dev_id"]             = cali_info.dev_id;
         cali_json["flow_ratio"]         = cali_info.cache_flow_ratio;
         cali_json["cali_finished"]      = cali_info.cali_finished ? 1 : 0;
+        cali_json["cache_flow_rate_calibration_type"] = static_cast<int>(cali_info.cache_flow_rate_calibration_type);
         for (auto filament_preset : cali_info.selected_presets) {
             json preset_json;
             preset_json["tray_id"] = filament_preset.tray_id;
@@ -1036,6 +1039,7 @@ void AppConfig::save_printer_cali_infos(const PrinterCaliInfo &cali_info, bool n
         }
         (*iter).cache_flow_ratio = cali_info.cache_flow_ratio;
         (*iter).selected_presets = cali_info.selected_presets;
+        (*iter).cache_flow_rate_calibration_type = cali_info.cache_flow_rate_calibration_type;
     }
     m_dirty = true;
 }
