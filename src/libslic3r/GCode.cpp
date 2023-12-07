@@ -1947,7 +1947,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             bbox_wo_wt.merge(unscaled(objPtr->get_first_layer_bbox(data.area, data.layer_height, data.name)));
         }
         auto center = bbox_wo_wt.center();
-        m_placeholder_parser.set("first_layer_center_no_wipe_tower", new ConfigOptionFloats(center.x(),center.y()));
+        m_placeholder_parser.set("first_layer_center_no_wipe_tower", new ConfigOptionFloats{ {center.x(),center.y()}});
     }
 
     int max_chamber_temp = 0;
