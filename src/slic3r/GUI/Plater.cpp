@@ -2189,6 +2189,7 @@ struct Plater::priv
     void collapse_sidebar(bool collapse);
     void update_sidebar(bool force_update = false);
     void reset_window_layout();
+    Sidebar::DockingState get_sidebar_docking_state();
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
@@ -3213,6 +3214,19 @@ void Plater::priv::reset_window_layout()
     m_aui_mgr.LoadPerspective(m_default_window_layout, false);
     sidebar_layout.is_collapsed = false;
     update_sidebar(true);
+}
+
+Sidebar::DockingState Plater::priv::get_sidebar_docking_state() {
+    if (!sidebar_layout.is_enabled) {
+        return Sidebar::None;
+    }
+
+    const auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+    if(sidebar.IsFloating()) {
+        return Sidebar::None;
+    }
+
+    return sidebar.dock_direction == wxAUI_DOCK_RIGHT ? Sidebar::Right : Sidebar::Left;
 }
 
 void Plater::priv::reset_all_gizmos()
@@ -7412,7 +7426,7 @@ bool Plater::priv::init_collapse_toolbar()
 
     item.name = "collapse_sidebar";
     // set collapse svg name
-    item.icon_filename = "*.svg";
+    item.icon_filename = "collapse.svg";
     item.sprite_id = 0;
     item.left.action_callback = []() {
         wxGetApp().plater()->collapse_sidebar(!wxGetApp().plater()->is_sidebar_collapsed());
@@ -10152,6 +10166,7 @@ bool Plater::is_sidebar_enabled() const { return p->sidebar_layout.is_enabled; }
 void Plater::enable_sidebar(bool enabled) { p->enable_sidebar(enabled); }
 bool Plater::is_sidebar_collapsed() const { return p->sidebar_layout.is_collapsed; }
 void Plater::collapse_sidebar(bool collapse) { p->collapse_sidebar(collapse); }
+Sidebar::DockingState Plater::get_sidebar_docking_state() const { return p->get_sidebar_docking_state(); }
 
 void Plater::reset_window_layout() { p->reset_window_layout(); }
 
@@ -12329,11 +12344,6 @@ void Plater::enable_view_toolbar(bool enable)
 bool Plater::init_collapse_toolbar()
 {
     return p->init_collapse_toolbar();
-}
-
-void Plater::enable_collapse_toolbar(bool enable)
-{
-    p->collapse_toolbar.set_enabled(enable);
 }
 
 const Camera& Plater::get_camera() const

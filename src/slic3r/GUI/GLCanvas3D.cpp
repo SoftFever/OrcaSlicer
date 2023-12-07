@@ -4844,11 +4844,6 @@ void GLCanvas3D::update_ui_from_settings()
         _refresh_if_shown_on_screen();
     }
 #endif // ENABLE_RETINA_GL
-
-#ifdef SUPPORT_COLLAPSE_BUTTON
-    if (wxGetApp().is_editor())
-        wxGetApp().plater()->enable_collapse_toolbar(wxGetApp().app_config->get("show_collapse_button") == "1");
-#endif
 }
 
 // BBS: add partplate logic
@@ -7156,6 +7151,9 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
+    // Update collapse toolbar
+    collapse_toolbar.set_enabled(wxGetApp().plater()->get_sidebar_docking_state() != Sidebar::None);
+
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : GLToolbar::Default_Icons_Size;
@@ -7889,12 +7887,18 @@ void GLCanvas3D::_render_separator_toolbar_left() const
 
 void GLCanvas3D::_render_collapse_toolbar() const
 {
-    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    auto&      plater              = *wxGetApp().plater();
+    const auto sidebar_docking_dir = plater.get_sidebar_docking_state();
+    if (sidebar_docking_dir == Sidebar::None) {
+        return;
+    }
+
+    GLToolbar& collapse_toolbar = plater.get_collapse_toolbar();
 
     const Size cnv_size = get_canvas_size();
     const float top  = 0.5f * (float)cnv_size.get_height();
-    //const float left = (0.5f * (float)cnv_size.get_width() - (float)collapse_toolbar.get_width() - band);
-    const float left = -0.5f * (float)cnv_size.get_width();
+    const float left = sidebar_docking_dir == Sidebar::Right ? 0.5f * (float) cnv_size.get_width() - (float) collapse_toolbar.get_width() :
+                                                               -0.5f * (float) cnv_size.get_width();
 
     collapse_toolbar.set_position(top, left);
     collapse_toolbar.render(*this);

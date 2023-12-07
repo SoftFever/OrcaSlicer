@@ -122,6 +122,11 @@ class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
 public:
+    enum DockingState
+    {
+        None, Left, Right
+    };
+
     Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
     Sidebar(const Sidebar &) = delete;
@@ -317,6 +322,7 @@ public:
     void enable_sidebar(bool enabled);
     bool is_sidebar_collapsed() const;
     void collapse_sidebar(bool collapse);
+    Sidebar::DockingState get_sidebar_docking_state() const;
 
     void reset_window_layout();
 
@@ -545,7 +551,6 @@ public:
 #endif
 
     bool init_collapse_toolbar();
-    void enable_collapse_toolbar(bool enable);
 
     const Camera& get_camera() const;
     Camera& get_camera();
