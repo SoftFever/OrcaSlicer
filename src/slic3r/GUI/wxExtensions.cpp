@@ -413,17 +413,26 @@ static int scale()
 }
 #endif // __WXGTK2__
 
-wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name_in, int px_cnt/* = 16*/)
+wxBitmapBundle* get_bmp_bundle(const std::string& bmp_name_in, int width/* = 16*/, int height/* = -1*/)
 {
+#ifdef __WXGTK2__
+    width *= scale();
+    if (height > 0)
+        height *= scale();
+#endif // __WXGTK2__
+
     static Slic3r::GUI::BitmapCache cache;
     
     std::string bmp_name = bmp_name_in;
     boost::replace_last(bmp_name, ".png", "");
 
+    if (height < 0)
+        height = width;
+
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmapBundle* bmp = cache.from_svg(bmp_name, px_cnt, px_cnt, Slic3r::GUI::wxGetApp().dark_mode());
+    wxBitmapBundle* bmp = cache.from_svg(bmp_name, width, height, Slic3r::GUI::wxGetApp().dark_mode());
     if (bmp == nullptr) {
-        bmp = cache.from_png(bmp_name, px_cnt, px_cnt);
+        bmp = cache.from_png(bmp_name, width, height);
         if (!bmp)
             // Neither SVG nor PNG has been found, raise error
             throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
@@ -887,7 +896,7 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
                                 const bool resize/* = false*/,
                                 const bool use_legacy_bmp/* = false*/):
     m_parent(parent), m_icon_name(icon_name), m_legacy_bmp(use_legacy_bmp),
-    m_px_cnt(px_cnt), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
+    m_size({px_cnt, px_cnt}), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
 {
     // Orca: there is currently an issue causing the advanced SwitchButton to not scale properly
     // when using get_bmp_bundle. This allows for the older method of getting a scaled bitmap to be
@@ -895,8 +904,8 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     if (m_legacy_bmp) {
         m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize);
         if (px_cnt == 0) {
-            m_px_cnt            = GetHeight(); // scale
-            unsigned int height = (unsigned int) (parent->FromDIP(m_px_cnt) + 0.5f);
+            m_size.x = m_size.y = GetHeight(); // scale
+            unsigned int height = (unsigned int) (parent->FromDIP(px_cnt) + 0.5f);
             if (height != GetHeight())
                 sys_color_changed();
         }
@@ -905,14 +914,24 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
     }
 }
 
+ScalableBitmap::ScalableBitmap( wxWindow *parent,
+                               const std::string& icon_name,
+                               const wxSize size,
+                               const bool grayscale/* = false*/,
+                               const bool resize/* = false*/):
+    m_parent(parent), m_icon_name(icon_name),
+    m_size(size), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
+{
+    m_bmp = *get_bmp_bundle(icon_name, size.x, size.y);
+}
 
 void ScalableBitmap::sys_color_changed()
 {
     if (m_legacy_bmp) {
     // BBS: support resize by fill border
-        m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, std::string(), false, m_resize);
+        m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_size.x, m_grayscale, std::string(), false, m_resize);
     } else
-        m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt);
+        m_bmp = *get_bmp_bundle(m_icon_name, m_size.x, m_size.y);
 }
 
 // ----------------------------------------------------------------------------
