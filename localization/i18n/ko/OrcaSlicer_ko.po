@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-02 13:02+0800\n"
-"PO-Revision-Date: 2023-11-19 11:26+0900\n"
+"PO-Revision-Date: 2023-12-06 00:13+0900\n"
 "Last-Translator: Hotsolidinfill <138652683+Hotsolidinfill@users.noreply."
 "github.com>, crwusiz <crwusiz@naver.com>\n"
 "Language-Team: \n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.4\n"
+"X-Generator: Poedit 3.4.1\n"
 
 msgid "Supports Painting"
 msgstr "지지대 칠하기"
@@ -108,7 +108,7 @@ msgid "Support Generated"
 msgstr "지지대 생성됨"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Gizmo-면에 배치"
 
 msgid "Lay on face"
 msgstr "바닥면 선택"
@@ -158,7 +158,7 @@ msgid "Height range"
 msgstr "높이 범위"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "와이어프레임 전환"
@@ -189,13 +189,13 @@ msgid "Move"
 msgstr "이동"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Gizmo-이동"
 
 msgid "Rotate"
 msgstr "회전"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Gizmo-회전"
 
 msgid "Optimize orientation"
 msgstr "방향 최적화"
@@ -207,16 +207,16 @@ msgid "Scale"
 msgstr "배율"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Gizmo-배율"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "오류: 먼저 모든 도구 모음 메뉴를 닫으십시오."
 
 msgid "in"
-msgstr "in"
+msgstr "인치"
 
 msgid "mm"
-msgstr "mm"
+msgstr "밀리미터"
 
 msgid "Position"
 msgstr "위치"
@@ -506,13 +506,13 @@ msgid "Remove selection"
 msgstr "선택 삭제"
 
 msgid "Entering Seam painting"
-msgstr ""
+msgstr "솔기 칠하기 입력"
 
 msgid "Leaving Seam painting"
-msgstr ""
+msgstr "솔기 칠하기 떠나기"
 
 msgid "Paint-on seam editing"
-msgstr ""
+msgstr "페인트칠 솔기 편집"
 
 msgid "Font"
 msgstr "글꼴"
@@ -555,7 +555,7 @@ msgid "Ctrl+"
 msgstr "Ctrl+"
 
 msgid "Notice"
-msgstr "공지"
+msgstr "공지사항"
 
 msgid "Undefined"
 msgstr "정의되지 않음"
@@ -615,7 +615,7 @@ msgid "OrcaSlicer got an unhandled exception: %1%"
 msgstr "OrcaSlicer에 처리되지 않은 예외가 발생했습니다: %1%"
 
 msgid "Downloading Bambu Network Plug-in"
-msgstr "Bambu 네트워크 플러그인 다운로드"
+msgstr "뱀부 네트워크 플러그인 다운로드"
 
 msgid "Login information expired. Please login again."
 msgstr "로그인 정보가 만료되었습니다. 다시 로그인해주세요."
@@ -732,9 +732,11 @@ msgid ""
 "The number of user presets cached in the cloud has exceeded the upper limit, "
 "newly created user presets can only be used locally."
 msgstr ""
+"클라우드에 캐시된 사용자 사전 설정 수가 상한을 초과했습니다.새로 생성된 사용"
+"자 사전 설정은 로컬에서만 사용할 수 있습니다."
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "사용자 사전 설정 동기화"
 
 msgid "Loading"
 msgstr "로드 중"
@@ -749,7 +751,7 @@ msgid "Select the language"
 msgstr "언어 선택"
 
 msgid "Language"
-msgstr "언어(Language)"
+msgstr "언어"
 
 msgid "*"
 msgstr "*"
@@ -892,7 +894,7 @@ msgid "Autodesk FDM Test"
 msgstr "Autodesk FDM 테스트"
 
 msgid "Voron Cube"
-msgstr "Voron 큐브"
+msgstr "보론 큐브"
 
 msgid "Cube"
 msgstr "정육면체"
@@ -931,10 +933,10 @@ msgid "Fix model"
 msgstr "모델 수리"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "하나의 STL로 내보내기"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "여러 STL로 내보내기"
 
 msgid "Reload from disk"
 msgstr "디스크에서 다시 불러오기"
@@ -1043,7 +1045,7 @@ msgid "Add Primitive"
 msgstr "기본 모델 추가"
 
 msgid "Show Labels"
-msgstr "이름표 표시"
+msgstr "이름표 보기"
 
 msgid "To objects"
 msgstr "개체로"
@@ -1420,7 +1422,7 @@ msgid "Reset parameter"
 msgstr "매개변수 초기화"
 
 msgid "Multicolor Print"
-msgstr "다색상 출력"
+msgstr "멀티컬러 출력"
 
 msgid "Line Type"
 msgstr "선 유형"
@@ -1444,7 +1446,7 @@ msgid "Pause"
 msgstr "일시 정지"
 
 msgid "Template"
-msgstr ""
+msgstr "탬플릿"
 
 msgid "Custom"
 msgstr "사용자 설정"
@@ -1570,7 +1572,7 @@ msgid "Load Filament"
 msgstr "필라멘트 넣기"
 
 msgid "Unload Filament"
-msgstr "필라멘트 빼기"
+msgstr "필라멘트 언로드"
 
 msgid "Ext Spool"
 msgstr "외부 스풀"
@@ -1705,7 +1707,7 @@ msgid "Orienting"
 msgstr "방향 지정 중"
 
 msgid "Filling"
-msgstr ""
+msgstr "채움"
 
 msgid "Bed filling canceled."
 msgstr "베드 채움 취소됨."
@@ -1759,7 +1761,7 @@ msgstr "Ftp에 파일을 업로드하지 못했습니다. 다시 시도해 주�
 
 msgid ""
 "Check the current status of the bambu server by clicking on the link above."
-msgstr "위의 링크를 클릭하여 Bambu Lab 서버의 현재 상태를 확인하십시오."
+msgstr "위의 링크를 클릭하여 뱀부랩 서버의 현재 상태를 확인하십시오."
 
 msgid ""
 "The size of the print file is too large. Please adjust the file size and try "
@@ -1784,12 +1786,14 @@ msgid "Sending print job through cloud service"
 msgstr "클라우드 서비스를 통해 출력 작업 전송 중"
 
 msgid "Print task sending times out."
-msgstr ""
+msgstr "인쇄 작업 전송 시간이 초과되었습니다."
 
 msgid ""
 "The printer timed out while receiving a print job. Please check if the "
 "network is functioning properly and send the print again."
 msgstr ""
+"프린터가 인쇄 작업을 수신하는 동안 시간이 초과되었습니다.네트워크가 제대로 작"
+"동하는지 확인하고 인쇄를 다시 보내십시오."
 
 msgid "Service Unavailable"
 msgstr "서비스 사용 불가"
@@ -1934,7 +1938,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "About %s"
-msgstr "About %s"
+msgstr "%s 정보"
 
 msgid "Orca Slicer "
 msgstr "Orca Slicer "
@@ -2016,10 +2020,10 @@ msgid "You need to select the material type and color first."
 msgstr "재료 유형과 색상을 먼저 선택해야 합니다."
 
 msgid "Please input a valid value (K in 0~0.3)"
-msgstr ""
+msgstr "유효한 값을 입력하십시오(K는 0~0.3)"
 
 msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr ""
+msgstr "유효한 값을 입력하십시오(K는 0~0.3, N은 0.6~2.0)"
 
 msgid "Other Color"
 msgstr "기타 색상"
@@ -2212,8 +2216,8 @@ msgid ""
 "The AMS will automatically read the filament information when inserting a "
 "new Bambu Lab filament. This takes about 20 seconds."
 msgstr ""
-"AMS는 새 Bambu Lab 필라멘트를 삽입할 때 필라멘트 정보를 자동으로 읽습니다. "
-"이 작업은 약 20초 정도 걸립니다."
+"AMS는 새 뱀부랩 필라멘트를 삽입할 때 필라멘트 정보를 자동으로 읽습니다. 이 작"
+"업은 약 20초 정도 걸립니다."
 
 msgid ""
 "Note: if new filament is inserted during  printing, the AMS will not "
@@ -2303,7 +2307,7 @@ msgstr ""
 "벗어나 장치가 마모되는 것을 방지할 수 있습니다."
 
 msgid "Go Home"
-msgstr "홈으로 이동"
+msgstr "홈으로"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2336,7 +2340,7 @@ msgid "Underflow"
 msgstr "압출부족"
 
 msgid "Floating reserved operand"
-msgstr "Floating reserved operand"
+msgstr "떠있는 예약 피연산자"
 
 msgid "Stack overflow"
 msgstr "스택 오버플로"
@@ -2521,7 +2525,7 @@ msgid ""
 "Spiral mode only works when wall loops is 1, support is disabled, top shell "
 "layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr ""
-"나선 모드는 벽 루프 1, 지지대 비활성화, 상단 셸 레이어 0, 드문 내부 채움 밀"
+"나선형 모드는 벽 루프 1, 지지대 비활성화, 상단 셸 레이어 0, 드문 내부 채움 밀"
 "도 0, 타임랩스 유형이 기존인 경우에만 작동합니다."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -2533,7 +2537,7 @@ msgid ""
 "No  - Give up using spiral mode this time"
 msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
-"예   - 이 설정을 변경하고 나선 모드를 자동으로 활성화합니다\n"
+"예 - 이 설정을 변경하고 나선 모드를 자동으로 활성화합니다\n"
 "아니오 - 이번에는 나선 모드 사용을 포기합니다"
 
 msgid ""
@@ -2546,7 +2550,7 @@ msgstr ""
 "적응형 레이어 높이 또는 독립적 지지대 레이어 높이가 켜져 있으면 프라임 타워"
 "가 작동하지 않습니다.\n"
 "어떤 것을 유지하시겠습니까?\n"
-"예   - 프라임 타워 유지\n"
+"예 - 프라임 타워 유지\n"
 "아니요 - 적응형 레이어 높이 및 독립적 지지대 레이어 높이 유지"
 
 msgid ""
@@ -2557,7 +2561,7 @@ msgid ""
 msgstr ""
 "적응형 레이어 높이가 켜져 있으면 프라임 타워가 작동하지 않습니다.\n"
 "어떤 것을 유지하시겠습니까?\n"
-"예   - 프라임 타워 유지\n"
+"예 - 프라임 타워 유지\n"
 "아니요 - 적응형 레이어 높이 유지"
 
 msgid ""
@@ -2568,7 +2572,7 @@ msgid ""
 msgstr ""
 "독립적 지지대 레이어 높이가 켜져 있으면 프라임 타워가 작동하지 않습니다.\n"
 "어떤 것을 유지하시겠습니까?\n"
-"예   - 프라임 타워 유지\n"
+"예 - 프라임 타워 유지\n"
 "아니요 - 독립적 지지대 레이어 높이 유지"
 
 msgid ""
@@ -2672,16 +2676,16 @@ msgid "Motor noise showoff"
 msgstr "모터 소음 표시"
 
 msgid "Nozzle filament covered detected pause"
-msgstr ""
+msgstr "노즐 필라멘트가 덮여있는게 감지되어 일시중지"
 
 msgid "Cutter error pause"
-msgstr ""
+msgstr "커터 오류 일시중지"
 
 msgid "First layer error pause"
-msgstr ""
+msgstr "첫번째 레이어 오류 일시중지"
 
 msgid "Nozzle clog pause"
-msgstr ""
+msgstr "노즐 막힘 일시 중지"
 
 msgid "MC"
 msgstr "MC"
@@ -2766,14 +2770,14 @@ msgid "TPU is not supported by AMS."
 msgstr "TPU는 AMS에서 지원되지 않습니다."
 
 msgid "Bambu PET-CF/PA6-CF is not supported by AMS."
-msgstr "Bambu PET-CF/PA6-CF는 AMS에서 지원되지 않습니다."
+msgstr "뱀부 PET-CF/PA6-CF는 AMS에서 지원되지 않습니다."
 
 msgid ""
 "Damp PVA will become flexible and get stuck inside AMS,please take care to "
 "dry it before use."
 msgstr ""
-"Damp PVA will become flexible and get stuck inside AMS,please take care to "
-"dry it before use."
+"습한 PVA는 유연해져서 AMS 내부에 달라붙게 됩니다. 사용하기 전에 건조시키십시"
+"오."
 
 msgid ""
 "CF/GF filaments are hard and brittle, It's easy to break or get stuck in "
@@ -2886,7 +2890,7 @@ msgid "Total"
 msgstr "합계"
 
 msgid "Tower"
-msgstr ""
+msgstr "타워"
 
 msgid "Total Estimation"
 msgstr "추정치 합계"
@@ -2982,10 +2986,10 @@ msgid "Print settings"
 msgstr "프린터 설정"
 
 msgid "Custom g-code"
-msgstr ""
+msgstr "사용자정의 G코드"
 
 msgid "ToolChange"
-msgstr ""
+msgstr "툴체인지"
 
 msgid "Time Estimation"
 msgstr "추정 시간"
@@ -3229,7 +3233,7 @@ msgid "Auto-record Monitoring"
 msgstr "모니터링 자동 기록"
 
 msgid "Go Live"
-msgstr "Go Live"
+msgstr "실시간"
 
 msgid "Resolution"
 msgstr "해상도"
@@ -3345,7 +3349,7 @@ msgstr "네트워크 테스트 열기"
 
 #, c-format, boost-format
 msgid "&About %s"
-msgstr "&%s 정보"
+msgstr "%s 정보 (&A)"
 
 msgid "Upload Models"
 msgstr "모델 업로드"
@@ -3440,10 +3444,10 @@ msgid "Import"
 msgstr "가져오기"
 
 msgid "Export all objects as one STL"
-msgstr ""
+msgstr "모든 개체를 하나의 STL로 내보내기"
 
 msgid "Export all objects as STLs"
-msgstr ""
+msgstr "모든 개체를 여러 STL로 내보내기"
 
 msgid "Export Generic 3MF"
 msgstr "일반 3MF 내보내기"
@@ -3464,7 +3468,7 @@ msgid "Export current plate as G-code"
 msgstr "현재 플레이트를 G코드로 내보내기"
 
 msgid "Export &Configs"
-msgstr "설정 &내보내기"
+msgstr "설정 내보내기 (&C)"
 
 msgid "Export current configuration to files"
 msgstr "현재 설정을 파일로 내보내기"
@@ -3533,19 +3537,19 @@ msgid "Use Orthogonal View"
 msgstr "평행 투영 보기 사용"
 
 msgid "Show &G-code Window"
-msgstr ""
+msgstr "G코드 창 표시 (&G)"
 
 msgid "Show g-code window in Previce scene"
-msgstr ""
+msgstr "예측 장면에 G코드 창 표시"
 
 msgid "Show &Labels"
-msgstr "이름표 &보기"
+msgstr "이름표 보기 (&L)"
 
 msgid "Show object labels in 3D scene"
 msgstr "3D 화면에 개체 이름표 표시"
 
 msgid "Show &Overhang"
-msgstr "돌출부 보기"
+msgstr "돌출부 보기 (&O)"
 
 msgid "Show object overhang highlight in 3D scene"
 msgstr "3D 장면에서 개체 오버행 하이라이트 표시"
@@ -3605,44 +3609,44 @@ msgid "More calibrations"
 msgstr "추가 교정"
 
 msgid "&Open G-code"
-msgstr "&G코드 열기"
+msgstr "G코드 열기 (&O)"
 
 msgid "Open a G-code file"
 msgstr "G코드 파일 열기"
 
 msgid "Re&load from Disk"
-msgstr "디스크에서 다시&로드"
+msgstr "디스크에서 다시 불러오기 (&l)"
 
 msgid "Reload the plater from disk"
 msgstr "디스크에서 플레이트 다시 로드"
 
 msgid "Export &Toolpaths as OBJ"
-msgstr "툴 경로를 OBJ로 &내보내기"
+msgstr "툴 경로를 OBJ로 내보내기 (&T)"
 
 msgid "Export toolpaths as OBJ"
 msgstr "툴 경로를 OBJ로 내보내기"
 
 msgid "Open &Studio"
-msgstr "Studio &열기"
+msgstr "Studio 열기 (&O)"
 
 msgid "Open Studio"
 msgstr "Studio 열기"
 
 msgid "&Quit"
-msgstr "&종료"
+msgstr "종료 (&Q)"
 
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "종료 %s"
 
 msgid "&File"
-msgstr "&파일"
+msgstr "파일 (&F)"
 
 msgid "&View"
-msgstr "&시점"
+msgstr "시점 (&V)"
 
 msgid "&Help"
-msgstr "&도움말"
+msgstr "도움말 (&H)"
 
 #, c-format, boost-format
 msgid "A file exists with the same name: %s, do you want to override it."
@@ -3700,7 +3704,7 @@ msgid ""
 "2. The Filament presets\n"
 "3. The Printer presets"
 msgstr ""
-"Bambu Cloud의 개인 데이터를 동기화하시겠습니까?\n"
+"뱀부 클라우드의 개인 데이터를 동기화하시겠습니까?\n"
 "다음과 같은 정보가 포함되어 있습니다:\n"
 "1. 프로세스 사전 설정\n"
 "2. 필라멘트 사전 설정\n"
@@ -3905,16 +3909,16 @@ msgid "Downloading %d%%..."
 msgstr "다운로드 중 %d%%..."
 
 msgid "Connection lost. Please retry."
-msgstr ""
+msgstr "연결이 끊어졌습니다. 다시 시도해 주세요."
 
 msgid "The device cannot handle more conversations. Please retry later."
-msgstr ""
+msgstr "장치에서 더 많은 대화를 처리할 수 없습니다. 나중에 다시 시도해 주세요."
 
 msgid "File not exists."
-msgstr ""
+msgstr "파일이 존재하지 않습니다."
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "파일 체크섬 오류입니다. 다시 시도해 주세요."
 
 msgid "Not supported on the current printer version."
 msgstr "현재 프린터 버전에서는 지원되지 않습니다."
@@ -3924,7 +3928,7 @@ msgstr "저장소를 사용할 수 없습니다. SD 카드를 삽입하세요."
 
 #, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "오류 코드: %d"
 
 msgid "Speed:"
 msgstr "속도:"
@@ -4033,7 +4037,7 @@ msgid "Bed"
 msgstr "베드"
 
 msgid "Unload"
-msgstr "빼기"
+msgstr "언로드"
 
 msgid "Debug Info"
 msgstr "디버그 정보"
@@ -4071,13 +4075,13 @@ msgstr "레이어: %d/%d"
 msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
 "filament."
-msgstr ""
+msgstr "로드하거나 언로드하기 전에 노즐을 170도 이상으로 가열하십시오.필라멘트"
 
 msgid "Still unload"
-msgstr "빼는중"
+msgstr "언로드중"
 
 msgid "Still load"
-msgstr "넣는중"
+msgstr "로드중"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "교정하기 전에 AMS 슬롯을 선택하십시오"
@@ -4274,7 +4278,7 @@ msgid "Details"
 msgstr "세부 사항"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "새로운 프린터 구성을 사용할 수 있습니다."
 
 msgid "Wiki"
 msgstr "위키"
@@ -4283,7 +4287,7 @@ msgid "Undo integration failed."
 msgstr "통합 실행 취소에 실패했습니다."
 
 msgid "Exporting."
-msgstr "내보내는 중."
+msgstr "내보내는중."
 
 msgid "Software has New version."
 msgstr "소프트웨어에 새 버전이 있습니다."
@@ -4430,7 +4434,7 @@ msgid "Allow Prompt Sound"
 msgstr "프롬프트 소리 허용"
 
 msgid "Fliament Tangle Detect"
-msgstr ""
+msgstr "필라멘트 엉킴 감지"
 
 msgid "Global"
 msgstr "전역"
@@ -4527,7 +4531,7 @@ msgid "Set filaments to use"
 msgstr "사용할 필라멘트 설정"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "플레이트, 개체 및 부품을 검색합니다."
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -4605,9 +4609,9 @@ msgid ""
 "nozzle hardness of the printer. Please replace the hardened nozzle or "
 "filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
-"필라멘트에 필요한 노즐 경도가 프린터의 기본 노즐 경도보다 높습니다. "
-"\"Hardened\" 노즐을 사용하거나 필라멘트를 교체하십시오. 그렇지 않으면 노즐이 "
-"마모되거나 손상됩니다."
+"필라멘트에 필요한 노즐 경도가 프린터의 기본 노즐 경도보다 높습니다. \"경화강"
+"\" 노즐을 사용하거나 필라멘트를 교체하십시오. 그렇지 않으면 노즐이 마모되거"
+"나 손상됩니다."
 
 msgid ""
 "Enabling traditional timelapse photography may cause surface imperfections. "
@@ -4640,25 +4644,28 @@ msgstr "매개변수 탭에서 수정하세요"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
 msgstr ""
+"3mf에는 필라멘트 또는 프린터 사전 설정에 다음과 같은 수정된 G코드가 있습니다:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
-msgstr ""
+msgstr "이 수정된 G코드가 손상을 방지하기 위해 안전한지 확인하십시오.장치!"
 
 msgid "Modified G-codes"
-msgstr ""
+msgstr "수정된 G코드"
 
 msgid "The 3mf has following customized filament or printer presets:"
-msgstr ""
+msgstr "3mf에는 다음과 같은 맞춤형 필라멘트 또는 프린터 사전 설정이 있습니다:"
 
 msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"이러한 사전 설정 내의 G코드가 기계 손상을 방지할 수 있도록 안전한지 확인하십"
+"시오!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "맞춤형 프리셋"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "단계 파일 내의 구성 요소 이름이 UTF8 형식이 아닙니다!"
@@ -4733,9 +4740,11 @@ msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
 msgstr ""
+"파일 %s이(가) 이미 존재합니다.\n"
+"파일을 바꾸시겠습니까?"
 
 msgid "Comfirm Save As"
-msgstr ""
+msgstr "다른 이름으로 저장 확인"
 
 msgid "Delete object which is a part of cut object"
 msgstr "잘라낸 개체의 일부인 개체 삭제"
@@ -4786,7 +4795,7 @@ msgid "Unable to reload:"
 msgstr "새로고침할 수 없음:"
 
 msgid "Error during reload"
-msgstr "새로고침 중 오류가 발생했습니다."
+msgstr "새로고침 중 오류가 발생했습니다"
 
 msgid "Slicing"
 msgstr "슬라이싱"
@@ -5056,7 +5065,7 @@ msgid "Browse"
 msgstr "탐색"
 
 msgid "Choose Download Directory"
-msgstr "다운로드 디렉토리 선택"
+msgstr "다운로드 폴더 선택"
 
 msgid "General Settings"
 msgstr "일반 설정"
@@ -5129,10 +5138,10 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr "활성화된 경우 시작 시 유용한 힌트가 표시됩니다."
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
-msgstr ""
+msgstr "플러시 볼륨: 색상이 변경될 때마다 자동 계산됩니다."
 
 msgid "If enabled, auto-calculate everytime the color changed."
-msgstr ""
+msgstr "활성화하면 색상이 변경될 때마다 자동 계산됩니다."
 
 msgid "Presets"
 msgstr "사전 설정"
@@ -5187,7 +5196,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "저장되지 않은 프로젝트에서 내 선택을 지웁니다."
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "수정된 G 코드로 3MF를 로드할 때 경고 없음"
 
 msgid "Auto-Backup"
 msgstr "자동 백업"
@@ -5341,10 +5350,10 @@ msgid "Add/Remove materials"
 msgstr "재료 추가/제거"
 
 msgid "Select/Remove printers(system presets)"
-msgstr ""
+msgstr "프린터 선택/제거(시스템 사전 설정)"
 
 msgid "Create printer"
-msgstr ""
+msgstr "프린터 생성"
 
 msgid "Incompatible"
 msgstr "호환되지 않음"
@@ -5497,7 +5506,7 @@ msgid "(LAN)"
 msgstr "(LAN)"
 
 msgid "Search"
-msgstr ""
+msgstr "검색"
 
 msgid "My Device"
 msgstr "내 장치"
@@ -5524,22 +5533,22 @@ msgid "Busy"
 msgstr "사용중"
 
 msgid "Bambu Cool Plate"
-msgstr "Bambu Cool Plate"
+msgstr "뱀부 쿨 플레이트"
 
 msgid "PLA Plate"
 msgstr "PLA 플레이트"
 
 msgid "Bamabu Engineering Plate"
-msgstr "Bamabu Engineering Plate"
+msgstr "뱀부 엔지니어링 플레이트"
 
 msgid "Bamabu Smooth PEI Plate"
-msgstr ""
+msgstr "뱀부 부드러운 PEI 플레이트"
 
 msgid "High temperature Plate"
 msgstr "고온 플레이트"
 
 msgid "Bamabu Textured PEI Plate"
-msgstr ""
+msgstr "뱀부 텍스처 PEI 플레이트"
 
 msgid "Send print job to"
 msgstr "출력 작업 보내기"
@@ -5666,6 +5675,7 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
+"인쇄 순서가 \"개체별\"로 설정되어 있으므로 시간 경과는 지원되지 않습니다."
 
 msgid "Errors"
 msgstr "오류"
@@ -5691,30 +5701,32 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
-msgstr ""
+msgstr "미리 설정된 노즐: %s %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "기억된 노즐: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
 msgstr ""
+"미리 설정된 노즐 직경이 기억된 노즐 직경과 일치하지 않습니다.직경. 최근에 노"
+"즐을 바꾸셨나요?"
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr ""
+msgstr "*%s 재료를 %s로 인쇄하면 노즐이 손상될 수 있습니다"
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
 msgstr "그래도 출력을 계속하려면 확인 버튼을 클릭하십시오."
 
 msgid "Hardened Steel"
-msgstr ""
+msgstr "경화강"
 
 msgid "Stainless Steel"
-msgstr ""
+msgstr "스테인레스 스틸"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5761,7 +5773,7 @@ msgid "Slice ok."
 msgstr "슬라이스 완료."
 
 msgid "View all Daily tips"
-msgstr ""
+msgstr "모든 일일 팁 보기"
 
 msgid "Failed to create socket"
 msgstr "소켓 생성 실패"
@@ -5812,11 +5824,11 @@ msgid ""
 "Use(collectively, the \"Terms\"). If you do not comply with or agree to the "
 "Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
-"Bambu Lab 기기를 구매해 주셔서 감사합니다. Bambu Lab 기기를 사용하기 전에 이"
-"용약관을 읽어주시기 바랍니다. Bambu Lab 기기 사용에 동의하기 위해 클릭하면 개"
-"인정보 보호정책 및 이용약관(이하 통칭하여 \"약관\")을 준수하는 데 동의하는 것"
-"입니다. Bambu Lab 개인정보 처리방침을 준수하지 않거나 동의하지 않는 경우, "
-"Bambu Lab 장치 및 서비스를 사용하지 마십시오."
+"뱀부랩 기기를 구매해 주셔서 감사합니다. 뱀부랩 기기를 사용하기 전에 이용약관"
+"을 읽어주시기 바랍니다. 뱀부랩 기기 사용에 동의하기 위해 클릭하면 개인정보 보"
+"호정책 및 이용약관(이하 통칭하여 \"약관\")을 준수하는 데 동의하는 것입니다. "
+"뱀부랩 개인정보 처리방침을 준수하지 않거나 동의하지 않는 경우, 뱀부랩 장치 "
+"및 서비스를 사용하지 마십시오."
 
 msgid "and"
 msgstr "그리고"
@@ -5905,7 +5917,7 @@ msgstr ""
 "까?"
 
 msgid "Still print by object?"
-msgstr ""
+msgstr "아직도 개체별로 인쇄하시겠습니까?"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -5922,7 +5934,7 @@ msgid ""
 "No  - Do not change these settings for me"
 msgstr ""
 "이 설정을 자동으로 변경하시겠습니까?\n"
-"예   - 이 설정을 자동으로 변경합니다\n"
+"예 - 이 설정을 자동으로 변경합니다\n"
 "아니요 - 이 설정을 변경하지 않습니다"
 
 msgid ""
@@ -5946,21 +5958,23 @@ msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
 msgstr ""
+"레이어 높이가 프린터 설정 -> 압출기 -> 레이어의 제한을 초과합니다.높이 제한으"
+"로 인해 인쇄 품질 문제가 발생할 수 있습니다."
 
 msgid "Adjust to the set range automatically? \n"
-msgstr ""
+msgstr "설정 범위에 자동으로 맞춰지나요? \n"
 
 msgid "Adjust"
-msgstr ""
+msgstr "조정"
 
 msgid "Ignore"
-msgstr ""
+msgstr "무시"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 "툴헤드 없이 시간 경과를 기록할 경우 \"타임랩스 닦기 타워\"를 추가하는 것이 좋"
 "습니다\n"
@@ -6222,7 +6236,7 @@ msgid "Machine end G-code"
 msgstr "장치 종료 G코드"
 
 msgid "Printing by object G-code"
-msgstr ""
+msgstr "개체 G코드로 인쇄"
 
 msgid "Before layer change G-code"
 msgstr "레이어 변경 전 G코드"
@@ -6240,7 +6254,7 @@ msgid "Change extrusion role G-code"
 msgstr "압출 역할 G코드 변경"
 
 msgid "Pause G-code"
-msgstr "일시정지 G코드"
+msgstr "일시 정지 G코드"
 
 msgid "Template Custom G-code"
 msgstr "템플릿 사용자 정의 G코드"
@@ -6298,13 +6312,15 @@ msgid ""
 "%d Filament Preset and %d Process Preset is attached to this printer. Those "
 "presets would be deleted if the printer is deleted."
 msgstr ""
+"%d개의 필라멘트 사전 설정과 %d개의 프로세스 사전 설정이 이 프린터에 연결되어 "
+"있습니다.프린터를 삭제하면 사전 설정도 삭제됩니다."
 
 msgid "Presets inherited by other presets can not be deleted!"
-msgstr ""
+msgstr "다른 프리셋에 상속된 프리셋은 삭제할 수 없습니다!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
+msgstr[0] "다음 사전 설정은 이 사전 설정을 상속합니다."
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -6320,6 +6336,9 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
+"선택한 사전 설정을 삭제하시겠습니까? \n"
+"프리셋이 현재 프린터에서 사용 중인 필라멘트와 일치하는 경우,해당 슬롯의 필라"
+"멘트 정보를 재설정해 주세요."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -6569,7 +6588,7 @@ msgid "Auto-Calc"
 msgstr "자동 계산"
 
 msgid "Re-calculate"
-msgstr ""
+msgstr "다시 계산"
 
 msgid "Flushing volumes for filament change"
 msgstr "필라멘트 교체를 위한 버리기 부피"
@@ -6579,6 +6598,8 @@ msgid ""
 "color changed. You could disable the auto-calculate in Bambu Studio > "
 "Preferences"
 msgstr ""
+"Studio는 필라멘트를 교체할 때마다 플러싱 볼륨을 다시 계산합니다.색상이 변경되"
+"었습니다. Bambu Studio > 에서 자동 계산을 비활성화할 수 있습니다.환경설정"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "각 필라멘트 쌍에 대한 버리기 부피(mm³)."
@@ -6595,10 +6616,10 @@ msgid "Multiplier"
 msgstr "승수"
 
 msgid "unloaded"
-msgstr "빼냄"
+msgstr "언로드됨"
 
 msgid "loaded"
-msgstr "넣음"
+msgstr "로드됨"
 
 msgid "Filament #"
 msgstr "필라멘트 #"
@@ -6610,10 +6631,10 @@ msgid "To"
 msgstr "으로"
 
 msgid "Bambu Network plug-in not detected."
-msgstr ""
+msgstr "뱀부 네트워크 플러그인이 감지되지 않습니다."
 
 msgid "Click here to download it."
-msgstr ""
+msgstr "다운로드하려면 여기를 클릭하세요."
 
 msgid "Login"
 msgstr "로그인"
@@ -6649,7 +6670,7 @@ msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "3D 연결 장치 설정 표시/숨기기 대화상자"
 
 msgid "Switch table page"
-msgstr ""
+msgstr "테이블 페이지 전환"
 
 msgid "Show keyboard shortcuts list"
 msgstr "키보드 단축키 목록 보기"
@@ -6903,13 +6924,13 @@ msgid "New version of Orca Slicer"
 msgstr "Orca Slicer의 새 버전"
 
 msgid "Skip this Version"
-msgstr ""
+msgstr "이 버전 건너뛰기"
 
 msgid "Done"
 msgstr "완료"
 
 msgid "Confirm and Update Nozzle"
-msgstr ""
+msgstr "노즐 확인 및 업데이트"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN 연결 실패(출력 파일 전송 중)"
@@ -6936,21 +6957,23 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr "프린터의 IP 및 액세스 코드는 어디에서 찾을 수 있습니까?"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
+msgstr "3단계: IP 주소를 ping하여 패킷 손실 및 대기 시간을 확인합니다."
 
 msgid "Test"
 msgstr "테스트"
 
 msgid "IP and Access Code Verified! You may close the window"
-msgstr ""
+msgstr "IP 및 접속코드가 확인되었습니다. 창을 닫아도 됩니다"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr ""
+msgstr "연결에 실패했습니다. IP와 액세스 코드를 다시 확인하세요"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
+"연결에 실패했습니다. IP와 액세스 코드가 올바른 경우 \n"
+"네트워크 문제를 해결하려면 3단계로 이동하세요"
 
 msgid "Model:"
 msgstr "모델:"
@@ -7183,7 +7206,7 @@ msgid "failed finding central directory"
 msgstr "중앙 디렉토리를 찾지 못했습니다"
 
 msgid "not a ZIP archive"
-msgstr "zip형식의 압축파일이 아님"
+msgstr "ZIP 형식의 압축파일이 아님"
 
 msgid "invalid header or corrupted"
 msgstr "잘못된 헤더이거나 손상됨"
@@ -7340,20 +7363,26 @@ msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
 "when prime tower is enabled."
 msgstr ""
+"다른 노즐 직경과 다른 필라멘트 직경은 허용되지 않습니다.프라임 타워가 활성화"
+"되면."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
 msgstr ""
+"닦기 타워는 현재 관련 압출기에서만 지원됩니다.주소 지정"
+"(use_relative_e_distances=1)."
 
 msgid ""
 "Ooze prevention is currently not supported with the prime tower enabled."
-msgstr ""
+msgstr "현재 프라임 타워가 활성화된 상태에서는 누출 방지가 지원되지 않습니다."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
+"프라임 타워는 현재 Marlin, RepRap/Sprinter에만 지원됩니다.RepRapFirmware 및 "
+"Repetier G코드 버전."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "프라임 타워는 \"개체별\" 출력에서 지원되지 않습니다."
@@ -7489,8 +7518,7 @@ msgid ""
 "Shrink the initial layer on build plate to compensate for elephant foot "
 "effect"
 msgstr ""
-"코끼리 발 효과(Elephant foot effect)를 보정하기 위해 빌드 플레이트의 초기 레"
-"이어를 축소합니다"
+"코끼리 발 효과를 보정하기 위해 빌드 플레이트의 초기 레이어를 축소합니다"
 
 msgid "Elephant foot compensation layers"
 msgstr "코끼리 발 보정 레이어"
@@ -7787,7 +7815,7 @@ msgstr ""
 "외부 다리의 밀도. 100%는 단단한 다리를 의미합니다. 기본값은 100%입니다."
 
 msgid "Bridge flow ratio"
-msgstr "다리 유량"
+msgstr "다리 유량 비율"
 
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
@@ -7795,13 +7823,16 @@ msgid ""
 msgstr "이 값을 약간(예: 0.9) 줄여 다리의 압출량을 줄여 처짐을 개선합니다"
 
 msgid "Internal bridge flow ratio"
-msgstr ""
+msgstr "내부 브릿지 유량 비율"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the "
 "first layer over sparse infill. Decrease this value slightly (for example "
 "0.9) to improve surface quality over sparse infill."
 msgstr ""
+"이 값은 내부 브리지 레이어의 두께를 결정합니다. 이것이 희박한 채우기 위의 첫 "
+"번째 레이어입니다. 이 값을 약간 줄이십시오(예: 0.9) 희박한 채우기보다 표면 품"
+"질을 향상시킵니다."
 
 msgid "Top surface flow ratio"
 msgstr "상단 표면 유량 비율"
@@ -7893,9 +7924,14 @@ msgid ""
 "This setting can also help reduce part warping due to the reduction of "
 "stresses in the part walls."
 msgstr ""
+"역방향 돌출부 위에 부분이 있는 돌출 둘레홀수 레이어의 방향입니다. 이 교대 패"
+"턴은 크게 향상될 수 있습니다.가파른 돌출부.\n"
+"\n"
+"이 설정은 또한 감소로 인한 부품 뒤틀림을 줄이는 데 도움이 될 수 있습니다.부"
+"분 벽의 응력."
 
 msgid "Reverse only internal perimeters"
-msgstr ""
+msgstr "내부 둘레만 반전"
 
 msgid ""
 "Apply the reverse perimeters logic only on internal perimeters. \n"
@@ -7911,6 +7947,17 @@ msgid ""
 "Reverse Threshold to 0 so that all internal walls print in alternating "
 "directions on odd layers irrespective of their overhang degree."
 msgstr ""
+"내부 경계에만 역방향 경계 논리를 적용합니다. \n"
+"\n"
+"이 설정은 부품 응력이 이제 분산되어 있으므로 부품 응력을 크게 줄여줍니다.교"
+"대 방향. 이렇게 하면 부품 뒤틀림도 줄어들고 동시에 외벽 품질 유지. 이 기능은 "
+"워프에 매우 유용할 수 있습니다.ABS/ASA와 같은 취약한 소재와 TPU 및 탄성 필라"
+"멘트에도 사용 가능실크 PLA. 또한 부동 영역의 뒤틀림을 줄이는 데 도움이 될 수 "
+"있습니다.지원합니다.\n"
+"\n"
+"이 설정을 가장 효과적으로 사용하려면 다음을 설정하는 것이 좋습니다.모든 내부 "
+"벽이 교대로 인쇄되도록 임계값을 0으로 역방향오버행 정도에 관계없이 홀수 레이"
+"어의 방향입니다."
 
 msgid "Reverse threshold"
 msgstr "반전 임계값"
@@ -7969,8 +8016,8 @@ msgid ""
 "Speed of internal bridge. If the value is expressed as a percentage, it will "
 "be calculated based on the bridge_speed. Default value is 150%."
 msgstr ""
-"내부 다리 속도. 값을 백분율로 표시하면 외부 다리 속도(bridge_speed)를 기준으"
-"로 계산됩니다. 기본값은 150%입니다."
+"내부 다리 속도. 값을 백분율로 표시하면 외부 다리 속도를 기준으로 계산됩니다. "
+"기본값은 150%입니다."
 
 msgid "Brim width"
 msgstr "브림 너비"
@@ -8140,16 +8187,19 @@ msgstr ""
 "적입니다."
 
 msgid "Thick internal bridges"
-msgstr ""
+msgstr "두꺼운 내부 다리"
 
 msgid ""
 "If enabled, thick internal bridges will be used. It's usually recommended to "
 "have this feature turned on. However, consider turning it off if you are "
 "using large nozzles."
 msgstr ""
+"활성화되면 두꺼운 내부 브리지가 사용됩니다. 일반적으로 다음을 권장합니다.이 "
+"기능을 켜두세요. 하지만 다음과 같은 경우에는 끄는 것을 고려해 보세요.큰 노즐"
+"을 사용합니다."
 
 msgid "Max bridge length"
-msgstr "최대 다리 거리"
+msgstr "최대 다리 길이"
 
 msgid ""
 "Max length of bridges that don't need support. Set it to 0 if you want all "
@@ -8166,12 +8216,14 @@ msgid "End G-code when finish the whole printing"
 msgstr "전체 출력이 끝날때의 종료 G코드"
 
 msgid "Between Object Gcode"
-msgstr ""
+msgstr "개체와 G코드 사이"
 
 msgid ""
 "Insert Gcode between objects. This parameter will only come into effect when "
 "you print your models object by object"
 msgstr ""
+"개체 사이에 G코드를 삽입하십시오. 이 매개변수는 다음 경우에만 적용됩니다.모"
+"델 개체를 개체별로 인쇄합니다"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "이 필라멘트의 출력이 끝날때의 종료 G코드"
@@ -8265,25 +8317,25 @@ msgid ""
 msgstr "작은 둘레 길이에 대한 임계값을 설정합니다. 기본 임계값은 0mm입니다"
 
 msgid "Walls printing order"
-msgstr ""
+msgstr "벽 인쇄 순서"
 
 msgid "Print sequence of inner wall and outer wall. "
-msgstr ""
+msgstr "내벽과 외벽의 순서를 인쇄합니다."
 
 msgid "Inner/Outer"
-msgstr ""
+msgstr "내벽/외벽"
 
 msgid "Outer/Inner"
-msgstr ""
+msgstr "외벽/내벽"
 
 msgid "Inner/Outer/Inner"
-msgstr ""
+msgstr "내벽/외백/내벽"
 
 msgid "Print infill first"
-msgstr ""
+msgstr "채우기 먼저 인쇄"
 
 msgid "Order of wall/infill. false means print wall first. "
-msgstr ""
+msgstr "벽/채우기 순서. false는 벽을 먼저 인쇄한다는 의미입니다."
 
 msgid "Height to rod"
 msgstr "레일까지의 높이"
@@ -8452,7 +8504,7 @@ msgid "Speed used at the very beginning of loading phase."
 msgstr "압출 단계 초기에 사용되는 속도입니다."
 
 msgid "Unloading speed"
-msgstr "빼기 속도"
+msgstr "언로드 속도"
 
 msgid ""
 "Speed used for unloading the filament on the wipe tower (does not affect  "
@@ -8462,7 +8514,7 @@ msgstr ""
 "향을 미치지 않음)"
 
 msgid "Unloading speed at the start"
-msgstr "시작 시 빼기 속도"
+msgstr "시작시 언로드 속도"
 
 msgid ""
 "Speed used for unloading the tip of the filament immediately after ramming."
@@ -8554,9 +8606,9 @@ msgid ""
 "toolchange. This option is only used when the wipe tower is enabled."
 msgstr ""
 "다중 압출기 프린터를 사용할 때 래밍을 수행합니다(예: 프린터 설정에서 '단일 압"
-"출기 다중 재료'가 선택 취소된 경우). 활성화하면 툴 교체 직전 와이프타워에 소"
-"량의 필라멘트가 빠르게 압출됩니다. 이 옵션은 닦기 타워가 활성화된 경우에만 사"
-"용됩니다."
+"출기 다중 재료'가 선택 취소된 경우). 활성화하면 툴 교체 직전 닦기 타워에 소량"
+"의 필라멘트가 빠르게 압출됩니다. 이 옵션은 닦기 타워가 활성화된 경우에만 사용"
+"됩니다."
 
 msgid "Multitool ramming volume"
 msgstr "다중 압출기 래밍 부피"
@@ -8595,7 +8647,8 @@ msgstr "지지대 재료"
 
 msgid ""
 "Support material is commonly used to print support and support interface"
-msgstr "지원 재료는 일반적으로 지지대 및 지지대 접점을 출력하는 데 사용됩니다"
+msgstr ""
+"지지대 재료는 일반적으로 지지대 및 지지대 접점을 출력하는 데 사용됩니다"
 
 msgid "Softening temperature"
 msgstr "연화 온도"
@@ -8637,11 +8690,12 @@ msgstr "선의 시작 또는 주 방향을 제어하는 드문 내부 채움 패
 msgid "Sparse infill density"
 msgstr "드문 내부 채움 밀도"
 
-#, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
 msgstr ""
+"내부 드문 채우기의 밀도, 100% 모든 드문 채우기를 솔리드로 바꿉니다 채우기 및 "
+"내부 솔리드 채우기 패턴이 사용됩니다"
 
 msgid "Sparse infill pattern"
 msgstr "드문 내부 채움 패턴"
@@ -8674,7 +8728,7 @@ msgid "3D Honeycomb"
 msgstr "3D 벌집"
 
 msgid "Support Cubic"
-msgstr "정육면체 지지대형"
+msgstr "정육면체 지지대"
 
 msgid "Lightning"
 msgstr "번개"
@@ -8853,8 +8907,6 @@ msgid ""
 "The first few layers are printed slower than normal. The speed is gradually "
 "increased in a linear fashion over the specified number of layers."
 msgstr ""
-"처음 몇 개의 레이어는 일반적인 레이어보다 느리게 출력됩니다. 속도는 지정된 레"
-"이어 수에 걸쳐 선형 방식으로 점진적으로 증가합니다."
 
 msgid "Initial layer nozzle temperature"
 msgstr "초기 레이어 노즐 온도"
@@ -8867,10 +8919,10 @@ msgstr "팬 최대 속도 레이어"
 
 msgid ""
 "Fan speed will be ramped up linearly from zero at layer "
-"\"close_fan_the_first_x_layers\" to maximum at layer \"full_fan_speed_layer"
-"\". \"full_fan_speed_layer\" will be ignored if lower than "
-"\"close_fan_the_first_x_layers\", in which case the fan will be running at "
-"maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
+"\"close_fan_the_first_x_layers\" to maximum at layer "
+"\"full_fan_speed_layer\". \"full_fan_speed_layer\" will be ignored if lower "
+"than \"close_fan_the_first_x_layers\", in which case the fan will be running "
+"at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1."
 msgstr ""
 "팬 속도는 \"close_fan_the_first_x_layers\" 의 0에서 \"full_fan_speed_layer\" "
 "의 최고 속도까지 선형적으로 증가합니다. \"full_fan_speed_layer\"가 "
@@ -8927,10 +8979,10 @@ msgid ""
 msgstr "각 선의 분절에 도입된 임의의 지점간 평균 거리"
 
 msgid "Apply fuzzy skin to first layer"
-msgstr ""
+msgstr "첫 번째 레이어에 퍼지 스킨 적용"
 
 msgid "Whether to apply fuzzy skin on the first layer"
-msgstr ""
+msgstr "첫 번째 레이어에 보송보송한 스킨을 적용할지 여부"
 
 msgid "Filter out tiny gaps"
 msgstr "작은 갭 필터링"
@@ -8949,7 +9001,7 @@ msgstr ""
 "어야 합니다"
 
 msgid "Arc fitting"
-msgstr "원호 맞춤(아크 피팅)"
+msgstr "원호 맞춤"
 
 msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
@@ -9017,7 +9069,7 @@ msgid "The physical arrangement and components of a printing device"
 msgstr "출력 장치의 물리적 배열 및 구성 요소"
 
 msgid "CoreXY"
-msgstr "CoreXY"
+msgstr "코어XY"
 
 msgid "I3"
 msgstr "I3"
@@ -9026,7 +9078,7 @@ msgid "Hbot"
 msgstr "Hbot"
 
 msgid "Delta"
-msgstr "Delta"
+msgstr "델타"
 
 msgid "Best object position"
 msgstr "가장 좋은 개체 위치"
@@ -9197,16 +9249,16 @@ msgstr ""
 "지지대 재료를 사용하는 다중 압출기 출력에 유용합니다"
 
 msgid "Maximum width of a segmented region"
-msgstr ""
+msgstr "분할된 영역의 최대 너비"
 
 msgid "Maximum width of a segmented region. Zero disables this feature."
-msgstr ""
+msgstr "분할된 영역의 최대 너비입니다. 0은 이 기능을 비활성화합니다."
 
 msgid "Interlocking depth of a segmented region"
-msgstr ""
+msgstr "분할된 영역의 연동 깊이"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
-msgstr ""
+msgstr "분할된 영역의 깊이를 연동합니다. 0은 이 기능을 비활성화합니다."
 
 msgid "Ironing Type"
 msgstr "다림질 유형"
@@ -9745,9 +9797,9 @@ msgid ""
 "much points and gcode lines in gcode file. Smaller value means higher "
 "resolution and more time to slice"
 msgstr ""
-"G-code 경로는 G코드 파일에서 너무 많은 점과 gcode 라인을 방지하기 위해 모델"
-"의 윤곽을 단순화한 후 생성됩니다. 작은 값은 높은 해상도와 많은 슬라이스 시간"
-"을 의미합니다"
+"G코드 경로는 G코드 파일에서 너무 많은 점과 gcode 라인을 방지하기 위해 모델의 "
+"윤곽을 단순화한 후 생성됩니다. 작은 값은 높은 해상도와 많은 슬라이스 시간을 "
+"의미합니다"
 
 msgid "Travel distance threshold"
 msgstr "이동 거리 임계값"
@@ -9825,7 +9877,7 @@ msgid "Slope"
 msgstr "경사"
 
 msgid "Spiral"
-msgstr "나선"
+msgstr "나선형"
 
 msgid "Only lift Z above"
 msgstr "Z값 위에서만 올리기"
@@ -10041,14 +10093,14 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "상단 및 하단 표면을 제외한 내부 꽉찬 내부 채움 속도"
 
 msgid "Spiral vase"
-msgstr "나선 꽃병"
+msgstr "나선형 꽃병"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam"
 msgstr ""
-"나선화는 외부 윤곽선의 z 이동을 부드럽게 합니다. 그리고 개체를 꽉찬 하단 레이"
+"나선형은 외부 윤곽선의 z 이동을 부드럽게 합니다. 그리고 개체를 꽉찬 하단 레이"
 "어가 있는 단일 벽으로 출력합니다. 최종 생성된 출력물에는 솔기가 없습니다"
 
 msgid ""
@@ -10264,10 +10316,11 @@ msgstr ""
 "정 필라멘트가 없으며 현재 필라멘트가 사용됨을 의미합니다"
 
 msgid "Reduce interface filament for base"
-msgstr ""
+msgstr "베이스용 인터페이스 필라멘트 줄이기"
 
 msgid "Avoid using support interface filament to print support base"
 msgstr ""
+"서포트 베이스를 프린트하기 위해 서포트 인터페이스 필라멘트를 사용하지 마세요"
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -10302,10 +10355,10 @@ msgid "Bottom interface layers"
 msgstr "하단 접점 레이어"
 
 msgid "Number of bottom interface layers"
-msgstr ""
+msgstr "하단 인터페이스 레이어 수"
 
 msgid "Same as top"
-msgstr ""
+msgstr "위와 동일"
 
 msgid "Top interface spacing"
 msgstr "상단 접점 선 간격"
@@ -10358,7 +10411,7 @@ msgid "Normal Support expansion"
 msgstr "일반 지지대 확장"
 
 msgid "Expand (+) or shrink (-) the horizontal span of normal support"
-msgstr "일반 지지대의 수평 범위를 확대( + ) 또는 축소( - )합니다"
+msgstr "일반 지지대의 수평 범위를 확대(+) 또는 축소(-)합니다"
 
 msgid "Speed of support"
 msgstr "지지대 속도"
@@ -10526,10 +10579,10 @@ msgstr ""
 "됩니다. 이중벽을 허용하지 않으려면 이 값을 0으로 설정합니다."
 
 msgid "Support wall loops"
-msgstr ""
+msgstr "지지대 벽 루프"
 
 msgid "This setting specify the count of walls around support"
-msgstr ""
+msgstr "이 설정은 지지대 주변의 벽 수를 지정합니다"
 
 msgid "Tree support with infill"
 msgstr "내부 채움이 있는 나무 지지대"
@@ -10591,7 +10644,7 @@ msgstr ""
 "니다"
 
 msgid "This gcode is inserted when the extrusion role is changed"
-msgstr "이 G코드는 압출 역할이 변경될 때 삽입됩니다."
+msgstr "이 G코드는 압출 역할이 변경될 때 삽입됩니다"
 
 msgid ""
 "Line width for top surfaces. If expressed as a %, it will be computed over "
@@ -10978,7 +11031,7 @@ msgid "invalid value "
 msgstr "잘못된 값 "
 
 msgid "Invalid value when spiral vase mode is enabled: "
-msgstr "나선 꽃병 모드가 활성화된 경우 유효하지 않은 값: "
+msgstr "나선형 꽃병 모드가 활성화된 경우 유효하지 않은 값: "
 
 msgid "too large line width "
 msgstr "너무 넓은 선 너비 "
@@ -11040,7 +11093,7 @@ msgid "Load custom gcode from json"
 msgstr "사용자 설정 G코드를 json에서 불러오기"
 
 msgid "Error in zip archive"
-msgstr "Zip 아카이브 오류"
+msgstr "ZIP 압축파일 오류"
 
 msgid "Generating walls"
 msgstr "벽 생성 중"
@@ -11182,7 +11235,7 @@ msgid "Auto-Calibration"
 msgstr "자동 교정"
 
 msgid "We would use Lidar to read the calibration result"
-msgstr "Lidar를 사용하여 교정 결과를 읽습니다"
+msgstr "라이다를 사용하여 교정 결과를 읽습니다"
 
 msgid "Prev"
 msgstr "이전"
@@ -11253,7 +11306,7 @@ msgstr "이름은 비워둘 수 없습니다."
 
 #, c-format, boost-format
 msgid "The selected preset: %s is not found."
-msgstr ""
+msgstr "선택한 사전 설정: %s을(를) 찾을 수 없습니다."
 
 msgid "The name cannot be the same as the system preset name."
 msgstr "이름은 시스템 사전 설정 이름과 동일할 수 없습니다."
@@ -11426,7 +11479,7 @@ msgid ""
 "can lead to sub-par prints or printer damage. Please make sure to carefully "
 "read and understand the process before doing it."
 msgstr ""
-"자동 유량 교정은 Bambu Lab의 Micro-Lidar 기술을 활용하여 교정 패턴을 직접 측"
+"자동 유량 교정은 뱀부랩의 마이크로 라이다 기술을 활용하여 교정 패턴을 직접 측"
 "정합니다. 그러나 특정 유형의 재료를 사용하면 이 방법의 효율성과 정확성이 저하"
 "될 수 있다는 점에 유의하시기 바랍니다. 특히, 투명 또는 반투명, 반짝이는 입자 "
 "또는 고반사 마감 처리된 필라멘트는 이 교정에 적합하지 않을 수 있으며 바람직하"
@@ -11797,7 +11850,7 @@ msgstr ""
 "끝 > 시작 + 단계)"
 
 msgid "VFA test"
-msgstr "VFA 테스트(VFA test)"
+msgstr "VFA 테스트"
 
 msgid "Start speed: "
 msgstr "시작 속도: "
@@ -11921,279 +11974,292 @@ msgid "Delete input"
 msgstr "입력개체 삭제"
 
 msgid "Network Test"
-msgstr ""
+msgstr "네트워크 테스트"
 
 msgid "Start Test Multi-Thread"
-msgstr ""
+msgstr "멀티스레드 테스트 시작"
 
 msgid "Start Test Single-Thread"
-msgstr ""
+msgstr "단일 스레드 테스트 시작"
 
 msgid "Export Log"
-msgstr ""
+msgstr "로그 내보내기"
 
 msgid "Studio Version:"
-msgstr ""
+msgstr "스튜디오 버전:"
 
 msgid "System Version:"
-msgstr ""
+msgstr "시스템 버전:"
 
 msgid "DNS Server:"
-msgstr ""
+msgstr "DNS 서버:"
 
 msgid "Test BambuLab"
-msgstr ""
+msgstr "테스트 뱀부랩"
 
 msgid "Test BambuLab:"
-msgstr ""
+msgstr "테스트 뱀부랩:"
 
 msgid "Test Bing.com"
-msgstr ""
+msgstr "테스트 Bing.com"
 
 msgid "Test bing.com:"
-msgstr ""
+msgstr "테스트 Bing.com:"
 
 msgid "Test HTTP"
-msgstr ""
+msgstr "테스트 HTTP"
 
 msgid "Test HTTP Service:"
-msgstr ""
+msgstr "테스트 HTTP 서비스:"
 
 msgid "Test storage"
-msgstr ""
+msgstr "테스트 저장소"
 
 msgid "Test Storage Upload:"
-msgstr ""
+msgstr "테스트 저장소 업로드:"
 
 msgid "Test storage upgrade"
-msgstr ""
+msgstr "테스트 저장소 업그레이드"
 
 msgid "Test Storage Upgrade:"
-msgstr ""
+msgstr "테스트 저장소 업그레이드:"
 
 msgid "Test storage download"
-msgstr ""
+msgstr "테스트 저장소 다운로드"
 
 msgid "Test Storage Download:"
-msgstr ""
+msgstr "테스트 저장소 다운로드:"
 
 msgid "Test plugin download"
-msgstr ""
+msgstr "테스트 플러그인 다운로드"
 
 msgid "Test Plugin Download:"
-msgstr ""
+msgstr "테스트 플러그인 다운로드:"
 
 msgid "Test Storage Upload"
-msgstr ""
+msgstr "테스트 저장소 업로드"
 
 msgid "Log Info"
-msgstr ""
+msgstr "로그 정보"
 
 msgid "Select filament preset"
-msgstr ""
+msgstr "필라멘트 사전 설정 선택"
 
 msgid "Create Filament"
-msgstr ""
+msgstr "필라멘트 생성"
 
 msgid "Create Based on Current Filament"
-msgstr ""
+msgstr "현재 필라멘트를 기반으로 생성"
 
 msgid "Copy Current Filament Preset "
-msgstr ""
+msgstr "현재 필라멘트 사전 설정 복사"
 
 msgid "Basic Information"
-msgstr ""
+msgstr "기본 정보"
 
 msgid "Add Filament Preset under this filament"
-msgstr ""
+msgstr "이 필라멘트 아래에 필라멘트 사전 설정을 추가하세요."
 
 msgid "We could create the filament presets for your following printer:"
-msgstr ""
+msgstr "다음 프린터에 대한 필라멘트 사전 설정을 만들 수 있습니다."
 
 msgid "Select Vendor"
-msgstr ""
+msgstr "공급업체 선택"
 
 msgid "Input Custom Vendor"
-msgstr ""
+msgstr "맞춤 공급업체 입력"
 
 msgid "Can't find vendor I want"
-msgstr ""
+msgstr "원하는 공급업체를 찾을 수 없습니다."
 
 msgid "Select Type"
-msgstr ""
+msgstr "유형 선택"
 
 msgid "Select Filament Preset"
-msgstr ""
+msgstr "필라멘트 사전 설정 선택"
 
 msgid "Serial"
-msgstr ""
+msgstr "시리얼"
 
 msgid "e.g. Basic, Matte, Silk, Marble"
-msgstr ""
+msgstr "예를 들어 베이직, 매트, 실크, 마블"
 
 msgid "Filament Preset"
-msgstr ""
+msgstr "필라멘트 사전 설정"
 
 msgid "Create"
-msgstr ""
+msgstr "생성"
 
 msgid "Vendor is not selected, please reselect vendor."
-msgstr ""
+msgstr "공급업체가 선택되지 않았습니다. 공급업체를 다시 선택하세요."
 
 msgid "Custom vendor is not input, please input custom vendor."
-msgstr ""
+msgstr "맞춤 공급업체가 입력되지 않았습니다. 맞춤 공급업체를 입력해 주세요."
 
 msgid ""
 "\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
 msgstr ""
+"\"뱀부\" 또는 \"일반적인\"은 맞춤형 필라멘트 공급업체로 사용할 수 없습니다."
 
 msgid "Filament type is not selected, please reselect type."
-msgstr ""
+msgstr "필라멘트 유형이 선택되지 않았습니다. 유형을 다시 선택하십시오."
 
 msgid "Filament serial is not inputed, please input serial."
-msgstr ""
+msgstr "필라멘트 시리얼이 입력되지 않았습니다. 시리얼을 입력해 주세요."
 
 msgid ""
 "There may be escape characters in the vendor or serial input of filament. "
 "Please delete and re-enter."
 msgstr ""
+"공급업체나 필라멘트의 직렬 입력에 이스케이프 문자가 있을 수 있습니다. 삭제하"
+"고 다시 입력해주세요."
 
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
+"사용자 정의 공급업체 또는 일련번호의 모든 입력은 공백입니다. 다시 입력해 주세"
+"요."
 
 msgid "The beginning of the vendor can not be a number. Please re-enter."
-msgstr ""
+msgstr "공급업체의 시작 부분은 숫자일 수 없습니다. 다시 입력해 주세요."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
-msgstr ""
+msgstr "아직 프린터나 사전 설정을 선택하지 않았습니다. 하나 이상 선택하세요."
 
 msgid "Some existing presets have failed to be created, as follows:\n"
-msgstr ""
+msgstr "다음과 같이 일부 기존 사전 설정을 생성하지 못했습니다.\n"
 
 msgid ""
 "\n"
 "Do you want to rewrite it?"
 msgstr ""
+"\n"
+"다시 작성하시겠습니까?"
 
 msgid ""
-"We would rename the presets as \"Vendor Type Serial @printer you selected"
-"\". \n"
+"We would rename the presets as \"Vendor Type Serial @printer you "
+"selected\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
+"사전 설정의 이름을 \"선택한 공급업체 유형 직렬 @프린터\"로 변경합니다.\n"
+"더 많은 프린터에 대한 사전 설정을 추가하려면 프린터 선택으로 이동하세요."
 
 msgid "Create Printer/Nozzle"
-msgstr ""
+msgstr "프린터/노즐 생성"
 
 msgid "Create Printer"
-msgstr ""
+msgstr "프린터 생성"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr ""
+msgstr "기존 프린터용 노즐 생성"
 
 msgid "Create from Template"
-msgstr ""
+msgstr "템플릿에서 생성"
 
 msgid "Create Based on Current Printer"
-msgstr ""
+msgstr "현재 프린터를 기반으로 생성"
 
 msgid "wiki"
-msgstr ""
+msgstr "위키"
 
 msgid "Import Preset"
-msgstr ""
+msgstr "사전 설정 가져오기"
 
 msgid "Create Type"
-msgstr ""
+msgstr "유형 생성"
 
 msgid "The model is not fond, place reselect vendor."
-msgstr ""
+msgstr "모델이 마음에 들지 않으면 공급업체를 다시 선택하세요."
 
 msgid "Select Model"
-msgstr ""
+msgstr "모델 선택"
 
 msgid "Select Printer"
-msgstr ""
+msgstr "프린터 선택"
 
 msgid "Input Custom Model"
-msgstr ""
+msgstr "커스텀 모델 입력"
 
 msgid "Can't find my printer model"
-msgstr ""
+msgstr "내 프린터 모델을 찾을 수 없습니다"
 
 msgid "Rectangle"
-msgstr ""
+msgstr "직사각형"
 
 msgid "Printable Space"
-msgstr ""
+msgstr "인쇄 가능 공간"
 
 msgid "X"
-msgstr ""
+msgstr "X"
 
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 msgid "Hot Bed STL"
-msgstr ""
+msgstr "베드 STL"
 
 msgid "Load stl"
-msgstr ""
+msgstr "STL 로드"
 
 msgid "Hot Bed SVG"
-msgstr ""
+msgstr "베드 SVG"
 
 msgid "Load svg"
-msgstr ""
+msgstr "SVG 로드"
 
 msgid "Max Print Height"
-msgstr ""
+msgstr "최대 인쇄 높이"
 
 #, c-format, boost-format
 msgid "The file exceeds %d MB, please import again."
-msgstr ""
+msgstr "파일이 %d MB를 초과합니다. 다시 가져오십시오."
 
 msgid "Exception in obtaining file size, please import again."
-msgstr ""
+msgstr "파일 크기를 가져오는 중 예외가 발생했습니다. 다시 가져오세요."
 
 msgid "Preset path is not find, please reselect vendor."
-msgstr ""
+msgstr "사전 설정 경로를 찾을 수 없습니다. 공급업체를 다시 선택하세요."
 
 msgid "The printer model was not found, please reselect."
-msgstr ""
+msgstr "프린터 모델을 찾을 수 없습니다. 다시 선택하십시오."
 
 msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
+msgstr "노즐 직경이 마음에 들지 않으면 다시 선택하세요."
 
 msgid "The printer preset is not fond, place reselect."
-msgstr ""
+msgstr "프린터 사전 설정이 마음에 들지 않습니다. 다시 선택하세요."
 
 msgid "Printer Preset"
-msgstr ""
+msgstr "프린터 사전 설정"
 
 msgid "Filament Preset Template"
-msgstr ""
+msgstr "필라멘트 사전 설정 템플릿"
 
 msgid "Deselect All"
-msgstr ""
+msgstr "모두 선택 해제"
 
 msgid "Process Preset Template"
-msgstr ""
+msgstr "프로세스 사전 설정 템플릿"
 
 msgid "Back Page 1"
-msgstr ""
+msgstr "뒤 페이지 1"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
+"생성할 프린터 사전 설정을 아직 선택하지 않았습니다. 프린터의 공급업체와 모델"
+"을 선택하세요."
 
 msgid ""
 "You have entered an illegal input in the printable area section on the first "
 "page. Please check before creating it."
 msgstr ""
+"첫 번째 페이지의 인쇄 가능 영역 섹션에 잘못된 입력을 입력했습니다. 작성 전 "
+"꼭 확인해주세요."
 
 msgid "The custom printer or model is not inputed, place input."
-msgstr ""
+msgstr "사용자 정의 프린터 또는 모델이 입력되지 않았습니다. 입력하십시오."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -12204,60 +12270,72 @@ msgid ""
 "reserve.\n"
 "\tCancel: Do not create a preset, return to the creation interface."
 msgstr ""
+"생성한 프린터 사전 설정에 동일한 이름의 사전 설정이 이미 있습니다. 덮어쓰시겠"
+"습니까?\n"
+"예: 동일한 이름으로 프린터 사전 설정을 덮어쓰면 동일한 사전 설정 이름을 가진 "
+"필라멘트 및 프로세스 사전 설정이 다시 생성됩니다.\n"
+"동일한 사전 설정 이름이 없는 필라멘트 및 프로세스 사전 설정은 예약됩니다.\n"
+"취소: 사전 설정을 생성하지 않고 생성 인터페이스로 돌아갑니다."
 
 msgid "You need to select at least one filament preset."
-msgstr ""
+msgstr "필라멘트 사전 설정을 하나 이상 선택해야 합니다."
 
 msgid "You need to select at least one process preset."
-msgstr ""
+msgstr "프로세스 사전 설정을 하나 이상 선택해야 합니다."
 
 msgid "Create filament presets failed. As follows:\n"
-msgstr ""
+msgstr "필라멘트 사전 설정 생성에 실패했습니다. 다음과 같이:\n"
 
 msgid "Create process presets failed. As follows:\n"
-msgstr ""
+msgstr "프로세스 사전 설정 생성에 실패했습니다. 다음과 같이:\n"
 
 msgid "Vendor is not find, please reselect."
-msgstr ""
+msgstr "공급업체를 찾을 수 없습니다. 다시 선택하세요."
 
 msgid "Current vendor has no models, please reselect."
-msgstr ""
+msgstr "현재 공급업체에는 모델이 없습니다. 다시 선택하세요."
 
 msgid ""
 "You have not selected the vendor and model or inputed the custom vendor and "
 "model."
 msgstr ""
+"공급업체 및 모델을 선택하지 않았거나 맞춤 공급업체 및 모델을 입력하지 않았습"
+"니다."
 
 msgid ""
 "There may be escape characters in the custom printer vendor or model. Please "
 "delete and re-enter."
 msgstr ""
+"사용자 정의 프린터 공급업체 또는 모델에 이스케이프 문자가 있을 수 있습니다. "
+"삭제하고 다시 입력해주세요."
 
 msgid ""
 "All inputs in the custom printer vendor or model are spaces. Please re-enter."
 msgstr ""
+"사용자 정의 프린터 공급업체 또는 모델의 모든 입력은 공백입니다. 다시 입력해 "
+"주세요."
 
 msgid "Please check bed printable shape and origin input."
-msgstr ""
+msgstr "인쇄 가능한 베드 형태와 원산지 입력을 확인해주세요."
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
-msgstr ""
+msgstr "노즐을 교체할 프린터를 아직 선택하지 않으셨습니다. 선택해 주세요."
 
 msgid "Create Printer Successful"
-msgstr ""
+msgstr "프린터 생성 성공"
 
 msgid "Create Filament Successful"
-msgstr ""
+msgstr "필라멘트 생성 성공"
 
 msgid "Printer Created"
-msgstr ""
+msgstr "프린터가 생성되었습니다."
 
 msgid "Please go to printer settings to edit your presets"
-msgstr ""
+msgstr "사전 설정을 편집하려면 프린터 설정으로 이동하세요."
 
 msgid "Filament Created"
-msgstr ""
+msgstr "필라멘트 생성됨"
 
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
@@ -12265,45 +12343,48 @@ msgid ""
 "volumetric speed have a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"필요한 경우 필라멘트 설정으로 이동하여 사전 설정을 편집하세요.\n"
+"노즐 온도, 핫베드 온도 및 최대 체적 속도는 인쇄 품질에 큰 영향을 미칩니다. 신"
+"중하게 설정해 주세요."
 
 msgid "Printer Setting"
-msgstr ""
+msgstr "프린터 설정"
 
 msgid "Export Configs"
-msgstr ""
+msgstr "구성 내보내기"
 
 msgid "Printer config bundle(.bbscfg)"
-msgstr ""
+msgstr "프린터 구성 번들(.bbscfg)"
 
 msgid "Filament bundle(.bbsflmt)"
-msgstr ""
+msgstr "필라멘트 번들(.bbsflmt)"
 
 msgid "Printer presets(.zip)"
-msgstr ""
+msgstr "프린터 사전 설정(.zip)"
 
 msgid "Filament presets(.zip)"
-msgstr ""
+msgstr "필라멘트 사전 설정(.zip)"
 
 msgid "Process presets(.zip)"
-msgstr ""
+msgstr "프로세스 사전 설정(.zip)"
 
 msgid "initialize fail"
-msgstr ""
+msgstr "초기화 실패"
 
 msgid "add file fail"
-msgstr ""
+msgstr "파일 추가 실패"
 
 msgid "add bundle structure file fail"
-msgstr ""
+msgstr "번들 구조 파일 추가 실패"
 
 msgid "finalize fail"
-msgstr ""
+msgstr "마무리 실패"
 
 msgid "open zip written fail"
-msgstr ""
+msgstr "ZIP 열기 실패"
 
 msgid "Export successful"
-msgstr ""
+msgstr "내보내기 성공"
 
 #, c-format, boost-format
 msgid ""
@@ -12312,113 +12393,135 @@ msgid ""
 "If not, a time suffix will be added, and you can modify the name after "
 "creation."
 msgstr ""
+"현재 디렉터리에 '%s' 폴더가 이미 존재합니다. 지우고 다시 작성하시겠습니까?\n"
+"그렇지 않은 경우 시간 접미사가 추가되며 생성 후 이름을 수정할 수 있습니다."
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
 "Can be shared with others."
 msgstr ""
+"프린터와 프린터에 속한 모든 필라멘트 및 프로세스 사전 설정.\n"
+"다른 사람과 공유할 수 있습니다."
 
 msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
+"사용자의 채우기 사전 설정입니다.\n"
+"다른 사람과 공유할 수 있습니다."
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
 "presets."
 msgstr ""
+"프린터, 필라멘트 및 프로세스 사전 설정이 변경된 경우에만 프린터 이름을 표시합"
+"니다."
 
 msgid "Only display the filament names with changes to filament presets."
-msgstr ""
+msgstr "필라멘트 사전 설정이 변경된 경우에만 필라멘트 이름을 표시합니다."
 
 msgid ""
 "Only printer names with user printer presets will be displayed, and each "
 "preset you choose will be exported as a zip."
 msgstr ""
+"사용자 프린터 사전 설정이 있는 프린터 이름만 표시되며, 선택한 각 사전 설정은 "
+"zip으로 내보내집니다."
 
 msgid ""
 "Only the filament names with user filament presets will be displayed, \n"
 "and all user filament presets in each filament name you select will be "
 "exported as a zip."
 msgstr ""
+"사용자 필라멘트 사전 설정이 있는 필라멘트 이름만 표시됩니다.\n"
+"선택한 각 필라멘트 이름의 모든 사용자 필라멘트 사전 설정은 zip으로 내보내집니"
+"다."
 
 msgid ""
 "Only printer names with changed process presets will be displayed, \n"
 "and all user process presets in each printer name you select will be "
 "exported as a zip."
 msgstr ""
+"프로세스 사전 설정이 변경된 프린터 이름만 표시됩니다.\n"
+"선택한 각 프린터 이름의 모든 사용자 프로세스 사전 설정은 zip으로 내보내집니"
+"다."
 
 msgid "Please select at least one printer or filament."
-msgstr ""
+msgstr "프린터나 필라멘트를 하나 이상 선택해 주세요."
 
 msgid "Please select a type you want to export"
-msgstr ""
+msgstr "내보내려는 유형을 선택하십시오."
 
 msgid "Edit Filament"
-msgstr ""
+msgstr "필라멘트 편집"
 
 msgid "Filament presets under this filament"
-msgstr ""
+msgstr "이 필라멘트 아래의 필라멘트 사전 설정"
 
 msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
 msgstr ""
+"참고: 이 필라멘트 아래의 유일한 사전 설정이 삭제되면 대화 상자를 종료한 후 필"
+"라멘트가 삭제됩니다."
 
 msgid "Presets inherited by other presets can not be deleted"
-msgstr ""
+msgstr "다른 사전 설정에 상속된 사전 설정은 삭제할 수 없습니다."
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
+msgstr[0] "다음 사전 설정은 이 사전 설정을 상속합니다."
 
 msgid "Delete Preset"
-msgstr ""
+msgstr "사전 설정 삭제"
 
 msgid "Are you sure to delete the selected preset?"
-msgstr ""
+msgstr "선택한 사전 설정을 삭제하시겠습니까?"
 
 msgid "Delete preset"
-msgstr ""
+msgstr "사전 설정 삭제"
 
 msgid "+ Add Preset"
-msgstr ""
+msgstr "+ 사전 설정 추가"
 
 msgid "Delete Filament"
-msgstr ""
+msgstr "필라멘트 삭제"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament "
 "information for that slot."
 msgstr ""
+"이 필라멘트에 속한 모든 필라멘트 사전 설정이 삭제됩니다.\n"
+"프린터에서 이 필라멘트를 사용하는 경우 해당 슬롯의 필라멘트 정보를 재설정하십"
+"시오."
 
 msgid "Delete filament"
-msgstr ""
+msgstr "필라멘트 삭제"
 
 msgid "Add Preset"
-msgstr ""
+msgstr "사전 설정 추가"
 
 msgid "Add preset for new printer"
-msgstr ""
+msgstr "새 프린터에 대한 사전 설정 추가"
 
 msgid "Copy preset from filament"
-msgstr ""
+msgstr "필라멘트에서 사전 설정 복사"
 
 msgid "The filament choice not find filament preset, please reselect it"
 msgstr ""
+"필라멘트 선택에서 필라멘트 사전 설정을 찾을 수 없습니다. 다시 선택하십시오."
 
 msgid "Edit Preset"
-msgstr ""
+msgstr "프리셋 편집"
 
 msgid "For more information, please check out Wiki"
-msgstr ""
+msgstr "더 자세한 내용은 위키를 확인해주세요"
 
 msgid "Collapse"
-msgstr ""
+msgstr "무너짐"
 
 msgid "Daily Tips"
-msgstr ""
+msgstr "일일 팁"
 
 msgid "Need select printer"
 msgstr "프린터 선택 필요"
@@ -12480,111 +12583,114 @@ msgstr "출력 호스트를 통해 연결된 프린터에 연결하지 못했습
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "일치하지 않는 인쇄 호스트 유형: %s"
 
 msgid "Connection to AstroBox works correctly."
-msgstr ""
+msgstr "AstroBox 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to AstroBox"
-msgstr ""
+msgstr "AstroBox에 연결할 수 없습니다"
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
-msgstr ""
+msgstr "참고: AstroBox 버전 1.1.0 이상이 필요합니다."
 
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "Duet 연결이 제대로 작동합니다."
 
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "Duet에 연결할 수 없습니다"
 
 msgid "Unknown error occured"
-msgstr ""
+msgstr "알 수 없는 오류가 발생했습니다"
 
 msgid "Wrong password"
-msgstr ""
+msgstr "잘못된 비밀번호"
 
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "새 연결을 생성하기 위한 리소스를 얻을 수 없습니다"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr ""
+msgstr "FlashAir 카드에서는 업로드가 활성화되지 않았습니다."
 
 msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr ""
+msgstr "FlashAir 연결이 올바르게 작동하고 업로드가 활성화되었습니다."
 
 msgid "Could not connect to FlashAir"
-msgstr ""
+msgstr "FlashAir에 연결할 수 없습니다"
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
+"참고: 펌웨어 2.00.02 이상이 있고 업로드 기능이 활성화된 FlashAir필수입니다."
 
 msgid "Connection to MKS works correctly."
-msgstr ""
+msgstr "MKS에 대한 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to MKS"
-msgstr ""
+msgstr "MKS에 연결할 수 없습니다"
 
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "OctoPrint에 대한 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to OctoPrint"
-msgstr ""
+msgstr "OctoPrint에 연결할 수 없습니다"
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
-msgstr ""
+msgstr "참고: OctoPrint 버전 1.1.0 이상이 필요합니다."
 
 msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr ""
+msgstr "Prusa SL1 / SL1S에 대한 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "Prusa SLA에 연결할 수 없습니다"
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "PrusaLink에 대한 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "PrusaLink에 연결할 수 없습니다"
 
 msgid "Storages found"
-msgstr ""
+msgstr "저장소를 찾았습니다."
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : read only"
-msgstr ""
+msgstr "%1%: 읽기 전용"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : no free space"
-msgstr ""
+msgstr "%1%: 여유 공간이 없습니다"
 
 #. TRN %1% = host
 #, boost-format
 msgid "Upload has failed. There is no suitable storage found at %1%."
-msgstr ""
+msgstr "업로드에 실패했습니다. %1%에 적합한 저장소가 없습니다."
 
 msgid "Connection to Prusa Connect works correctly."
-msgstr ""
+msgstr "Prusa Connect에 대한 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to Prusa Connect"
-msgstr ""
+msgstr "Prusa Connect에 연결할 수 없습니다"
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "Repetier에 대한 연결이 올바르게 작동합니다."
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "Repetier에 연결할 수 없습니다"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "참고: 최소 0.90.0 이상의 반복 버전이 필요합니다."
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"HTTP 상태: %1%\n"
+"메시지 본문: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -12592,6 +12698,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"호스트 응답 구문 분석에 실패했습니다.\n"
+"메시지 본문: \"%1%\"\n"
+"오류: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -12599,6 +12708,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"호스트 프린터 열거에 실패했습니다.\n"
+"메시지 본문: \"%1%\"\n"
+"오류: \"%2%\""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -12606,6 +12718,9 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
+"키보드 단축키 사용 방법\n"
+"Orca Slicer가 다양한 키보드 단축키와 단축키를 제공한다는 사실을 알고 계셨나"
+"요?3D 장면 작업."
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -12623,6 +12738,9 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"모델 수정\n"
+"많은 슬라이싱을 피하기 위해 손상된 3D 모델을 수정할 수 있다는 것을 알고 계셨"
+"습니까?Windows 시스템에 문제가 있나요?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -12678,6 +12796,9 @@ msgid ""
 "Did you know that you use the Search tool to quickly find a specific Orca "
 "Slicer setting?"
 msgstr ""
+"검색 기능\n"
+"특정 Orca Slicer 설정을 빠르게 찾기 위해 검색 도구를 사용한다는 사실을 알고 "
+"계셨습니까?"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -12719,9 +12840,9 @@ msgid ""
 "directly in Orca Slicer. Read more in the documentation."
 msgstr ""
 "부품 비우기\n"
-"비우기 부품 수정자를 사용하여 한 메쉬를 다른 메쉬에서 뺄 수 있다는 것을 알고 "
-"있습니까? 예를 들어 오르카 슬라이서에서 직접 쉽게 크기를 조정할 수 있는 구멍"
-"을 만들 수 있습니다. 자세한 내용은 설명서를 참조하십시오."
+"네거티브 부분 수정자를 사용하여 하나의 메시를 다른 메시에서 뺄 수 있다는 것"
+"을 알고 계셨습니까? 예를 들어, 이렇게 하면 Orca Slicer에서 직접 쉽게 크기 조"
+"정이 가능한 구멍을 만들 수 있습니다. 설명서에서 자세한 내용을 읽어보세요."
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -12873,6 +12994,10 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+"프린터 도어를 연 상태에서 인쇄해야 하는 경우\n"
+"프린터 도어를 열면 다음과 같은 위험이 줄어든다는 사실을 알고 계셨습니까?낮은 "
+"온도의 필라멘트를 인쇄할 때 압출기/핫엔드 막힘인클로저 온도가 높아집니다. 이"
+"에 대한 자세한 내용은 Wiki에서 확인하세요."
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -12881,6 +13006,9 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+"뒤틀림 방지\n"
+"다음과 같이 휘어지기 쉬운 소재를 인쇄할 때 알고 계셨나요?ABS, 히팅베드 온도"
+"를 적절히 높이면 온도를 낮출 수 있습니다.뒤틀림 확률."
 
 #~ msgid "Filling bed "
 #~ msgstr "베드 채움 "
@@ -13347,7 +13475,7 @@ msgstr ""
 #~ msgstr "점수"
 
 #~ msgid "Bamabu High Temperature Plate"
-#~ msgstr "Bamabu High Temperature Plate"
+#~ msgstr "뱀부 고온 플레이트"
 
 #~ msgid "Can't connect to the printer"
 #~ msgstr "프린터에 연결할 수 없습니다"
