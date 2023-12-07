@@ -1965,13 +1965,10 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 	ModelInstance* instance = object->instances[instance_id];
 
 	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-    Vec3d up_point = m_bounding_box.max + Vec3d(Slic3r::BuildVolume::SceneEpsilon, Slic3r::BuildVolume::SceneEpsilon,
-                                                m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-    Vec3d low_point = m_bounding_box.min + Vec3d(-Slic3r::BuildVolume::SceneEpsilon, -Slic3r::BuildVolume::SceneEpsilon,
-                                                 m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
-    Polygon hull = instance->convex_hull_2d();
-    if (instance_box.max.z() > low_point.z()) low_point.z() +=  instance_box.min.z(); // not considering outsize if sinking
-	BoundingBoxf3 plate_box(low_point, up_point);
+	Polygon hull = instance->convex_hull_2d();
+	BoundingBoxf3 plate_box = get_plate_box();
+	if (instance_box.max.z() > plate_box.min.z())
+		plate_box.min.z() += instance_box.min.z(); // not considering outsize if sinking
 
 	if (plate_box.contains(instance_box))
 	{
@@ -2014,15 +2011,7 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 		ModelObject* object = m_model->objects[obj_id];
 		ModelInstance* instance = object->instances[instance_id];
 		BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
-        Vec3d up_point =
-            m_bounding_box.max + Vec3d(Slic3r::BuildVolume::SceneEpsilon, Slic3r::BuildVolume::SceneEpsilon,
-                                       m_origin.z() + m_height + Slic3r::BuildVolume::SceneEpsilon);
-        Vec3d low_point =
-            m_bounding_box.min + Vec3d(-Slic3r::BuildVolume::SceneEpsilon, -Slic3r::BuildVolume::SceneEpsilon,
-                                       m_origin.z() - Slic3r::BuildVolume::SceneEpsilon);
-		BoundingBoxf3 plate_box(low_point, up_point);
-
-		result = plate_box.intersects(instance_box);
+		result = get_plate_box().intersects(instance_box);
 	}
 	else
 	{
@@ -2508,7 +2497,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod)
 {
 	Pointfs new_shape, new_exclude_areas;
-
+	m_raw_shape = shape;
 	for (const Vec2d& p : shape) {
 		new_shape.push_back(Vec2d(p.x() + position.x(), p.y() + position.y()));
 	}
