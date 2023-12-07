@@ -169,8 +169,8 @@ public:
                     const std::string& icon_name = "",
                     const int px_cnt = 16,
                     const bool grayscale = false,
-                    const bool resize = false // BBS: support resize by fill border
-                   );
+                    const bool resize = false, // BBS: support resize by fill border
+                    const bool use_legacy_bmp = false);
 
     ~ScalableBitmap() {}
 
@@ -202,6 +202,7 @@ private:
     int             m_px_cnt {16};
     bool            m_grayscale{ false };
     bool            m_resize{ false };
+    bool            m_legacy_bmp{ false };
 };
 
 
