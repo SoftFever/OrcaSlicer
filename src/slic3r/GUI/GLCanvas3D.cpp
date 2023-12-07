@@ -4502,6 +4502,9 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         int instance_idx = v->instance_idx();
         int volume_idx = v->volume_idx();
 
+        if (volume_idx < 0)
+            continue;
+
         std::pair<int, int> done_id(object_idx, instance_idx);
 
         if (0 <= object_idx && object_idx < (int)m_model->objects.size()) {
@@ -4606,26 +4609,26 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes) {
-        int object_idx = v->object_idx();
+        const int object_idx = v->object_idx();
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
-        int instance_idx = v->instance_idx();
-        int volume_idx = v->volume_idx();
+        const int instance_idx = v->instance_idx();
+        const int volume_idx = v->volume_idx();
+
+        if (volume_idx < 0)
+            continue;
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances/volumes.
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-            }
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_rotation() != v->get_volume_rotation()) {
-                    model_object->volumes[volume_idx]->set_rotation(v->get_volume_rotation());
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                	model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4687,27 +4690,27 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes) {
-        int object_idx = v->object_idx();
+        const int object_idx = v->object_idx();
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
-        int instance_idx = v->instance_idx();
-        int volume_idx = v->volume_idx();
+        const int instance_idx = v->instance_idx();
+        const int volume_idx = v->volume_idx();
+
+        if (volume_idx < 0)
+            continue;
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-            }
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_scaling_factor() != v->get_volume_scaling_factor()) {
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4798,10 +4801,10 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance)
-                model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_mirror() != v->get_volume_mirror()) {
-                    model_object->volumes[volume_idx]->set_mirror(v->get_volume_mirror());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
