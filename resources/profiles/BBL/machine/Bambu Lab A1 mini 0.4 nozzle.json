@@ -21,8 +21,8 @@
     "extruder_clearance_max_radius": "73",
     "extruder_clearance_radius": "73",
     "head_wrap_detect_zone": [
-        "156x156",
-        "180x156",
+        "156x152",
+        "180x152",
         "180x180",
         "156x180"
     ],
