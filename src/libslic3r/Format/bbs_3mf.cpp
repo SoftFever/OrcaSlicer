@@ -8546,6 +8546,9 @@ EmbossShape TextConfigurationSerialization::read_old(const char **attributes, un
 namespace {
 Transform3d create_fix(const std::optional<Transform3d> &prev, const ModelVolume &volume)
 {
+    // Orca: not needed
+    return Transform3d::Identity();
+
     // IMPROVE: check if volume was modified (translated, rotated OR scaled)
     // when no change do not calculate transformation only store original fix matrix
 
