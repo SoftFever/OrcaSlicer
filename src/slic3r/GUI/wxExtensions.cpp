@@ -884,35 +884,17 @@ ScalableBitmap::ScalableBitmap( wxWindow *parent,
                                 const std::string& icon_name/* = ""*/,
                                 const int px_cnt/* = 16*/, 
                                 const bool grayscale/* = false*/,
-                                const bool resize/* = false*/,
-                                const bool use_legacy_bmp/* = false*/):
-    m_parent(parent), m_icon_name(icon_name), m_legacy_bmp(use_legacy_bmp),
+                                const bool resize/* = false*/ ):
+    m_parent(parent), m_icon_name(icon_name),
     m_px_cnt(px_cnt), m_grayscale(grayscale), m_resize(resize) // BBS: support resize by fill border
 {
-    // Orca: there is currently an issue causing the advanced SwitchButton to not scale properly
-    // when using get_bmp_bundle. This allows for the older method of getting a scaled bitmap to be
-    // used in this edge case while the underlying issue is determined.
-    if (m_legacy_bmp) {
-        m_bmp = create_scaled_bitmap(icon_name, parent, px_cnt, m_grayscale, std::string(), false, resize);
-        if (px_cnt == 0) {
-            m_px_cnt            = GetHeight(); // scale
-            unsigned int height = (unsigned int) (parent->FromDIP(m_px_cnt) + 0.5f);
-            if (height != GetHeight())
-                sys_color_changed();
-        }
-    } else {
-        m_bmp = *get_bmp_bundle(icon_name, px_cnt);
-    }
+    m_bmp = *get_bmp_bundle(icon_name, px_cnt);
 }
 
 
 void ScalableBitmap::sys_color_changed()
 {
-    if (m_legacy_bmp) {
-    // BBS: support resize by fill border
-        m_bmp = create_scaled_bitmap(m_icon_name, m_parent, m_px_cnt, m_grayscale, std::string(), false, m_resize);
-    } else
-        m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt);
+    m_bmp = *get_bmp_bundle(m_icon_name, m_px_cnt);
 }
 
 // ----------------------------------------------------------------------------

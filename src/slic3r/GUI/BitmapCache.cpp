@@ -421,12 +421,62 @@ wxBitmapBundle* BitmapCache::from_svg(const std::string& bitmap_name, unsigned t
         replaces["\"#009688\""] = "\"#00675b\"";
     }
 
-    std::string str;
-    nsvgGetDataFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), str, replaces);
-    if (str.empty())
+    // Orca: Replace nsvgGetDataFromFileWithReplace with the parse variant so that we can use the image data
+    // to properly scale the image rather than just using the px_cnt for both height and width
+    NSVGimage* nsvg_img = nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(),"px", 96.f, replaces);
+    if (nsvg_img == nullptr)
         return nullptr;
 
-    return insert_bndl(bitmap_key, str.data(), target_width, target_height);
+    if (target_height == 0 && target_width == 0)
+        target_height = nsvg_img->height;
+
+    target_height != 0 ? target_height *= m_scale : target_width *= m_scale;
+
+    float svg_scale = target_height != 0 ?
+                  (float)target_height / nsvg_img->height  : target_width != 0 ?
+                  (float)target_width / nsvg_img->width    : 1.f;
+
+    wxSize size((svg_scale * nsvg_img->width + 0.5f), (svg_scale * nsvg_img->height + 0.5f));
+    int   n_pixels = size.x * size.y;
+    if (n_pixels <= 0) {
+        ::nsvgDelete(nsvg_img);
+        return nullptr;
+    }
+
+    NSVGrasterizer *rast = ::nsvgCreateRasterizer();
+    if (rast == nullptr) {
+        ::nsvgDelete(nsvg_img);
+        return nullptr;
+    }
+    wxVector<unsigned char> buffer(n_pixels*4);
+    nsvgRasterize(rast,nsvg_img,0.0, 0.0, // no offset
+        svg_scale,&buffer[0],size.x, size.y, size.x*4);
+
+    wxBitmap bitmap(size, 32);
+    wxAlphaPixelData bmpdata(bitmap);
+    wxAlphaPixelData::Iterator dst(bmpdata);
+
+    const unsigned char* src = &buffer[0];
+    for ( int y = 0; y < size.y; ++y )
+    {
+        dst.MoveTo(bmpdata, 0, y);
+        for ( int x = 0; x < size.x; ++x )
+        {
+            const unsigned char a = src[3];
+            dst.Red()   = src[0] * a / 255;
+            dst.Green() = src[1] * a / 255;
+            dst.Blue()  = src[2] * a / 255;
+            dst.Alpha() = a;
+
+            ++dst;
+            src += 4;
+        }
+    }
+
+    ::nsvgDelete(nsvg_img);
+    ::nsvgDeleteRasterizer(rast);
+
+    return insert_bndl(bitmap_key, bitmap);
 }
 
 wxBitmapBundle* BitmapCache::from_png(const std::string& bitmap_name, unsigned width, unsigned height)
@@ -507,7 +557,7 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     float svg_scale = target_height != 0 ? 
                   (float)target_height / image->height  : target_width != 0 ?
-                  (float)target_width / image->width    : 1;
+                  (float)target_width / image->width    : 1.f;
 
     int   width    = (int)(svg_scale * image->width + 0.5f);
     int   height   = (int)(svg_scale * image->height + 0.5f);
