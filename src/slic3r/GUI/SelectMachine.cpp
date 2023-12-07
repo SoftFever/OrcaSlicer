@@ -2346,8 +2346,19 @@ bool SelectMachineDialog::is_same_printer_model()
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) != obj_->printer_type) {
+
+        if (obj_->is_support_p1s_plus && (preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == "C12")) {
+            return true;
+        }
+
         BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
         BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type;
+        return false;
+    }
+
+    if (obj_->is_support_p1s_plus) {
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type << " (plus)";
         return false;
     }
 

@@ -739,6 +739,7 @@ public:
     bool is_support_motor_noise_cali{false};
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
+    bool is_support_p1s_plus{false};
 
     int  nozzle_max_temperature = -1;
     int  bed_temperature_limit = -1;

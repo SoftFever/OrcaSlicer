@@ -1376,6 +1376,10 @@ void MachineObject::parse_status(int flag)
     if(!is_support_motor_noise_cali){
         is_support_motor_noise_cali = ((flag >> 21) & 0x1) != 0;
     }
+    
+    if (!is_support_p1s_plus) {
+        is_support_p1s_plus = ((flag >> 27) & 0x1) != 0;
+    }
 
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
