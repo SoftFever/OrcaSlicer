@@ -265,6 +265,8 @@ Vec2i GLGizmoPainterBase::_3d_to_mouse(Vec3d pos_in_3d, const Camera &camera) co
 // BBS
 void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) const
 {
+    float buf_size= ImGui::CalcTextSize("-100.00").x + ImGui::GetStyle().FramePadding.x;
+
     const BoundingBoxf3 box = bounding_box();
     Vec3d hit_world = trafo * Vec3d(m_rr.hit(0), m_rr.hit(1), m_rr.hit(2));
     float max_z = (float)box.max.z();
@@ -288,7 +290,7 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark_mode ? ImVec4(255 / 255.0, 255 / 255.0, 255 / 255.0, 0.7) : ImVec4(38 / 255.0, 46 / 255.0, 48 / 255.0, 0.7));
     ImGui::TextUnformatted(_L("Bottom:").ToUTF8().data());
     ImGui::SameLine();
-    ImGui::PushItemWidth(50);
+    ImGui::PushItemWidth(buf_size);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
