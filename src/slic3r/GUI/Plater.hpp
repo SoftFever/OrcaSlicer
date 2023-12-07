@@ -313,8 +313,10 @@ public:
     bool is_view3D_overhang_shown() const;
     void show_view3D_overhang(bool show);
 
+    bool is_sidebar_enabled() const;
+    void enable_sidebar(bool enabled);
     bool is_sidebar_collapsed() const;
-    void collapse_sidebar(bool show);
+    void collapse_sidebar(bool collapse);
 
     void reset_window_layout();
 

@@ -1987,8 +1987,13 @@ struct Plater::priv
     wxString m_default_window_layout;
     wxPanel* current_panel{ nullptr };
     std::vector<wxPanel*> panels;
-    bool is_sidebar_collapsed{false};
     Sidebar *sidebar;
+    struct SidebarLayout
+    {
+        bool                  is_enabled{false};
+        bool                  is_collapsed{false};
+        bool                  show{false};
+    } sidebar_layout;
     Bed3D bed;
     Camera camera;
     //BBS: partplate related structure
@@ -2180,7 +2185,9 @@ struct Plater::priv
         if (current_panel == view3D) view3D->get_canvas3d()->show_overhang(show);
     }
 
+    void enable_sidebar(bool enabled);
     void collapse_sidebar(bool collapse);
+    void update_sidebar(bool force_update = false);
     void reset_window_layout();
 
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
@@ -2658,6 +2665,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         wxString   layout = wxString::FromUTF8(cfg->get("window_layout"));
         if (!layout.empty()) {
             m_aui_mgr.LoadPerspective(layout, false);
+            auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+            sidebar_layout.is_collapsed = !sidebar.IsShown();
         }
     }
 
@@ -2991,6 +3000,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //    bool is_collapsed = wxGetApp().app_config->get("collapsed_sidebar") == "1";
     //    sidebar->collapse(is_collapsed);
     //}
+    update_sidebar(true);
 }
 
 Plater::priv::~priv()
@@ -3039,7 +3049,7 @@ void Plater::priv::update(unsigned int flags)
         this->sidebar->obj_manipul()->UpdateAndShow(true);
 #endif
 
-    m_aui_mgr.Update();
+    update_sidebar();
 }
 
 void Plater::priv::select_view(const std::string& direction)
@@ -3157,22 +3167,53 @@ void Plater::priv::select_next_view_3D()
 //        set_current_panel(view3D);
 }
 
-void Plater::priv::collapse_sidebar(bool collapse)
+void Plater::priv::enable_sidebar(bool enabled)
 {
-    if (q->m_only_gcode && !collapse)
-        return;
+    if (q->m_only_gcode)
+        enabled = false;
 
-    is_sidebar_collapsed = collapse;
-    if (collapse)
-        m_aui_mgr.GetPane(sidebar).Hide();
-    else
-        m_aui_mgr.GetPane(sidebar).Show();
-    m_aui_mgr.Update();
-
-    notification_manager->set_sidebar_collapsed(collapse);
+    sidebar_layout.is_enabled = enabled;
+    update_sidebar();
 }
 
-void Plater::priv::reset_window_layout() { m_aui_mgr.LoadPerspective(m_default_window_layout); }
+void Plater::priv::collapse_sidebar(bool collapse)
+{
+    if (q->m_only_gcode)
+        return;
+
+    sidebar_layout.is_collapsed = collapse;
+    update_sidebar();
+}
+
+void Plater::priv::update_sidebar(bool force_update) {
+    auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+    bool  needs_update = force_update;
+
+    if (!sidebar_layout.is_enabled) {
+        if (sidebar.IsShown()) {
+            sidebar.Hide();
+            needs_update = true;
+        }
+    } else {
+        bool should_show = sidebar_layout.show && !sidebar_layout.is_collapsed;
+        if (should_show != sidebar.IsShown()) {
+            sidebar.Show(should_show);
+            needs_update = true;
+        }
+    }
+
+    if (needs_update) {
+        notification_manager->set_sidebar_collapsed(sidebar.IsShown());
+        m_aui_mgr.Update();
+    }
+}
+
+void Plater::priv::reset_window_layout()
+{
+    m_aui_mgr.LoadPerspective(m_default_window_layout, false);
+    sidebar_layout.is_collapsed = false;
+    update_sidebar(true);
+}
 
 void Plater::priv::reset_all_gizmos()
 {
@@ -4587,7 +4628,12 @@ void Plater::priv::reset(bool apply_presets_change)
     m_saved_timestamp = m_backup_timestamp = size_t(-1);
 
     // Save window layout
-    if (!is_sidebar_collapsed) {
+    if (sidebar_layout.is_enabled) {
+        // Reset show state
+        auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
+        if (!sidebar_layout.is_collapsed && !sidebar.IsShown()) {
+            sidebar.Show();
+        }
         auto layout = m_aui_mgr.SavePerspective();
         wxGetApp().app_config->set("window_layout", layout.utf8_string());
     }
@@ -6687,17 +6733,8 @@ void Plater::priv::on_action_print_plate_from_sdcard(SimpleEvent&)
 void Plater::priv::on_tab_selection_changing(wxBookCtrlEvent& e)
 {
     const int new_sel = e.GetSelection();
-    const bool show_sidebar = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
-
-    if (!is_sidebar_collapsed) {
-        auto& sidebar = m_aui_mgr.GetPane(this->sidebar);
-        if (show_sidebar) {
-            sidebar.Show();
-        } else if (sidebar.IsFloating()) {
-            sidebar.Hide();
-        }
-        m_aui_mgr.Update();
-    }
+    sidebar_layout.show = new_sel == MainFrame::tp3DEditor || new_sel == MainFrame::tpPreview;
+    update_sidebar();
 }
 
 int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path)
@@ -8255,9 +8292,6 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     if (!skip_confirm && (result = close_with_confirm(check)) == wxID_CANCEL)
         return wxID_CANCEL;
 
-    //BBS: add only gcode mode
-    bool previous_gcode = m_only_gcode;
-
     m_only_gcode = false;
     m_exported_file = false;
     m_loading_project = false;
@@ -8302,8 +8336,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     p->select_view_3D("3D");
     p->select_view("topfront");
     p->camera.requires_zoom_to_bed = true;
-    if (previous_gcode)
-        collapse_sidebar(false);
+    enable_sidebar(!m_only_gcode);
 
     up_to_date(true, false);
     up_to_date(true, true);
@@ -8334,9 +8367,6 @@ void Plater::load_project(wxString const& filename2,
     if ((result = close_with_confirm(check)) == wxID_CANCEL) {
         return;
     }
-
-    //BBS: add only gcode mode
-    bool previous_gcode = m_only_gcode;
 
     // BBS
     if (m_loading_project) {
@@ -8407,8 +8437,7 @@ void Plater::load_project(wxString const& filename2,
         p->partplate_list.select_plate_view();
     }
 
-    if (previous_gcode)
-        collapse_sidebar(false);
+    enable_sidebar(!m_only_gcode);
 
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
     if (load_restore && !originfile.empty()) {
@@ -10119,8 +10148,10 @@ void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
 bool Plater::is_view3D_overhang_shown() const { return p->is_view3D_overhang_shown(); }
 void Plater::show_view3D_overhang(bool show)  {  p->show_view3D_overhang(show); }
 
-bool Plater::is_sidebar_collapsed() const { return p->is_sidebar_collapsed; }
-void Plater::collapse_sidebar(bool show) { p->collapse_sidebar(show); }
+bool Plater::is_sidebar_enabled() const { return p->sidebar_layout.is_enabled; }
+void Plater::enable_sidebar(bool enabled) { p->enable_sidebar(enabled); }
+bool Plater::is_sidebar_collapsed() const { return p->sidebar_layout.is_collapsed; }
+void Plater::collapse_sidebar(bool collapse) { p->collapse_sidebar(collapse); }
 
 void Plater::reset_window_layout() { p->reset_window_layout(); }
 

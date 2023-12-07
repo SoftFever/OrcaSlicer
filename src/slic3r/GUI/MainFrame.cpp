@@ -762,7 +762,7 @@ void MainFrame::update_layout()
         //BBS: add bed exclude area
         m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, {}, 0.0, {}, {}, true);
         m_plater->get_collapse_toolbar().set_enabled(false);
-        m_plater->collapse_sidebar(true);
+        m_plater->enable_sidebar(false);
         m_plater->Show();
         break;
     }
@@ -2531,7 +2531,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { m_plater->reset_window_layout(); }, "", this,
             [this]() {
                 return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) &&
-                       !m_plater->is_sidebar_collapsed();
+                       m_plater->is_sidebar_enabled();
             },
             this);
 
