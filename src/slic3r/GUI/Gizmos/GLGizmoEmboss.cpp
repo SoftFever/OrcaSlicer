@@ -1370,12 +1370,15 @@ void GLGizmoEmboss::draw_window()
     if (ImGui::TreeNode(_u8L("Advanced").c_str())) {
         if (!m_is_advanced_edit_style) {
             m_is_advanced_edit_style = true;
+            m_imgui->set_requires_extra_frame();
         } else {
             draw_advanced();
         }
         ImGui::TreePop();
-    } else if (m_is_advanced_edit_style)
+    } else if (m_is_advanced_edit_style) {
         m_is_advanced_edit_style = false;
+        m_imgui->set_requires_extra_frame();
+    }
 
     ImGui::Separator();
 
