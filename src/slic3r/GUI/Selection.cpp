@@ -40,27 +40,19 @@ namespace GUI {
 
 Selection::VolumeCache::TransformCache::TransformCache()
     : position(Vec3d::Zero())
-    , rotation(Vec3d::Zero())
-    , scaling_factor(Vec3d::Ones())
-    , mirror(Vec3d::Ones())
     , rotation_matrix(Transform3d::Identity())
     , scale_matrix(Transform3d::Identity())
     , mirror_matrix(Transform3d::Identity())
-    , full_matrix(Transform3d::Identity())
 {
 }
 
 Selection::VolumeCache::TransformCache::TransformCache(const Geometry::Transformation& transform)
     : position(transform.get_offset())
-    , rotation(transform.get_rotation())
-    , scaling_factor(transform.get_scaling_factor())
-    , mirror(transform.get_mirror())
-    , full_matrix(transform.get_matrix())
     , transform(transform)
 {
-    rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-    scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scaling_factor);
-    mirror_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d::Ones(), mirror);
+    rotation_matrix = transform.get_rotation_matrix();
+    scale_matrix    = transform.get_scaling_factor_matrix();
+    mirror_matrix   = transform.get_mirror_matrix();
 }
 
 Selection::VolumeCache::VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform)
@@ -2773,6 +2765,16 @@ void Selection::render_sidebar_layers_hints(const std::string& sidebar_field, GL
     glsafe(::glDisable(GL_BLEND));
 }
 
+static bool is_left_handed(const Transform3d::ConstLinearPart& m)
+{
+    return m.determinant() < 0;
+}
+
+static bool is_left_handed(const Transform3d& m)
+{
+    return is_left_handed(m.linear());
+}
+
 #ifndef NDEBUG
 static bool is_rotation_xy_synchronized(const Vec3d &rot_xyz_from, const Vec3d &rot_xyz_to)
 {
@@ -2819,48 +2821,40 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
         if (done.size() == m_volumes->size())
             break;
 
-        const GLVolume* volume = (*m_volumes)[i];
-        const int object_idx = volume->object_idx();
+        const GLVolume* volume_i = (*m_volumes)[i];
+        const int object_idx = volume_i->object_idx();
         if (object_idx >= 1000)
             continue;
 
-        const int instance_idx = volume->instance_idx();
-        const Vec3d& rotation = volume->get_instance_rotation();
-        const Vec3d& scaling_factor = volume->get_instance_scaling_factor();
-        const Vec3d& mirror = volume->get_instance_mirror();
+        const int instance_idx = volume_i->instance_idx();
+        const Transform3d& curr_inst_trafo_i = volume_i->get_instance_transformation().get_matrix();
+        const Transform3d& old_inst_trafo_i = m_cache.volumes_data[i].get_instance_transform().get_matrix();
+        bool               mirrored = is_left_handed(curr_inst_trafo_i) != is_left_handed(old_inst_trafo_i);
+//        bool               mirrored = curr_inst_trafo_i.linear().determinant() * old_inst_trafo_i.linear().determinant() < 0;
 
         // Process unselected instances.
         for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
             if (done.size() == m_volumes->size())
                 break;
-
             if (done.find(j) != done.end())
                 continue;
-
-            GLVolume* v = (*m_volumes)[j];
-            if (v->object_idx() != object_idx || v->instance_idx() == instance_idx)
+            GLVolume* volume_j = (*m_volumes)[j];
+            if (volume_j->object_idx() != object_idx || volume_j->instance_idx() == instance_idx)
                 continue;
-
-            assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
-            switch (sync_rotation_type) {
-            case SyncRotationType::NONE: {
-                // z only rotation -> synch instance z
-                // The X,Y rotations should be synchronized from start to end of the rotation.
-                assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
-                if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
-                    v->set_instance_offset(Z, volume->get_instance_offset().z());
-                break;
+            const Transform3d& old_inst_trafo_j = m_cache.volumes_data[j].get_instance_transform().get_matrix();
+            assert(is_rotation_xy_synchronized(old_inst_trafo_i, old_inst_trafo_j));
+            Transform3d        new_inst_trafo_j = volume_j->get_instance_transformation().get_matrix();
+            if (sync_rotation_type == SyncRotationType::RESET) {
+                Geometry::Transformation new_inst_trafo_j_no_rotation(new_inst_trafo_j);
+                new_inst_trafo_j_no_rotation.reset_rotation();
+                new_inst_trafo_j = new_inst_trafo_j_no_rotation.get_matrix();
             }
-            case SyncRotationType::GENERAL:
-                // generic rotation -> update instance z with the delta of the rotation.
-                const double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
-                v->set_instance_rotation({ rotation.x(), rotation.y(), rotation.z() + z_diff });
-                break;
-            }
-
-            v->set_instance_scaling_factor(scaling_factor);
-            v->set_instance_mirror(mirror);
-
+            else if (sync_rotation_type != SyncRotationType::NONE || mirrored)
+                new_inst_trafo_j.linear() = (old_inst_trafo_j.linear() * old_inst_trafo_i.linear().inverse()) * curr_inst_trafo_i.linear();
+            if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+                new_inst_trafo_j.translation().z() = curr_inst_trafo_i.translation().z();
+            assert(is_rotation_xy_synchronized(curr_inst_trafo_i, new_inst_trafo_j));
+            volume_j->set_instance_transformation(new_inst_trafo_j);
             done.insert(j);
         }
     }
@@ -2879,10 +2873,7 @@ void Selection::synchronize_unselected_volumes()
             continue;
 
         const int volume_idx = volume->volume_idx();
-        const Vec3d& offset = volume->get_volume_offset();
-        const Vec3d& rotation = volume->get_volume_rotation();
-        const Vec3d& scaling_factor = volume->get_volume_scaling_factor();
-        const Vec3d& mirror = volume->get_volume_mirror();
+        const Geometry::Transformation& trafo = volume->get_volume_transformation();
 
         // Process unselected volumes.
         for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
@@ -2893,10 +2884,7 @@ void Selection::synchronize_unselected_volumes()
             if (v->object_idx() != object_idx || v->volume_idx() != volume_idx)
                 continue;
 
-            v->set_volume_offset(offset);
-            v->set_volume_rotation(rotation);
-            v->set_volume_scaling_factor(scaling_factor);
-            v->set_volume_mirror(mirror);
+            v->set_volume_transformation(trafo);
         }
     }
 }

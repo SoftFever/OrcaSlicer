@@ -68,13 +68,9 @@ private:
         struct TransformCache
         {
             Vec3d position;
-            Vec3d rotation;
-            Vec3d scaling_factor;
-            Vec3d mirror;
             Transform3d rotation_matrix;
             Transform3d scale_matrix;
             Transform3d mirror_matrix;
-            Transform3d full_matrix;
 
             Geometry::Transformation transform;
 
@@ -90,23 +86,13 @@ private:
         VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform);
 
         const Vec3d& get_volume_position() const { return m_volume.position; }
-        const Vec3d& get_volume_rotation() const { return m_volume.rotation; }
-        const Vec3d& get_volume_scaling_factor() const { return m_volume.scaling_factor; }
-        const Vec3d& get_volume_mirror() const { return m_volume.mirror; }
-        const Transform3d& get_volume_rotation_matrix() const { return m_volume.rotation_matrix; }
         const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
-        const Transform3d& get_volume_mirror_matrix() const { return m_volume.mirror_matrix; }
-        const Transform3d& get_volume_full_matrix() const { return m_volume.full_matrix; }
         const Geometry::Transformation& get_volume_transform() const { return m_volume.transform; }
 
         const Vec3d& get_instance_position() const { return m_instance.position; }
-        const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
-        const Vec3d& get_instance_scaling_factor() const { return m_instance.scaling_factor; }
-        const Vec3d& get_instance_mirror() const { return m_instance.mirror; }
         const Transform3d& get_instance_rotation_matrix() const { return m_instance.rotation_matrix; }
         const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
         const Transform3d& get_instance_mirror_matrix() const { return m_instance.mirror_matrix; }
-        const Transform3d& get_instance_full_matrix() const { return m_instance.full_matrix; }
         const Geometry::Transformation &get_instance_transform() const { return m_instance.transform; }
     };
 
