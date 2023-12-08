@@ -2212,7 +2212,8 @@ void GLGizmoEmboss::draw_style_list() {
             // draw style name
             if (img.has_value()) {
                 ImGui::SameLine(max_style_name_width);
-                ImGui::Image(img->texture_id, img->tex_size, img->uv0, img->uv1);
+                ImVec4 tint_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+                ImGui::Image(img->texture_id, img->tex_size, img->uv0, img->uv1, tint_color);
             }
 
             ImGui::PopID();

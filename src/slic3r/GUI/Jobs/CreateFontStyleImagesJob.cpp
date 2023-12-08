@@ -106,7 +106,7 @@ void CreateFontStyleImagesJob::process(Ctl &ctl)
         sla::RasterEncoder encoder = [&offset = image.offset, &pix = m_pixels, w=m_width,h=m_height]
         (const void *ptr, size_t width, size_t height, size_t num_components) {
             // bigger value create darker image
-            unsigned char gray_level = 5;
+            unsigned char gray_level = 1;
             size_t size {static_cast<size_t>(w*h)};
             assert((offset.x() + width) <= (size_t)w);
             assert((offset.y() + height) <= (size_t)h);
