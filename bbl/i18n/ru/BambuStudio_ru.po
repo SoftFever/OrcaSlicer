@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-05 11:21+0800\n"
+"POT-Creation-Date: 2023-12-08 14:59+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -4641,9 +4641,8 @@ msgstr "Автовосстановление после потери шагов"
 msgid "Allow Prompt Sound"
 msgstr "Разрешить звуковые уведомления"
 
-# ??? Обнаружение перехлеста прутка на катушке
-msgid "Fliament Tangle Detect"
-msgstr "Обнаружение запутывания прутка"
+msgid "Filament Tangle Detect"
+msgstr ""
 
 msgid "Global"
 msgstr "Общие"
@@ -5657,8 +5656,8 @@ msgstr "Сохранить %s как"
 msgid "User Preset"
 msgstr "Пользовательский профиль"
 
-msgid "Project Inside Preset"
-msgstr "Внутрипроектный профиль"
+msgid "Preset Inside Project"
+msgstr ""
 
 msgid "Name is invalid;"
 msgstr "Некорректное имя;"
@@ -6601,8 +6600,8 @@ msgstr "Не задано"
 msgid "Unsaved Changes"
 msgstr "Несохранённые изменения"
 
-msgid "Discard or Keep changes"
-msgstr "Отклонить или сохранить изменения"
+msgid "Transfer or discard changes"
+msgstr ""
 
 msgid "Old Value"
 msgstr "Старое значение"
@@ -12189,6 +12188,16 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+# ??? Обнаружение перехлеста прутка на катушке
+#~ msgid "Fliament Tangle Detect"
+#~ msgstr "Обнаружение запутывания прутка"
+
+#~ msgid "Project Inside Preset"
+#~ msgstr "Внутрипроектный профиль"
+
+#~ msgid "Discard or Keep changes"
+#~ msgstr "Отклонить или сохранить изменения"
 
 #~ msgid "Improt Preset"
 #~ msgstr "Импорт профиля"

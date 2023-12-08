@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-05 11:21+0800\n"
+"POT-Creation-Date: 2023-12-08 14:59+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -198,7 +198,7 @@ msgid "Bottom:"
 msgstr "底边:"
 
 msgid "in"
-msgstr "在"
+msgstr "英寸"
 
 msgid "mm"
 msgstr "mm"
@@ -4398,7 +4398,7 @@ msgstr "自动从丢步中恢复"
 msgid "Allow Prompt Sound"
 msgstr "支持提示音"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "缠料检测"
 
 msgid "Global"
@@ -5341,7 +5341,7 @@ msgstr "另存%s为"
 msgid "User Preset"
 msgstr "用户预设"
 
-msgid "Project Inside Preset"
+msgid "Preset Inside Project"
 msgstr "项目预设"
 
 msgid "Name is invalid;"
@@ -6193,8 +6193,8 @@ msgstr "未定义"
 msgid "Unsaved Changes"
 msgstr "未保存的更改"
 
-msgid "Discard or Keep changes"
-msgstr "放弃或保留更改"
+msgid "Transfer or discard changes"
+msgstr "迁移或者抛弃更改"
 
 msgid "Old Value"
 msgstr "旧值"
@@ -11286,6 +11286,15 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "Fliament Tangle Detect"
+#~ msgstr "缠料检测"
+
+#~ msgid "Project Inside Preset"
+#~ msgstr "项目预设"
+
+#~ msgid "Discard or Keep changes"
+#~ msgstr "放弃或保留更改"
 
 #~ msgid "Reduce interface filament for base"
 #~ msgstr "界面材料不用于主体"

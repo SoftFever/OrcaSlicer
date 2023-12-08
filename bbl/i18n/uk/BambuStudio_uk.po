@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-05 11:21+0800\n"
+"POT-Creation-Date: 2023-12-08 14:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4589,8 +4589,8 @@ msgstr "Автоматичне відновлення після втрати к
 msgid "Allow Prompt Sound"
 msgstr "Дозволити звук підказки"
 
-msgid "Fliament Tangle Detect"
-msgstr "Виявлення заплутаного філаменту"
+msgid "Filament Tangle Detect"
+msgstr ""
 
 msgid "Global"
 msgstr "Загальний"
@@ -5594,8 +5594,8 @@ msgstr "Зберегти %s як"
 msgid "User Preset"
 msgstr "Установка користувача"
 
-msgid "Project Inside Preset"
-msgstr "Налаштування проекту всередині"
+msgid "Preset Inside Project"
+msgstr ""
 
 msgid "Name is invalid;"
 msgstr "Ім'я недійсне;"
@@ -6518,8 +6518,8 @@ msgstr "Невизначено"
 msgid "Unsaved Changes"
 msgstr "Незбережені зміни"
 
-msgid "Discard or Keep changes"
-msgstr "Відкинути або зберегти зміни"
+msgid "Transfer or discard changes"
+msgstr ""
 
 msgid "Old Value"
 msgstr "Старе значення"
@@ -12095,6 +12095,15 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "Fliament Tangle Detect"
+#~ msgstr "Виявлення заплутаного філаменту"
+
+#~ msgid "Project Inside Preset"
+#~ msgstr "Налаштування проекту всередині"
+
+#~ msgid "Discard or Keep changes"
+#~ msgstr "Відкинути або зберегти зміни"
 
 #~ msgid "Improt Preset"
 #~ msgstr "Імпортувати налаштування"
