@@ -7808,7 +7808,7 @@ void Plater::priv::on_modify_filament(SimpleEvent &evt)
     update_ui_from_settings();
     sidebar->update_all_preset_comboboxes();
     if (wxID_EDIT == res) {
-        wxGetApp().params_dialog()->Popup(true);
+        wxGetApp().params_dialog()->Popup();
     }
 }
 
@@ -9022,7 +9022,8 @@ void Plater::calib_flowrate(int pass) {
     if (pass != 1 && pass != 2)
         return;
     const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
-    new_project(false, false, calib_name);
+    if (new_project(false, false, calib_name) == wxID_CANCEL)
+        return;
 
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     
@@ -9069,7 +9070,7 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
         _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(35));
-        _obj->config.set_key_value("min_width_top_surface", new ConfigOptionPercent(100));
+        _obj->config.set_key_value("min_width_top_surface", new ConfigOptionFloatOrPercent(100,true));
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
         _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));

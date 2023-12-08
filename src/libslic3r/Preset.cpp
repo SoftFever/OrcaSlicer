@@ -1288,6 +1288,7 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         key_values.erase(BBL_JSON_KEY_BASE_ID);
         if (get_preset_base(preset) == &preset && !preset.filament_id.empty()) {
             key_values[BBL_JSON_KEY_FILAMENT_ID] = preset.filament_id;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " uploading user preset name is: " << preset.name << "and create filament id is: " << preset.filament_id;
         }
     }
     key_values[BBL_JSON_KEY_UPDATE_TIME] = std::to_string(preset.updated_time);
