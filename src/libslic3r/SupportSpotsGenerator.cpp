@@ -179,7 +179,7 @@ void estimate_malformations(LayerPtrs &layers, const Params &params)
                     float sign = (prev_layer_boundary.distance_from_lines<true>(middle.cast<double>()) + 0.5f * flow_width) < 0.0f ? -1.0f :
                                                                                                                                      1.0f;
 
-                    line_out.curled_up_height = estimate_curled_up_height(middle_distance * sign, 0.5 * (a.curvature + b.curvature),
+                    line_out.curled_up_height = estimate_curled_up_height(middle_distance * sign * params.curled_distance_expansion, 0.5 * (a.curvature + b.curvature),
                                                                           l->height, flow_width, bottom_line.curled_up_height, params);
 
                     current_layer_lines.push_back(line_out);
