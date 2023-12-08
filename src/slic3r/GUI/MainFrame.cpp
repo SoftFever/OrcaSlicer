@@ -762,7 +762,7 @@ void MainFrame::update_layout()
         //BBS: add bed exclude area
         m_plater->set_bed_shape({ { 0.0, 0.0 }, { 200.0, 0.0 }, { 200.0, 200.0 }, { 0.0, 200.0 } }, {}, 0.0, {}, {}, true);
         m_plater->get_collapse_toolbar().set_enabled(false);
-        m_plater->collapse_sidebar(true);
+        m_plater->enable_sidebar(false);
         m_plater->Show();
         break;
     }
@@ -2523,8 +2523,17 @@ void MainFrame::init_menubar_as_editor()
                 wxGetApp().toggle_show_gcode_window();
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
-            this, [this]() { return m_plater->is_preview_shown(); },
+            this, [this]() { return m_tabpanel->GetSelection() == tpPreview; },
             [this]() { return wxGetApp().show_gcode_window(); }, this);
+
+        append_menu_item(
+            viewMenu, wxID_ANY, _L("Reset Window Layout"), _L("Reset to default window layout"),
+            [this](wxCommandEvent&) { m_plater->reset_window_layout(); }, "", this,
+            [this]() {
+                return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) &&
+                       m_plater->is_sidebar_enabled();
+            },
+            this);
 
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Labels") + "\t" + ctrl + "E", _L("Show object labels in 3D scene"),
