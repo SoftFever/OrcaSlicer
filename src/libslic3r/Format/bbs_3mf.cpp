@@ -8546,14 +8546,13 @@ EmbossShape TextConfigurationSerialization::read_old(const char **attributes, un
 namespace {
 Transform3d create_fix(const std::optional<Transform3d> &prev, const ModelVolume &volume)
 {
-    // Orca: not needed
-    return Transform3d::Identity();
-
     // IMPROVE: check if volume was modified (translated, rotated OR scaled)
     // when no change do not calculate transformation only store original fix matrix
 
     // Create transformation used after load actual stored volume
-    const Transform3d &actual_trmat = volume.get_matrix();
+    // Orca: do not bake volume transformation into meshes
+    // const Transform3d &actual_trmat = volume.get_matrix();
+    const Transform3d& actual_trmat = Transform3d::Identity();
 
     const auto &vertices = volume.mesh().its.vertices;
     Vec3d       min      = actual_trmat * vertices.front().cast<double>();
