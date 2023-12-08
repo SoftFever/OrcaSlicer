@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.08.00.11",
+    "version": "01.08.00.12",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -14,6 +14,10 @@
             "sub_path": "machine/Bambu Lab X1.json"
         },
         {
+            "name": "Bambu Lab X1E",
+            "sub_path": "machine/Bambu Lab X1E.json"
+        },
+        {
             "name": "Bambu Lab P1P",
             "sub_path": "machine/Bambu Lab P1P.json"
         },
@@ -24,10 +28,6 @@
         {
             "name": "Bambu Lab A1 mini",
             "sub_path": "machine/Bambu Lab A1 mini.json"
-        },
-        {
-            "name": "Bambu Lab X1E",
-            "sub_path": "machine/Bambu Lab X1E.json"
         },
         {
             "name": "Bambu Lab A1",
