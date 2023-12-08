@@ -81,20 +81,22 @@ GLGizmosManager::EType GLGizmosManager::get_gizmo_from_mouse(const Vec2d &mouse_
     if (! m_enabled)
         return Undefined;
 
-    float cnv_h      = (float) m_parent.get_canvas_size().get_height();
-    float height     = get_scaled_total_height();
     float icons_size = m_layout.scaled_icons_size();
     float border     = m_layout.scaled_border();
 
     //BBS: GUI refactor: GLToolbar&&Gizmo adjust
-    float cnv_w = (float)m_parent.get_canvas_size().get_width();
-    float width = get_scaled_total_width();
     //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();;
-    const float separator_width = m_parent.get_separator_toolbar_width();
-    float top_x = std::max(0.0f, 0.5f * (cnv_w - (width + separator_width + m_parent.get_main_toolbar_width() - m_parent.get_collapse_toolbar_width() + m_parent.get_assemble_view_toolbar_width())));
-    top_x += m_parent.get_main_toolbar_width() + separator_width / 2 + border;
-    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView)
+    float top_x;
+    if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        const float cnv_w = (float)m_parent.get_canvas_size().get_width();
+
         top_x = 0.5f * cnv_w + 0.5f * (m_parent.get_assembly_paint_toolbar_width());
+    } else {
+        const float separator_width = m_parent.get_separator_toolbar_width();
+
+        top_x = m_parent.get_main_toolbar_offset();
+        top_x += m_parent.get_main_toolbar_width() + separator_width / 2 + border;
+    }
     float top_y = 0;
     float stride_x = m_layout.scaled_stride_x();
 
@@ -1078,13 +1080,11 @@ void GLGizmosManager::do_render_overlay() const
     else {
         //BBS: GUI refactor: GLToolbar&&Gizmo adjust
         float main_toolbar_width = (float)m_parent.get_main_toolbar_width();
-        float assemble_view_width = (float)m_parent.get_assemble_view_toolbar_width();
-        float collapse_width = (float)m_parent.get_collapse_toolbar_width();
         float separator_width = (float)m_parent.get_separator_toolbar_width();
         //float space_width = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
         //float zoomed_top_x = 0.5f *(cnv_w + main_toolbar_width - 2 * space_width - width) * inv_zoom;
 
-        float main_toolbar_left = std::max(-0.5f * cnv_w, -0.5f * (main_toolbar_width + get_scaled_total_width() + assemble_view_width + separator_width - collapse_width));
+        float main_toolbar_left = -0.5f * cnv_w + m_parent.get_main_toolbar_offset();
         //float zoomed_top_x = 0.5f *(main_toolbar_width + collapse_width - width - assemble_view_width) * inv_zoom;
         top_x = main_toolbar_left + main_toolbar_width + separator_width / 2;
         top_x = top_x * inv_cnv_w * 2;

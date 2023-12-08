@@ -2410,8 +2410,7 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
         
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
-        
-        gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
+        gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)) + 1);
 
         file.write(gcode);
     } else {
