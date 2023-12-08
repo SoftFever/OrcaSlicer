@@ -3185,6 +3185,15 @@ void Plater::priv::collapse_sidebar(bool collapse)
         return;
 
     sidebar_layout.is_collapsed = collapse;
+
+    // Now update the tooltip in the toolbar.
+    std::string new_tooltip = collapse
+                              ? _u8L("Expand sidebar")
+                              : _u8L("Collapse sidebar");
+    new_tooltip += " [Shift+Tab]";
+    int id = collapse_toolbar.get_item_id("collapse_sidebar");
+    collapse_toolbar.set_tooltip(id, new_tooltip);
+
     update_sidebar();
 }
 
