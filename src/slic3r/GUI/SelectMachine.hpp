@@ -422,7 +422,6 @@ public:
     void Enable_Auto_Refill(bool enable);
     void connect_printer_mqtt();
     void on_send_print();
-    void on_printago_send_print(MachineObject* obj);
     void clear_ip_address_config(wxCommandEvent& e);
     void on_refresh(wxCommandEvent& event);
     void on_set_finish_mapping(wxCommandEvent& evt);
