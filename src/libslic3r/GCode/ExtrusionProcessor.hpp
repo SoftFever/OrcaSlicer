@@ -380,12 +380,13 @@ public:
             };
             
             float extrusion_speed = std::min(calculate_speed(curr.distance), calculate_speed(next.distance));
+            float curled_speed = 0;
             if(slowdown_for_curled_edges) {
-            	float curled_speed = calculate_speed(artificial_distance_to_curled_lines);
+                curled_speed = calculate_speed(artificial_distance_to_curled_lines);
             	extrusion_speed       = std::min(curled_speed, extrusion_speed); // adjust extrusion speed based on what is smallest - the calculated overhang speed or the artificial curled speed
             }
             
-            float overlap = std::min(1 - curr.distance * width_inv, 1 - next.distance * width_inv);
+            float overlap = std::min(1 - (curr.distance+artificial_distance_to_curled_lines) * width_inv, 1 - (next.distance+artificial_distance_to_curled_lines) * width_inv);
 			
             processed_points.push_back({ scaled(curr.position), extrusion_speed, overlap });
         }
