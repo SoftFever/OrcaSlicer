@@ -2565,6 +2565,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
 {
+    m_is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+
     m_aui_mgr.SetManagedWindow(q);
     m_aui_mgr.SetDockSizeConstraint(1, 1);
     //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
