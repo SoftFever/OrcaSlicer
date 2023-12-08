@@ -68,13 +68,13 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
 
         if (get_selecting_state() == MeshBooleanSelectingState::SelectTool) {
-            m_tool.trafo = trafo_matrices[closest_hit_mesh_id];
+            m_tool.trafo = mo->volumes[closest_hit_mesh_id]->get_matrix();
             m_tool.volume_idx = closest_hit_mesh_id;
             set_tool_volume(mo->volumes[closest_hit_mesh_id]);
             return true;
         }
         if (get_selecting_state() == MeshBooleanSelectingState::SelectSource) {
-            m_src.trafo = trafo_matrices[closest_hit_mesh_id];
+            m_src.trafo = mo->volumes[closest_hit_mesh_id]->get_matrix();
             m_src.volume_idx = closest_hit_mesh_id;
             set_src_volume(mo->volumes[closest_hit_mesh_id]);
             m_selecting_state = MeshBooleanSelectingState::SelectTool;

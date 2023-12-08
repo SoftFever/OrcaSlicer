@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: OrcaSlicer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-02 13:02+0800\n"
-"PO-Revision-Date: 2023-11-15 00:35+0300\n"
+"PO-Revision-Date: 2023-12-05 14:35+0300\n"
 "Last-Translator: Olcay ÖREN\n"
 "Language-Team: Türkçe\n"
 "Language: tr_TR\n"
@@ -108,7 +108,7 @@ msgid "Support Generated"
 msgstr "Destek Oluşturuldu"
 
 msgid "Gizmo-Place on Face"
-msgstr ""
+msgstr "Gizmo-Yüzeye yerleştir"
 
 msgid "Lay on face"
 msgstr "Yüzüstü yatır"
@@ -158,7 +158,7 @@ msgid "Height range"
 msgstr "Yükseklik aralığı"
 
 msgid "Alt + Shift + Enter"
-msgstr ""
+msgstr "Alt + Shift + Enter"
 
 msgid "Toggle Wireframe"
 msgstr "Wireframe Göster/Gizle"
@@ -189,13 +189,13 @@ msgid "Move"
 msgstr "Taşı"
 
 msgid "Gizmo-Move"
-msgstr ""
+msgstr "Gizmo-Taşı"
 
 msgid "Rotate"
 msgstr "Döndür"
 
 msgid "Gizmo-Rotate"
-msgstr ""
+msgstr "Gizmo-Döndür"
 
 msgid "Optimize orientation"
 msgstr "Yönü optimize edin"
@@ -207,7 +207,7 @@ msgid "Scale"
 msgstr "Ölçeklendir"
 
 msgid "Gizmo-Scale"
-msgstr ""
+msgstr "Gizmo-Ölçeklendir"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "Hata: Lütfen önce tüm araç çubuğu menülerini kapatın"
@@ -507,13 +507,13 @@ msgid "Remove selection"
 msgstr "Seçimi kaldır"
 
 msgid "Entering Seam painting"
-msgstr ""
+msgstr "Dikiş boyamaya girişi"
 
 msgid "Leaving Seam painting"
-msgstr ""
+msgstr "Dikiş boyamasından çık"
 
 msgid "Paint-on seam editing"
-msgstr ""
+msgstr "Boyalı dikiş düzenleme"
 
 msgid "Font"
 msgstr "Yazı tipi"
@@ -737,7 +737,7 @@ msgid ""
 msgstr ""
 
 msgid "Sync user presets"
-msgstr ""
+msgstr "Kullanıcı ön ayarlarını senkronize edin"
 
 msgid "Loading"
 msgstr "Yükleniyor"
@@ -933,10 +933,10 @@ msgid "Fix model"
 msgstr "Modeli düzelt"
 
 msgid "Export as one STL"
-msgstr ""
+msgstr "STL olarak dışa aktar"
 
 msgid "Export as STLs"
-msgstr ""
+msgstr "STLs olarak dışa aktar"
 
 msgid "Reload from disk"
 msgstr "Diskten yeniden yükle"
@@ -1453,7 +1453,7 @@ msgid "Pause"
 msgstr "Duraklat"
 
 msgid "Template"
-msgstr ""
+msgstr "Şablon"
 
 msgid "Custom"
 msgstr "Özel"
@@ -1718,7 +1718,7 @@ msgid "Orienting"
 msgstr "Yönlendiriliyor"
 
 msgid "Filling"
-msgstr ""
+msgstr "Dolduruluyor"
 
 msgid "Bed filling canceled."
 msgstr "Yatak dolumu iptal edildi."
@@ -1802,12 +1802,14 @@ msgid "Sending print job through cloud service"
 msgstr "Yazdırma işini bulut hizmeti aracılığıyla gönderme"
 
 msgid "Print task sending times out."
-msgstr ""
+msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 
 msgid ""
 "The printer timed out while receiving a print job. Please check if the "
 "network is functioning properly and send the print again."
 msgstr ""
+"Yazıcı bir yazdırma işi alırken zaman aşımına uğradı. Lütfen ağ bağlantısının "
+"düzgün çalışıp çalışmadığını kontrol edin ve baskıyı tekrar gönderin."
 
 msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
@@ -1818,11 +1820,9 @@ msgstr "Bilinmeyen Hata."
 msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
 
-#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayacak"
 
-#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr ""
 "Başarıyla gönderildi. %ss'de otomatik olarak bir sonraki sayfaya atlayacak"
@@ -2038,10 +2038,10 @@ msgid "You need to select the material type and color first."
 msgstr "Önce malzeme türünü ve rengini seçmeniz gerekir."
 
 msgid "Please input a valid value (K in 0~0.3)"
-msgstr ""
+msgstr "Lütfen geçerli bir değer girin (K in 0~0.3)"
 
 msgid "Please input a valid value (K in 0~0.3, N in 0.6~2.0)"
-msgstr ""
+msgstr "Lütfen geçerli bir değer girin (K in 0~0.3, N in 0.6~2.0)"
 
 msgid "Other Color"
 msgstr "Diğer renk"
@@ -2477,7 +2477,7 @@ msgid ""
 "Please make sure whether to use the temperature to print.\n"
 "\n"
 msgstr ""
-"Sıcaklık önerilen aralığın dışında olduğunda nozül tıkanmış olabilir.\n"
+"Sıcaklık önerilen aralığın dışında olduğunda nozul tıkanmış olabilir.\n"
 "Lütfen yazdırmak için sıcaklığı kullanıp kullanmayacağınızdan emin olun.\n"
 "\n"
 
@@ -2680,7 +2680,7 @@ msgid "Calibrating extrusion flow"
 msgstr "Ekstrüzyon akışını kalibre et"
 
 msgid "Paused due to nozzle temperature malfunction"
-msgstr "Nozül sıcaklığı arızası nedeniyle duraklatıldı"
+msgstr "Nozul sıcaklığı arızası nedeniyle duraklatıldı"
 
 msgid "Paused due to heat bed temperature malfunction"
 msgstr "Isı yatağı sıcaklık arızası nedeniyle duraklatıldı"
@@ -2716,16 +2716,16 @@ msgid "Motor noise showoff"
 msgstr "Motor gürültü gösterimi"
 
 msgid "Nozzle filament covered detected pause"
-msgstr ""
+msgstr "Nozul filament ile kaplı algılandı duraklatılıyor"
 
 msgid "Cutter error pause"
-msgstr ""
+msgstr "Kesici hatası duraklatılıyor"
 
 msgid "First layer error pause"
-msgstr ""
+msgstr "İlk katman hatası duraklatılıyor"
 
 msgid "Nozzle clog pause"
-msgstr ""
+msgstr "Nozul tıkanıklığı duraklatılıyor"
 
 msgid "MC"
 msgstr "MC"
@@ -2933,7 +2933,7 @@ msgid "Total"
 msgstr "Toplam"
 
 msgid "Tower"
-msgstr ""
+msgstr "Kule"
 
 msgid "Total Estimation"
 msgstr "Toplam Tahmini"
@@ -3029,10 +3029,10 @@ msgid "Print settings"
 msgstr "Yazdırma ayarları"
 
 msgid "Custom g-code"
-msgstr ""
+msgstr "Özel g-code"
 
 msgid "ToolChange"
-msgstr ""
+msgstr "Araç Değiştirme"
 
 msgid "Time Estimation"
 msgstr "Zaman Tahmini"
@@ -3489,10 +3489,10 @@ msgid "Import"
 msgstr "İçe aktar"
 
 msgid "Export all objects as one STL"
-msgstr ""
+msgstr "Tüm nesneleri STL olarak dışa aktarın"
 
 msgid "Export all objects as STLs"
-msgstr ""
+msgstr "Tüm nesneleri STLs olarak dışa aktarın"
 
 msgid "Export Generic 3MF"
 msgstr "Genel 3MF olarak dışa aktar"
@@ -3582,10 +3582,10 @@ msgid "Use Orthogonal View"
 msgstr "Ortogonal Görünüm"
 
 msgid "Show &G-code Window"
-msgstr ""
+msgstr "&G-code Penceresini Göster"
 
 msgid "Show g-code window in Previce scene"
-msgstr ""
+msgstr "Previce sahnesinde G-kodu penceresini göster"
 
 msgid "Show &Labels"
 msgstr "Etiketleri Göster"
@@ -3966,16 +3966,16 @@ msgid "Downloading %d%%..."
 msgstr "%d%% indiriliyor..."
 
 msgid "Connection lost. Please retry."
-msgstr ""
+msgstr "Bağlantı koptu. Lütfen tekrar deneyiniz."
 
 msgid "The device cannot handle more conversations. Please retry later."
-msgstr ""
+msgstr "Cihaz daha fazla konuşmayı yönetemiyor. Lütfen daha sonra tekrar deneyin."
 
 msgid "File not exists."
-msgstr ""
+msgstr "Dosya mevcut değil."
 
 msgid "File checksum error. Please retry."
-msgstr ""
+msgstr "Dosya kontrol hatası. Lütfen tekrar deneyin."
 
 msgid "Not supported on the current printer version."
 msgstr "Geçerli yazıcı sürümünde desteklenmiyor."
@@ -3983,9 +3983,8 @@ msgstr "Geçerli yazıcı sürümünde desteklenmiyor."
 msgid "Storage unavailable, insert SD card."
 msgstr "Depolama alanı kullanılamıyor, SD kartı takın."
 
-#, c-format, boost-format
 msgid "Error code: %d"
-msgstr ""
+msgstr "Hata kodu: %d"
 
 msgid "Speed:"
 msgstr "Hız:"
@@ -4134,6 +4133,8 @@ msgid ""
 "Please heat the nozzle to above 170 degree before loading or unloading "
 "filament."
 msgstr ""
+"Filamenti yüklemeden veya boşaltmadan önce lütfen nozulu 170 derecenin "
+"üzerine ısıtın."
 
 msgid "Still unload"
 msgstr "Daha Fazla Boşalt"
@@ -4339,10 +4340,10 @@ msgid "Details"
 msgstr "Detaylar"
 
 msgid "New printer config available."
-msgstr ""
+msgstr "Yeni yazıcı yapılandırması mevcut."
 
 msgid "Wiki"
-msgstr "Viki"
+msgstr "Wiki"
 
 msgid "Undo integration failed."
 msgstr "Entegrasyon geri alınamadı."
@@ -4498,7 +4499,7 @@ msgid "Allow Prompt Sound"
 msgstr "Uyarı Sesine İzin Ver"
 
 msgid "Fliament Tangle Detect"
-msgstr ""
+msgstr "Filament Dolaşma Tespiti"
 
 msgid "Global"
 msgstr "Genel"
@@ -4595,7 +4596,7 @@ msgid "Set filaments to use"
 msgstr "Kullanılacak filamentleri ayarla"
 
 msgid "Search plate, object and part."
-msgstr ""
+msgstr "Arama plakası, nesne ve parça."
 
 msgid ""
 "No AMS filaments. Please select a printer in 'Device' page to load AMS info."
@@ -4675,8 +4676,8 @@ msgid ""
 "filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 "Filamentin gerektirdiği nozul sertliği, yazıcının varsayılan nozul "
-"sertliğinden daha yüksektir. Lütfen sertleşmiş nozülü veya filamenti "
-"değiştirin, aksi takdirde nozül aşınır veya hasar görür."
+"sertliğinden daha yüksektir. Lütfen sertleşmiş nozulu veya filamenti "
+"değiştirin, aksi takdirde nozul aşınır veya hasar görür."
 
 msgid ""
 "Enabling traditional timelapse photography may cause surface imperfections. "
@@ -4712,26 +4713,30 @@ msgid "Please correct them in the param tabs"
 msgstr "Lütfen bunları parametre sekmelerinde düzeltin"
 
 msgid "The 3mf has following modified G-codes in filament or printer presets:"
-msgstr ""
+msgstr "3mf dosyasında filament veya yazıcı ön ayarlarında şu değiştirilmiş G-kodları bulunmaktadır:"
 
 msgid ""
 "Please confirm that these modified G-codes are safe to prevent any damage to "
 "the machine!"
 msgstr ""
+"Lütfen bu değiştirilmiş G-kodlarının makineye herhangi bir zarar vermemesi için "
+"güvenli olduğunu onaylayın!"
 
 msgid "Modified G-codes"
-msgstr ""
+msgstr "G-kodları Değişti"
 
 msgid "The 3mf has following customized filament or printer presets:"
-msgstr ""
+msgstr "3mf dosyasında şu özel filament veya yazıcı ayarları bulunmaktadır:"
 
 msgid ""
 "Please confirm that the G-codes within these presets are safe to prevent any "
 "damage to the machine!"
 msgstr ""
+"Lütfen bu ön ayarlar içindeki G-kodlarının makineye herhangi bir zararı önlemek "
+"için güvenli olduğunu onaylayın!"
 
 msgid "Customized Preset"
-msgstr ""
+msgstr "Özel Ayar"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Adım dosyasındaki bileşenlerin adı UTF8 formatında değil!"
@@ -4804,14 +4809,15 @@ msgstr "Farklı kaydet:"
 msgid "Export OBJ file:"
 msgstr "OBJ dosyasını dışa aktar:"
 
-#, c-format, boost-format
 msgid ""
 "The file %s already exists\n"
 "Do you want to replace it?"
 msgstr ""
+"%s dosyası zaten mevcut\n"
+"değiştirmek istiyor musun?"
 
 msgid "Comfirm Save As"
-msgstr ""
+msgstr "Farklı Kaydetmeyi Onayla"
 
 msgid "Delete object which is a part of cut object"
 msgstr "Kesilen nesnenin bir parçası olan nesneyi silin"
@@ -5209,10 +5215,10 @@ msgid "If enabled, useful hints are displayed at startup."
 msgstr "Etkinleştirilirse başlangıçta faydalı ipuçları görüntülenir."
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
-msgstr ""
+msgstr "Hacimleri temizleme: Renk her değiştiğinde otomatik olarak hesapla."
 
 msgid "If enabled, auto-calculate everytime the color changed."
-msgstr ""
+msgstr "Etkinleştirilirse, renk her değiştiğinde otomatik hesapla."
 
 msgid "Presets"
 msgstr "Ön ayarlar"
@@ -5269,7 +5275,7 @@ msgid "Clear my choice on the unsaved projects."
 msgstr "Kaydedilmemiş projelerdeki seçimimi temizle."
 
 msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
+msgstr "Değiştirilmiş G-kodları içeren 3MF dosyalarını yüklerken uyarı verme"
 
 msgid "Auto-Backup"
 msgstr "Otomatik yedekleme"
@@ -5425,10 +5431,10 @@ msgid "Add/Remove materials"
 msgstr "Materyal Ekle/Kaldır"
 
 msgid "Select/Remove printers(system presets)"
-msgstr ""
+msgstr "Yazıcıları Seç/Kaldır (sistem ön ayarları)"
 
 msgid "Create printer"
-msgstr ""
+msgstr "Yazıcı oluştur"
 
 msgid "Incompatible"
 msgstr "Uyumsuz"
@@ -5581,7 +5587,7 @@ msgid "(LAN)"
 msgstr "(LAN)"
 
 msgid "Search"
-msgstr ""
+msgstr "Ara"
 
 msgid "My Device"
 msgstr "Cihazım"
@@ -5617,13 +5623,13 @@ msgid "Bamabu Engineering Plate"
 msgstr "Bamabu Mühendislik Plakası"
 
 msgid "Bamabu Smooth PEI Plate"
-msgstr ""
+msgstr "Bambu Pürüzsüz PEI Plaka"
 
 msgid "High temperature Plate"
 msgstr "Yüksek Sıcaklık Plakası"
 
 msgid "Bamabu Textured PEI Plate"
-msgstr ""
+msgstr "Bambu Dokulu PEI Plaka"
 
 msgid "Send print job to"
 msgstr "Yazdırma işini şuraya gönder"
@@ -5757,6 +5763,7 @@ msgstr ""
 msgid ""
 "Timelapse is not supported because Print sequence is set to \"By object\"."
 msgstr ""
+"Timelapse desteklenmiyor çünkü Baskı sıralaması \"Nesneye\" göre olarak ayarlandı."
 
 msgid "Errors"
 msgstr "Hatalar"
@@ -5783,20 +5790,22 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "nozzle in preset: %s %s"
-msgstr ""
+msgstr "önceden ayarlanmış nozul: %s %s"
 
 #, c-format, boost-format
 msgid "nozzle memorized: %.1f %s"
-msgstr ""
+msgstr "hafızaya alınan nozul: %.1f %s"
 
 msgid ""
 "Your nozzle diameter in preset is not consistent with memorized nozzle "
 "diameter. Did you change your nozzle lately?"
 msgstr ""
+"Ön ayardaki nozul çapınız hafızaya alınan nozul çapıyla tutarlı değil. "
+"Son zamanlarda nozulunuzu değiştirdiniz mi?"
 
 #, c-format, boost-format
 msgid "*Printing %s material with %s may cause nozzle damage"
-msgstr ""
+msgstr "%s malzemesini %s ile yazdırmak püskürtme ucu hasarına neden olabilir"
 
 msgid ""
 "Please click the confirm button if you still want to proceed with printing."
@@ -5805,10 +5814,10 @@ msgstr ""
 "tıklayın."
 
 msgid "Hardened Steel"
-msgstr ""
+msgstr "Güçlendirilmiş çelik"
 
 msgid "Stainless Steel"
-msgstr ""
+msgstr "Paslanmaz çelik"
 
 msgid ""
 "Connecting to the printer. Unable to cancel during the connection process."
@@ -5855,7 +5864,7 @@ msgid "Slice ok."
 msgstr "Dilimleme tamam."
 
 msgid "View all Daily tips"
-msgstr ""
+msgstr "Tüm Günlük ipuçlarını görüntüleyin"
 
 msgid "Failed to create socket"
 msgstr "Soket oluşturulamadı"
@@ -6005,7 +6014,7 @@ msgstr ""
 "musunuz?"
 
 msgid "Still print by object?"
-msgstr ""
+msgstr "Hala nesneye göre yazdırıyor musunuz?"
 
 msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
@@ -6049,15 +6058,17 @@ msgid ""
 "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer "
 "height limits ,this may cause printing quality issues."
 msgstr ""
+"Katman yüksekliği, Yazıcı Ayarları -> Ekstruder -> Katman yüksekliği sınırları bölümündeki sınırı aşıyor "
+"bu durum baskı kalitesi sorunlarına neden olabilir."
 
 msgid "Adjust to the set range automatically? \n"
-msgstr ""
+msgstr "Ayarlanan aralığa otomatik olarak ayarlansın mı? \n"
 
 msgid "Adjust"
-msgstr ""
+msgstr "Ayarla"
 
 msgid "Ignore"
-msgstr ""
+msgstr "Atla"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -6333,7 +6344,7 @@ msgid "Machine end G-code"
 msgstr "Yazıcı bitiş G-kod"
 
 msgid "Printing by object G-code"
-msgstr ""
+msgstr "Nesneye göre yazdırma G-kod"
 
 msgid "Before layer change G-code"
 msgstr "Katman değişimi öncesi G-kod"
@@ -6409,14 +6420,16 @@ msgid ""
 "%d Filament Preset and %d Process Preset is attached to this printer. Those "
 "presets would be deleted if the printer is deleted."
 msgstr ""
+"%d Filament Ön Ayarı ve %d İşlem Ön Ayarı bu yazıcıya eklenmiştir."
+"Yazıcı silinirse bu ön ayarlar silinir."
 
 msgid "Presets inherited by other presets can not be deleted!"
-msgstr ""
+msgstr "Diğer ön ayarlar tarafından devralınan ön ayarlar silinemez!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Aşağıdaki ön ayarlar bu ön ayarı devralır."
+msgstr[1] "Aşağıdaki ön ayar bu ön ayarı devralır."
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -6433,6 +6446,9 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, "
 "please reset the filament information for that slot."
 msgstr ""
+"Seçilen ön ayarı silmek istediğinizden emin misiniz? \n"
+"Eğer ön ayar, şu anda yazıcınızda kullanılan bir filamente karşılık geliyorsa, "
+"lütfen o slot için filament bilgilerini sıfırlayın."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -6687,7 +6703,7 @@ msgid "Auto-Calc"
 msgstr "Otomatik Hesaplama"
 
 msgid "Re-calculate"
-msgstr ""
+msgstr "Tekrar Hesaplama"
 
 msgid "Flushing volumes for filament change"
 msgstr "Filament değişimi için temizleme hacmi"
@@ -6697,6 +6713,9 @@ msgid ""
 "color changed. You could disable the auto-calculate in Bambu Studio > "
 "Preferences"
 msgstr ""
+"Studio, filamentlerin rengi her değiştiğinde yıkama hacimlerinizi "
+"yeniden hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünden "
+"devre dışı bırakabilirsiniz."
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Her filament çifti için yıkama hacmi (mm³)."
@@ -6728,10 +6747,10 @@ msgid "To"
 msgstr "İle"
 
 msgid "Bambu Network plug-in not detected."
-msgstr ""
+msgstr "Bambu Ağı eklentisi algılanmadı."
 
 msgid "Click here to download it."
-msgstr ""
+msgstr "İndirmek için buraya tıklayın."
 
 msgid "Login"
 msgstr "Giriş yap"
@@ -6767,7 +6786,7 @@ msgid "Show/Hide 3Dconnexion devices settings dialog"
 msgstr "3Dconnexion cihazları ayarları iletişim kutusunu Göster/Gizle"
 
 msgid "Switch table page"
-msgstr ""
+msgstr "Tablo sayfasını değiştir"
 
 msgid "Show keyboard shortcuts list"
 msgstr "Klavye kısayolları listesini göster"
@@ -7021,13 +7040,13 @@ msgid "New version of Orca Slicer"
 msgstr "Orca Slicer'nun yeni versiyonu"
 
 msgid "Skip this Version"
-msgstr ""
+msgstr "Bu versiyonu atla"
 
 msgid "Done"
 msgstr "Tamamlandı"
 
 msgid "Confirm and Update Nozzle"
-msgstr ""
+msgstr "Nozulu Onaylayın ve Güncelleyin"
 
 msgid "LAN Connection Failed (Sending print file)"
 msgstr "LAN Bağlantısı Başarısız (Yazdırma dosyası gönderiliyor)"
@@ -7054,21 +7073,23 @@ msgid "Where to find your printer's IP and Access Code?"
 msgstr "Yazıcınızın IP'sini ve Erişim Kodunu nerede bulabilirsiniz?"
 
 msgid "Step 3: Ping the IP address to check for packet loss and latency."
-msgstr ""
+msgstr "Adım 3: Paket kaybını ve gecikmeyi kontrol etmek için IP adresine ping atın."
 
 msgid "Test"
 msgstr "Test"
 
 msgid "IP and Access Code Verified! You may close the window"
-msgstr ""
+msgstr "IP ve Erişim Kodu Doğrulandı! Pencereyi kapatabilirsin"
 
 msgid "Connection failed, please double check IP and Access Code"
-msgstr ""
+msgstr "Bağlantı başarısız oldu, lütfen IP'yi ve Erişim Kodunu tekrar kontrol edin"
 
 msgid ""
 "Connection failed! If your IP and Access Code is correct, \n"
 "please move to step 3 for troubleshooting network issues"
 msgstr ""
+"Bağlantı başarısız oldu! IP'niz ve Erişim Kodunuz doğruysa \n"
+"ağ sorunlarını gidermek için lütfen 3. adıma geçin"
 
 msgid "Model:"
 msgstr "Model:"
@@ -7414,7 +7435,7 @@ msgid ""
 "during printing"
 msgstr ""
 "Birlikte büyük sıcaklık farkına sahip birden fazla filament basılamaz. Aksi "
-"takdirde baskı sırasında ekstruder ve nozül tıkanabilir veya hasar görebilir"
+"takdirde baskı sırasında ekstruder ve nozul tıkanabilir veya hasar görebilir"
 
 msgid "No extrusions under current settings."
 msgstr "Mevcut ayarlarda ekstrüzyon yok."
@@ -7464,20 +7485,27 @@ msgid ""
 "Different nozzle diameters and different filament diameters is not allowed "
 "when prime tower is enabled."
 msgstr ""
+"Ana kule etkinleştirildiğinde farklı nozul çaplarına ve farklı "
+"filament çaplarına izin verilmez."
 
 msgid ""
 "The Wipe Tower is currently only supported with the relative extruder "
 "addressing (use_relative_e_distances=1)."
 msgstr ""
+"Temizleme Kulesi şu anda yalnızca ilgili ekstruder adreslemesiyle "
+"desteklenmektedir (use_relative_e_distances=1)."
 
 msgid ""
 "Ooze prevention is currently not supported with the prime tower enabled."
 msgstr ""
+"Sızıntı önleme şu anda ana kule etkinken desteklenmemektedir."
 
 msgid ""
 "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, "
 "RepRapFirmware and Repetier G-code flavors."
 msgstr ""
+"Prime tower şu anda yalnızca Marlin, RepRap/Sprinter, RepRapFirmware ve Repetier "
+"G kodu türleri için desteklenmektedir."
 
 msgid "The prime tower is not supported in \"By object\" print."
 msgstr "Prime tower, \"Nesneye göre\" yazdırmada desteklenmez."
@@ -7557,7 +7585,7 @@ msgstr ""
 "desteği etkinleştirin."
 
 msgid "Layer height cannot exceed nozzle diameter"
-msgstr "Katman yüksekliği nozül çapını aşamaz"
+msgstr "Katman yüksekliği nozul çapını aşamaz"
 
 msgid ""
 "Relative extruder addressing requires resetting the extruder position at "
@@ -7944,13 +7972,16 @@ msgstr ""
 "değeri biraz azaltın (örneğin 0,9)"
 
 msgid "Internal bridge flow ratio"
-msgstr ""
+msgstr "İç köprü akış oranı"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the "
 "first layer over sparse infill. Decrease this value slightly (for example "
 "0.9) to improve surface quality over sparse infill."
 msgstr ""
+"Bu değer iç köprü katmanının kalınlığını belirler. Bu, seyrek dolgunun "
+"üzerindeki ilk katmandır. Seyrek dolguya göre yüzey kalitesini iyileştirmek "
+"için bu değeri biraz azaltın (örneğin 0,9)."
 
 msgid "Top surface flow ratio"
 msgstr "Üst katı dolgu akış oranı"
@@ -8045,9 +8076,15 @@ msgid ""
 "This setting can also help reduce part warping due to the reduction of "
 "stresses in the part walls."
 msgstr ""
+"Tek katmanlarda ters yönde bir çıkıntının üzerinde bir kısmı bulunan "
+"çevreleri ekstrüzyonla çıkarın. Bu alternatif desen, dik çıkıntıları "
+"büyük ölçüde iyileştirebilir.\n"
+"\n"
+"Bu ayar aynı zamanda parça duvarlarındaki gerilimin azalması nedeniyle "
+"parçanın bükülmesinin azaltılmasına da yardımcı olabilir."
 
 msgid "Reverse only internal perimeters"
-msgstr ""
+msgstr "Yalnızca iç çevreleri ters çevir"
 
 msgid ""
 "Apply the reverse perimeters logic only on internal perimeters. \n"
@@ -8300,13 +8337,16 @@ msgstr ""
 "güvenilirdir."
 
 msgid "Thick internal bridges"
-msgstr ""
+msgstr "Kalın iç köprüler"
 
 msgid ""
 "If enabled, thick internal bridges will be used. It's usually recommended to "
 "have this feature turned on. However, consider turning it off if you are "
 "using large nozzles."
 msgstr ""
+"Etkinleştirilirse kalın iç köprüler kullanılacaktır. Genellikle bu özelliğin "
+"açık olması önerilir. Ancak büyük nozul uçları kullanıyorsanız "
+"kapatmayı düşünün."
 
 msgid "Max bridge length"
 msgstr "Maksimum köprü uzunluğu"
@@ -8327,12 +8367,14 @@ msgid "End G-code when finish the whole printing"
 msgstr "Tüm yazdırmayı tamamladığında çalışacak olan G Kodu"
 
 msgid "Between Object Gcode"
-msgstr ""
+msgstr "Nesne Arası Gcode"
 
 msgid ""
 "Insert Gcode between objects. This parameter will only come into effect when "
 "you print your models object by object"
 msgstr ""
+"Nesnelerin arasına Gcode ekleyin. Bu parametre yalnızca modellerinizi "
+"nesne nesne yazdırdığınızda etkili olacaktır"
 
 msgid "End G-code when finish the printing of this filament"
 msgstr "Bu filament ile baskı bittiğinde çalışacak G kodu"
@@ -8429,25 +8471,25 @@ msgid ""
 msgstr "Bu, küçük çevre uzunluğu için eşiği belirler. Varsayılan eşik 0 mm'dir"
 
 msgid "Walls printing order"
-msgstr ""
+msgstr "Duvar baskı sırası"
 
 msgid "Print sequence of inner wall and outer wall. "
-msgstr ""
+msgstr "İç duvar ve dış duvarın yazdırma sırası."
 
 msgid "Inner/Outer"
-msgstr ""
+msgstr "İç/Dış"
 
 msgid "Outer/Inner"
-msgstr ""
+msgstr "Dış/İç"
 
 msgid "Inner/Outer/Inner"
-msgstr ""
+msgstr "İç/Dış/İç"
 
 msgid "Print infill first"
-msgstr ""
+msgstr "Önce dolguyu yazdır"
 
 msgid "Order of wall/infill. false means print wall first. "
-msgstr ""
+msgstr "Duvar/dolgu sırası. kapalı önce duvarı yazdır anlamına gelir."
 
 msgid "Height to rod"
 msgstr "Çubuğa kadar olan yükseklik"
@@ -8519,7 +8561,7 @@ msgid ""
 "it will be computed over the nozzle diameter."
 msgstr ""
 "Diğer çizgi genişlikleri 0'a ayarlanmışsa varsayılan çizgi genişliği. % "
-"olarak ifade edilirse nozül çapı üzerinden hesaplanacaktır."
+"olarak ifade edilirse nozul çapı üzerinden hesaplanacaktır."
 
 msgid "Keep fan always on"
 msgstr "Fanı her zaman açık tut"
@@ -8686,7 +8728,7 @@ msgid ""
 "object, Slic3r will always prime this amount of material into the wipe tower "
 "to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
-"Bir takım değişiminden sonra, yeni yüklenen filamentin nozül içindeki kesin "
+"Bir takım değişiminden sonra, yeni yüklenen filamentin nozul içindeki kesin "
 "konumu bilinmeyebilir ve filament basıncı muhtemelen henüz stabil değildir. "
 "Yazdırma kafasını bir dolguya veya kurban nesneye boşaltmadan önce Slic3r, "
 "ardışık dolgu veya kurban nesne ekstrüzyonlarını güvenilir bir şekilde "
@@ -8827,11 +8869,12 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr "Dolgu Yoğunluğu"
 
-#, c-format, boost-format
 msgid ""
 "Density of internal sparse infill, 100% turns all sparse infill into solid "
 "infill and internal solid infill pattern will be used"
 msgstr ""
+"İç seyrek dolgunun yoğunluğu, %100 tüm seyrek dolguyu katı dolguya "
+"dönüştürür ve iç katı dolgu modeli kullanılacaktır"
 
 msgid "Sparse infill pattern"
 msgstr "Dolgu Deseni"
@@ -9128,10 +9171,10 @@ msgstr ""
 "Her çizgi parçasına eklenen rastgele noktalar arasındaki ortalama mesafe"
 
 msgid "Apply fuzzy skin to first layer"
-msgstr ""
+msgstr "Bulanık cildi ilk katmana uygulayın"
 
 msgid "Whether to apply fuzzy skin on the first layer"
-msgstr ""
+msgstr "İlk katmana bulanık cilt uygulanıp uygulanmayacağı"
 
 msgid "Filter out tiny gaps"
 msgstr "Küçük boşlukları filtrele"
@@ -9404,16 +9447,16 @@ msgstr ""
 "ekstruder baskıları için kullanışlıdır"
 
 msgid "Maximum width of a segmented region"
-msgstr ""
+msgstr "Bölümlere ayrılmış bir bölgenin maksimum genişliği"
 
 msgid "Maximum width of a segmented region. Zero disables this feature."
-msgstr ""
+msgstr "Bölümlere ayrılmış bir bölgenin maksimum genişliği. 0 bu özelliği devre dışı bırakır."
 
 msgid "Interlocking depth of a segmented region"
-msgstr ""
+msgstr "Bölümlere ayrılmış bir bölgenin birbirine kenetlenen derinliği"
 
 msgid "Interlocking depth of a segmented region. Zero disables this feature."
-msgstr ""
+msgstr "Bölümlere ayrılmış bir bölgenin birbirine kenetlenen derinliği. 0 bu özelliği devre dışı bırakır."
 
 msgid "Ironing Type"
 msgstr "Ütüleme Tipi"
@@ -9473,6 +9516,8 @@ msgid ""
 "The angle ironing is done at. A negative number disables this function and "
 "uses the default method."
 msgstr ""
+"Köşebent ütüleme işlemi yapılır. Negatif bir sayı bu işlevi devre dışı bırakır "
+"ve varsayılan yöntemi kullanır."
 
 msgid "This gcode part is inserted at every layer change after lift z"
 msgstr ""
@@ -9774,7 +9819,7 @@ msgid "Nozzle volume"
 msgstr "Nozul hacmi"
 
 msgid "Volume of nozzle between the cutter and the end of nozzle"
-msgstr "Kesici ile nozulun ucu arasındaki nozül hacmi"
+msgstr "Kesici ile nozulun ucu arasındaki nozul hacmi"
 
 msgid "Cooling tube position"
 msgstr "Soğutma borusu konumu"
@@ -10022,7 +10067,7 @@ msgid ""
 "print when travel move. Using spiral line to lift z can prevent stringing"
 msgstr ""
 "Geri çekme işlemi her yapıldığında, nozul ile baskı arasında açıklık "
-"oluşturmak için nozul biraz kaldırılır. Hareket halindeyken nozülün baskıya "
+"oluşturmak için nozul biraz kaldırılır. Hareket halindeyken nozulun baskıya "
 "çarpmasını önler. Z'yi kaldırmak için spiral çizgi kullanmak çekmeyi "
 "önleyebilir"
 
@@ -10306,7 +10351,7 @@ msgstr ""
 "bir video halinde birleştirilir. Düzgün modu seçilirse, her katman "
 "yazdırıldıktan sonra araç kafası fazla kanala hareket edecek ve ardından bir "
 "anlık görüntü alacaktır. Anlık görüntü alma işlemi sırasında eriyen filament "
-"nozülden sızabileceğinden, nozulu silmek için düzgün modun kullanılması için "
+"nozulden sızabileceğinden, nozulu silmek için düzgün modun kullanılması için "
 "prime tower gereklidir."
 
 msgid "Traditional"
@@ -10510,10 +10555,10 @@ msgstr ""
 "gelir"
 
 msgid "Reduce interface filament for base"
-msgstr ""
+msgstr "Taban için arayüz filamentini azaltın"
 
 msgid "Avoid using support interface filament to print support base"
-msgstr ""
+msgstr "Destek tabanını yazdırmak için destek arayüzü filamentini kullanmaktan kaçının"
 
 msgid ""
 "Line width of support. If expressed as a %, it will be computed over the "
@@ -10551,10 +10596,10 @@ msgid "Bottom interface layers"
 msgstr "Alt arayüz katmanları"
 
 msgid "Number of bottom interface layers"
-msgstr ""
+msgstr "Alt arayüz katmanlarının sayısı"
 
 msgid "Same as top"
-msgstr ""
+msgstr "Üsttekiyle aynı"
 
 msgid "Top interface spacing"
 msgstr "Üst arayüz aralığı"
@@ -10785,10 +10830,10 @@ msgstr ""
 "sıfır olarak ayarlayın."
 
 msgid "Support wall loops"
-msgstr ""
+msgstr "Destek duvarı döngüleri"
 
 msgid "This setting specify the count of walls around support"
-msgstr ""
+msgstr "Bu ayar desteğin etrafındaki duvarların sayısını belirtir"
 
 msgid "Tree support with infill"
 msgstr "Dolgulu ağaç desteği"
@@ -10833,7 +10878,7 @@ msgstr ""
 "gelen 0 şiddetle tavsiye edilir"
 
 msgid "Nozzle temperature for layers after the initial one"
-msgstr "İlk katmandan sonraki katmanlar için nozül sıcaklığı"
+msgstr "İlk katmandan sonraki katmanlar için nozul sıcaklığı"
 
 msgid "Detect thin wall"
 msgstr "İnce duvarı algıla"
@@ -11033,7 +11078,7 @@ msgstr "Maksimum köprüleme mesafesi"
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr ""
 "Bu nesne, filamentten tasarruf etmek ve baskı süresini azaltmak için bir "
-"filament değişiminden sonra nozülü temizlemek için kullanılacaktır. Sonuç "
+"filament değişiminden sonra nozulu temizlemek için kullanılacaktır. Sonuç "
 "olarak nesnelerin renkleri karıştırılacaktır. Prime tower "
 "etkinleştirilmediği sürece etkili olmayacaktır."
 
@@ -11073,11 +11118,14 @@ msgid ""
 "compute the polyhole.\n"
 "See http://hydraraptor.blogspot.com/2011/02/polyholes.html"
 msgstr ""
+"Birden fazla katmana yayılan neredeyse dairesel delikleri arayın ve "
+"geometriyi çoklu deliklere dönüştürün. Çoklu deliği hesaplamak için nozul "
+"boyutunu ve (en büyük) çapı kullanın.\n"
+"Bakın http://hydraraptor.blogspot.com/2011/02/polyholes.html"
 
 msgid "Polyhole detection margin"
 msgstr "Çokgen delik tespiti marjı"
 
-#, c-format, boost-format
 msgid ""
 "Maximum defection of a point to the estimated radius of the circle.\n"
 "As cylinders are often exported as triangles of varying size, points may not "
@@ -11085,6 +11133,11 @@ msgid ""
 "broaden the detection.\n"
 "In mm or in % of the radius."
 msgstr ""
+"Bir noktanın dairenin tahmini yarıçapına göre maksimum sapması.\n"
+"Silindirler genellikle farklı boyutlarda üçgenler olarak ihraç "
+"edildiğinden, noktalar daire çevresinde olmayabilir. Bu ayar, algılamayı genişletmeniz "
+"için size biraz alan sağlar.\n"
+"inc mm cinsinden veya yarıçapın %'si cinsinden."
 
 msgid "Polyhole twist"
 msgstr "Çokgen delik eğrisi"
@@ -11109,6 +11162,8 @@ msgid ""
 "Format of G-code thumbnails: PNG for best quality, JPG for smallest size, "
 "QOI for low memory firmware"
 msgstr ""
+"G kodu küçük resimlerinin formatı: En iyi kalite için PNG, en küçük boyut için JPG, "
+"düşük bellekli donanım yazılımı için QOI"
 
 msgid "Use relative E distances"
 msgstr "Göreceli (relative) E mesafelerini kullan"
@@ -11537,7 +11592,7 @@ msgstr "Ad boş olamaz."
 
 #, c-format, boost-format
 msgid "The selected preset: %s is not found."
-msgstr ""
+msgstr "Seçilen ön ayar: %s bulunamadı."
 
 msgid "The name cannot be the same as the system preset name."
 msgstr "Ad, sistem ön ayarının adıyla aynı olamaz."
@@ -12221,279 +12276,292 @@ msgid "Delete input"
 msgstr "Girişi sil"
 
 msgid "Network Test"
-msgstr ""
+msgstr "Ağ testi"
 
 msgid "Start Test Multi-Thread"
-msgstr ""
+msgstr "Çoklu İş Parçacığı Testini Başlat"
 
 msgid "Start Test Single-Thread"
-msgstr ""
+msgstr "Tek İş Parçacığı Testini Başlat"
 
 msgid "Export Log"
-msgstr ""
+msgstr "Logu Dışa Aktar"
 
 msgid "Studio Version:"
-msgstr ""
+msgstr "Stüdyo Sürümü:"
 
 msgid "System Version:"
-msgstr ""
+msgstr "Sistem Versiyonu:"
 
 msgid "DNS Server:"
-msgstr ""
+msgstr "Dns sunucusu:"
 
 msgid "Test BambuLab"
-msgstr ""
+msgstr "BambuLab'ı test edin"
 
 msgid "Test BambuLab:"
-msgstr ""
+msgstr "BambuLab'ı test edin"
 
 msgid "Test Bing.com"
-msgstr ""
+msgstr "Bing.com'u test edin"
 
 msgid "Test bing.com:"
-msgstr ""
+msgstr "Bing.com'u test edin:"
 
 msgid "Test HTTP"
-msgstr ""
+msgstr "HTTP'yi test et"
 
 msgid "Test HTTP Service:"
-msgstr ""
+msgstr "HTTP Hizmetini Test Edin:"
 
 msgid "Test storage"
-msgstr ""
+msgstr "Test depolaması"
 
 msgid "Test Storage Upload:"
-msgstr ""
+msgstr "Depolama Yüklemesini Test Et:"
 
 msgid "Test storage upgrade"
-msgstr ""
+msgstr "Depolama yükseltmesini test edin"
 
 msgid "Test Storage Upgrade:"
-msgstr ""
+msgstr "Depolama Yükseltmesini Test Edin:"
 
 msgid "Test storage download"
-msgstr ""
+msgstr "Test depolama indirmesi"
 
 msgid "Test Storage Download:"
-msgstr ""
+msgstr "Test Depolama İndirme:"
 
 msgid "Test plugin download"
-msgstr ""
+msgstr "Test eklentisi indirme"
 
 msgid "Test Plugin Download:"
-msgstr ""
+msgstr "Test Eklentisini İndirin:"
 
 msgid "Test Storage Upload"
-msgstr ""
+msgstr "Depolama Yüklemesini Test Etme"
 
 msgid "Log Info"
-msgstr ""
+msgstr "Günlük Bilgisi"
 
 msgid "Select filament preset"
-msgstr ""
+msgstr "Filament ön ayarını seçin"
 
 msgid "Create Filament"
-msgstr ""
+msgstr "Filament Oluştur"
 
 msgid "Create Based on Current Filament"
-msgstr ""
+msgstr "Mevcut Filamente Göre Oluşturun"
 
 msgid "Copy Current Filament Preset "
-msgstr ""
+msgstr "Geçerli Filament Ön Ayarını Kopyala "
 
 msgid "Basic Information"
-msgstr ""
+msgstr "Temel bilgiler"
 
 msgid "Add Filament Preset under this filament"
-msgstr ""
+msgstr "Bu filamanın altına Filament Ön Ayarını ekleyin"
 
 msgid "We could create the filament presets for your following printer:"
-msgstr ""
+msgstr "Aşağıdaki yazıcınız için filament ön ayarlarını oluşturabiliriz:"
 
 msgid "Select Vendor"
-msgstr ""
+msgstr "Satıcıyı Seçin"
 
 msgid "Input Custom Vendor"
-msgstr ""
+msgstr "Özel Satıcı Girin"
 
 msgid "Can't find vendor I want"
-msgstr ""
+msgstr "İstediğim satıcıyı bulamıyorum"
 
 msgid "Select Type"
-msgstr ""
+msgstr "Tür Seçin"
 
 msgid "Select Filament Preset"
-msgstr ""
+msgstr "Filament Ön Ayarını Seçin"
 
 msgid "Serial"
-msgstr ""
+msgstr "Seri"
 
 msgid "e.g. Basic, Matte, Silk, Marble"
-msgstr ""
+msgstr "Örneğin. Basic, Mat, İpek, Mermer"
 
 msgid "Filament Preset"
-msgstr ""
+msgstr "Filament Ön Ayarı"
 
 msgid "Create"
-msgstr ""
+msgstr "Oluştur"
 
 msgid "Vendor is not selected, please reselect vendor."
-msgstr ""
+msgstr "Satıcı seçilmedi, lütfen satıcıyı yeniden seçin."
 
 msgid "Custom vendor is not input, please input custom vendor."
-msgstr ""
+msgstr "Özel satıcı girişi yapılmaz, lütfen özel satıcıyı girin."
 
 msgid ""
 "\"Bambu\" or \"Generic\" can not be used as a Vendor for custom filaments."
 msgstr ""
+"\"Bambu\" veya \"Genel\" özel filamentler için Satıcı olarak kullanılamaz."
 
 msgid "Filament type is not selected, please reselect type."
-msgstr ""
+msgstr "Filament türü seçilmedi, lütfen türünü seçin."
 
 msgid "Filament serial is not inputed, please input serial."
-msgstr ""
+msgstr "Filamentin serisi girilmedi, lütfen seri numarasını girin."
 
 msgid ""
 "There may be escape characters in the vendor or serial input of filament. "
 "Please delete and re-enter."
 msgstr ""
+"Filamentin satıcı veya seri numarası girişinde kaçış karakterleri olabilir. "
+"Lütfen silip tekrar giriniz."
 
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
-msgstr ""
+msgstr "Özel satıcı veya seri numarasındaki tüm girişler boşluklardan oluşuyor. Lütfen tekrar girin."
 
 msgid "The beginning of the vendor can not be a number. Please re-enter."
-msgstr ""
+msgstr "Satıcının başlangıcı sayı olamaz. Lütfen tekrar girin."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
 msgstr ""
+"Henüz bir yazıcı veya ön ayar seçmediniz. Lütfen en az birini seçin."
 
 msgid "Some existing presets have failed to be created, as follows:\n"
-msgstr ""
+msgstr "Aşağıdaki gibi bazı mevcut ön ayarlar oluşturulamadı:\n"
 
 msgid ""
 "\n"
 "Do you want to rewrite it?"
 msgstr ""
+"\n"
+"Yeniden yazmak ister misin?"
 
 msgid ""
 "We would rename the presets as \"Vendor Type Serial @printer you selected"
 "\". \n"
 "To add preset for more prinetrs, Please go to printer selection"
 msgstr ""
+"We would rename the presets as \"Vendor Type Serial @printer you selected"
+"\". \n"
+"To add preset for more prinetrs, Please go to printer selection"
 
 msgid "Create Printer/Nozzle"
-msgstr ""
+msgstr "Yazıcı/Nozul Oluştur"
 
 msgid "Create Printer"
-msgstr ""
+msgstr "Yazıcı Oluştur"
 
 msgid "Create Nozzle for Existing Printer"
-msgstr ""
+msgstr "Mevcut Yazıcı için Nozul Oluştur"
 
 msgid "Create from Template"
-msgstr ""
+msgstr "Şablondan oluştur"
 
 msgid "Create Based on Current Printer"
-msgstr ""
+msgstr "Mevcut Yazıcıya Göre Oluşturun"
 
 msgid "wiki"
-msgstr ""
+msgstr "wiki"
 
 msgid "Import Preset"
-msgstr ""
+msgstr "Ön Ayarı İçe Aktar"
 
 msgid "Create Type"
-msgstr ""
+msgstr "Tür Oluştur"
 
 msgid "The model is not fond, place reselect vendor."
-msgstr ""
+msgstr "Model bulunamadı, lütfen satıcıyı seçin."
 
 msgid "Select Model"
-msgstr ""
+msgstr "Model Seçin"
 
 msgid "Select Printer"
-msgstr ""
+msgstr "Yazıcıyı Seçin"
 
 msgid "Input Custom Model"
-msgstr ""
+msgstr "Özel Model Girin"
 
 msgid "Can't find my printer model"
-msgstr ""
+msgstr "Yazıcı modelimi bulamıyorum"
 
 msgid "Rectangle"
-msgstr ""
+msgstr "Dikdörtgen"
 
 msgid "Printable Space"
-msgstr ""
+msgstr "Yazdırılabilir Alan"
 
 msgid "X"
-msgstr ""
+msgstr "X"
 
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 msgid "Hot Bed STL"
-msgstr ""
+msgstr "Sıcak Yatak STL"
 
 msgid "Load stl"
-msgstr ""
+msgstr "Stl'i yükle"
 
 msgid "Hot Bed SVG"
-msgstr ""
+msgstr "Sıcak Yatak SVG"
 
 msgid "Load svg"
-msgstr ""
+msgstr "Svg'yi yükle"
 
 msgid "Max Print Height"
-msgstr ""
+msgstr "Maksimum Baskı Yüksekliği"
 
 #, c-format, boost-format
 msgid "The file exceeds %d MB, please import again."
-msgstr ""
+msgstr "Dosya %d MB'yi aşıyor lütfen tekrar içe aktarın."
 
 msgid "Exception in obtaining file size, please import again."
-msgstr ""
+msgstr "Dosya boyutunun elde edilmesinde istisna, lütfen tekrar içe aktarın."
 
 msgid "Preset path is not find, please reselect vendor."
-msgstr ""
+msgstr "Ön ayar yolu bulunamıyor, lütfen satıcıyı yeniden seçin."
 
 msgid "The printer model was not found, please reselect."
-msgstr ""
+msgstr "Yazıcı modeli bulunamadı, lütfen yeniden seçin."
 
 msgid "The nozzle diameter is not fond, place reselect."
-msgstr ""
+msgstr "Nozul çapı bulunamadı, lütfen yeniden seçin."
 
 msgid "The printer preset is not fond, place reselect."
-msgstr ""
+msgstr "Yazıcı ön ayarı bulunamadı, lütfen yeniden seçin."
 
 msgid "Printer Preset"
-msgstr ""
+msgstr "Yazıcı Ön Ayarı"
 
 msgid "Filament Preset Template"
-msgstr ""
+msgstr "Filament Ön Ayar Şablonu"
 
 msgid "Deselect All"
-msgstr ""
+msgstr "Hiçbirini seçme"
 
 msgid "Process Preset Template"
-msgstr ""
+msgstr "İşleme Ön Ayarı Şablonu"
 
 msgid "Back Page 1"
-msgstr ""
+msgstr "Arka Sayfa 1"
 
 msgid ""
 "You have not yet chosen which printer preset to create based on. Please "
 "choose the vendor and model of the printer"
 msgstr ""
+"Hangi yazıcı ön ayarının temel alınacağını henüz seçmediniz. Lütfen "
+"yazıcının satıcısını ve modelini seçin"
 
 msgid ""
 "You have entered an illegal input in the printable area section on the first "
 "page. Please check before creating it."
 msgstr ""
+"İlk sayfadaki yazdırılabilir alan kısmına geçersiz bir giriş yaptınız. Lütfen "
+"oluşturmadan önce kontrol edin."
 
 msgid "The custom printer or model is not inputed, place input."
-msgstr ""
+msgstr "Özel yazıcı veya model girilmedi lütfen giriş yapın."
 
 msgid ""
 "The printer preset you created already has a preset with the same name. Do "
@@ -12504,60 +12572,73 @@ msgid ""
 "reserve.\n"
 "\tCancel: Do not create a preset, return to the creation interface."
 msgstr ""
+"Oluşturduğunuz yazıcı ön ayarının zaten aynı ada sahip bir ön ayarı var. "
+"Üzerine yazmak istiyor musunuz?\n"
+"\tEvet: Aynı adı taşıyan yazıcı ön ayarının üzerine yazın; aynı ön ayar adı "
+"taşıyan filaman ve proses ön ayarları yeniden oluşturulacak ve aynı ön ayar \n"
+"adı olmayan filament ve işlem ön ayarları rezerve "
+"edilecektir.\n"
+"\tİptal: Ön ayar oluşturmayın, oluşturma arayüzüne dönün."
 
 msgid "You need to select at least one filament preset."
-msgstr ""
+msgstr "En az bir filament ön ayarı seçmeniz gerekir."
 
 msgid "You need to select at least one process preset."
-msgstr ""
+msgstr "En az bir işlem ön ayarı seçmeniz gerekir."
 
 msgid "Create filament presets failed. As follows:\n"
-msgstr ""
+msgstr "Filament ön ayarları oluşturulamadı. Şu şekilde:\n"
 
 msgid "Create process presets failed. As follows:\n"
-msgstr ""
+msgstr "İşlem ön ayarları oluşturulamadı. Şu şekilde:\n"
 
 msgid "Vendor is not find, please reselect."
-msgstr ""
+msgstr "Satıcı bulunamadı, lütfen yeniden seçin."
 
 msgid "Current vendor has no models, please reselect."
-msgstr ""
+msgstr "Mevcut satıcının modeli yok, lütfen yeniden seçin."
 
 msgid ""
 "You have not selected the vendor and model or inputed the custom vendor and "
 "model."
 msgstr ""
+"Satıcıyı ve modeli seçmediniz veya özel satıcıyı ve "
+"modeli girmediniz."
 
 msgid ""
 "There may be escape characters in the custom printer vendor or model. Please "
 "delete and re-enter."
 msgstr ""
+"Özel yazıcı satıcısında veya modelinde kaçış karakterleri olabilir. Lütfen "
+"silip tekrar giriniz."
 
 msgid ""
 "All inputs in the custom printer vendor or model are spaces. Please re-enter."
 msgstr ""
+"Özel yazıcı satıcısı veya modelindeki tüm girişler boşluklardan oluşuyor. Lütfen tekrar girin."
 
 msgid "Please check bed printable shape and origin input."
-msgstr ""
+msgstr "Lütfen baskı yapılabilir şekil ve başlangıç ​​noktası girişini kontrol edin."
 
 msgid ""
 "You have not yet selected the printer to replace the nozzle, please choose."
 msgstr ""
+"Hala nozulu değiştirmek için yazıcı seçmediniz, lütfen bir seçim yapın."
 
 msgid "Create Printer Successful"
-msgstr ""
+msgstr "Yazıcı Oluşturma Başarılı"
 
 msgid "Create Filament Successful"
-msgstr ""
+msgstr "Filament Oluşturma Başarılı"
 
 msgid "Printer Created"
-msgstr ""
+msgstr "Yazıcı Oluşturuldu"
 
 msgid "Please go to printer settings to edit your presets"
-msgstr ""
+msgstr "Ön ayarlarınızı düzenlemek için lütfen yazıcı ayarlarına gidin"
 
 msgid "Filament Created"
-msgstr ""
+msgstr "Filament Oluşturuldu"
 
 msgid ""
 "Please go to filament setting to edit your presets if you need.\n"
@@ -12565,45 +12646,49 @@ msgid ""
 "volumetric speed have a significant impact on printing quality. Please set "
 "them carefully."
 msgstr ""
+"İhtiyacınız olursa ön ayarlarınızı düzenlemek için lütfen filament ayarına gidin.\n"
+"Lütfen püskürtme ucu sıcaklığının, sıcak yatak sıcaklığının ve maksimum hacimsel "
+"hızın yazdırma kalitesi üzerinde önemli bir etkiye sahip olduğunu unutmayın. "
+"Lütfen bunları dikkatlice ayarlayın."
 
 msgid "Printer Setting"
-msgstr ""
+msgstr "Yazıcı Ayarı"
 
 msgid "Export Configs"
-msgstr ""
+msgstr "Yapılandırmaları Dışa Aktar"
 
 msgid "Printer config bundle(.bbscfg)"
-msgstr ""
+msgstr "Yazıcı yapılandırma paketi(.bbscfg)"
 
 msgid "Filament bundle(.bbsflmt)"
-msgstr ""
+msgstr "Filament demeti(.bbsflmt)"
 
 msgid "Printer presets(.zip)"
-msgstr ""
+msgstr "Yazıcı ön ayarları (.zip)"
 
 msgid "Filament presets(.zip)"
-msgstr ""
+msgstr "Filament ön ayarları (.zip)"
 
 msgid "Process presets(.zip)"
-msgstr ""
+msgstr "İşlem ön ayarları (.zip)"
 
 msgid "initialize fail"
-msgstr ""
+msgstr "başarısız başlatma"
 
 msgid "add file fail"
-msgstr ""
+msgstr "dosya ekleme başarısız"
 
 msgid "add bundle structure file fail"
-msgstr ""
+msgstr "paket yapısı dosyası ekle başarısız"
 
 msgid "finalize fail"
-msgstr ""
+msgstr "Tamamlama başarısız"
 
 msgid "open zip written fail"
-msgstr ""
+msgstr "ZIP dosyasını açma başarısız"
 
 msgid "Export successful"
-msgstr ""
+msgstr "Dışa aktarma başarılı"
 
 #, c-format, boost-format
 msgid ""
@@ -12612,114 +12697,137 @@ msgid ""
 "If not, a time suffix will be added, and you can modify the name after "
 "creation."
 msgstr ""
+"'%s' klasörü mevcut dizinde zaten mevcut. Onu temizleyip yeniden "
+"oluşturmak mı istiyorsunuz?\n"
+"Değilse, bir zaman son eki eklenecektir ve oluşturulduktan sonra "
+"adı değiştirebilirsiniz."
 
 msgid ""
 "Printer and all the filament&process presets that belongs to the printer. \n"
 "Can be shared with others."
 msgstr ""
+"Yazıcı ve yazıcıya ait tüm filament ve işlem ön ayarları. \n"
+"Başkalarıyla paylaşılabilir."
 
 msgid ""
 "User's fillment preset set. \n"
 "Can be shared with others."
 msgstr ""
+"Kullanıcının filament ön ayarı. \n"
+"Başkalarıyla paylaşılabilir."
 
 msgid ""
 "Only display printer names with changes to printer, filament, and process "
 "presets."
 msgstr ""
+"Yazıcı adlarını yalnızca yazıcı, filament ve işlem ön ayarlarında yapılan "
+"değişikliklerle görüntüleyin."
 
 msgid "Only display the filament names with changes to filament presets."
-msgstr ""
+msgstr "Filament adlarını yalnızca filament ön ayarlarında yapılan değişikliklerle görüntüleyin."
 
 msgid ""
 "Only printer names with user printer presets will be displayed, and each "
 "preset you choose will be exported as a zip."
 msgstr ""
+"Yalnızca kullanıcı yazıcı ön ayarlarına sahip yazıcı adları görüntülenecek "
+"ve seçtiğiniz her ön ayar zip olarak dışa aktarılacaktır."
 
 msgid ""
 "Only the filament names with user filament presets will be displayed, \n"
 "and all user filament presets in each filament name you select will be "
 "exported as a zip."
 msgstr ""
+"Yalnızca kullanıcı filamenti ön ayarlarına sahip filament adları \n"
+"görüntülenecek ve seçtiğiniz her filament adındaki tüm kullanıcı filamenti "
+"ön ayarları zip olarak dışa aktarılacaktır."
 
 msgid ""
 "Only printer names with changed process presets will be displayed, \n"
 "and all user process presets in each printer name you select will be "
 "exported as a zip."
 msgstr ""
+"Yalnızca işlem ön ayarları değiştirilen yazıcı adları görüntülenecek \n"
+"ve seçtiğiniz her yazıcı adındaki tüm kullanıcı işlem ön ayarları "
+"zip olarak dışa aktarılacaktır."
 
 msgid "Please select at least one printer or filament."
-msgstr ""
+msgstr "Lütfen en az bir yazıcı veya filament seçin."
 
 msgid "Please select a type you want to export"
-msgstr ""
+msgstr "Lütfen dışa aktarmak istediğiniz türü seçin"
 
 msgid "Edit Filament"
-msgstr ""
+msgstr "Filamenti Düzenle"
 
 msgid "Filament presets under this filament"
-msgstr ""
+msgstr "Bu filamentin altındaki filament ön ayarları"
 
 msgid ""
 "Note: If the only preset under this filament is deleted, the filament will "
 "be deleted after exiting the dialog."
 msgstr ""
+"Not: Bu filamentin altındaki tek ön ayar silinirse, diyalogdan çıkıldıktan "
+"sonra filament silinecektir."
 
 msgid "Presets inherited by other presets can not be deleted"
-msgstr ""
+msgstr "Diğer ön ayarlar tarafından devralınan ön ayarlar silinemez"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Aşağıdaki ön ayarlar bu ön ayarı devralır."
+msgstr[1] "Aşağıdaki ön ayar bu ön ayarı devralır."
 
 msgid "Delete Preset"
-msgstr ""
+msgstr "Ön Ayarı Sil"
 
 msgid "Are you sure to delete the selected preset?"
-msgstr ""
+msgstr "Seçilen ön ayarı sildiğinizden emin misiniz?"
 
 msgid "Delete preset"
-msgstr ""
+msgstr "Ön ayarı sil"
 
 msgid "+ Add Preset"
-msgstr ""
+msgstr "+ Ön Ayar Ekle"
 
 msgid "Delete Filament"
-msgstr ""
+msgstr "Filamenti Sil"
 
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament "
 "information for that slot."
 msgstr ""
+"Bu filamente ait tüm filaman ön ayarları silinecektir. \n"
+"Yazıcınızda bu filamenti kullanıyorsanız lütfen o yuvanın "
+"filament bilgisini sıfırlayın."
 
 msgid "Delete filament"
-msgstr ""
+msgstr "Filamenti sil"
 
 msgid "Add Preset"
-msgstr ""
+msgstr "Ön Ayar Ekle"
 
 msgid "Add preset for new printer"
-msgstr ""
+msgstr "Yeni yazıcı için ön ayar ekleyin"
 
 msgid "Copy preset from filament"
-msgstr ""
+msgstr "Ön ayarı filamentten kopyala"
 
 msgid "The filament choice not find filament preset, please reselect it"
-msgstr ""
+msgstr "Filament seçimi filament ön ayarını bulamıyor, lütfen yeniden seçin"
 
 msgid "Edit Preset"
-msgstr ""
+msgstr "Ön Ayarı Düzenle"
 
 msgid "For more information, please check out Wiki"
-msgstr ""
+msgstr "Daha fazla bilgi için lütfen Wiki'ye göz atın"
 
 msgid "Collapse"
-msgstr ""
+msgstr "Çökme"
 
 msgid "Daily Tips"
-msgstr ""
+msgstr "Günlük İpuçları"
 
 msgid "Need select printer"
 msgstr "Yazıcı seçmeniz gerekiyor"
@@ -12784,111 +12892,115 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Mismatched type of print host: %s"
-msgstr ""
+msgstr "Eşleşmeyen yazdırma ana bilgisayarı türü: %s"
 
 msgid "Connection to AstroBox works correctly."
-msgstr ""
+msgstr "AstroBox'a bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to AstroBox"
-msgstr ""
+msgstr "AstroBox'a bağlanılamadı"
 
 msgid "Note: AstroBox version at least 1.1.0 is required."
-msgstr ""
+msgstr "Not: AstroBox sürümünün en az 1.1.0 olması gerekmektedir."
 
 msgid "Connection to Duet works correctly."
-msgstr ""
+msgstr "Duet'e bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to Duet"
-msgstr ""
+msgstr "Duet'e bağlanılamadı"
 
 msgid "Unknown error occured"
-msgstr ""
+msgstr "Bilinmeyen hata oluştu"
 
 msgid "Wrong password"
-msgstr ""
+msgstr "Wrong password"
 
 msgid "Could not get resources to create a new connection"
-msgstr ""
+msgstr "Yeni bir bağlantı oluşturmak için kaynaklar alınamadı"
 
 msgid "Upload not enabled on FlashAir card."
-msgstr ""
+msgstr "FlashAir kartında yükleme etkin değil."
 
 msgid "Connection to FlashAir works correctly and upload is enabled."
-msgstr ""
+msgstr "FlashAir bağlantısı düzgün çalışıyor ve yükleme etkin."
 
 msgid "Could not connect to FlashAir"
-msgstr ""
+msgstr "FlashAir'e bağlanılamadı"
 
 msgid ""
 "Note: FlashAir with firmware 2.00.02 or newer and activated upload function "
 "is required."
 msgstr ""
+"Not: Firmware 2.00.02 veya daha yeni ve etkinleştirilmiş yükleme işlevine "
+"sahip FlashAir gereklidir."
 
 msgid "Connection to MKS works correctly."
-msgstr ""
+msgstr "MKS'ye bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to MKS"
-msgstr ""
+msgstr "MKS'ye bağlanılamadı"
 
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "OctoPrint'e bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to OctoPrint"
-msgstr ""
+msgstr "OctoPrint'e bağlanılamadı"
 
 msgid "Note: OctoPrint version at least 1.1.0 is required."
-msgstr ""
+msgstr "Not: OctoPrint sürümü en az 1.1.0 gereklidir."
 
 msgid "Connection to Prusa SL1 / SL1S works correctly."
-msgstr ""
+msgstr "Prusa SL1 / SL1S bağlantısı düzgün çalışıyor."
 
 msgid "Could not connect to Prusa SLA"
-msgstr ""
+msgstr "Prusa SLA'ya bağlanılamadı"
 
 msgid "Connection to PrusaLink works correctly."
-msgstr ""
+msgstr "PrusaLink'e bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to PrusaLink"
-msgstr ""
+msgstr "PrusaLink'e bağlanılamadı"
 
 msgid "Storages found"
-msgstr ""
+msgstr "Depolar bulundu"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : read only"
-msgstr ""
+msgstr "%1% : sadece okuma"
 
 #. TRN %1% = storage path
 #, boost-format
 msgid "%1% : no free space"
-msgstr ""
+msgstr "%1% : boş alan yok"
 
 #. TRN %1% = host
 #, boost-format
 msgid "Upload has failed. There is no suitable storage found at %1%."
-msgstr ""
+msgstr "Yükleme başarısız oldu. %1%'de uygun depolama alanı bulunamadı."
 
 msgid "Connection to Prusa Connect works correctly."
-msgstr ""
+msgstr "Prusa Connect'e bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to Prusa Connect"
-msgstr ""
+msgstr "Prusa Connect'e bağlanılamadı"
 
 msgid "Connection to Repetier works correctly."
-msgstr ""
+msgstr "Repetier'e bağlantı düzgün çalışıyor."
 
 msgid "Could not connect to Repetier"
-msgstr ""
+msgstr "Repetier'a bağlanılamadı"
 
 msgid "Note: Repetier version at least 0.90.0 is required."
-msgstr ""
+msgstr "Not: Repetier sürümü en az 0.90.0 gereklidir."
 
 #, boost-format
 msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
+"HTTP durumu: %1%\n"
+"Mesaj gövdesi: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -12896,6 +13008,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Ana bilgisayar yanıtının ayrıştırılması başarısız oldu.\n"
+"Mesaj gövdesi: \"%1%\"\n"
+"Hata: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -12903,6 +13018,9 @@ msgid ""
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
 msgstr ""
+"Ana yazıcıların numaralandırılması başarısız oldu.\n"
+"Mesaj gövdesi: \"%1%\"\n"
+"Hata: \"%2%\""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -12910,6 +13028,9 @@ msgid ""
 "Did you know that Orca Slicer offers a wide range of keyboard shortcuts and "
 "3D scene operations."
 msgstr ""
+"Klavye kısayolları nasıl kullanılır\n"
+"Orca Slicer'ın çok çeşitli klavye kısayolları ve 3B sahne işlemleri "
+"sunduğunu biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Cut Tool]
 msgid ""
@@ -12927,6 +13048,9 @@ msgid ""
 "Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
 "problems on the Windows system?"
 msgstr ""
+"Modeli Düzelt\n"
+"Windows sisteminde birçok dilimleme sorununu önlemek için bozuk bir 3D "
+"modeli düzeltebileceğinizi biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Timelapse]
 msgid ""
@@ -12983,6 +13107,9 @@ msgid ""
 "Did you know that you use the Search tool to quickly find a specific Orca "
 "Slicer setting?"
 msgstr ""
+"Arama İşlevselliği\n"
+"Belirli bir Orca Dilimleyici ayarını hızla bulmak için Arama aracını "
+"kullandığınızı biliyor muydunuz?"
 
 #: resources/data/hints.ini: [hint:Simplify Model]
 msgid ""
@@ -13182,6 +13309,10 @@ msgid ""
 "extruder/hotend clogging when printing lower temperature filament with a "
 "higher enclosure temperature. More info about this in the Wiki."
 msgstr ""
+"Yazıcı kapısı açıkken yazdırmanız gerektiğinde\n"
+"Yazıcı kapısının açılmasının, daha yüksek muhafaza sıcaklığıyla daha düşük "
+"sıcaklıktaki filamenti yazdırırken ekstrüder/sıcak ucun tıkanma olasılığını "
+"azaltabileceğini biliyor muydunuz? Bununla ilgili daha fazla bilgiyi Wiki'de bulabilirsiniz."
 
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid ""
@@ -13190,6 +13321,10 @@ msgid ""
 "ABS, appropriately increasing the heatbed temperature can reduce the "
 "probability of warping."
 msgstr ""
+"Eğilmeyi önleyin\n"
+"ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı "
+"sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını "
+"azaltabileceğini biliyor muydunuz?"
 
 #~ msgid "Filling bed "
 #~ msgstr "Yatak doldurma "

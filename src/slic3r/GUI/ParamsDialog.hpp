@@ -29,7 +29,7 @@ public:
 
     ParamsPanel * panel() { return m_panel; }
 
-    void Popup(bool just_edit = false);
+    void Popup();
 
     void set_editing_filament_id(std::string id) { m_editing_filament_id = id; }
 

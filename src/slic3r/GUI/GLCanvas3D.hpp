@@ -858,15 +858,17 @@ public:
     //BBS: add part plate related logic
     void select_plate();
     //BBS: GUI refactor: GLToolbar&&gizmo
-    float get_main_toolbar_height() { return m_main_toolbar.get_height();}
-    float get_main_toolbar_width() { return m_main_toolbar.get_width();}
-    float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
-    float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
-    float get_assembly_paint_toolbar_width() { return m_paint_toolbar_width; }
-    float get_separator_toolbar_width() { return m_separator_toolbar.get_width(); }
-    float get_separator_toolbar_height() { return m_separator_toolbar.get_height(); }
-    float get_collapse_toolbar_width();
-    float get_collapse_toolbar_height();
+    float get_main_toolbar_offset() const;
+    float get_main_toolbar_height() const { return m_main_toolbar.get_height(); }
+    float get_main_toolbar_width() const { return m_main_toolbar.get_width(); }
+    float get_assemble_view_toolbar_width() const { return m_assemble_view_toolbar.get_width(); }
+    float get_assemble_view_toolbar_height() const { return m_assemble_view_toolbar.get_height(); }
+    float get_assembly_paint_toolbar_width() const { return m_paint_toolbar_width; }
+    float get_separator_toolbar_width() const { return m_separator_toolbar.get_width(); }
+    float get_separator_toolbar_height() const { return m_separator_toolbar.get_height(); }
+    bool  is_collapse_toolbar_on_left() const;
+    float get_collapse_toolbar_width() const;
+    float get_collapse_toolbar_height() const;
 
     void update_volumes_colors_by_extruder();
 
