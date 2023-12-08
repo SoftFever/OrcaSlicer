@@ -1017,6 +1017,8 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
         //BBS: add directory support
         auto print_in_rsrc = this->rsrc_path / bundle;
 		auto print_in_vendors = this->vendor_path / bundle;
+        auto print_in_rsrc = this->rsrc_path / bundle;
+		auto print_in_vendors = this->vendor_path / bundle;
         fs::path print_folder(print_in_vendors);
         if (fs::exists(print_folder))
             fs::remove_all(print_folder);
@@ -1197,10 +1199,11 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                     version.config_version = cache_ver;
                     version.comment        = description;
 
-                    updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name,
-                                                 changelog, "", force_update, false);
-                    updates.updates.emplace_back(cache_profile_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "",
-                                                 "", force_update, true);
+                        updates.updates.emplace_back(std::move(file_path), std::move(path_in_vendor.string()), std::move(version), vendor_name, changelog, "", force_update, false);
+
+                        //BBS: add directory support
+                        updates.updates.emplace_back(cache_path / vendor_name, vendor_path / vendor_name, Version(), vendor_name, "", "", force_update, true);
+                    }
                 }
             }
         }
