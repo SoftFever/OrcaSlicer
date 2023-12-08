@@ -7146,7 +7146,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_main_toolbar.set_scale(sc);
     m_assemble_view_toolbar.set_scale(sc);
     m_separator_toolbar.set_scale(sc);
-    collapse_toolbar.set_scale(sc);
+    collapse_toolbar.set_scale(sc / 2.0);
     size *= m_retina_helper->get_scale_factor();
 
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
@@ -7156,7 +7156,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
-    collapse_toolbar.set_icons_size(size);
+    collapse_toolbar.set_icons_size(size / 2.0);
 #endif // ENABLE_RETINA_GL
 
     // Update collapse toolbar
@@ -7164,9 +7164,9 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : GLToolbar::Default_Icons_Size;
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0;
 
-    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width;
+    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width * 2;
     int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
@@ -7221,7 +7221,7 @@ void GLCanvas3D::_render_overlays()
     m_main_toolbar.set_scale(scale);
     m_assemble_view_toolbar.set_scale(scale);
     m_separator_toolbar.set_scale(scale);
-    wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
+    wxGetApp().plater()->get_collapse_toolbar().set_scale(scale / 2.0);
     m_gizmos.set_overlay_scale(scale);
 #else
     // BBS adjust display scale
@@ -7234,7 +7234,7 @@ void GLCanvas3D::_render_overlays()
     m_main_toolbar.set_icons_size(gizmo_size);
     m_assemble_view_toolbar.set_icons_size(gizmo_size);
     m_separator_toolbar.set_icons_size(gizmo_size);
-    wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
+    wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size / 2.0);
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
 
@@ -7442,7 +7442,7 @@ void GLCanvas3D::_render_gizmos_overlay()
 float GLCanvas3D::get_main_toolbar_offset() const
 {
     const float cnv_width              = get_canvas_size().get_width();
-    const float collapse_toolbar_width = get_collapse_toolbar_width();
+    const float collapse_toolbar_width = get_collapse_toolbar_width() * 2;
     const float gizmo_width            = m_gizmos.get_scaled_total_width();
     const float assemble_width         = m_assemble_view_toolbar.get_width();
     const float separator_width        = m_separator_toolbar.get_width();
