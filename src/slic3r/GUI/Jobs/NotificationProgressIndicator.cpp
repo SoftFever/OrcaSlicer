@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2021 Tomáš Mészáros @tamasmeszaros
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #include "NotificationProgressIndicator.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 
@@ -22,11 +26,15 @@ void NotificationProgressIndicator::set_range(int range)
 
 void NotificationProgressIndicator::set_cancel_callback(CancelFn fn)
 {
-    m_nm->progress_indicator_set_cancel_callback(std::move(fn));
+    m_cancelfn = std::move(fn);
+    m_nm->progress_indicator_set_cancel_callback(m_cancelfn);
 }
 
 void NotificationProgressIndicator::set_progress(int pr)
 {
+    if (!pr)
+        set_cancel_callback(m_cancelfn);
+
     m_nm->progress_indicator_set_progress(pr);
 }
 

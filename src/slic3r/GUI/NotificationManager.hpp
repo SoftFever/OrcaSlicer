@@ -1,3 +1,7 @@
+///|/ Copyright (c) Prusa Research 2020 - 2023 David Kocík @kocikdav, Lukáš Matěna @lukasmatena, Pavel Mikuš @Godrak, Filip Sykala @Jony01, Vojtěch Bubník @bubnikv, Tomáš Mészáros @tamasmeszaros, Lukáš Hejl @hejllukas, Oleksandra Iushchenko @YuSanka, Enrico Turri @enricoturri1966
+///|/
+///|/ PrusaSlicer is released under the terms of the AGPLv3 or higher
+///|/
 #ifndef slic3r_GUI_NotificationManager_hpp_
 #define slic3r_GUI_NotificationManager_hpp_
 
@@ -119,6 +123,8 @@ enum class NotificationType
 	// Give user advice to simplify object with big amount of triangles
 	// Contains ObjectID for closing when object is deleted
 	SimplifySuggestion,
+	// Change of text will change font to similar one on.
+	UnknownFont,
 	// information about netfabb is finished repairing model (blocking proccess)
 	NetfabbFinished,
 	// Short meesage to fill space between start and finish of export
@@ -462,7 +468,10 @@ private:
 		// used this function instead of reading directly m_data.duration. Some notifications might need to return changing value.
 		virtual int  get_duration() { return m_data.duration; }
 
+		void ensure_ui_inited();
+
 		bool m_is_dark = false;
+        bool m_is_dark_inited = false;
 
 		const NotificationData m_data;
 		// For reusing ImGUI windows.
@@ -492,6 +501,7 @@ private:
 		ImVec4     m_CurrentColor;
 
         float      m_WindowRadius;
+        bool       m_WindowRadius_inited = false;
 
 		void use_bbl_theme();
         void restore_default_theme();

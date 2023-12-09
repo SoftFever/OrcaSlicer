@@ -16,6 +16,7 @@
 #include "Widgets/Button.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
+#include "Jobs/Worker.hpp"
 #include "Jobs/UpgradeNetworkJob.hpp"
 
 class wxBoxSizer;
@@ -47,11 +48,11 @@ public:
     wxSimplebook* m_simplebook_status{nullptr};
 
 	std::shared_ptr<BBLStatusBarSend> m_status_bar;
-    std::shared_ptr<UpgradeNetworkJob> m_upgrade_job { nullptr };
+    std::unique_ptr<Worker>           m_worker;
     wxPanel *                         m_panel_download;
 
 protected:
-    virtual std::shared_ptr<UpgradeNetworkJob> make_job(std::shared_ptr<ProgressIndicator> pri);
+    virtual std::unique_ptr<UpgradeNetworkJob> make_job();
     virtual void                               on_finish();
 };
 

@@ -66,9 +66,15 @@ set(lisbslic3r_sources
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
     ElephantFootCompensation.hpp
+    Emboss.cpp
+    Emboss.hpp
+    EmbossShape.hpp
     enum_bitmask.hpp
     ExPolygon.cpp
     ExPolygon.hpp
+    ExPolygonSerialize.hpp
+    ExPolygonsIndex.cpp
+    ExPolygonsIndex.hpp
     Extruder.cpp
     Extruder.hpp
     ExtrusionEntity.cpp
@@ -224,6 +230,8 @@ set(lisbslic3r_sources
     MultiPoint.cpp
     MultiPoint.hpp
     MutablePriorityQueue.hpp
+    NSVGUtils.cpp
+    NSVGUtils.hpp
     ObjectID.cpp
     ObjectID.hpp
     PerimeterGenerator.cpp
@@ -318,6 +326,7 @@ set(lisbslic3r_sources
     Technologies.hpp
     Tesselate.cpp
     Tesselate.hpp
+    TextConfiguration.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
     TriangleMeshSlicer.cpp
@@ -329,6 +338,8 @@ set(lisbslic3r_sources
     Utils.hpp
     Time.cpp
     Time.hpp
+    Timer.cpp
+    Timer.hpp
     Thread.cpp
     Thread.hpp
     TriangleSelector.cpp
@@ -457,8 +468,13 @@ cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
 cmake_policy(POP)
 
-add_library(libslic3r_cgal STATIC MeshBoolean.cpp MeshBoolean.hpp  TryCatchSignal.hpp
-    TryCatchSignal.cpp)
+add_library(libslic3r_cgal STATIC 
+    CutSurface.hpp CutSurface.cpp
+    IntersectionPoints.hpp IntersectionPoints.cpp
+    MeshBoolean.hpp MeshBoolean.cpp
+    TryCatchSignal.hpp TryCatchSignal.cpp
+    Triangulation.hpp Triangulation.cpp
+)
 target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options
