@@ -1588,7 +1588,6 @@ void GLCanvas3D::enable_legend_texture(bool enable)
 void GLCanvas3D::enable_picking(bool enable)
 {
     m_picking_enabled = enable;
-    m_selection.set_mode(Selection::Instance);
 }
 
 void GLCanvas3D::enable_moving(bool enable)
@@ -2171,7 +2170,17 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 
 void GLCanvas3D::mirror_selection(Axis axis)
 {
-    m_selection.mirror(axis);
+    TransformationType transformation_type;
+    if (wxGetApp().obj_manipul()->is_local_coordinates())
+        transformation_type.set_local();
+    else if (wxGetApp().obj_manipul()->is_instance_coordinates())
+        transformation_type.set_instance();
+
+    transformation_type.set_relative();
+
+    m_selection.setup_cache();
+    m_selection.mirror(axis, transformation_type);
+
     do_mirror(L("Mirror Object"));
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
@@ -3364,7 +3373,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             else
                 displacement = multiplier * direction;
 
-            m_selection.translate(displacement);
+            TransformationType trafo_type;
+            trafo_type.set_relative();
+            m_selection.translate(displacement, trafo_type);
             m_dirty = true;
         }
     );}
@@ -4136,7 +4147,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
 
-                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D);
+                TransformationType trafo_type;
+                trafo_type.set_relative();
+                m_selection.translate(cur_pos - m_mouse.drag.start_position_3D, trafo_type);
                 if (current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject))
                     update_sequential_clearance();
                 // BBS
@@ -4364,6 +4377,40 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else
         evt.Skip();
 
+    // Detection of doubleclick on text to open emboss edit window
+    auto type = m_gizmos.get_current_type();
+    if (evt.LeftDClick() && !m_hover_volume_idxs.empty() && 
+        (type == GLGizmosManager::EType::Undefined ||
+         type == GLGizmosManager::EType::Move ||
+         type == GLGizmosManager::EType::Rotate ||
+         type == GLGizmosManager::EType::Scale ||
+         type == GLGizmosManager::EType::Emboss ||
+         type == GLGizmosManager::EType::Svg) ) {
+        for (int hover_volume_id : m_hover_volume_idxs) { 
+            const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
+            int object_idx = hover_gl_volume.object_idx();
+            if (object_idx < 0 || static_cast<size_t>(object_idx) >= m_model->objects.size()) continue;
+            const ModelObject* hover_object = m_model->objects[object_idx];
+            int hover_volume_idx = hover_gl_volume.volume_idx();
+            if (hover_volume_idx < 0 || static_cast<size_t>(hover_volume_idx) >= hover_object->volumes.size()) continue;
+            const ModelVolume* hover_volume = hover_object->volumes[hover_volume_idx];
+
+            if (hover_volume->text_configuration.has_value()) {
+                m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                if (type != GLGizmosManager::EType::Emboss)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Emboss);            
+                wxGetApp().obj_list()->update_selections();
+                return;
+            } else if (hover_volume->emboss_shape.has_value()) {
+                m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                if (type != GLGizmosManager::EType::Svg)
+                    m_gizmos.open_gizmo(GLGizmosManager::EType::Svg);
+                wxGetApp().obj_list()->update_selections();
+                return;
+            }
+        }
+    }
+
     if (m_moving)
         show_sinking_contours();
 
@@ -4460,6 +4507,9 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
         int instance_idx = v->instance_idx();
         int volume_idx = v->volume_idx();
 
+        if (volume_idx < 0)
+            continue;
+
         std::pair<int, int> done_id(object_idx, instance_idx);
 
         if (0 <= object_idx && object_idx < (int)m_model->objects.size()) {
@@ -4469,10 +4519,10 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
                 if (selection_mode == Selection::Instance)
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                 else if (selection_mode == Selection::Volume) {
-                    if (model_object->volumes[volume_idx]->get_offset() != v->get_volume_offset()) {
-                        model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                    if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                        model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                         // BBS: backup
                         Slic3r::save_object_mesh(*model_object);
                     }
@@ -4564,26 +4614,26 @@ void GLCanvas3D::do_rotate(const std::string& snapshot_type)
     Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes) {
-        int object_idx = v->object_idx();
+        const int object_idx = v->object_idx();
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
-        int instance_idx = v->instance_idx();
-        int volume_idx = v->volume_idx();
+        const int instance_idx = v->instance_idx();
+        const int volume_idx = v->volume_idx();
+
+        if (volume_idx < 0)
+            continue;
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances/volumes.
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_rotation(v->get_instance_rotation());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-            }
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_rotation() != v->get_volume_rotation()) {
-                    model_object->volumes[volume_idx]->set_rotation(v->get_volume_rotation());
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                	model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4645,27 +4695,27 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
     Selection::EMode selection_mode = m_selection.get_mode();
 
     for (const GLVolume* v : m_volumes.volumes) {
-        int object_idx = v->object_idx();
+        const int object_idx = v->object_idx();
         if (object_idx < 0 || (int)m_model->objects.size() <= object_idx)
             continue;
 
-        int instance_idx = v->instance_idx();
-        int volume_idx = v->volume_idx();
+        const int instance_idx = v->instance_idx();
+        const int volume_idx = v->volume_idx();
+
+        if (volume_idx < 0)
+            continue;
 
         done.insert(std::pair<int, int>(object_idx, instance_idx));
 
         // Rotate instances/volumes
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
-            if (selection_mode == Selection::Instance) {
-                model_object->instances[instance_idx]->set_scaling_factor(v->get_instance_scaling_factor());
-                model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-            }
+            if (selection_mode == Selection::Instance)
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_scaling_factor() != v->get_volume_scaling_factor()) {
-                    model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    model_object->volumes[volume_idx]->set_scaling_factor(v->get_volume_scaling_factor());
-                    model_object->volumes[volume_idx]->set_offset(v->get_volume_offset());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -4756,10 +4806,10 @@ void GLCanvas3D::do_mirror(const std::string& snapshot_type)
         ModelObject* model_object = m_model->objects[object_idx];
         if (model_object != nullptr) {
             if (selection_mode == Selection::Instance)
-                model_object->instances[instance_idx]->set_mirror(v->get_instance_mirror());
+                model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
             else if (selection_mode == Selection::Volume) {
-                if (model_object->volumes[volume_idx]->get_mirror() != v->get_volume_mirror()) {
-                    model_object->volumes[volume_idx]->set_mirror(v->get_volume_mirror());
+                if (model_object->volumes[volume_idx]->get_transformation() != v->get_volume_transformation()) {
+                    model_object->volumes[volume_idx]->set_transformation(v->get_volume_transformation());
                     // BBS: backup
                     Slic3r::save_object_mesh(*model_object);
                 }
@@ -5208,6 +5258,14 @@ bool GLCanvas3D::is_object_sinking(int object_idx) const
             return true;
     }
     return false;
+}
+
+void GLCanvas3D::apply_retina_scale(Vec2d &screen_coordinate) const 
+{
+#if ENABLE_RETINA_GL
+    double scale = static_cast<double>(m_retina_helper->get_scale_factor());
+    screen_coordinate *= scale;
+#endif // ENABLE_RETINA_GL
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
@@ -7148,12 +7206,14 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
 
     auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
+    m_gizmos.set_overlay_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
     m_assemble_view_toolbar.set_icons_size(size);
     m_separator_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size / 2.0);
+    m_gizmos.set_overlay_icon_size(size);
 #endif // ENABLE_RETINA_GL
 
     // Update collapse toolbar
@@ -7209,31 +7269,6 @@ void GLCanvas3D::_render_overlays()
 
     _render_assemble_control();
     _render_assemble_info();
-
-    // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
-    // to correctly place them
-#if ENABLE_RETINA_GL
-    const float scale = m_retina_helper->get_scale_factor() * wxGetApp().toolbar_icon_scale(/*true*/);
-    //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_scale(scale);
-    m_assemble_view_toolbar.set_scale(scale);
-    m_separator_toolbar.set_scale(scale);
-    wxGetApp().plater()->get_collapse_toolbar().set_scale(scale / 2.0);
-    m_gizmos.set_overlay_scale(scale);
-#else
-    // BBS adjust display scale
-    const float size = int(GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale(/*true*/));
-    const float gizmo_size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
-    //const float size = int(GLToolbar::Default_Icons_Size);
-    //const float gizmo_size = int(GLGizmosManager::Default_Icons_Size);
-
-    //BBS: GUI refactor: GLToolbar
-    m_main_toolbar.set_icons_size(gizmo_size);
-    m_assemble_view_toolbar.set_icons_size(gizmo_size);
-    m_separator_toolbar.set_icons_size(gizmo_size);
-    wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size / 2.0);
-    m_gizmos.set_overlay_icon_size(gizmo_size);
-#endif // ENABLE_RETINA_GL
 
     _render_separator_toolbar_right();
     _render_separator_toolbar_left();
@@ -8077,7 +8112,7 @@ void GLCanvas3D::_render_assemble_control() const
     const float text_size_x = std::max(imgui->calc_text_size(_L("Reset direction")).x + 2 * ImGui::GetStyle().FramePadding.x,
         std::max(imgui->calc_text_size(_L("Explosion Ratio")).x, imgui->calc_text_size(_L("Section View")).x));
     const float slider_width = 75.0f;
-    const float value_size = imgui->calc_text_size("3.00").x + text_padding * 2;
+    const float value_size = imgui->calc_text_size(std::string_view{"3.00"}).x + text_padding * 2;
     const float item_spacing = imgui->get_item_spacing().x;
     ImVec2 window_padding = ImGui::GetStyle().WindowPadding;
 
@@ -9509,6 +9544,109 @@ void GLCanvas3D::GizmoHighlighter::blink()
 
     if ((++m_blink_counter) >= 11)
         invalidate();
+}
+
+const ModelVolume *get_model_volume(const GLVolume &v, const Model &model)
+{
+    const ModelVolume * ret = nullptr;
+
+    if (v.object_idx() < (int)model.objects.size()) {
+        const ModelObject *obj = model.objects[v.object_idx()];
+        if (v.volume_idx() < (int)obj->volumes.size())
+            ret = obj->volumes[v.volume_idx()];
+    }
+
+    return ret;
+}
+
+ModelVolume *get_model_volume(const ObjectID &volume_id, const ModelObjectPtrs &objects)
+{
+    for (const ModelObject *obj : objects)
+        for (ModelVolume *vol : obj->volumes)
+            if (vol->id() == volume_id)
+                return vol;
+    return nullptr;
+}
+
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObject& object) {
+    if (v.volume_idx() < 0)
+        return nullptr;
+
+    size_t volume_idx = static_cast<size_t>(v.volume_idx());
+    if (volume_idx >= object.volumes.size())
+        return nullptr;
+
+    return object.volumes[volume_idx];
+}
+
+ModelVolume *get_model_volume(const GLVolume &v, const ModelObjectPtrs &objects)
+{
+    if (v.object_idx() < 0)
+        return nullptr;
+    size_t objext_idx = static_cast<size_t>(v.object_idx());
+    if (objext_idx >= objects.size())
+        return nullptr;
+    if (objects[objext_idx] == nullptr)
+        return nullptr;
+    return get_model_volume(v, *objects[objext_idx]);
+}
+
+GLVolume *get_first_hovered_gl_volume(const GLCanvas3D &canvas) {
+    int hovered_id_signed = canvas.get_first_hover_volume_idx();
+    if (hovered_id_signed < 0)
+        return nullptr;
+
+    size_t hovered_id = static_cast<size_t>(hovered_id_signed);
+    const GLVolumePtrs &volumes = canvas.get_volumes().volumes;
+    if (hovered_id >= volumes.size())
+        return nullptr;
+
+    return volumes[hovered_id];
+}
+
+GLVolume *get_selected_gl_volume(const GLCanvas3D &canvas) {
+    const GLVolume *gl_volume = get_selected_gl_volume(canvas.get_selection());
+    if (gl_volume == nullptr)
+        return nullptr;
+
+    const GLVolumePtrs &gl_volumes = canvas.get_volumes().volumes;
+    for (GLVolume *v : gl_volumes)
+        if (v->composite_id == gl_volume->composite_id)
+            return v;
+    return nullptr;
+}
+
+ModelObject *get_model_object(const GLVolume &gl_volume, const Model &model) {
+    return get_model_object(gl_volume, model.objects);
+}
+
+ModelObject *get_model_object(const GLVolume &gl_volume, const ModelObjectPtrs &objects) {
+    if (gl_volume.object_idx() < 0)
+        return nullptr;
+    size_t objext_idx = static_cast<size_t>(gl_volume.object_idx());
+    if (objext_idx >= objects.size())
+        return nullptr;
+    return objects[objext_idx];
+}
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const Model& model) {
+    return get_model_instance(gl_volume, model.objects);
+}
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const ModelObjectPtrs &objects) {
+    if (gl_volume.instance_idx() < 0)
+        return nullptr;
+    ModelObject *object = get_model_object(gl_volume, objects);
+    return get_model_instance(gl_volume, *object);
+}
+
+ModelInstance *get_model_instance(const GLVolume &gl_volume, const ModelObject &object) {
+    if (gl_volume.instance_idx() < 0)
+        return nullptr;
+    size_t instance_idx = static_cast<size_t>(gl_volume.instance_idx());
+    if (instance_idx >= object.instances.size())
+        return nullptr;
+    return object.instances[instance_idx];
 }
 
 } // namespace GUI

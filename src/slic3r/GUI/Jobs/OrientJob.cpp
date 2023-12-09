@@ -140,29 +140,23 @@ void OrientJob::prepare()
     int state = m_plater->get_prepare_state();
     m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
-        only_on_partplate = false;
+        // only_on_partplate = false;
         prepare_selected();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
-        only_on_partplate = true;   // only arrange items on current plate
+        // only_on_partplate = true;   // only arrange items on current plate
         prepare_partplate();
     }
 }
 
-void OrientJob::on_exception(const std::exception_ptr &eptr)
+void OrientJob::process(Ctl &ctl)
 {
-    try {
-        if (eptr)
-            std::rethrow_exception(eptr);
-    } catch (std::exception &) {
-        PlaterJob::on_exception(eptr);
-    }
-}
+    static const auto arrangestr = _u8L("Orienting...");
 
-void OrientJob::process()
-{
+    ctl.update_status(0, arrangestr);
+    ctl.call_on_main_thread([this]{ prepare(); }).wait();;
+
     auto start = std::chrono::steady_clock::now();
-    static const auto arrangestr = _(L("Orienting..."));
 
     const GLCanvas3D::OrientSettings& settings = m_plater->canvas3D()->get_orient_settings();
 
@@ -177,11 +171,11 @@ void OrientJob::process()
     }
 
     auto count = unsigned(m_selected.size() + m_unprintable.size());
-    params.stopcondition = [this]() { return was_canceled(); };
+    params.stopcondition = [&ctl]() { return ctl.was_canceled(); };
 
-    params.progressind = [this, count](unsigned st, std::string orientstr) {
+    params.progressind = [this, count, &ctl](unsigned st, std::string orientstr) {
         st += m_unprintable.size();
-        if (st > 0) update_status(int(st / float(count) * 100), _L("Orienting") + " " + orientstr);
+        if (st > 0) ctl.update_status(int(st / float(count) * 100), _u8L("Orienting") + " " + orientstr);
     };
 
     orientation::orient(m_selected, m_unselected, params);
@@ -194,15 +188,27 @@ void OrientJob::process()
         << "Orientation: " << m_selected.back().orientation.transpose() << "; v,phi: " << m_selected.back().axis.transpose() << ", " << m_selected.back().angle << "; euler: " << m_selected.back().euler_angles.transpose();
 
     // finalize just here.
-    //update_status(int(count),
-    //    was_canceled() ? _(L("Orienting canceled."))
-    //    : _(L(ss.str().c_str())));
-    wxGetApp().plater()->show_status_message(was_canceled() ? "Orienting canceled." : ss.str());
+    ctl.update_status(100,
+        ctl.was_canceled() ? _u8L("Orienting canceled.")
+        : _u8L(ss.str().c_str()));
+    wxGetApp().plater()->show_status_message(ctl.was_canceled() ? "Orienting canceled." : ss.str());
 }
 
-void OrientJob::finalize() {
+OrientJob::OrientJob() : m_plater{wxGetApp().plater()} {}
+
+void OrientJob::finalize(bool canceled, std::exception_ptr &eptr)
+{
+    try {
+        if (eptr)
+            std::rethrow_exception(eptr);
+        eptr = nullptr;
+    } catch (...) {
+        eptr = std::current_exception();
+    }
+
     // Ignore the arrange result if aborted.
-    if (was_canceled()) return;
+    if (canceled || eptr)
+        return;
 
     for (OrientMesh& mesh : m_selected)
     {
@@ -214,8 +220,6 @@ void OrientJob::finalize() {
 
     // BBS
     //wxGetApp().obj_manipul()->set_dirty();
-
-    Job::finalize();
 }
 
 orientation::OrientMesh OrientJob::get_orient_mesh(ModelInstance* instance)

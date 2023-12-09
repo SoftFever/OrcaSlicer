@@ -451,7 +451,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
     new_volume->set_material_id(old_volume->material_id());
     new_volume->set_offset(old_volume->get_transformation().get_offset());
     //Vec3d translate_z = { 0,0, (new_volume->source.mesh_offset - old_volume->source.mesh_offset).z() };
-    //new_volume->translate(new_volume->get_transformation().get_matrix(true) * translate_z);
+    //new_volume->translate(new_volume->get_transformation().get_matrix_no_offset() * translate_z);
     //new_volume->supported_facets.assign(old_volume->supported_facets);
     //new_volume->seam_facets.assign(old_volume->seam_facets);
     //new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);

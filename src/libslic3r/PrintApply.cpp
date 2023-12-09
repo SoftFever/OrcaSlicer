@@ -839,7 +839,7 @@ void update_volume_bboxes(
                         layer_range.volumes.emplace_back(*it);
                 } else
                     layer_range.volumes.push_back({ model_volume->id(),
-                        transformed_its_bbox2d(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), offset) });
+                        transformed_its_bbox2d(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix()), offset) });
             }
     } else {
         std::vector<std::vector<PrintObjectRegions::VolumeExtents>> volumes_old;
@@ -871,7 +871,7 @@ void update_volume_bboxes(
                             layer_range.volumes.emplace_back(*it);
                     }
                 } else {
-                    transformed_its_bboxes_in_z_ranges(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), ranges, bboxes, offset);
+                    transformed_its_bboxes_in_z_ranges(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix()), ranges, bboxes, offset);
                     for (PrintObjectRegions::LayerRangeRegions &layer_range : layer_ranges)
                         if (auto &bbox = bboxes[&layer_range - layer_ranges.data()]; bbox.second)
                             layer_range.volumes.push_back({ model_volume->id(), bbox.first });

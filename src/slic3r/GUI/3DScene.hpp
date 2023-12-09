@@ -243,14 +243,15 @@ public:
 
     const Geometry::Transformation& get_instance_transformation() const { return m_instance_transformation; }
     void set_instance_transformation(const Geometry::Transformation& transformation) { m_instance_transformation = transformation; set_bounding_boxes_as_dirty(); }
+    void set_instance_transformation(const Transform3d& transform) { m_instance_transformation.set_matrix(transform); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_instance_offset() const { return m_instance_transformation.get_offset(); }
+    Vec3d get_instance_offset() const { return m_instance_transformation.get_offset(); }
     double get_instance_offset(Axis axis) const { return m_instance_transformation.get_offset(axis); }
 
     void set_instance_offset(const Vec3d& offset) { m_instance_transformation.set_offset(offset); set_bounding_boxes_as_dirty(); }
     void set_instance_offset(Axis axis, double offset) { m_instance_transformation.set_offset(axis, offset); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_instance_rotation() const { return m_instance_transformation.get_rotation(); }
+    Vec3d get_instance_rotation() const { return m_instance_transformation.get_rotation(); }
     double get_instance_rotation(Axis axis) const { return m_instance_transformation.get_rotation(axis); }
 
     void set_instance_rotation(const Vec3d& rotation) { m_instance_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
@@ -262,7 +263,7 @@ public:
     void set_instance_scaling_factor(const Vec3d& scaling_factor) { m_instance_transformation.set_scaling_factor(scaling_factor); set_bounding_boxes_as_dirty(); }
     void set_instance_scaling_factor(Axis axis, double scaling_factor) { m_instance_transformation.set_scaling_factor(axis, scaling_factor); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_instance_mirror() const { return m_instance_transformation.get_mirror(); }
+    Vec3d get_instance_mirror() const { return m_instance_transformation.get_mirror(); }
     double get_instance_mirror(Axis axis) const { return m_instance_transformation.get_mirror(axis); }
 
     void set_instance_mirror(const Vec3d& mirror) { m_instance_transformation.set_mirror(mirror); set_bounding_boxes_as_dirty(); }
@@ -270,26 +271,27 @@ public:
 
     const Geometry::Transformation& get_volume_transformation() const { return m_volume_transformation; }
     void set_volume_transformation(const Geometry::Transformation& transformation) { m_volume_transformation = transformation; set_bounding_boxes_as_dirty(); }
+    void set_volume_transformation(const Transform3d& transform) { m_volume_transformation.set_matrix(transform); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_volume_offset() const { return m_volume_transformation.get_offset(); }
+    Vec3d get_volume_offset() const { return m_volume_transformation.get_offset(); }
     double get_volume_offset(Axis axis) const { return m_volume_transformation.get_offset(axis); }
 
     void set_volume_offset(const Vec3d& offset) { m_volume_transformation.set_offset(offset); set_bounding_boxes_as_dirty(); }
     void set_volume_offset(Axis axis, double offset) { m_volume_transformation.set_offset(axis, offset); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_volume_rotation() const { return m_volume_transformation.get_rotation(); }
+    Vec3d get_volume_rotation() const { return m_volume_transformation.get_rotation(); }
     double get_volume_rotation(Axis axis) const { return m_volume_transformation.get_rotation(axis); }
 
     void set_volume_rotation(const Vec3d& rotation) { m_volume_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
     void set_volume_rotation(Axis axis, double rotation) { m_volume_transformation.set_rotation(axis, rotation); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
+    Vec3d get_volume_scaling_factor() const { return m_volume_transformation.get_scaling_factor(); }
     double get_volume_scaling_factor(Axis axis) const { return m_volume_transformation.get_scaling_factor(axis); }
 
     void set_volume_scaling_factor(const Vec3d& scaling_factor) { m_volume_transformation.set_scaling_factor(scaling_factor); set_bounding_boxes_as_dirty(); }
     void set_volume_scaling_factor(Axis axis, double scaling_factor) { m_volume_transformation.set_scaling_factor(axis, scaling_factor); set_bounding_boxes_as_dirty(); }
 
-    const Vec3d& get_volume_mirror() const { return m_volume_transformation.get_mirror(); }
+    Vec3d get_volume_mirror() const { return m_volume_transformation.get_mirror(); }
     double get_volume_mirror(Axis axis) const { return m_volume_transformation.get_mirror(axis); }
 
     void set_volume_mirror(const Vec3d& mirror) { m_volume_transformation.set_mirror(mirror); set_bounding_boxes_as_dirty(); }
