@@ -887,7 +887,10 @@ void PrintagoPanel::SendJsonMessage(const wxString& msg_type, const wxString& pr
     message["data"] = data;
 
     wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
-    webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+    CallAfter([this, webView, messageStr] {
+        webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+    });
+    // webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
 }
 
 void PrintagoPanel::SendStatusMessage(const wxString& printer_id, const json& statusData, 
