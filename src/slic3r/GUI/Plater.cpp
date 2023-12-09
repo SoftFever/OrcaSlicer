@@ -2565,6 +2565,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS :partplatelist construction
     , partplate_list(this->q, &model)
 {
+    m_is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+
     m_aui_mgr.SetManagedWindow(q);
     m_aui_mgr.SetDockSizeConstraint(1, 1);
     //m_aui_mgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_PANE_BORDER_SIZE, 0);
@@ -3183,6 +3185,15 @@ void Plater::priv::collapse_sidebar(bool collapse)
         return;
 
     sidebar_layout.is_collapsed = collapse;
+
+    // Now update the tooltip in the toolbar.
+    std::string new_tooltip = collapse
+                              ? _u8L("Expand sidebar")
+                              : _u8L("Collapse sidebar");
+    new_tooltip += " [Shift+Tab]";
+    int id = collapse_toolbar.get_item_id("collapse_sidebar");
+    collapse_toolbar.set_tooltip(id, new_tooltip);
+
     update_sidebar();
 }
 
@@ -5834,7 +5845,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
     //BBS: add the collapse logic
     if (panel == preview && q->only_gcode_mode()) {
-        this->sidebar->collapse(true);
+        this->enable_sidebar(false);
         preview->get_canvas3d()->enable_select_plate_toolbar(false);
     }
     else if (panel == preview && q->using_exported_file() && (q->m_valid_plates_count <= 1)) {
