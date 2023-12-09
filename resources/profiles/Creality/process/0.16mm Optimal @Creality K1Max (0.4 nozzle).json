@@ -102,6 +102,7 @@
     "top_surface_speed": "200",
     "top_shell_layers": "3",
     "top_shell_thickness": "0.6",
+    "travel_acceleration": "12000",
     "travel_speed": "500",
     "enable_prime_tower": "0",
     "wipe_tower_no_sparse_layers": "0",
