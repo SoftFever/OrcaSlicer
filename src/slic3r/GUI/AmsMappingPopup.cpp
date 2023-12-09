@@ -596,13 +596,13 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 }
 
 
-void MappingItem::send_event(int fliament_id) 
+void MappingItem::send_event(int filament_id) 
 {
     auto number = wxGetApp().transition_tridid(m_tray_data.id);
     wxCommandEvent event(EVT_SET_FINISH_MAPPING);
     event.SetInt(m_tray_data.id);
 
-    wxString param = wxString::Format("%d|%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_coloul.Alpha(), number, fliament_id);
+    wxString param = wxString::Format("%d|%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_coloul.Alpha(), number, filament_id);
     event.SetString(param);
     event.SetEventObject(this->GetParent()->GetParent());
     wxPostEvent(this->GetParent()->GetParent()->GetParent(), event);

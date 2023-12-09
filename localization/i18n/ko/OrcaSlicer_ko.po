@@ -4433,7 +4433,7 @@ msgstr "손실 단계부터 자동 복구"
 msgid "Allow Prompt Sound"
 msgstr "프롬프트 소리 허용"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "필라멘트 엉킴 감지"
 
 msgid "Global"

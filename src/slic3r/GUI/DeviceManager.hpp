@@ -846,8 +846,8 @@ public:
     //set prompt sound
     int command_set_prompt_sound(bool prompt_sound);
 
-    //set fliament tangle detect
-    int command_set_filament_tangle_detect(bool fliament_tangle_detect);
+    //set filament tangle detect
+    int command_set_filament_tangle_detect(bool filament_tangle_detect);
 
 
     // set print option

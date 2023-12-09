@@ -4498,7 +4498,7 @@ msgstr "Adım kaybından otomatik kurtarma"
 msgid "Allow Prompt Sound"
 msgstr "Uyarı Sesine İzin Ver"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
 
 msgid "Global"

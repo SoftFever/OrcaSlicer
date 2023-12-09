@@ -4518,7 +4518,7 @@ msgstr "Restauration automatique en cas de perte de pas"
 msgid "Allow Prompt Sound"
 msgstr "Autoriser le son de l'invite"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

@@ -4549,7 +4549,7 @@ msgstr "Autorecuperar desde pérdida de paso"
 msgid "Allow Prompt Sound"
 msgstr "Permitir Sonido de Aviso"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

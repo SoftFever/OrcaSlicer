@@ -4560,7 +4560,7 @@ msgstr "Автовосстановление после потери шагов"
 msgid "Allow Prompt Sound"
 msgstr "Разрешить звуковые уведомления"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

@@ -4553,7 +4553,7 @@ msgstr "自動從丟步中恢復"
 msgid "Allow Prompt Sound"
 msgstr "允許提示音效"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

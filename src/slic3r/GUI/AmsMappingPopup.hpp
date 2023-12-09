@@ -102,7 +102,7 @@ public:
     ~MappingItem();
 
 	void update_data(TrayData data);
-    void send_event(int fliament_id);
+    void send_event(int filament_id);
     void set_tray_index(wxString t_index) {m_tray_index = t_index;};
 
     wxString m_tray_index;

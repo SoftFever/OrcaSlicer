@@ -4323,7 +4323,7 @@ msgstr "自动从丢步中恢复"
 msgid "Allow Prompt Sound"
 msgstr "允许提示音"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr ""
 
 msgid "Global"

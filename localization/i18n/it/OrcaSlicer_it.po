@@ -4505,7 +4505,7 @@ msgstr "Recupero automatico perdita passi"
 msgid "Allow Prompt Sound"
 msgstr "Consenti suono di richiesta"
 
-msgid "Fliament Tangle Detect"
+msgid "Filament Tangle Detect"
 msgstr "Rilevamento del groviglio del filamento"
 
 msgid "Global"
