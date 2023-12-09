@@ -420,19 +420,24 @@ json PrintagoPanel::MachineObjectToJson(MachineObject* machine) {
     return j;
 }
 
-json PrintagoPanel::GetMachineStatus(const wxString &printerId) {
+json PrintagoPanel::GetMachineStatus(MachineObject* machine) {
     json statusObject = json::object();
     json machineList = json::array();
 
-    if (!devManager) return json::object();
+    if (!machine) return json::object();
 
     statusObject["can_process_job"] = can_process_job();
     statusObject["current_job_id"] = "";//add later from command.
     statusObject["current_job_machine"] = jobPrinterId.ToStdString();
 
-    machineList.push_back(MachineObjectToJson(devManager->get_my_machine(printerId.ToStdString())));
+    machineList.push_back(MachineObjectToJson(machine));
     statusObject["machines"] = machineList;
     return statusObject;
+}
+
+json PrintagoPanel::GetMachineStatus(const wxString &printerId) {
+    if(!devManager) return json::object();
+    return GetMachineStatus(devManager->get_my_machine(printerId.ToStdString()));
 }
 
 json PrintagoPanel::GetAllStatus() {
@@ -616,19 +621,20 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
                 return;
             }   
         } else if (!action.compare("get_status")) {
-            SendStatusMessage(printerId, MachineObjectToJson(printer), m_browser, originalCommandStr);
+            SendStatusMessage(printerId, GetMachineStatus(printer), m_browser, originalCommandStr);
             return;
         } else if (!action.compare("start_print_bbl")) {
             wxString printagoFileUrl = parameters["url"];
             wxString decodedUrl = { "" };
             jobPrinterId = printerId;
-            set_can_process_job(false);
+            
             if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(wxGetApp().plater());
             
             if(!can_process_job()) {
                 SendErrorMessage(printerId, {{"error", "busy with current job - check status"}}, m_browser, originalCommandStr);
                 return;
             }
+            set_can_process_job(false);
 
             if (printagoFileUrl.empty()) {
                 SendErrorAndUnblock(printerId, {{"error", "no url specified"}}, m_browser, originalCommandStr);
@@ -660,7 +666,8 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
             //TODO: IF localFilePath is .3MF file; use plater.load_project() instead of load_files().
             std::vector<std::string> filePathArray;
             filePathArray.push_back(localFilePath.ToStdString());
-            std::vector<size_t> loadedFilesIndices = wxGetApp().plater()->load_files(filePathArray, LoadStrategy::Restore, false);   
+            LoadStrategy strat = LoadStrategy::LoadModel | LoadStrategy::LoadConfig | LoadStrategy::LoadAuxiliary | LoadStrategy::Silence;
+            std::vector<size_t> loadedFilesIndices = wxGetApp().plater()->load_files(filePathArray, strat, false);   
             wxGetApp().plater()->select_plate(0, true);
             wxGetApp().plater()->reslice();
 
