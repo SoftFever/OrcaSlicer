@@ -115,12 +115,15 @@ public:
     void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
+    void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
     void update_presets(Slic3r::Preset::Type preset_type);
     //BBS
     void update_presets_from_to(Slic3r::Preset::Type preset_type, std::string from, std::string to);
-
+    bool set_bed_type(const std::string& bed_type_name);
+    void save_bed_type_to_config(const std::string &bed_type_name);
+    bool use_default_bed_type(bool is_bbl_preset = true);
     void change_top_border_for_mode_sizer(bool increase_border);
     void msw_rescale();
     void sys_color_changed();
@@ -172,7 +175,10 @@ public:
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
-
+    void                            set_is_gcode_file(bool flag) { m_is_gcode_file = flag; }
+    void                            update_soft_first_start_state() { m_soft_first_start = false; }
+    void                            cancel_update_3d_state() { m_update_3d_state = false; }
+    bool                            get_update_3d_state() { return m_update_3d_state; }
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -181,6 +187,9 @@ private:
     ComboBox* m_bed_type_list = nullptr;
     ScalableButton* connection_btn = nullptr;
     ScalableButton* ams_btn = nullptr;
+    bool            m_soft_first_start {true };
+    bool            m_is_gcode_file{ false };
+    bool            m_update_3d_state{false};
 };
 
 class Plater: public wxPanel
@@ -406,7 +415,7 @@ public:
 
     void on_filaments_change(size_t extruders_count);
     // BBS
-    void on_bed_type_change(BedType bed_type);
+    void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);
     bool update_filament_colors_in_full_config();
     void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);

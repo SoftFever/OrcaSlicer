@@ -2900,6 +2900,10 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= m_assemble_view_toolbar.update_items_state();
     // BBS
     //m_dirty |= wxGetApp().plater()->get_view_toolbar().update_items_state();
+    m_dirty |= wxGetApp().plater()->sidebar().get_update_3d_state();
+    if (wxGetApp().plater()->sidebar().get_update_3d_state()) {
+        wxGetApp().plater()->sidebar().cancel_update_3d_state();
+    }
     m_dirty |= wxGetApp().plater()->get_collapse_toolbar().update_items_state();
     _update_imgui_select_plate_toolbar();
     bool mouse3d_controller_applied = wxGetApp().plater()->get_mouse3d_controller().apply(wxGetApp().plater()->get_camera());

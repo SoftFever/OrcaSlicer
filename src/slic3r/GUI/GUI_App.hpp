@@ -314,7 +314,7 @@ public:
     //explicit GUI_App(EAppMode mode = EAppMode::Editor);
     ~GUI_App() override;
 
-    
+    bool get_app_conf_exists() { return m_app_conf_exists; }
     void show_message_box(std::string msg) { wxMessageBox(msg); }
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }

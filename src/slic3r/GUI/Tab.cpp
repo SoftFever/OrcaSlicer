@@ -5135,7 +5135,19 @@ void Tab::delete_preset()
         //wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
         wxID_YES == MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()))
         return;
-
+    auto delete_cur_bed_type_to_config = [this]() {
+        PresetBundle &preset_bundle   = *wxGetApp().preset_bundle;
+        auto          cur_preset_name = preset_bundle.printers.get_edited_preset().name;
+        if (cur_preset_name.size() > 0 && wxGetApp().app_config->has_section("user_bed_type_list")) {
+            auto data        = wxGetApp().app_config->get_section("user_bed_type_list");
+            auto data_modify = const_cast<std::map<std::string, std::string> *>(&data);
+            if ((*data_modify).find(cur_preset_name) != data_modify->end()) {
+                data_modify->erase(cur_preset_name);
+                wxGetApp().app_config->set_section("user_bed_type_list", *data_modify);
+            }
+        }
+    };
+    delete_cur_bed_type_to_config();
     // if we just delete preset from the physical printer
     if (m_presets_choice->is_selected_physical_printer()) {
         PhysicalPrinter& printer = physical_printers.get_selected_printer();

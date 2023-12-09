@@ -573,6 +573,7 @@ Sidebar::Sidebar(Plater *parent)
             // p->editing_filament = -1;
             // wxGetApp().params_dialog()->Popup();
             // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
+            m_soft_first_start = false;
             wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_PRINTERS);
             });
 
@@ -618,6 +619,7 @@ Sidebar::Sidebar(Plater *parent)
         edit_btn->SetToolTip(_L("Click to edit preset"));
         edit_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
             {
+                m_soft_first_start  = false;
                 p->editing_filament = -1;
                 if (combo_printer->switch_to_tab())
                     p->editing_filament = 0;
@@ -1097,13 +1099,29 @@ void Sidebar::remove_unused_filament_combos(const size_t current_extruder_count)
     }
 }
 
+void Sidebar::set_bed_by_curr_bed_type(AppConfig *config) {
+    if (config && !config->get("curr_bed_type").empty()) {
+        int         bed_type_idx   = 0;
+        std::string str_bed_type   = config->get("curr_bed_type");
+        int         bed_type_value = (int) btPC;
+        try {
+            bed_type_value = atoi(str_bed_type.c_str());
+        } catch (...) {
+        }
+        bed_type_idx = bed_type_value - 1;
+        m_bed_type_list->SelectAndNotify(bed_type_idx);
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":error:curr_bed_type is empty";
+    }
+}
+
 void Sidebar::update_all_preset_comboboxes()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
     bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
-
+    auto cur_preset_name = preset_bundle.printers.get_edited_preset().name;
     auto p_mainframe = wxGetApp().mainframe;
 
     p_mainframe->show_device(is_bbl_preset);
@@ -1115,18 +1133,38 @@ void Sidebar::update_all_preset_comboboxes()
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
         AppConfig* config = wxGetApp().app_config;
-        if (config && !config->get("curr_bed_type").empty()) {
-            int bed_type_idx = 0;
-            std::string str_bed_type = config->get("curr_bed_type");
-            int bed_type_value = (int)btPC;
-            try {
-                bed_type_value = atoi(str_bed_type.c_str());
-            } catch(...) {}
-            bed_type_idx = bed_type_value - 1;
-            m_bed_type_list->SelectAndNotify(bed_type_idx);
+        if (config) {
+            m_update_3d_state = true;
+            if (m_soft_first_start && !wxGetApp().get_app_conf_exists()) {
+                use_default_bed_type();
+            } else {
+                auto user_bed_type_flag = config->get("user_bed_type") == "true";
+                if (!user_bed_type_flag) { //bed_type not follow machine
+                    set_bed_by_curr_bed_type(config);
+                } else {//bed_type follow machine
+                    if (m_soft_first_start  || m_is_gcode_file) {
+                        if (m_is_gcode_file) {
+                            m_is_gcode_file = false;
+                        }
+                        // should include soft close then open ,.gcode.3mf case
+                        set_bed_by_curr_bed_type(config);
+                    }
+                    else if (user_bed_type_flag) {
+                        if (config->has_section("user_bed_type_list")) {
+                            auto user_bed_type_list = config->get_section("user_bed_type_list");
+                            if (user_bed_type_list.size() > 0 && user_bed_type_list[cur_preset_name].size() > 0) {
+                                set_bed_type(user_bed_type_list[cur_preset_name]);
+                            } else {
+                                use_default_bed_type();
+                            }
+                        } else {
+                            use_default_bed_type();
+                        }
+                    }
+                }
+            }
         } else {
-            BedType bed_type = preset_bundle.printers.get_edited_preset().get_default_bed_type(&preset_bundle);
-            m_bed_type_list->SelectAndNotify((int)bed_type - 1);
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":error:AppConfig is nullptr";
         }
         m_bed_type_list->Enable();
     } else {
@@ -1288,6 +1326,50 @@ void Sidebar::update_presets_from_to(Slic3r::Preset::Type preset_type, std::stri
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": exit!");
+}
+
+bool Sidebar::set_bed_type(const std::string &bed_type_name)
+{
+    auto bed_type_keys = print_config_def.get("curr_bed_type")->enum_values;
+    for (size_t i = 0; i < bed_type_keys.size(); i++) {
+        if (bed_type_name == bed_type_keys[i]) {
+            m_bed_type_list->SelectAndNotify(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+void Sidebar::save_bed_type_to_config(const std::string &bed_type_name)
+{
+    PresetBundle &preset_bundle   = *wxGetApp().preset_bundle;
+    auto          cur_preset_name = preset_bundle.printers.get_edited_preset().name;
+    if (cur_preset_name.size() > 0) {
+        if (!wxGetApp().app_config->has_section("user_bed_type_list")) {
+            std::map<std::string, std::string> data;
+            data[cur_preset_name] = bed_type_name;
+            wxGetApp().app_config->set_section("user_bed_type_list", data);
+        } else {
+            auto data                       = wxGetApp().app_config->get_section("user_bed_type_list");
+            auto data_modify                = const_cast<std::map<std::string, std::string> *>(&data);
+            (*data_modify)[cur_preset_name] = bed_type_name;
+            wxGetApp().app_config->set_section("user_bed_type_list", *data_modify);
+        }
+    }
+}
+
+bool Sidebar::use_default_bed_type(bool is_bbl_preset)
+{
+    auto  bundle                          = wxGetApp().preset_bundle;
+    const Preset *curr                    = &bundle->printers.get_selected_preset();
+    const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(*curr);
+    if (is_bbl_preset && pm && pm->default_bed_type.size() > 0) {
+       return set_bed_type(pm->default_bed_type);
+    }
+    int         selection     = m_bed_type_list->GetSelection();
+    std::string bed_type_name = print_config_def.get("curr_bed_type")->enum_values[selection];
+    save_bed_type_to_config(bed_type_name);
+    return false;
 }
 
 void Sidebar::change_top_border_for_mode_sizer(bool increase_border)
@@ -3599,7 +3681,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     if (app_config)
                                         app_config->set("curr_bed_type", std::to_string(int(bed_type)));
                                 }
-                                q->on_bed_type_change(bed_type);
+                                q->on_bed_type_change(bed_type, (boost::algorithm::ends_with(filename.string(), ".gcode.3mf") ||
+                                                                 boost::algorithm::ends_with(filename.string(), ".gcode")) ?
+                                                                    true :
+                                                                    false);
                             }
 
                             // BBS: moved this logic to presetcollection
@@ -5874,6 +5959,10 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 // BBS
 void Plater::priv::on_combobox_select(wxCommandEvent &evt)
 {
+    ComboBox *combo = static_cast<ComboBox *>(evt.GetEventObject());
+    if (combo && combo->is_drop_down()) {
+        sidebar->update_soft_first_start_state();
+    }
     PlaterPresetComboBox* preset_combo_box = dynamic_cast<PlaterPresetComboBox*>(evt.GetEventObject());
     if (preset_combo_box) {
         this->on_select_preset(evt);
@@ -5892,7 +5981,10 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;
     const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
-
+    auto  user_bed_type_flag = wxGetApp().app_config->get("user_bed_type") == "true";
+    if (combo && combo->is_drop_down() && user_bed_type_flag) { // save user behavior
+        sidebar->save_bed_type_to_config(bed_type_name);
+    }
     if (keys_map) {
         BedType new_bed_type = btCount;
         for (auto item : *keys_map) {
@@ -11616,8 +11708,8 @@ void Plater::on_filaments_change(size_t num_filaments)
     }
 }
 
-void Plater::on_bed_type_change(BedType bed_type)
-{
+void Plater::on_bed_type_change(BedType bed_type, bool is_gcode_file) { 
+    sidebar().set_is_gcode_file(is_gcode_file);
     sidebar().on_bed_type_change(bed_type);
 }
 

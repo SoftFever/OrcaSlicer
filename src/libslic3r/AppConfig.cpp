@@ -172,7 +172,8 @@ void AppConfig::set_defaults()
 
     if (get("zoom_to_mouse").empty())
         set_bool("zoom_to_mouse", false);
-
+    if (get("user_bed_type").empty()) 
+        set_bool("user_bed_type", true);
 //#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", true);

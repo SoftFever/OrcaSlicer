@@ -61,7 +61,7 @@ public:
 
     wxBitmap GetItemBitmap(unsigned int n);
     void     SetItemBitmap(unsigned int n, wxBitmap const &bitmap);
-
+    bool     is_drop_down(){return drop_down;}
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,
                                unsigned int                 pos,

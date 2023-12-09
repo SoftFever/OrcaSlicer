@@ -3170,6 +3170,9 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_MODEL)) {
                     //get bed model
                     model.bed_model = it.value();
+                } else if (boost::iequals(it.key(), BBL_JSON_KEY_DEFAULT_BED_TYPE)) {
+                    // get bed type
+                    model.default_bed_type = it.value();
                 }
                 else if (boost::iequals(it.key(), BBL_JSON_KEY_BED_TEXTURE)) {
                     //get bed texture
