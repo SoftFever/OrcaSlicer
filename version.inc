@@ -18,4 +18,4 @@ set(ORCA_VERSION_MINOR ${CMAKE_MATCH_2})
 set(ORCA_VERSION_PATCH ${CMAKE_MATCH_3})
 
 # The build_version should start from 50 in master branch
-set(SLIC3R_VERSION "01.08.01.53")
+set(SLIC3R_VERSION "01.08.01.57")

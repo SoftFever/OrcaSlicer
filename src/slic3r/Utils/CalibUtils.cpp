@@ -924,7 +924,7 @@ void CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
     if (params.mode == CalibMode::Calib_PA_Line) {
         double space_y       = 3.5;
         int    max_line_nums = int(plate_size[1] - 10) / space_y;
-        int    count         = std::llround(std::ceil((params.end - params.start) / params.step));
+        int    count         = std::llround(std::ceil((params.end - params.start) / params.step)) + 1;
         if (count > max_line_nums) {
             error_message = _L("Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small");
             return;

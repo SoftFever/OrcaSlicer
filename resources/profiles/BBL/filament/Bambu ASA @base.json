@@ -25,5 +25,8 @@
     ],
     "filament_max_volumetric_speed": [
         "18"
+    ],
+    "filament_vendor": [
+        "Bambu Lab"
     ]
 }
