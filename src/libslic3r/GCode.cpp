@@ -2284,9 +2284,9 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
             const double nozzle_diameter = m_config.nozzle_diameter.get_at(initial_non_support_extruder_id);
-            float outer_wall_line_width = this->config().get_abs_value("outer_wall_line_width", nozzle_diameter);
+            float outer_wall_line_width = print.default_region_config().get_abs_value("outer_wall_line_width", nozzle_diameter);
             if (outer_wall_line_width == 0.0) {
-                float default_line_width =  this->config().get_abs_value("line_width", nozzle_diameter);
+                float default_line_width =  print.default_object_config().get_abs_value("line_width", nozzle_diameter);
                 outer_wall_line_width = default_line_width == 0.0 ? nozzle_diameter : default_line_width;
             }
             Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
@@ -2392,12 +2392,12 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
     // SoftFever: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
-        if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
-            gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
+        if ((print.default_object_config().outer_wall_acceleration.value > 0 && print.default_object_config().outer_wall_acceleration.value > 0)) {
+            gcode += m_writer.set_print_acceleration((unsigned int)floor(print.default_object_config().outer_wall_acceleration.value + 0.5));
         }
 
-        if (m_config.default_jerk.value > 0) {
-            double jerk = m_config.outer_wall_jerk.value;
+        if (print.default_object_config().outer_wall_jerk.value > 0) {
+            double jerk = print.default_object_config().outer_wall_jerk.value;
             gcode += m_writer.set_jerk_xy(jerk);
         }
 
