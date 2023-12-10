@@ -28,6 +28,9 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r { namespace GUI {
 
+wxDEFINE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
+wxDEFINE_EVENT(PRINTAGO_COMMAND_EVENT, PrintagoCommandEvent);
+
 #define PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f // Minimum temperature to allow extrusion control (per StatusPanel.cpp)
 
 PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
@@ -55,6 +58,8 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     Bind(wxEVT_WEBVIEW_LOADED, &PrintagoPanel::OnDocumentLoaded, this);
     Bind(wxEVT_WEBVIEW_ERROR, &PrintagoPanel::OnError, this);
     Bind(wxEVT_WEBVIEW_NEWWINDOW, &PrintagoPanel::OnNewWindow, this);
+    Bind(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, &PrintagoPanel::OnPrintagoSendWebViewMessage, this);
+    Bind(PRINTAGO_COMMAND_EVENT, &PrintagoPanel::HandlePrintagoCommand, this);
 }
 
 PrintagoPanel::~PrintagoPanel()
@@ -256,7 +261,7 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
         download_thread.join();
 
     if (!download_ok) {
-        SendErrorMessage(jobPrinterId, {{"error", msg.ToStdString()}}, m_browser);
+        SendErrorMessage(jobPrinterId, {{"error", msg.ToStdString()}});
     }
     return download_ok;
 }
@@ -307,12 +312,14 @@ wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
     }
 }
 
-void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
-                                          const wxString          &action,
-                                          wxStringToStringHashMap &parameters,
-                                          const wxString          &originalCommandStr)
+void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommandEvent &event)
 {
-    wxString actionDetail;
+    wxString                commandType        = event.GetCommandType();
+    wxString                action             = event.GetAction();
+    wxStringToStringHashMap parameters         = event.GetParameters();
+    wxString                originalCommandStr = event.GetOriginalCommandStr();
+    wxString                actionDetail;
+
     wxLogMessage("HandlePrintagoCommand: {command: " + commandType + ", action: " + action + "}");
     MachineObject *printer     = {nullptr};
     auto           machineList = devManager->get_my_machine_list();
@@ -321,10 +328,10 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
         if (!action.compare("get_machine_list")) {
             std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() :
                                                                             "[printago_slicer_id?]";
-            SendResponseMessage(username, GetAllStatus(), m_browser, originalCommandStr);
+            SendResponseMessage(username, GetAllStatus(), originalCommandStr);
             return;
         } else {
-            SendErrorMessage("", {{"error", "invalid status action"}}, m_browser, originalCommandStr);
+            SendErrorMessage("", {{"error", "invalid status action"}}, originalCommandStr);
             wxLogMessage("PrintagoCommandError: Invalid status action: " + action);
             return;
         }
@@ -332,7 +339,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
 
     wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified";
     if (!printerId.compare("Unspecified")) {
-        SendErrorMessage("", {{"error", "no printer_id specified"}}, m_browser, originalCommandStr);
+        SendErrorMessage("", {{"error", "no printer_id specified"}}, originalCommandStr);
         wxLogMessage("PrintagoCommandError: No printer_id specified");
         return;
     }
@@ -344,17 +351,18 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
         // Printer found
         printer = it->second;
     } else {
-        SendErrorMessage(printerId, {{"error", "no printer not found with ID: " + printerId.ToStdString()}}, m_browser, originalCommandStr);
+        SendErrorMessage(printerId, {{"error", "no printer not found with ID: " + printerId.ToStdString()}}, originalCommandStr);
         wxLogMessage("PrintagoCommandError: No printer found with ID: " + printerId);
         return;
     }
 
     if (!commandType.compare("printer_control")) {
+        wxString localFilePath;
         if (!action.compare("pause_print")) {
             try {
                 printer->command_task_pause();
             } catch (...) {
-                SendErrorMessage(printerId, {{"error", "an error occurred issuing pause_print"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "an error occurred issuing pause_print"}}, originalCommandStr);
                 return;
             }
         } else if (!action.compare("resume_print")) {
@@ -362,22 +370,22 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                 if (printer->can_resume()) {
                     printer->command_task_resume();
                 } else {
-                    SendErrorMessage(printerId, {{"error", "cannot resume print"}}, m_browser, originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "cannot resume print"}}, originalCommandStr);
                     return;
                 }
             } catch (...) {
-                SendErrorMessage(printerId, {{"error", "an error occurred issuing resume_print"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "an error occurred issuing resume_print"}}, originalCommandStr);
                 return;
             }
         } else if (!action.compare("stop_print")) {
             try {
                 printer->command_task_abort();
             } catch (...) {
-                SendErrorMessage(printerId, {{"error", "an error occurred issuing stop_print"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "an error occurred issuing stop_print"}}, originalCommandStr);
                 return;
             }
         } else if (!action.compare("get_status")) {
-            SendStatusMessage(printerId, GetMachineStatus(printer), m_browser, originalCommandStr);
+            SendStatusMessage(printerId, GetMachineStatus(printer), originalCommandStr);
             return;
         } else if (!action.compare("start_print_bbl")) {
             wxString printagoFileUrl = parameters["url"];
@@ -388,26 +396,23 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                 m_select_machine_dlg = new SelectMachineDialog(wxGetApp().plater());
 
             if (!can_process_job()) {
-                SendErrorMessage(printerId, {{"error", "busy with current job - check status"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "busy with current job - check status"}}, originalCommandStr);
                 return;
             }
             set_can_process_job(false);
 
             if (printagoFileUrl.empty()) {
-                SendErrorAndUnblock(printerId, {{"error", "no url specified"}}, m_browser, originalCommandStr);
+                SendErrorAndUnblock(printerId, {{"error", "no url specified"}}, originalCommandStr);
                 return;
             } else {
                 decodedUrl = Http::url_decode(printagoFileUrl.ToStdString());
                 // TODO: validate that the URL is valid w/ regex.
             }
 
-            wxString localFilePath;
             if (SavePrintagoFile(decodedUrl, localFilePath)) {
                 wxLogMessage("Downloaded file to: " + localFilePath);
-                actionDetail = "(1/4) Downloaded Successfully: " + localFilePath;
-                // SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), m_browser, originalCommandStr);
             } else {
-                SendErrorAndUnblock(printerId, {{"error", "download failed"}}, m_browser, originalCommandStr);
+                SendErrorAndUnblock(printerId, {{"error", "download failed"}}, originalCommandStr);
                 return;
             }
 
@@ -416,30 +421,39 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
             filePathArray.push_back(localFilePath.ToStdString());
             LoadStrategy strat = LoadStrategy::LoadModel | LoadStrategy::LoadConfig | LoadStrategy::LoadAuxiliary | LoadStrategy::Silence;
             std::vector<size_t> loadedFilesIndices = wxGetApp().plater()->load_files(filePathArray, strat, false);
-            // actionDetail = "(2/4) Model Loaded: " + localFilePath; //or project after 3ML load_project.
-            // SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), m_browser, originalCommandStr);
             wxGetApp().plater()->select_plate(0, true);
-            actionDetail = "(3/4) Slicing Started: " + localFilePath;
             wxGetApp().plater()->reslice();
+            actionDetail = "";
 
         } else {
-            SendErrorMessage(printerId, {{"error", "invalid printer_control action"}}, m_browser, originalCommandStr);
+            SendErrorMessage(printerId, {{"error", "invalid printer_control action"}}, originalCommandStr);
             return;
         }
 
-        wxString actionString;
-        if (actionDetail.IsEmpty()) {
-            actionString = action;
+        // Seems like a hack, but we can't send messages inside that if/else block.
+        // So keep the message back the same for the other commands in printer_control.
+        if (!action.compare("start_print_bbl")) {
+            actionDetail = "Downloaded Successfully: " + localFilePath;
+            SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), originalCommandStr);
+            actionDetail = "Model Loaded: " + localFilePath; // or project after 3ML load_project.
+            SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), originalCommandStr);
+            actionDetail = "Slicing Started: " + localFilePath;
+            SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), originalCommandStr);
         } else {
-            actionString = wxString::Format("%s: %s", action, actionDetail);
+            wxString actionString;
+            if (actionDetail.IsEmpty()) {
+                actionString = action;
+            } else {
+                actionString = wxString::Format("%s: %s", action, actionDetail);
+            }
+            SendSuccessMessage(printerId, actionString, originalCommandStr);
         }
-        SendSuccessMessage(printerId, actionString, m_browser, originalCommandStr);
 
     } else if (!commandType.compare("temperature_control")) {
         wxString tempStr = parameters["temperature"];
         long     targetTemp;
         if (!tempStr.ToLong(&targetTemp)) {
-            SendErrorMessage(printerId, {{"error", "invalid temperature value"}}, m_browser, originalCommandStr);
+            SendErrorMessage(printerId, {{"error", "invalid temperature value"}}, originalCommandStr);
             return;
         }
 
@@ -448,7 +462,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                 printer->command_set_nozzle(targetTemp);
                 actionDetail = wxString::Format("%d", targetTemp);
             } catch (...) {
-                SendErrorMessage(printerId, {{"error", "an error occurred setting nozzle temperature"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "an error occurred setting nozzle temperature"}}, originalCommandStr);
                 return;
             }
         } else if (!action.compare("set_bed")) {
@@ -460,11 +474,11 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                 printer->command_set_bed(targetTemp);
                 actionDetail = wxString::Format("%d", targetTemp);
             } catch (...) {
-                SendErrorMessage(printerId, {{"error", "an error occurred setting bed temperature"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "an error occurred setting bed temperature"}}, originalCommandStr);
                 return;
             }
         } else {
-            SendErrorMessage(printerId, {{"error", "invalid temperature_control action"}}, m_browser, originalCommandStr);
+            SendErrorMessage(printerId, {{"error", "invalid temperature_control action"}}, originalCommandStr);
             wxLogMessage("PrintagoCommandError: Invalid temperature_control action: " + action);
             return;
         }
@@ -475,19 +489,19 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
         } else {
             actionString = wxString::Format("%s: %s", action, actionDetail);
         }
-        SendSuccessMessage(printerId, actionString, m_browser, originalCommandStr);
+        SendSuccessMessage(printerId, actionString, originalCommandStr);
 
     } else if (!commandType.compare("movement_control")) {
         if (!action.compare("jog")) {
             auto axes = ExtractPrefixedParams(parameters, "axes");
             if (axes.empty()) {
-                SendErrorMessage(printerId, {{"error", "no axes specified"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "no axes specified"}}, originalCommandStr);
                 wxLogMessage("PrintagoCommandError: No axes specified");
                 return;
             }
 
             if (!printer->is_axis_at_home("X") || !printer->is_axis_at_home("Y") || !printer->is_axis_at_home("Z")) {
-                SendErrorMessage(printerId, {{"error", "must home axes before moving"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "must home axes before moving"}}, originalCommandStr);
                 wxLogMessage("PrintagoCommandError: Axes not at home");
                 return;
             }
@@ -497,15 +511,14 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                 wxString axisName = axis.first;
                 axisName.MakeUpper();
                 if (axisName != "X" && axisName != "Y" && axisName != "Z") {
-                    SendErrorMessage(printerId, {{"error", "Invalid axis name: " + axisName.ToStdString()}}, m_browser, originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "Invalid axis name: " + axisName.ToStdString()}}, originalCommandStr);
                     wxLogMessage("PrintagoCommandError: Invalid axis name " + axisName);
                     return;
                 }
                 wxString axisValueStr = axis.second;
                 double   axisValue;
                 if (!axisValueStr.ToDouble(&axisValue)) {
-                    SendErrorMessage(printerId, {{"error", "Invalid value for axis " + axisName.ToStdString()}}, m_browser,
-                                     originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "Invalid value for axis " + axisName.ToStdString()}}, originalCommandStr);
                     wxLogMessage("PrintagoCommandError: Invalid value for axis " + axisName);
                     return;
                 }
@@ -520,8 +533,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                 try {
                     printer->command_axis_control(axisName.ToStdString(), 1.0, axisValue, 3000);
                 } catch (...) {
-                    SendErrorMessage(printerId, {{"error", "an error occurred moving axis " + axisName.ToStdString()}}, m_browser,
-                                     originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "an error occurred moving axis " + axisName.ToStdString()}}, originalCommandStr);
                     wxLogMessage("PrintagoCommandError: An error occurred moving axis " + axisName);
                     return;
                 }
@@ -531,7 +543,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
             try {
                 printer->command_go_home();
             } catch (...) {
-                SendErrorMessage(printerId, {{"error", "an error occurred homing axes"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "an error occurred homing axes"}}, originalCommandStr);
                 wxLogMessage("PrintagoCommandError: An error occurred homing axes");
                 return;
             }
@@ -541,7 +553,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
             long     extrudeAmt;
             if (!amtStr.ToLong(&extrudeAmt)) {
                 wxLogMessage("Invalid extrude amount value: " + amtStr);
-                SendErrorMessage(printerId, {{"error", "invalid extrude amount value"}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId, {{"error", "invalid extrude amount value"}}, originalCommandStr);
                 return;
             }
 
@@ -550,7 +562,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                     printer->command_axis_control("E", 1.0, extrudeAmt, 900);
                     actionDetail = wxString::Format("%d", extrudeAmt);
                 } catch (...) {
-                    SendErrorMessage(printerId, {{"error", "an error occurred extruding filament"}}, m_browser, originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "an error occurred extruding filament"}}, originalCommandStr);
                     wxLogMessage("PrintagoCommandError: An error occurred extruding filament");
                     return;
                 }
@@ -559,13 +571,13 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
                                  {{"error", wxString::Format("nozzle temperature too low to extrude (min: %.1f)",
                                                              PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL)
                                                 .ToStdString()}},
-                                 m_browser, originalCommandStr);
+                                 originalCommandStr);
                 wxLogMessage("PrintagoCommandError: Nozzle temperature too low to extrude");
                 return;
             }
 
         } else {
-            SendErrorMessage(printerId, {{"error", "invalid movement_control action"}}, m_browser, originalCommandStr);
+            SendErrorMessage(printerId, {{"error", "invalid movement_control action"}}, originalCommandStr);
             wxLogMessage("PrintagoCommandError: Invalid movement_control action");
             return;
         }
@@ -576,8 +588,9 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
         } else {
             actionString = wxString::Format("%s: %s", action, actionDetail);
         }
-        SendSuccessMessage(printerId, actionString, m_browser, originalCommandStr);
+        SendSuccessMessage(printerId, actionString, originalCommandStr);
     }
+    return;
 }
 
 void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event)
@@ -586,7 +599,7 @@ void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event)
         return;
 
     wxString actionString = wxString::Format("%s: %s", "start_print_bbl", "Slicing Complete");
-    SendSuccessMessage(jobPrinterId, actionString, m_browser);
+    SendSuccessMessage(jobPrinterId, actionString);
     PrintFromType print_type = PrintFromType::FROM_NORMAL;
     m_select_machine_dlg->set_print_type(print_type);
 
@@ -597,7 +610,7 @@ void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event)
     wxCommandEvent evt(GetId());
     m_select_machine_dlg->on_ok_btn(evt);
     actionString = wxString::Format("%s: %s", "start_print_bbl", "Job Sending to Printer");
-    SendSuccessMessage(jobPrinterId, actionString, m_browser);
+    SendSuccessMessage(jobPrinterId, actionString);
     m_select_machine_dlg = nullptr;
     set_can_process_job(true);
 }
@@ -636,57 +649,104 @@ std::map<wxString, wxString> PrintagoPanel::ExtractPrefixedParams(const wxString
     return extractedParams;
 }
 
-void PrintagoPanel::SendJsonMessage(
-    const wxString &msg_type, const wxString &printer_id, const json &data, wxWebView *webView, const wxString &command)
+// void PrintagoPanel::SendJsonMessage(const wxString &msg_type, const wxString &printer_id, const json &data, const wxString &command)
+// {
+//     wxDateTime now = wxDateTime::Now();
+//     now.MakeUTC();
+//     wxString timestamp = now.FormatISOCombined() + "Z";
+//
+//     json message;
+//     message["type"]        = msg_type.ToStdString();
+//     message["timestamp"]   = timestamp.ToStdString();
+//     message["printer_id"]  = printer_id.ToStdString();
+//     message["client_type"] = "bambu";
+//     message["command"]     = command.ToStdString();
+//     message["data"]        = data;
+//
+//     wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
+//     CallAfter([this, m_browser, messageStr] { m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr)); });
+//     // webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+// }
+
+void PrintagoPanel::SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command)
 {
-    wxDateTime now = wxDateTime::Now();
-    now.MakeUTC();
-    wxString timestamp = now.FormatISOCombined() + "Z";
+    // SendJsonMessage("status", printer_id, statusData, command);
+    PrintagoMessageEvent event;
+    event.SetMessageType("status");
+    event.SetPrinterId(printer_id);
+    event.SetCommand(command);
+    event.SetData(statusData);
 
-    json message;
-    message["type"]        = msg_type.ToStdString();
-    message["timestamp"]   = timestamp.ToStdString();
-    message["printer_id"]  = printer_id.ToStdString();
-    message["client_type"] = "bambu";
-    message["command"]     = command.ToStdString();
-    message["data"]        = data;
-
-    wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
-    CallAfter([this, webView, messageStr] { webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr)); });
-    // webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
+    wxPostEvent(this, event);
 }
 
-void PrintagoPanel::SendStatusMessage(const wxString &printer_id, const json &statusData, wxWebView *webView, const wxString &command)
+void PrintagoPanel::SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command)
 {
-    SendJsonMessage("status", printer_id, statusData, webView, command);
+    // SendJsonMessage("response", printer_id, responseData, command);
+    PrintagoMessageEvent event;
+    event.SetMessageType("status");
+    event.SetPrinterId(printer_id);
+    event.SetCommand(command);
+    event.SetData(responseData);
+
+    wxPostEvent(this, event);
 }
 
-void PrintagoPanel::SendResponseMessage(const wxString &printer_id, const json &responseData, wxWebView *webView, const wxString &command)
-{
-    SendJsonMessage("response", printer_id, responseData, webView, command);
-}
-
-void PrintagoPanel::SendSuccessMessage(const wxString &printer_id, const wxString localCommand, wxWebView *webView, const wxString &command)
+void PrintagoPanel::SendSuccessMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command)
 {
     json responseData;
     responseData["local_command"] = localCommand.ToStdString();
     responseData["success"]       = true;
-    SendJsonMessage("success", printer_id, responseData, webView, command);
+
+    // SendJsonMessage("success", printer_id, responseData, command);
+    PrintagoMessageEvent event;
+    event.SetMessageType("success");
+    event.SetPrinterId(printer_id);
+    event.SetCommand(command);
+    event.SetData(responseData);
+
+    wxPostEvent(this, event);
 }
 
-void PrintagoPanel::SendErrorMessage(const wxString &printer_id, const json &errorData, wxWebView *webView, const wxString &command)
+void PrintagoPanel::SendErrorMessage(const wxString &printer_id, const json &errorData, const wxString &command)
 {
-    SendJsonMessage("error", printer_id, errorData, webView, command);
+    // SendJsonMessage("error", printer_id, errorData, command);
+    PrintagoMessageEvent event;
+    event.SetMessageType("success");
+    event.SetPrinterId(printer_id);
+    event.SetCommand(command);
+    event.SetData(errorData);
+
+    wxPostEvent(this, event);
 }
 
 // wraps sending and error response, and unblocks the server for job processing.
-void PrintagoPanel::SendErrorAndUnblock(const wxString &printer_id, const json &errorData, wxWebView *webView, const wxString &command)
+void PrintagoPanel::SendErrorAndUnblock(const wxString &printer_id, const json &errorData, const wxString &command)
 {
-    SendErrorMessage(printer_id, errorData, webView, command);
     std::string str   = errorData.dump();
     wxString    wxStr = "PrintagoCommandError: " + wxString::FromUTF8(str.c_str());
     wxLogMessage(wxStr);
     set_can_process_job(true);
+    SendErrorMessage(printer_id, errorData, command);
+}
+
+void PrintagoPanel::OnPrintagoSendWebViewMessage(PrintagoMessageEvent &event)
+{
+    // SendJsonMessage(event.GetMessageType(), event.GetPrinterId(), event.GetData(), event.GetCommand());
+    wxDateTime now = wxDateTime::Now();
+    now.MakeUTC();
+    const wxString timestamp = now.FormatISOCombined() + "Z";
+
+    json message;
+    message["type"]        = event.GetMessageType().ToStdString();
+    message["timestamp"]   = timestamp.ToStdString();
+    message["printer_id"]  = event.GetPrinterId().ToStdString();
+    message["client_type"] = "bambu";
+    message["command"]     = event.GetCommand().ToStdString();
+    message["data"]        = event.GetData();
+
+    const wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
+    CallAfter([this, messageStr] { m_browser->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr)); });
 }
 
 /**
@@ -719,15 +779,20 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         wxString                query      = uri.GetQuery();          // Get the query part of the URI
         wxStringToStringHashMap parameters = ParseQueryString(query); // Use ParseQueryString to get parameters
 
-        HandlePrintagoCommand(commandType, action, parameters, url.ToStdString());
+        PrintagoCommandEvent event;
+        event.SetCommandType(commandType);
+        event.SetAction(action);
+        event.SetParameters(parameters);
+        event.SetOriginalCommandStr(url.ToStdString());
+
+        wxPostEvent(this, event);
+
+        // HandlePrintagoCommand(commandType, action, parameters, url.ToStdString());
     }
 
     if (m_info->IsShown()) {
         m_info->Dismiss();
     }
-
-    if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" + evt.GetTarget() + "')");
 }
 
 /**

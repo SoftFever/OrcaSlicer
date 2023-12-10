@@ -43,7 +43,79 @@ class NetworkAgent;
 
 namespace GUI {
 
-wxDECLARE_EVENT(MY_WEBVIEW_MESSAGE_EVENT, wxCommandEvent);
+class PrintagoMessageEvent; // forward declaration
+class PrintagoCommandEvent; // forward declaration
+
+wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
+wxDECLARE_EVENT(PRINTAGO_COMMAND_EVENT, PrintagoCommandEvent);
+
+class PrintagoCommandEvent : public wxCommandEvent
+{
+public:
+    PrintagoCommandEvent(wxEventType commandType = PRINTAGO_COMMAND_EVENT, int id = 0) : wxCommandEvent(commandType, id) {}
+
+    PrintagoCommandEvent(const PrintagoCommandEvent &event) : wxCommandEvent(event)
+    {
+        this->m_command_type         = event.m_command_type;
+        this->m_action               = event.m_action;
+        this->m_parameters           = event.m_parameters;
+        this->m_original_command_str = event.m_original_command_str;
+    }
+
+    virtual ~PrintagoCommandEvent() {}
+
+    wxEvent *Clone() const override { return new PrintagoCommandEvent(*this); }
+
+    void SetCommandType(const wxString &command) { this->m_command_type = command; }
+    void SetAction(const wxString &action) { this->m_action = action; }
+    void SetParameters(const wxStringToStringHashMap &parameters) { this->m_parameters = parameters; }
+    void SetOriginalCommandStr(const wxString &originalCommandStr) { this->m_original_command_str = originalCommandStr; }
+
+    wxString                GetCommandType() const { return this->m_command_type; }
+    wxString                GetAction() const { return this->m_action; }
+    wxStringToStringHashMap GetParameters() const { return this->m_parameters; }
+    wxString                GetOriginalCommandStr() const { return this->m_original_command_str; }
+
+private:
+    wxString                m_command_type;
+    wxString                m_action;
+    wxStringToStringHashMap m_parameters;
+    wxString                m_original_command_str;
+};
+
+class PrintagoMessageEvent : public wxCommandEvent
+{
+public:
+    PrintagoMessageEvent(wxEventType commandType = PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, int id = 0) : wxCommandEvent(commandType, id) {}
+
+    PrintagoMessageEvent(const PrintagoMessageEvent &event) : wxCommandEvent(event)
+    {
+        this->m_message_type = event.m_message_type;
+        this->m_printer_id   = event.m_printer_id;
+        this->m_command      = event.m_command;
+        this->m_data         = event.m_data;
+    }
+
+    virtual ~PrintagoMessageEvent() {}
+
+    wxEvent *Clone() const override { return new PrintagoMessageEvent(*this); }
+
+    void SetMessageType(const wxString &message) { this->m_message_type = message; }
+    void SetPrinterId(const wxString &printer_id) { this->m_printer_id = printer_id; }
+    void SetCommand(const wxString &command) { this->m_command = command; }
+    void SetData(const json &data) { this->m_data = data; }
+
+    wxString GetMessageType() const { return this->m_message_type; }
+    wxString GetPrinterId() const { return this->m_printer_id; }
+    wxString GetCommand() const { return this->m_command; }
+    json     GetData() const { return this->m_data; }
+
+private:
+    wxString m_message_type;
+    wxString m_printer_id;
+    wxString m_command;
+    json     m_data;
+};
 
 class PrintagoPanel : public wxPanel
 {
@@ -61,37 +133,33 @@ public:
     void OnError(wxWebViewEvent &evt);
     void RunScript(const wxString &javascript);
 
+    void OnPrintagoSendWebViewMessage(PrintagoMessageEvent &event);
+
 private:
     Slic3r::DeviceManager *devManager;
-    wxWebView  *m_browser;
-    wxBoxSizer *bSizer_toolbar;
+    wxWebView             *m_browser;
+    wxBoxSizer            *bSizer_toolbar;
 
     SelectMachineDialog *m_select_machine_dlg = nullptr;
 
     wxInfoBar    *m_info;
     wxStaticText *m_info_text;
 
-    long m_zoomFactor;
-
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
     // no need to send this for commands like home/jog.
     wxString jobPrinterId;
 
-    void HandlePrintagoCommand(const wxString          &commandType,
-                               const wxString          &action,
-                               wxStringToStringHashMap &parameters,
-                               const wxString          &originalCommandStr);
+    void HandlePrintagoCommand(const PrintagoCommandEvent &event);
 
-    void SendJsonMessage(
-        const wxString &msg_type, const wxString &printer_id, const json &data, wxWebView *webView, const wxString &command = "");
-    void SendStatusMessage(const wxString &printer_id, const json &statusData, wxWebView *webView, const wxString &command = "");
-    void SendResponseMessage(const wxString &printer_id, const json &responseData, wxWebView *webView, const wxString &command = "");
-    void SendErrorMessage(const wxString &printer_id, const json &errorData, wxWebView *webView, const wxString &command = "");
-    void SendSuccessMessage(const wxString &printer_id, const wxString localCommand, wxWebView *webView, const wxString &command = "");
+    // void SendJsonMessage(const wxString &msg_type, const wxString &printer_id, const json &data, const wxString &command = "");
+    void SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command = "");
+    void SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command = "");
+    void SendErrorMessage(const wxString &printer_id, const json &errorData, const wxString &command = "");
+    void SendSuccessMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "");
 
     // wraps sending and error response, and unblocks the server for job processing.
-    void SendErrorAndUnblock(const wxString &printer_id, const json &errorData, wxWebView *webView, const wxString &command);
+    void SendErrorAndUnblock(const wxString &printer_id, const json &errorData, const wxString &command);
 
     wxStringToStringHashMap      ParseQueryString(const wxString &queryString);
     std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap &params, const wxString &prefix);
@@ -108,8 +176,7 @@ private:
     static json MachineObjectToJson(MachineObject *machine);
 
     void set_can_process_job(bool can_process_job);
-    bool can_process_job() const { return m_can_process_job; };
-
+    bool can_process_job() const { return m_can_process_job; }
 };
 
 } // namespace GUI
