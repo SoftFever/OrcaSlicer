@@ -5,6 +5,7 @@
 #include <set>
 #include <unordered_map>
 #include <functional>
+#include <mutex>
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
 
