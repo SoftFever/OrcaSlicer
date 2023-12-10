@@ -337,7 +337,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // to avoid extreme retraction lengths over a small distance. The remaining retraction distance will be performed in the
             // parent function
             if(wipe_path.length() < wipe_dist){
-                printf ("wipe path length %f, wipe distance %f\n",wipe_path.length(),wipe_dist );
                 length = length *(wipe_path.length() / wipe_dist );
             }
 
