@@ -8846,7 +8846,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     print_config.set_key_value(
         "outer_wall_speed",
         new ConfigOptionFloat(CalibPressureAdvance::find_optimal_PA_speed(
-            wxGetApp().preset_bundle->full_config(), print_config.get_abs_value("line_width", nozzle_diameter),
+            wxGetApp().preset_bundle->full_config(), (fabs(print_config.get_abs_value("line_width", nozzle_diameter)) <= DBL_EPSILON)? (nozzle_diameter*1.125) : print_config.get_abs_value("line_width", nozzle_diameter),
             print_config.get_abs_value("layer_height"), 0)));
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
