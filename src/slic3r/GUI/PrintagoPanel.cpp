@@ -25,29 +25,27 @@
 using namespace nlohmann;
 
 namespace pt = boost::property_tree;
-    
-namespace Slic3r {
-namespace GUI {
-    wxDECLARE_EVENT(EVT_PRINTAGO_RESPONSE_MESSAGE, wxCommandEvent);
-    wxDEFINE_EVENT(EVT_PRINTAGO_RESPONSE_MESSAGE, wxCommandEvent);
-    wxDEFINE_EVENT(EVT_PRINTAGO_PRINT, wxCommandEvent);
 
-    #define PRINTAGO_LOGIN_INFO_UPDATE_TIMER_ID 17653
-    #define PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f  // Minimum temperature to allow extrusion control (per StatusPanel.cpp)
+namespace Slic3r { namespace GUI {
+wxDECLARE_EVENT(EVT_PRINTAGO_RESPONSE_MESSAGE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PRINTAGO_RESPONSE_MESSAGE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PRINTAGO_PRINT, wxCommandEvent);
 
-    BEGIN_EVENT_TABLE(PrintagoPanel, wxPanel)
-    EVT_TIMER(PRINTAGO_LOGIN_INFO_UPDATE_TIMER_ID, PrintagoPanel::OnFreshLoginStatus)
-    END_EVENT_TABLE()
+#define PRINTAGO_LOGIN_INFO_UPDATE_TIMER_ID 17653
+#define PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f // Minimum temperature to allow extrusion control (per StatusPanel.cpp)
 
-PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString* url)
-        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
- {
-    devManager = Slic3r::GUI::wxGetApp().getDeviceManager();
-    wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
-    
+BEGIN_EVENT_TABLE(PrintagoPanel, wxPanel)
+EVT_TIMER(PRINTAGO_LOGIN_INFO_UPDATE_TIMER_ID, PrintagoPanel::OnFreshLoginStatus)
+END_EVENT_TABLE()
+
+PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+    devManager           = Slic3r::GUI::wxGetApp().getDeviceManager();
+    wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
+
     // printagoPlater = new Plater(this, wxGetApp().mainframe);
     // printagoPlater->Hide();
-    
+
 #if !PRINTAGO_RELEASE
     // Create the button
     bSizer_toolbar = new wxBoxSizer(wxHORIZONTAL);
@@ -77,13 +75,13 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString* url)
     bSizer_toolbar->Show(false);
 
     // Create panel for find toolbar.
-    wxPanel* panel = new wxPanel(this);
+    wxPanel *panel = new wxPanel(this);
     topsizer->Add(panel, wxSizerFlags().Expand());
 
     // Create sizer for panel.
-    wxBoxSizer* panel_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *panel_sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(panel_sizer);
-#endif //PRINTAGO_RELEASE
+#endif // PRINTAGO_RELEASE
 
     // Create the info panel
     m_info = new wxInfoBar(this);
@@ -102,25 +100,24 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString* url)
     // Log backend information
     if (wxGetApp().get_mode() == comDevelop) {
         wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
-        wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(),
-            wxWebView::GetBackendVersionInfo().ToString());
+        wxLogMessage("Backend: %s Version: %s", m_browser->GetClassInfo()->GetClassName(), wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
     }
-    
+
     // Create the Tools menu
-    m_tools_menu = new wxMenu();
-    wxMenuItem* viewSource = m_tools_menu->Append(wxID_ANY, _L("View Source"));
-    wxMenuItem* viewText = m_tools_menu->Append(wxID_ANY, _L("View Text"));
+    m_tools_menu           = new wxMenu();
+    wxMenuItem *viewSource = m_tools_menu->Append(wxID_ANY, _L("View Source"));
+    wxMenuItem *viewText   = m_tools_menu->Append(wxID_ANY, _L("View Text"));
     m_tools_menu->AppendSeparator();
     m_tools_handle_navigation = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Handle Navigation"));
     m_tools_handle_new_window = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Handle New Windows"));
     m_tools_menu->AppendSeparator();
 
-    //Create an editing menu
-    wxMenu* editmenu = new wxMenu();
-    m_edit_cut = editmenu->Append(wxID_ANY, _L("Cut"));
-    m_edit_copy = editmenu->Append(wxID_ANY, _L("Copy"));
-    m_edit_paste = editmenu->Append(wxID_ANY, _L("Paste"));
+    // Create an editing menu
+    wxMenu *editmenu = new wxMenu();
+    m_edit_cut       = editmenu->Append(wxID_ANY, _L("Cut"));
+    m_edit_copy      = editmenu->Append(wxID_ANY, _L("Copy"));
+    m_edit_paste     = editmenu->Append(wxID_ANY, _L("Paste"));
     editmenu->AppendSeparator();
     m_edit_undo = editmenu->Append(wxID_ANY, _L("Undo"));
     m_edit_redo = editmenu->Append(wxID_ANY, _L("Redo"));
@@ -128,42 +125,42 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString* url)
     m_edit_mode = editmenu->AppendCheckItem(wxID_ANY, _L("Edit Mode"));
     m_tools_menu->AppendSubMenu(editmenu, "Edit");
 
-    wxMenu* script_menu = new wxMenu;
-    m_script_string = script_menu->Append(wxID_ANY, "Return String");
-    m_script_integer = script_menu->Append(wxID_ANY, "Return integer");
-    m_script_double = script_menu->Append(wxID_ANY, "Return double");
-    m_script_bool = script_menu->Append(wxID_ANY, "Return bool");
-    m_script_object = script_menu->Append(wxID_ANY, "Return JSON object");
-    m_script_array = script_menu->Append(wxID_ANY, "Return array");
-    m_script_dom = script_menu->Append(wxID_ANY, "Modify DOM");
-    m_script_undefined = script_menu->Append(wxID_ANY, "Return undefined");
-    m_script_null = script_menu->Append(wxID_ANY, "Return null");
-    m_script_date = script_menu->Append(wxID_ANY, "Return Date");
-    m_script_message = script_menu->Append(wxID_ANY, "Send script message");
-    m_script_custom = script_menu->Append(wxID_ANY, "Custom script");
+    wxMenu *script_menu = new wxMenu;
+    m_script_string     = script_menu->Append(wxID_ANY, "Return String");
+    m_script_integer    = script_menu->Append(wxID_ANY, "Return integer");
+    m_script_double     = script_menu->Append(wxID_ANY, "Return double");
+    m_script_bool       = script_menu->Append(wxID_ANY, "Return bool");
+    m_script_object     = script_menu->Append(wxID_ANY, "Return JSON object");
+    m_script_array      = script_menu->Append(wxID_ANY, "Return array");
+    m_script_dom        = script_menu->Append(wxID_ANY, "Modify DOM");
+    m_script_undefined  = script_menu->Append(wxID_ANY, "Return undefined");
+    m_script_null       = script_menu->Append(wxID_ANY, "Return null");
+    m_script_date       = script_menu->Append(wxID_ANY, "Return Date");
+    m_script_message    = script_menu->Append(wxID_ANY, "Send script message");
+    m_script_custom     = script_menu->Append(wxID_ANY, "Custom script");
     m_tools_menu->AppendSubMenu(script_menu, _L("Run Script"));
-    wxMenuItem* addUserScript = m_tools_menu->Append(wxID_ANY, _L("Add user script"));
-    wxMenuItem* setCustomUserAgent = m_tools_menu->Append(wxID_ANY, _L("Set custom user agent"));
+    wxMenuItem *addUserScript      = m_tools_menu->Append(wxID_ANY, _L("Add user script"));
+    wxMenuItem *setCustomUserAgent = m_tools_menu->Append(wxID_ANY, _L("Set custom user agent"));
 
-    //Selection menu
-    wxMenu* selection = new wxMenu();
-    m_selection_clear = selection->Append(wxID_ANY, _L("Clear Selection"));
-    m_selection_delete = selection->Append(wxID_ANY, _L("Delete Selection"));
-    wxMenuItem* selectall = selection->Append(wxID_ANY, _L("Select All"));
+    // Selection menu
+    wxMenu *selection     = new wxMenu();
+    m_selection_clear     = selection->Append(wxID_ANY, _L("Clear Selection"));
+    m_selection_delete    = selection->Append(wxID_ANY, _L("Delete Selection"));
+    wxMenuItem *selectall = selection->Append(wxID_ANY, _L("Select All"));
 
     editmenu->AppendSubMenu(selection, "Selection");
 
-    wxMenuItem* loadscheme = m_tools_menu->Append(wxID_ANY, _L("Custom Scheme Example"));
-    wxMenuItem* usememoryfs = m_tools_menu->Append(wxID_ANY, _L("Memory File System Example"));
+    wxMenuItem *loadscheme  = m_tools_menu->Append(wxID_ANY, _L("Custom Scheme Example"));
+    wxMenuItem *usememoryfs = m_tools_menu->Append(wxID_ANY, _L("Memory File System Example"));
 
     m_context_menu = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Enable Context Menu"));
-    m_dev_tools = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Enable Dev Tools"));
+    m_dev_tools    = m_tools_menu->AppendCheckItem(wxID_ANY, _L("Enable Dev Tools"));
 
-    //By default we want to handle navigation and new windows
+    // By default we want to handle navigation and new windows
     m_tools_handle_navigation->Check();
     m_tools_handle_new_window->Check();
 
-    //Zoom
+    // Zoom
     m_zoomFactor = 100;
 
     // Connect the button events
@@ -175,7 +172,7 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString* url)
     Bind(wxEVT_BUTTON, &PrintagoPanel::OnToolsClicked, this, m_button_tools->GetId());
     Bind(wxEVT_TEXT_ENTER, &PrintagoPanel::OnUrl, this, m_url->GetId());
 
-#endif //PRINTAGO_RELEASE
+#endif // PRINTAGO_RELEASE
 
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &PrintagoPanel::OnNavigationRequest, this);
@@ -218,18 +215,18 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString* url)
     Bind(wxEVT_MENU, &PrintagoPanel::OnEnableContextMenu, this, m_context_menu->GetId());
     Bind(wxEVT_MENU, &PrintagoPanel::OnEnableDevTools, this, m_dev_tools->GetId());
 
-    //Connect the idle events
+    // Connect the idle events
     Bind(wxEVT_IDLE, &PrintagoPanel::OnIdle, this);
     Bind(wxEVT_CLOSE_WINDOW, &PrintagoPanel::OnClose, this);
 
     m_LoginUpdateTimer = nullptr;
- }
+}
 
 PrintagoPanel::~PrintagoPanel()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Start";
     SetEvtHandlerEnabled(false);
-    
+
     delete m_tools_menu;
 
     if (m_LoginUpdateTimer != nullptr) {
@@ -240,7 +237,7 @@ PrintagoPanel::~PrintagoPanel()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
-void PrintagoPanel::load_url(wxString& url)
+void PrintagoPanel::load_url(wxString &url)
 {
     this->Show();
     this->Raise();
@@ -254,15 +251,15 @@ void PrintagoPanel::load_url(wxString& url)
 }
 
 /**
-    * Method that retrieves the current state from the web control and updates the GUI
-    * the reflect this current state.
-    */
+ * Method that retrieves the current state from the web control and updates the GUI
+ * the reflect this current state.
+ */
 void PrintagoPanel::UpdateState() {}
-void PrintagoPanel::OnIdle(wxIdleEvent& WXUNUSED(evt)) {}
+void PrintagoPanel::OnIdle(wxIdleEvent &WXUNUSED(evt)) {}
 
 /**
 x    */
-void PrintagoPanel::OnUrl(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnUrl(wxCommandEvent &WXUNUSED(evt))
 {
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage(m_url->GetValue());
@@ -272,80 +269,59 @@ void PrintagoPanel::OnUrl(wxCommandEvent& WXUNUSED(evt))
 }
 
 /**
-    * Callback invoked when user pressed the "back" button
-    */
-void PrintagoPanel::OnBack(wxCommandEvent& WXUNUSED(evt))
+ * Callback invoked when user pressed the "back" button
+ */
+void PrintagoPanel::OnBack(wxCommandEvent &WXUNUSED(evt))
 {
     m_browser->GoBack();
     UpdateState();
 }
 
 /**
-    * Callback invoked when user pressed the "forward" button
-    */
-void PrintagoPanel::OnForward(wxCommandEvent& WXUNUSED(evt))
+ * Callback invoked when user pressed the "forward" button
+ */
+void PrintagoPanel::OnForward(wxCommandEvent &WXUNUSED(evt))
 {
     m_browser->GoForward();
     UpdateState();
 }
 
 /**
-    * Callback invoked when user pressed the "stop" button
-    */
-void PrintagoPanel::OnStop(wxCommandEvent& WXUNUSED(evt))
+ * Callback invoked when user pressed the "stop" button
+ */
+void PrintagoPanel::OnStop(wxCommandEvent &WXUNUSED(evt))
 {
     m_browser->Stop();
     UpdateState();
 }
 
 /**
-    * Callback invoked when user pressed the "reload" button
-    */
-void PrintagoPanel::OnReload(wxCommandEvent& WXUNUSED(evt))
+ * Callback invoked when user pressed the "reload" button
+ */
+void PrintagoPanel::OnReload(wxCommandEvent &WXUNUSED(evt))
 {
     m_browser->Reload();
     UpdateState();
 }
 
-void PrintagoPanel::OnCut(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Cut();
-}
+void PrintagoPanel::OnCut(wxCommandEvent &WXUNUSED(evt)) { m_browser->Cut(); }
 
-void PrintagoPanel::OnCopy(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Copy();
-}
+void PrintagoPanel::OnCopy(wxCommandEvent &WXUNUSED(evt)) { m_browser->Copy(); }
 
-void PrintagoPanel::OnPaste(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Paste();
-}
+void PrintagoPanel::OnPaste(wxCommandEvent &WXUNUSED(evt)) { m_browser->Paste(); }
 
-void PrintagoPanel::OnUndo(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Undo();
-}
+void PrintagoPanel::OnUndo(wxCommandEvent &WXUNUSED(evt)) { m_browser->Undo(); }
 
-void PrintagoPanel::OnRedo(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Redo();
-}
+void PrintagoPanel::OnRedo(wxCommandEvent &WXUNUSED(evt)) { m_browser->Redo(); }
 
-void PrintagoPanel::OnMode(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->SetEditable(m_edit_mode->IsChecked());
-}
+void PrintagoPanel::OnMode(wxCommandEvent &WXUNUSED(evt)) { m_browser->SetEditable(m_edit_mode->IsChecked()); }
 
-void PrintagoPanel::OnClose(wxCloseEvent& evt)
-{
-    this->Hide();
-}
+void PrintagoPanel::OnClose(wxCloseEvent &evt) { this->Hide(); }
 
-void PrintagoPanel::OnLoadScheme(wxCommandEvent& WXUNUSED(evt)) {}
-void PrintagoPanel::OnUseMemoryFS(wxCommandEvent& WXUNUSED(evt)) {}
-void PrintagoPanel::OnEnableContextMenu(wxCommandEvent& evt) {}
-void PrintagoPanel::OnEnableDevTools(wxCommandEvent& evt) {}
+void PrintagoPanel::OnLoadScheme(wxCommandEvent &WXUNUSED(evt)) {}
+void PrintagoPanel::OnUseMemoryFS(wxCommandEvent &WXUNUSED(evt)) {}
+void PrintagoPanel::OnEnableContextMenu(wxCommandEvent &evt) {}
+void PrintagoPanel::OnEnableDevTools(wxCommandEvent &evt) {}
 void PrintagoPanel::OnFreshLoginStatus(wxTimerEvent &event) {}
 void PrintagoPanel::SendRecentList(int images) {}
 void PrintagoPanel::OpenModelDetail(std::string id, NetworkAgent *agent) {}
@@ -353,81 +329,85 @@ void PrintagoPanel::SendLoginInfo() {}
 void PrintagoPanel::ShowNetpluginTip() {}
 void PrintagoPanel::update_mode() {}
 
-void PrintagoPanel::set_can_process_job(bool can_process_job) {
-    if (can_process_job) 
+void PrintagoPanel::set_can_process_job(bool can_process_job)
+{
+    if (can_process_job)
         jobPrinterId = "";
     m_can_process_job = can_process_job;
 }
 
-json PrintagoPanel::MachineObjectToJson(MachineObject* machine) {
+json PrintagoPanel::MachineObjectToJson(MachineObject *machine)
+{
     json j;
     if (machine) {
-        j["hardware"]["dev_model"] = machine->printer_type;
+        j["hardware"]["dev_model"]        = machine->printer_type;
         j["hardware"]["dev_display_name"] = machine->get_printer_type_display_str().ToStdString();
-        j["hardware"]["dev_name"] = machine->dev_name;
-        j["hardware"]["nozzle_diameter"] = machine->nozzle_diameter;
+        j["hardware"]["dev_name"]         = machine->dev_name;
+        j["hardware"]["nozzle_diameter"]  = machine->nozzle_diameter;
 
-        j["connection_info"]["dev_ip"] = machine->dev_ip;
-        j["connection_info"]["dev_id"] = machine->dev_id;
-        j["connection_info"]["dev_name"] = machine->dev_name;
+        j["connection_info"]["dev_ip"]              = machine->dev_ip;
+        j["connection_info"]["dev_id"]              = machine->dev_id;
+        j["connection_info"]["dev_name"]            = machine->dev_name;
         j["connection_info"]["dev_connection_type"] = machine->dev_connection_type;
-        j["connection_info"]["is_local"] = machine->is_local();
-        j["connection_info"]["is_connected"] = machine->is_connected();
-        j["connection_info"]["is_connecting"] = machine->is_connecting();
-        j["connection_info"]["is_online"] = machine->is_online();
-        j["connection_info"]["has_access_right"] = machine->has_access_right();
-        j["connection_info"]["ftp_folder"] = machine->get_ftp_folder();
-        j["connection_info"]["access_code"] = machine->get_access_code();
+        j["connection_info"]["is_local"]            = machine->is_local();
+        j["connection_info"]["is_connected"]        = machine->is_connected();
+        j["connection_info"]["is_connecting"]       = machine->is_connecting();
+        j["connection_info"]["is_online"]           = machine->is_online();
+        j["connection_info"]["has_access_right"]    = machine->has_access_right();
+        j["connection_info"]["ftp_folder"]          = machine->get_ftp_folder();
+        j["connection_info"]["access_code"]         = machine->get_access_code();
 
         // MachineObject State Info
-        j["state"]["can_print"] = machine->can_print();
-        j["state"]["can_resume"] = machine->can_resume();
-        j["state"]["can_pause"] = machine->can_pause();  
-        j["state"]["can_abort"] = machine->can_abort();
-        j["state"]["is_in_printing"] = machine->is_in_printing();
-        j["state"]["is_in_prepare"] = machine->is_in_prepare();
-        j["state"]["is_printing_finished"] = machine->is_printing_finished();
-        j["state"]["is_in_printing_status"] = machine->is_in_printing_status(machine->print_status);
-        j["state"]["is_in_extrusion_cali"] = machine->is_in_extrusion_cali();
+        j["state"]["can_print"]                  = machine->can_print();
+        j["state"]["can_resume"]                 = machine->can_resume();
+        j["state"]["can_pause"]                  = machine->can_pause();
+        j["state"]["can_abort"]                  = machine->can_abort();
+        j["state"]["is_in_printing"]             = machine->is_in_printing();
+        j["state"]["is_in_prepare"]              = machine->is_in_prepare();
+        j["state"]["is_printing_finished"]       = machine->is_printing_finished();
+        j["state"]["is_in_printing_status"]      = machine->is_in_printing_status(machine->print_status);
+        j["state"]["is_in_extrusion_cali"]       = machine->is_in_extrusion_cali();
         j["state"]["is_extrusion_cali_finished"] = machine->is_extrusion_cali_finished();
 
-        //Current Job/Print Info
-        j["current"]["print_status"] = machine->print_status;
-        j["current"]["m_gcode_file"] = machine->m_gcode_file;
+        // Current Job/Print Info
+        j["current"]["print_status"]    = machine->print_status;
+        j["current"]["m_gcode_file"]    = machine->m_gcode_file;
         j["current"]["print_time_left"] = machine->mc_left_time;
-        j["current"]["print_percent"] = machine->mc_print_percent;
-        j["current"]["print_stage"] = machine->mc_print_stage;
+        j["current"]["print_percent"]   = machine->mc_print_percent;
+        j["current"]["print_stage"]     = machine->mc_print_stage;
         j["current"]["print_sub_stage"] = machine->mc_print_sub_stage;
-        j["current"]["curr_layer"] = machine->curr_layer;
-        j["current"]["total_layers"] = machine->total_layers;  
+        j["current"]["curr_layer"]      = machine->curr_layer;
+        j["current"]["total_layers"]    = machine->total_layers;
 
-        //Temperatures
-        j["current"]["temperatures"]["nozzle_temp"] = machine->nozzle_temp;
-        j["current"]["temperatures"]["nozzle_temp_target"] = machine->nozzle_temp_target;
-        j["current"]["temperatures"]["bed_temp"] = machine->bed_temp;
-        j["current"]["temperatures"]["bed_temp_target"] = machine->bed_temp_target;
-        j["current"]["temperatures"]["chamber_temp"] = machine->chamber_temp;
+        // Temperatures
+        j["current"]["temperatures"]["nozzle_temp"]         = machine->nozzle_temp;
+        j["current"]["temperatures"]["nozzle_temp_target"]  = machine->nozzle_temp_target;
+        j["current"]["temperatures"]["bed_temp"]            = machine->bed_temp;
+        j["current"]["temperatures"]["bed_temp_target"]     = machine->bed_temp_target;
+        j["current"]["temperatures"]["chamber_temp"]        = machine->chamber_temp;
         j["current"]["temperatures"]["chamber_temp_target"] = machine->chamber_temp_target;
-        j["current"]["temperatures"]["frame_temp"] = machine->frame_temp;
+        j["current"]["temperatures"]["frame_temp"]          = machine->frame_temp;
 
-        //Cooling
+        // Cooling
         j["current"]["cooling"]["heatbreak_fan_speed"] = machine->heatbreak_fan_speed;
-        j["current"]["cooling"]["cooling_fan_speed"] = machine->cooling_fan_speed;
-        j["current"]["cooling"]["big_fan1_speed"] = machine->big_fan1_speed;
-        j["current"]["cooling"]["big_fan2_speed"] = machine->big_fan2_speed;
-        j["current"]["cooling"]["fan_gear"] = machine->fan_gear;
+        j["current"]["cooling"]["cooling_fan_speed"]   = machine->cooling_fan_speed;
+        j["current"]["cooling"]["big_fan1_speed"]      = machine->big_fan1_speed;
+        j["current"]["cooling"]["big_fan2_speed"]      = machine->big_fan2_speed;
+        j["current"]["cooling"]["fan_gear"]            = machine->fan_gear;
     }
     return j;
 }
 
-json PrintagoPanel::GetMachineStatus(MachineObject* machine) {
+json PrintagoPanel::GetMachineStatus(MachineObject *machine)
+{
     json statusObject = json::object();
-    json machineList = json::array();
+    json machineList  = json::array();
 
-    if (!machine) return json::object();
+    if (!machine)
+        return json::object();
 
-    statusObject["can_process_job"] = can_process_job();
-    statusObject["current_job_id"] = "";//add later from command.
+    statusObject["can_process_job"]     = can_process_job();
+    statusObject["current_job_id"]      = ""; // add later from command.
     statusObject["current_job_machine"] = jobPrinterId.ToStdString();
 
     machineList.push_back(MachineObjectToJson(machine));
@@ -435,133 +415,221 @@ json PrintagoPanel::GetMachineStatus(MachineObject* machine) {
     return statusObject;
 }
 
-json PrintagoPanel::GetMachineStatus(const wxString &printerId) {
-    if(!devManager) return json::object();
+json PrintagoPanel::GetMachineStatus(const wxString &printerId)
+{
+    if (!devManager)
+        return json::object();
     return GetMachineStatus(devManager->get_my_machine(printerId.ToStdString()));
 }
 
-json PrintagoPanel::GetAllStatus() {
-    std::map<std::string, MachineObject*> machineMap;
-    json statusObject = json::object();
-    json machineList = json::array();
+json PrintagoPanel::GetAllStatus()
+{
+    std::map<std::string, MachineObject *> machineMap;
+    json                                   statusObject = json::object();
+    json                                   machineList  = json::array();
 
-    if (!devManager) return json::object();
-    
-    statusObject["can_process_job"] = can_process_job();
-    statusObject["current_job_id"] = "";//add later from command.
+    if (!devManager)
+        return json::object();
+
+    statusObject["can_process_job"]     = can_process_job();
+    statusObject["current_job_id"]      = ""; // add later from command.
     statusObject["current_job_machine"] = jobPrinterId.ToStdString();
 
     machineMap = devManager->get_my_machine_list();
-    for (auto& pair : machineMap) {
+    for (auto &pair : machineMap) {
         machineList.push_back(MachineObjectToJson(pair.second));
     }
     statusObject["machines"] = machineList;
     return statusObject;
 }
 
-size_t PrintagoPanel::write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    return fwrite(ptr, size, nmemb, stream);
+size_t PrintagoPanel::write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) { return fwrite(ptr, size, nmemb, stream); }
+
+bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &localFilename)
+{
+    boost::filesystem::path target_path = fs::path(localFilename.GetFullPath());
+    wxString                filename    = localFilename.GetFullName();  //just filename and extension
+    bool                    cont        = true;
+    bool                    download_ok = false;
+    int                     retry_count = 0;
+    int                     percent     = 1;
+    const int               max_retries = 3;
+    wxString                msg;
+    
+
+    // TODO: edit this function to be silent (no dialogs).
+    wxGetApp().plater()->reset();
+
+    // TODO: might need to make my own version of the following:
+    // p->project.reset();
+
+    /* prepare project and profile */
+    boost::thread download_thread = Slic3r::create_thread(
+        [&percent, &cont, &retry_count, max_retries, &msg, &target_path, &download_ok, url, &filename] {
+        int          res = 0;
+        unsigned int http_code;
+        std::string  http_body;
+
+        fs::path tmp_path = target_path;
+        tmp_path += format("%1%", ".download");
+
+        auto http = Http::get(url.ToStdString());
+
+        while (cont && retry_count < max_retries) {
+            retry_count++;
+            http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool &cancel) {
+                    if (!cont)
+                        cancel = true;
+                    if (progress.dltotal != 0) {
+                        percent = progress.dlnow * 100 / progress.dltotal;
+                    }
+                    msg = wxString::Format("Printago part file Downloaded %d%%", percent);
+                })
+                .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
+                    (void) body;
+                    BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%", body, http_status, error);
+
+                    if (retry_count == max_retries) {
+                        msg  = format("Error getting: `%1%`: HTTP %2%, %3%", body, http_status, error);
+                        cont = false;
+                    }
+                })
+                .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
+                    fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                    file.write(body.c_str(), body.size());
+                    file.close();
+                    fs::rename(tmp_path, target_path);
+                    cont        = false;
+                    download_ok = true;
+                })
+                .perform_sync();
+        }
+        });
+
+    while (cont) {
+        wxMilliSleep(50);
+        if (download_ok)
+            break;
+    }
+
+    if (download_thread.joinable())
+        download_thread.join();
+
+    if (!download_ok) {
+        SendErrorMessage(jobPrinterId, {{"error", msg.ToStdString()}}, m_browser);
+    }
+    return download_ok;
+
+
+    ///////////////////////////////////////////////
+    // CURL *curl = curl_easy_init();
+    // if (!curl) {
+    //     wxLogError("Curl initialization failed");
+    //     SendErrorMessage("", {{"error", "Curl initialization failed"}}, m_browser);
+    //     return false;
+    // }
+    //
+    // FILE *fp = fopen(localFilename.c_str(), "wb");
+    // if (!fp) {
+    //     wxLogError("Failed to open file for writing");
+    //     SendErrorMessage("", {{"error", "Failed to open file for writing"}}, m_browser);
+    //     curl_easy_cleanup(curl);
+    //     return false;
+    // }
+    //
+    // std::string urlStr = url.ToStdString();
+    // curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
+    // curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    // curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    // curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+    // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    //
+    // // wxGetApp().plater()->set_project_filename(localFilename);
+    // CURLcode res = curl_easy_perform(curl);
+    //
+    // char *effectiveUrl = nullptr;
+    // curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+    // if (effectiveUrl) {
+    //     std::string effUrlStr(effectiveUrl);
+    //     if (effUrlStr.rfind("https://", 0) == 0) {
+    //         wxLogError("Redirected to HTTPS: %s", effUrlStr);
+    //     }
+    // }
+    //
+    // fclose(fp);
+    //
+    // if (res != CURLE_OK) {
+    //     std::string errMsg = "Curl download failed: " + std::string(curl_easy_strerror(res));
+    //     wxLogError("%s", errMsg.c_str());
+    //     SendErrorMessage("", {{"error", errMsg}}, m_browser);
+    //     curl_easy_cleanup(curl);
+    //     return false;
+    // }
+    //
+    // curl_easy_cleanup(curl);
+    // return true;
 }
 
-bool PrintagoPanel::DownloadFileFromURL(const wxString& url, const wxString& localPath) {
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        wxLogError("Curl initialization failed");
-        SendErrorMessage("", {{"error", "Curl initialization failed"}}, m_browser);
-        return false;
-    }
-
-    FILE *fp = fopen(localPath.c_str(), "wb");
-    if (!fp) {
-        wxLogError("Failed to open file for writing");
-        SendErrorMessage("", {{"error", "Failed to open file for writing"}}, m_browser);
-        curl_easy_cleanup(curl);
-        return false;
-    }
-
-    std::string urlStr = url.ToStdString();
-    curl_easy_setopt(curl, CURLOPT_URL, urlStr.c_str());
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-
-    CURLcode res = curl_easy_perform(curl);
-    double downloadedBytes = 0;
-    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &downloadedBytes);
-    fclose(fp);
-
-    if (res != CURLE_OK) {
-        std::string errMsg = "Curl download failed: " + std::string(curl_easy_strerror(res));
-        curl_easy_cleanup(curl);
-        return false;
-    }
-
-    curl_easy_cleanup(curl);
-    return true;
-}
-
-wxString PrintagoPanel::SavePrintagoFile(const wxString& url) {
-    wxURI uri(url);
+bool PrintagoPanel::SavePrintagoFile(const wxString url, wxString &localPath)
+{
+    wxURI    uri(url);
     wxString path = uri.GetPath();
 
     wxArrayString pathComponents = wxStringTokenize(path, "/");
-    wxString filename;
+    wxString      uriFileName;
 
     if (!pathComponents.IsEmpty()) {
-        filename = pathComponents.Last();
+        uriFileName = pathComponents.Last();
     } else {
-        wxLogError("URL path is empty, cannot extract filename");
-        return "URL path is empty, cannot extract filename";
+        return false;
     }
     // Remove any query string from the filename
-    size_t queryPos = filename.find('?');
+    size_t queryPos = uriFileName.find('?');
     if (queryPos != wxString::npos) {
-        filename = filename.substr(0, queryPos);
+        uriFileName = uriFileName.substr(0, queryPos);
     }
     // Construct the full path for the temporary file
-    wxString tempDir = wxFileName::GetTempDir();
-    wxString tempFile = tempDir + "/" + filename;
-    
-    if (DownloadFileFromURL(url, tempFile)) {
-        wxLogMessage("File downloaded to: %s", tempFile);
-        return tempFile;
+    wxString tempDir = wxGetApp().app_config->get("download_path");
+    wxFileName filename(tempDir, uriFileName);
+
+    if (DownloadFileFromURL(url, filename)) {
+        wxLogMessage("File downloaded to: %s", filename.GetFullPath());
+        localPath = filename.GetFullPath();
+        return true;
     } else {
-        wxLogError("Download failed");
-        return "Download Failed";
+        localPath = "";
+        return false;
     }
 }
 
-wxString PrintagoPanel::wxURLErrorToString(wxURLError error) {
+wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
+{
     switch (error) {
-        case wxURL_NOERR:
-            return wxString("No Error");
-        case wxURL_SNTXERR:
-            return wxString("Syntax Error");
-        case wxURL_NOPROTO:
-            return wxString("No Protocol");
-        case wxURL_NOHOST:
-            return wxString("No Host");
-        case wxURL_NOPATH:
-            return wxString("No Path");
-        case wxURL_CONNERR:
-            return wxString("Connection Error");
-        case wxURL_PROTOERR:
-            return wxString("Protocol Error");
-        default:
-            return wxString("Unknown Error");
+    case wxURL_NOERR: return wxString("No Error");
+    case wxURL_SNTXERR: return wxString("Syntax Error");
+    case wxURL_NOPROTO: return wxString("No Protocol");
+    case wxURL_NOHOST: return wxString("No Host");
+    case wxURL_NOPATH: return wxString("No Path");
+    case wxURL_CONNERR: return wxString("Connection Error");
+    case wxURL_PROTOERR: return wxString("Protocol Error");
+    default: return wxString("Unknown Error");
     }
 }
 
-void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxString& action, 
-                                          wxStringToStringHashMap& parameters, const wxString& originalCommandStr) {
+void PrintagoPanel::HandlePrintagoCommand(const wxString          &commandType,
+                                          const wxString          &action,
+                                          wxStringToStringHashMap &parameters,
+                                          const wxString          &originalCommandStr)
+{
     wxString actionDetail;
     wxLogMessage("HandlePrintagoCommand: {command: " + commandType + ", action: " + action + "}");
-    MachineObject* printer = { nullptr };
-    auto machineList = devManager->get_my_machine_list();
+    MachineObject *printer     = {nullptr};
+    auto           machineList = devManager->get_my_machine_list();
 
     if (!commandType.compare("status")) {
         if (!action.compare("get_machine_list")) {
-            std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() : "[printago_slicer_id?]";
+            std::string username = wxGetApp().getAgent()->is_user_login() ? wxGetApp().getAgent()->get_user_name() :
+                                                                            "[printago_slicer_id?]";
             SendResponseMessage(username, GetAllStatus(), m_browser, originalCommandStr);
             return;
         } else {
@@ -569,7 +637,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
             wxLogMessage("PrintagoCommandError: Invalid status action: " + action);
             return;
         }
-    } 
+    }
 
     wxString printerId = parameters.count("printer_id") ? parameters["printer_id"] : "Unspecified";
     if (!printerId.compare("Unspecified")) {
@@ -579,11 +647,9 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
     }
     // Find the printer in the machine list
     auto it = std::find_if(machineList.begin(), machineList.end(),
-        [&printerId](const std::pair<std::string, MachineObject*>& pair) {
-            return pair.second->dev_id == printerId;
-        });
-    
-    if (it != machineList.end()) {  
+                           [&printerId](const std::pair<std::string, MachineObject *> &pair) { return pair.second->dev_id == printerId; });
+
+    if (it != machineList.end()) {
         // Printer found
         printer = it->second;
     } else {
@@ -599,7 +665,7 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
             } catch (...) {
                 SendErrorMessage(printerId, {{"error", "an error occurred issuing pause_print"}}, m_browser, originalCommandStr);
                 return;
-            } 
+            }
         } else if (!action.compare("resume_print")) {
             try {
                 if (printer->can_resume()) {
@@ -619,18 +685,19 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
             } catch (...) {
                 SendErrorMessage(printerId, {{"error", "an error occurred issuing stop_print"}}, m_browser, originalCommandStr);
                 return;
-            }   
+            }
         } else if (!action.compare("get_status")) {
             SendStatusMessage(printerId, GetMachineStatus(printer), m_browser, originalCommandStr);
             return;
         } else if (!action.compare("start_print_bbl")) {
             wxString printagoFileUrl = parameters["url"];
-            wxString decodedUrl = { "" };
-            jobPrinterId = printerId;
-            
-            if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(wxGetApp().plater());
-            
-            if(!can_process_job()) {
+            wxString decodedUrl      = {""};
+            jobPrinterId             = printerId;
+
+            if (!m_select_machine_dlg)
+                m_select_machine_dlg = new SelectMachineDialog(wxGetApp().plater());
+
+            if (!can_process_job()) {
                 SendErrorMessage(printerId, {{"error", "busy with current job - check status"}}, m_browser, originalCommandStr);
                 return;
             }
@@ -640,53 +707,58 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
                 SendErrorAndUnblock(printerId, {{"error", "no url specified"}}, m_browser, originalCommandStr);
                 return;
             } else {
-                decodedUrl = wxURI::Unescape(printagoFileUrl);
+                decodedUrl = Http::url_decode(printagoFileUrl.ToStdString());
                 wxURL url(decodedUrl);
-                if (url.GetError() != wxURL_NOERR) {   
-                    SendErrorAndUnblock(printerId, {{"error", "cannot access url; " + wxURLErrorToString(url.GetError()).ToStdString()}}, m_browser, originalCommandStr);
+                if (url.GetError() != wxURL_NOERR) {
+                    SendErrorAndUnblock(printerId, {{"error", "cannot access url; " + wxURLErrorToString(url.GetError()).ToStdString()}},
+                                        m_browser, originalCommandStr);
                     return;
                 }
                 if (!url.IsOk()) {
-                    SendErrorAndUnblock(printerId, {{"error", "invalid url specified: " + decodedUrl.ToStdString()}}, m_browser, originalCommandStr);
+                    SendErrorAndUnblock(printerId, {{"error", "invalid url specified: " + decodedUrl.ToStdString()}}, m_browser,
+                                        originalCommandStr);
                     return;
                 }
             }
-            
-            //TODO: handle this in a better way instead of checking "Download Failed"
-            wxString localFilePath = SavePrintagoFile(decodedUrl);
-            if (!localFilePath.compare("Download Failed")) {
+
+            wxString localFilePath;
+            if (SavePrintagoFile(decodedUrl, localFilePath)) {
+                wxLogMessage("Downloaded file to: " + localFilePath);
+               // actionDetail = "(1/4) Downloaded Successfully: " + localFilePath;
+               // SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), m_browser, originalCommandStr);
+            } else {
                 SendErrorAndUnblock(printerId, {{"error", "download failed"}}, m_browser, originalCommandStr);
                 return;
-            } else {
-                wxLogMessage("Downloaded file to: " + localFilePath);
-                actionDetail = "Slicing Started: " + localFilePath;
             }
 
-            //TODO: clear plate[0], remove any other plates.
-            //TODO: IF localFilePath is .3MF file; use plater.load_project() instead of load_files().
+            // TODO: clear plate[0], remove any other plates.
+            // TODO: IF localFilePath is .3MF file; use plater.load_project() instead of load_files().
             std::vector<std::string> filePathArray;
             filePathArray.push_back(localFilePath.ToStdString());
             LoadStrategy strat = LoadStrategy::LoadModel | LoadStrategy::LoadConfig | LoadStrategy::LoadAuxiliary | LoadStrategy::Silence;
-            std::vector<size_t> loadedFilesIndices = wxGetApp().plater()->load_files(filePathArray, strat, false);   
+            std::vector<size_t> loadedFilesIndices = wxGetApp().plater()->load_files(filePathArray, strat, false);
+            // actionDetail = "(2/4) Model Loaded: " + localFilePath; //or project after 3ML load_project.
+            // SendSuccessMessage(printerId, wxString::Format("%s: %s", action, actionDetail), m_browser, originalCommandStr);
             wxGetApp().plater()->select_plate(0, true);
+            actionDetail = "(3/4) Slicing Started: " + localFilePath;
             wxGetApp().plater()->reslice();
 
         } else {
-                SendErrorMessage(printerId, {{"error", "invalid printer_control action"}}, m_browser, originalCommandStr);
-                return;
+            SendErrorMessage(printerId, {{"error", "invalid printer_control action"}}, m_browser, originalCommandStr);
+            return;
         }
 
         wxString actionString;
-        if(actionDetail.IsEmpty()) {
+        if (actionDetail.IsEmpty()) {
             actionString = action;
         } else {
-            actionString = wxString::Format("%s: %s", action, actionDetail); 
+            actionString = wxString::Format("%s: %s", action, actionDetail);
         }
         SendSuccessMessage(printerId, actionString, m_browser, originalCommandStr);
-    
+
     } else if (!commandType.compare("temperature_control")) {
         wxString tempStr = parameters["temperature"];
-        long targetTemp;
+        long     targetTemp;
         if (!tempStr.ToLong(&targetTemp)) {
             SendErrorMessage(printerId, {{"error", "invalid temperature value"}}, m_browser, originalCommandStr);
             return;
@@ -719,10 +791,10 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
         }
 
         wxString actionString;
-        if(actionDetail.IsEmpty()) {
+        if (actionDetail.IsEmpty()) {
             actionString = action;
         } else {
-            actionString = wxString::Format("%s: %s", action, actionDetail); 
+            actionString = wxString::Format("%s: %s", action, actionDetail);
         }
         SendSuccessMessage(printerId, actionString, m_browser, originalCommandStr);
 
@@ -733,51 +805,51 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
                 SendErrorMessage(printerId, {{"error", "no axes specified"}}, m_browser, originalCommandStr);
                 wxLogMessage("PrintagoCommandError: No axes specified");
                 return;
-            } 
+            }
 
-            if (!printer->is_axis_at_home("X")
-                || !printer->is_axis_at_home("Y")
-                || !printer->is_axis_at_home("Z")) {
+            if (!printer->is_axis_at_home("X") || !printer->is_axis_at_home("Y") || !printer->is_axis_at_home("Z")) {
                 SendErrorMessage(printerId, {{"error", "must home axes before moving"}}, m_browser, originalCommandStr);
                 wxLogMessage("PrintagoCommandError: Axes not at home");
                 return;
             }
             // Iterate through each axis and its value; we do this loop twice to ensure the input in clean.
             // this ensures we do not move the head unless all input moves are valid.
-            for (const auto& axis : axes) {
-                wxString axisName = axis.first; 
-                axisName.MakeUpper(); 
+            for (const auto &axis : axes) {
+                wxString axisName = axis.first;
+                axisName.MakeUpper();
                 if (axisName != "X" && axisName != "Y" && axisName != "Z") {
                     SendErrorMessage(printerId, {{"error", "Invalid axis name: " + axisName.ToStdString()}}, m_browser, originalCommandStr);
                     wxLogMessage("PrintagoCommandError: Invalid axis name " + axisName);
                     return;
                 }
                 wxString axisValueStr = axis.second;
-                double axisValue;
+                double   axisValue;
                 if (!axisValueStr.ToDouble(&axisValue)) {
-                    SendErrorMessage(printerId, {{"error", "Invalid value for axis " + axisName.ToStdString()}}, m_browser, originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "Invalid value for axis " + axisName.ToStdString()}}, m_browser,
+                                     originalCommandStr);
                     wxLogMessage("PrintagoCommandError: Invalid value for axis " + axisName);
                     return;
                 }
             }
 
-            for (const auto& axis : axes) {
+            for (const auto &axis : axes) {
                 wxString axisName = axis.first;
-                axisName.MakeUpper(); 
+                axisName.MakeUpper();
                 wxString axisValueStr = axis.second;
-                double axisValue;
+                double   axisValue;
                 axisValueStr.ToDouble(&axisValue);
                 try {
                     printer->command_axis_control(axisName.ToStdString(), 1.0, axisValue, 3000);
                 } catch (...) {
-                    SendErrorMessage(printerId, {{"error", "an error occurred moving axis " + axisName.ToStdString()}}, m_browser, originalCommandStr);
+                    SendErrorMessage(printerId, {{"error", "an error occurred moving axis " + axisName.ToStdString()}}, m_browser,
+                                     originalCommandStr);
                     wxLogMessage("PrintagoCommandError: An error occurred moving axis " + axisName);
                     return;
                 }
             }
 
-        } else if(!action.compare("home")) {
-            try{
+        } else if (!action.compare("home")) {
+            try {
                 printer->command_go_home();
             } catch (...) {
                 SendErrorMessage(printerId, {{"error", "an error occurred homing axes"}}, m_browser, originalCommandStr);
@@ -785,9 +857,9 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
                 return;
             }
 
-        } else if(!action.compare("extrude")) {
+        } else if (!action.compare("extrude")) {
             wxString amtStr = parameters["amount"];
-            long extrudeAmt;
+            long     extrudeAmt;
             if (!amtStr.ToLong(&extrudeAmt)) {
                 wxLogMessage("Invalid extrude amount value: " + amtStr);
                 SendErrorMessage(printerId, {{"error", "invalid extrude amount value"}}, m_browser, originalCommandStr);
@@ -804,32 +876,36 @@ void PrintagoPanel::HandlePrintagoCommand(const wxString& commandType, const wxS
                     return;
                 }
             } else {
-                SendErrorMessage(printerId, {{"error", wxString::Format("nozzle temperature too low to extrude (min: %.1f)", PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL).ToStdString()}}, m_browser, originalCommandStr);
+                SendErrorMessage(printerId,
+                                 {{"error", wxString::Format("nozzle temperature too low to extrude (min: %.1f)",
+                                                             PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL)
+                                                .ToStdString()}},
+                                 m_browser, originalCommandStr);
                 wxLogMessage("PrintagoCommandError: Nozzle temperature too low to extrude");
                 return;
             }
-        
+
         } else {
             SendErrorMessage(printerId, {{"error", "invalid movement_control action"}}, m_browser, originalCommandStr);
             wxLogMessage("PrintagoCommandError: Invalid movement_control action");
             return;
         }
-       
+
         wxString actionString;
-        if(actionDetail.IsEmpty()) {
+        if (actionDetail.IsEmpty()) {
             actionString = action;
         } else {
-            actionString = wxString::Format("%s: %s", action, actionDetail); 
+            actionString = wxString::Format("%s: %s", action, actionDetail);
         }
         SendSuccessMessage(printerId, actionString, m_browser, originalCommandStr);
     }
 }
 
-void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event) {
+void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event)
+{
     if (!m_select_machine_dlg || jobPrinterId.IsEmpty() || !event.success())
         return;
 
-    
     wxString actionString = wxString::Format("%s: %s", "start_print_bbl", "Slicing Complete");
     SendSuccessMessage(jobPrinterId, actionString, m_browser);
     PrintFromType print_type = PrintFromType::FROM_NORMAL;
@@ -838,7 +914,7 @@ void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event) {
     m_select_machine_dlg->prepare(0); // partplate_list.get_curr_plate_index());
     devManager->set_selected_machine(jobPrinterId.ToStdString(), false);
     m_select_machine_dlg->setPrinterLastSelect(jobPrinterId.ToStdString());
-    
+
     wxCommandEvent evt(EVT_PRINTAGO_PRINT);
     m_select_machine_dlg->on_ok_btn(evt);
     actionString = wxString::Format("%s: %s", "start_print_bbl", "Job Sending to Printer");
@@ -847,7 +923,8 @@ void PrintagoPanel::OnProcessCompleted(SlicingProcessCompletedEvent &event) {
     set_can_process_job(true);
 }
 
-wxStringToStringHashMap PrintagoPanel::ParseQueryString(const wxString& queryString) {
+wxStringToStringHashMap PrintagoPanel::ParseQueryString(const wxString &queryString)
+{
     wxStringToStringHashMap params;
 
     // Split the query string on '&' to get key-value pairs
@@ -856,11 +933,11 @@ wxStringToStringHashMap PrintagoPanel::ParseQueryString(const wxString& queryStr
         wxString token = tokenizer.GetNextToken();
 
         // Split each key-value pair on '='
-        wxString key = token.BeforeFirst('=');
+        wxString key   = token.BeforeFirst('=');
         wxString value = token.AfterFirst('=');
 
         // URL-decode the key and value
-        wxString decodedKey = wxURI::Unescape(key);
+        wxString decodedKey   = wxURI::Unescape(key);
         wxString decodedValue = wxURI::Unescape(value);
 
         params[decodedKey] = decodedValue;
@@ -868,129 +945,126 @@ wxStringToStringHashMap PrintagoPanel::ParseQueryString(const wxString& queryStr
     return params;
 }
 
-std::map<wxString, wxString> PrintagoPanel::ExtractPrefixedParams(const wxStringToStringHashMap& params, const wxString& prefix) {
+std::map<wxString, wxString> PrintagoPanel::ExtractPrefixedParams(const wxStringToStringHashMap &params, const wxString &prefix)
+{
     std::map<wxString, wxString> extractedParams;
-    for (const auto& kv : params) {
+    for (const auto &kv : params) {
         if (kv.first.StartsWith(prefix + ".")) {
-            wxString parmName = kv.first.Mid(prefix.length() + 1); // +1 for the dot
+            wxString parmName         = kv.first.Mid(prefix.length() + 1); // +1 for the dot
             extractedParams[parmName] = kv.second;
         }
     }
     return extractedParams;
 }
 
-void PrintagoPanel::SendJsonMessage(const wxString& msg_type, const wxString& printer_id, const json& data, 
-                                    wxWebView* webView, const wxString& command) {
+void PrintagoPanel::SendJsonMessage(
+    const wxString &msg_type, const wxString &printer_id, const json &data, wxWebView *webView, const wxString &command)
+{
     wxDateTime now = wxDateTime::Now();
     now.MakeUTC();
     wxString timestamp = now.FormatISOCombined() + "Z";
 
     json message;
-    message["type"] = msg_type.ToStdString();
-    message["timestamp"] = timestamp.ToStdString();
-    message["printer_id"] = printer_id.ToStdString();
+    message["type"]        = msg_type.ToStdString();
+    message["timestamp"]   = timestamp.ToStdString();
+    message["printer_id"]  = printer_id.ToStdString();
     message["client_type"] = "bambu";
-    message["command"] = command.ToStdString();
-    message["data"] = data;
+    message["command"]     = command.ToStdString();
+    message["data"]        = data;
 
     wxString messageStr = wxString(message.dump().c_str(), wxConvUTF8);
-    CallAfter([this, webView, messageStr] {
-        webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
-    });
+    CallAfter([this, webView, messageStr] { webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr)); });
     // webView->RunScript(wxString::Format("window.postMessage(%s, '*');", messageStr));
 }
 
-void PrintagoPanel::SendStatusMessage(const wxString& printer_id, const json& statusData, 
-                                      wxWebView* webView, const wxString& command) {
-
+void PrintagoPanel::SendStatusMessage(const wxString &printer_id, const json &statusData, wxWebView *webView, const wxString &command)
+{
     SendJsonMessage("status", printer_id, statusData, webView, command);
 }
 
-void PrintagoPanel::SendResponseMessage(const wxString& printer_id, const json& responseData, 
-                                        wxWebView* webView, const wxString& command) {
+void PrintagoPanel::SendResponseMessage(const wxString &printer_id, const json &responseData, wxWebView *webView, const wxString &command)
+{
     SendJsonMessage("response", printer_id, responseData, webView, command);
 }
 
-void PrintagoPanel::SendSuccessMessage(const wxString& printer_id, const wxString localCommand, 
-                                      wxWebView* webView, const wxString& command) {
+void PrintagoPanel::SendSuccessMessage(const wxString &printer_id, const wxString localCommand, wxWebView *webView, const wxString &command)
+{
     json responseData;
     responseData["local_command"] = localCommand.ToStdString();
-    responseData["success"] = true;
+    responseData["success"]       = true;
     SendJsonMessage("success", printer_id, responseData, webView, command);
 }
 
-void PrintagoPanel::SendErrorMessage(const wxString& printer_id, const json& errorData, 
-                                    wxWebView* webView, const wxString& command) {
+void PrintagoPanel::SendErrorMessage(const wxString &printer_id, const json &errorData, wxWebView *webView, const wxString &command)
+{
     SendJsonMessage("error", printer_id, errorData, webView, command);
 }
 
-//wraps sending and error response, and unblocks the server for job processing.
-void PrintagoPanel::SendErrorAndUnblock(const wxString& printer_id, const json& errorData, 
-                                    wxWebView* webView, const wxString& command) {
+// wraps sending and error response, and unblocks the server for job processing.
+void PrintagoPanel::SendErrorAndUnblock(const wxString &printer_id, const json &errorData, wxWebView *webView, const wxString &command)
+{
     SendErrorMessage(printer_id, errorData, webView, command);
-    std::string str = errorData.dump();
-    wxString wxStr = "PrintagoCommandError: " + wxString::FromUTF8(str.c_str()); 
+    std::string str   = errorData.dump();
+    wxString    wxStr = "PrintagoCommandError: " + wxString::FromUTF8(str.c_str());
     wxLogMessage(wxStr);
     set_can_process_job(true);
 }
 
 /**
-    * Callback invoked when there is a request to load a new page (for instance
-    * when the user clicks a link)
-    */
-void PrintagoPanel::OnNavigationRequest(wxWebViewEvent& evt)
+ * Callback invoked when there is a request to load a new page (for instance
+ * when the user clicks a link)
+ */
+void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
-    
+
     const wxString &url = evt.GetURL();
 
     if (url.StartsWith("printago://")) {
         evt.Veto(); // Prevent the web view from navigating to this URL
 
-        wxURI uri(url);
-        wxString path = uri.GetPath();
+        wxURI         uri(url);
+        wxString      path           = uri.GetPath();
         wxArrayString pathComponents = wxStringTokenize(path, "/");
-        wxString commandType, action;
+        wxString      commandType, action;
 
         // Extract commandType and action from the path
         if (pathComponents.GetCount() >= 2) {
             commandType = pathComponents.Item(1); // The first actual component after the leading empty one
-            action = pathComponents.Item(2); // The second actual component
+            action      = pathComponents.Item(2); // The second actual component
         } else {
             // Handle error: insufficient components in the path
             return;
         }
 
-        wxString query = uri.GetQuery(); // Get the query part of the URI
+        wxString                query      = uri.GetQuery();          // Get the query part of the URI
         wxStringToStringHashMap parameters = ParseQueryString(query); // Use ParseQueryString to get parameters
 
         HandlePrintagoCommand(commandType, action, parameters, url.ToStdString());
     }
 
-    if (m_info->IsShown())
-    {
+    if (m_info->IsShown()) {
         m_info->Dismiss();
     }
 
     if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" +
-            evt.GetTarget() + "')");
+        wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" + evt.GetTarget() + "')");
 
-    //If we don't want to handle navigation then veto the event and navigation
-    //will not take place, we also need to stop the loading animation
+    // If we don't want to handle navigation then veto the event and navigation
+    // will not take place, we also need to stop the loading animation
 
-//    if (!m_tools_handle_navigation->IsChecked()) {
-//       evt.Veto();
-//        m_button_stop->Enable(false);
-//    } else {
-        UpdateState();
-//    }
+    //    if (!m_tools_handle_navigation->IsChecked()) {
+    //       evt.Veto();
+    //        m_button_stop->Enable(false);
+    //    } else {
+    UpdateState();
+    //    }
 }
 
 /**
-    * Callback invoked when a navigation request was accepted
-    */
-void PrintagoPanel::OnNavigationComplete(wxWebViewEvent& evt)
+ * Callback invoked when a navigation request was accepted
+ */
+void PrintagoPanel::OnNavigationComplete(wxWebViewEvent &evt)
 {
     m_browser->Show();
     Layout();
@@ -1001,14 +1075,13 @@ void PrintagoPanel::OnNavigationComplete(wxWebViewEvent& evt)
 }
 
 /**
-    * Callback invoked when a page is finished loading
-    */
-void PrintagoPanel::OnDocumentLoaded(wxWebViewEvent& evt)
+ * Callback invoked when a page is finished loading
+ */
+void PrintagoPanel::OnDocumentLoaded(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     // Only notify if the document is the main frame, not a subframe
-    if (evt.GetURL() == m_browser->GetCurrentURL())
-    {
+    if (evt.GetURL() == m_browser->GetCurrentURL()) {
         if (wxGetApp().get_mode() == comDevelop)
             wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
@@ -1023,30 +1096,29 @@ void PrintagoPanel::OnTitleChanged(wxWebViewEvent &evt)
 }
 
 /**
-    * On new window, we veto to stop extra windows appearing
-    */
-void PrintagoPanel::OnNewWindow(wxWebViewEvent& evt)
+ * On new window, we veto to stop extra windows appearing
+ */
+void PrintagoPanel::OnNewWindow(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     wxString flag = " (other)";
 
-    if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER)
-    {
+    if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER) {
         flag = " (user)";
     }
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "New window; url='" + evt.GetURL() + "'" + flag);
 
-    //If we handle new window events then just load them in this window as we
-    //are a single window browser
+    // If we handle new window events then just load them in this window as we
+    // are a single window browser
     if (m_tools_handle_new_window->IsChecked())
         m_browser->LoadURL(evt.GetURL());
 
     UpdateState();
 }
 
-void PrintagoPanel::OnScriptMessage(wxWebViewEvent& evt)
+void PrintagoPanel::OnScriptMessage(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
     // update login status
@@ -1059,21 +1131,21 @@ void PrintagoPanel::OnScriptMessage(wxWebViewEvent& evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
     std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data());
-    if (response.empty()) return;
+    if (response.empty())
+        return;
 
     /* remove \n in response string */
     response.erase(std::remove(response.begin(), response.end(), '\n'), response.end());
     if (!response.empty()) {
-        m_response_js = wxString::Format("window.postMessage('%s')", response);
-        wxCommandEvent* event = new wxCommandEvent(EVT_PRINTAGO_RESPONSE_MESSAGE, this->GetId());
+        m_response_js         = wxString::Format("window.postMessage('%s')", response);
+        wxCommandEvent *event = new wxCommandEvent(EVT_PRINTAGO_RESPONSE_MESSAGE, this->GetId());
         wxQueueEvent(this, event);
-    }
-    else {
+    } else {
         m_response_js.clear();
     }
 }
 
-void PrintagoPanel::OnScriptResponseMessage(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnScriptResponseMessage(wxCommandEvent &WXUNUSED(evt))
 {
     if (!m_response_js.empty()) {
         RunScript(m_response_js);
@@ -1081,39 +1153,34 @@ void PrintagoPanel::OnScriptResponseMessage(wxCommandEvent& WXUNUSED(evt))
 }
 
 /**
-    * Invoked when user selects the "View Source" menu item
-    */
-void PrintagoPanel::OnViewSourceRequest(wxCommandEvent& WXUNUSED(evt))
+ * Invoked when user selects the "View Source" menu item
+ */
+void PrintagoPanel::OnViewSourceRequest(wxCommandEvent &WXUNUSED(evt))
 {
     // SourceViewDialog dlg(this, m_browser->GetPageSource());
     // dlg.ShowModal();
 }
 
 /**
-    * Invoked when user selects the "View Text" menu item
-    */
-void PrintagoPanel::OnViewTextRequest(wxCommandEvent& WXUNUSED(evt))
+ * Invoked when user selects the "View Text" menu item
+ */
+void PrintagoPanel::OnViewTextRequest(wxCommandEvent &WXUNUSED(evt))
 {
-    wxDialog textViewDialog(this, wxID_ANY, "Page Text",
-        wxDefaultPosition, wxSize(700, 500),
-        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    wxDialog textViewDialog(this, wxID_ANY, "Page Text", wxDefaultPosition, wxSize(700, 500), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
-    wxTextCtrl* text = new wxTextCtrl(this, wxID_ANY, m_browser->GetPageText(),
-        wxDefaultPosition, wxDefaultSize,
-        wxTE_MULTILINE |
-        wxTE_RICH |
-        wxTE_READONLY);
+    wxTextCtrl *text = new wxTextCtrl(this, wxID_ANY, m_browser->GetPageText(), wxDefaultPosition, wxDefaultSize,
+                                      wxTE_MULTILINE | wxTE_RICH | wxTE_READONLY);
 
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(text, 1, wxEXPAND);
     SetSizer(sizer);
     textViewDialog.ShowModal();
 }
 
 /**
-    * Invoked when user selects the "Menu" item
-    */
-void PrintagoPanel::OnToolsClicked(wxCommandEvent& WXUNUSED(evt))
+ * Invoked when user selects the "Menu" item
+ */
+void PrintagoPanel::OnToolsClicked(wxCommandEvent &WXUNUSED(evt))
 {
     if (m_browser->GetCurrentURL() == "")
         return;
@@ -1135,102 +1202,65 @@ void PrintagoPanel::OnToolsClicked(wxCommandEvent& WXUNUSED(evt))
     PopupMenu(m_tools_menu, position.x, position.y);
 }
 
-void PrintagoPanel::RunScript(const wxString& javascript)
+void PrintagoPanel::RunScript(const wxString &javascript)
 {
     // Remember the script we run in any case, so the next time the user opens
     // the "Run Script" dialog box, it is shown there for convenient updating.
     m_javascript = javascript;
 
-    if (!m_browser) return;
+    if (!m_browser)
+        return;
 
     WebView::RunScript(m_browser, javascript);
 }
 
-void PrintagoPanel::OnRunScriptString(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("setCount(345);");
-}
+void PrintagoPanel::OnRunScriptString(wxCommandEvent &WXUNUSED(evt)) { RunScript("setCount(345);"); }
 
-void PrintagoPanel::OnRunScriptInteger(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("function f(a){return a;}f(123);");
-}
+void PrintagoPanel::OnRunScriptInteger(wxCommandEvent &WXUNUSED(evt)) { RunScript("function f(a){return a;}f(123);"); }
 
-void PrintagoPanel::OnRunScriptDouble(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("function f(a){return a;}f(2.34);");
-}
+void PrintagoPanel::OnRunScriptDouble(wxCommandEvent &WXUNUSED(evt)) { RunScript("function f(a){return a;}f(2.34);"); }
 
-void PrintagoPanel::OnRunScriptBool(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("function f(a){return a;}f(false);");
-}
+void PrintagoPanel::OnRunScriptBool(wxCommandEvent &WXUNUSED(evt)) { RunScript("function f(a){return a;}f(false);"); }
 
-void PrintagoPanel::OnRunScriptObject(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnRunScriptObject(wxCommandEvent &WXUNUSED(evt))
 {
     RunScript("function f(){var person = new Object();person.name = 'Foo'; \
     person.lastName = 'Bar';return person;}f();");
 }
 
-void PrintagoPanel::OnRunScriptArray(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("function f(){ return [\"foo\", \"bar\"]; }f();");
-}
+void PrintagoPanel::OnRunScriptArray(wxCommandEvent &WXUNUSED(evt)) { RunScript("function f(){ return [\"foo\", \"bar\"]; }f();"); }
 
-void PrintagoPanel::OnRunScriptDOM(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("document.write(\"Hello World!\");");
-}
+void PrintagoPanel::OnRunScriptDOM(wxCommandEvent &WXUNUSED(evt)) { RunScript("document.write(\"Hello World!\");"); }
 
-void PrintagoPanel::OnRunScriptUndefined(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("function f(){var person = new Object();}f();");
-}
+void PrintagoPanel::OnRunScriptUndefined(wxCommandEvent &WXUNUSED(evt)) { RunScript("function f(){var person = new Object();}f();"); }
 
-void PrintagoPanel::OnRunScriptNull(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("function f(){return null;}f();");
-}
+void PrintagoPanel::OnRunScriptNull(wxCommandEvent &WXUNUSED(evt)) { RunScript("function f(){return null;}f();"); }
 
-void PrintagoPanel::OnRunScriptDate(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnRunScriptDate(wxCommandEvent &WXUNUSED(evt))
 {
     RunScript("function f(){var d = new Date('10/08/2017 21:30:40'); \
     var tzoffset = d.getTimezoneOffset() * 60000; \
     return new Date(d.getTime() - tzoffset);}f();");
 }
 
-void PrintagoPanel::OnRunScriptMessage(wxCommandEvent& WXUNUSED(evt))
-{
-    RunScript("window.wx.postMessage('This is a web message');");
-}
+void PrintagoPanel::OnRunScriptMessage(wxCommandEvent &WXUNUSED(evt)) { RunScript("window.wx.postMessage('This is a web message');"); }
 
-void PrintagoPanel::OnRunScriptCustom(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnRunScriptCustom(wxCommandEvent &WXUNUSED(evt))
 {
-    wxTextEntryDialog dialog
-    (
-        this,
-        "Please enter JavaScript code to execute",
-        wxGetTextFromUserPromptStr,
-        m_javascript,
-        wxOK | wxCANCEL | wxCENTRE | wxTE_MULTILINE
-    );
+    wxTextEntryDialog dialog(this, "Please enter JavaScript code to execute", wxGetTextFromUserPromptStr, m_javascript,
+                             wxOK | wxCANCEL | wxCENTRE | wxTE_MULTILINE);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
     RunScript(dialog.GetValue());
 }
 
-void PrintagoPanel::OnAddUserScript(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnAddUserScript(wxCommandEvent &WXUNUSED(evt))
 {
     wxString userScript = "window.wx_test_var = 'wxWidgets webview sample';";
-    wxTextEntryDialog dialog
-    (
-        this,
-        "Enter the JavaScript code to run as the initialization script that runs before any script in the HTML document.",
-        wxGetTextFromUserPromptStr,
-        userScript,
-        wxOK | wxCANCEL | wxCENTRE | wxTE_MULTILINE
-    );
+    wxTextEntryDialog
+        dialog(this, "Enter the JavaScript code to run as the initialization script that runs before any script in the HTML document.",
+               wxGetTextFromUserPromptStr, userScript, wxOK | wxCANCEL | wxCENTRE | wxTE_MULTILINE);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
@@ -1238,17 +1268,12 @@ void PrintagoPanel::OnAddUserScript(wxCommandEvent& WXUNUSED(evt))
         wxLogError("Could not add user script");
 }
 
-void PrintagoPanel::OnSetCustomUserAgent(wxCommandEvent& WXUNUSED(evt))
+void PrintagoPanel::OnSetCustomUserAgent(wxCommandEvent &WXUNUSED(evt))
 {
-    wxString customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.1 Mobile/15E148 Safari/604.1";
-    wxTextEntryDialog dialog
-    (
-        this,
-        "Enter the custom user agent string you would like to use.",
-        wxGetTextFromUserPromptStr,
-        customUserAgent,
-        wxOK | wxCANCEL | wxCENTRE
-    );
+    wxString          customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) "
+                                        "Version/13.0.1 Mobile/15E148 Safari/604.1";
+    wxTextEntryDialog dialog(this, "Enter the custom user agent string you would like to use.", wxGetTextFromUserPromptStr, customUserAgent,
+                             wxOK | wxCANCEL | wxCENTRE);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
@@ -1256,34 +1281,22 @@ void PrintagoPanel::OnSetCustomUserAgent(wxCommandEvent& WXUNUSED(evt))
         wxLogError("Could not set custom user agent");
 }
 
-void PrintagoPanel::OnClearSelection(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->ClearSelection();
-}
+void PrintagoPanel::OnClearSelection(wxCommandEvent &WXUNUSED(evt)) { m_browser->ClearSelection(); }
 
-void PrintagoPanel::OnDeleteSelection(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->DeleteSelection();
-}
+void PrintagoPanel::OnDeleteSelection(wxCommandEvent &WXUNUSED(evt)) { m_browser->DeleteSelection(); }
 
-void PrintagoPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->SelectAll();
-}
+void PrintagoPanel::OnSelectAll(wxCommandEvent &WXUNUSED(evt)) { m_browser->SelectAll(); }
 
 /**
-    * Callback invoked when a loading error occurs
-    */
-void PrintagoPanel::OnError(wxWebViewEvent& evt)
+ * Callback invoked when a loading error occurs
+ */
+void PrintagoPanel::OnError(wxWebViewEvent &evt)
 {
 #define WX_ERROR_CASE(type) \
-    case type: \
-    category = #type; \
-    break;
+    case type: category = #type; break;
 
     wxString category;
-    switch (evt.GetInt())
-    {
+    switch (evt.GetInt()) {
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_CONNECTION);
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_CERTIFICATE);
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_AUTH);
@@ -1299,13 +1312,10 @@ void PrintagoPanel::OnError(wxWebViewEvent& evt)
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
 
-    //Show the info bar with an error
-    m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" +
-        "'" + category + "'", wxICON_ERROR);
+    // Show the info bar with an error
+    m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() + "\n" + "'" + category + "'", wxICON_ERROR);
 
     UpdateState();
 }
 
-
-} // GUI
-} // Slic3r
+}} // namespace Slic3r::GUI
