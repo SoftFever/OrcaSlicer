@@ -338,6 +338,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // parent function
             if(wipe_path.length() < wipe_dist){
                 length = length *(wipe_path.length() / wipe_dist );
+                // to avoid a zero length retraction
+                length = length < EPSILON ? EPSILON : length;
             }
 
             wipe_path.clip_end(wipe_path.length() - wipe_dist);
