@@ -306,11 +306,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             _wipe_speed = gcodegen.writer().get_current_speed() / 60.0;
         if(_wipe_speed < 10)
             _wipe_speed = 10;
-
-        // get the retraction length
-        double length = toolchange
-            ? gcodegen.writer().extruder()->retract_length_toolchange()
-            : gcodegen.writer().extruder()->retraction_length();
+        
+        // always attempt wipe with the regular filament retraction amount as tool changes may have retraction lengths that are too large and unecessary for wiping and can also
+        // cause retraction to fail (extruder stall) if wiping over a too small a distance. For a tool change, the remaining retraction distance will be performed in the
+        // parent function.
+        double length = gcodegen.writer().extruder()->retraction_length();
+        
         // Shorten the retraction length by the amount already retracted before wipe.
         length *= (1. - gcodegen.writer().extruder()->retract_before_wipe());
 
@@ -331,6 +332,14 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 this->path.points.begin() + 1,
                 this->path.points.end()
             );
+            
+            // if the wipe path is not big enough to wipe the full requested distance, reduce the retraction amount proportionally
+            // to avoid extreme retraction lengths over a small distance. The remaining retraction distance will be performed in the
+            // parent function
+            if(wipe_path.length() < wipe_dist){
+                printf ("wipe path length %f, wipe distance %f\n",wipe_path.length(),wipe_dist );
+                length = length *(wipe_path.length() / wipe_dist );
+            }
 
             wipe_path.clip_end(wipe_path.length() - wipe_dist);
 
