@@ -30,7 +30,8 @@ static wxString sending_over_lan_str        = _L("Sending print job over LAN");
 static wxString sending_over_cloud_str      = _L("Sending print job through cloud service");
 
 static wxString wait_sending_finish         = _L("Print task sending times out.");
-static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+//static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly and send the print again.");
+static wxString desc_wait_sending_finish    = _L("The printer timed out while receiving a print job. Please check if the network is functioning properly.");
 
 PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::string dev_id)
 : PlaterJob{ std::move(pri), plater },
@@ -447,8 +448,9 @@ void PrintJob::process()
                 m_plater->update_print_error_info(BAMBU_NETWORK_ERR_TIMEOUT, wait_sending_finish.ToStdString(), desc_wait_sending_finish.ToStdString());
                 BOOST_LOG_TRIVIAL(info) << "print_job: timeout, cancel the job" << obj->job_id_;
                 /* handle tiemout */
-                obj->command_task_cancel(curr_job_id);
-                return false;
+                //obj->command_task_cancel(curr_job_id);
+                //return false;
+                return true;
             }
             BOOST_LOG_TRIVIAL(info) << "print_job: obj is null";
             return true;
