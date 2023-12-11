@@ -339,7 +339,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             double retract_before_wipe_length = 0; // variable containing how much we should retract before a wipe is done to protect the extruder
             if(wipe_path.length() < wipe_dist && !wipe_path.empty()){
                 double desired_wipe_length = length;
-                double maximum_retraction_amount = gcodegen.writer().extruder()->retraction_length() * (wipe_path.length() / wipe_dist ); // this is the maximum we can retract while wiping
+                //double maximum_retraction_amount = gcodegen.writer().extruder()->retraction_length() * (wipe_path.length() / wipe_dist ); // this is the maximum we can retract while wiping
+                double maximum_retraction_amount = length * (wipe_path.length() / wipe_dist ); // this is the maximum we can retract while wiping
                 retract_before_wipe_length = desired_wipe_length - maximum_retraction_amount; // retract amount before doing the wipe move
                 
                 // Debug GCode Output - to remove before release
