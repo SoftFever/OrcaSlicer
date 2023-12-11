@@ -7,6 +7,7 @@
 
 #include "../Point.hpp"
 #include "../PrintConfig.hpp"
+#include "PrintConfig.hpp"
 #include "ThumbnailData.hpp"
 
 #include <vector>
@@ -52,7 +53,15 @@ inline void export_thumbnails_to_file(ThumbnailsGeneratorCallback &thumbnail_cb,
                         output((char *) compressed->data);
                         if (i == (thumbnails.size() - 1))
                             output("; bigtree thumbnail end\r\n\r\n");
-                    } else {
+                    }
+                    else if (format == GCodeThumbnailsFormat::ColPic) {
+                        if (i == 0) {
+                            output((boost::format("\n\n;gimage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
+                        } else {
+                            output((boost::format("\n\n;simage:%s\n\n") % reinterpret_cast<char*>(compressed->data)).str().c_str());
+                        }
+                    } 
+                    else {
                         output("; THUMBNAIL_BLOCK_START\n");
                         std::string encoded;
                         encoded.resize(boost::beast::detail::base64::encoded_size(compressed->size));

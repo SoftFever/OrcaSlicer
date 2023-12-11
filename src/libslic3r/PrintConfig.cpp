@@ -368,7 +368,8 @@ static const t_config_enum_values  s_keys_map_GCodeThumbnailsFormat = {
     { "PNG", int(GCodeThumbnailsFormat::PNG) },
     { "JPG", int(GCodeThumbnailsFormat::JPG) },
     { "QOI", int(GCodeThumbnailsFormat::QOI) },
-    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) }
+    { "BTT_TFT", int(GCodeThumbnailsFormat::BTT_TFT) },
+    { "ColPic", int(GCodeThumbnailsFormat::ColPic) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeThumbnailsFormat)
 
@@ -4390,7 +4391,13 @@ def = this->add("filament_loading_speed", coFloats);
     def->enum_values.push_back("PNG");
     def->enum_values.push_back("JPG");
     def->enum_values.push_back("QOI");
-    def->enum_values.push_back("BTT TFT");
+    def->enum_values.push_back("BTT_TFT");
+    def->enum_values.push_back("ColPic");
+    def->enum_labels.push_back("PNG");
+    def->enum_labels.push_back("JPG");
+    def->enum_labels.push_back("QOI");
+    def->enum_labels.push_back("BTT TT");
+    def->enum_labels.push_back("ColPic");
     def->set_default_value(new ConfigOptionEnum<GCodeThumbnailsFormat>(GCodeThumbnailsFormat::PNG));
 
     def = this->add("use_relative_e_distances", coBool);
