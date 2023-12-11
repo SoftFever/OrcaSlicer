@@ -3157,7 +3157,7 @@ void SelectMachineDialog::on_rename_enter()
 
     m_current_project_name = new_file_name;
     m_rename_switch_panel->SetSelection(0);
-    m_rename_text->SetLabel(m_current_project_name);
+    m_rename_text->SetLabelText(m_current_project_name);
     m_rename_normal_panel->Layout();
 }
 
