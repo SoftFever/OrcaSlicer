@@ -14,6 +14,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include "../GUI/MsgDialog.hpp"
 
 #include <imgui/imgui_internal.h>
 #include "FixModelByWin10.hpp"
@@ -917,9 +918,22 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         // fix_non_manifold_edges
 #ifdef HAS_WIN10SDK
         if (is_windows10()) {
+            bool is_showed_dialog = false;
+            bool user_fix_model   = false;
             for (size_t i = 0; i < new_objects.size(); i++) {
                 for (size_t j = 0; j < new_objects[i]->volumes.size(); j++) {
                     if (its_num_open_edges(new_objects[i]->volumes[j]->mesh().its) > 0) {
+                        if (!is_showed_dialog) {
+                            is_showed_dialog = true;
+                            MessageDialog dlg(nullptr, _L("non-mainifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxCANCEL);
+                            int           ret = dlg.ShowModal();
+                            if (ret == wxID_YES) {
+                                user_fix_model = true;
+                            }
+                        }
+                        if (!user_fix_model) {
+                            break;
+                        }
                         // model_name
                         std::vector<std::string> succes_models;
                         // model_name     failing reason
