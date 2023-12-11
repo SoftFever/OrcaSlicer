@@ -107,7 +107,15 @@ void GLGizmoMove3D::on_dragging(const UpdateData& data)
         m_displacement.z() = calc_projection(data);
         
     Selection &selection = m_parent.get_selection();
-    selection.translate(m_displacement);
+    TransformationType trafo_type;
+    trafo_type.set_relative();
+    switch (wxGetApp().obj_manipul()->get_coordinates_type())
+    {
+    case ECoordinatesType::Instance: { trafo_type.set_instance(); break; }
+    case ECoordinatesType::Local: { trafo_type.set_local(); break; }
+    default: { break; }
+    }
+    selection.translate(m_displacement, trafo_type);
 }
 
 void GLGizmoMove3D::on_render()

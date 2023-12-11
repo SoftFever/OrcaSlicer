@@ -12,6 +12,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 #include <wx/regex.h>
 #include <wx/progdlg.h>
@@ -1162,6 +1164,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
     m_status_bar->get_panel()->Hide();
 
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
     auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
@@ -1278,12 +1281,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
 void InputIpAddressDialog::on_cancel()
 {
-    if (m_send_job) {
-        if (m_send_job->is_running()) {
-            m_send_job->cancel();
-            m_send_job->join();
-        }
-    }
+    m_worker->cancel_all();
     if (m_result == 0){
         this->EndModal(wxID_YES);
     }else {
@@ -1401,25 +1399,17 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
 
-    if (m_send_job) {
-        m_send_job->join();
-    }
+    m_worker->wait_for_idle();
 
     m_status_bar->reset();
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        if (m_send_job) {
-            if (m_send_job->is_running()) {
-                BOOST_LOG_TRIVIAL(info) << "send_job: canceled";
-                m_send_job->cancel();
-            }
-            m_send_job->join();
-        }
+        m_worker->cancel_all();
    });
 
 
-    m_send_job = std::make_shared<SendJob>(m_status_bar, wxGetApp().plater(), m_obj->dev_id);
+    auto m_send_job = std::make_unique<SendJob>(m_obj->dev_id);
     m_send_job->m_dev_ip = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
 
@@ -1454,7 +1444,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
        
     });
 
-    m_send_job->start();
+    replace_job(*m_worker, std::move(m_send_job));
 }
 
 void InputIpAddressDialog::check_ip_address_failed(int result)

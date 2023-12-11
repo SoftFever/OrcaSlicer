@@ -53,9 +53,9 @@ using Vec3i64 = Eigen::Matrix<int64_t,  3, 1, Eigen::DontAlign>;
 // Vector types with a double coordinate base type.
 using Vec2f   = Eigen::Matrix<float,    2, 1, Eigen::DontAlign>;
 using Vec3f   = Eigen::Matrix<float,    3, 1, Eigen::DontAlign>;
+using Vec4f   = Eigen::Matrix<float,    4, 1, Eigen::DontAlign>;
 using Vec2d   = Eigen::Matrix<double,   2, 1, Eigen::DontAlign>;
 using Vec3d   = Eigen::Matrix<double,   3, 1, Eigen::DontAlign>;
-using Vec4f   = Eigen::Matrix<float,    4, 1, Eigen::DontAlign>;
 using Vec4d   = Eigen::Matrix<double,   4, 1, Eigen::DontAlign>;
 
 using Points         = std::vector<Point>;
@@ -116,9 +116,8 @@ inline Eigen::Matrix<typename Derived::Scalar, 2, 1, Eigen::DontAlign> perp(cons
 }
 
 // Angle from v1 to v2, returning double atan2(y, x) normalized to <-PI, PI>.
-template <typename Derived, typename Derived2>
-inline double angle(const Eigen::MatrixBase<Derived>& v1, const Eigen::MatrixBase<Derived2>& v2)
-{
+template<typename Derived, typename Derived2>
+inline double angle(const Eigen::MatrixBase<Derived> &v1, const Eigen::MatrixBase<Derived2> &v2) {
     static_assert(Derived::IsVectorAtCompileTime && int(Derived::SizeAtCompileTime) == 2, "angle(): first parameter is not a 2D vector");
     static_assert(Derived2::IsVectorAtCompileTime && int(Derived2::SizeAtCompileTime) == 2, "angle(): second parameter is not a 2D vector");
     auto v1d = v1.template cast<double>();
@@ -153,6 +152,29 @@ inline std::string to_string(const Vec3d   &pt) { return std::string("[") + floa
 std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t);
 Pointf3s transform(const Pointf3s& points, const Transform3d& t);
 
+/// <summary>
+/// Check whether transformation matrix contains odd number of mirroring.
+/// NOTE: In code is sometime function named is_left_handed
+/// </summary>
+/// <param name="transform">Transformation to check</param>
+/// <returns>Is positive determinant</returns>
+inline bool has_reflection(const Transform3d &transform) { return transform.matrix().determinant() < 0; }
+
+/// <summary>
+/// Getter on base of transformation matrix
+/// </summary>
+/// <param name="index">column index</param>
+/// <param name="transform">source transformation</param>
+/// <returns>Base of transformation matrix</returns>
+inline const Vec3d get_base(unsigned index, const Transform3d &transform) { return transform.linear().col(index); }
+inline const Vec3d get_x_base(const Transform3d &transform) { return get_base(0, transform); }
+inline const Vec3d get_y_base(const Transform3d &transform) { return get_base(1, transform); }
+inline const Vec3d get_z_base(const Transform3d &transform) { return get_base(2, transform); }
+inline const Vec3d get_base(unsigned index, const Transform3d::LinearPart &transform) { return transform.col(index); }
+inline const Vec3d get_x_base(const Transform3d::LinearPart &transform) { return get_base(0, transform); }
+inline const Vec3d get_y_base(const Transform3d::LinearPart &transform) { return get_base(1, transform); }
+inline const Vec3d get_z_base(const Transform3d::LinearPart &transform) { return get_base(2, transform); }
+
 template<int N, class T> using Vec = Eigen::Matrix<T,  N, 1, Eigen::DontAlign, N, 1>;
 
 class Point : public Vec2crd
@@ -163,15 +185,16 @@ public:
     Point() : Vec2crd(0, 0) {}
     Point(int32_t x, int32_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
     Point(int64_t x, int64_t y) : Vec2crd(coord_t(x), coord_t(y)) {}
-    Point(double x, double y) : Vec2crd(coord_t(lrint(x)), coord_t(lrint(y))) {}
+    Point(double x, double y) : Vec2crd(coord_t(std::round(x)), coord_t(std::round(y))) {}
     Point(const Point &rhs) { *this = rhs; }
-	explicit Point(const Vec2d& rhs) : Vec2crd(coord_t(lrint(rhs.x())), coord_t(lrint(rhs.y()))) {}
+	explicit Point(const Vec2d& rhs) : Vec2crd(coord_t(std::round(rhs.x())), coord_t(std::round(rhs.y()))) {}
 	// This constructor allows you to construct Point from Eigen expressions
+    // This constructor has to be implicit (non-explicit) to allow implicit conversion from Eigen expressions.
     template<typename OtherDerived>
     Point(const Eigen::MatrixBase<OtherDerived> &other) : Vec2crd(other) {}
     static Point new_scale(coordf_t x, coordf_t y) { return Point(coord_t(scale_(x)), coord_t(scale_(y))); }
-    static Point new_scale(const Vec2d &v) { return Point(coord_t(scale_(v.x())), coord_t(scale_(v.y()))); }
-    static Point new_scale(const Vec2f &v) { return Point(coord_t(scale_(v.x())), coord_t(scale_(v.y()))); }
+    template<typename OtherDerived>
+    static Point new_scale(const Eigen::MatrixBase<OtherDerived> &v) { return Point(coord_t(scale_(v.x())), coord_t(scale_(v.y()))); }
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template<typename OtherDerived>
@@ -297,16 +320,16 @@ BoundingBoxf get_extents(const std::vector<Vec2d> &pts);
 
 // Test for duplicate points in a vector of points.
 // The points are copied, sorted and checked for duplicates globally.
-bool        has_duplicate_points(std::vector<Point> &&pts);
-inline bool has_duplicate_points(const std::vector<Point> &pts)
+bool        has_duplicate_points(Points &&pts);
+inline bool has_duplicate_points(const Points &pts)
 {
-    std::vector<Point> cpy = pts;
+    Points cpy = pts;
     return has_duplicate_points(std::move(cpy));
 }
 
 // Test for duplicate points in a vector of points.
 // Only successive points are checked for equality.
-inline bool has_duplicate_successive_points(const std::vector<Point> &pts)
+inline bool has_duplicate_successive_points(const Points &pts)
 {
     for (size_t i = 1; i < pts.size(); ++ i)
         if (pts[i - 1] == pts[i])
@@ -316,10 +339,13 @@ inline bool has_duplicate_successive_points(const std::vector<Point> &pts)
 
 // Test for duplicate points in a vector of points.
 // Only successive points are checked for equality. Additionally, first and last points are compared for equality.
-inline bool has_duplicate_successive_points_closed(const std::vector<Point> &pts)
+inline bool has_duplicate_successive_points_closed(const Points &pts)
 {
     return has_duplicate_successive_points(pts) || (pts.size() >= 2 && pts.front() == pts.back());
 }
+
+// Collect adjecent(duplicit points)
+Points collect_duplicates(Points pts /* Copy */);
 
 inline bool shorter_then(const Point& p0, const coord_t len)
 {
@@ -341,7 +367,7 @@ namespace int128 {
 
 // To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
-    size_t operator()(const Vec2crd &pt) const {
+    size_t operator()(const Vec2crd &pt) const noexcept {
         return coord_t((89 * 31 + int64_t(pt.x())) * 31 + pt.y());
     }
 };
@@ -569,6 +595,27 @@ inline coord_t align_to_grid(coord_t coord, coord_t spacing, coord_t base)
     { return base + align_to_grid(coord - base, spacing); }
 inline Point   align_to_grid(Point   coord, Point   spacing, Point   base)
     { return Point(align_to_grid(coord.x(), spacing.x(), base.x()), align_to_grid(coord.y(), spacing.y(), base.y())); }
+
+// MinMaxLimits
+template<typename T> struct MinMax { T min; T max;};
+template<typename T>
+static bool apply(std::optional<T> &val, const MinMax<T> &limit) {
+    if (!val.has_value()) return false;
+    return apply<T>(*val, limit);
+}
+template<typename T>
+static bool apply(T &val, const MinMax<T> &limit)
+{
+    if (val > limit.max) {
+        val = limit.max;
+        return true;
+    }
+    if (val < limit.min) {
+        val = limit.min;
+        return true;
+    }
+    return false;
+}
 
 } // namespace Slic3r
 

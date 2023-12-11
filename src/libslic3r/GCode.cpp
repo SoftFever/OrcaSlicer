@@ -1998,12 +1998,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
+        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT) {
+            auto thumbnaim_fmt = m_gcode_thumbnail_format;
+            // Orca: if the thumbnail format is ColPic, we write PNG in the beginning of gcode file and ColPic in the end of gcode file. 
+            if(m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
+                thumbnaim_fmt = GCodeThumbnailsFormat::PNG;
           GCodeThumbnails::export_thumbnails_to_file(
               thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-              m_gcode_thumbnail_format,
-              [&file](const char *sz) { file.write(sz); },
-              [&print]() { print.throw_if_canceled(); });
+              thumbnaim_fmt, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+        }
       }
     }
 
@@ -2284,9 +2287,9 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
 
             float filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_non_support_extruder_id);
             const double nozzle_diameter = m_config.nozzle_diameter.get_at(initial_non_support_extruder_id);
-            float outer_wall_line_width = this->config().get_abs_value("outer_wall_line_width", nozzle_diameter);
+            float outer_wall_line_width = print.default_region_config().get_abs_value("outer_wall_line_width", nozzle_diameter);
             if (outer_wall_line_width == 0.0) {
-                float default_line_width =  this->config().get_abs_value("line_width", nozzle_diameter);
+                float default_line_width =  print.default_object_config().get_abs_value("line_width", nozzle_diameter);
                 outer_wall_line_width = default_line_width == 0.0 ? nozzle_diameter : default_line_width;
             }
             Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_non_support_extruder_id));
@@ -2392,12 +2395,12 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
     // SoftFever: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
-        if ((m_config.default_acceleration.value > 0 && m_config.outer_wall_acceleration.value > 0)) {
-            gcode += m_writer.set_print_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
+        if ((print.default_object_config().outer_wall_acceleration.value > 0 && print.default_object_config().outer_wall_acceleration.value > 0)) {
+            gcode += m_writer.set_print_acceleration((unsigned int)floor(print.default_object_config().outer_wall_acceleration.value + 0.5));
         }
 
-        if (m_config.default_jerk.value > 0) {
-            double jerk = m_config.outer_wall_jerk.value;
+        if (print.default_object_config().outer_wall_jerk.value > 0) {
+            double jerk = print.default_object_config().outer_wall_jerk.value;
             gcode += m_writer.set_jerk_xy(jerk);
         }
 
@@ -2646,6 +2649,11 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
                 GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder)
             .c_str());
       file.write("\n");
+      if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
+            GCodeThumbnails::export_thumbnails_to_file(
+                thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                m_gcode_thumbnail_format, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+
       file.write("; CONFIG_BLOCK_START\n");
       std::string full_config;
       append_full_config(print, full_config);
