@@ -364,7 +364,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             }
             // if we have any amount to retract before the wipe procedure is done, do it now.
             if(retract_before_wipe_length > EPSILON)
-                gcode += gcodegen.writer().retract(retract_before_wipe_length, toolchange); // retract the excess amount in addition to whatever distance has been retracted before because of the retract amount before wipe
+                gcode += gcodegen.writer().retract(retract_before_wipe_length + dE_retracted, toolchange); // retract the excess amount in addition to whatever distance has been retracted before because of the retract amount before wipe
 
             wipe_path.clip_end(wipe_path.length() - wipe_dist);
 
