@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-08 14:59+0800\n"
+"POT-Creation-Date: 2023-12-11 17:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -308,6 +308,9 @@ msgstr ""
 
 msgid "Cut"
 msgstr "Couper"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
 
 msgid "Repairing model object"
 msgstr "Réparer l'objet modèle"
@@ -1850,7 +1853,7 @@ msgstr ""
 
 msgid ""
 "The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
+"network is functioning properly."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -5230,6 +5233,14 @@ msgid ""
 msgstr ""
 "Zoomez sur la position du pointeur de la souris dans la vue 3D, plutôt que "
 "sur le centre de la fenêtre 2D."
+
+msgid "Auto Bed Type"
+msgstr ""
+
+msgid ""
+"Studio will remember build plate selected last time for certain printer "
+"model."
+msgstr ""
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""

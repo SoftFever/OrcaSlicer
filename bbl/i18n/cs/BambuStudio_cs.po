@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-08 14:59+0800\n"
+"POT-Creation-Date: 2023-12-11 17:54+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -312,6 +312,9 @@ msgstr ""
 
 msgid "Cut"
 msgstr "Řezat"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
 
 msgid "Repairing model object"
 msgstr "Oprava objektu modelu"
@@ -1833,7 +1836,7 @@ msgstr ""
 
 msgid ""
 "The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
+"network is functioning properly."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -5192,6 +5195,14 @@ msgid ""
 "Zoom in towards the mouse pointer's position in the 3D view, rather than the "
 "2D window center."
 msgstr "Přiblížit se ke kurzoru myši ve 3D zobrazení, na místo středu 2D okna."
+
+msgid "Auto Bed Type"
+msgstr ""
+
+msgid ""
+"Studio will remember build plate selected last time for certain printer "
+"model."
+msgstr ""
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr ""

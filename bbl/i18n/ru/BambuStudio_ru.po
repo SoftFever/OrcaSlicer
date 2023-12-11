@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-08 14:59+0800\n"
+"POT-Creation-Date: 2023-12-11 17:54+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -317,6 +317,9 @@ msgstr "Переназначение стороны части модели"
 
 msgid "Cut"
 msgstr "Разрезать"
+
+msgid "non-mainifold edges be caused by cut tool, do you want to fix it now?"
+msgstr ""
 
 msgid "Repairing model object"
 msgstr "Починка модели"
@@ -1866,10 +1869,8 @@ msgstr "Время отправки задания на печать истек�
 
 msgid ""
 "The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly and send the print again."
+"network is functioning properly."
 msgstr ""
-"Время ожидания принтера при получении задания на печать истекло. Проверьте "
-"правильность работы сети и повторно отправьте задание на печать."
 
 msgid "Service Unavailable"
 msgstr "Сервис недоступен"
@@ -5342,6 +5343,14 @@ msgid ""
 msgstr ""
 "Увеличивать масштаб по направлению к курсору в 3D-виде, а не к центру 2D-"
 "окна."
+
+msgid "Auto Bed Type"
+msgstr ""
+
+msgid ""
+"Studio will remember build plate selected last time for certain printer "
+"model."
+msgstr ""
 
 msgid "Flushing volumes: Auto-calculate everytime the color changed."
 msgstr "Объём очистки: автопересчёт при каждом изменении цвета."
@@ -12188,6 +12197,13 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid ""
+#~ "The printer timed out while receiving a print job. Please check if the "
+#~ "network is functioning properly and send the print again."
+#~ msgstr ""
+#~ "Время ожидания принтера при получении задания на печать истекло. "
+#~ "Проверьте правильность работы сети и повторно отправьте задание на печать."
 
 # ??? Обнаружение перехлеста прутка на катушке
 #~ msgid "Fliament Tangle Detect"
