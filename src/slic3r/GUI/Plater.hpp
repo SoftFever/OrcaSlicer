@@ -213,7 +213,7 @@ public:
 
     int new_project(bool skip_confirm = false, bool silent = false, const wxString& project_name = wxString());
     // BBS: save & backup
-    void load_project(wxString const & filename = "", wxString const & originfile = "-");
+    void load_project(wxString const & filename = "", wxString const & originfile = "-", bool noprompt = false);
     int save_project(bool saveAs = false);
     //BBS download project by project id
     void import_model_id(wxString download_info);

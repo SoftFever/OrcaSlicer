@@ -7833,8 +7833,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
 
 
 // BBS: FIXME, missing resotre logic
-void Plater::load_project(wxString const& filename2,
-    wxString const& originfile)
+void Plater::load_project(wxString const& filename2, wxString const &originfile, bool noprompt)
 {
     auto filename = filename2;
     auto check = [&filename, this] (bool yes_or_no) {
@@ -7850,7 +7849,9 @@ void Plater::load_project(wxString const& filename2,
 
     // BSS: save project, force close
     int result;
-    if ((result = close_with_confirm(check)) == wxID_CANCEL) {
+    if (noprompt) {
+        result = wxID_NO;
+    } else if ((result = close_with_confirm(check)) == wxID_CANCEL) {
         return;
     }
 

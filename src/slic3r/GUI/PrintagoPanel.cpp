@@ -416,11 +416,17 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommandEvent &event)
                 return;
             }
 
-            // TODO: IF localFilePath is .3MF file; use plater.load_project() instead of load_files().
             std::vector<std::string> filePathArray;
             filePathArray.push_back(localFilePath.ToStdString());
             LoadStrategy strat = LoadStrategy::LoadModel | LoadStrategy::LoadConfig | LoadStrategy::LoadAuxiliary | LoadStrategy::Silence;
             std::vector<size_t> loadedFilesIndices = wxGetApp().plater()->load_files(filePathArray, strat, false);
+
+            wxFileName filename(localFilePath);
+            if (!filename.GetExt().MakeUpper().compare("3MF")) {
+                wxGetApp().plater()->load_project(localFilePath, "-", true); // "-" is the default param, so I can set my extra flag noprompt=true the end.
+            } else {
+                wxGetApp().plater()->load_files(filePathArray, strat, false);
+            }
             wxGetApp().plater()->select_plate(0, true);
             wxGetApp().plater()->reslice();
             actionDetail = "";
