@@ -1998,12 +1998,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
       } else {
-        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT)
+        if (m_gcode_thumbnail_format != GCodeThumbnailsFormat::BTT_TFT) {
+            auto thumbnaim_fmt = m_gcode_thumbnail_format;
+            // Orca: if the thumbnail format is ColPic, we write PNG in the beginning of gcode file and ColPic in the end of gcode file. 
+            if(m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
+                thumbnaim_fmt = GCodeThumbnailsFormat::PNG;
           GCodeThumbnails::export_thumbnails_to_file(
               thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
-              m_gcode_thumbnail_format,
-              [&file](const char *sz) { file.write(sz); },
-              [&print]() { print.throw_if_canceled(); });
+              thumbnaim_fmt, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+        }
       }
     }
 
@@ -2646,6 +2649,11 @@ this->placeholder_parser().set("z_offset", new ConfigOptionFloat(m_config.z_offs
                 GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder)
             .c_str());
       file.write("\n");
+      if (m_gcode_thumbnail_format == GCodeThumbnailsFormat::ColPic)
+            GCodeThumbnails::export_thumbnails_to_file(
+                thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+                m_gcode_thumbnail_format, [&file](const char* sz) { file.write(sz); }, [&print]() { print.throw_if_canceled(); });
+
       file.write("; CONFIG_BLOCK_START\n");
       std::string full_config;
       append_full_config(print, full_config);

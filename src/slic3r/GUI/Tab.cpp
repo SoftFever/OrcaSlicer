@@ -3408,8 +3408,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("disable_m73");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
-        optgroup->append_single_option_line("thumbnails_format");
+        optgroup->append_single_option_line(option, "thumbnails");
+        optgroup->append_single_option_line("thumbnails_format", "thumbnails");
         optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         // optgroup->append_single_option_line("spaghetti_detector");
