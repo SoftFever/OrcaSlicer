@@ -6,14 +6,14 @@
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 
-#include <GL/glew.h>
-
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/Jobs/RotoptimizeJob.hpp"
+
 #include "libslic3r/PresetBundle.hpp"
 
-#include "slic3r/GUI/Jobs/RotoptimizeJob.hpp"
+#include <GL/glew.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -28,10 +28,16 @@ const float GLGizmoRotate::ScaleLongTooth = 0.1f; // in percent of radius
 const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
 const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
-
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent, "", -1)
     , m_axis(axis)
+    , m_angle(0.0)
+    , m_center(0.0, 0.0, 0.0)
+    , m_radius(0.0f)
+    , m_snap_coarse_in_radius(0.0f)
+    , m_snap_coarse_out_radius(0.0f)
+    , m_snap_fine_in_radius(0.0f)
+    , m_snap_fine_out_radius(0.0f)
     , m_drag_color(DEFAULT_DRAG_COLOR)
     , m_highlight_color(DEFAULT_HIGHLIGHT_COLOR)
 {
@@ -94,19 +100,12 @@ bool GLGizmoRotate::on_init()
 
 void GLGizmoRotate::on_start_dragging()
 {
-    const BoundingBoxf3& box = m_parent.get_selection().get_bounding_box();
-    m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
-    m_radius = Offset + box.radius();
-    m_snap_coarse_in_radius = m_radius / 3.0f;
-    m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
-    m_snap_fine_in_radius = m_radius;
-    m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
+    init_data_from_selection(m_parent.get_selection());
 }
 
 void GLGizmoRotate::on_dragging(const UpdateData &data)
 {
-    const Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray, m_parent.get_selection()));
-
+    const Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(data.mouse_ray));
     const Vec2d orig_dir = Vec2d::UnitX();
     const Vec2d new_dir = mouse_pos.normalized();
 
@@ -141,16 +140,8 @@ void GLGizmoRotate::on_render()
         return;
 
     const Selection& selection = m_parent.get_selection();
-    const BoundingBoxf3& box = selection.get_bounding_box();
-
-    if (m_hover_id != 0 && !m_grabbers.front().dragging) {
-        m_center = m_custom_center == Vec3d::Zero() ? box.center() : m_custom_center;
-        m_radius = Offset + box.radius();
-        m_snap_coarse_in_radius = m_radius / 3.0f;
-        m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
-        m_snap_fine_in_radius = m_radius;
-        m_snap_fine_out_radius = m_radius * (1.0f + ScaleLongTooth);
-    }
+    if (m_hover_id != 0 && !m_grabbers.front().dragging)
+        init_data_from_selection(selection);
 
     const double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
     m_grabbers.front().center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
@@ -168,15 +159,14 @@ void GLGizmoRotate::on_render()
         shader->start_using();
 
         const Camera& camera = wxGetApp().plater()->get_camera();
-        Transform3d view_model_matrix = camera.get_view_matrix() * m_grabbers.front().matrix;
-
+        const Transform3d view_model_matrix = camera.get_view_matrix() * m_grabbers.front().matrix;
         shader->set_uniform("view_model_matrix", view_model_matrix);
         shader->set_uniform("projection_matrix", camera.get_projection_matrix());
 
         const bool radius_changed = std::abs(m_old_radius - m_radius) > EPSILON;
         m_old_radius = m_radius;
 
-        ColorRGBA color((m_hover_id != -1) ? m_drag_color : m_highlight_color);
+        const ColorRGBA color = (m_hover_id != -1) ? m_drag_color : m_highlight_color;
         render_circle(color, radius_changed);
         if (m_hover_id != -1) {
             const bool hover_radius_changed = std::abs(m_old_hover_radius - m_radius) > EPSILON;
@@ -192,7 +182,23 @@ void GLGizmoRotate::on_render()
         shader->stop_using();
     }
 
-    render_grabber(box);
+    render_grabber(m_bounding_box);
+}
+
+void GLGizmoRotate::init_data_from_selection(const Selection& selection)
+{
+    const auto [box, box_trafo] = m_force_local_coordinate ?
+        selection.get_bounding_box_in_reference_system(ECoordinatesType::Local) : selection.get_bounding_box_in_current_reference_system();
+    m_bounding_box = box;
+    const std::pair<Vec3d, double> sphere = selection.get_bounding_sphere();
+    m_center = sphere.first;
+    m_radius = Offset + sphere.second;
+    m_orient_matrix = box_trafo;
+    m_orient_matrix.translation() = m_center;
+    m_snap_coarse_in_radius = m_radius / 3.0f;
+    m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
+    m_snap_fine_in_radius = m_radius;
+    m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
 //BBS: add input window for move
@@ -422,12 +428,12 @@ Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
     {
     case X:
     {
-        ret = Geometry::assemble_transform(Vec3d::Zero(), 0.5 * PI * Vec3d::UnitY()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ());
+        ret = Geometry::rotation_transform(0.5 * PI * Vec3d::UnitY()) * Geometry::rotation_transform(-0.5 * PI * Vec3d::UnitZ());
         break;
     }
     case Y:
     {
-        ret = Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitZ()) * Geometry::assemble_transform(Vec3d::Zero(), -0.5 * PI * Vec3d::UnitY());
+        ret = Geometry::rotation_transform(-0.5 * PI * Vec3d::UnitZ()) * Geometry::rotation_transform(-0.5 * PI * Vec3d::UnitY());
         break;
     }
     default:
@@ -438,13 +444,10 @@ Transform3d GLGizmoRotate::local_transform(const Selection& selection) const
     }
     }
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        ret = selection.get_first_volume()->get_instance_transformation().get_matrix(true, false, true, true) * ret;
-
-    return Geometry::assemble_transform(m_center) * ret;
+    return m_orient_matrix * ret;
 }
 
-Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, const Selection& selection) const
+Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) const
 {
     const double half_pi = 0.5 * double(PI);
 
@@ -472,8 +475,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
     }
     }
 
-    if (selection.is_single_volume() || selection.is_single_modifier() || selection.requires_local_axes())
-        m = m * selection.get_first_volume()->get_instance_transformation().get_matrix(true, false, true, true).inverse();
+    m = m * Geometry::Transformation(m_orient_matrix).get_matrix_no_offset().inverse();
 
     m.translate(-m_center);
 
@@ -496,19 +498,32 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray, cons
 //BBS: GUI refactor: add obj manipulation
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
-    , m_gizmos({ GLGizmoRotate(parent, GLGizmoRotate::X), GLGizmoRotate(parent, GLGizmoRotate::Y), GLGizmoRotate(parent, GLGizmoRotate::Z) })
-    //BBS: GUI refactor: add obj manipulation
+    , m_gizmos({ 
+        GLGizmoRotate(parent, GLGizmoRotate::X), 
+        GLGizmoRotate(parent, GLGizmoRotate::Y),
+        GLGizmoRotate(parent, GLGizmoRotate::Z) })
+	//BBS: GUI refactor: add obj manipulation
     , m_object_manipulation(obj_manipulation)
 {
     load_rotoptimize_state();
 }
 
-bool GLGizmoRotate3D::on_mouse(const wxMouseEvent &mouse_event) {
-
+bool GLGizmoRotate3D::on_mouse(const wxMouseEvent &mouse_event)
+{
     if (mouse_event.Dragging() && m_dragging) {
         // Apply new temporary rotations
-        TransformationType transformation_type(
-            TransformationType::World_Relative_Joint);
+        TransformationType transformation_type;
+        if (m_parent.get_selection().is_wipe_tower())
+            transformation_type = TransformationType::World_Relative_Joint;
+        else {
+            switch (wxGetApp().obj_manipul()->get_coordinates_type())
+            {
+            default:
+            case ECoordinatesType::World:    { transformation_type = TransformationType::World_Relative_Joint; break; }
+            case ECoordinatesType::Instance: { transformation_type = TransformationType::Instance_Relative_Joint; break; }
+            case ECoordinatesType::Local:    { transformation_type = TransformationType::Local_Relative_Joint; break; }
+            }
+        }
         if (mouse_event.AltDown())
             transformation_type.set_independent();
         m_parent.get_selection().rotate(get_rotation(), transformation_type);
@@ -669,11 +684,12 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     ImVec2 button_sz = {btn_txt_sz.x + padding.x, btn_txt_sz.y + padding.y};
     ImGui::SetCursorPosX(padding.x + sz.x - button_sz.x);
 
-    if (wxGetApp().plater()->is_any_job_running())
+    if (!wxGetApp().plater()->get_ui_job_worker().is_idle())
         imgui->disabled_begin(true);
 
     if ( imgui->button(btn_txt) ) {
-        wxGetApp().plater()->optimize_rotation();
+        replace_job(wxGetApp().plater()->get_ui_job_worker(),
+                    std::make_unique<RotoptimizeJob>());
     }
 
     imgui->disabled_end();

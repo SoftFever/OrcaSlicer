@@ -12,6 +12,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
@@ -300,6 +302,8 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
+    
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -580,9 +584,7 @@ void SendToPrinterDialog::prepare_mode()
 {
     m_is_in_sending_mode = false;
     m_comboBox_printer->Enable();
-    if (m_send_job) {
-        m_send_job->join();
-    }
+    m_worker->wait_for_idle();
 
     if (wxIsBusy())
         wxEndBusyCursor();
@@ -670,12 +672,7 @@ void SendToPrinterDialog::init_timer()
 
 void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
 {
-    if (m_send_job) {
-        if (m_send_job->is_running()) {
-            m_send_job->cancel();
-            m_send_job->join();
-        }
-    }
+    m_worker->cancel_all();
     this->EndModal(wxID_CANCEL);
 }
  
@@ -712,13 +709,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        if (m_send_job) {
-            if (m_send_job->is_running()) {
-                BOOST_LOG_TRIVIAL(info) << "send_job: canceled";
-                m_send_job->cancel();
-            }
-            m_send_job->join();
-        }
+        m_worker->cancel_all();
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -776,7 +767,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     
 
 
-    m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
+    auto m_send_job                 = std::make_unique<SendJob>(m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
     m_send_job->m_access_code       = obj_->get_access_code();
 
@@ -805,11 +796,9 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if (obj_->is_lan_mode_printer()) {
         m_send_job->set_check_mode();
         m_send_job->check_and_continue();
-        m_send_job->start();
     }
-    else {
-        m_send_job->start();
-    }
+
+    replace_job(*m_worker, std::move(m_send_job));
 
     BOOST_LOG_TRIVIAL(info) << "send_job: send print job";
 }
@@ -1058,7 +1047,11 @@ void SendToPrinterDialog::update_show_status()
     reset_timeout();
 
     // reading done
-    if (obj_->is_in_upgrading()) {
+    if (is_blocking_printing(obj_)) {
+        show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
+        return;
+    }
+    else if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
     }
@@ -1085,6 +1078,26 @@ void SendToPrinterDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
     }
+}
+
+bool SendToPrinterDialog::is_blocking_printing(MachineObject* obj_)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return true;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    auto target_model = obj_->printer_type;
+
+    if (source_model != target_model) {
+        std::vector<std::string> compatible_machine = dev->get_compatible_machine(target_model);
+        vector<std::string>::iterator it = find(compatible_machine.begin(), compatible_machine.end(), source_model);
+        if (it == compatible_machine.end()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void SendToPrinterDialog::Enable_Refresh_Button(bool en)
@@ -1167,6 +1180,12 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(true);
 	}
+    else if (status == PrintDialogStatus::PrintStatusUnsupportedPrinter) {
+        wxString msg_text = _L("The selected printer is incompatible with the chosen printer presets.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    }
 	else if (status == PrintDialogStatus::PrintStatusRefreshingMachineList) {
 		update_print_status_msg(wxEmptyString, false, true);
 		Enable_Send_Button(false);

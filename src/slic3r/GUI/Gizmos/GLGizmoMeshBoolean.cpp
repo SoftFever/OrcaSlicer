@@ -68,13 +68,13 @@ bool GLGizmoMeshBoolean::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
 
         if (get_selecting_state() == MeshBooleanSelectingState::SelectTool) {
-            m_tool.trafo = trafo_matrices[closest_hit_mesh_id];
+            m_tool.trafo = mo->volumes[closest_hit_mesh_id]->get_matrix();
             m_tool.volume_idx = closest_hit_mesh_id;
             set_tool_volume(mo->volumes[closest_hit_mesh_id]);
             return true;
         }
         if (get_selecting_state() == MeshBooleanSelectingState::SelectSource) {
-            m_src.trafo = trafo_matrices[closest_hit_mesh_id];
+            m_src.trafo = mo->volumes[closest_hit_mesh_id]->get_matrix();
             m_src.volume_idx = closest_hit_mesh_id;
             set_src_volume(mo->volumes[closest_hit_mesh_id]);
             m_selecting_state = MeshBooleanSelectingState::SelectTool;
@@ -451,7 +451,7 @@ void GLGizmoMeshBoolean::generate_new_volume(bool delete_input, const TriangleMe
     new_volume->set_material_id(old_volume->material_id());
     new_volume->set_offset(old_volume->get_transformation().get_offset());
     //Vec3d translate_z = { 0,0, (new_volume->source.mesh_offset - old_volume->source.mesh_offset).z() };
-    //new_volume->translate(new_volume->get_transformation().get_matrix(true) * translate_z);
+    //new_volume->translate(new_volume->get_transformation().get_matrix_no_offset() * translate_z);
     //new_volume->supported_facets.assign(old_volume->supported_facets);
     //new_volume->seam_facets.assign(old_volume->seam_facets);
     //new_volume->mmu_segmentation_facets.assign(old_volume->mmu_segmentation_facets);

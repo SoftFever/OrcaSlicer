@@ -13,6 +13,8 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "ConnectPrinter.hpp"
+#include "Jobs/BoostThreadWorker.hpp"
+#include "Jobs/PlaterWorker.hpp"
 
 
 #include <wx/progdlg.h>
@@ -1247,6 +1249,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(m_simplebook);
     m_panel_sending = m_status_bar->get_panel();
     m_simplebook->AddPage(m_panel_sending, wxEmptyString, false);
+    
+    m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, m_status_bar, "send_worker");
 
     // finish mode
     m_panel_finish = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -1701,9 +1705,7 @@ void SelectMachineDialog::prepare_mode(bool refresh_button)
     show_print_failed_info(false);
 
     m_is_in_sending_mode = false;
-    if (m_print_job) {
-        m_print_job->join();
-    }
+    m_worker->wait_for_idle();
 
     if (wxIsBusy())
         wxEndBusyCursor();
@@ -2206,12 +2208,7 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     if (m_mapping_popup.IsShown())
         m_mapping_popup.Dismiss();
 
-    if (m_print_job) {
-        if (m_print_job->is_running()) {
-            m_print_job->cancel();
-            m_print_job->join();
-        }
-    }
+    m_worker->cancel_all();
     this->EndModal(wxID_CANCEL);
 }
 
@@ -2664,13 +2661,7 @@ void SelectMachineDialog::on_send_print()
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
-        if (m_print_job) {
-            if (m_print_job->is_running()) {
-                BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
-                m_print_job->cancel();
-            }
-            m_print_job->join();
-        }
+        m_worker->cancel_all();
         m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
@@ -2738,7 +2729,7 @@ void SelectMachineDialog::on_send_print()
         }
     }
 
-    m_print_job = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
+    auto m_print_job = std::make_unique<PrintJob>(m_printer_last_select);
     m_print_job->m_dev_ip = obj_->dev_ip;
     m_print_job->m_ftp_folder = obj_->get_ftp_folder();
     m_print_job->m_access_code = obj_->get_access_code();
@@ -2824,7 +2815,7 @@ void SelectMachineDialog::on_send_print()
     if (agent)
         agent->track_update_property("dev_ota_version", obj_->get_ota_version());
 
-    m_print_job->start();
+    replace_job(*m_worker, std::move(m_print_job));
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }
 

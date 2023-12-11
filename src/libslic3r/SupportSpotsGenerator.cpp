@@ -105,15 +105,10 @@ float estimate_curled_up_height(
     float curled_up_height = 0;
     if (fabs(distance) < 3.0 * flow_width) {
         curled_up_height = std::max(prev_line_curled_height - layer_height * 0.75f, 0.0f);
-        //printf("If 1 %d\n",curled_up_height);
     }
-    
-    //printf("distance %f, params.malformation_distance_factors.first %f, params.malformation_distance_factors.second %f, flow_width %f\n", distance, params.malformation_distance_factors.first, params.malformation_distance_factors.second, flow_width);
-    //printf("distance %f,params.malformation_distance_factors.first * flow_width %f, params.malformation_distance_factors.second * flow_width %f\n", distance, params.malformation_distance_factors.first * flow_width, params.malformation_distance_factors.second * flow_width);
 
     if (distance > params.malformation_distance_factors.first * flow_width &&
         distance < params.malformation_distance_factors.second * flow_width) {
-        
         // imagine the extrusion profile. The part that has been glued (melted) with the previous layer will be called anchored section
         // and the rest will be called curling section
         // float anchored_section = flow_width - point.distance;
@@ -145,49 +140,79 @@ float estimate_curled_up_height(
 
 void estimate_malformations(LayerPtrs &layers, const Params &params)
 {
-	LD prev_layer_lines{};
-	for (Layer *l : layers) {
+#ifdef DEBUG_FILES
+    FILE *debug_file = boost::nowide::fopen(debug_out_path("object_malformations.obj").c_str(), "w");
+    FILE *full_file  = boost::nowide::fopen(debug_out_path("object_full.obj").c_str(), "w");
+#endif
+
+    LD prev_layer_lines{};
+
+    for (Layer *l : layers) {
         l->curled_lines.clear();
         std::vector<Linef> boundary_lines = l->lower_layer != nullptr ? to_unscaled_linesf(l->lower_layer->lslices) : std::vector<Linef>();
         AABBTreeLines::LinesDistancer<Linef> prev_layer_boundary{std::move(boundary_lines)};
         std::vector<ExtrusionLine>           current_layer_lines;
         for (const LayerRegion *layer_region : l->regions()) {
-			for (const ExtrusionEntity *extrusion : layer_region->perimeters.flatten().entities) {
-			    if (extrusion->role() != Slic3r::erExternalPerimeter)
+            for (const ExtrusionEntity *extrusion : layer_region->perimeters.flatten().entities) {
+                if (extrusion->role() != Slic3r::erExternalPerimeter)
                     continue;
-				Points extrusion_pts;
+
+                Points extrusion_pts;
                 extrusion->collect_points(extrusion_pts);
-				float flow_width       = get_flow_width(layer_region, extrusion->role());
-				auto  annotated_points = estimate_points_properties<true, true, false, false>(extrusion_pts, prev_layer_lines, flow_width,
-                                                                                             params.bridge_distance);
+                float flow_width       = get_flow_width(layer_region, extrusion->role());
+                auto  annotated_points = estimate_points_properties<true, true, false, false>(extrusion_pts,
+                                                                                                                 prev_layer_lines,
+                                                                                                                 flow_width,
+                                                                                                                 params.bridge_distance);
                 for (size_t i = 0; i < annotated_points.size(); ++i) {
-                	const ExtendedPoint &a = i > 0 ? annotated_points[i - 1] : annotated_points[i];
+                    const ExtendedPoint &a = i > 0 ? annotated_points[i - 1] : annotated_points[i];
                     const ExtendedPoint &b = annotated_points[i];
                     ExtrusionLine line_out{a.position.cast<float>(), b.position.cast<float>(), float((a.position - b.position).norm()),
                                            extrusion};
+
                     Vec2f middle                               = 0.5 * (line_out.a + line_out.b);
                     auto [middle_distance, bottom_line_idx, x] = prev_layer_lines.distance_from_lines_extra<false>(middle);
                     ExtrusionLine bottom_line                  = prev_layer_lines.get_lines().empty() ? ExtrusionLine{} :
                                                                                                         prev_layer_lines.get_line(bottom_line_idx);
 
                     // correctify the distance sign using slice polygons
-                    float sign = (prev_layer_boundary.distance_from_lines<true>(middle.cast<double>()) + 0.5f * flow_width) < 0.0f ? -1.0f : 1.0f;
+                    float sign = (prev_layer_boundary.distance_from_lines<true>(middle.cast<double>()) + 0.5f * flow_width) < 0.0f ? -1.0f :
+                                                                                                                                     1.0f;
 
-                    line_out.curled_up_height = estimate_curled_up_height(middle_distance * sign, 0.5 * (a.curvature + b.curvature),
+                    line_out.curled_up_height = estimate_curled_up_height(middle_distance * sign * params.curled_distance_expansion, 0.5 * (a.curvature + b.curvature),
                                                                           l->height, flow_width, bottom_line.curled_up_height, params);
 
                     current_layer_lines.push_back(line_out);
                 }
-			}
+            }
         }
+
         for (const ExtrusionLine &line : current_layer_lines) {
             if (line.curled_up_height > params.curling_tolerance_limit) {
                 l->curled_lines.push_back(CurledLine{Point::new_scale(line.a), Point::new_scale(line.b), line.curled_up_height});
             }
         }
-        
+
+#ifdef DEBUG_FILES
+        for (const ExtrusionLine &line : current_layer_lines) {
+            if (line.curled_up_height > params.curling_tolerance_limit) {
+                Vec3f color = value_to_rgbf(-EPSILON, l->height * params.max_curled_height_factor, line.curled_up_height);
+                fprintf(debug_file, "v %f %f %f  %f %f %f\n", line.b[0], line.b[1], l->print_z, color[0], color[1], color[2]);
+            }
+        }
+        for (const ExtrusionLine &line : current_layer_lines) {
+            Vec3f color = value_to_rgbf(-EPSILON, l->height * params.max_curled_height_factor, line.curled_up_height);
+            fprintf(full_file, "v %f %f %f  %f %f %f\n", line.b[0], line.b[1], l->print_z, color[0], color[1], color[2]);
+        }
+#endif
+
         prev_layer_lines = LD{current_layer_lines};
     }
+
+#ifdef DEBUG_FILES
+    fclose(debug_file);
+    fclose(full_file);
+#endif
 }
 
 /*

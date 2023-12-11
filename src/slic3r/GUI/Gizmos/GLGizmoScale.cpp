@@ -48,7 +48,7 @@ std::string GLGizmoScale3D::get_tooltip() const
     const Selection& selection = m_parent.get_selection();
 
     bool single_instance = selection.is_single_full_instance();
-    bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
+    bool single_volume = selection.is_single_volume_or_modifier();
 
     Vec3f scale = 100.0f * Vec3f::Ones();
     if (single_instance)
@@ -85,13 +85,21 @@ bool GLGizmoScale3D::on_mouse(const wxMouseEvent &mouse_event)
     if (mouse_event.Dragging()) {
         if (m_dragging) {
             // Apply new temporary scale factors
-            TransformationType transformation_type(TransformationType::Local_Absolute_Joint);
+            Selection& selection  = m_parent.get_selection();
+            TransformationType transformation_type;
+            if (selection.is_single_full_instance()) {
+                transformation_type.set_instance();
+            } else if (selection.is_single_volume_or_modifier()) {
+                transformation_type.set_local();
+            }
+
+            transformation_type.set_relative();
+
             if (mouse_event.AltDown())
                 transformation_type.set_independent();
 
-            Selection& selection = m_parent.get_selection();
             selection.scale(m_scale, transformation_type);
-            if (mouse_event.CmdDown()) selection.translate(m_offset, true);
+            if (mouse_event.CmdDown()) selection.translate(m_offset, transformation_type);
         }
     }
     return use_grabbers(mouse_event);
@@ -100,24 +108,11 @@ bool GLGizmoScale3D::on_mouse(const wxMouseEvent &mouse_event)
 void GLGizmoScale3D::data_changed(bool is_serializing) {
     const Selection &selection        = m_parent.get_selection();
     bool             enable_scale_xyz = selection.is_single_full_instance() ||
-                            selection.is_single_volume() ||
-                            selection.is_single_modifier();
+                            selection.is_single_volume_or_modifier();
     for (unsigned int i = 0; i < 6; ++i)
         m_grabbers[i].enabled = enable_scale_xyz;
 
-    if (enable_scale_xyz) {
-        // all volumes in the selection belongs to the same instance, any of
-        // them contains the needed data, so we take the first
-        const GLVolume *volume = selection.get_first_volume();
-        if (selection.is_single_full_instance()) {
-            set_scale(volume->get_instance_scaling_factor());
-        } else if (selection.is_single_volume() ||
-                   selection.is_single_modifier()) {
-            set_scale(volume->get_volume_scaling_factor());
-        }
-    } else {
-        set_scale(Vec3d::Ones());
-    }
+    set_scale(Vec3d::Ones());
 }
 
 bool GLGizmoScale3D::on_init()
@@ -193,7 +188,7 @@ void GLGizmoScale3D::on_render()
     const Selection& selection = m_parent.get_selection();
 
     bool single_instance = selection.is_single_full_instance();
-    bool single_volume = selection.is_single_modifier() || selection.is_single_volume();
+    bool single_volume = selection.is_single_volume_or_modifier();
 
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));

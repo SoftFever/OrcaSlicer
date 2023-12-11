@@ -13,21 +13,10 @@ wxDEFINE_EVENT(EVT_DOWNLOAD_NETWORK_FAILED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_NETWORK_FAILED, wxCommandEvent);
 
 
-UpgradeNetworkJob::UpgradeNetworkJob(std::shared_ptr<ProgressIndicator> pri)
-    : Job{std::move(pri)}
+UpgradeNetworkJob::UpgradeNetworkJob()
 {
     name         = "plugins";
     package_name = "networking_plugins.zip";
-}
-
-void UpgradeNetworkJob::on_exception(const std::exception_ptr &eptr)
-{
-    try {
-        if (eptr)
-            std::rethrow_exception(eptr);
-    } catch (std::exception &e) {
-        UpgradeNetworkJob::on_exception(eptr);
-    }
 }
 
 void UpgradeNetworkJob::on_success(std::function<void()> success)
@@ -35,17 +24,17 @@ void UpgradeNetworkJob::on_success(std::function<void()> success)
     m_success_fun = success;
 }
 
-void UpgradeNetworkJob::update_status(int st, const wxString &msg)
+void UpgradeNetworkJob::update_status(Ctl &ctl, int st, const std::string &msg)
 {
     BOOST_LOG_TRIVIAL(info) << "UpgradeNetworkJob: percent = " << st << "msg = " << msg;
-    GUI::Job::update_status(st, msg);
+    ctl.update_status(st, msg);
     wxCommandEvent event(EVT_UPGRADE_UPDATE_MESSAGE);
     event.SetString(msg);
     event.SetEventObject(m_event_handle);
     wxPostEvent(m_event_handle, event);
 }
 
-void UpgradeNetworkJob::process()
+void UpgradeNetworkJob::process(Ctl &ctl)
 {
     // downloading
     int result = 0;
@@ -64,24 +53,24 @@ void UpgradeNetworkJob::process()
 
     BOOST_LOG_TRIVIAL(info) << "UpgradeNetworkJob: save netowrk_plugin to " << tmp_path.string();
 
-    auto cancel_fn = [this]() {
-        return was_canceled();
+    auto cancel_fn    = [&ctl]() {
+        return ctl.was_canceled();
     };
     int curr_percent = 0;
     result = wxGetApp().download_plugin(name, package_name, 
-        [this, &curr_percent](int state, int percent, bool &cancel) {
+        [this, &ctl, &curr_percent](int state, int percent, bool &cancel) {
             if (state == InstallStatusNormal) {
-                update_status(percent, _L("Downloading"));
+                update_status(ctl, percent, _u8L("Downloading"));
             } else if (state == InstallStatusDownloadFailed) {
-                update_status(percent, _L("Download failed"));
+                update_status(ctl, percent, _u8L("Download failed"));
             } else {
-                update_status(percent, _L("Downloading"));
+                update_status(ctl, percent, _u8L("Downloading"));
             }
             curr_percent = percent;
         }, cancel_fn);
 
-    if (was_canceled()) {
-        update_status(0, _L("Cancelled"));
+    if (ctl.was_canceled()) {
+        update_status(ctl, 0, _u8L("Cancelled"));
         wxCommandEvent event(wxEVT_CLOSE_WINDOW);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -89,7 +78,7 @@ void UpgradeNetworkJob::process()
     }
 
     if (result < 0) {
-        update_status(0, _L("Download failed"));
+        update_status(ctl, 0, _u8L("Download failed"));
         wxCommandEvent event(EVT_DOWNLOAD_NETWORK_FAILED);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -98,16 +87,16 @@ void UpgradeNetworkJob::process()
 
     result = wxGetApp().install_plugin(
         name, package_name,
-        [this](int state, int percent, bool &cancel) {
+        [this, &ctl](int state, int percent, bool &cancel) {
         if (state == InstallStatusInstallCompleted) {
-            update_status(percent, _L("Install successfully."));
+            update_status(ctl, percent, _u8L("Install successfully."));
         } else {
-            update_status(percent, _L("Installing"));
+            update_status(ctl, percent, _u8L("Installing"));
         }
         }, cancel_fn);
 
-    if (was_canceled()) {
-        update_status(0, _L("Cancelled"));
+    if (ctl.was_canceled()) {
+        update_status(ctl, 0, _u8L("Cancelled"));
         wxCommandEvent event(wxEVT_CLOSE_WINDOW);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -115,7 +104,7 @@ void UpgradeNetworkJob::process()
     }
 
     if (result != 0) {
-        update_status(0, _L("Install failed"));
+        update_status(ctl, 0, _u8L("Install failed"));
         wxCommandEvent event(EVT_INSTALL_NETWORK_FAILED);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -129,11 +118,18 @@ void UpgradeNetworkJob::process()
     return;
 }
 
-void UpgradeNetworkJob::finalize()
+void UpgradeNetworkJob::finalize(bool canceled, std::exception_ptr &eptr)
 {
-    if (was_canceled()) return;
+    try {
+        if (eptr)
+            std::rethrow_exception(eptr);
+        eptr = nullptr;
+    } catch (...) {
+        eptr = std::current_exception();
+    }
 
-    Job::finalize();
+    if (canceled || eptr)
+        return;
 }
 
 void UpgradeNetworkJob::set_event_handle(wxWindow *hanle)
