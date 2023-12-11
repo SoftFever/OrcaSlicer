@@ -193,7 +193,7 @@ json PrintagoPanel::GetAllStatus()
 
 bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &localFilename)
 {
-    boost::filesystem::path target_path = fs::path(localFilename.GetFullPath());
+    boost::filesystem::path target_path = fs::path(localFilename.GetFullPath().ToStdString());
     wxString                filename    = localFilename.GetFullName(); // just filename and extension
     bool                    cont        = true;
     bool                    download_ok = false;
@@ -216,7 +216,7 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
             std::string  http_body;
 
             fs::path tmp_path = target_path;
-            tmp_path += format("%1%", ".download");
+            tmp_path.replace_extension(tmp_path.extension().string() + ".download");
 
             auto http = Http::get(url.ToStdString());
 
@@ -232,10 +232,11 @@ bool PrintagoPanel::DownloadFileFromURL(const wxString url, const wxFileName &lo
                     })
                     .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
                         (void) body;
-                        BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%", body, http_status, error);
+                        BOOST_LOG_TRIVIAL(error)
+                            << boost::str(boost::format("Error getting: `%1%`: HTTP %2%, %3%") % body % http_status % error);
 
                         if (retry_count == max_retries) {
-                            msg  = format("Error getting: `%1%`: HTTP %2%, %3%", body, http_status, error);
+                            msg = boost::str(boost::format("Error getting: `%1%`: HTTP %2%, %3%") % body % http_status % error);
                             cont = false;
                         }
                     })
@@ -423,7 +424,8 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommandEvent &event)
 
             wxFileName filename(localFilePath);
             if (!filename.GetExt().MakeUpper().compare("3MF")) {
-                wxGetApp().plater()->load_project(localFilePath, "-", true); // "-" is the default param, so I can set my extra flag noprompt=true the end.
+                wxGetApp().plater()->load_project(localFilePath, "-",
+                                                  true); // "-" is the default param, so I can set my extra flag noprompt=true the end.
             } else {
                 wxGetApp().plater()->load_files(filePathArray, strat, false);
             }
