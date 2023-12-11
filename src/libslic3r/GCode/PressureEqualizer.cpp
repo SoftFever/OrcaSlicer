@@ -155,7 +155,7 @@ void PressureEqualizer::process_layer(const std::string &gcode)
 long PressureEqualizer::advance_segment_beyond_small_gap(const long idx_orig)
 {
     // this should only be run on the last extruding line before a gap
-    assert(m_gcode_lines[idx_cur_pos].extruding());
+    assert(m_gcode_lines[idx_orig].extruding());
     double distance_traveled = 0.0;
     // start at beginning of gap, advance till extrusion found or gap too big
     for (auto idx_cur_pos = idx_orig + 1; idx_cur_pos < m_gcode_lines.size(); idx_cur_pos++) {
