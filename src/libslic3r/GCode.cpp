@@ -307,14 +307,27 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if(_wipe_speed < 10)
             _wipe_speed = 10;
         
+        // get the retraction length
         double length = toolchange
               ? gcodegen.writer().extruder()->retract_length_toolchange()
               : gcodegen.writer().extruder()->retraction_length();
         
-        // Store the amount retracted before wipe due to retract amount before wipe being set
-        double amount_retracted_before_wipe = length - length*(1. - gcodegen.writer().extruder()->retract_before_wipe());
+        // Store the amount retracted before wipe due to retract amount before wipe being set. We need to add this amount to any retraction operation done in this function.
+        double dE_retracted = length - length*(1. - gcodegen.writer().extruder()->retract_before_wipe());
+        
         // Shorten the retraction length by the amount already retracted before wipe.
         length *= (1. - gcodegen.writer().extruder()->retract_before_wipe());
+        
+        // Initialise the variable containing how much do we need to retract before the wipe operation is done (retraction before wipe accumulating variable)
+        double retract_before_wipe_length = 0;
+        // If the desired retraction amount (length) while wiping is larger than the filament retraction length, ear mark the delta to be retracted before the wipe
+        // This caps the desired retraction amount while wiping to no more than the filament retraction length
+        if(length > gcodegen.writer().extruder()->retraction_length()){
+            double excess_retraction_amount = length - gcodegen.writer().extruder()->retraction_length();
+            retract_before_wipe_length += excess_retraction_amount; // add the excess amount to the retraction before wipe accumulating variable.
+            length -=excess_retraction_amount; // reduce the amount that we need to retract while wiping
+            length = length < EPSILON ? EPSILON : length;
+        }
 
         //SoftFever: allow 100% retract before wipe
         if (length >= 0)
@@ -336,25 +349,22 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             
             // if the wipe path is not big enough to wipe the full requested distance, reduce the retraction amount proportionally
             // to avoid extreme retraction lengths over a small distance. The remaining retraction will be performed before the wipe.
-            double retract_before_wipe_length = 0; // variable containing how much we should retract before a wipe is done to protect the extruder
             if(wipe_path.length() < wipe_dist && !wipe_path.empty()){
-                double desired_wipe_length = length;
-                //double maximum_retraction_amount = gcodegen.writer().extruder()->retraction_length() * (wipe_path.length() / wipe_dist ); // this is the maximum we can retract while wiping
-                double maximum_retraction_amount = length * (wipe_path.length() / wipe_dist ); // this is the maximum we can retract while wiping
-                retract_before_wipe_length = desired_wipe_length - maximum_retraction_amount; // retract amount before doing the wipe move
-                
+                double maximum_retraction_amount = length * (wipe_path.length() / wipe_dist ); // this is the maximum we can retract while wiping. It is the proportion of the available wipe distance against the desired wipe distance over the desired retraction length.
+                retract_before_wipe_length += length - maximum_retraction_amount; // Increment the retraction before wipe accumulating variable with the excess retraction amount
                 // Debug GCode Output - to remove before release
-                gcode +=";HERE: \n;Desired retraction amount: "+std::to_string(desired_wipe_length) +
+                gcode +=";HERE: \n;Desired retraction amount: "+std::to_string(length) +
                         "\n;Maximum retraction amount: "+std::to_string(maximum_retraction_amount)+
                         "\n;Retract before wipe amount: "+std::to_string(retract_before_wipe_length)+
                         "\n;Available wipe path distance: "+std::to_string(wipe_path.length())+
                         "\n;Desired wipe path distance: "+std::to_string(wipe_dist)+
                         "\n";
-                if(retract_before_wipe_length > EPSILON)
-                    gcode += gcodegen.writer().retract(retract_before_wipe_length + amount_retracted_before_wipe, toolchange); // retract the excess amount in addition to whatever distance has been retracted before because of the retract amount before wipe
-                length  = maximum_retraction_amount; // set the retraction length while wiping to the final retraction amount.
+                length  = maximum_retraction_amount; // set the retraction length while wiping to the maximum we can retract while wiping.
                 length = length < EPSILON ? EPSILON : length;
             }
+            // if we have any amount to retract before the wipe procedure is done, do it now.
+            if(retract_before_wipe_length > EPSILON)
+                gcode += gcodegen.writer().retract(retract_before_wipe_length, toolchange); // retract the excess amount in addition to whatever distance has been retracted before because of the retract amount before wipe
 
             wipe_path.clip_end(wipe_path.length() - wipe_dist);
 
