@@ -2561,7 +2561,16 @@ int CLI::run(int argc, char **argv)
             m_extra_config.erase("filament_colour");
 
             if (disable_wipe_tower_after_mapping) {
-                std::set<std::string> filament_color_set(selected_filament_colors.begin(), selected_filament_colors.end());
+                std::set<std::string> filament_color_set;
+                for (unsigned int color_index = 0; color_index <selected_filament_colors.size(); color_index++)
+                {
+                    if (!selected_filament_colors[color_index].empty()) {
+                        filament_color_set.emplace(selected_filament_colors[color_index]);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("add color, index %1%, value %2% to set")%color_index %selected_filament_colors[color_index];
+                    }
+                    else
+                        BOOST_LOG_TRIVIAL(info) << boost::format("skip empty color %1%")%color_index;
+                }
 
                 if (filament_color_set.size() > 1) {
                     disable_wipe_tower_after_mapping = false;
