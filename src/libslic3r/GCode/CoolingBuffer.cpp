@@ -736,8 +736,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
     int  supp_interface_fan_speed = 0;
     auto change_extruder_set_fan = [ this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &supp_interface_fan_control, &supp_interface_fan_speed](bool immediately_apply) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
-        int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
-        int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
+        float fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
+        float fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
         //BBS
         int additional_fan_speed_new = EXTRUDER_CONFIG(additional_cooling_fan_speed);
         int close_fan_the_first_x_layers = EXTRUDER_CONFIG(close_fan_the_first_x_layers);
@@ -751,7 +751,7 @@ std::string CoolingBuffer::apply_layer_cooldown(
             close_fan_the_first_x_layers = 1;
         }
         if (int(layer_id) >= close_fan_the_first_x_layers) {
-            int   fan_max_speed             = EXTRUDER_CONFIG(fan_max_speed);
+            float   fan_max_speed             = EXTRUDER_CONFIG(fan_max_speed);
             float slow_down_layer_time = float(EXTRUDER_CONFIG(slow_down_layer_time));
             float fan_cooling_layer_time      = float(EXTRUDER_CONFIG(fan_cooling_layer_time));
             //BBS: always enable the fan speed interpolation according to layer time
