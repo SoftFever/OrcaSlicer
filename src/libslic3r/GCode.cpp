@@ -351,24 +351,22 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 
                 scale_(gcodegen.config().retraction_speed.get_at(gcodegen.writer().extruder()->id()));
                 
-                // Ioannis Giannakas:
-                // Calculate the maximum retraction length possible in the available wipe distance, in order to maintain the same effective
-                // retraction speed as a stationary retraction.
-                double maxRetractionLength = gcodegen.config().retraction_speed.get_at(gcodegen.writer().extruder()->id())
-                                            * (wipe_path.length() / 1000000)
-                                            / _wipe_speed;
-                if (maxRetractionLength < (length - EPSILON)){
+                if(gcodegen.config().respect_retraction_speed_when_wiping){
                     // Ioannis Giannakas:
-                    // the maximum retraction length possible in the available wipe path with the current wipe speed is less than the
-                    // requested retraction length while wiping. As such, perform an immediate retraction for the difference and proceed to
-                    // wipe with the rest.
-                    gcode +=";Wipe retraction adjusted: \n;Desired retraction amount: "+std::to_string(length) +
-                            "\n;Maximum retraction amount: "+std::to_string(maxRetractionLength)+
-                            "\n;Retract before wipe: "+std::to_string(length - maxRetractionLength)+
-                            "\n";
-                    gcode += gcodegen.writer().retract(length - maxRetractionLength + dE_retracted, toolchange);
-                    length = maxRetractionLength;
-                    length = length < EPSILON ? EPSILON : length;
+                    // Calculate the maximum retraction length possible in the available wipe distance, in order to maintain the same effective
+                    // retraction speed as a stationary retraction.
+                    double maxRetractionLength = gcodegen.config().retraction_speed.get_at(gcodegen.writer().extruder()->id())
+                    * (wipe_path.length() / 1000000)
+                    / _wipe_speed;
+                    if (maxRetractionLength < (length - EPSILON)){
+                        // Ioannis Giannakas:
+                        // the maximum retraction length possible in the available wipe path with the current wipe speed is less than the
+                        // requested retraction length while wiping. As such, perform an immediate retraction for the difference and proceed to
+                        // wipe with the rest.
+                        //gcode += gcodegen.writer().retract(length - maxRetractionLength + dE_retracted, toolchange);
+                        length = maxRetractionLength;
+                        length = length < EPSILON ? EPSILON : length;
+                    }
                 }
 
                 // add tag for processor

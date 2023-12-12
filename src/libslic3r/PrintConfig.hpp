@@ -1084,6 +1084,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              extruder_clearance_radius))
     ((ConfigOptionStrings,            extruder_colour))
     ((ConfigOptionPoints,             extruder_offset))
+    ((ConfigOptionBool,              respect_retraction_speed_when_wiping))
     ((ConfigOptionBools,              reduce_fan_stop_start_freq))
     ((ConfigOptionFloats,             fan_cooling_layer_time))
     ((ConfigOptionStrings,            filament_colour))

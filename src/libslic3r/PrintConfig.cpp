@@ -3111,6 +3111,12 @@ def = this->add("filament_loading_speed", coFloats);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents { 100 });
 
+    def = this->add("respect_retraction_speed_when_wiping", coBool);
+    def->label = L("Respect retraction speed when wiping");
+    def->tooltip = L("Adjust the retraction amount when wiping to ensure the retraction speed is respected. This setting can protect the extruder from stalling in the scenario of too high a retraction amount over too small a wipe distance. However, it may result in a stationary retraction at the end of the wipe move if the retraction speed it too slow, the retraction distance being too high or the wipe distance being too small. \n\nIt is generaly recomended to have this setting on, especially for fast bowden printers or when using high retraction lengths when changing materials.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool { true });
+
     def = this->add("retract_when_changing_layer", coBools);
     def->label = L("Retract when change layer");
     def->tooltip = L("Force a retraction when changes layer");
@@ -4558,7 +4564,7 @@ void PrintConfigDef::init_extruder_option_keys()
         "retraction_length", "z_hop", "z_hop_types", "retract_lift_above", "retract_lift_below", "retract_lift_enforce", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
-        "default_filament_profile"
+        "default_filament_profile", "respect_retraction_speed_when_wiping"
     };
 
     m_extruder_retract_keys = {
