@@ -16,7 +16,7 @@
   "enable_filament_ramming": "0",
   "nozzle_volume": "0",
   "cooling_tube_retraction": "0",
-  "cooling_tube_length": "8",
+  "cooling_tube_length": "0",
   "parking_pos_retraction": "0",
   "extra_loading_move": "-2",
   "high_current_on_filament_swap": "0",

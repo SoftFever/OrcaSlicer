@@ -79,6 +79,10 @@
 			"sub_path": "process/fdm_process_creality_common.json"
 		},
 		{
+			"name": "fdm_process_common_klipper",
+			"sub_path": "process/fdm_process_common_klipper.json"
+		},
+		{
 			"name": "fdm_process_creality_common_0_2",
 			"sub_path": "process/fdm_process_creality_common_0_2.json"
 		},
