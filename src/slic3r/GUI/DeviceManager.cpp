@@ -2782,6 +2782,8 @@ int MachineObject::parse_json(std::string payload)
                             ver_info.sn = (*it)["sn"].get<std::string>();
                         if ((*it).contains("hw_ver"))
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
+                        if((*it).contains("flag"))
+                            ver_info.firmware_status= (*it)["flag"].get<int>();
                         module_vers.emplace(ver_info.name, ver_info);
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();

@@ -363,6 +363,10 @@ public:
         std::string hw_ver;
         std::string sw_ver;
         std::string sw_new_ver;
+        int         firmware_status;
+        ModuleVersionInfo() :firmware_status(0) {
+
+        };
     };
 
     enum SdcardState {
