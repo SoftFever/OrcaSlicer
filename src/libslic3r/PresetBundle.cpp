@@ -1011,7 +1011,7 @@ int PresetBundle::validate_presets(const std::string &file_name, DynamicPrintCon
         return ret;
     }
 
-    for(unsigned int index = 1; index < filament_count+2; index ++)
+    for(unsigned int index = 1; index < filament_count; index ++)
     {
         std::string different_settingss = different_values[index];
 
