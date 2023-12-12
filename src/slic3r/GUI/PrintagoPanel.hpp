@@ -3,39 +3,24 @@
 
 #include "nlohmann/json.hpp"
 
-#include "slic3r/GUI/SelectMachine.hpp"
-#include "slic3r/GUI/BackgroundSlicingProcess.hpp"
-#include "wx/artprov.h"
-#include "wx/cmdline.h"
-#include "wx/notifmsg.h"
-#include "wx/settings.h"
-#include "wx/webview.h"
-#include <wx/tokenzr.h>
 #include <wx/event.h>
+#include <wx/tokenzr.h>
+#include "slic3r/GUI/BackgroundSlicingProcess.hpp"
+#include "slic3r/GUI/SelectMachine.hpp"
+#include "wx/webview.h"
 
 #if wxUSE_WEBVIEW_EDGE
 #include "wx/msw/webview_edge.h"
 #endif
 
-#include "wx/webviewarchivehandler.h"
-#include "wx/webviewfshandler.h"
-#include "wx/numdlg.h"
-#include "wx/infobar.h"
-#include "wx/filesys.h"
-#include "wx/filename.h"
-#include "wx/fs_arc.h"
-#include "wx/fs_mem.h"
-#include "wx/stdpaths.h"
-#include <wx/panel.h>
-#include <wx/tbarbase.h>
-#include "wx/textctrl.h"
-#include <wx/timer.h>
-#include <wx/string.h>
-#include <wx/hashmap.h>
-#include <wx/uri.h>
-#include <wx/url.h>
 #include <map>
 #include <curl/curl.h>
+#include <wx/hashmap.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/url.h>
+#include "wx/filename.h"
+#include "wx/infobar.h"
 
 namespace Slic3r {
 
@@ -48,6 +33,7 @@ class PrintagoCommandEvent; // forward declaration
 
 wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDECLARE_EVENT(PRINTAGO_COMMAND_EVENT, PrintagoCommandEvent);
+wxDECLARE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 
 class PrintagoCommandEvent : public wxCommandEvent
 {
@@ -122,9 +108,10 @@ class PrintagoPanel : public wxPanel
 public:
     PrintagoPanel(wxWindow *parent, wxString *url);
     virtual ~PrintagoPanel();
-    void OnProcessCompleted(SlicingProcessCompletedEvent &event);
-    void load_url(wxString &url);
-    bool m_can_process_job = true; // let's us know if we can clear/add files/slice/send.
+    void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &event);
+    void load_url(wxString &url);  
+    void set_can_process_job(bool can_process_job);
+    bool can_process_job() { return m_can_process_job; }
 
     void OnNavigationRequest(wxWebViewEvent &evt);
     void OnNavigationComplete(wxWebViewEvent &evt);
@@ -132,7 +119,6 @@ public:
     void OnNewWindow(wxWebViewEvent &evt);
     void OnError(wxWebViewEvent &evt);
     void RunScript(const wxString &javascript);
-
     void OnPrintagoSendWebViewMessage(PrintagoMessageEvent &event);
 
 private:
@@ -140,26 +126,28 @@ private:
     wxWebView             *m_browser;
     wxBoxSizer            *bSizer_toolbar;
 
-    SelectMachineDialog *m_select_machine_dlg = nullptr;
-
     wxInfoBar    *m_info;
     wxStaticText *m_info_text;
 
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
     // no need to send this for commands like home/jog.
-    wxString jobPrinterId;
+    wxString                    jobPrinterId;
+    wxString                    jobCommand;
+    wxString                    jobLocalFilePath; 
+    SelectMachineDialog *m_select_machine_dlg = nullptr;
+    inline static bool          m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
 
     void HandlePrintagoCommand(const PrintagoCommandEvent &event);
 
     // void SendJsonMessage(const wxString &msg_type, const wxString &printer_id, const json &data, const wxString &command = "");
     void SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command = "");
     void SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command = "");
-    void SendErrorMessage(const wxString &printer_id, const json &errorData, const wxString &command = "");
-    void SendSuccessMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "");
+    void SendErrorMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "", const wxString &errorDetail = "");
+    void SendSuccessMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "", const wxString &localCommandDetail = "");
 
     // wraps sending and error response, and unblocks the server for job processing.
-    void SendErrorAndUnblock(const wxString &printer_id, const json &errorData, const wxString &command);
+    void SendErrorAndUnblock(const wxString &printer_id, const wxString &localCommand, const wxString &command, const wxString &errorDetail);
 
     wxStringToStringHashMap      ParseQueryString(const wxString &queryString);
     std::map<wxString, wxString> ExtractPrefixedParams(const wxStringToStringHashMap &params, const wxString &prefix);
@@ -168,15 +156,12 @@ private:
     json GetMachineStatus(const wxString &printerId);
     json GetMachineStatus(MachineObject *machine);
 
-    bool            SavePrintagoFile(const wxString url, wxString &localPath);
-    static wxString wxURLErrorToString(wxURLError error);
-
+    bool SavePrintagoFile(const wxString url, wxString &localPath);
     bool DownloadFileFromURL(const wxString url, const wxFileName &localPath);
 
-    static json MachineObjectToJson(MachineObject *machine);
-
-    void set_can_process_job(bool can_process_job);
-    bool can_process_job() const { return m_can_process_job; }
+    static wxString wxURLErrorToString(wxURLError error);
+    static json     MachineObjectToJson(MachineObject *machine);
+    
 };
 
 } // namespace GUI

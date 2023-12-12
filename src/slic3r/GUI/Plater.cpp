@@ -6140,10 +6140,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         }
     }
-    
-    if (wxGetApp().mainframe->m_printago != nullptr)
-        wxGetApp().mainframe->m_printago->OnProcessCompleted(evt);
 
+    if (wxGetApp().mainframe->m_printago != nullptr && !wxGetApp().mainframe->m_printago->can_process_job()) {
+        wxEvent *clonedEvent = evt.Clone();
+        wxQueueEvent(wxGetApp().mainframe->m_printago, clonedEvent);
+    }
+    
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 

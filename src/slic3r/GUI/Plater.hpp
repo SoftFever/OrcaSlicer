@@ -49,6 +49,7 @@ class SLAPrint;
 //BBS: add partplatelist and SlicingStatusEvent
 class PartPlateList;
 class SlicingStatusEvent;
+class SlicingProcessCompletedEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class Ams;
@@ -95,7 +96,7 @@ wxDECLARE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 wxDECLARE_EVENT(EVT_PRINT_FROM_SDCARD_VIEW,   SimpleEvent);
-
+wxDECLARE_EVENT(EVT_PROCESS_COMPLETED, Slic3r::SlicingProcessCompletedEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
