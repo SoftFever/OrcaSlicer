@@ -3864,7 +3864,6 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("wipe", "", extruder_idx);
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
-            optgroup->append_single_option_line("respect_retraction_speed_when_wiping", "", extruder_idx);
 
             optgroup = page->new_optgroup(L("Lift Z Enforcement"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_lift_above", "", extruder_idx);
@@ -4110,7 +4109,6 @@ void TabPrinter::toggle_options()
         }
         // BBS
         toggle_option("wipe_distance", wipe, i);
-        toggle_option("respect_retraction_speed_when_wiping", wipe, i);
 
         toggle_option("retract_length_toolchange", have_multiple_extruders, i);
 
