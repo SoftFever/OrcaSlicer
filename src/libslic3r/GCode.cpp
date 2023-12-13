@@ -360,13 +360,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 if (maxRetractionLength < (length - EPSILON)){
                     // Ioannis Giannakas:
                     // the maximum retraction length possible in the available wipe path with the current wipe speed is less than the
-                    // requested retraction length while wiping. As such, perform an immediate retraction for the difference and proceed to
-                    // wipe with the rest.
-                    gcode +=";Wipe retraction adjusted: \n;Desired retraction amount: "+std::to_string(length) +
-                            "\n;Maximum retraction amount: "+std::to_string(maxRetractionLength)+
-                            "\n;Retract before wipe: "+std::to_string(length - maxRetractionLength)+
-                            "\n";
-                    gcode += gcodegen.writer().retract(length - maxRetractionLength + dE_retracted, toolchange);
+                    // requested retraction length while wiping. As such, perform an immediate retraction for the difference if the user has set the retract before wipe
+                    // option and proceed to wipe with the rest. If the user has not requested any retract before wipe, proceed with wiping only and retract
+                    // at the end of the move.
+                    if(gcodegen.config().retract_before_wipe.get_at(gcodegen.writer().extruder()->id()) > 0)
+                        gcode += gcodegen.writer().retract(length - maxRetractionLength + dE_retracted, toolchange);
                     length = maxRetractionLength;
                     length = length < EPSILON ? EPSILON : length;
                 }
