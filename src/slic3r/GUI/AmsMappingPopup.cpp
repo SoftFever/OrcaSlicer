@@ -1507,7 +1507,11 @@ void AmsRMGroup::doRender(wxDC& dc)
 
         int x = size.x / 2;
         int y = size.y / 2;
-        int radius = size.x / 2 - FromDIP(2);
+        int radius;
+        if (wxGetApp().dark_mode())
+            radius = size.x / 2 - int(size.x * 0.02);
+        else
+            radius = size.x / 2;
         endAngle += ev_angle;
 
  
