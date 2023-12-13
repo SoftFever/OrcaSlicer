@@ -3113,7 +3113,7 @@ def = this->add("filament_loading_speed", coFloats);
 
     def = this->add("respect_retraction_speed_when_wiping", coBool);
     def->label = L("Respect retraction speed when wiping");
-    def->tooltip = L("Adjust the retraction amount when wiping to ensure the retraction speed is respected. This setting can protect the extruder from stalling in the scenario of too high a retraction amount over too small a wipe distance. However, it may result in a stationary retraction at the end of the wipe move if the retraction speed it too slow, the retraction distance being too high or the wipe distance being too small. \n\nIt is generaly recomended to have this setting on, especially for fast bowden printers or when using high retraction lengths when changing materials.");
+    def->tooltip = L("Adjust the retraction amount when wiping to ensure the retraction speed is respected. This setting can protect the extruder from stalling in the scenario of too high a retraction amount over too small a wipe distance. However, it may result in a stationary retraction at the end of the wipe move if the retraction speed is too slow, the retraction distance is too high or the wipe distance is too small. \n\nIt is generaly recomended to have this setting on, especially for fast bowden printers or when using high retraction lengths when changing materials.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool { true });
 
