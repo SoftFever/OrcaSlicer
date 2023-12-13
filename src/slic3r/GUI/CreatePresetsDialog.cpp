@@ -4407,17 +4407,18 @@ void EditFilamentPresetDialog::edit_preset()
         return;
     }
 
+    EndModal(wxID_EDIT);
+    //Popup needs to be called before "restore_last_select_item", otherwise the page may not be updated
+    wxGetApp().params_dialog()->set_editing_filament_id(m_filament_id);
+    wxGetApp().params_dialog()->Popup();
     tab->restore_last_select_item();
 
-    wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
+    tab->select_preset(need_edit_preset_name);
     // when some preset have modified, if the printer is not need_edit_preset_name compatible printer, the preset will jump to other preset, need select again
-    if (!need_edit_preset->is_compatible) wxGetApp().get_tab(need_edit_preset->type)->select_preset(need_edit_preset_name);
-
+    if (!need_edit_preset->is_compatible) tab->select_preset(need_edit_preset_name);
+    
     m_selected_printer.clear();
     m_need_edit_preset_index = -1;
-
-    wxGetApp().params_dialog()->set_editing_filament_id(m_filament_id);
-    EndModal(wxID_EDIT);
 }
 
 wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
