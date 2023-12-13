@@ -43,7 +43,7 @@ SpiralPoint nearest_point_on_line(SpiralPoint c, SpiralPoint a, SpiralPoint b, f
 
 /** Given a set of lines defined by points such as line[n] is the line from points[n] to points[n+1],
  *  find the closest point to p that falls on any of the lines */
-SpiralPoint nearest_point_on_polygon(SpiralPoint p, std::vector<SpiralPoint>* points, bool& found, float& dist) {
+SpiralPoint nearest_point_on_lines(SpiralPoint p, std::vector<SpiralPoint>* points, bool& found, float& dist) {
     if(points->size()<2) {
         found=false;
         return SpiralPoint(0,0);
@@ -136,20 +136,20 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                 return;
             } else {
                 float dist_XY = line.dist_XY(reader);
+                // horizontal move
                 if (dist_XY > 0) {
-                    // horizontal move
-                    if (line.extruding(reader)) { // We need this to exclude retract and wipe moves!
+                    if (line.extruding(reader)) { // Exclude wipe and retract
                         len += dist_XY;
                         float factor = len / total_layer_length;
                         if (transition_in)
                             // Transition layer, interpolate the amount of extrusion from zero to the final value.
-                            line.set(reader, E, line.e() * factor);
+                            line.set(reader, E, line.e() * factor, 5 /*decimal_digits*/);
                         else if (transition_out) {
                             // We want the last layer to ramp down extrusion, but without changing z height!
                             // So clone the line before we mess with its Z and duplicate it into a new layer that ramps down E
                             // We add this new layer at the very end
                             GCodeReader::GCodeLine transitionLine(line);
-                            transitionLine.set(reader, E, line.e() * (1 - factor));
+                            transitionLine.set(reader, E, line.e() * (1 - factor), 5 /*decimal_digits*/);
                             transition_gcode += transitionLine.raw() + '\n';
                         }
                         // This line is the core of Spiral Vase mode, ramp up the Z smoothly
@@ -158,11 +158,10 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                             // Now we also need to try to interpolate X and Y
                             SpiralPoint p(line.x(), line.y()); // Get current x/y coordinates
                             current_layer->push_back(p);       // Store that point for later use on the next layer
-
                             if (previous_layer != NULL) {
                                 bool        found    = false;
                                 float       dist     = 0;
-                                SpiralPoint nearestp = nearest_point_on_polygon(p, previous_layer, found, dist);
+                                SpiralPoint nearestp = nearest_point_on_lines(p, previous_layer, found, dist);
                                 if (found && dist < max_xy_dist_for_smoothing) {
                                     // Interpolate between the point on this layer and the point on the previous layer
                                     SpiralPoint target = add(scale(nearestp, 1 - factor), scale(p, factor));
@@ -170,8 +169,8 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                                     line.set(reader, Y, target.y);
                                     // We need to figure out the distance of this new line!
                                     float modified_dist_XY = distance(last_point, target);
-                                    line.set(reader, E,
-                                             line.e() * modified_dist_XY / dist_XY); // Scale the extrusion amount according to change in length
+                                    // Scale the extrusion amount according to change in length
+                                    line.set(reader, E, line.e() * modified_dist_XY / dist_XY, 5 /*decimal_digits*/);
                                     last_point = target;
                                 } else {
                                     last_point = p;
@@ -186,7 +185,7 @@ std::string SpiralVase::process_layer(const std::string &gcode, bool last_layer)
                         it we blend the first loop move in the XY plane (although the smoothness
                         of such blend depend on how long the first segment is; maybe we should
                         enforce some minimum length?).
-                        When smooth_spiral is enabled, we're gonna end up exactly where the next layer should 
+                        When smooth_spiral is enabled, we're gonna end up exactly where the next layer should
                         start anyway, so we don't need the travel move */
                 }
             }
