@@ -28,19 +28,18 @@ class NetworkAgent;
 
 namespace GUI {
 
-class PrintagoMessageEvent; // forward declaration
-class PrintagoCommandEvent; // forward declaration
+class PrintagoMessage; // forward declaration
+class PrintagoCommand; // forward declaration
 
-wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
-wxDECLARE_EVENT(PRINTAGO_COMMAND_EVENT, PrintagoCommandEvent);
+// wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessage);
 wxDECLARE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 
-class PrintagoCommandEvent : public wxCommandEvent
+class PrintagoCommand 
 {
 public:
-    PrintagoCommandEvent(wxEventType commandType = PRINTAGO_COMMAND_EVENT, int id = 0) : wxCommandEvent(commandType, id) {}
+    PrintagoCommand() = default;
 
-    PrintagoCommandEvent(const PrintagoCommandEvent &event) : wxCommandEvent(event)
+    PrintagoCommand(const PrintagoCommand &event)
     {
         this->m_command_type         = event.m_command_type;
         this->m_action               = event.m_action;
@@ -48,9 +47,7 @@ public:
         this->m_original_command_str = event.m_original_command_str;
     }
 
-    virtual ~PrintagoCommandEvent() {}
-
-    wxEvent *Clone() const override { return new PrintagoCommandEvent(*this); }
+    virtual ~PrintagoCommand() {}
 
     void SetCommandType(const wxString &command) { this->m_command_type = command; }
     void SetAction(const wxString &action) { this->m_action = action; }
@@ -69,12 +66,12 @@ private:
     wxString                m_original_command_str;
 };
 
-class PrintagoMessageEvent : public wxCommandEvent
+class PrintagoMessage : public wxCommandEvent
 {
 public:
-    PrintagoMessageEvent(wxEventType commandType = PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, int id = 0) : wxCommandEvent(commandType, id) {}
+    PrintagoMessage()= default;
 
-    PrintagoMessageEvent(const PrintagoMessageEvent &event) : wxCommandEvent(event)
+    PrintagoMessage(const PrintagoMessage &event) 
     {
         this->m_message_type = event.m_message_type;
         this->m_printer_id   = event.m_printer_id;
@@ -82,9 +79,9 @@ public:
         this->m_data         = event.m_data;
     }
 
-    virtual ~PrintagoMessageEvent() {}
+    virtual ~PrintagoMessage() {}
 
-    wxEvent *Clone() const override { return new PrintagoMessageEvent(*this); }
+    wxEvent *Clone() const override { return new PrintagoMessage(*this); }
 
     void SetMessageType(const wxString &message) { this->m_message_type = message; }
     void SetPrinterId(const wxString &printer_id) { this->m_printer_id = printer_id; }
@@ -119,7 +116,7 @@ public:
     void OnNewWindow(wxWebViewEvent &evt);
     void OnError(wxWebViewEvent &evt);
     void RunScript(const wxString &javascript);
-    void OnPrintagoSendWebViewMessage(PrintagoMessageEvent &event);
+    
 
 private:
     Slic3r::DeviceManager *devManager;
@@ -134,13 +131,14 @@ private:
     // no need to send this for commands like home/jog.
     wxString                    jobPrinterId;
     wxString                    jobCommand;
-    wxString                    jobLocalFilePath; 
+    wxString                    jobLocalFilePath;
+    wxString                    jobServerState = "idle";  //TODO : use enum
     SelectMachineDialog *m_select_machine_dlg = nullptr;
     inline static bool          m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
 
-    void HandlePrintagoCommand(const PrintagoCommandEvent &event);
+    void HandlePrintagoCommand(const PrintagoCommand &event);
 
-    // void SendJsonMessage(const wxString &msg_type, const wxString &printer_id, const json &data, const wxString &command = "");
+    void SendWebViewMessage(PrintagoMessage &event);
     void SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command = "");
     void SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command = "");
     void SendErrorMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "", const wxString &errorDetail = "");

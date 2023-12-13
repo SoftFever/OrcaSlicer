@@ -19,8 +19,8 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r { namespace GUI {
 
-wxDEFINE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
-wxDEFINE_EVENT(PRINTAGO_COMMAND_EVENT, PrintagoCommandEvent);
+// wxDEFINE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessage);
+// wxDEFINE_EVENT(PRINTAGO_COMMAND_EVENT, PrintagoCommand);
 wxDEFINE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
 
 #define PRINTAGO_TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f // Minimum temperature to allow extrusion control (per StatusPanel.cpp)
@@ -50,8 +50,7 @@ PrintagoPanel::PrintagoPanel(wxWindow *parent, wxString *url) : wxPanel(parent, 
     Bind(wxEVT_WEBVIEW_LOADED, &PrintagoPanel::OnDocumentLoaded, this);
     Bind(wxEVT_WEBVIEW_ERROR, &PrintagoPanel::OnError, this);
     Bind(wxEVT_WEBVIEW_NEWWINDOW, &PrintagoPanel::OnNewWindow, this);
-    Bind(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, &PrintagoPanel::OnPrintagoSendWebViewMessage, this);
-    Bind(PRINTAGO_COMMAND_EVENT, &PrintagoPanel::HandlePrintagoCommand, this);
+    // Bind(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, &PrintagoPanel::SendWebViewMessage, this);
     Bind(EVT_PROCESS_COMPLETED, &PrintagoPanel::OnSlicingProcessCompleted, this);
 }
 
@@ -77,6 +76,7 @@ void PrintagoPanel::set_can_process_job(const bool can_process_job)
         jobPrinterId.Clear();
         jobCommand.Clear();
         jobLocalFilePath.Clear();
+        jobServerState = "idle";
         // jobId = ""; // TODO: add this here when we have it.
         m_select_machine_dlg = nullptr;
     }
@@ -155,6 +155,7 @@ json PrintagoPanel::GetMachineStatus(MachineObject *machine)
     statusObject["can_process_job"]     = can_process_job();
     statusObject["current_job_id"]      = ""; // add later from command.
     statusObject["current_job_machine"] = jobPrinterId.ToStdString();
+    statusObject["job_state"]           = jobServerState.ToStdString();
 
     machineList.push_back(MachineObjectToJson(machine));
     statusObject["machines"] = machineList;
@@ -304,7 +305,7 @@ wxString PrintagoPanel::wxURLErrorToString(wxURLError error)
     }
 }
 
-void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommandEvent &event)
+void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommand &event)
 {
     wxString                commandType        = event.GetCommandType();
     wxString                action             = event.GetAction();
@@ -404,7 +405,10 @@ void PrintagoPanel::HandlePrintagoCommand(const PrintagoCommandEvent &event)
                 decodedUrl = Http::url_decode(printagoFileUrl.ToStdString());
                 // TODO: validate that the URL is valid w/ regex.
             }
-
+            
+            SendSuccessMessage(printerId, action + ":start", originalCommandStr, actionDetail);
+            jobServerState = "download";
+            
             if (SavePrintagoFile(decodedUrl, jobLocalFilePath)) {
                 wxLogMessage("Downloaded file to: " + jobLocalFilePath);
             } else {
@@ -655,25 +659,27 @@ std::map<wxString, wxString> PrintagoPanel::ExtractPrefixedParams(const wxString
 void PrintagoPanel::SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command)
 {
     // SendJsonMessage("status", printer_id, statusData, command);
-    PrintagoMessageEvent event;
+    PrintagoMessage event;
     event.SetMessageType("status");
     event.SetPrinterId(printer_id);
     event.SetCommand(command);
     event.SetData(statusData);
 
-    wxPostEvent(this, event);
+    SendWebViewMessage(event);
+    // wxPostEvent(this, event);
 }
 
 void PrintagoPanel::SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command)
 {
     // SendJsonMessage("response", printer_id, responseData, command);
-    PrintagoMessageEvent event;
+    PrintagoMessage event;
     event.SetMessageType("status");
     event.SetPrinterId(printer_id);
     event.SetCommand(command);
     event.SetData(responseData);
 
-    wxPostEvent(this, event);
+    SendWebViewMessage(event);
+    // wxPostEvent(this, event);
 }
 
 void PrintagoPanel::SendSuccessMessage(const wxString &printer_id,
@@ -686,13 +692,14 @@ void PrintagoPanel::SendSuccessMessage(const wxString &printer_id,
     responseData["local_command_detail"] = localCommandDetail.ToStdString();
     responseData["success"]              = true;
 
-    PrintagoMessageEvent event;
+    PrintagoMessage event;
     event.SetMessageType("success");
     event.SetPrinterId(printer_id);
     event.SetCommand(command);
     event.SetData(responseData);
 
-    wxPostEvent(this, event);
+    SendWebViewMessage(event);
+    // wxPostEvent(this, event);
 }
 
 void PrintagoPanel::SendErrorMessage(const wxString &printer_id,
@@ -705,13 +712,14 @@ void PrintagoPanel::SendErrorMessage(const wxString &printer_id,
     errorResponse["error_detail"]  = errorDetail.ToStdString();
     errorResponse["success"]       = false;
 
-    PrintagoMessageEvent event;
+    PrintagoMessage event;
     event.SetMessageType("error");
     event.SetPrinterId(printer_id);
     event.SetCommand(command);
     event.SetData(errorResponse);
 
-    wxPostEvent(this, event);
+    SendWebViewMessage(event);
+    // wxPostEvent(this, event);
 }
 
 void PrintagoPanel::SendErrorAndUnblock(const wxString &printer_id,
@@ -723,7 +731,7 @@ void PrintagoPanel::SendErrorAndUnblock(const wxString &printer_id,
     SendErrorMessage(printer_id, localCommand, command, errorDetail);
 }
 
-void PrintagoPanel::OnPrintagoSendWebViewMessage(PrintagoMessageEvent &event)
+void PrintagoPanel::SendWebViewMessage(PrintagoMessage &event)
 {
     // SendJsonMessage(event.GetMessageType(), event.GetPrinterId(), event.GetData(), event.GetCommand());
     wxDateTime now = wxDateTime::Now();
@@ -768,13 +776,13 @@ void PrintagoPanel::OnNavigationRequest(wxWebViewEvent &evt)
         wxString                query      = uri.GetQuery();          // Get the query part of the URI
         wxStringToStringHashMap parameters = ParseQueryString(query); // Use ParseQueryString to get parameters
 
-        PrintagoCommandEvent event;
+        PrintagoCommand event;
         event.SetCommandType(commandType);
         event.SetAction(action);
         event.SetParameters(parameters);
         event.SetOriginalCommandStr(url.ToStdString());
 
-        wxPostEvent(this, event);
+        HandlePrintagoCommand(event);
     }
 
     if (m_info->IsShown()) {
