@@ -518,7 +518,7 @@ void PrintJob::process()
 
 void PrintJob::finalize() {
     if (was_canceled()) return;
-
+    //PRINTAGO HERE!
     Job::finalize();
 }
 

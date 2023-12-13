@@ -28,13 +28,13 @@ class NetworkAgent;
 
 namespace GUI {
 
-class PrintagoMessage; // forward declaration
-class PrintagoCommand; // forward declaration
+class PrintagoMessageEvent; // forward declaration
 
-// wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessage);
+wxDECLARE_EVENT(PRINTAGO_SEND_WEBVIEW_MESSAGE_EVENT, PrintagoMessageEvent);
 wxDECLARE_EVENT(PRINTAGO_SLICING_PROCESS_COMPLETED_EVENT, SlicingProcessCompletedEvent);
+wxDECLARE_EVENT(PRINTAGO_SEND_PROGRESS_EVENT, wxThreadEvent);
 
-class PrintagoCommand 
+class PrintagoCommand
 {
 public:
     PrintagoCommand() = default;
@@ -66,12 +66,12 @@ private:
     wxString                m_original_command_str;
 };
 
-class PrintagoMessage : public wxCommandEvent
+class PrintagoMessageEvent : public wxEvent
 {
 public:
-    PrintagoMessage()= default;
+    PrintagoMessageEvent(wxEventType eventType = wxEVT_NULL) : wxEvent(0, eventType) {}
 
-    PrintagoMessage(const PrintagoMessage &event) 
+    PrintagoMessageEvent(const PrintagoMessageEvent &event)
     {
         this->m_message_type = event.m_message_type;
         this->m_printer_id   = event.m_printer_id;
@@ -79,9 +79,9 @@ public:
         this->m_data         = event.m_data;
     }
 
-    virtual ~PrintagoMessage() {}
+    virtual ~PrintagoMessageEvent() {}
 
-    wxEvent *Clone() const override { return new PrintagoMessage(*this); }
+    wxEvent *Clone() const override { return new PrintagoMessageEvent(*this); }
 
     void SetMessageType(const wxString &message) { this->m_message_type = message; }
     void SetPrinterId(const wxString &printer_id) { this->m_printer_id = printer_id; }
@@ -105,8 +105,12 @@ class PrintagoPanel : public wxPanel
 public:
     PrintagoPanel(wxWindow *parent, wxString *url);
     virtual ~PrintagoPanel();
+
     void OnSlicingProcessCompleted(SlicingProcessCompletedEvent &event);
-    void load_url(wxString &url);  
+    void OnJobSendProgress(wxThreadEvent &event);
+    void SendWebViewMessage(PrintagoMessageEvent &event);
+
+    void load_url(wxString &url);
     void set_can_process_job(bool can_process_job);
     bool can_process_job() { return m_can_process_job; }
 
@@ -116,7 +120,6 @@ public:
     void OnNewWindow(wxWebViewEvent &evt);
     void OnError(wxWebViewEvent &evt);
     void RunScript(const wxString &javascript);
-    
 
 private:
     Slic3r::DeviceManager *devManager;
@@ -129,20 +132,25 @@ private:
     // we set this to true when we need to issue a
     // command that must block (e.g slicing/sending a print to a printer)
     // no need to send this for commands like home/jog.
-    wxString                    jobPrinterId;
-    wxString                    jobCommand;
-    wxString                    jobLocalFilePath;
-    wxString                    jobServerState = "idle";  //TODO : use enum
+    wxString             jobPrinterId;
+    wxString             jobCommand;
+    wxString             jobLocalFilePath;
+    wxString             jobServerState       = "idle"; // TODO : use enum
     SelectMachineDialog *m_select_machine_dlg = nullptr;
-    inline static bool          m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
+    inline static bool   m_can_process_job    = true; // let's us know if we can clear/add files/slice/send.
 
     void HandlePrintagoCommand(const PrintagoCommand &event);
 
-    void SendWebViewMessage(PrintagoMessage &event);
     void SendStatusMessage(const wxString &printer_id, const json &statusData, const wxString &command = "");
     void SendResponseMessage(const wxString &printer_id, const json &responseData, const wxString &command = "");
-    void SendErrorMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "", const wxString &errorDetail = "");
-    void SendSuccessMessage(const wxString &printer_id, const wxString &localCommand, const wxString &command = "", const wxString &localCommandDetail = "");
+    void SendErrorMessage(const wxString &printer_id,
+                          const wxString &localCommand,
+                          const wxString &command     = "",
+                          const wxString &errorDetail = "");
+    void SendSuccessMessage(const wxString &printer_id,
+                            const wxString &localCommand,
+                            const wxString &command            = "",
+                            const wxString &localCommandDetail = "");
 
     // wraps sending and error response, and unblocks the server for job processing.
     void SendErrorAndUnblock(const wxString &printer_id, const wxString &localCommand, const wxString &command, const wxString &errorDetail);
@@ -159,7 +167,6 @@ private:
 
     static wxString wxURLErrorToString(wxURLError error);
     static json     MachineObjectToJson(MachineObject *machine);
-    
 };
 
 } // namespace GUI
