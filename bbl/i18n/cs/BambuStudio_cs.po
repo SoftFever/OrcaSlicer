@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 17:54+0800\n"
+"POT-Creation-Date: 2023-12-13 10:26+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -1832,11 +1832,6 @@ msgid "Sending print job through cloud service"
 msgstr "Odesílání tiskové úlohy prostřednictvím cloudové služby"
 
 msgid "Print task sending times out."
-msgstr ""
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -6988,6 +6983,9 @@ msgstr "Tisk"
 msgid "Idle"
 msgstr "Nečinný"
 
+msgid "Beta version"
+msgstr ""
+
 msgid "Latest version"
 msgstr "Nejnovější verze"
 
@@ -10957,7 +10955,7 @@ msgstr ""
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
 
 msgid ""

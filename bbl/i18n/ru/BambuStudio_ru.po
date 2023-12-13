@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio v1.8.0 Beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 17:54+0800\n"
+"POT-Creation-Date: 2023-12-13 10:26+0800\n"
 "PO-Revision-Date: 2023-11-12 22:00+0700\n"
 "Last-Translator: Andylg <andylg@yandex.ru>\n"
 "Language-Team: \n"
@@ -1866,11 +1866,6 @@ msgstr "Отправка задания на печать через облач�
 
 msgid "Print task sending times out."
 msgstr "Время отправки задания на печать истекло."
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly."
-msgstr ""
 
 msgid "Service Unavailable"
 msgstr "Сервис недоступен"
@@ -7201,6 +7196,9 @@ msgstr "Печать"
 msgid "Idle"
 msgstr "Простой"
 
+msgid "Beta version"
+msgstr ""
+
 msgid "Latest version"
 msgstr "Последняя версия"
 
@@ -11353,10 +11351,8 @@ msgstr ""
 "В поле ввода производителя/серии пластиковой нити введены пробелы. \n"
 "Пожалуйста, введите нормальное имя."
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
-"Имя производителя не может начинаться с числа. Пожалуйста, введите "
-"нормальное имя."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
@@ -12197,6 +12193,11 @@ msgstr ""
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как "
 "ABS, повышение температуры подогреваемого стола может снизить вероятность "
 "коробления?"
+
+#~ msgid "The beginning of the vendor can not be a number. Please re-enter."
+#~ msgstr ""
+#~ "Имя производителя не может начинаться с числа. Пожалуйста, введите "
+#~ "нормальное имя."
 
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "

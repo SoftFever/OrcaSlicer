@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 17:54+0800\n"
+"POT-Creation-Date: 2023-12-13 10:26+0800\n"
 "PO-Revision-Date: 2023-11-09 09:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1781,11 +1781,6 @@ msgstr "正在通过云端服务发送打印任务"
 
 msgid "Print task sending times out."
 msgstr "发送打印任务超时。"
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly."
-msgstr ""
 
 msgid "Service Unavailable"
 msgstr "服务不可用"
@@ -6774,6 +6769,9 @@ msgstr "打印中"
 msgid "Idle"
 msgstr "空闲"
 
+msgid "Beta version"
+msgstr ""
+
 msgid "Latest version"
 msgstr "最新版本"
 
@@ -10501,8 +10499,8 @@ msgstr "材料的供应商或系列输入中可能包含转义字符。请删除
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr "自定义供应商或系列中的所有输入都是空格。请重新输入。"
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
-msgstr "自定义供应商的开头不能是数字。请重新输入。"
+msgid "The vendor can not be a number. Please re-enter."
+msgstr "自定义供应商不能是数字。请重新输入。"
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
@@ -11297,6 +11295,9 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+#~ msgid "The beginning of the vendor can not be a number. Please re-enter."
+#~ msgstr "自定义供应商的开头不能是数字。请重新输入。"
 
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "

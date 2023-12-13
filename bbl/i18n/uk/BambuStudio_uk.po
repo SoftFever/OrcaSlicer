@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 17:54+0800\n"
+"POT-Creation-Date: 2023-12-13 10:26+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1840,11 +1840,6 @@ msgstr "Надсилання завдання на друк через хмар�
 
 msgid "Print task sending times out."
 msgstr "Час відправлення завдання на друк закінчився."
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly."
-msgstr ""
 
 msgid "Service Unavailable"
 msgstr "Сервіс недоступний"
@@ -7116,6 +7111,9 @@ msgstr "Друк"
 msgid "Idle"
 msgstr "Простій"
 
+msgid "Beta version"
+msgstr ""
+
 msgid "Latest version"
 msgstr "Остання версія"
 
@@ -11225,10 +11223,8 @@ msgstr ""
 "Усі введені значення в полі власного виробника або серійного номера є "
 "пробіли. Будь ласка, введіть щось інше."
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
-"Початок виробника не може бути числом. Будь ласка, введіть виробника з "
-"іншого початку."
 
 msgid ""
 "You have not selected a printer or preset yet. Please select at least one."
@@ -12104,6 +12100,11 @@ msgstr ""
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як "
 "ABS, відповідне підвищення температури гарячого ліжка може зменшити "
 "ймовірність деформації."
+
+#~ msgid "The beginning of the vendor can not be a number. Please re-enter."
+#~ msgstr ""
+#~ "Початок виробника не може бути числом. Будь ласка, введіть виробника з "
+#~ "іншого початку."
 
 #~ msgid ""
 #~ "The printer timed out while receiving a print job. Please check if the "

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 17:54+0800\n"
+"POT-Creation-Date: 2023-12-13 10:26+0800\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1835,11 +1835,6 @@ msgid "Sending print job through cloud service"
 msgstr "Invia stampa tramite servizio cloud"
 
 msgid "Print task sending times out."
-msgstr ""
-
-msgid ""
-"The printer timed out while receiving a print job. Please check if the "
-"network is functioning properly."
 msgstr ""
 
 msgid "Service Unavailable"
@@ -7028,6 +7023,9 @@ msgstr "Stampa"
 msgid "Idle"
 msgstr "Inattivo"
 
+msgid "Beta version"
+msgstr ""
+
 msgid "Latest version"
 msgstr "Ultima versione"
 
@@ -10986,7 +10984,7 @@ msgstr ""
 msgid "All inputs in the custom vendor or serial are spaces. Please re-enter."
 msgstr ""
 
-msgid "The beginning of the vendor can not be a number. Please re-enter."
+msgid "The vendor can not be a number. Please re-enter."
 msgstr ""
 
 msgid ""
