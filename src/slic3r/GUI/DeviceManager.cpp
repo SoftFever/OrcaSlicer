@@ -1384,6 +1384,9 @@ void MachineObject::parse_status(int flag)
         if (installed_plus && supported_plus) {
             is_support_p1s_plus = true;
         }
+        else {
+            is_support_p1s_plus = false;
+        }
     }
 
     sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
