@@ -21,21 +21,7 @@
 	"printable_height": "265",
 	"nozzle_type": "hardened_steel",
 	"auxiliary_fan": "0",
-	"machine_max_acceleration_e": ["5000", "5000"],
-	"machine_max_acceleration_extruding": ["20000", "20000"],
-	"machine_max_acceleration_retracting": ["5000", "5000"],
-	"machine_max_acceleration_travel": ["20000", "20000"],
-	"machine_max_acceleration_x": ["20000", "20000"],
-	"machine_max_acceleration_y": ["20000", "20000"],
-	"machine_max_acceleration_z": ["500", "200"],
-	"machine_max_speed_e": ["25", "25"],
-	"machine_max_speed_x": ["500", "200"],
-	"machine_max_speed_y": ["500", "200"],
-	"machine_max_speed_z": ["12", "12"],
-	"machine_max_jerk_e": ["2.5", "2.5"],
-	"machine_max_jerk_x": ["12", "12"],
-	"machine_max_jerk_y": ["12", "12"],
-	"machine_max_jerk_z": ["0.2", "0.4"],
+
 	"max_layer_height": [
 		"0.6"
 	],
@@ -47,7 +33,7 @@
 		"1"
 	],
 	"retract_before_wipe": [
-		"0%"
+		"85%"
 	],
 	"retraction_length": [
 		"5"
@@ -56,7 +42,7 @@
 		"2"
 	],
 	"deretraction_speed": [
-		"0"
+		"45"
 	],
 	"single_extruder_multi_material": "1",
 	"change_filament_gcode": "",

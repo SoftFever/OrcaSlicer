@@ -71,6 +71,10 @@
 			"sub_path": "process/fdm_process_neptune4_common.json"
 		},
 		{
+			"name": "fdm_process_neptune4max_common",
+			"sub_path": "process/fdm_process_neptune4max_common.json"
+		},
+		{
 			"name": "0.08mm Extra Fine @Elegoo Neptune",
 			"sub_path": "process/0.08mm Extra Fine @Elegoo Neptune.json"
 		},
