@@ -363,7 +363,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     // requested retraction length while wiping. As such, perform an immediate retraction for the difference if the user has set the retract before wipe
                     // option and proceed to wipe with the rest. If the user has not requested any retract before wipe, proceed with wiping only and retract
                     // at the end of the move.
-                    if(gcodegen.config().retract_before_wipe.get_at(gcodegen.writer().extruder()->id()) > 0)
+                    if(gcodegen.config().retract_before_wipe.get_at(gcodegen.writer().extruder()->id()) > EPSILON)
                         gcode += gcodegen.writer().retract(length - maxRetractionLength + dE_retracted, toolchange);
                     length = maxRetractionLength;
                     length = length < EPSILON ? EPSILON : length;
