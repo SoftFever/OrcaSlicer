@@ -55,11 +55,16 @@ class Wipe {
 public:
     bool enable;
     Polyline path;
+    struct RetractionValues{
+        double retractLengthBeforeWipe;
+        double retractLengthDuringWipe;
+    };
 
     Wipe() : enable(false) {}
     bool has_path() const { return !this->path.points.empty(); }
     void reset_path() { this->path = Polyline(); }
-    std::string wipe(GCode &gcodegen, bool toolchange = false, bool is_last = false);
+    std::string wipe(GCode &gcodegen, double length, bool toolchange = false, bool is_last = false);
+    RetractionValues calculateWipeRetractionLengths(GCode& gcodegen, bool toolchange);
 };
 
 class WipeTowerIntegration {
