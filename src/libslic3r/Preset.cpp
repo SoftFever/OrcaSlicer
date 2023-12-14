@@ -872,7 +872,7 @@ static std::vector<std::string> s_Preset_printer_options {
     //SoftFever
     "host_type", "print_host", "printhost_apikey",
     "print_host_webui",
-    "printhost_cafile","printhost_port","printhost_authorization_type"
+    "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke", "thumbnails", "thumbnails_format",
     "use_firmware_retraction", "use_relative_e_distances", "printer_notes",
     "cooling_tube_retraction",
